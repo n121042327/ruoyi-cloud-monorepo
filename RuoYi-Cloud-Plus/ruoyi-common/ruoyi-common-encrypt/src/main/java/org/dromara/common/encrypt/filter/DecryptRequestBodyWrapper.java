@@ -13,7 +13,6 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -25,14 +24,6 @@ public class DecryptRequestBodyWrapper extends HttpServletRequestWrapper {
 
     private final byte[] body;
 
-    /**
-     * 解密请求体并缓存为可重复读取的 JSON 请求体。
-     *
-     * @param request    原始请求
-     * @param privateKey RSA 私钥
-     * @param headerFlag 加密密钥请求头
-     * @throws IOException 读取请求体异常
-     */
     public DecryptRequestBodyWrapper(HttpServletRequest request, String privateKey, String headerFlag) throws IOException {
         super(request);
         // 获取 AES 密码 采用 RSA 加密
@@ -50,8 +41,7 @@ public class DecryptRequestBodyWrapper extends HttpServletRequestWrapper {
 
     @Override
     public BufferedReader getReader() {
-        Charset charset = Charset.forName(getCharacterEncoding());
-        return new BufferedReader(new InputStreamReader(getInputStream(), charset));
+        return new BufferedReader(new InputStreamReader(getInputStream()));
     }
 
 
@@ -82,17 +72,17 @@ public class DecryptRequestBodyWrapper extends HttpServletRequestWrapper {
 
             @Override
             public int available() {
-                return bais.available();
+                return body.length;
             }
 
             @Override
             public boolean isFinished() {
-                return bais.available() == 0;
+                return false;
             }
 
             @Override
             public boolean isReady() {
-                return true;
+                return false;
             }
 
             @Override

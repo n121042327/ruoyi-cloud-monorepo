@@ -1,4 +1,4 @@
-import type { MenuTypeEnum } from '@/enums/MenuTypeEnum';
+import { MenuTypeEnum } from '@/enums/MenuTypeEnum';
 
 /**
  * 菜单树形结构类型
@@ -8,28 +8,12 @@ export interface MenuTreeOption {
   label: string;
   parentId: string | number;
   weight: number;
-  menuType?: MenuTypeEnum | string;
-  visible?: string;
-  status?: string;
-  disabled?: boolean;
   children?: MenuTreeOption[];
 }
 
 export interface RoleMenuTree {
   menus: MenuTreeOption[];
-  checkedKeys: Array<string | number>;
-}
-
-/**
- * 角色菜单分配中的按钮节点类型
- */
-export interface RoleMenuButtonOption {
-  menuId: string | number;
-  menuName: string;
-  parentId: string | number;
-  perms?: string;
-  status?: string;
-  disabled?: boolean;
+  checkedKeys: string[];
 }
 
 /**
@@ -60,8 +44,6 @@ export interface MenuVO extends BaseEntity {
   visible: string;
   status: string;
   icon: string;
-  activeMenu: string;
-  ext: string;
   remark: string;
 }
 
@@ -81,8 +63,6 @@ export interface MenuForm {
   visible?: string;
   status?: string;
   icon?: string;
-  activeMenu?: string;
-  ext?: string;
   remark?: string;
   query?: string;
   perms?: string;

@@ -2,15 +2,14 @@ package org.dromara.demo;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+
 import org.dromara.demo.domain.ShardingOrder;
 import org.dromara.demo.mapper.ShardingOrderMapper;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-@Tag("exclude")
 class TOrderTest {
 
     @Autowired
@@ -28,19 +27,19 @@ class TOrderTest {
         page.setCurrent(3L);
         QueryWrapper<ShardingOrder> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByAsc("order_id");
-        torderMapper.selectPage(page, queryWrapper);
+        torderMapper.selectPage(page,queryWrapper);
         System.out.println(page.getTotal());
-        for (ShardingOrder order : page.getRecords()) {
-            System.out.print(order.getTotalMoney() + " ");
+        for(ShardingOrder order : page.getRecords()){
+            System.out.print(order.getTotalMoney()+" ");
         }
     }
 
     @Test
     void insert() {
-        for (Long i = 1L; i <= 100L; i++) {
+        for(Long i = 1L; i <= 100L; i++){
             ShardingOrder torder = new ShardingOrder();
             torder.setUserId(i);
-            torder.setTotalMoney(100 + Integer.parseInt(i + ""));
+            torder.setTotalMoney(100 + Integer.parseInt(i+""));
             torderMapper.insert(torder);
         }
 

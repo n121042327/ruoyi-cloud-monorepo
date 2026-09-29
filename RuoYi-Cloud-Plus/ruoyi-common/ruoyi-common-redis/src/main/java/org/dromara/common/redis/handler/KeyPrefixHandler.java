@@ -1,7 +1,7 @@
 package org.dromara.common.redis.handler;
 
 import org.dromara.common.core.utils.StringUtils;
-import org.redisson.config.NameMapper;
+import org.redisson.api.NameMapper;
 
 /**
  * redis缓存key前缀处理
@@ -14,21 +14,13 @@ public class KeyPrefixHandler implements NameMapper {
 
     private final String keyPrefix;
 
-    /**
-     * 创建 Redis Key 前缀处理器。
-     *
-     * @param keyPrefix Key 前缀
-     */
     public KeyPrefixHandler(String keyPrefix) {
         //前缀为空 则返回空前缀
-        this.keyPrefix = StringUtils.isBlank(keyPrefix) ? "" : keyPrefix + StringUtils.COLON;
+        this.keyPrefix = StringUtils.isBlank(keyPrefix) ? "" : keyPrefix + ":";
     }
 
     /**
-     * 为原始 Key 增加前缀。
-     *
-     * @param name 原始 Key
-     * @return 带前缀的 Key
+     * 增加前缀
      */
     @Override
     public String map(String name) {
@@ -42,10 +34,7 @@ public class KeyPrefixHandler implements NameMapper {
     }
 
     /**
-     * 去除 Key 前缀。
-     *
-     * @param name 带前缀的 Key
-     * @return 原始 Key
+     * 去除前缀
      */
     @Override
     public String unmap(String name) {

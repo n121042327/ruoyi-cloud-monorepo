@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 
 /**
@@ -53,12 +53,12 @@ public class RemoteUserVo implements Serializable {
     /**
      * 手机号码
      */
-    private String phoneNumber;
+    private String phonenumber;
 
     /**
      * 用户性别（0男 1女 2未知）
      */
-    private String gender;
+    private String sex;
 
     /**
      * 账号状态（0正常 1停用）
@@ -68,6 +68,6 @@ public class RemoteUserVo implements Serializable {
     /**
      * 创建时间
      */
-    private LocalDateTime createTime;
+    private Date createTime;
 
 }

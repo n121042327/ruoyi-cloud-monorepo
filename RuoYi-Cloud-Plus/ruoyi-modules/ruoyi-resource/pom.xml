@@ -49,12 +49,17 @@
 
         <dependency>
             <groupId>org.dromara</groupId>
-            <artifactId>ruoyi-common-redis</artifactId>
+            <artifactId>ruoyi-common-idempotent</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>ruoyi-common-oss</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>ruoyi-common-ratelimiter</artifactId>
         </dependency>
 
         <dependency>
@@ -72,6 +77,10 @@
             <artifactId>ruoyi-common-mybatis</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>ruoyi-common-tenant</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.dromara</groupId>
@@ -85,7 +94,12 @@
 
         <dependency>
             <groupId>org.dromara</groupId>
-            <artifactId>ruoyi-common-push</artifactId>
+            <artifactId>ruoyi-common-websocket</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>ruoyi-common-sse</artifactId>
         </dependency>
 
         <dependency>

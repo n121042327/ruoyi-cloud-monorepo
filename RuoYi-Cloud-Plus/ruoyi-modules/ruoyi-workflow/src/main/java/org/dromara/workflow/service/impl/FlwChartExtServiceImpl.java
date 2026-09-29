@@ -3,6 +3,8 @@ package org.dromara.workflow.service.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboReference;
@@ -10,7 +12,6 @@ import org.dromara.common.core.service.DictService;
 import org.dromara.common.core.utils.DateUtils;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
-import org.dromara.common.mybatis.core.query.QueryBuilder;
 import org.dromara.system.api.RemoteDeptService;
 import org.dromara.system.api.RemoteUserService;
 import org.dromara.system.api.domain.vo.RemoteUserVo;
@@ -31,7 +32,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -78,12 +78,10 @@ public class FlwChartExtServiceImpl implements ChartExtService {
         Map<String, List<FlowHisTask>> groupedByNode = StreamUtils.groupByKey(flowHisTasks, FlowHisTask::getNodeCode);
 
         // 批量查询所有审批人的用户信息
-        List<RemoteUserVo> userDTOList = remoteUserService.selectListByIds(StreamUtils.toSet(flowHisTasks, e -> Convert.toLong(e.getApprover())));
+        List<RemoteUserVo> userDTOList = remoteUserService.selectListByIds(StreamUtils.toList(flowHisTasks, e -> Convert.toLong(e.getApprover())));
 
         // 将查询到的用户列表转换为以用户ID为key的映射
         Map<Long, RemoteUserVo> userMap = StreamUtils.toIdentityMap(userDTOList, RemoteUserVo::getUserId);
-        Set<Long> deptIds = StreamUtils.toSet(userDTOList, RemoteUserVo::getDeptId);
-        Map<Long, String> deptNameMap = remoteDeptService.selectDeptNamesByIds(deptIds);
 
         Map<String, String> dictType = dictService.getAllDictByDictType(FlowConstant.WF_TASK_STATUS);
 
@@ -106,7 +104,7 @@ public class FlwChartExtServiceImpl implements ChartExtService {
                 ));
 
             // 处理当前节点的扩展信息
-            this.processNodeExtInfo(nodeJson, latestPerApprover, userMap, deptNameMap, dictType);
+            this.processNodeExtInfo(nodeJson, latestPerApprover, userMap, dictType);
         }
     }
 
@@ -174,11 +172,9 @@ public class FlwChartExtServiceImpl implements ChartExtService {
      * @param nodeJson 当前流程节点对象，包含节点基础信息和提示内容容器
      * @param taskList 当前节点关联的历史审批任务列表，用于生成提示信息
      * @param userMap  用户信息映射表，key 为用户ID，value 为用户DTO对象，用于获取审批人信息
-     * @param deptNameMap 部门名称映射表，key 为部门ID，value 为部门名称
      * @param dictType 数据字典映射表，key 为字典项编码，value 为对应显示值，用于翻译审批状态等
      */
-    private void processNodeExtInfo(NodeJson nodeJson, List<FlowHisTask> taskList, Map<Long, RemoteUserVo> userMap,
-                                    Map<Long, String> deptNameMap, Map<String, String> dictType) {
+    private void processNodeExtInfo(NodeJson nodeJson, List<FlowHisTask> taskList, Map<Long, RemoteUserVo> userMap, Map<String, String> dictType) {
 
         // 获取节点提示内容对象中的 info 列表，用于追加提示项
         List<PromptContent.InfoItem> info = nodeJson.getPromptContent().getInfo();
@@ -190,7 +186,8 @@ public class FlwChartExtServiceImpl implements ChartExtService {
                 continue;
             }
 
-            String deptName = deptNameMap.getOrDefault(userDTO.getDeptId(), StringUtils.EMPTY);
+            // 查询用户所属部门名称
+            String deptName = remoteDeptService.selectDeptNameByIds(Convert.toStr(userDTO.getDeptId()));
 
             // 添加标题项，如：👤 张三（市场部）
             info.add(new PromptContent.InfoItem()
@@ -209,7 +206,7 @@ public class FlwChartExtServiceImpl implements ChartExtService {
             // 添加具体信息项：账号、耗时、时间
             info.add(buildInfoItem("用户账号", userDTO.getUserName()));
             info.add(buildInfoItem("审批状态", dictType.get(task.getFlowStatus())));
-            info.add(buildInfoItem("审批耗时", DateUtils.formatBetweenBySecond(task.getUpdateTime(), task.getCreateTime())));
+            info.add(buildInfoItem("审批耗时", DateUtils.getTimeDifference(task.getUpdateTime(), task.getCreateTime())));
             info.add(buildInfoItem("办理时间", DateUtils.formatDateTime(task.getUpdateTime())));
         }
     }
@@ -270,11 +267,11 @@ public class FlwChartExtServiceImpl implements ChartExtService {
      * @return 历史任务列表
      */
     public List<FlowHisTask> getHisTaskGroupedByNode(Long instanceId) {
-        return flowHisTaskMapper.selectList(QueryBuilder.lambda(FlowHisTask.class)
-            .eq(FlowHisTask::getInstanceId, instanceId)
+        LambdaQueryWrapper<FlowHisTask> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(FlowHisTask::getInstanceId, instanceId)
             .eq(FlowHisTask::getNodeType, NodeType.BETWEEN.getKey())
-            .orderByDesc(FlowHisTask::getUpdateTime)
-            .build());
+            .orderByDesc(FlowHisTask::getUpdateTime);
+        return flowHisTaskMapper.selectList(wrapper);
     }
 
 }

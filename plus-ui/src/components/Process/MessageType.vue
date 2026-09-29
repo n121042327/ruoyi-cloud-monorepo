@@ -1,13 +1,5 @@
 <template>
-  <el-dialog
-    v-model="visible"
-    :title="props.title"
-    width="50%"
-    draggable
-    :before-close="cancel"
-    center
-    :close-on-click-modal="false"
-  >
+  <el-dialog v-model="visible" :title="props.title" width="50%" draggable :before-close="cancel" center :close-on-click-modal="false">
     <el-form v-loading="loading" ref="ruleFormRef" :model="form" :rules="rules" label-width="120px">
       <el-form-item label="消息提醒" prop="messageType">
         <el-checkbox-group v-model="form.messageType">
@@ -29,9 +21,10 @@
   </el-dialog>
 </template>
 <script setup lang="ts">
-import { ElForm, FormInstance } from 'element-plus';
 import { ref } from 'vue';
-
+import { ComponentInternalInstance } from 'vue';
+import { ElForm, FormInstance } from 'element-plus';
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const emits = defineEmits(['submitCallback', 'cancelCallback']);
 const props = defineProps({
   title: {

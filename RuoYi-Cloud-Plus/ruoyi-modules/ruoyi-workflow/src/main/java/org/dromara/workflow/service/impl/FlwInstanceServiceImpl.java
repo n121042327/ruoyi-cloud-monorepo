@@ -4,20 +4,19 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.dromara.common.core.domain.PageResult;
 import org.dromara.common.core.enums.BusinessStatusEnum;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
-import org.dromara.common.liteflow.utils.LiteFlowUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
-import org.dromara.common.mybatis.core.query.LambdaJoinQueryBuilder;
-import org.dromara.common.mybatis.core.query.QueryBuilder;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.warm.flow.core.FlowEngine;
 import org.dromara.warm.flow.core.constant.ExceptionCons;
@@ -37,14 +36,13 @@ import org.dromara.warm.flow.orm.mapper.FlowHisTaskMapper;
 import org.dromara.warm.flow.orm.mapper.FlowInstanceMapper;
 import org.dromara.workflow.common.ConditionalOnEnable;
 import org.dromara.workflow.common.enums.TaskStatusEnum;
-import org.dromara.workflow.domain.FlowInstanceBizExt;
 import org.dromara.workflow.domain.bo.FlowCancelBo;
 import org.dromara.workflow.domain.bo.FlowInstanceBo;
 import org.dromara.workflow.domain.bo.FlowInvalidBo;
 import org.dromara.workflow.domain.bo.FlowVariableBo;
-import org.dromara.workflow.domain.context.InstanceDeleteContext;
 import org.dromara.workflow.domain.vo.FlowHisTaskVo;
 import org.dromara.workflow.domain.vo.FlowInstanceVo;
+import org.dromara.workflow.handler.FlowProcessEventHandler;
 import org.dromara.workflow.mapper.FlwCategoryMapper;
 import org.dromara.workflow.mapper.FlwInstanceMapper;
 import org.dromara.workflow.service.IFlwInstanceService;
@@ -53,6 +51,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.function.Function;
 
 /**
  * 流程实例 服务层实现
@@ -65,13 +64,12 @@ import java.util.*;
 @Service
 public class FlwInstanceServiceImpl implements IFlwInstanceService {
 
-    private static final String DELETE_INSTANCE_CHAIN = "deleteInstanceChain";
-
     private final InsService insService;
     private final DefService defService;
     private final TaskService taskService;
     private final FlowHisTaskMapper flowHisTaskMapper;
     private final FlowInstanceMapper flowInstanceMapper;
+    private final FlowProcessEventHandler flowProcessEventHandler;
     private final IFlwTaskService flwTaskService;
     private final FlwInstanceMapper flwInstanceMapper;
     private final FlwCategoryMapper flwCategoryMapper;
@@ -83,11 +81,11 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
      * @param pageQuery      分页
      */
     @Override
-    public PageResult<FlowInstanceVo> selectRunningInstanceList(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
-        MPJLambdaWrapper<FlowInstance> queryWrapper = buildQueryWrapper(flowInstanceBo);
-        queryWrapper.in("fi", FlowInstance::getFlowStatus, BusinessStatusEnum.runningStatus());
+    public TableDataInfo<FlowInstanceVo> selectRunningInstanceList(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
+        QueryWrapper<FlowInstanceBo> queryWrapper = buildQueryWrapper(flowInstanceBo);
+        queryWrapper.in("fi.flow_status", BusinessStatusEnum.runningStatus());
         Page<FlowInstanceVo> page = flwInstanceMapper.selectInstanceList(pageQuery.build(), queryWrapper);
-        return PageResult.build(page.getRecords(), page.getTotal());
+        return TableDataInfo.build(page);
     }
 
     /**
@@ -97,11 +95,11 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
      * @param pageQuery      分页
      */
     @Override
-    public PageResult<FlowInstanceVo> selectFinishInstanceList(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
-        MPJLambdaWrapper<FlowInstance> queryWrapper = buildQueryWrapper(flowInstanceBo);
-        queryWrapper.in("fi", FlowInstance::getFlowStatus, BusinessStatusEnum.finishStatus());
+    public TableDataInfo<FlowInstanceVo> selectFinishInstanceList(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
+        QueryWrapper<FlowInstanceBo> queryWrapper = buildQueryWrapper(flowInstanceBo);
+        queryWrapper.in("fi.flow_status", BusinessStatusEnum.finishStatus());
         Page<FlowInstanceVo> page = flwInstanceMapper.selectInstanceList(pageQuery.build(), queryWrapper);
-        return PageResult.build(page.getRecords(), page.getTotal());
+        return TableDataInfo.build(page);
     }
 
     /**
@@ -136,33 +134,20 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
      * @param flowInstanceBo 查询条件
      * @return 查询条件构造方法
      */
-    private MPJLambdaWrapper<FlowInstance> buildQueryWrapper(FlowInstanceBo flowInstanceBo) {
-        LambdaJoinQueryBuilder<FlowInstance> queryBuilder = QueryBuilder.lambdaJoin("fi", FlowInstance.class)
-            .select(FlowInstance::getId, FlowInstance::getCreateTime, FlowInstance::getUpdateTime,
-                FlowInstance::getDelFlag, FlowInstance::getDefinitionId, FlowInstance::getBusinessId,
-                FlowInstance::getNodeType, FlowInstance::getNodeCode, FlowInstance::getNodeName,
-                FlowInstance::getVariable, FlowInstance::getFlowStatus, FlowInstance::getActivityStatus,
-                FlowInstance::getCreateBy, FlowInstance::getExt)
-            .select("fd", org.dromara.warm.flow.orm.entity.FlowDefinition::getFlowName,
-                org.dromara.warm.flow.orm.entity.FlowDefinition::getFlowCode,
-                org.dromara.warm.flow.orm.entity.FlowDefinition::getVersion,
-                org.dromara.warm.flow.orm.entity.FlowDefinition::getFormCustom,
-                org.dromara.warm.flow.orm.entity.FlowDefinition::getFormPath,
-                org.dromara.warm.flow.orm.entity.FlowDefinition::getCategory)
-            .select("biz", FlowInstanceBizExt::getBusinessCode, FlowInstanceBizExt::getBusinessTitle)
-            .leftJoin(org.dromara.warm.flow.orm.entity.FlowDefinition.class, "fd", org.dromara.warm.flow.orm.entity.FlowDefinition::getId, FlowInstance::getDefinitionId)
-            .leftJoin(FlowInstanceBizExt.class, "biz", FlowInstanceBizExt::getInstanceId, FlowInstance::getId);
-        queryBuilder.likeIfText("fi", FlowInstance::getNodeName, flowInstanceBo.getNodeName());
-        queryBuilder.likeIfText("fd", org.dromara.warm.flow.orm.entity.FlowDefinition::getFlowName, flowInstanceBo.getFlowName());
-        queryBuilder.likeIfText("fd", org.dromara.warm.flow.orm.entity.FlowDefinition::getFlowCode, flowInstanceBo.getFlowCode());
+    private QueryWrapper<FlowInstanceBo> buildQueryWrapper(FlowInstanceBo flowInstanceBo) {
+        QueryWrapper<FlowInstanceBo> queryWrapper = Wrappers.query();
+        queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getNodeName()), "fi.node_name", flowInstanceBo.getNodeName());
+        queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getFlowName()), "fd.flow_name", flowInstanceBo.getFlowName());
+        queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getFlowCode()), "fd.flow_code", flowInstanceBo.getFlowCode());
         if (StringUtils.isNotBlank(flowInstanceBo.getCategory())) {
             List<Long> categoryIds = flwCategoryMapper.selectCategoryIdsByParentId(Convert.toLong(flowInstanceBo.getCategory()));
-            queryBuilder.inIfNotEmpty("fd", org.dromara.warm.flow.orm.entity.FlowDefinition::getCategory, StreamUtils.toList(categoryIds, Convert::toStr));
+            queryWrapper.in("fd.category", StreamUtils.toList(categoryIds, Convert::toStr));
         }
-        queryBuilder.eqIfText("fi", FlowInstance::getBusinessId, flowInstanceBo.getBusinessId());
-        queryBuilder.inIfNotEmpty("fi", FlowInstance::getCreateBy, flowInstanceBo.getCreateByIds());
-        queryBuilder.orderByDesc("fi", FlowInstance::getCreateTime);
-        return queryBuilder.build();
+        queryWrapper.eq(StringUtils.isNotBlank(flowInstanceBo.getBusinessId()), "fi.business_id", flowInstanceBo.getBusinessId());
+        queryWrapper.in(CollUtil.isNotEmpty(flowInstanceBo.getCreateByIds()), "fi.create_by", flowInstanceBo.getCreateByIds());
+        queryWrapper.eq("fi.del_flag", "0");
+        queryWrapper.orderByDesc("fi.create_time");
+        return queryWrapper;
     }
 
     /**
@@ -172,10 +157,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
      */
     @Override
     public FlowInstance selectInstByBusinessId(String businessId) {
-        return flowInstanceMapper.selectOne(
-            QueryBuilder.lambda(FlowInstance.class)
-                .eq(FlowInstance::getBusinessId, businessId)
-                .build());
+        return flowInstanceMapper.selectOne(new LambdaQueryWrapper<FlowInstance>().eq(FlowInstance::getBusinessId, businessId));
     }
 
     /**
@@ -206,9 +188,14 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteByBusinessIds(List<String> businessIds) {
-        InstanceDeleteContext context = InstanceDeleteContext.byBusinessIds(businessIds);
-        LiteFlowUtils.execute(DELETE_INSTANCE_CHAIN, context);
-        return context.isResult();
+        List<FlowInstance> flowInstances = flowInstanceMapper.selectList(new LambdaQueryWrapper<FlowInstance>().in(FlowInstance::getBusinessId, businessIds));
+        if (CollUtil.isEmpty(flowInstances)) {
+            log.warn("未找到对应的流程实例信息，无法执行删除操作。");
+            return false;
+        }
+        // 发送事件
+        processDeleteHandler(flowInstances);
+        return insService.remove(StreamUtils.toList(flowInstances, FlowInstance::getId));
     }
 
     /**
@@ -219,9 +206,16 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteByInstanceIds(List<Long> instanceIds) {
-        InstanceDeleteContext context = InstanceDeleteContext.byInstanceIds(instanceIds);
-        LiteFlowUtils.execute(DELETE_INSTANCE_CHAIN, context);
-        return context.isResult();
+        // 获取实例信息
+        List<FlowInstance> flowInstances = flowInstanceMapper.selectByIds(instanceIds);
+        if (CollUtil.isEmpty(flowInstances)) {
+            log.warn("未找到对应的流程实例信息，无法执行删除操作。");
+            return false;
+        }
+        // 发送事件
+        processDeleteHandler(flowInstances);
+        // 删除实例
+        return insService.remove(instanceIds);
     }
 
     /**
@@ -232,9 +226,51 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteHisByInstanceIds(List<Long> instanceIds) {
-        InstanceDeleteContext context = InstanceDeleteContext.byHistoryInstanceIds(instanceIds);
-        LiteFlowUtils.execute(DELETE_INSTANCE_CHAIN, context);
-        return context.isResult();
+        // 获取实例信息
+        List<FlowInstance> flowInstances = flowInstanceMapper.selectByIds(instanceIds);
+        if (CollUtil.isEmpty(flowInstances)) {
+            log.warn("未找到对应的流程实例信息，无法执行删除操作。");
+            return false;
+        }
+        // 发送事件
+        processDeleteHandler(flowInstances);
+        List<FlowTask> flowTaskList = flwTaskService.selectByInstIds(instanceIds);
+        if (CollUtil.isNotEmpty(flowTaskList)) {
+            FlowEngine.userService().deleteByTaskIds(StreamUtils.toList(flowTaskList, FlowTask::getId));
+        }
+        FlowEngine.taskService().deleteByInsIds(instanceIds);
+        FlowEngine.hisTaskService().deleteByInsIds(instanceIds);
+        FlowEngine.insService().removeByIds(instanceIds);
+        return true;
+    }
+
+
+    private void processDeleteHandler(List<FlowInstance> flowInstances) {
+
+        String userId = LoginHelper.getUserIdStr();
+        for (FlowInstance flowInstance : flowInstances) {
+            //如果创建人与当前登陆人一致或者当前登陆人为管理员才能删除
+            if (LoginHelper.isSuperAdmin() || flowInstance.getCreateBy().equals(userId)) {
+                continue;
+            }
+            throw new ServiceException("权限不足，无法删除流程实例信息!");
+        }
+        // 获取定义信息
+        Map<Long, Definition> definitionMap = StreamUtils.toMap(
+            defService.getByIds(StreamUtils.toList(flowInstances, Instance::getDefinitionId)),
+            Definition::getId,
+            Function.identity()
+        );
+
+        // 逐一触发删除事件
+        flowInstances.forEach(instance -> {
+            Definition definition = definitionMap.get(instance.getDefinitionId());
+            if (ObjectUtil.isNull(definition)) {
+                log.warn("实例 ID: {} 对应的流程定义信息未找到，跳过删除事件触发。", instance.getId());
+                return;
+            }
+            flowProcessEventHandler.processDeleteHandler(definition.getFlowCode(), instance.getBusinessId());
+        });
     }
 
     /**
@@ -276,11 +312,11 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
      * @param pageQuery  分页
      */
     @Override
-    public PageResult<FlowInstanceVo> selectCurrentInstanceList(FlowInstanceBo instanceBo, PageQuery pageQuery) {
-        MPJLambdaWrapper<FlowInstance> queryWrapper = buildQueryWrapper(instanceBo);
-        queryWrapper.eq("fi", FlowInstance::getCreateBy, LoginHelper.getUserIdStr());
+    public TableDataInfo<FlowInstanceVo> selectCurrentInstanceList(FlowInstanceBo instanceBo, PageQuery pageQuery) {
+        QueryWrapper<FlowInstanceBo> queryWrapper = buildQueryWrapper(instanceBo);
+        queryWrapper.eq("fi.create_by", LoginHelper.getUserIdStr());
         Page<FlowInstanceVo> page = flwInstanceMapper.selectInstanceList(pageQuery.build(), queryWrapper);
-        return PageResult.build(page.getRecords(), page.getTotal());
+        return TableDataInfo.build(page);
     }
 
     /**
@@ -321,11 +357,10 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
         // 再组装历史任务（已处理任务）
         List<FlowHisTaskVo> hisTaskVos = new ArrayList<>();
         List<FlowHisTask> hisTasks = flowHisTaskMapper.selectList(
-            QueryBuilder.lambda(FlowHisTask.class)
+            new LambdaQueryWrapper<FlowHisTask>()
                 .eq(FlowHisTask::getInstanceId, instanceId)
                 .eq(FlowHisTask::getNodeType, NodeType.BETWEEN.getKey())
                 .orderByDesc(FlowHisTask::getUpdateTime)
-                .build()
         );
         if (CollUtil.isNotEmpty(hisTasks)) {
             hisTaskVos = BeanUtil.copyToList(hisTasks, FlowHisTaskVo.class);
@@ -347,9 +382,10 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
      */
     @Override
     public void updateStatus(Long instanceId, String status) {
-        flowInstanceMapper.update(Wrappers.lambdaUpdate(FlowInstance.class)
-            .set(FlowInstance::getFlowStatus, status)
-            .eq(FlowInstance::getId, instanceId));
+        LambdaUpdateWrapper<FlowInstance> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.set(FlowInstance::getFlowStatus, status);
+        wrapper.eq(FlowInstance::getId, instanceId);
+        flowInstanceMapper.update(wrapper);
     }
 
     /**

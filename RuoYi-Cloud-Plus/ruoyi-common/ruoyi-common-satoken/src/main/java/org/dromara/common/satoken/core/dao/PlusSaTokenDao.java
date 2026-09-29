@@ -4,7 +4,6 @@ import cn.dev33.satoken.dao.auto.SaTokenDaoBySessionFollowObject;
 import cn.dev33.satoken.util.SaFoxUtil;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.redis.utils.RedisUtils;
 
 import java.time.Duration;
@@ -38,7 +37,8 @@ public class PlusSaTokenDao implements SaTokenDaoBySessionFollowObject {
      */
     @Override
     public String get(String key) {
-        return getCacheValue(key);
+        Object o = CAFFEINE.get(key, k -> RedisUtils.getCacheObject(key));
+        return (String) o;
     }
 
     /**
@@ -46,7 +46,16 @@ public class PlusSaTokenDao implements SaTokenDaoBySessionFollowObject {
      */
     @Override
     public void set(String key, String value, long timeout) {
-        writeValue(key, value, timeout);
+        if (timeout == 0 || timeout <= NOT_VALUE_EXPIRE) {
+            return;
+        }
+        // 判断是否为永不过期
+        if (timeout == NEVER_EXPIRE) {
+            RedisUtils.setCacheObject(key, value);
+        } else {
+            RedisUtils.setCacheObject(key, value, Duration.ofSeconds(timeout));
+        }
+        CAFFEINE.invalidate(key);
     }
 
     /**
@@ -56,7 +65,7 @@ public class PlusSaTokenDao implements SaTokenDaoBySessionFollowObject {
     public void update(String key, String value) {
         if (RedisUtils.hasKey(key)) {
             RedisUtils.setCacheObject(key, value, true);
-            invalidate(key);
+            CAFFEINE.invalidate(key);
         }
     }
 
@@ -66,7 +75,7 @@ public class PlusSaTokenDao implements SaTokenDaoBySessionFollowObject {
     @Override
     public void delete(String key) {
         if (RedisUtils.deleteObject(key)) {
-            invalidate(key);
+            CAFFEINE.invalidate(key);
         }
     }
 
@@ -75,7 +84,9 @@ public class PlusSaTokenDao implements SaTokenDaoBySessionFollowObject {
      */
     @Override
     public long getTimeout(String key) {
-        return toTimeoutSeconds(RedisUtils.getTimeToLive(key));
+        long timeout = RedisUtils.getTimeToLive(key);
+        // 加1的目的 解决sa-token使用秒 redis是毫秒导致1秒的精度问题 手动补偿
+        return timeout < 0 ? timeout : timeout / 1000 + 1;
     }
 
     /**
@@ -92,7 +103,8 @@ public class PlusSaTokenDao implements SaTokenDaoBySessionFollowObject {
      */
     @Override
     public Object getObject(String key) {
-        return getCacheValue(key);
+        Object o = CAFFEINE.get(key, k -> RedisUtils.getCacheObject(key));
+        return o;
     }
 
     /**
@@ -101,9 +113,11 @@ public class PlusSaTokenDao implements SaTokenDaoBySessionFollowObject {
      * @param key 键名称
      * @return object
      */
+    @SuppressWarnings("unchecked")
     @Override
     public <T> T getObject(String key, Class<T> classType) {
-        return classType.cast(getCacheValue(key));
+        Object o = CAFFEINE.get(key, k -> RedisUtils.getCacheObject(key));
+        return (T) o;
     }
 
     /**
@@ -111,7 +125,16 @@ public class PlusSaTokenDao implements SaTokenDaoBySessionFollowObject {
      */
     @Override
     public void setObject(String key, Object object, long timeout) {
-        writeValue(key, object, timeout);
+        if (timeout == 0 || timeout <= NOT_VALUE_EXPIRE) {
+            return;
+        }
+        // 判断是否为永不过期
+        if (timeout == NEVER_EXPIRE) {
+            RedisUtils.setCacheObject(key, object);
+        } else {
+            RedisUtils.setCacheObject(key, object, Duration.ofSeconds(timeout));
+        }
+        CAFFEINE.invalidate(key);
     }
 
     /**
@@ -121,7 +144,7 @@ public class PlusSaTokenDao implements SaTokenDaoBySessionFollowObject {
     public void updateObject(String key, Object object) {
         if (RedisUtils.hasKey(key)) {
             RedisUtils.setCacheObject(key, object, true);
-            invalidate(key);
+            CAFFEINE.invalidate(key);
         }
     }
 
@@ -131,7 +154,7 @@ public class PlusSaTokenDao implements SaTokenDaoBySessionFollowObject {
     @Override
     public void deleteObject(String key) {
         if (RedisUtils.deleteObject(key)) {
-            invalidate(key);
+            CAFFEINE.invalidate(key);
         }
     }
 
@@ -140,7 +163,9 @@ public class PlusSaTokenDao implements SaTokenDaoBySessionFollowObject {
      */
     @Override
     public long getObjectTimeout(String key) {
-        return toTimeoutSeconds(RedisUtils.getTimeToLive(key));
+        long timeout = RedisUtils.getTimeToLive(key);
+        // 加1的目的 解决sa-token使用秒 redis是毫秒导致1秒的精度问题 手动补偿
+        return timeout < 0 ? timeout : timeout / 1000 + 1;
     }
 
     /**
@@ -157,62 +182,11 @@ public class PlusSaTokenDao implements SaTokenDaoBySessionFollowObject {
     @SuppressWarnings("unchecked")
     @Override
     public List<String> searchData(String prefix, String keyword, int start, int size, boolean sortType) {
-        String pattern = prefix + "*" + keyword + "*";
-        String cacheKey = pattern + start + StringUtils.COLON + size + StringUtils.COLON + sortType;
-        return (List<String>) CAFFEINE.get(cacheKey, k -> {
-            Collection<String> keys = RedisUtils.keys(pattern);
+        String keyStr = prefix + "*" + keyword + "*";
+        return (List<String>) CAFFEINE.get(keyStr, k -> {
+            Collection<String> keys = RedisUtils.keys(keyStr);
             List<String> list = new ArrayList<>(keys);
             return SaFoxUtil.searchList(list, start, size, sortType);
         });
-    }
-
-    /**
-     * 从缓存读取对象。
-     *
-     * @param key 缓存键
-     * @return 缓存值
-     */
-    @SuppressWarnings("unchecked")
-    private <T> T getCacheValue(String key) {
-        return (T) CAFFEINE.get(key, RedisUtils::getCacheObject);
-    }
-
-    /**
-     * 写入缓存值并刷新本地缓存。
-     *
-     * @param key     缓存键
-     * @param value   缓存值
-     * @param timeout 超时时间
-     */
-    private void writeValue(String key, Object value, long timeout) {
-        if (timeout == 0 || timeout <= NOT_VALUE_EXPIRE) {
-            return;
-        }
-        if (timeout == NEVER_EXPIRE) {
-            RedisUtils.setCacheObject(key, value);
-        } else {
-            RedisUtils.setCacheObject(key, value, Duration.ofSeconds(timeout));
-        }
-        invalidate(key);
-    }
-
-    /**
-     * 清除本地缓存。
-     *
-     * @param key 缓存键
-     */
-    private void invalidate(String key) {
-        CAFFEINE.invalidate(key);
-    }
-
-    /**
-     * 将 Redis TTL 转为秒。
-     *
-     * @param timeoutRedis Redis TTL 毫秒值
-     * @return Sa-Token 需要的秒值
-     */
-    private long toTimeoutSeconds(long timeoutRedis) {
-        // 加1的目的 解决sa-token使用秒 redis是毫秒导致1秒的精度问题 手动补偿
-        return timeoutRedis < 0 ? timeoutRedis : timeoutRedis / 1000 + 1;
     }
 }

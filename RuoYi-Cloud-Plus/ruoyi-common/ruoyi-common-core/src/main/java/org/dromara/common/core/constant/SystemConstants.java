@@ -1,7 +1,7 @@
 package org.dromara.common.core.constant;
 
 /**
- * 系统常量信息
+ * 用户常量信息
  *
  * @author Lion Li
  */
@@ -18,14 +18,19 @@ public interface SystemConstants {
     String DISABLE = "1";
 
     /**
-     * 是
+     * 是否为系统默认（是）
      */
     String YES = "Y";
 
     /**
-     * 否
+     * 是否菜单外链（是）
      */
-    String NO = "N";
+    String YES_FRAME = "0";
+
+    /**
+     * 是否菜单外链（否）
+     */
+    String NO_FRAME = "1";
 
     /**
      * 菜单类型（目录）
@@ -58,19 +63,9 @@ public interface SystemConstants {
     String INNER_LINK = "InnerLink";
 
     /**
-     * 超级管理员用户ID
+     * 超级管理员ID
      */
-    Long SUPER_ADMIN_USER_ID = 1761100000000000001L;
-
-    /**
-     * 超级管理员角色ID
-     */
-    Long SUPER_ADMIN_ROLE_ID = 1761300000000000001L;
-
-    /**
-     * 超级管理员角色 roleKey
-     */
-    String SUPER_ADMIN_ROLE_KEY = "superadmin";
+    Long SUPER_ADMIN_ID = 1L;
 
     /**
      * 根部门祖级列表
@@ -78,14 +73,8 @@ public interface SystemConstants {
     String ROOT_DEPT_ANCESTORS = "0";
 
     /**
-     * 默认部门 ID
-     */
-    Long DEFAULT_DEPT_ID = 1761000000000000100L;
-
-    /**
      * 排除敏感属性字段
      */
-    String[] EXCLUDE_PROPERTIES = {"password", "oldPassword", "newPassword", "confirmPassword"};
-
+    String[] EXCLUDE_PROPERTIES = { "password", "oldPassword", "newPassword", "confirmPassword" };
 
 }

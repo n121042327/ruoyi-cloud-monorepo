@@ -1,6 +1,6 @@
 package org.dromara.system.api;
 
-import org.dromara.system.api.domain.bo.RemoteLoginInfoBo;
+import org.dromara.system.api.domain.bo.RemoteLogininforBo;
 import org.dromara.system.api.domain.bo.RemoteOperLogBo;
 
 /**
@@ -20,8 +20,8 @@ public interface RemoteLogService {
     /**
      * 保存访问记录
      *
-     * @param sysLoginInfo 访问实体
+     * @param sysLogininfor 访问实体
      */
-    void saveLoginInfo(RemoteLoginInfoBo sysLoginInfo);
+    void saveLogininfor(RemoteLogininforBo sysLogininfor);
 
 }

@@ -1,7 +1,5 @@
 package org.dromara.resource.api;
 
-import org.dromara.resource.api.domain.RemotePushPayLoad;
-
 import java.util.List;
 
 /**
@@ -20,25 +18,9 @@ public interface RemoteMessageService {
     void publishMessage(List<Long> sessionKey, String message);
 
     /**
-     * 发布指定用户的结构化消息
-     *
-     * @param userIds 用户ID列表
-     * @param payload 推送体
-     */
-    void publishMessagePayload(List<Long> userIds, RemotePushPayLoad payload);
-
-    /**
      * 发布订阅的消息(群发)
      *
      * @param message 消息内容
      */
     void publishAll(String message);
-
-    /**
-     * 发布广播结构化消息
-     *
-     * @param payload 推送体
-     */
-    void publishAllPayload(RemotePushPayLoad payload);
-
 }

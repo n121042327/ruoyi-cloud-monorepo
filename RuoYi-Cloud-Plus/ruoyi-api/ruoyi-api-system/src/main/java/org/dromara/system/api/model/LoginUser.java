@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -22,10 +21,9 @@ public class LoginUser implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 登录标识分隔符，用于拼接 userType 与 userId
-     * <p>不使用冒号：Sa-Token 1.46.0 起默认禁止 loginId 包含冒号；历史冒号格式仅为兼容旧 token 保留解析
+     * 租户ID
      */
-    public static final String LOGIN_ID_SEPARATOR = "-";
+    private String tenantId;
 
     /**
      * 用户ID
@@ -118,11 +116,6 @@ public class LoginUser implements Serializable {
     private List<RoleDTO> roles;
 
     /**
-     * 数据权限角色映射 key 为权限码 value 为可参与数据权限计算的角色ID列表
-     */
-    private Map<String, List<Long>> dataScopeRoleMap;
-
-    /**
      * 岗位对象
      */
     private List<PostDTO> posts;
@@ -143,7 +136,7 @@ public class LoginUser implements Serializable {
     private String deviceType;
 
     /**
-     * 获取 Sa-Token 使用的登录标识（userType-userId）
+     * 获取登录id
      */
     public String getLoginId() {
         if (userType == null) {
@@ -152,7 +145,7 @@ public class LoginUser implements Serializable {
         if (userId == null) {
             throw new IllegalArgumentException("用户ID不能为空");
         }
-        return userType + LOGIN_ID_SEPARATOR + userId;
+        return userType + ":" + userId;
     }
 
 }

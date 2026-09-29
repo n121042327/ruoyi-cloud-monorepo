@@ -16,16 +16,22 @@ import org.springframework.context.annotation.Bean;
 @EnableConfigurationProperties(MailProperties.class)
 public class MailConfiguration {
 
-    /**
-     * 创建邮件账户配置。
-     *
-     * @param mailProperties 邮件配置属性
-     * @return 邮件账户
-     */
     @Bean
     @ConditionalOnProperty(value = "mail.enabled", havingValue = "true")
     public MailAccount mailAccount(MailProperties mailProperties) {
-        return mailProperties.toMailAccount();
+        MailAccount account = new MailAccount();
+        account.setHost(mailProperties.getHost());
+        account.setPort(mailProperties.getPort());
+        account.setAuth(mailProperties.getAuth());
+        account.setFrom(mailProperties.getFrom());
+        account.setUser(mailProperties.getUser());
+        account.setPass(mailProperties.getPass());
+        account.setSocketFactoryPort(mailProperties.getPort());
+        account.setStarttlsEnable(mailProperties.getStarttlsEnable());
+        account.setSslEnable(mailProperties.getSslEnable());
+        account.setTimeout(mailProperties.getTimeout());
+        account.setConnectionTimeout(mailProperties.getConnectionTimeout());
+        return account;
     }
 
 }

@@ -10,13 +10,6 @@ import cn.hutool.crypto.asymmetric.RSA;
 import cn.hutool.crypto.asymmetric.SM2;
 
 import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
-import java.security.KeyFactory;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.interfaces.RSAKey;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,11 +19,6 @@ import java.util.Map;
  * @author 老马
  */
 public class EncryptUtils {
-
-    /**
-     * RSA密钥最小位数
-     */
-    public static final int MIN_RSA_KEY_SIZE = 1024;
 
     /**
      * 公钥
@@ -235,66 +223,16 @@ public class EncryptUtils {
     }
 
     /**
-     * SM2公钥验签（Base64编码）
-     *
-     * @param data      原文数据
-     * @param sign      签名值
-     * @param publicKey 公钥
-     * @return true-验签成功，false-验签失败
-     */
-    public static boolean verifySm2Sign(String data, String sign, String publicKey) {
-        if (StrUtil.isBlank(data)) {
-            throw new IllegalArgumentException("SM2验签需要传入原文数据");
-        }
-        if (StrUtil.isBlank(sign)) {
-            throw new IllegalArgumentException("SM2验签需要传入签名值");
-        }
-        if (StrUtil.isBlank(publicKey)) {
-            throw new IllegalArgumentException("SM2验签需要传入公钥");
-        }
-        SM2 sm2 = SmUtil.sm2(null, publicKey);
-        return sm2.verify(data.getBytes(StandardCharsets.UTF_8), sign.getBytes(StandardCharsets.UTF_8));
-    }
-
-    /**
-     * SM2公钥验签（Hex编码）
-     *
-     * @param dataHex   原文数据（Hex编码）
-     * @param signHex   签名值（Hex编码）
-     * @param publicKey 公钥
-     * @return true-验签成功，false-验签失败
-     */
-    public static boolean verifySm2SignHex(String dataHex, String signHex, String publicKey) {
-        if (StrUtil.isBlank(dataHex)) {
-            throw new IllegalArgumentException("SM2验签需要传入Hex格式的原文数据");
-        }
-        if (StrUtil.isBlank(signHex)) {
-            throw new IllegalArgumentException("SM2验签需要传入Hex格式的签名值");
-        }
-        if (StrUtil.isBlank(publicKey)) {
-            throw new IllegalArgumentException("SM2验签需要传入公钥");
-        }
-        SM2 sm2 = SmUtil.sm2(null, publicKey);
-        return sm2.verifyHex(dataHex, signHex);
-    }
-
-    /**
      * 产生RSA加解密需要的公钥和私钥
      *
      * @return 公私钥Map
      */
     public static Map<String, String> generateRsaKey() {
-        try {
-            Map<String, String> keyMap = new HashMap<>(2);
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(MIN_RSA_KEY_SIZE);
-            KeyPair keyPair = keyPairGenerator.generateKeyPair();
-            keyMap.put(PRIVATE_KEY, java.util.Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded()));
-            keyMap.put(PUBLIC_KEY, java.util.Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded()));
-            return keyMap;
-        } catch (GeneralSecurityException e) {
-            throw new IllegalStateException("生成RSA密钥失败", e);
-        }
+        Map<String, String> keyMap = new HashMap<>(2);
+        RSA rsa = SecureUtil.rsa();
+        keyMap.put(PRIVATE_KEY, rsa.getPrivateKeyBase64());
+        keyMap.put(PUBLIC_KEY, rsa.getPublicKeyBase64());
+        return keyMap;
     }
 
     /**
@@ -308,7 +246,6 @@ public class EncryptUtils {
         if (StrUtil.isBlank(publicKey)) {
             throw new IllegalArgumentException("RSA需要传入公钥进行加密");
         }
-        validateRsaPublicKey(publicKey);
         RSA rsa = SecureUtil.rsa(null, publicKey);
         return rsa.encryptBase64(data, StandardCharsets.UTF_8, KeyType.PublicKey);
     }
@@ -324,7 +261,6 @@ public class EncryptUtils {
         if (StrUtil.isBlank(publicKey)) {
             throw new IllegalArgumentException("RSA需要传入公钥进行加密");
         }
-        validateRsaPublicKey(publicKey);
         RSA rsa = SecureUtil.rsa(null, publicKey);
         return rsa.encryptHex(data, StandardCharsets.UTF_8, KeyType.PublicKey);
     }
@@ -340,52 +276,8 @@ public class EncryptUtils {
         if (StrUtil.isBlank(privateKey)) {
             throw new IllegalArgumentException("RSA需要传入私钥进行解密");
         }
-        validateRsaPrivateKey(privateKey);
         RSA rsa = SecureUtil.rsa(privateKey, null);
         return rsa.decryptStr(data, KeyType.PrivateKey, StandardCharsets.UTF_8);
-    }
-
-    /**
-     * 校验RSA公钥最低位数
-     *
-     * @param publicKey 公钥
-     */
-    public static void validateRsaPublicKey(String publicKey) {
-        if (StrUtil.isBlank(publicKey)) {
-            throw new IllegalArgumentException("RSA需要传入公钥");
-        }
-        try {
-            byte[] keyBytes = java.util.Base64.getDecoder().decode(publicKey);
-            RSAKey rsaKey = (RSAKey) KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(keyBytes));
-            validateRsaKeySize(rsaKey);
-        } catch (IllegalArgumentException | GeneralSecurityException e) {
-            throw new IllegalArgumentException("RSA公钥格式错误或密钥长度低于" + MIN_RSA_KEY_SIZE + "位", e);
-        }
-    }
-
-    /**
-     * 校验RSA私钥最低位数
-     *
-     * @param privateKey 私钥
-     */
-    public static void validateRsaPrivateKey(String privateKey) {
-        if (StrUtil.isBlank(privateKey)) {
-            throw new IllegalArgumentException("RSA需要传入私钥");
-        }
-        try {
-            byte[] keyBytes = java.util.Base64.getDecoder().decode(privateKey);
-            RSAKey rsaKey = (RSAKey) KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(keyBytes));
-            validateRsaKeySize(rsaKey);
-        } catch (IllegalArgumentException | GeneralSecurityException e) {
-            throw new IllegalArgumentException("RSA私钥格式错误或密钥长度低于" + MIN_RSA_KEY_SIZE + "位", e);
-        }
-    }
-
-    private static void validateRsaKeySize(RSAKey rsaKey) {
-        int keySize = rsaKey.getModulus().bitLength();
-        if (keySize < MIN_RSA_KEY_SIZE) {
-            throw new IllegalArgumentException("RSA密钥长度不能低于" + MIN_RSA_KEY_SIZE + "位，当前为" + keySize + "位");
-        }
     }
 
     /**

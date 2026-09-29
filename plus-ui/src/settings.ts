@@ -29,14 +29,9 @@ const setting: DefaultSettings = {
   tagsView: true,
 
   /**
-   * 持久化标签页
-   */
-  tagsViewPersist: false,
-
-  /**
    * 显示页签图标
    */
-  tagsIcon: true,
+  tagsIcon: false,
 
   /**
    * 是否固定头部
@@ -51,7 +46,7 @@ const setting: DefaultSettings = {
   /**
    * 是否显示动态标题
    */
-  dynamicTitle: true,
+  dynamicTitle: false,
 
   /**
    * 是否开启动画 开启随机 关闭渐进渐出
@@ -81,11 +76,6 @@ const setting: DefaultSettings = {
   /**
    * 页面圆角大小
    */
-  radiusBase: 14,
-
-  /**
-   * 表格全高内部滚动
-   */
-  fullHeightTable: true
+  radiusBase: 8
 };
 export default setting;

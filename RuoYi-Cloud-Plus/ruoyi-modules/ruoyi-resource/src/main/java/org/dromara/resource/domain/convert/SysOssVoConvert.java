@@ -10,7 +10,6 @@ import org.mapstruct.ReportingPolicy;
 
 /**
  * 用户信息转换器
- *
  * @author zhujie
  */
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)

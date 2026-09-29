@@ -7,7 +7,6 @@ import java.lang.annotation.Target;
 
 /**
  * 批注
- *
  * @author guzhouyanyu
  */
 @Target({ElementType.FIELD})

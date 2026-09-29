@@ -6,7 +6,7 @@ import lombok.Data;
 import org.dromara.common.log.event.OperLogEvent;
 import org.dromara.system.domain.SysOperLog;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,6 +28,11 @@ public class SysOperLogBo {
      * 日志主键
      */
     private Long operId;
+
+    /**
+     * 租户编号
+     */
+    private String tenantId;
 
     /**
      * 模块标题
@@ -65,39 +70,9 @@ public class SysOperLogBo {
     private String operName;
 
     /**
-     * 操作用户ID
-     */
-    private Long userId;
-
-    /**
-     * 操作部门ID
-     */
-    private Long deptId;
-
-    /**
      * 部门名称
      */
     private String deptName;
-
-    /**
-     * 客户端
-     */
-    private String clientKey;
-
-    /**
-     * 设备类型
-     */
-    private String deviceType;
-
-    /**
-     * 浏览器类型
-     */
-    private String browser;
-
-    /**
-     * 操作系统
-     */
-    private String os;
 
     /**
      * 请求URL
@@ -137,7 +112,7 @@ public class SysOperLogBo {
     /**
      * 操作时间
      */
-    private LocalDateTime operTime;
+    private Date operTime;
 
     /**
      * 消耗时间

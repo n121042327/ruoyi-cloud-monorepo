@@ -1,48 +1,34 @@
 <template>
-  <div class="p-2 app-container workflow-category-page">
-    <div class="search-wrap">
-      <el-card shadow="hover" class="search-panel" :class="{ 'is-collapsed': !showSearch }">
-        <template #header>
-          <div class="panel-heading search-panel-toggle" @click.stop="showSearch = !showSearch">
-            <div><h3>筛选条件</h3></div>
-          </div>
-        </template>
-        <el-form ref="queryFormRef" :model="queryParams" :inline="true" class="query-form">
+  <div class="p-2">
+    <transition :enter-active-class="proxy?.animate.searchAnimate.enter" :leave-active-class="proxy?.animate.searchAnimate.leave">
+      <div v-show="showSearch" class="search">
+        <el-form ref="queryFormRef" :model="queryParams" :inline="true">
           <el-form-item label="分类名称" prop="categoryName">
-            <el-input
-              v-model="queryParams.categoryName"
-              placeholder="请输入分类名称"
-              clearable
-              @keyup.enter="handleQuery"
-            />
+            <el-input v-model="queryParams.categoryName" placeholder="请输入分类名称" clearable @keyup.enter="handleQuery" />
           </el-form-item>
           <el-form-item>
             <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
             <el-button icon="Refresh" @click="resetQuery">重置</el-button>
           </el-form-item>
         </el-form>
-      </el-card>
-    </div>
+      </div>
+    </transition>
 
-    <el-card shadow="hover" class="table-panel">
+    <el-card shadow="never">
       <template #header>
-        <div class="toolbar-shell">
-          <div class="table-heading">
-            <h3>流程分类</h3>
-          </div>
-          <div class="toolbar-actions">
-            <el-button type="primary" plain icon="Plus" @click="handleAdd()" v-hasPermi="['workflow:category:add']">
-              新增
-            </el-button>
+        <el-row :gutter="10" class="mb8">
+          <el-col :span="1.5">
+            <el-button type="primary" plain icon="Plus" @click="handleAdd()" v-hasPermi="['workflow:category:add']">新增</el-button>
+          </el-col>
+          <el-col :span="1.5">
             <el-button type="info" plain icon="Sort" @click="handleToggleExpandAll">展开/折叠</el-button>
-            <right-toolbar v-model:showSearch="showSearch" :search="false" @queryTable="getList"></right-toolbar>
-          </div>
-        </div>
+          </el-col>
+          <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
+        </el-row>
       </template>
       <el-table
         ref="categoryTableRef"
         v-loading="loading"
-        class="data-table"
         :data="categoryList"
         row-key="categoryId"
         border
@@ -55,31 +41,13 @@
         <el-table-column label="操作" fixed="right" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-tooltip content="修改" placement="top">
-              <el-button
-                link
-                type="primary"
-                icon="Edit"
-                @click="handleUpdate(scope.row)"
-                v-hasPermi="['workflow:category:edit']"
-              />
+              <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['workflow:category:edit']" />
             </el-tooltip>
             <el-tooltip content="新增" placement="top">
-              <el-button
-                link
-                type="primary"
-                icon="Plus"
-                @click="handleAdd(scope.row)"
-                v-hasPermi="['workflow:category:add']"
-              />
+              <el-button link type="primary" icon="Plus" @click="handleAdd(scope.row)" v-hasPermi="['workflow:category:add']" />
             </el-tooltip>
             <el-tooltip content="删除" placement="top">
-              <el-button
-                link
-                type="primary"
-                icon="Delete"
-                @click="handleDelete(scope.row)"
-                v-hasPermi="['workflow:category:remove']"
-              />
+              <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['workflow:category:remove']" />
             </el-tooltip>
           </template>
         </el-table-column>
@@ -123,13 +91,6 @@
 <script setup name="Category" lang="ts">
 import { listCategory, getCategory, delCategory, addCategory, updateCategory } from '@/api/workflow/category';
 import { CategoryVO, CategoryQuery, CategoryForm } from '@/api/workflow/category/types';
-import { useLoading } from '@/hooks/async/useLoading';
-import { useFormDialog } from '@/hooks/dialog/useFormDialog';
-import { useSearchReset } from '@/hooks/form/useSearchReset';
-import { useSearchToggle } from '@/hooks/form/useSearchToggle';
-import { useTreeTableExpand } from '@/hooks/tree/useTreeTableExpand';
-import modal from '@/plugins/modal';
-import { handleTree } from '@/utils/ruoyi';
 
 type CategoryOption = {
   categoryId: number;
@@ -137,18 +98,22 @@ type CategoryOption = {
   children?: CategoryOption[];
 };
 
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+
 const categoryList = ref<CategoryVO[]>([]);
 const categoryOptions = ref<CategoryOption[]>([]);
 const buttonLoading = ref(false);
-const { showSearch } = useSearchToggle();
-const { loading, setLoading, withLoading } = useLoading();
+const showSearch = ref(true);
+const isExpandAll = ref(true);
+const loading = ref(false);
 
 const queryFormRef = ref<ElFormInstance>();
 const categoryFormRef = ref<ElFormInstance>();
 const categoryTableRef = ref<ElTableInstance>();
-const { isExpandAll, handleToggleExpandAll } = useTreeTableExpand<CategoryVO>({
-  tableRef: categoryTableRef,
-  data: categoryList
+
+const dialog = reactive<DialogOption>({
+  visible: false,
+  title: ''
 });
 
 const initFormData: CategoryForm = {
@@ -171,27 +136,16 @@ const data = reactive<PageData<CategoryForm, CategoryQuery>>({
 });
 
 const { queryParams, form, rules } = toRefs(data);
-const {
-  dialog,
-  resetForm: reset,
-  openDialog,
-  showDialog,
-  closeDialog
-} = useFormDialog({
-  form,
-  formRef: categoryFormRef,
-  initialFormData: initFormData
-});
 
 /** 查询流程分类列表 */
 const getList = async () => {
-  await withLoading(async () => {
-    const res = await listCategory(queryParams.value);
-    const data = handleTree<CategoryVO>(res.data, 'categoryId', 'parentId');
-    if (data) {
-      categoryList.value = data;
-    }
-  });
+  loading.value = true;
+  const res = await listCategory(queryParams.value);
+  const data = proxy?.handleTree<CategoryVO>(res.data, 'categoryId', 'parentId');
+  if (data) {
+    categoryList.value = data;
+    loading.value = false;
+  }
 };
 
 /** 查询流程分类下拉树结构 */
@@ -199,7 +153,7 @@ const getTreeselect = async () => {
   const res = await listCategory();
   categoryOptions.value = [];
   // 处理树形数据
-  const data = handleTree<CategoryOption>(res.data, 'categoryId', 'parentId');
+  const data = proxy?.handleTree<CategoryOption>(res.data, 'categoryId', 'parentId');
   if (data) {
     categoryOptions.value = data; // 将处理后的树形数据赋值
   }
@@ -208,7 +162,13 @@ const getTreeselect = async () => {
 // 取消按钮
 const cancel = () => {
   reset();
-  closeDialog();
+  dialog.visible = false;
+};
+
+// 表单重置
+const reset = () => {
+  form.value = { ...initFormData };
+  categoryFormRef.value?.resetFields();
 };
 
 /** 搜索按钮操作 */
@@ -216,27 +176,41 @@ const handleQuery = () => {
   getList();
 };
 
-const { resetQuery } = useSearchReset({
-  queryFormRef,
-  queryParams,
-  afterReset: () => {
-    handleQuery();
-  }
-});
+/** 重置按钮操作 */
+const resetQuery = () => {
+  queryFormRef.value?.resetFields();
+  handleQuery();
+};
 
 /** 新增按钮操作 */
-const handleAdd = (row?: Partial<CategoryVO>) => {
-  openDialog('添加流程分类');
+const handleAdd = (row?: CategoryVO) => {
+  reset();
   getTreeselect();
   if (row?.categoryId) {
     form.value.parentId = row.categoryId;
   } else {
     form.value.parentId = undefined;
   }
+  dialog.visible = true;
+  dialog.title = '添加流程分类';
+};
+
+/** 展开/折叠操作 */
+const handleToggleExpandAll = () => {
+  isExpandAll.value = !isExpandAll.value;
+  toggleExpandAll(categoryList.value, isExpandAll.value);
+};
+
+/** 展开/折叠操作 */
+const toggleExpandAll = (data: CategoryVO[], status: boolean) => {
+  data.forEach((item) => {
+    categoryTableRef.value?.toggleRowExpansion(item, status);
+    if (item.children && item.children.length > 0) toggleExpandAll(item.children, status);
+  });
 };
 
 /** 修改按钮操作 */
-const handleUpdate = async (row: Partial<CategoryVO>) => {
+const handleUpdate = async (row: CategoryVO) => {
   reset();
   await getTreeselect();
   if (row != null) {
@@ -244,7 +218,8 @@ const handleUpdate = async (row: Partial<CategoryVO>) => {
   }
   const res = await getCategory(row.categoryId);
   Object.assign(form.value, res.data);
-  showDialog('修改流程分类');
+  dialog.visible = true;
+  dialog.title = '修改流程分类';
 };
 
 /** 提交按钮 */
@@ -257,20 +232,20 @@ const submitForm = () => {
       } else {
         await addCategory(form.value).finally(() => (buttonLoading.value = false));
       }
-      modal.msgSuccess('操作成功');
-      closeDialog();
+      proxy?.$modal.msgSuccess('操作成功');
+      dialog.visible = false;
       getList();
     }
   });
 };
 
 /** 删除按钮操作 */
-const handleDelete = async (row: Partial<CategoryVO>) => {
-  await modal.confirm('是否确认删除"' + row.categoryName + '"的分类？');
-  setLoading(true);
-  await delCategory(row.categoryId).finally(() => setLoading(false));
+const handleDelete = async (row: CategoryVO) => {
+  await proxy?.$modal.confirm('是否确认删除"' + row.categoryName + '"的分类？');
+  loading.value = true;
+  await delCategory(row.categoryId).finally(() => (loading.value = false));
   await getList();
-  modal.msgSuccess('删除成功');
+  proxy?.$modal.msgSuccess('删除成功');
 };
 
 onMounted(() => {

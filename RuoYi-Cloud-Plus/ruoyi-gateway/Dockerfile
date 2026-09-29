@@ -1,7 +1,7 @@
 # 贝尔实验室 Spring 官方推荐镜像 JDK下载地址 https://bell-sw.com/pages/downloads/
-FROM bellsoft/liberica-openjdk-rocky:21.0.12-cds
-# FROM bellsoft/liberica-openjdk-rocky:25.0.4-cds
-# FROM findepi/graalvm:java21-native
+FROM bellsoft/liberica-openjdk-rocky:17.0.16-cds
+#FROM bellsoft/liberica-openjdk-rocky:21.0.8-cds
+#FROM findepi/graalvm:java17-native
 
 LABEL maintainer="Lion Li"
 
@@ -15,7 +15,7 @@ ENV SERVER_PORT=8080 LANG=C.UTF-8 LC_ALL=C.UTF-8 JAVA_OPTS=""
 
 EXPOSE ${SERVER_PORT}
 
-ADD ./target/ruoyi-gateway-mvc.jar ./app.jar
+ADD ./target/ruoyi-gateway.jar ./app.jar
 
 SHELL ["/bin/bash", "-c"]
 

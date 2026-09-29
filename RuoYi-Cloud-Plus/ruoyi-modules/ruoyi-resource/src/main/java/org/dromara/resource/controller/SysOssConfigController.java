@@ -4,15 +4,15 @@ import cn.dev33.satoken.annotation.SaCheckPermission;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.dromara.common.core.domain.PageResult;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.core.validate.AddGroup;
 import org.dromara.common.core.validate.EditGroup;
 import org.dromara.common.core.validate.QueryGroup;
+import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
-import org.dromara.common.redis.annotation.RepeatSubmit;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.resource.domain.bo.SysOssConfigBo;
 import org.dromara.resource.domain.vo.SysOssConfigVo;
@@ -35,15 +35,15 @@ import java.util.Arrays;
 @RequestMapping("/oss/config")
 public class SysOssConfigController extends BaseController {
 
-    private final ISysOssConfigService ossConfigService;
+    private final ISysOssConfigService iSysOssConfigService;
 
     /**
      * 查询对象存储配置列表
      */
     @SaCheckPermission("system:ossConfig:list")
     @GetMapping("/list")
-    public R<PageResult<SysOssConfigVo>> list(@Validated(QueryGroup.class) SysOssConfigBo bo, PageQuery pageQuery) {
-        return R.ok(ossConfigService.queryPageList(bo, pageQuery));
+    public TableDataInfo<SysOssConfigVo> list(@Validated(QueryGroup.class) SysOssConfigBo bo, PageQuery pageQuery) {
+        return iSysOssConfigService.queryPageList(bo, pageQuery);
     }
 
     /**
@@ -54,7 +54,7 @@ public class SysOssConfigController extends BaseController {
     @SaCheckPermission("system:ossConfig:list")
     @GetMapping("/{ossConfigId}")
     public R<SysOssConfigVo> getInfo(@NotNull(message = "主键不能为空") @PathVariable("ossConfigId") Long ossConfigId) {
-        return R.ok(ossConfigService.queryById(ossConfigId));
+        return R.ok(iSysOssConfigService.queryById(ossConfigId));
     }
 
     /**
@@ -64,7 +64,7 @@ public class SysOssConfigController extends BaseController {
     @Log(title = "对象存储配置", businessType = BusinessType.INSERT)
     @PostMapping()
     public R<Void> add(@Validated(AddGroup.class) @RequestBody SysOssConfigBo bo) {
-        return toAjax(ossConfigService.insertByBo(bo));
+        return toAjax(iSysOssConfigService.insertByBo(bo));
     }
 
     /**
@@ -74,7 +74,7 @@ public class SysOssConfigController extends BaseController {
     @Log(title = "对象存储配置", businessType = BusinessType.UPDATE)
     @PutMapping()
     public R<Void> edit(@Validated(EditGroup.class) @RequestBody SysOssConfigBo bo) {
-        return toAjax(ossConfigService.updateByBo(bo));
+        return toAjax(iSysOssConfigService.updateByBo(bo));
     }
 
     /**
@@ -86,7 +86,7 @@ public class SysOssConfigController extends BaseController {
     @Log(title = "对象存储配置", businessType = BusinessType.DELETE)
     @DeleteMapping("/{ossConfigIds}")
     public R<Void> remove(@NotEmpty(message = "主键不能为空") @PathVariable Long[] ossConfigIds) {
-        return toAjax(ossConfigService.deleteWithValidByIds(Arrays.asList(ossConfigIds), true));
+        return toAjax(iSysOssConfigService.deleteWithValidByIds(Arrays.asList(ossConfigIds), true));
     }
 
     /**
@@ -97,6 +97,6 @@ public class SysOssConfigController extends BaseController {
     @RepeatSubmit()
     @PutMapping("/changeStatus")
     public R<Void> changeStatus(@RequestBody SysOssConfigBo bo) {
-        return toAjax(ossConfigService.updateOssConfigStatus(bo));
+        return toAjax(iSysOssConfigService.updateOssConfigStatus(bo));
     }
 }

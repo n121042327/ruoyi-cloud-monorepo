@@ -1,11 +1,5 @@
 <template>
-  <el-image
-    :src="`${realSrc}`"
-    fit="cover"
-    :style="`width:${realWidth};height:${realHeight};`"
-    :preview-src-list="realSrcList"
-    preview-teleported
-  >
+  <el-image :src="`${realSrc}`" fit="cover" :style="`width:${realWidth};height:${realHeight};`" :preview-src-list="realSrcList" preview-teleported>
     <template #error>
       <div class="image-slot">
         <el-icon><picture-filled /></el-icon>
@@ -60,8 +54,8 @@ const realHeight = computed(() => (typeof props.height == 'string' ? props.heigh
 <style lang="scss" scoped>
 .el-image {
   border-radius: 5px;
-  background-color: var(--app-elevated-soft-bg);
-  box-shadow: var(--app-shadow-sm);
+  background-color: #ebeef5;
+  box-shadow: 0 0 5px 1px #ccc;
 
   :deep(.el-image__inner) {
     transition: all 0.3s;

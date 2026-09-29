@@ -1,9 +1,9 @@
 package org.dromara.system.domain.vo;
 
+import cn.idev.excel.annotation.ExcelIgnoreUnannotated;
+import cn.idev.excel.annotation.ExcelProperty;
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
-import org.apache.fesod.sheet.annotation.ExcelIgnoreUnannotated;
-import org.apache.fesod.sheet.annotation.ExcelProperty;
 import org.dromara.common.core.constant.SystemConstants;
 import org.dromara.common.excel.annotation.ExcelDictFormat;
 import org.dromara.common.excel.convert.ExcelDictConvert;
@@ -11,7 +11,7 @@ import org.dromara.system.domain.SysRole;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * 角色信息视图对象 sys_role
@@ -86,20 +86,15 @@ public class SysRoleVo implements Serializable {
      * 创建时间
      */
     @ExcelProperty(value = "创建时间")
-    private LocalDateTime createTime;
+    private Date createTime;
 
     /**
      * 用户是否存在此角色标识 默认不存在
      */
     private boolean flag = false;
 
-    /**
-     * 判断当前角色是否为超级管理员角色。
-     *
-     * @return true 是超级管理员角色 false 不是超级管理员角色
-     */
     public boolean isSuperAdmin() {
-        return SystemConstants.SUPER_ADMIN_ROLE_ID.equals(this.roleId);
+        return SystemConstants.SUPER_ADMIN_ID.equals(this.roleId);
     }
 
 }

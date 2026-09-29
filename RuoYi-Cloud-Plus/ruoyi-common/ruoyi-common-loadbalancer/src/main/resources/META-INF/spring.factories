@@ -1,2 +1,2 @@
-org.springframework.boot.EnvironmentPostProcessor=\
+org.springframework.boot.env.EnvironmentPostProcessor=\
   org.dromara.common.loadbalance.config.CustomEnvironmentPostProcessor

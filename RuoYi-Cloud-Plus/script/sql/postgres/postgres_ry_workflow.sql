@@ -298,6 +298,7 @@ COMMENT ON COLUMN flow_user.tenant_id IS '租户id';
 CREATE TABLE flow_category
 (
     category_id   int8         NOT NULL,
+    tenant_id     VARCHAR(20)  DEFAULT '000000'::varchar,
     parent_id     int8         DEFAULT 0,
     ancestors     VARCHAR(500) DEFAULT ''::varchar,
     category_name VARCHAR(30)  NOT NULL,
@@ -313,6 +314,7 @@ CREATE TABLE flow_category
 
 COMMENT ON TABLE flow_category IS '流程分类';
 COMMENT ON COLUMN flow_category.category_id IS '流程分类ID';
+COMMENT ON COLUMN flow_category.tenant_id IS '租户编号';
 COMMENT ON COLUMN flow_category.parent_id IS '父流程分类id';
 COMMENT ON COLUMN flow_category.ancestors IS '祖级列表';
 COMMENT ON COLUMN flow_category.category_name IS '流程分类名称';
@@ -324,16 +326,16 @@ COMMENT ON COLUMN flow_category.create_time IS '创建时间';
 COMMENT ON COLUMN flow_category.update_by IS '更新者';
 COMMENT ON COLUMN flow_category.update_time IS '更新时间';
 
-INSERT INTO flow_category VALUES (1762300000000000100, 0, '0', 'OA审批', 0, '0', 1761000000000000103, 1761100000000000001, now(), NULL, NULL);
-INSERT INTO flow_category VALUES (1762300000000000101, 1762300000000000100, '0,1762300000000000100', '假勤管理', 0, '0', 1761000000000000103, 1761100000000000001, now(), NULL, NULL);
-INSERT INTO flow_category VALUES (1762300000000000102, 1762300000000000100, '0,1762300000000000100', '人事管理', 1, '0', 1761000000000000103, 1761100000000000001, now(), NULL, NULL);
-INSERT INTO flow_category VALUES (1762300000000000103, 1762300000000000101, '0,1762300000000000100,1762300000000000101', '请假', 0, '0', 1761000000000000103, 1761100000000000001, now(), NULL, NULL);
-INSERT INTO flow_category VALUES (1762300000000000104, 1762300000000000101, '0,1762300000000000100,1762300000000000101', '出差', 1, '0', 1761000000000000103, 1761100000000000001, now(), NULL, NULL);
-INSERT INTO flow_category VALUES (1762300000000000105, 1762300000000000101, '0,1762300000000000100,1762300000000000101', '加班', 2, '0', 1761000000000000103, 1761100000000000001, now(), NULL, NULL);
-INSERT INTO flow_category VALUES (1762300000000000106, 1762300000000000101, '0,1762300000000000100,1762300000000000101', '换班', 3, '0', 1761000000000000103, 1761100000000000001, now(), NULL, NULL);
-INSERT INTO flow_category VALUES (1762300000000000107, 1762300000000000101, '0,1762300000000000100,1762300000000000101', '外出', 4, '0', 1761000000000000103, 1761100000000000001, now(), NULL, NULL);
-INSERT INTO flow_category VALUES (1762300000000000108, 1762300000000000102, '0,1762300000000000100,1762300000000000102', '转正', 1, '0', 1761000000000000103, 1761100000000000001, now(), NULL, NULL);
-INSERT INTO flow_category VALUES (1762300000000000109, 1762300000000000102, '0,1762300000000000100,1762300000000000102', '离职', 2, '0', 1761000000000000103, 1761100000000000001, now(), NULL, NULL);
+INSERT INTO flow_category VALUES (100, '000000', 0, '0', 'OA审批', 0, '0', 103, 1, now(), NULL, NULL);
+INSERT INTO flow_category VALUES (101, '000000', 100, '0,100', '假勤管理', 0, '0', 103, 1, now(), NULL, NULL);
+INSERT INTO flow_category VALUES (102, '000000', 100, '0,100', '人事管理', 1, '0', 103, 1, now(), NULL, NULL);
+INSERT INTO flow_category VALUES (103, '000000', 101, '0,100,101', '请假', 0, '0', 103, 1, now(), NULL, NULL);
+INSERT INTO flow_category VALUES (104, '000000', 101, '0,100,101', '出差', 1, '0', 103, 1, now(), NULL, NULL);
+INSERT INTO flow_category VALUES (105, '000000', 101, '0,100,101', '加班', 2, '0', 103, 1, now(), NULL, NULL);
+INSERT INTO flow_category VALUES (106, '000000', 101, '0,100,101', '换班', 3, '0', 103, 1, now(), NULL, NULL);
+INSERT INTO flow_category VALUES (107, '000000', 101, '0,100,101', '外出', 4, '0', 103, 1, now(), NULL, NULL);
+INSERT INTO flow_category VALUES (108, '000000', 102, '0,100,102', '转正', 1, '0', 103, 1, now(), NULL, NULL);
+INSERT INTO flow_category VALUES (109, '000000', 102, '0,100,102', '离职', 2, '0', 103, 1, now(), NULL, NULL);
 
 -- ----------------------------
 -- 流程spel表达式定义表
@@ -370,14 +372,15 @@ COMMENT ON COLUMN flow_spel.create_time IS '创建时间';
 COMMENT ON COLUMN flow_spel.update_by IS '更新者';
 COMMENT ON COLUMN flow_spel.update_time IS '更新时间';
 
-INSERT INTO flow_spel VALUES (1762400000000000001, 'spelRuleComponent', 'selectDeptLeaderById', 'initiatorDeptId', '#{@spelRuleComponent.selectDeptLeaderById(#initiatorDeptId)}', '根据部门id获取部门负责人', '0', '0', 1761000000000000103, 1761100000000000001, now(), 1761100000000000001, now());
-INSERT INTO flow_spel VALUES (1762400000000000002, NULL, NULL, 'initiator', '${initiator}', '流程发起人', '0', '0', 1761000000000000103, 1761100000000000001, now(), 1761100000000000001, now());
+INSERT INTO flow_spel VALUES (1, 'spelRuleComponent', 'selectDeptLeaderById', 'initiatorDeptId', '#{@spelRuleComponent.selectDeptLeaderById(#initiatorDeptId)}', '根据部门id获取部门负责人', '0', '0', 103, 1, now(), 1, now());
+INSERT INTO flow_spel VALUES (2, NULL, NULL, 'initiator', '${initiator}', '流程发起人', '0', '0', 103, 1, now(), 1, now());
 
 -- ----------------------------
 -- 流程实例业务扩展表
 -- ----------------------------
 CREATE TABLE flow_instance_biz_ext (
     id             int8,
+    tenant_id      VARCHAR(20)   DEFAULT '000000',
     create_dept    int8,
     create_by      int8,
     create_time    TIMESTAMP,
@@ -393,6 +396,7 @@ CREATE TABLE flow_instance_biz_ext (
 
 COMMENT ON TABLE flow_instance_biz_ext IS '流程实例业务扩展表';
 COMMENT ON COLUMN flow_instance_biz_ext.id  IS '主键id';
+COMMENT ON COLUMN flow_instance_biz_ext.tenant_id  IS '租户编号';
 COMMENT ON COLUMN flow_instance_biz_ext.create_dept  IS '创建部门';
 COMMENT ON COLUMN flow_instance_biz_ext.create_by  IS '创建者';
 COMMENT ON COLUMN flow_instance_biz_ext.create_time  IS '创建时间';
@@ -410,6 +414,7 @@ COMMENT ON COLUMN flow_instance_biz_ext.business_id  IS '业务Id';
 CREATE TABLE test_leave
 (
     id          int8         NOT NULL,
+    tenant_id   VARCHAR(20)  DEFAULT '000000'::varchar,
     apply_code  VARCHAR(50)  NOT NULL,
     leave_type  VARCHAR(255) NOT NULL,
     start_date  TIMESTAMP    NOT NULL,
@@ -427,6 +432,7 @@ CREATE TABLE test_leave
 
 COMMENT ON TABLE test_leave IS '请假申请表';
 COMMENT ON COLUMN test_leave.id IS 'id';
+COMMENT ON COLUMN test_leave.tenant_id IS '租户编号';
 COMMENT ON COLUMN test_leave.apply_code IS '申请编号';
 COMMENT ON COLUMN test_leave.leave_type IS '请假类型';
 COMMENT ON COLUMN test_leave.start_date IS '开始时间';

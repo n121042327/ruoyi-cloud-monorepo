@@ -5,24 +5,24 @@ import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.bean.BeanUtil;
 import lombok.RequiredArgsConstructor;
-import org.dromara.common.core.constant.CacheNames;
-import org.dromara.common.core.domain.PageResult;
+import org.dromara.common.core.constant.CacheConstants;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
-import org.dromara.common.core.utils.ThreadUtils;
+import org.dromara.common.idempotent.annotation.RepeatSubmit;
+import org.dromara.common.web.core.BaseController;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
-import org.dromara.common.redis.annotation.RepeatSubmit;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.redis.utils.RedisUtils;
-import org.dromara.common.web.core.BaseController;
 import org.dromara.system.api.domain.SysUserOnline;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * 在线用户监控
@@ -42,19 +42,18 @@ public class SysUserOnlineController extends BaseController {
      */
     @SaCheckPermission("monitor:online:list")
     @GetMapping("/list")
-    public R<PageResult<SysUserOnline>> list(String ipaddr, String userName) {
+    public TableDataInfo<SysUserOnline> list(String ipaddr, String userName) {
         // 获取所有未过期的 token
-        Collection<String> keys = RedisUtils.keys(CacheNames.ONLINE_TOKEN_KEY + "*");
-        List<Supplier<SysUserOnline>> suppliers = keys.stream().map(key -> (Supplier<SysUserOnline>) () -> {
-            String token = StringUtils.substringAfterLast(key, StringUtils.COLON);
+        Collection<String> keys = RedisUtils.keys(CacheConstants.ONLINE_TOKEN_KEY + "*");
+        List<SysUserOnline> userOnlineDTOList = new ArrayList<>();
+        for (String key : keys) {
+            String token = StringUtils.substringAfterLast(key, ":");
             // 如果已经过期则跳过
             if (StpUtil.stpLogic.getTokenActiveTimeoutByToken(token) < -1) {
-                return null;
+                continue;
             }
-            return RedisUtils.getCacheObject(CacheNames.ONLINE_TOKEN_KEY + token);
-        }).toList();
-        List<SysUserOnline> userOnlineDTOList = ThreadUtils.virtualSubmitAll(suppliers);
-        userOnlineDTOList.removeAll(Collections.singleton(null));
+            userOnlineDTOList.add(RedisUtils.getCacheObject(CacheConstants.ONLINE_TOKEN_KEY + token));
+        }
         if (StringUtils.isNotEmpty(ipaddr) && StringUtils.isNotEmpty(userName)) {
             userOnlineDTOList = StreamUtils.filter(userOnlineDTOList, userOnline ->
                 StringUtils.equals(ipaddr, userOnline.getIpaddr()) &&
@@ -70,8 +69,9 @@ public class SysUserOnlineController extends BaseController {
             );
         }
         Collections.reverse(userOnlineDTOList);
+        userOnlineDTOList.removeAll(Collections.singleton(null));
         List<SysUserOnline> userOnlineList = BeanUtil.copyToList(userOnlineDTOList, SysUserOnline.class);
-        return R.ok(PageResult.build(userOnlineList));
+        return TableDataInfo.build(userOnlineList);
     }
 
     /**
@@ -95,21 +95,18 @@ public class SysUserOnlineController extends BaseController {
      * 获取当前用户登录在线设备
      */
     @GetMapping()
-    public R<PageResult<SysUserOnline>> getInfo() {
+    public TableDataInfo<SysUserOnline> getInfo() {
         // 获取指定账号 id 的 token 集合
         List<String> tokenIds = StpUtil.getTokenValueListByLoginId(StpUtil.getLoginIdAsString());
-        List<Supplier<SysUserOnline>> suppliers = tokenIds.stream().map(token -> (Supplier<SysUserOnline>) () -> {
-            if (StpUtil.stpLogic.getTokenActiveTimeoutByToken(token) < -1) {
-                return null;
-            }
-            return RedisUtils.getCacheObject(CacheNames.ONLINE_TOKEN_KEY + token);
-        }).toList();
-        List<SysUserOnline> userOnlineDTOList = ThreadUtils.virtualSubmitAll(suppliers);
+        List<SysUserOnline> userOnlineDTOList = tokenIds.stream()
+            .filter(token -> StpUtil.stpLogic.getTokenActiveTimeoutByToken(token) >= -1)
+            .map(token -> (SysUserOnline) RedisUtils.getCacheObject(CacheConstants.ONLINE_TOKEN_KEY + token))
+            .collect(Collectors.toList());
         //复制和处理 SysUserOnline 对象列表
         Collections.reverse(userOnlineDTOList);
         userOnlineDTOList.removeAll(Collections.singleton(null));
         List<SysUserOnline> userOnlineList = BeanUtil.copyToList(userOnlineDTOList, SysUserOnline.class);
-        return R.ok(PageResult.build(userOnlineList));
+        return TableDataInfo.build(userOnlineList);
     }
 
     /**

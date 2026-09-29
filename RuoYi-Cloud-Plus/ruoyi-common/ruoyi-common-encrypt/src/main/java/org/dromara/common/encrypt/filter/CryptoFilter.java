@@ -6,10 +6,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.dromara.common.core.constant.HttpStatus;
 import org.dromara.common.core.exception.ServiceException;
+import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.encrypt.annotation.ApiEncrypt;
 import org.dromara.common.encrypt.properties.ApiDecryptProperties;
-import org.dromara.common.encrypt.utils.EncryptUtils;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerExceptionResolver;
@@ -26,24 +26,9 @@ import java.io.IOException;
  */
 public class CryptoFilter implements Filter {
     private final ApiDecryptProperties properties;
-    private final RequestMappingHandlerMapping requestMappingHandlerMapping;
-    private final HandlerExceptionResolver handlerExceptionResolver;
 
-    /**
-     * 构造加解密过滤器。
-     *
-     * @param properties                   API 解密配置
-     * @param requestMappingHandlerMapping 请求映射处理器
-     * @param handlerExceptionResolver     异常处理器
-     */
-    public CryptoFilter(ApiDecryptProperties properties,
-                        RequestMappingHandlerMapping requestMappingHandlerMapping,
-                        HandlerExceptionResolver handlerExceptionResolver) {
+    public CryptoFilter(ApiDecryptProperties properties) {
         this.properties = properties;
-        this.requestMappingHandlerMapping = requestMappingHandlerMapping;
-        this.handlerExceptionResolver = handlerExceptionResolver;
-        EncryptUtils.validateRsaPublicKey(properties.getPublicKey());
-        EncryptUtils.validateRsaPrivateKey(properties.getPrivateKey());
     }
 
     @Override
@@ -67,7 +52,8 @@ public class CryptoFilter implements Filter {
             } else {
                 // 是否有注解，有就报错，没有放行
                 if (ObjectUtil.isNotNull(apiEncrypt)) {
-                    handlerExceptionResolver.resolveException(
+                    HandlerExceptionResolver exceptionResolver = SpringUtils.getBean("handlerExceptionResolver", HandlerExceptionResolver.class);
+                    exceptionResolver.resolveException(
                         servletRequest, servletResponse, null,
                         new ServiceException("没有访问权限，请联系管理员授权", HttpStatus.FORBIDDEN));
                     return;
@@ -86,6 +72,7 @@ public class CryptoFilter implements Filter {
             ObjectUtil.defaultIfNull(responseWrapper, response));
 
         if (responseFlag) {
+            servletResponse.reset();
             // 对原始内容加密
             String encryptContent = responseBodyWrapper.getEncryptContent(
                 servletResponse, properties.getPublicKey(), properties.getHeaderFlag());
@@ -98,9 +85,10 @@ public class CryptoFilter implements Filter {
      * 获取 ApiEncrypt 注解
      */
     private ApiEncrypt getApiEncryptAnnotation(HttpServletRequest servletRequest) {
+        RequestMappingHandlerMapping handlerMapping = SpringUtils.getBean("requestMappingHandlerMapping", RequestMappingHandlerMapping.class);
         // 获取注解
         try {
-            HandlerExecutionChain mappingHandler = requestMappingHandlerMapping.getHandler(servletRequest);
+            HandlerExecutionChain mappingHandler = handlerMapping.getHandler(servletRequest);
             if (ObjectUtil.isNotNull(mappingHandler)) {
                 Object handler = mappingHandler.getHandler();
                 if (ObjectUtil.isNotNull(handler)) {

@@ -55,7 +55,7 @@
 
         <dependency>
             <groupId>org.dromara</groupId>
-            <artifactId>ruoyi-common-redis</artifactId>
+            <artifactId>ruoyi-common-ratelimiter</artifactId>
         </dependency>
 
         <dependency>
@@ -71,6 +71,10 @@
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>ruoyi-common-seata</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>ruoyi-common-tenant</artifactId>
         </dependency>
 
         <dependency>

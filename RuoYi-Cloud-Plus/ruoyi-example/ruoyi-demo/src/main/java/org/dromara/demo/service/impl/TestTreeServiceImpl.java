@@ -3,13 +3,13 @@ package org.dromara.demo.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.demo.domain.TestTree;
 import org.dromara.demo.domain.bo.TestTreeBo;
 import org.dromara.demo.domain.vo.TestTreeVo;
 import org.dromara.demo.mapper.TestTreeMapper;
 import org.dromara.demo.service.ITestTreeService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -27,18 +27,18 @@ import java.util.Map;
 @Service
 public class TestTreeServiceImpl implements ITestTreeService {
 
-    private final TestTreeMapper treeMapper;
+    private final TestTreeMapper baseMapper;
 
     @Override
     public TestTreeVo queryById(Long id) {
-        return treeMapper.selectVoById(id);
+        return baseMapper.selectVoById(id);
     }
 
     // @DS("slave") // 切换从库查询
     @Override
     public List<TestTreeVo> queryList(TestTreeBo bo) {
         LambdaQueryWrapper<TestTree> lqw = buildQueryWrapper(bo);
-        return treeMapper.selectVoList(lqw);
+        return baseMapper.selectVoList(lqw);
     }
 
     private LambdaQueryWrapper<TestTree> buildQueryWrapper(TestTreeBo bo) {
@@ -57,7 +57,7 @@ public class TestTreeServiceImpl implements ITestTreeService {
     public Boolean insertByBo(TestTreeBo bo) {
         TestTree add = BeanUtil.toBean(bo, TestTree.class);
         validEntityBeforeSave(add);
-        boolean flag = treeMapper.insert(add) > 0;
+        boolean flag = baseMapper.insert(add) > 0;
         if (flag) {
             bo.setId(add.getId());
         }
@@ -68,7 +68,7 @@ public class TestTreeServiceImpl implements ITestTreeService {
     public Boolean updateByBo(TestTreeBo bo) {
         TestTree update = BeanUtil.toBean(bo, TestTree.class);
         validEntityBeforeSave(update);
-        return treeMapper.updateById(update) > 0;
+        return baseMapper.updateById(update) > 0;
     }
 
     /**
@@ -85,6 +85,6 @@ public class TestTreeServiceImpl implements ITestTreeService {
         if (isValid) {
             //TODO 做一些业务上的校验,判断是否需要校验
         }
-        return treeMapper.deleteByIds(ids) > 0;
+        return baseMapper.deleteByIds(ids) > 0;
     }
 }

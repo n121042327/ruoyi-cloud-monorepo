@@ -1,80 +1,58 @@
 <template>
-  <div class="p-2 app-container workflow-task-waiting-page">
-    <div class="search-wrap">
-      <el-card shadow="hover" class="search-panel" :class="{ 'is-collapsed': !showSearch }">
-        <template #header>
-          <div class="panel-heading search-panel-toggle" @click.stop="showSearch = !showSearch">
-            <div><h3>筛选条件</h3></div>
-          </div>
-        </template>
-        <el-form ref="queryFormRef" :model="queryParams" :inline="true" class="query-form">
-          <el-form-item>
-            <el-badge :value="userSelectCount" :max="10" class="item">
-              <el-button type="primary" @click="openUserSelect">选择申请人</el-button>
-            </el-badge>
-          </el-form-item>
-          <el-form-item label="任务名称" prop="nodeName">
-            <el-input v-model="queryParams.nodeName" placeholder="请输入任务名称" @keyup.enter="handleQuery" />
-          </el-form-item>
-          <el-form-item label="流程定义名称" label-width="100" prop="flowName">
-            <el-input v-model="queryParams.flowName" placeholder="请输入流程定义名称" @keyup.enter="handleQuery" />
-          </el-form-item>
-          <el-form-item label="流程定义编码" label-width="100" prop="flowCode">
-            <el-input v-model="queryParams.flowCode" placeholder="请输入流程定义编码" @keyup.enter="handleQuery" />
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-            <el-button icon="Refresh" @click="resetQuery">重置</el-button>
-          </el-form-item>
-        </el-form>
-      </el-card>
-    </div>
-    <el-card shadow="hover" class="table-panel">
+  <div class="p-2">
+    <transition :enter-active-class="proxy?.animate.searchAnimate.enter" :leave-active-class="proxy?.animate.searchAnimate.leave">
+      <div v-show="showSearch" class="mb-[10px]">
+        <el-card shadow="hover">
+          <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" :inline="true">
+            <el-form-item>
+              <el-badge :value="userSelectCount" :max="10" class="item">
+                <el-button type="primary" @click="openUserSelect">选择申请人</el-button>
+              </el-badge>
+            </el-form-item>
+            <el-form-item label="任务名称" prop="nodeName">
+              <el-input v-model="queryParams.nodeName" placeholder="请输入任务名称" @keyup.enter="handleQuery" />
+            </el-form-item>
+            <el-form-item label="流程定义名称" label-width="100" prop="flowName">
+              <el-input v-model="queryParams.flowName" placeholder="请输入流程定义名称" @keyup.enter="handleQuery" />
+            </el-form-item>
+            <el-form-item label="流程定义编码" label-width="100" prop="flowCode">
+              <el-input v-model="queryParams.flowCode" placeholder="请输入流程定义编码" @keyup.enter="handleQuery" />
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+              <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+            </el-form-item>
+          </el-form>
+        </el-card>
+      </div>
+    </transition>
+    <el-card shadow="hover">
       <template #header>
-        <div class="toolbar-shell">
-          <div class="table-heading">
-            <h3>待办任务</h3>
-          </div>
-          <div class="toolbar-actions">
-            <right-toolbar v-model:show-search="showSearch" :search="false" @query-table="handleQuery"></right-toolbar>
-          </div>
-        </div>
+        <el-row :gutter="10" class="mb8">
+          <right-toolbar v-model:show-search="showSearch" @query-table="handleQuery"></right-toolbar>
+        </el-row>
       </template>
 
-      <el-table
-        v-loading="loading"
-        border
-        class="data-table"
-        :data="taskList"
-        @selection-change="handleSelectionChange"
-      >
+      <el-table v-loading="loading" border :data="taskList" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column align="center" type="index" label="序号" width="60"></el-table-column>
-        <el-table-column
-          :show-overflow-tooltip="true"
-          prop="businessCode"
-          align="center"
-          label="业务编码"
-        ></el-table-column>
-        <el-table-column
-          :show-overflow-tooltip="true"
-          prop="businessTitle"
-          align="center"
-          label="业务标题"
-        ></el-table-column>
-        <el-table-column
-          :show-overflow-tooltip="true"
-          prop="flowName"
-          align="center"
-          label="流程定义名称"
-        ></el-table-column>
+        <el-table-column :show-overflow-tooltip="true" prop="businessCode" align="center" label="业务编码"></el-table-column>
+        <el-table-column :show-overflow-tooltip="true" prop="businessTitle" align="center" label="业务标题"></el-table-column>
+        <el-table-column :show-overflow-tooltip="true" prop="flowName" align="center" label="流程定义名称"></el-table-column>
         <el-table-column align="center" prop="flowCode" label="流程定义编码"></el-table-column>
         <el-table-column align="center" prop="categoryName" label="流程分类"></el-table-column>
         <el-table-column align="center" prop="nodeName" label="任务名称"></el-table-column>
         <el-table-column align="center" prop="createByName" label="申请人"></el-table-column>
-        <el-table-column align="center" label="办理人" min-width="180">
+        <el-table-column align="center" label="办理人">
           <template #default="scope">
-            <UserNameDisplay :content="scope.row.assigneeNames" />
+            <template v-if="scope.row.assigneeNames">
+              <el-tag v-for="(name, index) in scope.row.assigneeNames.split(',')" :key="index" type="success">
+                {{ name }}
+              </el-tag>
+            </template>
+            <template v-else>
+              <el-tag type="success"> 无</el-tag>
+            </template>
           </template>
         </el-table-column>
         <el-table-column align="center" label="流程状态" prop="flowStatusName" min-width="70">
@@ -98,38 +76,35 @@
       />
     </el-card>
     <!-- 申请人 -->
-    <UserSelect
-      ref="userSelectRef"
-      :multiple="true"
-      :data="selectUserIds"
-      @confirm-call-back="userSelectCallBack"
-    ></UserSelect>
+    <UserSelect ref="userSelectRef" :multiple="true" :data="selectUserIds" @confirm-call-back="userSelectCallBack"></UserSelect>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { UserVO } from '@/api/system/user/types';
 import { pageByTaskWait } from '@/api/workflow/task';
 import { TaskQuery, FlowTaskVO } from '@/api/workflow/task/types';
 import workflowCommon from '@/api/workflow/workflowCommon';
 import { RouterJumpVo } from '@/api/workflow/workflowCommon/types';
-import UserNameDisplay from '@/components/Process/UserNameDisplay.vue';
-import UserSelect from '@/components/UserSelect/index.vue';
-import { useLoading } from '@/hooks/async/useLoading';
-import { useSearchReset } from '@/hooks/form/useSearchReset';
-import { useSearchToggle } from '@/hooks/form/useSearchToggle';
-import { useTableSelection } from '@/hooks/table/useTableSelection';
-import { useDict } from '@/utils/dict';
 
-const { wf_business_status } = toRefs<any>(useDict('wf_business_status'));
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { wf_business_status } = toRefs<any>(proxy?.useDict('wf_business_status'));
+import UserSelect from '@/components/UserSelect';
+import { ref } from 'vue';
+import { UserVO } from '@/api/system/user/types';
 
 const userSelectRef = ref<InstanceType<typeof UserSelect>>();
 //提交组件
 const queryFormRef = ref<ElFormInstance>();
-const { loading, withLoading } = useLoading(true);
-const { ids, single, multiple, handleSelectionChange } = useTableSelection<any>(item => item.id);
-const { showSearch } = useSearchToggle();
+// 遮罩层
+const loading = ref(true);
+// 选中数组
+const ids = ref<Array<any>>([]);
+// 非单个禁用
+const single = ref(true);
+// 非多个禁用
+const multiple = ref(true);
+// 显示搜索条件
+const showSearch = ref(true);
 // 总条数
 const total = ref(0);
 // 模型定义表格数据
@@ -148,21 +123,6 @@ const queryParams = ref<TaskQuery>({
   flowCode: undefined,
   createByIds: []
 });
-const { resetQuery } = useSearchReset({
-  queryFormRef,
-  queryParams,
-  pageNumKey: 'pageNum',
-  pageSizeKey: 'pageSize',
-  initialPageSize: 10,
-  resetExtras: () => {
-    queryParams.value.createByIds = [];
-    userSelectCount.value = 0;
-    selectUserIds.value = [];
-  },
-  afterReset: () => {
-    handleQuery();
-  }
-});
 onMounted(() => {
   getWaitingList();
 });
@@ -170,16 +130,33 @@ onMounted(() => {
 const handleQuery = () => {
   getWaitingList();
 };
+/** 重置按钮操作 */
+const resetQuery = () => {
+  queryFormRef.value?.resetFields();
+  queryParams.value.pageNum = 1;
+  queryParams.value.pageSize = 10;
+  queryParams.value.createByIds = [];
+  userSelectCount.value = 0;
+  selectUserIds.value = [];
+  handleQuery();
+};
+// 多选框选中数据
+const handleSelectionChange = (selection: any) => {
+  ids.value = selection.map((item: any) => item.id);
+  single.value = selection.length !== 1;
+  multiple.value = !selection.length;
+};
 //分页
 const getWaitingList = () => {
-  withLoading(async () => {
-    const resp = await pageByTaskWait(queryParams.value);
-    taskList.value = resp.data?.rows;
-    total.value = resp.data?.total;
+  loading.value = true;
+  pageByTaskWait(queryParams.value).then((resp) => {
+    taskList.value = resp.rows;
+    total.value = resp.total;
+    loading.value = false;
   });
 };
 //办理
-const handleOpen = async (row: Partial<FlowTaskVO>) => {
+const handleOpen = async (row: FlowTaskVO) => {
   const routerJumpVo = reactive<RouterJumpVo>({
     businessId: row.businessId,
     taskId: row.id,
@@ -187,7 +164,7 @@ const handleOpen = async (row: Partial<FlowTaskVO>) => {
     formCustom: row.formCustom,
     formPath: row.formPath
   });
-  workflowCommon.routerJump(routerJumpVo);
+  workflowCommon.routerJump(routerJumpVo, proxy);
 };
 //打开申请人选择
 const openUserSelect = () => {
@@ -201,7 +178,7 @@ const userSelectCallBack = (data: UserVO[]) => {
 
   if (data && data.length > 0) {
     userSelectCount.value = data.length;
-    selectUserIds.value = data.map(item => item.userId);
+    selectUserIds.value = data.map((item) => item.userId);
     queryParams.value.createByIds = selectUserIds.value;
   }
 };

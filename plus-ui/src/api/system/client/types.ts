@@ -30,26 +30,6 @@ export interface ClientVO {
   deviceType: string;
 
   /**
-   * 允许访问路径
-   */
-  accessPath?: string;
-
-  /**
-   * 允许访问路径列表
-   */
-  accessPathList?: string[];
-
-  /**
-   * IP白名单
-   */
-  ipWhitelist?: string;
-
-  /**
-   * IP白名单列表
-   */
-  ipWhitelistList?: string[];
-
-  /**
    * token活跃超时时间
    */
   activeTimeout: number;
@@ -97,26 +77,6 @@ export interface ClientForm extends BaseEntity {
   deviceType?: string;
 
   /**
-   * 允许访问路径
-   */
-  accessPath?: string;
-
-  /**
-   * 允许访问路径列表
-   */
-  accessPathList?: string[];
-
-  /**
-   * IP白名单
-   */
-  ipWhitelist?: string;
-
-  /**
-   * IP白名单列表
-   */
-  ipWhitelistList?: string[];
-
-  /**
    * token活跃超时时间
    */
   activeTimeout?: number;
@@ -157,16 +117,6 @@ export interface ClientQuery extends PageQuery {
    * 设备类型
    */
   deviceType?: string;
-
-  /**
-   * 允许访问路径
-   */
-  accessPath?: string;
-
-  /**
-   * IP白名单
-   */
-  ipWhitelist?: string;
 
   /**
    * token活跃超时时间

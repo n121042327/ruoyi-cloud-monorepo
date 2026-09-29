@@ -55,7 +55,7 @@ public class SysOssConfig extends BaseEntity {
     /**
      * 自定义域名
      */
-    private String domainUrl;
+    private String domain;
 
 
     /**
@@ -69,7 +69,7 @@ public class SysOssConfig extends BaseEntity {
     private String region;
 
     /**
-     * 是否默认（Y=是,N=否）
+     * 是否默认（0=是,1=否）
      */
     private String status;
 

@@ -5,9 +5,9 @@
 </template>
 
 <script setup lang="ts">
-import { useAppStore } from '@/store/modules/app';
 import { useSettingsStore } from '@/store/modules/settings';
 import { handleThemeStyle } from '@/utils/theme';
+import { useAppStore } from '@/store/modules/app';
 
 const appStore = useAppStore();
 

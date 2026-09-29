@@ -1,127 +1,94 @@
 <template>
-  <div class="p-2 app-container system-config-page">
-    <div class="search-wrap">
-      <el-card shadow="hover" class="search-panel" :class="{ 'is-collapsed': !showSearch }">
-        <template #header>
-          <div class="panel-heading search-panel-toggle" @click.stop="showSearch = !showSearch">
-            <div>
-              <span class="panel-kicker">Search Filters</span>
-              <h3>筛选条件</h3>
-            </div>
-          </div>
-        </template>
-        <el-form ref="queryFormRef" :model="queryParams" :inline="true" class="query-form">
-          <el-form-item label="参数名称" prop="configName">
-            <el-input
-              v-model="queryParams.configName"
-              placeholder="请输入参数名称"
-              clearable
-              @keyup.enter="handleQuery"
-            />
-          </el-form-item>
-          <el-form-item label="参数键名" prop="configKey">
-            <el-input
-              v-model="queryParams.configKey"
-              placeholder="请输入参数键名"
-              clearable
-              @keyup.enter="handleQuery"
-            />
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-            <el-button icon="Refresh" @click="resetQuery">重置</el-button>
-          </el-form-item>
-        </el-form>
-      </el-card>
-    </div>
-
-    <el-card v-loading="loading" shadow="hover" class="table-panel config-panel">
+  <div class="p-2">
+    <transition :enter-active-class="proxy?.animate.searchAnimate.enter" :leave-active-class="proxy?.animate.searchAnimate.leave">
+      <div v-show="showSearch" class="mb-[10px]">
+        <el-card shadow="hover">
+          <el-form ref="queryFormRef" :model="queryParams" :inline="true">
+            <el-form-item label="参数名称" prop="configName">
+              <el-input v-model="queryParams.configName" placeholder="请输入参数名称" clearable @keyup.enter="handleQuery" />
+            </el-form-item>
+            <el-form-item label="参数键名" prop="configKey">
+              <el-input v-model="queryParams.configKey" placeholder="请输入参数键名" clearable @keyup.enter="handleQuery" />
+            </el-form-item>
+            <el-form-item label="系统内置" prop="configType">
+              <el-select v-model="queryParams.configType" placeholder="系统内置" clearable>
+                <el-option v-for="dict in sys_yes_no" :key="dict.value" :label="dict.label" :value="dict.value" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="创建时间" style="width: 308px">
+              <el-date-picker
+                v-model="dateRange"
+                value-format="YYYY-MM-DD HH:mm:ss"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+              <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+            </el-form-item>
+          </el-form>
+        </el-card>
+      </div>
+    </transition>
+    <el-card shadow="hover">
       <template #header>
-        <div class="toolbar-shell">
-          <div class="table-heading">
-            <span class="panel-kicker">Config Dataset</span>
-            <h3>参数列表</h3>
-            <p>共 {{ total }} 条记录，支持键值维护、导出和缓存刷新。</p>
-          </div>
-          <div class="toolbar-actions">
-            <el-button v-hasPermi="['system:config:add']" type="primary" plain icon="Plus" @click="handleAdd">
-              新增
+        <el-row :gutter="10" class="mb8">
+          <el-col :span="1.5">
+            <el-button v-hasPermi="['system:config:add']" type="primary" plain icon="Plus" @click="handleAdd">新增</el-button>
+          </el-col>
+          <el-col :span="1.5">
+            <el-button v-hasPermi="['system:config:edit']" type="success" plain icon="Edit" :disabled="single" @click="handleUpdate()">
+              修改
             </el-button>
-            <el-button v-hasPermi="['system:config:export']" type="warning" plain icon="Download" @click="handleExport">
-              导出
+          </el-col>
+          <el-col :span="1.5">
+            <el-button v-hasPermi="['system:config:remove']" type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete()">
+              删除
             </el-button>
-            <el-button
-              v-hasPermi="['system:config:remove']"
-              type="danger"
-              plain
-              icon="Refresh"
-              @click="handleRefreshCache"
-            >
-              刷新缓存
-            </el-button>
-            <right-toolbar v-model:show-search="showSearch" :search="false" @query-table="getList"></right-toolbar>
-          </div>
-        </div>
+          </el-col>
+          <el-col :span="1.5">
+            <el-button v-hasPermi="['system:config:export']" type="warning" plain icon="Download" @click="handleExport">导出</el-button>
+          </el-col>
+          <el-col :span="1.5">
+            <el-button v-hasPermi="['system:config:remove']" type="danger" plain icon="Refresh" @click="handleRefreshCache">刷新缓存</el-button>
+          </el-col>
+          <right-toolbar v-model:show-search="showSearch" @query-table="getList"></right-toolbar>
+        </el-row>
       </template>
 
-      <div class="config-body">
-        <el-tabs v-model="activeTab" tab-position="left" class="config-tabs" @tab-change="handleTabChange">
-          <el-tab-pane label="全部" name="" />
-          <el-tab-pane label="系统内置" name="Y" />
-          <el-tab-pane label="自定义配置" name="N" />
-        </el-tabs>
-
-        <div class="config-content">
-          <el-table :data="configList" :border="false">
-            <el-table-column label="参数名称" prop="configName" min-width="160" />
-            <el-table-column label="参数键名" prop="configKey" min-width="160" />
-            <el-table-column label="参数键值" min-width="160">
-              <template #default="{ row }">
-                <el-input
-                  v-model="row.configValue"
-                  placeholder="请输入参数键值"
-                  @blur="handleInlineSave(row)"
-                  @keyup.enter="handleInlineSave(row)"
-                />
-              </template>
-            </el-table-column>
-            <el-table-column label="备注" prop="remark" min-width="180" show-overflow-tooltip>
-              <template #default="{ row }">
-                {{ row.remark || '-' }}
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" width="80" align="center">
-              <template #default="{ row }">
-                <el-tooltip content="修改" placement="top">
-                  <el-button
-                    v-hasPermi="['system:config:edit']"
-                    link
-                    type="primary"
-                    icon="Edit"
-                    @click="handleUpdate(row)"
-                  ></el-button>
-                </el-tooltip>
-                <el-tooltip content="删除" placement="top">
-                  <el-button
-                    v-hasPermi="['system:config:remove']"
-                    link
-                    type="danger"
-                    icon="Delete"
-                    @click="handleDelete(row)"
-                  ></el-button>
-                </el-tooltip>
-              </template>
-            </el-table-column>
-          </el-table>
-          <pagination
-            v-show="total > 0"
-            v-model:page="queryParams.pageNum"
-            v-model:limit="queryParams.pageSize"
-            :total="total"
-            @pagination="getList"
-          />
-        </div>
-      </div>
+      <el-table v-loading="loading" border :data="configList" @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="55" align="center" />
+        <el-table-column v-if="false" label="参数主键" align="center" prop="configId" />
+        <el-table-column label="参数名称" align="center" prop="configName" :show-overflow-tooltip="true" />
+        <el-table-column label="参数键名" align="center" prop="configKey" :show-overflow-tooltip="true" />
+        <el-table-column label="参数键值" align="center" prop="configValue" :show-overflow-tooltip="true" />
+        <el-table-column label="系统内置" align="center" prop="configType">
+          <template #default="scope">
+            <dict-tag :options="sys_yes_no" :value="scope.row.configType" />
+          </template>
+        </el-table-column>
+        <el-table-column label="备注" align="center" prop="remark" :show-overflow-tooltip="true" />
+        <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+          <template #default="scope">
+            <span>{{ proxy.parseTime(scope.row.createTime) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" align="center" width="150" class-name="small-padding fixed-width">
+          <template #default="scope">
+            <el-tooltip content="修改" placement="top">
+              <el-button v-hasPermi="['system:config:edit']" link type="primary" icon="Edit" @click="handleUpdate(scope.row)"></el-button>
+            </el-tooltip>
+            <el-tooltip content="删除" placement="top">
+              <el-button v-hasPermi="['system:config:remove']" link type="primary" icon="Delete" @click="handleDelete(scope.row)"></el-button>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+      </el-table>
+      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
     </el-card>
 
     <!-- 添加或修改参数配置对话框 -->
@@ -156,26 +123,27 @@
 </template>
 
 <script setup name="Config" lang="ts">
-import { listConfig, getConfig, delConfig, addConfig, updateConfig, updateConfigByKey, refreshCache } from '@/api/system/config';
+import { listConfig, getConfig, delConfig, addConfig, updateConfig, refreshCache } from '@/api/system/config';
 import { ConfigForm, ConfigQuery, ConfigVO } from '@/api/system/config/types';
-import { useLoading } from '@/hooks/async/useLoading';
-import { useFormDialog } from '@/hooks/dialog/useFormDialog';
-import { useSearchReset } from '@/hooks/form/useSearchReset';
-import { useSearchToggle } from '@/hooks/form/useSearchToggle';
-import modal from '@/plugins/modal';
-import { useDict } from '@/utils/dict';
-import { download as requestDownload } from '@/utils/request';
 
-const { sys_yes_no } = toRefs<any>(useDict('sys_yes_no'));
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { sys_yes_no } = toRefs<any>(proxy?.useDict('sys_yes_no'));
 
 const configList = ref<ConfigVO[]>([]);
-const { loading, withLoading } = useLoading(true);
-const { showSearch } = useSearchToggle();
+const loading = ref(true);
+const showSearch = ref(true);
+const ids = ref<Array<number | string>>([]);
+const single = ref(true);
+const multiple = ref(true);
 const total = ref(0);
-const activeTab = ref('');
+const dateRange = ref<[DateModelType, DateModelType]>(['', '']);
 
 const queryFormRef = ref<ElFormInstance>();
 const configFormRef = ref<ElFormInstance>();
+const dialog = reactive<DialogOption>({
+  visible: false,
+  title: ''
+});
 const initFormData: ConfigForm = {
   configId: undefined,
   configName: '',
@@ -201,87 +169,79 @@ const data = reactive<PageData<ConfigForm, ConfigQuery>>({
 });
 
 const { queryParams, form, rules } = toRefs(data);
-const { dialog, resetForm, openDialog, showDialog, closeDialog } = useFormDialog({
-  form,
-  formRef: configFormRef,
-  initialFormData: initFormData
-});
-const { resetQuery } = useSearchReset({
-  queryFormRef,
-  queryParams,
-  pageNumKey: 'pageNum',
-  afterReset: () => {
-    handleQuery();
-  }
-});
 
 /** 查询参数列表 */
 const getList = async () => {
-  await withLoading(async () => {
-    const res = await listConfig({ ...queryParams.value });
-    configList.value = res.data?.rows;
-    total.value = res.data?.total;
-  });
+  loading.value = true;
+  const res = await listConfig(proxy?.addDateRange(queryParams.value, dateRange.value));
+  configList.value = res.rows;
+  total.value = res.total;
+  loading.value = false;
 };
 /** 取消按钮 */
 const cancel = () => {
-  closeDialog();
-  resetForm();
+  reset();
+  dialog.visible = false;
+};
+/** 表单重置 */
+const reset = () => {
+  form.value = { ...initFormData };
+  configFormRef.value?.resetFields();
 };
 /** 搜索按钮操作 */
 const handleQuery = () => {
   queryParams.value.pageNum = 1;
   getList();
 };
-/** tab 切换 */
-const handleTabChange = (tab: string | number) => {
-  queryParams.value.configType = tab as string;
-  queryParams.value.pageNum = 1;
-  getList();
+/** 重置按钮操作 */
+const resetQuery = () => {
+  dateRange.value = ['', ''];
+  queryFormRef.value?.resetFields();
+  handleQuery();
+};
+/** 多选框选中数据 */
+const handleSelectionChange = (selection: ConfigVO[]) => {
+  ids.value = selection.map((item) => item.configId);
+  single.value = selection.length != 1;
+  multiple.value = !selection.length;
 };
 /** 新增按钮操作 */
 const handleAdd = () => {
-  openDialog('添加参数');
+  reset();
+  dialog.visible = true;
+  dialog.title = '添加参数';
 };
 /** 修改按钮操作 */
-const handleUpdate = async (row?: Partial<ConfigVO>) => {
-  resetForm();
-  const configId = row?.configId;
-  const res = await getConfig(configId!);
+const handleUpdate = async (row?: ConfigVO) => {
+  reset();
+  const configId = row?.configId || ids.value[0];
+  const res = await getConfig(configId);
   Object.assign(form.value, res.data);
-  showDialog('修改参数');
-};
-/** 内联保存参数值 */
-const handleInlineSave = async (row: Partial<ConfigVO>) => {
-  if (!row.configKey) {
-    return;
-  }
-  await modal.confirm('确认要保存对参数"' + row.configKey + '"的修改吗？');
-  await updateConfigByKey(row.configKey, row.configValue ?? '');
-  modal.msgSuccess('修改成功');
+  dialog.visible = true;
+  dialog.title = '修改参数';
 };
 /** 提交按钮 */
 const submitForm = () => {
   configFormRef.value?.validate(async (valid: boolean) => {
     if (valid) {
       form.value.configId ? await updateConfig(form.value) : await addConfig(form.value);
-      modal.msgSuccess('操作成功');
-      closeDialog();
+      proxy?.$modal.msgSuccess('操作成功');
+      dialog.visible = false;
       await getList();
     }
   });
 };
 /** 删除按钮操作 */
-const handleDelete = async (row?: Partial<ConfigVO>) => {
-  const configIds = row?.configId;
-  await modal.confirm('是否确认删除参数编号为"' + configIds + '"的数据项？');
-  await delConfig(configIds!);
+const handleDelete = async (row?: ConfigVO) => {
+  const configIds = row?.configId || ids.value;
+  await proxy?.$modal.confirm('是否确认删除参数编号为"' + configIds + '"的数据项？');
+  await delConfig(configIds);
   await getList();
-  modal.msgSuccess('删除成功');
+  proxy?.$modal.msgSuccess('删除成功');
 };
 /** 导出按钮操作 */
 const handleExport = () => {
-  requestDownload(
+  proxy?.download(
     'system/config/export',
     {
       ...queryParams.value
@@ -292,55 +252,10 @@ const handleExport = () => {
 /** 刷新缓存按钮操作 */
 const handleRefreshCache = async () => {
   await refreshCache();
-  modal.msgSuccess('刷新缓存成功');
+  proxy?.$modal.msgSuccess('刷新缓存成功');
 };
 
 onMounted(() => {
   getList();
 });
 </script>
-
-<style lang="scss" scoped>
-@use '@/assets/styles/components/page-shell' as pageShell;
-
-@include pageShell.toolbar-responsive;
-
-.config-body {
-  display: flex;
-}
-
-.config-tabs {
-  flex-shrink: 0;
-}
-
-.config-tabs :deep(.el-tabs__header.is-left) {
-  margin-right: 0;
-}
-
-.config-tabs :deep(.el-tabs__nav-wrap.is-left::after) {
-  width: 1px;
-  background: var(--el-border-color-lighter);
-}
-
-.config-tabs :deep(.el-tabs__content) {
-  display: none;
-}
-
-.config-tabs :deep(.el-tabs__item) {
-  height: 36px;
-  padding: 0 16px;
-  font-size: 14px;
-  color: var(--el-text-color-regular);
-}
-
-.config-tabs :deep(.el-tabs__item.is-active) {
-  color: var(--el-color-primary);
-  font-weight: 500;
-}
-
-.config-content {
-  flex: 1;
-  min-width: 0;
-  padding-left: 16px;
-}
-</style>

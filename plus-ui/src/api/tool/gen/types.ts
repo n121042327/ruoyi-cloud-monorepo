@@ -4,9 +4,10 @@ export interface TableVO extends BaseEntity {
   dataName: string;
   tableName: string;
   tableComment: string;
+  subTableName?: any;
+  subTableFkName?: any;
   className: string;
   tplCategory: string;
-  frontendType: string;
   packageName: string;
   moduleName: string;
   businessName: string;
@@ -22,16 +23,6 @@ export interface TableVO extends BaseEntity {
   menuIds?: any;
   parentMenuId?: any;
   parentMenuName?: any;
-  enableExport?: boolean;
-  enableStatus?: boolean;
-  statusField?: string;
-  enableUnique?: boolean;
-  uniqueFields?: string[];
-  enableSort?: boolean;
-  sortField?: string;
-  treeRootValue?: string;
-  treeAncestorsField?: string;
-  treeOrderField?: string;
   tree: boolean;
   crud: boolean;
 }
@@ -79,9 +70,10 @@ export interface DbTableVO {
   tableId?: any;
   tableName: string;
   tableComment: string;
+  subTableName?: any;
+  subTableFkName?: any;
   className?: any;
   tplCategory?: any;
-  frontendType?: string;
   packageName?: any;
   moduleName?: any;
   businessName?: any;
@@ -97,16 +89,6 @@ export interface DbTableVO {
   menuIds?: any;
   parentMenuId?: any;
   parentMenuName?: any;
-  enableExport?: boolean;
-  enableStatus?: boolean;
-  statusField?: string;
-  enableUnique?: boolean;
-  uniqueFields?: string[];
-  enableSort?: boolean;
-  sortField?: string;
-  treeRootValue?: string;
-  treeAncestorsField?: string;
-  treeOrderField?: string;
   tree: boolean;
   crud: boolean;
 }
@@ -117,14 +99,10 @@ export interface DbTableQuery extends PageQuery {
   tableComment: string;
 }
 
-/**
- * 代码生成表详情接口 data 结构
- * - info：当前表 GenTable
- * - rows：字段列表 GenTableColumn[]
- */
-export interface GenTableDetailPayload {
+export interface GenTableVO {
   info: DbTableVO;
   rows: DbColumnVO[];
+  tables: DbTableVO[];
 }
 
 export interface DbColumnForm extends BaseEntity {
@@ -164,16 +142,6 @@ export interface DbParamForm {
   treeName?: any;
   treeParentCode?: any;
   parentMenuId: string;
-  enableExport?: boolean;
-  enableStatus?: boolean;
-  statusField?: string;
-  enableUnique?: boolean;
-  uniqueFields?: string[];
-  enableSort?: boolean;
-  sortField?: string;
-  treeRootValue?: string;
-  treeAncestorsField?: string;
-  treeOrderField?: string;
 }
 
 export interface DbTableForm extends BaseEntity {
@@ -181,9 +149,10 @@ export interface DbTableForm extends BaseEntity {
   tableId: string | string;
   tableName: string;
   tableComment: string;
+  subTableName?: any;
+  subTableFkName?: any;
   className: string;
   tplCategory: string;
-  frontendType: string;
   packageName: string;
   moduleName: string;
   businessName: string;
@@ -199,16 +168,6 @@ export interface DbTableForm extends BaseEntity {
   menuIds?: any;
   parentMenuId: string;
   parentMenuName?: any;
-  enableExport?: boolean;
-  enableStatus?: boolean;
-  statusField?: string;
-  enableUnique?: boolean;
-  uniqueFields?: string[];
-  enableSort?: boolean;
-  sortField?: string;
-  treeRootValue?: string;
-  treeAncestorsField?: string;
-  treeOrderField?: string;
   tree: boolean;
   crud: boolean;
   params: DbParamForm;

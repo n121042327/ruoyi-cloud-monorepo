@@ -1,6 +1,6 @@
 services:
   mysql:
-    image: mysql:8.4.9
+    image: mysql:8.0.42
     container_name: mysql
     environment:
       # 时区上海
@@ -17,6 +17,8 @@ services:
       # 配置挂载
       - /docker/mysql/conf/:/etc/mysql/conf.d/
     command:
+      # 将mysql8.0默认密码策略 修改为 原先 策略 (mysql8.0对其默认策略做了更改 会导致密码无法匹配)
+      --default-authentication-plugin=mysql_native_password
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_general_ci
       --explicit_defaults_for_timestamp=true
@@ -25,31 +27,24 @@ services:
     network_mode: "host"
 
   nacos:
-    image: nacos/nacos-server:v3.2.3
+    image: ruoyi/ruoyi-nacos:2.6.2
     container_name: nacos
     ports:
       - "8848:8848"
       - "9848:9848"
       - "9849:9849"
-      - "18080:18080"
     environment:
       TZ: Asia/Shanghai
-      MODE: standalone
-      PREFER_HOST_MODE: hostname
-      JVM_XMS: 256m
-      JVM_XMX: 512m
-      # 认证相关密钥 自行替换
-      NACOS_AUTH_TOKEN: rE7bYayhpvduYwCxuhckybEPDXyna6xwm5m7MZjtjrdXjVxAbXAMccXHyaJvB346
-      NACOS_AUTH_IDENTITY_KEY: ruoyi-vue-plus-key
-      NACOS_AUTH_IDENTITY_VALUE: ruoyi-vue-plus-value
+      JAVA_OPTS: "-Xms256m -Xmx512m"
     volumes:
-      - /docker/nacos/logs/:/home/nacos/logs
-      # 默认单机模式 使用 mysql 等按 nacos 文档在配置文件内修改 所有配置均可在配置文件修改
-      - /docker/nacos/conf/application.properties:/home/nacos/conf/application.properties
+      # 日志目录 注意集群模式下 日志目录不能一致 需要区分例如 nacos1 nacos2
+      - /docker/nacos/logs/:/root/nacos/logs
+      # 集群配置文件 集群所有nacos都必须使用此文件
+      - /docker/nacos/conf/cluster.conf:/root/nacos/conf/cluster.conf
     network_mode: "host"
 
   redis:
-    image: redis:8.6.3
+    image: redis:7.2.8
     container_name: redis
     ports:
       - "6379:6379"
@@ -67,7 +62,7 @@ services:
 
   minio:
     # pgsty 开源社区 fork 重新维护的最新版 minio
-    image: pgsty/minio:RELEASE.2026-04-17T00-00-00Z
+    image: pgsty/minio:RELEASE.2026-02-14T12-00-00Z
     container_name: minio
     ports:
       # api 端口
@@ -100,7 +95,7 @@ services:
     network_mode: "host"
 
   seata-server:
-    image: apache/seata-server:2.6.0
+    image: ruoyi/ruoyi-seata-server:2.6.2
     container_name: seata-server
     ports:
       - "7091:7091"
@@ -111,13 +106,14 @@ services:
       # SEATA_IP: 127.0.0.1
       SEATA_PORT: 8091
     volumes:
-      - /docker/seata/conf/application.yml:/seata-server/resources/application.yml
-      - /docker/seata/logs/:/root/logs/seata
+      - /docker/ruoyi-seata-server/logs/:/ruoyi/seata-server/logs
+      # skywalking 探针
+      - /docker/skywalking/agent/:/ruoyi/skywalking/agent
     privileged: true
     network_mode: "host"
 
   nginx-web:
-    image: nginx:1.31.1
+    image: nginx:1.22.1
     container_name: nginx-web
     environment:
       # 时区上海
@@ -138,7 +134,7 @@ services:
     network_mode: "host"
 
   ruoyi-monitor:
-    image: ruoyi/ruoyi-monitor:6.0.0
+    image: ruoyi/ruoyi-monitor:2.6.2
     container_name: ruoyi-monitor
     environment:
       # 时区上海
@@ -154,7 +150,7 @@ services:
     network_mode: "host"
 
   ruoyi-snailjob-server:
-    image: ruoyi/ruoyi-snailjob-server:6.0.0
+    image: ruoyi/ruoyi-snailjob-server:2.6.2
     container_name: ruoyi-snailjob-server
     environment:
       # 时区上海
@@ -167,28 +163,8 @@ services:
     privileged: true
     network_mode: "host"
 
-  ruoyi-snailai-server:
-    image: ruoyi/ruoyi-snailai-server:6.0.0
-    container_name: ruoyi-snailai-server
-    environment:
-      # 时区上海
-      TZ: Asia/Shanghai
-      # Docling 与 PaddleOCR 服务需单独部署；host 网络模式下默认通过宿主机端口访问
-      SNAIL_AI_RAG_DOCLING_ENABLED: ${SNAIL_AI_RAG_DOCLING_ENABLED:-true}
-      SNAIL_AI_RAG_DOCLING_URL: ${SNAIL_AI_RAG_DOCLING_URL:-http://127.0.0.1:5100}
-      SNAIL_AI_RAG_DOCLING_PADDLE_OCR_ENABLED: ${SNAIL_AI_RAG_DOCLING_PADDLE_OCR_ENABLED:-true}
-      SNAIL_AI_RAG_DOCLING_PADDLE_OCR_URL: ${SNAIL_AI_RAG_DOCLING_PADDLE_OCR_URL:-http://127.0.0.1:8866/ocr}
-    ports:
-      - "8900:8900"
-      - "18888:18888"
-    volumes:
-      - /docker/snailai/logs/:/ruoyi/snailai/logs
-      - /docker/snailai/upload/:/ruoyi/snailai/upload
-    privileged: true
-    network_mode: "host"
-
   ruoyi-gateway:
-    image: ruoyi/ruoyi-gateway:6.0.0
+    image: ruoyi/ruoyi-gateway:2.6.2
     container_name: ruoyi-gateway
     environment:
       # 时区上海
@@ -204,7 +180,7 @@ services:
     network_mode: "host"
 
   ruoyi-auth:
-    image: ruoyi/ruoyi-auth:6.0.0
+    image: ruoyi/ruoyi-auth:2.6.2
     container_name: ruoyi-auth
     environment:
       # 时区上海
@@ -220,7 +196,7 @@ services:
     network_mode: "host"
 
   ruoyi-system:
-    image: ruoyi/ruoyi-system:6.0.0
+    image: ruoyi/ruoyi-system:2.6.2
     container_name: ruoyi-system
     environment:
       # 时区上海
@@ -236,7 +212,7 @@ services:
     network_mode: "host"
 
   ruoyi-gen:
-    image: ruoyi/ruoyi-gen:6.0.0
+    image: ruoyi/ruoyi-gen:2.6.2
     container_name: ruoyi-gen
     environment:
       # 时区上海
@@ -252,13 +228,13 @@ services:
     network_mode: "host"
 
   ruoyi-job:
-    image: ruoyi/ruoyi-job:6.0.0
+    image: ruoyi/ruoyi-job:2.6.2
     container_name: ruoyi-job
     environment:
       # 时区上海
       TZ: Asia/Shanghai
       SERVER_PORT: 9203
-      SNAIL_PORT: 29203
+      SNAIL_PORT: 19203
     ports:
       - "9203:9203"
     volumes:
@@ -270,7 +246,7 @@ services:
     network_mode: "host"
 
   ruoyi-resource:
-    image: ruoyi/ruoyi-resource:6.0.0
+    image: ruoyi/ruoyi-resource:2.6.2
     container_name: ruoyi-resource
     environment:
       # 时区上海
@@ -286,7 +262,7 @@ services:
     network_mode: "host"
 
   ruoyi-workflow:
-    image: ruoyi/ruoyi-workflow:6.0.0
+    image: ruoyi/ruoyi-workflow:2.6.2
     container_name: ruoyi-workflow
     environment:
       # 时区上海
@@ -301,32 +277,13 @@ services:
     privileged: true
     network_mode: "host"
 
-  ruoyi-ai:
-    image: ruoyi/ruoyi-ai:6.0.0
-    container_name: ruoyi-ai
-    environment:
-      # 时区上海
-      TZ: Asia/Shanghai
-    ports:
-      - "9206:9206"
-      - "29206:29206"
-    volumes:
-      # 配置文件
-      - /docker/ruoyi-ai/logs/:/ruoyi/ai/logs
-      # skywalking 探针
-      - /docker/skywalking/agent/:/ruoyi/skywalking/agent
-      # Snail AI Skill 临时目录
-      - /docker/snailai/agent/skills/:/tmp/snail-ai-agent/skills
-    privileged: true
-    network_mode: "host"
-
 
 #################################################################################################
 #################################### 以下为扩展根据需求搭建 #########################################
 #################################################################################################
 
   elasticsearch:
-    image: elasticsearch:8.19.16
+    image: elasticsearch:7.17.6
     container_name: elasticsearch
     ports:
       - "9200:9200"
@@ -338,8 +295,6 @@ services:
       cluster.name: elasticsearch
       # 以单一节点模式启动
       discovery.type: single-node
-      # 默认关闭认证 便于本地联调; 如开启 xpack.security.enabled 需手动初始化 Kibana/Logstash/SkyWalking 账号密码
-      xpack.security.enabled: "false"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
     volumes:
       - /docker/elk/elasticsearch/plugins:/usr/share/elasticsearch/plugins
@@ -348,7 +303,7 @@ services:
     network_mode: "host"
 
   kibana:
-    image: kibana:8.19.16
+    image: kibana:7.17.6
     container_name: kibana
     ports:
       - "5601:5601"
@@ -367,7 +322,7 @@ services:
     network_mode: "host"
 
   logstash:
-    image: logstash:8.19.16
+    image: logstash:7.17.6
     container_name: logstash
     ports:
       - "4560:4560"
@@ -382,7 +337,7 @@ services:
     network_mode: "host"
 
   rmqnamesrv:
-    image: apache/rocketmq:5.5.0
+    image: apache/rocketmq:5.2.0
     container_name: rmqnamesrv
     ports:
       - "9876:9876"
@@ -394,7 +349,7 @@ services:
     network_mode: "host"
 
   rmqbroker1:
-    image: apache/rocketmq:5.5.0
+    image: apache/rocketmq:5.2.0
     container_name: rmqbroker1
     ports:
       - "10911:10911"
@@ -404,11 +359,11 @@ services:
       JAVA_OPT: -server -Xms512M -Xmx512M
       NAMESRV_ADDR: 127.0.0.1:9876
     # --enable-proxy 开启broker与proxy共用模式 生产部署建议将proxy单独部署
-    command: sh mqbroker --enable-proxy -c /home/rocketmq/rocketmq-5.5.0/conf/broker.conf
+    command: sh mqbroker --enable-proxy -c /home/rocketmq/rocketmq-5.2.0/conf/broker.conf
     depends_on:
       - rmqnamesrv
     volumes:
-      - /docker/rocketmq/broker1/conf/broker.conf:/home/rocketmq/rocketmq-5.5.0/conf/broker.conf
+      - /docker/rocketmq/broker1/conf/broker.conf:/home/rocketmq/rocketmq-5.2.0/conf/broker.conf
       - /docker/rocketmq/broker1/logs:/home/rocketmq/logs/rocketmqlogs
       - /docker/rocketmq/broker1/store:/home/rocketmq/store
     privileged: true
@@ -441,7 +396,7 @@ services:
     network_mode: "host"
 
   kafka:
-    image: apache/kafka:4.3.0
+    image: apache/kafka:3.9.1
     container_name: kafka
     ports:
       - "9092:9092"
@@ -468,7 +423,7 @@ services:
     network_mode: "host"
 
   sky-oap:
-    image: apache/skywalking-oap-server:10.4.0
+    image: apache/skywalking-oap-server:9.7.0
     container_name: sky-oap
     ports:
       - "11800:11800"
@@ -485,7 +440,7 @@ services:
     network_mode: "host"
 
   sky-ui:
-    image: apache/skywalking-ui:10.4.0
+    image: apache/skywalking-ui:9.7.0
     container_name: sky-ui
     ports:
       - "18080:18080"
@@ -498,7 +453,7 @@ services:
     network_mode: "host"
 
   prometheus:
-    image: prom/prometheus:v3.12.0
+    image: prom/prometheus:v2.40.1
     container_name: prometheus
     ports:
       - "9090:9090"
@@ -507,7 +462,7 @@ services:
     network_mode: "host"
 
   grafana:
-    image: grafana/grafana:13.0.2
+    image: grafana/grafana:9.2.4
     container_name: grafana
     environment:
       TZ: Asia/Shanghai

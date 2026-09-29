@@ -1,8 +1,8 @@
 package org.dromara.common.encrypt.core.encryptor;
 
 import org.dromara.common.encrypt.core.EncryptContext;
-import org.dromara.common.encrypt.enums.AlgorithmType;
-import org.dromara.common.encrypt.enums.EncodeType;
+import org.dromara.common.encrypt.enumd.AlgorithmType;
+import org.dromara.common.encrypt.enumd.EncodeType;
 import org.dromara.common.encrypt.utils.EncryptUtils;
 
 /**
@@ -39,7 +39,7 @@ public class Base64Encryptor extends AbstractEncryptor {
     /**
      * 解密
      *
-     * @param value 待加密字符串
+     * @param value      待加密字符串
      */
     @Override
     public String decrypt(String value) {

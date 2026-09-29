@@ -3,15 +3,17 @@ package org.dromara.common.json.utils;
 import cn.hutool.core.lang.Dict;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.core.utils.StringUtils;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.node.ObjectNode;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,14 +25,10 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class JsonUtils {
 
-    private static final JsonMapper JSON_MAPPER = SpringUtils.getBean(JsonMapper.class);
+    private static final ObjectMapper OBJECT_MAPPER = SpringUtils.getBean(ObjectMapper.class);
 
-    public static JsonMapper getJsonMapper() {
-        return JSON_MAPPER;
-    }
-
-    public static JsonMapper getObjectMapper() {
-        return JSON_MAPPER;
+    public static ObjectMapper getObjectMapper() {
+        return OBJECT_MAPPER;
     }
 
     /**
@@ -44,7 +42,11 @@ public class JsonUtils {
         if (ObjectUtil.isNull(object)) {
             return null;
         }
-        return JSON_MAPPER.writeValueAsString(object);
+        try {
+            return OBJECT_MAPPER.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -60,7 +62,11 @@ public class JsonUtils {
         if (StringUtils.isEmpty(text)) {
             return null;
         }
-        return JSON_MAPPER.readValue(text, clazz);
+        try {
+            return OBJECT_MAPPER.readValue(text, clazz);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -76,7 +82,11 @@ public class JsonUtils {
         if (ArrayUtil.isEmpty(bytes)) {
             return null;
         }
-        return JSON_MAPPER.readValue(bytes, clazz);
+        try {
+            return OBJECT_MAPPER.readValue(bytes, clazz);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -92,7 +102,11 @@ public class JsonUtils {
         if (StringUtils.isBlank(text)) {
             return null;
         }
-        return JSON_MAPPER.readValue(text, typeReference);
+        try {
+            return OBJECT_MAPPER.readValue(text, typeReference);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -106,7 +120,14 @@ public class JsonUtils {
         if (StringUtils.isBlank(text)) {
             return null;
         }
-        return JSON_MAPPER.readValue(text, JSON_MAPPER.getTypeFactory().constructType(Dict.class));
+        try {
+            return OBJECT_MAPPER.readValue(text, OBJECT_MAPPER.getTypeFactory().constructType(Dict.class));
+        } catch (MismatchedInputException e) {
+            // 类型不匹配说明不是json
+            return null;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -120,7 +141,11 @@ public class JsonUtils {
         if (StringUtils.isBlank(text)) {
             return null;
         }
-        return JSON_MAPPER.readValue(text, JSON_MAPPER.getTypeFactory().constructCollectionType(List.class, Dict.class));
+        try {
+            return OBJECT_MAPPER.readValue(text, OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, Dict.class));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -136,48 +161,11 @@ public class JsonUtils {
         if (StringUtils.isEmpty(text)) {
             return new ArrayList<>();
         }
-        return JSON_MAPPER.readValue(text, JSON_MAPPER.getTypeFactory().constructCollectionType(List.class, clazz));
-    }
-
-    /**
-     * 将对象转换为 JSON 字符串，并递归移除指定字段。
-     *
-     * @param object     要转换的对象
-     * @param fieldNames 需要移除的字段名
-     * @return 移除字段后的 JSON 字符串
-     */
-    public static String toJsonStringExcludeFields(Object object, String... fieldNames) {
-        if (ObjectUtil.isNull(object)) {
-            return null;
+        try {
+            return OBJECT_MAPPER.readValue(text, OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, clazz));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        JsonNode node = JSON_MAPPER.valueToTree(object);
-        removeFields(node, fieldNames);
-        return toJsonString(node);
-    }
-
-    /**
-     * 从 JSON 树中递归移除指定字段。
-     *
-     * @param node       JSON 节点
-     * @param fieldNames 需要移除的字段名
-     * @return 原 JSON 节点
-     */
-    public static JsonNode removeFields(JsonNode node, String... fieldNames) {
-        if (node == null || ArrayUtil.isEmpty(fieldNames)) {
-            return node;
-        }
-        if (node.isObject()) {
-            ObjectNode objectNode = (ObjectNode) node;
-            for (String fieldName : fieldNames) {
-                if (StringUtils.isNotBlank(fieldName)) {
-                    objectNode.remove(fieldName);
-                }
-            }
-        }
-        for (JsonNode child : node) {
-            removeFields(child, fieldNames);
-        }
-        return node;
     }
 
     /**
@@ -187,8 +175,15 @@ public class JsonUtils {
      * @return true = 合法 JSON，false = 非法或空
      */
     public static boolean isJson(String str) {
-        JsonNode node = readTreeQuietly(str);
-        return node != null && (node.isObject() || node.isArray());
+        if (StringUtils.isBlank(str)) {
+            return false;
+        }
+        try {
+            OBJECT_MAPPER.readTree(str);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
@@ -198,8 +193,15 @@ public class JsonUtils {
      * @return true = JSON 对象
      */
     public static boolean isJsonObject(String str) {
-        JsonNode node = readTreeQuietly(str);
-        return node != null && node.isObject();
+        if (StringUtils.isBlank(str)) {
+            return false;
+        }
+        try {
+            JsonNode node = OBJECT_MAPPER.readTree(str);
+            return node.isObject();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
@@ -212,24 +214,11 @@ public class JsonUtils {
         if (StringUtils.isBlank(str)) {
             return false;
         }
-        JsonNode node = readTreeQuietly(str);
-        return node != null && node.isArray();
-    }
-
-    /**
-     * 安静读取 JSON 树，解析失败时返回 null。
-     *
-     * @param str JSON 字符串
-     * @return JSON 节点，解析失败或空字符串时返回 null
-     */
-    private static JsonNode readTreeQuietly(String str) {
-        if (StringUtils.isBlank(str)) {
-            return null;
-        }
         try {
-            return JSON_MAPPER.readTree(str);
+            JsonNode node = OBJECT_MAPPER.readTree(str);
+            return node.isArray();
         } catch (Exception e) {
-            return null;
+            return false;
         }
     }
 

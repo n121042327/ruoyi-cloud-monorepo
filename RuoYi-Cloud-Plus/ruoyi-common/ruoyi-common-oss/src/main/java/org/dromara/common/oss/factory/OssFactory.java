@@ -1,32 +1,30 @@
 package org.dromara.common.oss.factory;
 
-import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.constant.CacheNames;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.json.utils.JsonUtils;
-import org.dromara.common.oss.client.DefaultOssClientImpl;
-import org.dromara.common.oss.client.OssClient;
-import org.dromara.common.oss.config.OssClientConfig;
 import org.dromara.common.oss.constant.OssConstant;
-import org.dromara.common.oss.exception.S3StorageException;
+import org.dromara.common.oss.core.OssClient;
+import org.dromara.common.oss.exception.OssException;
 import org.dromara.common.oss.properties.OssProperties;
 import org.dromara.common.redis.utils.CacheUtils;
 import org.dromara.common.redis.utils.RedisUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * S3存储客户端工厂
+ * 文件上传Factory
  *
- * @author 秋辞未寒
+ * @author Lion Li
  */
 @Slf4j
 public class OssFactory {
 
     private static final Map<String, OssClient> CLIENT_CACHE = new ConcurrentHashMap<>();
-    private static final Map<String, ReentrantLock> CLIENT_LOCKS = new ConcurrentHashMap<>();
+    private static final ReentrantLock LOCK = new ReentrantLock();
 
     /**
      * 获取默认实例
@@ -35,7 +33,7 @@ public class OssFactory {
         // 获取redis 默认类型
         String configKey = RedisUtils.getCacheObject(OssConstant.DEFAULT_CONFIG_KEY);
         if (StringUtils.isEmpty(configKey)) {
-            throw S3StorageException.form("文件存储服务类型无法找到!");
+            throw new OssException("文件存储服务类型无法找到!");
         }
         return instance(configKey);
     }
@@ -43,65 +41,33 @@ public class OssFactory {
     /**
      * 根据类型获取实例
      */
-    public static OssClient instance(String configKey) {
-        if (StringUtils.isBlank(configKey)) {
-            throw S3StorageException.form("文件存储服务类型无法找到!");
-        }
+    public static synchronized OssClient instance(String configKey) {
         String json = CacheUtils.get(CacheNames.SYS_OSS_CONFIG, configKey);
         if (json == null) {
-            throw S3StorageException.form("系统异常, '" + configKey + "'配置信息不存在!");
+            throw new OssException("系统异常, '" + configKey + "'配置信息不存在!");
         }
         OssProperties properties = JsonUtils.parseObject(json, OssProperties.class);
-        OssClientConfig config = OssClientConfig.formProperties(properties);
-        ReentrantLock lock = getClientLock(configKey);
-        lock.lock();
-        try {
-            OssClient client = CLIENT_CACHE.get(configKey);
-            if (client != null) {
-                if (client.verifyConfig(config)) {
-                    return client;
+        // 使用租户标识避免多个租户相同key实例覆盖
+        String key = configKey;
+        if (StringUtils.isNotBlank(properties.getTenantId())) {
+            key = properties.getTenantId() + ":" + configKey;
+        }
+        OssClient client = CLIENT_CACHE.get(key);
+        // 客户端不存在或配置不相同则重新构建
+        if (client == null || !client.checkPropertiesSame(properties)) {
+            LOCK.lock();
+            try {
+                client = CLIENT_CACHE.get(key);
+                if (client == null || !client.checkPropertiesSame(properties)) {
+                    CLIENT_CACHE.put(key, new OssClient(configKey, properties));
+                    log.info("创建OSS实例 key => {}", configKey);
+                    return CLIENT_CACHE.get(key);
                 }
-                closeClient(configKey, client);
+            } finally {
+                LOCK.unlock();
             }
-            OssClient newClient = new DefaultOssClientImpl(configKey, config);
-            CLIENT_CACHE.put(configKey, newClient);
-            return newClient;
-        } finally {
-            lock.unlock();
         }
-    }
-
-    /**
-     * 移除实例
-     */
-    public static boolean remove(String configKey) {
-        if (StringUtils.isBlank(configKey)) {
-            return false;
-        }
-        ReentrantLock lock = getClientLock(configKey);
-        lock.lock();
-        try {
-            OssClient client = CLIENT_CACHE.remove(configKey);
-            if (client == null) {
-                return false;
-            }
-            closeClient(configKey, client);
-            return true;
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    private static ReentrantLock getClientLock(String configKey) {
-        return CLIENT_LOCKS.computeIfAbsent(configKey, key -> new ReentrantLock());
-    }
-
-    private static void closeClient(String configKey, OssClient client) {
-        try {
-            client.close();
-        } catch (Exception e) {
-            log.warn("S3存储客户端 [{}] 关闭异常，错误信息: {}", configKey, e.getMessage(), e);
-        }
+        return client;
     }
 
 }

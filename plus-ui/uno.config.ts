@@ -1,8 +1,9 @@
 import {
   defineConfig,
   presetAttributify,
-  presetWind3,
+  presetIcons,
   presetTypography,
+  presetUno,
   presetWebFonts,
   transformerDirectives,
   transformerVariantGroup
@@ -20,8 +21,9 @@ export default defineConfig({
     }
   },
   presets: [
-    presetWind3(),
+    presetUno(),
     presetAttributify(),
+    presetIcons(),
     presetTypography(),
     presetWebFonts({
       fonts: {}

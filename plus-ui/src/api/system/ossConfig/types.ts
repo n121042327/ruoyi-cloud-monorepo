@@ -6,7 +6,7 @@ export interface OssConfigVO extends BaseEntity {
   bucketName: string;
   prefix: string;
   endpoint: string;
-  domainUrl: string;
+  domain: string;
   isHttps: string;
   region: string;
   status: string;
@@ -29,7 +29,7 @@ export interface OssConfigForm {
   bucketName: string;
   prefix: string;
   endpoint: string;
-  domainUrl: string;
+  domain: string;
   isHttps: string;
   accessPolicy: string;
   region: string;

@@ -2,33 +2,33 @@ package org.dromara.demo.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.bean.BeanUtil;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import lombok.RequiredArgsConstructor;
-import org.dromara.common.core.domain.PageResult;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.core.utils.ValidatorUtils;
 import org.dromara.common.core.validate.AddGroup;
 import org.dromara.common.core.validate.EditGroup;
 import org.dromara.common.core.validate.QueryGroup;
+import org.dromara.common.web.core.BaseController;
 import org.dromara.common.excel.core.ExcelResult;
-import org.dromara.common.excel.utils.ExcelBuilder;
+import org.dromara.common.excel.utils.ExcelUtil;
+import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
-import org.dromara.common.redis.annotation.RepeatSubmit;
-import org.dromara.common.web.core.BaseController;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.demo.domain.TestDemo;
 import org.dromara.demo.domain.bo.TestDemoBo;
 import org.dromara.demo.domain.vo.TestDemoImportVo;
 import org.dromara.demo.domain.vo.TestDemoVo;
 import org.dromara.demo.service.ITestDemoService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -52,8 +52,8 @@ public class TestDemoController extends BaseController {
      */
     @SaCheckPermission("demo:demo:list")
     @GetMapping("/list")
-    public R<PageResult<TestDemoVo>> list(TestDemoBo bo, PageQuery pageQuery) {
-        return R.ok(iTestDemoService.queryPageList(bo, pageQuery));
+    public TableDataInfo<TestDemoVo> list(TestDemoBo bo, PageQuery pageQuery) {
+        return iTestDemoService.queryPageList(bo, pageQuery);
     }
 
     /**
@@ -61,8 +61,8 @@ public class TestDemoController extends BaseController {
      */
     @SaCheckPermission("demo:demo:list")
     @GetMapping("/page")
-    public R<PageResult<TestDemoVo>> page(@Validated(QueryGroup.class) TestDemoBo bo, PageQuery pageQuery) {
-        return R.ok(iTestDemoService.customPageList(bo, pageQuery));
+    public TableDataInfo<TestDemoVo> page(@Validated(QueryGroup.class) TestDemoBo bo, PageQuery pageQuery) {
+        return iTestDemoService.customPageList(bo, pageQuery);
     }
 
     /**
@@ -74,7 +74,7 @@ public class TestDemoController extends BaseController {
     @SaCheckPermission("demo:demo:import")
     @PostMapping(value = "/importData", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public R<Void> importData(@RequestPart("file") MultipartFile file) throws Exception {
-        ExcelResult<TestDemoImportVo> excelResult = ExcelBuilder.read(file.getInputStream(), TestDemoImportVo.class).validate(true).doRead();
+        ExcelResult<TestDemoImportVo> excelResult = ExcelUtil.importExcel(file.getInputStream(), TestDemoImportVo.class, true);
         List<TestDemoImportVo> volist = excelResult.getList();
         List<TestDemo> list = BeanUtil.copyToList(volist, TestDemo.class);
         iTestDemoService.saveBatch(list);
@@ -93,7 +93,7 @@ public class TestDemoController extends BaseController {
 //        for (TestDemoVo vo : list) {
 //            vo.setId(1234567891234567893L);
 //        }
-        ExcelBuilder.of(list, TestDemoVo.class).sheetName("测试单表").toResponse(response);
+        ExcelUtil.exportExcel(list, "测试单表", TestDemoVo.class, response);
     }
 
     /**

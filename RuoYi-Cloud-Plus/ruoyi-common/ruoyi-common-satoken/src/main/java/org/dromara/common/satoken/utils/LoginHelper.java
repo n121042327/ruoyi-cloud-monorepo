@@ -1,22 +1,19 @@
 package org.dromara.common.satoken.utils;
 
-import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.stp.parameter.SaLoginParameter;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.http.useragent.UserAgent;
-import cn.hutool.http.useragent.UserAgentUtil;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.dromara.common.core.constant.SystemConstants;
+import org.dromara.common.core.constant.TenantConstants;
 import org.dromara.common.core.enums.UserType;
-import org.dromara.common.core.utils.ServletUtils;
-import org.dromara.common.core.utils.StringUtils;
-import org.dromara.common.core.utils.ip.AddressUtils;
 import org.dromara.system.api.model.LoginUser;
+
+import java.util.Set;
 
 /**
  * 登录鉴权助手
@@ -34,14 +31,13 @@ import org.dromara.system.api.model.LoginUser;
 public class LoginHelper {
 
     public static final String LOGIN_USER_KEY = "loginUser";
+    public static final String TENANT_KEY = "tenantId";
     public static final String USER_KEY = "userId";
     public static final String USER_NAME_KEY = "userName";
     public static final String DEPT_KEY = "deptId";
     public static final String DEPT_NAME_KEY = "deptName";
     public static final String DEPT_CATEGORY_KEY = "deptCategory";
     public static final String CLIENT_KEY = "clientid";
-    public static final String CLIENT_ACCESS_PATH_KEY = "clientAccessPath";
-    public static final String CLIENT_IP_WHITELIST_KEY = "clientIpWhitelist";
 
     /**
      * 登录系统 基于 设备类型
@@ -52,9 +48,9 @@ public class LoginHelper {
      */
     public static void login(LoginUser loginUser, SaLoginParameter model) {
         model = ObjectUtil.defaultIfNull(model, new SaLoginParameter());
-        fillRequestContext(loginUser, model);
         StpUtil.login(loginUser.getLoginId(),
-            model.setExtra(USER_KEY, loginUser.getUserId())
+            model.setExtra(TENANT_KEY, loginUser.getTenantId())
+                .setExtra(USER_KEY, loginUser.getUserId())
                 .setExtra(USER_NAME_KEY, loginUser.getUsername())
                 .setExtra(DEPT_KEY, loginUser.getDeptId())
                 .setExtra(DEPT_NAME_KEY, loginUser.getDeptName())
@@ -64,70 +60,23 @@ public class LoginHelper {
     }
 
     /**
-     * 在登录时补充当前请求上下文，避免登录态中的终端信息缺失。
-     *
-     * @param loginUser 登录用户
-     * @param model     登录参数
-     */
-    private static void fillRequestContext(LoginUser loginUser, SaLoginParameter model) {
-        HttpServletRequest request = ServletUtils.getRequest();
-        if (ObjectUtil.isNull(request)) {
-            return;
-        }
-        String ip = ServletUtils.getClientIP(request);
-        if (StringUtils.isBlank(loginUser.getIpaddr())) {
-            loginUser.setIpaddr(ip);
-        }
-        if (StringUtils.isBlank(loginUser.getLoginLocation()) && StringUtils.isNotBlank(ip)) {
-            loginUser.setLoginLocation(AddressUtils.getRealAddressByIP(ip));
-        }
-        UserAgent userAgent = UserAgentUtil.parse(request.getHeader("User-Agent"));
-        if (StringUtils.isBlank(loginUser.getBrowser())) {
-            loginUser.setBrowser(userAgent.getBrowser().getName());
-        }
-        if (StringUtils.isBlank(loginUser.getOs())) {
-            loginUser.setOs(userAgent.getOs().getName());
-        }
-        if (StringUtils.isBlank(loginUser.getDeviceType()) && StringUtils.isNotBlank(model.getDeviceType())) {
-            loginUser.setDeviceType(model.getDeviceType());
-        }
-    }
-
-    /**
      * 获取用户(多级缓存)
      */
+    @SuppressWarnings("unchecked")
     public static <T extends LoginUser> T getLoginUser() {
-        try {
-            return getLoginUser(StpUtil.getTokenSession());
-        } catch (NotLoginException e) {
+        SaSession session = StpUtil.getTokenSession();
+        if (ObjectUtil.isNull(session)) {
             return null;
         }
+        return (T) session.get(LOGIN_USER_KEY);
     }
 
     /**
      * 获取用户基于token
      */
-    public static <T extends LoginUser> T getLoginUser(String token) {
-        if (StringUtils.isBlank(token)) {
-            return null;
-        }
-        SaSession session;
-        try {
-            session = StpUtil.getTokenSessionByToken(token);
-        } catch (NotLoginException e) {
-            return null;
-        }
-        return getLoginUser(session);
-    }
-
-    /**
-     * 从会话中读取登录用户。
-     *
-     * @param session 登录会话
-     * @return 登录用户
-     */
     @SuppressWarnings("unchecked")
-    private static <T extends LoginUser> T getLoginUser(SaSession session) {
+    public static <T extends LoginUser> T getLoginUser(String token) {
+        SaSession session = StpUtil.getTokenSessionByToken(token);
         if (ObjectUtil.isNull(session)) {
             return null;
         }
@@ -153,6 +102,13 @@ public class LoginHelper {
      */
     public static String getUsername() {
         return Convert.toStr(getExtra(USER_NAME_KEY));
+    }
+
+    /**
+     * 获取租户ID
+     */
+    public static String getTenantId() {
+        return Convert.toStr(getExtra(TENANT_KEY));
     }
 
     /**
@@ -206,7 +162,7 @@ public class LoginHelper {
      * @return 结果
      */
     public static boolean isSuperAdmin(Long userId) {
-        return SystemConstants.SUPER_ADMIN_USER_ID.equals(userId);
+        return SystemConstants.SUPER_ADMIN_ID.equals(userId);
     }
 
     /**
@@ -219,12 +175,43 @@ public class LoginHelper {
     }
 
     /**
+     * 是否为租户管理员
+     *
+     * @param rolePermission 角色权限标识组
+     * @return 结果
+     */
+    public static boolean isTenantAdmin(Set<String> rolePermission) {
+        if (CollUtil.isEmpty(rolePermission)) {
+            return false;
+        }
+        return rolePermission.contains(TenantConstants.TENANT_ADMIN_ROLE_KEY);
+    }
+
+    /**
+     * 是否为租户管理员
+     *
+     * @return 结果
+     */
+    public static boolean isTenantAdmin() {
+        LoginUser loginUser = getLoginUser();
+        if (loginUser == null) {
+            return false;
+        }
+        return Convert.toBool(isTenantAdmin(loginUser.getRolePermission()));
+    }
+
+    /**
      * 检查当前用户是否已登录
      *
      * @return 结果
      */
     public static boolean isLogin() {
-        return StpUtil.isLogin();
+        try {
+            StpUtil.checkLogin();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
 }

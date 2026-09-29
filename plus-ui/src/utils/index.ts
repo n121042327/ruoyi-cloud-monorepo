@@ -105,7 +105,7 @@ export const cleanArray = (actual: Array<any>) => {
 export const param = (json: any) => {
   if (!json) return '';
   return cleanArray(
-    Object.keys(json).map(key => {
+    Object.keys(json).map((key) => {
       if (json[key] === undefined) return '';
       return encodeURIComponent(key) + '=' + encodeURIComponent(json[key]);
     })
@@ -123,7 +123,7 @@ export const param2Obj = (url: string) => {
   }
   const obj: any = {};
   const searchArr = search.split('&');
-  searchArr.forEach(v => {
+  searchArr.forEach((v) => {
     const index = v.indexOf('=');
     if (index !== -1) {
       const name = v.substring(0, index);
@@ -157,7 +157,7 @@ export const objectMerge = (target: any, source: any | any[]) => {
   if (Array.isArray(source)) {
     return source.slice();
   }
-  Object.keys(source).forEach(property => {
+  Object.keys(source).forEach((property) => {
     const sourceProperty = source[property];
     if (typeof sourceProperty === 'object') {
       target[property] = objectMerge(target[property], sourceProperty);
@@ -204,40 +204,39 @@ export const getTime = (type: string) => {
  * @param {boolean} immediate
  * @return {*}
  */
-export function debounce(func: (...args: any[]) => any, wait: number, immediate: boolean) {
-  let timeout: ReturnType<typeof setTimeout> | null = null;
-  let lastArgs: any[] | null = null;
-  let lastContext: any = null;
-  let timestamp = 0;
-  let result: any;
+export const debounce = (func: any, wait: number, immediate: boolean) => {
+  let timeout: any, args: any, context: any, timestamp: any, result: any;
 
-  function later() {
-    const last = Date.now() - timestamp;
+  const later = function () {
+    // 据上一次触发时间间隔
+    const last = +new Date() - timestamp;
 
+    // 上次被包装函数被调用时间间隔 last 小于设定时间间隔 wait
     if (last < wait && last > 0) {
       timeout = setTimeout(later, wait - last);
     } else {
       timeout = null;
+      // 如果设定为immediate===true，因为开始边界已经调用过了此处无需调用
       if (!immediate) {
-        result = func.apply(lastContext, lastArgs!);
-        if (!timeout) lastContext = lastArgs = null;
+        result = func.apply(context, args);
+        if (!timeout) context = args = null;
       }
     }
-  }
+  };
 
-  return function (this: any, ...args: any[]) {
-    lastContext = this;
-    lastArgs = args;
-    timestamp = Date.now();
+  return (...args: any) => {
+    context = this;
+    timestamp = +new Date();
     const callNow = immediate && !timeout;
+    // 如果延时不存在，重新设定延时
     if (!timeout) timeout = setTimeout(later, wait);
     if (callNow) {
-      result = func.apply(lastContext, lastArgs);
-      lastContext = lastArgs = null;
+      result = func.apply(context, args);
+      context = args = null;
     }
     return result;
   };
-}
+};
 
 /**
  * This is just a simple version of deep copy
@@ -251,7 +250,7 @@ export const deepClone = (source: any) => {
     throw new Error('error arguments', 'deepClone' as any);
   }
   const targetObj: any = source.constructor === Array ? [] : {};
-  Object.keys(source).forEach(keys => {
+  Object.keys(source).forEach((keys) => {
     if (source[keys] && typeof source[keys] === 'object') {
       targetObj[keys] = deepClone(source[keys]);
     } else {

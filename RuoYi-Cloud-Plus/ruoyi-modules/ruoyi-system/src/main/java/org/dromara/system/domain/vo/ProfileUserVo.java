@@ -6,7 +6,7 @@ import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 
 /**
@@ -24,6 +24,11 @@ public class ProfileUserVo implements Serializable {
      * 用户ID
      */
     private Long userId;
+
+    /**
+     * 租户ID
+     */
+    private String tenantId;
 
     /**
      * 部门ID
@@ -53,23 +58,18 @@ public class ProfileUserVo implements Serializable {
     /**
      * 手机号码
      */
-    private String phoneNumber;
+    private String phonenumber;
 
     /**
      * 用户性别（0男 1女 2未知）
      */
-    private String gender;
-
-    /**
-     * 头像 OSS ID
-     */
-    private Long avatar;
+    private String sex;
 
     /**
      * 头像地址
      */
-    @Translation(type = TransConstant.OSS_ID_TO_URL, mapper = "avatar")
-    private String avatarUrl;
+    @Translation(type = TransConstant.OSS_ID_TO_URL)
+    private Long avatar;
 
     /**
      * 最后登录IP
@@ -79,7 +79,7 @@ public class ProfileUserVo implements Serializable {
     /**
      * 最后登录时间
      */
-    private LocalDateTime loginDate;
+    private Date loginDate;
 
     /**
      * 部门名

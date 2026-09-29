@@ -22,7 +22,7 @@ import java.util.stream.Stream;
  * @version 3.1.0 新增
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-@SuppressWarnings(value = {"rawtypes"})
+@SuppressWarnings(value = {"unchecked", "rawtypes"})
 public class RedisUtils {
 
     private static final RedissonClient CLIENT = SpringUtils.getBean(RedissonClient.class);
@@ -77,9 +77,7 @@ public class RedisUtils {
     public static <T> void publish(String channelKey, T msg, Consumer<T> consumer) {
         RTopic topic = CLIENT.getTopic(channelKey);
         topic.publish(msg);
-        if (consumer != null) {
-            consumer.accept(msg);
-        }
+        consumer.accept(msg);
     }
 
     /**
@@ -101,31 +99,8 @@ public class RedisUtils {
      * @param consumer   自定义处理
      */
     public static <T> void subscribe(String channelKey, Class<T> clazz, Consumer<T> consumer) {
-        subscribeAndGetListenerId(channelKey, clazz, consumer);
-    }
-
-    /**
-     * 订阅通道接收消息，并返回监听器 ID。
-     *
-     * @param channelKey 通道key
-     * @param clazz      消息类型
-     * @param consumer   自定义处理
-     * @return 监听器 ID，可用于取消订阅
-     */
-    public static <T> int subscribeAndGetListenerId(String channelKey, Class<T> clazz, Consumer<T> consumer) {
         RTopic topic = CLIENT.getTopic(channelKey);
-        return topic.addListener(clazz, (channel, msg) -> consumer.accept(msg));
-    }
-
-    /**
-     * 取消通道订阅。
-     *
-     * @param channelKey 通道key
-     * @param listenerId 监听器 ID
-     */
-    public static void unsubscribe(String channelKey, int listenerId) {
-        RTopic topic = CLIENT.getTopic(channelKey);
-        topic.removeListener(listenerId);
+        topic.addListener(clazz, (channel, msg) -> consumer.accept(msg));
     }
 
     /**
@@ -153,7 +128,7 @@ public class RedisUtils {
                 bucket.setAndKeepTTL(value);
             } catch (Exception e) {
                 long timeToLive = bucket.remainTimeToLive();
-                if (timeToLive <= 0) {
+                if (timeToLive == -1) {
                     bucket.set(value);
                 } else {
                     bucket.set(value, Duration.ofMillis(timeToLive));
@@ -264,9 +239,6 @@ public class RedisUtils {
      * @param key 缓存的键值
      */
     public static boolean deleteObject(final String key) {
-        if (key == null) {
-            return false;
-        }
         return CLIENT.getBucket(key).delete();
     }
 
@@ -275,12 +247,11 @@ public class RedisUtils {
      *
      * @param collection 多个对象
      */
-    public static void deleteObject(final Collection<?> collection) {
-        if (collection == null || collection.isEmpty()) {
-            return;
-        }
+    public static void deleteObject(final Collection collection) {
         RBatch batch = CLIENT.createBatch();
-        collection.forEach(t -> batch.getBucket(t.toString()).deleteAsync());
+        collection.forEach(t -> {
+            batch.getBucket(t.toString()).deleteAsync();
+        });
         batch.execute();
     }
 
@@ -436,7 +407,7 @@ public class RedisUtils {
      */
     public static <T> Map<String, T> getCacheMap(final String key) {
         RMap<String, T> rMap = CLIENT.getMap(key);
-        return rMap.readAllMap();
+        return rMap.getAll(rMap.keySet());
     }
 
     /**
@@ -559,31 +530,29 @@ public class RedisUtils {
 
     /**
      * 获得缓存的基本对象列表(全局匹配忽略租户 自行拼接租户id)
-     * <p>
+     * <P>
      * limit-设置扫描的限制数量(默认为0,查询全部)
      * pattern-设置键的匹配模式(默认为null)
      * chunkSize-设置每次扫描的块大小(默认为0,本方法设置为1000)
      * type-设置键的类型(默认为null,查询全部类型)
      * </P>
-     *
+     * @see KeysScanOptions
      * @param pattern 字符串前缀
      * @return 对象列表
-     * @see KeysScanOptions
      */
     public static Collection<String> keys(final String pattern) {
-        return keys(KeysScanOptions.defaults().pattern(pattern).chunkSize(1000));
+        return  keys(KeysScanOptions.defaults().pattern(pattern).chunkSize(1000));
     }
 
     /**
      * 通过扫描参数获取缓存的基本对象列表
-     *
      * @param keysScanOptions 扫描参数
-     *                        <p>
-     *                        limit-设置扫描的限制数量(默认为0,查询全部)
-     *                        pattern-设置键的匹配模式(默认为null)
-     *                        chunkSize-设置每次扫描的块大小(默认为0)
-     *                        type-设置键的类型(默认为null,查询全部类型)
-     *                        </P>
+     * <P>
+     * limit-设置扫描的限制数量(默认为0,查询全部)
+     * pattern-设置键的匹配模式(默认为null)
+     * chunkSize-设置每次扫描的块大小(默认为0)
+     * type-设置键的类型(默认为null,查询全部类型)
+     * </P>
      * @see KeysScanOptions
      */
     public static Collection<String> keys(final KeysScanOptions keysScanOptions) {

@@ -1,9 +1,9 @@
 package org.dromara.system.domain.vo;
 
+import cn.idev.excel.annotation.ExcelIgnoreUnannotated;
+import cn.idev.excel.annotation.ExcelProperty;
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
-import org.apache.fesod.sheet.annotation.ExcelIgnoreUnannotated;
-import org.apache.fesod.sheet.annotation.ExcelProperty;
 import org.dromara.common.excel.annotation.ExcelDictFormat;
 import org.dromara.common.excel.convert.ExcelDictConvert;
 import org.dromara.system.domain.SysClient;
@@ -53,40 +53,18 @@ public class SysClientVo implements Serializable {
     /**
      * 授权类型
      */
+    @ExcelProperty(value = "授权类型")
     private List<String> grantTypeList;
 
     /**
      * 授权类型
      */
-    @ExcelProperty(value = "授权类型")
     private String grantType;
 
     /**
      * 设备类型
      */
     private String deviceType;
-
-    /**
-     * 允许访问路径
-     */
-    @ExcelProperty(value = "允许访问路径")
-    private String accessPath;
-
-    /**
-     * 允许访问路径列表
-     */
-    private List<String> accessPathList;
-
-    /**
-     * IP白名单
-     */
-    @ExcelProperty(value = "IP白名单")
-    private String ipWhitelist;
-
-    /**
-     * IP白名单列表
-     */
-    private List<String> ipWhitelistList;
 
     /**
      * token活跃超时时间

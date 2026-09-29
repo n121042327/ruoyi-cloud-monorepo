@@ -1,14 +1,13 @@
 package org.dromara.workflow.controller;
 
-import cn.dev33.satoken.annotation.SaCheckPermission;
 import lombok.RequiredArgsConstructor;
-import org.dromara.common.core.domain.PageResult;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.core.validate.AddGroup;
+import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
-import org.dromara.common.redis.annotation.RepeatSubmit;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.system.api.domain.vo.RemoteUserVo;
 import org.dromara.warm.flow.core.entity.Node;
@@ -48,7 +47,7 @@ public class FlwTaskController extends BaseController {
     @PostMapping("/startWorkFlow")
     public R<RemoteStartProcessReturn> startWorkFlow(@Validated(AddGroup.class) @RequestBody StartProcessBo startProcessBo) {
         RemoteStartProcessReturn startProcessReturn = flwTaskService.startWorkFlow(startProcessBo);
-        return R.data(startProcessReturn);
+        return R.ok("提交成功", startProcessReturn);
     }
 
     /**
@@ -70,8 +69,8 @@ public class FlwTaskController extends BaseController {
      * @param pageQuery  分页
      */
     @GetMapping("/pageByTaskWait")
-    public R<PageResult<FlowTaskVo>> pageByTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
-        return R.ok(flwTaskService.pageByTaskWait(flowTaskBo, pageQuery));
+    public TableDataInfo<FlowTaskVo> pageByTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
+        return flwTaskService.pageByTaskWait(flowTaskBo, pageQuery);
     }
 
     /**
@@ -82,8 +81,8 @@ public class FlwTaskController extends BaseController {
      */
 
     @GetMapping("/pageByTaskFinish")
-    public R<PageResult<FlowHisTaskVo>> pageByTaskFinish(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
-        return R.ok(flwTaskService.pageByTaskFinish(flowTaskBo, pageQuery));
+    public TableDataInfo<FlowHisTaskVo> pageByTaskFinish(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
+        return flwTaskService.pageByTaskFinish(flowTaskBo, pageQuery);
     }
 
     /**
@@ -92,10 +91,9 @@ public class FlwTaskController extends BaseController {
      * @param flowTaskBo 参数
      * @param pageQuery  分页
      */
-    @SaCheckPermission("workflow:task:list")
     @GetMapping("/pageByAllTaskWait")
-    public R<PageResult<FlowTaskVo>> pageByAllTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
-        return R.ok(flwTaskService.pageByAllTaskWait(flowTaskBo, pageQuery));
+    public TableDataInfo<FlowTaskVo> pageByAllTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
+        return flwTaskService.pageByAllTaskWait(flowTaskBo, pageQuery);
     }
 
     /**
@@ -104,10 +102,9 @@ public class FlwTaskController extends BaseController {
      * @param flowTaskBo 参数
      * @param pageQuery  分页
      */
-    @SaCheckPermission("workflow:task:list")
     @GetMapping("/pageByAllTaskFinish")
-    public R<PageResult<FlowHisTaskVo>> pageByAllTaskFinish(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
-        return R.ok(flwTaskService.pageByAllTaskFinish(flowTaskBo, pageQuery));
+    public TableDataInfo<FlowHisTaskVo> pageByAllTaskFinish(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
+        return flwTaskService.pageByAllTaskFinish(flowTaskBo, pageQuery);
     }
 
     /**
@@ -117,8 +114,8 @@ public class FlwTaskController extends BaseController {
      * @param pageQuery  分页
      */
     @GetMapping("/pageByTaskCopy")
-    public R<PageResult<FlowTaskVo>> pageByTaskCopy(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
-        return R.ok(flwTaskService.pageByTaskCopy(flowTaskBo, pageQuery));
+    public TableDataInfo<FlowTaskVo> pageByTaskCopy(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
+        return flwTaskService.pageByTaskCopy(flowTaskBo, pageQuery);
     }
 
     /**
@@ -174,7 +171,6 @@ public class FlwTaskController extends BaseController {
      */
     @Log(title = "任务管理", businessType = BusinessType.UPDATE)
     @RepeatSubmit()
-    @SaCheckPermission("workflow:task:edit")
     @PutMapping("/updateAssignee/{userId}")
     public R<Void> updateAssignee(@RequestBody List<Long> taskIdList, @PathVariable String userId) {
         return toAjax(flwTaskService.updateAssignee(taskIdList, userId));
@@ -195,8 +191,8 @@ public class FlwTaskController extends BaseController {
     /**
      * 获取可驳回的前置节点
      *
-     * @param taskId      任务id
-     * @param nowNodeCode 当前节点
+     * @param taskId       任务id
+     * @param nowNodeCode  当前节点
      */
     @GetMapping("/getBackTaskNode/{taskId}/{nowNodeCode}")
     public R<List<Node>> getBackTaskNode(@PathVariable Long taskId, @PathVariable String nowNodeCode) {
@@ -221,7 +217,6 @@ public class FlwTaskController extends BaseController {
      */
     @PostMapping("/urgeTask")
     @Log(title = "任务管理", businessType = BusinessType.INSERT)
-    @SaCheckPermission("workflow:task:edit")
     public R<Void> urgeTask(@RequestBody FlowUrgeTaskBo bo) {
         return toAjax(flwTaskService.urgeTask(bo));
     }

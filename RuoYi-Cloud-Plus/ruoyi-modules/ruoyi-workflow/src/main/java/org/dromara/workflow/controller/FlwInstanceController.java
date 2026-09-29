@@ -3,13 +3,13 @@ package org.dromara.workflow.controller;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.convert.Convert;
 import lombok.RequiredArgsConstructor;
-import org.dromara.common.core.domain.PageResult;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.core.utils.StreamUtils;
+import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
-import org.dromara.common.redis.annotation.RepeatSubmit;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.warm.flow.core.service.InsService;
 import org.dromara.workflow.common.ConditionalOnEnable;
@@ -48,8 +48,8 @@ public class FlwInstanceController extends BaseController {
      */
     @GetMapping("/pageByRunning")
     @SaCheckPermission("workflow:instance:list")
-    public R<PageResult<FlowInstanceVo>> selectRunningInstanceList(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
-        return R.ok(flwInstanceService.selectRunningInstanceList(flowInstanceBo, pageQuery));
+    public TableDataInfo<FlowInstanceVo> selectRunningInstanceList(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
+        return flwInstanceService.selectRunningInstanceList(flowInstanceBo, pageQuery);
     }
 
     /**
@@ -60,8 +60,8 @@ public class FlwInstanceController extends BaseController {
      */
     @GetMapping("/pageByFinish")
     @SaCheckPermission("workflow:instance:list")
-    public R<PageResult<FlowInstanceVo>> selectFinishInstanceList(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
-        return R.ok(flwInstanceService.selectFinishInstanceList(flowInstanceBo, pageQuery));
+    public TableDataInfo<FlowInstanceVo> selectFinishInstanceList(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
+        return flwInstanceService.selectFinishInstanceList(flowInstanceBo, pageQuery);
     }
 
     /**
@@ -146,8 +146,8 @@ public class FlwInstanceController extends BaseController {
      */
     @GetMapping("/pageByCurrent")
     @SaCheckPermission("workflow:instance:currentList")
-    public R<PageResult<FlowInstanceVo>> selectCurrentInstanceList(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
-        return R.ok(flwInstanceService.selectCurrentInstanceList(flowInstanceBo, pageQuery));
+    public TableDataInfo<FlowInstanceVo> selectCurrentInstanceList(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
+        return flwInstanceService.selectCurrentInstanceList(flowInstanceBo, pageQuery);
     }
 
     /**

@@ -1,10 +1,10 @@
-import type { UserQuery, UserVO } from '@/api/system/user/types';
-import type { PageResult } from '@/api/types';
-import type { AxiosPromise } from '@/utils/api-types';
+import { UserVO } from '@/api/system/user/types';
+import { UserQuery } from '@/api/system/user/types';
+import { AxiosPromise } from 'axios';
+import { RoleQuery, RoleVO, RoleDeptTree } from './types';
 import request from '@/utils/request';
-import type { RoleDeptTree, RoleQuery, RoleVO } from './types';
 
-export const listRole = (query: RoleQuery): AxiosPromise<PageResult<RoleVO>> => {
+export const listRole = (query: RoleQuery): AxiosPromise<RoleVO[]> => {
   return request({
     url: '/system/role/list',
     method: 'get',
@@ -45,7 +45,7 @@ export const addRole = (data: any) => {
 };
 
 /**
- * 修改角色基础信息
+ * 修改角色
  * @param data
  */
 export const updateRole = (data: any) => {
@@ -57,11 +57,11 @@ export const updateRole = (data: any) => {
 };
 
 /**
- * 修改角色权限（菜单权限 + 数据权限）
+ * 角色数据权限
  */
-export const updateRolePermission = (data: any) => {
+export const dataScope = (data: any) => {
   return request({
-    url: '/system/role/permission',
+    url: '/system/role/dataScope',
     method: 'put',
     data: data
   });
@@ -95,7 +95,7 @@ export const delRole = (roleId: Array<string | number> | string | number) => {
 /**
  * 查询角色已授权用户列表
  */
-export const allocatedUserList = (query: UserQuery): AxiosPromise<PageResult<UserVO>> => {
+export const allocatedUserList = (query: UserQuery): AxiosPromise<UserVO[]> => {
   return request({
     url: '/system/role/authUser/allocatedList',
     method: 'get',
@@ -106,7 +106,7 @@ export const allocatedUserList = (query: UserQuery): AxiosPromise<PageResult<Use
 /**
  * 查询角色未授权用户列表
  */
-export const unallocatedUserList = (query: UserQuery): AxiosPromise<PageResult<UserVO>> => {
+export const unallocatedUserList = (query: UserQuery): AxiosPromise<UserVO[]> => {
   return request({
     url: '/system/role/authUser/unallocatedList',
     method: 'get',

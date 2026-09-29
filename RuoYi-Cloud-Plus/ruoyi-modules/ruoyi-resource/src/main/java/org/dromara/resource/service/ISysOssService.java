@@ -1,14 +1,14 @@
 package org.dromara.resource.service;
 
-import org.dromara.common.core.domain.PageResult;
+import jakarta.servlet.http.HttpServletResponse;
 import org.dromara.common.mybatis.core.page.PageQuery;
-import org.dromara.resource.domain.SysOssExt;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.resource.domain.bo.SysOssBo;
 import org.dromara.resource.domain.vo.SysOssVo;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
@@ -26,7 +26,7 @@ public interface ISysOssService {
      * @param pageQuery 分页查询实体类
      * @return 结果
      */
-    PageResult<SysOssVo> queryPageList(SysOssBo sysOss, PageQuery pageQuery);
+    TableDataInfo<SysOssVo> queryPageList(SysOssBo sysOss, PageQuery pageQuery);
 
     /**
      * 根据一组 ossIds 获取对应的 SysOssVo 列表
@@ -58,18 +58,7 @@ public interface ISysOssService {
      * @param file 要上传的 MultipartFile 对象
      * @return 上传成功后的 SysOssVo 对象，包含文件信息
      */
-    default SysOssVo upload(MultipartFile file) {
-        return upload(file, null);
-    }
-
-    /**
-     * 上传 MultipartFile 到对象存储服务，并保存文件信息到数据库
-     *
-     * @param file   要上传的 MultipartFile 对象
-     * @param ossExt 扩展信息
-     * @return 上传成功后的 SysOssVo 对象，包含文件信息
-     */
-    SysOssVo upload(MultipartFile file, SysOssExt ossExt);
+    SysOssVo upload(MultipartFile file);
 
     /**
      * 上传文件到对象存储服务，并保存文件信息到数据库
@@ -77,18 +66,7 @@ public interface ISysOssService {
      * @param file 要上传的文件对象
      * @return 上传成功后的 SysOssVo 对象，包含文件信息
      */
-    default SysOssVo upload(File file) {
-        return upload(file, null);
-    }
-
-    /**
-     * 上传文件到对象存储服务，并保存文件信息到数据库
-     *
-     * @param file   要上传的文件对象
-     * @param ossExt 扩展信息
-     * @return 上传成功后的 SysOssVo 对象，包含文件信息
-     */
-    SysOssVo upload(File file, SysOssExt ossExt);
+    SysOssVo upload(File file);
 
     /**
      * 新增OSS对象存储
@@ -101,9 +79,10 @@ public interface ISysOssService {
     /**
      * 文件下载方法，支持一次性下载完整文件
      *
-     * @param ossId OSS对象ID
+     * @param ossId    OSS对象ID
+     * @param response HttpServletResponse对象，用于设置响应头和向客户端发送文件内容
      */
-    ResponseEntity<byte[]> download(Long ossId);
+    void download(Long ossId, HttpServletResponse response) throws IOException;
 
     /**
      * 删除OSS对象存储

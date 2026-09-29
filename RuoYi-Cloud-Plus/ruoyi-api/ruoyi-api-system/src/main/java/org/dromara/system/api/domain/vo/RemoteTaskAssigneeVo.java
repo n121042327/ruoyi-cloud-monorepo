@@ -6,8 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -43,7 +42,7 @@ public class RemoteTaskAssigneeVo implements Serializable {
      * 将源列表转换为 TaskHandler 列表
      *
      * @param <T>              通用类型
-     * @param sourceCollection 待转换的源列表
+     * @param sourceList       待转换的源列表
      * @param storageId        提取 storageId 的函数
      * @param handlerCode      提取 handlerCode 的函数
      * @param handlerName      提取 handlerName 的函数
@@ -52,13 +51,13 @@ public class RemoteTaskAssigneeVo implements Serializable {
      * @return 转换后的 TaskHandler 列表
      */
     public static <T> List<TaskHandler> convertToHandlerList(
-        Collection<T> sourceCollection,
+        List<T> sourceList,
         Function<T, String> storageId,
         Function<T, String> handlerCode,
         Function<T, String> handlerName,
         Function<T, String> groupName,
-        Function<T, LocalDateTime> createTimeMapper) {
-        return sourceCollection.stream()
+        Function<T, Date> createTimeMapper) {
+        return sourceList.stream()
             .map(item -> new TaskHandler(
                 storageId.apply(item),
                 handlerCode.apply(item),
@@ -99,7 +98,7 @@ public class RemoteTaskAssigneeVo implements Serializable {
         /**
          * 创建时间
          */
-        private LocalDateTime createTime;
+        private Date createTime;
     }
 
 }

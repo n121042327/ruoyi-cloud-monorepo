@@ -1,8 +1,8 @@
 package org.dromara.demo.controller;
 
-import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.redis.utils.RedisUtils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,7 +20,7 @@ public class RedisPubSubController {
     /**
      * 发布消息
      *
-     * @param key   通道Key
+     * @param key 通道Key
      * @param value 发送内容
      */
     @GetMapping("/pub")

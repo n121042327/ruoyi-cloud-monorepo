@@ -5,7 +5,7 @@ import org.dromara.common.translation.annotation.Translation;
 import org.dromara.common.translation.constant.TransConstant;
 import org.dromara.workflow.common.constant.FlowConstant;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * 流程实例视图
@@ -20,12 +20,17 @@ public class FlowInstanceVo {
     /**
      * 创建时间
      */
-    private LocalDateTime createTime;
+    private Date createTime;
 
     /**
      * 更新时间
      */
-    private LocalDateTime updateTime;
+    private Date updateTime;
+
+    /**
+     * 租户ID
+     */
+    private String tenantId;
 
     /**
      * 删除标记

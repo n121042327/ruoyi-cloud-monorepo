@@ -1,7 +1,7 @@
 package org.dromara.common.encrypt.core;
 
-import org.dromara.common.encrypt.enums.AlgorithmType;
-import org.dromara.common.encrypt.enums.EncodeType;
+import org.dromara.common.encrypt.enumd.AlgorithmType;
+import org.dromara.common.encrypt.enumd.EncodeType;
 
 /**
  * 加解者
@@ -28,7 +28,7 @@ public interface IEncryptor {
     /**
      * 解密
      *
-     * @param value 待加密字符串
+     * @param value      待加密字符串
      * @return 解密后的字符串
      */
     String decrypt(String value);

@@ -1,17 +1,18 @@
 package org.dromara.system.api.domain.bo;
 
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.dromara.common.core.constant.SystemConstants;
 import org.dromara.common.core.xss.Xss;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * 用户信息业务对象 sys_user
@@ -29,6 +30,11 @@ public class RemoteUserBo implements Serializable {
      * 用户ID
      */
     private Long userId;
+
+    /**
+     * 租户ID
+     */
+    private String tenantId;
 
     /**
      * 部门ID
@@ -65,12 +71,12 @@ public class RemoteUserBo implements Serializable {
     /**
      * 手机号码
      */
-    private String phoneNumber;
+    private String phonenumber;
 
     /**
      * 用户性别（0男 1女 2未知）
      */
-    private String gender;
+    private String sex;
 
     /**
      * 头像地址
@@ -95,7 +101,7 @@ public class RemoteUserBo implements Serializable {
     /**
      * 最后登录时间
      */
-    private LocalDateTime loginDate;
+    private Date loginDate;
 
     /**
      * 备注
@@ -112,7 +118,7 @@ public class RemoteUserBo implements Serializable {
     }
 
     public boolean isSuperAdmin() {
-        return SystemConstants.SUPER_ADMIN_USER_ID.equals(this.userId);
+        return SystemConstants.SUPER_ADMIN_ID.equals(this.userId);
     }
 
 }

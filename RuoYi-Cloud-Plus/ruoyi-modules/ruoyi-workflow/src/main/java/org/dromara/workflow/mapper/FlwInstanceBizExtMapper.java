@@ -1,10 +1,11 @@
 package org.dromara.workflow.mapper;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.dromara.common.mybatis.core.mapper.BaseMapperPlus;
 import org.dromara.workflow.domain.FlowInstanceBizExt;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
  * 流程实例业务扩展Mapper接口
@@ -22,9 +23,8 @@ public interface FlwInstanceBizExtMapper extends BaseMapperPlus<FlowInstanceBizE
      */
     default int saveOrUpdateByInstanceId(FlowInstanceBizExt entity) {
         // 查询是否存在
-        FlowInstanceBizExt exist = this.lambda()
-            .eq(FlowInstanceBizExt::getInstanceId, entity.getInstanceId())
-            .one();
+        FlowInstanceBizExt exist = this.selectOne(new LambdaQueryWrapper<FlowInstanceBizExt>()
+            .eq(FlowInstanceBizExt::getInstanceId, entity.getInstanceId()));
 
         if (ObjectUtil.isNotNull(exist)) {
             // 存在就带上主键更新
@@ -43,7 +43,8 @@ public interface FlwInstanceBizExtMapper extends BaseMapperPlus<FlowInstanceBizE
      * @return 删除的行数
      */
     default int deleteByInstId(Long instanceId) {
-        return this.lambda().eq(FlowInstanceBizExt::getInstanceId, instanceId).deleteCount();
+        return this.delete(new LambdaQueryWrapper<FlowInstanceBizExt>()
+            .eq(FlowInstanceBizExt::getInstanceId, instanceId));
     }
 
     /**
@@ -52,8 +53,9 @@ public interface FlwInstanceBizExtMapper extends BaseMapperPlus<FlowInstanceBizE
      * @param instanceIds 流程实例ID列表
      * @return 删除的行数
      */
-    default int deleteByInstIds(Collection<Long> instanceIds) {
-        return this.lambda().in(FlowInstanceBizExt::getInstanceId, instanceIds).deleteCount();
+    default int deleteByInstIds(List<Long> instanceIds) {
+        return this.delete(new LambdaQueryWrapper<FlowInstanceBizExt>()
+            .in(FlowInstanceBizExt::getInstanceId, instanceIds));
     }
 
 }

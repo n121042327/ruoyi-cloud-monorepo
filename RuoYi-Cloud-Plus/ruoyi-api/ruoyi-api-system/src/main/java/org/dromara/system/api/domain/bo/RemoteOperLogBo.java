@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,6 +25,11 @@ public class RemoteOperLogBo implements Serializable {
      * 日志主键
      */
     private Long operId;
+
+    /**
+     * 租户编号
+     */
+    private String tenantId;
 
     /**
      * 模块标题
@@ -99,7 +104,7 @@ public class RemoteOperLogBo implements Serializable {
     /**
      * 操作时间
      */
-    private LocalDateTime operTime;
+    private Date operTime;
 
     /**
      * 消耗时间

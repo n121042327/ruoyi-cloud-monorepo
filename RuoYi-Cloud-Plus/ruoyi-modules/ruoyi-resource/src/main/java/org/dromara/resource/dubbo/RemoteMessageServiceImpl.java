@@ -1,16 +1,11 @@
 package org.dromara.resource.dubbo;
 
-import cn.hutool.core.bean.BeanUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboService;
-import org.dromara.common.core.enums.PushSourceEnum;
-import org.dromara.common.core.enums.PushTypeEnum;
-import org.dromara.common.push.dto.PushPayloadDTO;
-import org.dromara.common.push.helper.PushHelper;
+import org.dromara.common.sse.dto.SseMessageDto;
+import org.dromara.common.sse.utils.SseMessageUtils;
 import org.dromara.resource.api.RemoteMessageService;
-import org.dromara.resource.api.domain.RemotePushPayLoad;
-import org.dromara.resource.service.ISysMessageService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,23 +21,18 @@ import java.util.List;
 @DubboService
 public class RemoteMessageServiceImpl implements RemoteMessageService {
 
-    private final ISysMessageService sysMessageService;
-
     /**
      * 发送消息
      *
-     * @param userIds 用户ID列表
-     * @param message 消息文本
+     * @param sessionKey session主键 一般为用户id
+     * @param message    消息文本
      */
     @Override
-    public void publishMessage(List<Long> userIds, String message) {
-        publishMessagePayload(userIds, RemotePushPayLoad.of(PushTypeEnum.MESSAGE, PushSourceEnum.BACKEND, message, null));
-    }
-
-    @Override
-    public void publishMessagePayload(List<Long> userIds, RemotePushPayLoad payload) {
-        PushPayloadDTO pushPayload = BeanUtil.copyProperties(payload, PushPayloadDTO.class);
-        PushHelper.publishMessage(userIds, sysMessageService.storeUsers(userIds, pushPayload));
+    public void publishMessage(List<Long> sessionKey, String message) {
+        SseMessageDto dto = new SseMessageDto();
+        dto.setMessage(message);
+        dto.setUserIds(sessionKey);
+        SseMessageUtils.publishMessage(dto);
     }
 
     /**
@@ -52,13 +42,7 @@ public class RemoteMessageServiceImpl implements RemoteMessageService {
      */
     @Override
     public void publishAll(String message) {
-        publishAllPayload(RemotePushPayLoad.of(PushTypeEnum.MESSAGE, PushSourceEnum.BACKEND, message, null));
-    }
-
-    @Override
-    public void publishAllPayload(RemotePushPayLoad payload) {
-        PushPayloadDTO pushPayload = BeanUtil.copyProperties(payload, PushPayloadDTO.class);
-        PushHelper.publishAll(sysMessageService.storeAll(pushPayload));
+        SseMessageUtils.publishAll(message);
     }
 
 }

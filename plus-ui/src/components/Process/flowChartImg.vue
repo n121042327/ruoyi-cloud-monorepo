@@ -111,13 +111,7 @@ const applyTransform = () => {
 };
 
 const getBounds = () => {
-  if (!imageWrapperRef.value)
-    return {
-      minTranslateX: 0,
-      maxTranslateX: 0,
-      minTranslateY: 0,
-      maxTranslateY: 0
-    };
+  if (!imageWrapperRef.value) return { minTranslateX: 0, maxTranslateX: 0, minTranslateY: 0, maxTranslateY: 0 };
 
   const imgRect = imageWrapperRef.value.getBoundingClientRect();
   const containerRect = imageWrapperRef.value.parentElement?.getBoundingClientRect() ?? imgRect;

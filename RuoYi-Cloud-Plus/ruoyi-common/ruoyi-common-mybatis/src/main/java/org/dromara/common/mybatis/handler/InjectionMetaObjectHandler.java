@@ -11,14 +11,12 @@ import org.dromara.common.mybatis.core.domain.BaseEntity;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.system.api.model.LoginUser;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 
 /**
  * MP注入处理器
  *
  * @author Lion Li
- * @date 2021/4/25
  */
 @Slf4j
 public class InjectionMetaObjectHandler implements MetaObjectHandler {
@@ -38,7 +36,7 @@ public class InjectionMetaObjectHandler implements MetaObjectHandler {
         try {
             if (ObjectUtil.isNotNull(metaObject) && metaObject.getOriginalObject() instanceof BaseEntity baseEntity) {
                 // 获取当前时间作为创建时间和更新时间，如果创建时间不为空，则使用创建时间，否则使用当前时间
-                LocalDateTime current = ObjectUtils.notNull(baseEntity.getCreateTime(), LocalDateTime.now());
+                Date current = ObjectUtils.notNull(baseEntity.getCreateTime(), new Date());
                 baseEntity.setCreateTime(current);
                 baseEntity.setUpdateTime(current);
 
@@ -59,15 +57,12 @@ public class InjectionMetaObjectHandler implements MetaObjectHandler {
                     }
                 }
             } else {
-                LocalDateTime date = LocalDateTime.now();
-                this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, date);
-                this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, date);
-                Date legacyDate = new Date();
-                this.strictInsertFill(metaObject, "createTime", Date.class, legacyDate);
-                this.strictInsertFill(metaObject, "updateTime", Date.class, legacyDate);
+                Date date = new Date();
+                this.strictInsertFill(metaObject, "createTime", Date.class, date);
+                this.strictInsertFill(metaObject, "updateTime", Date.class, date);
             }
         } catch (Exception e) {
-            throw new ServiceException("自动注入异常 => " + e.getMessage(), HttpStatus.HTTP_INTERNAL_ERROR);
+            throw new ServiceException("自动注入异常 => " + e.getMessage(), HttpStatus.HTTP_UNAUTHORIZED);
         }
     }
 
@@ -81,19 +76,21 @@ public class InjectionMetaObjectHandler implements MetaObjectHandler {
         try {
             if (ObjectUtil.isNotNull(metaObject) && metaObject.getOriginalObject() instanceof BaseEntity baseEntity) {
                 // 获取当前时间作为更新时间，无论原始对象中的更新时间是否为空都填充
-                LocalDateTime current = LocalDateTime.now();
+                Date current = new Date();
                 baseEntity.setUpdateTime(current);
 
                 // 获取当前登录用户的ID，并填充更新人信息
-                LoginUser loginUser = getLoginUser();
-                Long userId = ObjectUtil.isNotNull(loginUser) ? loginUser.getUserId() : DEFAULT_USER_ID;
-                baseEntity.setUpdateBy(userId);
+                Long userId = LoginHelper.getUserId();
+                if (ObjectUtil.isNotNull(userId)) {
+                    baseEntity.setUpdateBy(userId);
+                } else {
+                    baseEntity.setUpdateBy(DEFAULT_USER_ID);
+                }
             } else {
-                this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
                 this.strictUpdateFill(metaObject, "updateTime", Date.class, new Date());
             }
         } catch (Exception e) {
-            throw new ServiceException("自动注入异常 => " + e.getMessage(), HttpStatus.HTTP_INTERNAL_ERROR);
+            throw new ServiceException("自动注入异常 => " + e.getMessage(), HttpStatus.HTTP_UNAUTHORIZED);
         }
     }
 

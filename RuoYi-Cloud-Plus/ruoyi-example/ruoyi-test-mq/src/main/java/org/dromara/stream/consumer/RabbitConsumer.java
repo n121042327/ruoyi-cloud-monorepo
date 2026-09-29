@@ -20,15 +20,15 @@ public class RabbitConsumer {
      */
     @RabbitListener(queues = RabbitConfig.QUEUE_NAME)
     public void listenQueue(Message message) {
-        log.info("【消费者】Start consuming data：{}", new String(message.getBody()));
+        log.info("【消费者】Start consuming data：{}",new String(message.getBody()));
     }
 
     /**
      * 处理延迟队列消息
      */
     @RabbitListener(queues = RabbitTtlQueueConfig.DELAY_QUEUE_NAME)
-    public void receiveDelayMessage(String message) {
-        log.info("【消费者】Received delayed message：{}", message);
+    public void receiveDelayMessage(String message){
+        log.info("【消费者】Received delayed message：{}",message);
     }
 
     /**
@@ -37,7 +37,7 @@ public class RabbitConsumer {
      * 它会被自动转发到死信队列中，以便后续的特殊处理或重新尝试。
      */
     @RabbitListener(queues = RabbitTtlQueueConfig.DEAD_LETTER_QUEUE)
-    public void receiveDeadMessage(String message) {
-        log.info("【消费者】Received dead message：{}", message);
+    public void receiveDeadMessage(String message){
+        log.info("【消费者】Received dead message：{}",message);
     }
 }

@@ -51,8 +51,7 @@ export function parseTime(time: any, pattern?: string) {
  */
 export const addDateRange = (params: any, dateRange: any[], propName?: string) => {
   const search = params;
-  search.params =
-    typeof search.params === 'object' && search.params !== null && !Array.isArray(search.params) ? search.params : {};
+  search.params = typeof search.params === 'object' && search.params !== null && !Array.isArray(search.params) ? search.params : {};
   dateRange = Array.isArray(dateRange) ? dateRange : [];
   if (typeof propName === 'undefined') {
     search.params['beginTime'] = dateRange[0];
@@ -70,7 +69,7 @@ export const selectDictLabel = (datas: any, value: number | string) => {
     return '';
   }
   const actions: Array<string | number> = [];
-  Object.keys(datas).some(key => {
+  Object.keys(datas).some((key) => {
     if (datas[key].value == '' + value) {
       actions.push(datas[key].label);
       return true;
@@ -93,9 +92,9 @@ export const selectDictLabels = (datas: any, value: any, separator: any) => {
   const actions: any[] = [];
   const currentSeparator = undefined === separator ? ',' : separator;
   const temp = value.split(currentSeparator);
-  Object.keys(value.split(currentSeparator)).some(val => {
+  Object.keys(value.split(currentSeparator)).some((val) => {
     let match = false;
-    Object.keys(datas).some(key => {
+    Object.keys(datas).some((key) => {
       if (datas[key].value == '' + temp[val]) {
         actions.push(datas[key].label + currentSeparator);
         match = true;

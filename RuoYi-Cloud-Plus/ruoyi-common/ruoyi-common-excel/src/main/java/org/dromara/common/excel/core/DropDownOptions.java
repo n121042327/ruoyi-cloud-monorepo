@@ -25,35 +25,27 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @SuppressWarnings("unused")
 public class DropDownOptions {
-
     /**
      * 一级下拉所在列index，从0开始算
      */
     private int index = 0;
-
     /**
      * 二级下拉所在的index，从0开始算，不能与一级相同
      */
     private int nextIndex = 0;
-
     /**
      * 一级下拉所包含的数据
      */
     private List<String> options = new ArrayList<>();
-
     /**
      * 二级下拉所包含的数据Map
      * <p>以每一个一级选项值为Key，每个一级选项对应的二级数据为Value</p>
      */
     private Map<String, List<String>> nextOptions = new HashMap<>();
-
     /**
      * 分隔符
      */
     private static final String DELIMITER = "_";
-    private static final String OPTION_PART_REGEX = "^[A-Za-z0-9\\u4e00-\\u9fa5]+$";
-    private static final String EXCEL_NAME_REGEX = "^[A-Za-z_\\u4e00-\\u9fa5][A-Za-z0-9_\\u4e00-\\u9fa5]*$";
-    private static final String CELL_REFERENCE_REGEX = "^[A-Za-z]{1,3}[1-9][0-9]*$";
 
     /**
      * 创建只有一级的下拉选
@@ -72,9 +64,10 @@ public class DropDownOptions {
      */
     public static String createOptionValue(Object... vars) {
         StringBuilder stringBuffer = new StringBuilder();
+        String regex = "^[\\S\\d\\u4e00-\\u9fa5]+$";
         for (int i = 0; i < vars.length; i++) {
             String var = StrUtil.trimToEmpty(Convert.toStr(vars[i]));
-            if (!var.matches(OPTION_PART_REGEX)) {
+            if (!var.matches(regex)) {
                 throw new ServiceException("选项数据不符合规则，仅允许使用中英文字符以及数字");
             }
             stringBuffer.append(var);
@@ -83,29 +76,10 @@ public class DropDownOptions {
                 stringBuffer.append(DELIMITER);
             }
         }
-        String optionValue = stringBuffer.toString();
-        validateOptionValue(optionValue);
-        return optionValue;
-    }
-
-    /**
-     * 校验级联下拉选项值是否可作为 Excel 名称管理器名称。
-     *
-     * @param optionValue 选项值
-     */
-    public static void validateOptionValue(String optionValue) {
-        if (StrUtil.isBlank(optionValue)) {
-            throw new ServiceException("选项数据不能为空");
-        }
-        if (optionValue.matches("^[0-9].*")) {
+        if (stringBuffer.toString().matches("^\\d_*$")) {
             throw new ServiceException("禁止以数字开头");
         }
-        if (!optionValue.matches(EXCEL_NAME_REGEX)) {
-            throw new ServiceException("选项数据不符合Excel名称规则，仅允许中英文、数字或下划线，且不能以数字开头");
-        }
-        if (optionValue.matches(CELL_REFERENCE_REGEX)) {
-            throw new ServiceException("选项数据不能为Excel单元格引用");
-        }
+        return stringBuffer.toString();
     }
 
     /**
@@ -154,7 +128,7 @@ public class DropDownOptions {
         sonList.forEach(everySon -> {
             if (parentGroupByIdMap.containsKey(sonHowToGetParentIdFunction.apply(everySon))) {
                 // 找到对应的上级
-                T parentObj = parentGroupByIdMap.get(sonHowToGetParentIdFunction.apply(everySon)).getFirst();
+                T parentObj = parentGroupByIdMap.get(sonHowToGetParentIdFunction.apply(everySon)).get(0);
                 // 提取名称和ID作为Key
                 String key = howToBuildEveryOption.apply(parentObj);
                 // Key对应的Value

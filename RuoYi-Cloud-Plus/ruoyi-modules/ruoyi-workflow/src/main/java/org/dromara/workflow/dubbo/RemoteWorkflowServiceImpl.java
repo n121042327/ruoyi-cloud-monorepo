@@ -54,6 +54,11 @@ public class RemoteWorkflowServiceImpl implements RemoteWorkflowService {
     }
 
     @Override
+    public void syncDef(String tenantId) {
+        workflowService.syncDef(tenantId);
+    }
+
+    @Override
     public RemoteStartProcessReturn startWorkFlow(RemoteStartProcess startProcess) {
         return workflowService.startWorkFlow(startProcess);
     }

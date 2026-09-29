@@ -1,11 +1,9 @@
-import type { RouterJumpVo } from '@/api/workflow/workflowCommon/types';
-import tab from '@/plugins/tab';
-import router from '@/router';
+import { RouterJumpVo } from '@/api/workflow/workflowCommon/types';
 
 export default {
-  routerJump(routerJumpVo: RouterJumpVo) {
-    tab.closePage(router.currentRoute.value);
-    router.push({
+  routerJump(routerJumpVo: RouterJumpVo, proxy) {
+    proxy.$tab.closePage(proxy.$route);
+    proxy.$router.push({
       path: routerJumpVo.formPath,
       query: {
         id: routerJumpVo.businessId,

@@ -9,9 +9,6 @@ import io.swagger.v3.oas.models.Paths;
  */
 public class PlusPaths extends Paths {
 
-    /**
-     * 构造路径缓存标记对象。
-     */
     public PlusPaths() {
         super();
     }

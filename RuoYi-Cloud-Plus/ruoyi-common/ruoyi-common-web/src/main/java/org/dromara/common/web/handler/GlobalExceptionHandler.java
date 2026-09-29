@@ -1,7 +1,6 @@
 package org.dromara.common.web.handler;
 
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.RandomUtil;
 import cn.hutool.http.HttpStatus;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +11,7 @@ import org.dromara.common.core.domain.R;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.exception.SseException;
 import org.dromara.common.core.exception.base.BaseException;
+import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.json.utils.JsonUtils;
 import org.springframework.boot.json.JsonParseException;
@@ -130,7 +130,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IOException.class)
     public void handleIoException(IOException e, HttpServletRequest request) {
         String requestURI = request.getRequestURI();
-        if (requestURI.contains("/resource/message")) {
+        if (requestURI.contains("sse")) {
             // sse 经常性连接中断 例如关闭浏览器 直接屏蔽
             return;
         }
@@ -150,9 +150,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public R<Void> handleRuntimeException(RuntimeException e, HttpServletRequest request) {
         String requestURI = request.getRequestURI();
-        String errorId = RandomUtil.randomNumbers(8);
-        log.error("请求地址'{}',发生未知异常, 错误编号: {}", requestURI, errorId, e);
-        return R.fail("发生未知异常，请联系管理员 [错误编号: " + errorId + "]");
+        log.error("请求地址'{}',发生未知异常.", requestURI, e);
+        return R.fail("发生未知异常，请联系管理员");
     }
 
     /**
@@ -161,9 +160,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public R<Void> handleException(Exception e, HttpServletRequest request) {
         String requestURI = request.getRequestURI();
-        String errorId = RandomUtil.randomNumbers(8);
-        log.error("请求地址'{}',发生系统异常, 错误编号: {}", requestURI, errorId, e);
-        return R.fail("发生系统异常，请联系管理员 [错误编号: " + errorId + "]");
+        log.error("请求地址'{}',发生系统异常.", requestURI, e);
+        return R.fail("发生系统异常，请联系管理员");
     }
 
     /**
@@ -214,7 +212,7 @@ public class GlobalExceptionHandler {
     public R<Void> handleJsonParseException(JsonParseException e, HttpServletRequest request) {
         String requestURI = request.getRequestURI();
         log.error("请求地址'{}' 发生 JSON 解析异常: {}", requestURI, e.getMessage());
-        return R.fail(HttpStatus.HTTP_BAD_REQUEST, "请求数据格式错误");
+        return R.fail(HttpStatus.HTTP_BAD_REQUEST, "请求数据格式错误（JSON 解析失败）：" + e.getMessage());
     }
 
     /**
@@ -223,7 +221,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public R<Void> handleHttpMessageNotReadableException(HttpMessageNotReadableException e, HttpServletRequest request) {
         log.error("请求地址'{}', 参数解析失败: {}", request.getRequestURI(), e.getMessage());
-        return R.fail(HttpStatus.HTTP_BAD_REQUEST, "请求参数格式错误");
+        return R.fail(HttpStatus.HTTP_BAD_REQUEST, "请求参数格式错误：" + e.getMostSpecificCause().getMessage());
     }
 
     /**

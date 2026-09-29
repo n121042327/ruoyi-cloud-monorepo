@@ -1,10 +1,10 @@
 package org.dromara.common.mybatis.filter;
 
+import org.dromara.common.mybatis.helper.DataPermissionHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.common.constants.CommonConstants;
 import org.apache.dubbo.common.extension.Activate;
 import org.apache.dubbo.rpc.*;
-import org.dromara.common.mybatis.helper.DataPermissionHelper;
 
 import java.util.Map;
 

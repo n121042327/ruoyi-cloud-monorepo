@@ -12,19 +12,15 @@ import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerIntercept
 import org.dromara.common.core.factory.YmlPropertySourceFactory;
 import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.mybatis.aspect.DataPermissionPointcutAdvisor;
-import org.dromara.common.mybatis.config.properties.SqlLogProperties;
 import org.dromara.common.mybatis.handler.InjectionMetaObjectHandler;
 import org.dromara.common.mybatis.handler.MybatisExceptionHandler;
 import org.dromara.common.mybatis.handler.PlusPostInitTableInfoHandler;
 import org.dromara.common.mybatis.interceptor.PlusDataPermissionInterceptor;
-import org.dromara.common.mybatis.interceptor.SqlLogInterceptor;
 import org.dromara.common.mybatis.service.SysDataScopeService;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Role;
@@ -40,7 +36,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement(proxyTargetClass = true)
 @MapperScan("${mybatis-plus.mapperPackage}")
 @PropertySource(value = "classpath:common-mybatis.yml", factory = YmlPropertySourceFactory.class)
-@EnableConfigurationProperties(SqlLogProperties.class)
 public class MybatisPlusConfiguration {
 
     @Bean
@@ -76,7 +71,6 @@ public class MybatisPlusConfiguration {
     public DataPermissionPointcutAdvisor dataPermissionPointcutAdvisor() {
         return new DataPermissionPointcutAdvisor();
     }
-
     /**
      * 分页插件，自动识别数据库类型
      */
@@ -92,15 +86,6 @@ public class MybatisPlusConfiguration {
      */
     public OptimisticLockerInnerInterceptor optimisticLockerInnerInterceptor() {
         return new OptimisticLockerInnerInterceptor();
-    }
-
-    /**
-     * 完整 SQL 日志拦截器
-     */
-    @Bean
-    @ConditionalOnProperty(prefix = "mybatis-plus.sql-log", name = "enabled", havingValue = "true")
-    public SqlLogInterceptor sqlLogInterceptor(SqlLogProperties sqlLogProperties) {
-        return new SqlLogInterceptor(sqlLogProperties);
     }
 
     /**

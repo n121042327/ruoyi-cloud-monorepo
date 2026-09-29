@@ -3,12 +3,12 @@ package org.dromara.workflow.controller;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.dromara.common.core.domain.PageResult;
 import org.dromara.common.core.domain.R;
+import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
-import org.dromara.common.redis.annotation.RepeatSubmit;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.warm.flow.core.entity.Definition;
 import org.dromara.warm.flow.core.service.DefService;
@@ -47,8 +47,8 @@ public class FlwDefinitionController extends BaseController {
      */
     @GetMapping("/list")
     @SaCheckPermission("workflow:definition:list")
-    public R<PageResult<FlowDefinitionVo>> list(FlowDefinition flowDefinition, PageQuery pageQuery) {
-        return R.ok(flwDefinitionService.queryList(flowDefinition, pageQuery));
+    public TableDataInfo<FlowDefinitionVo> list(FlowDefinition flowDefinition, PageQuery pageQuery) {
+        return flwDefinitionService.queryList(flowDefinition, pageQuery);
     }
 
     /**
@@ -59,8 +59,8 @@ public class FlwDefinitionController extends BaseController {
      */
     @GetMapping("/unPublishList")
     @SaCheckPermission("workflow:definition:list")
-    public R<PageResult<FlowDefinitionVo>> unPublishList(FlowDefinition flowDefinition, PageQuery pageQuery) {
-        return R.ok(flwDefinitionService.unPublishList(flowDefinition, pageQuery));
+    public TableDataInfo<FlowDefinitionVo> unPublishList(FlowDefinition flowDefinition, PageQuery pageQuery) {
+        return flwDefinitionService.unPublishList(flowDefinition, pageQuery);
     }
 
     /**
@@ -188,7 +188,7 @@ public class FlwDefinitionController extends BaseController {
     @GetMapping("/xmlString/{id}")
     @SaCheckPermission("workflow:definition:query")
     public R<String> xmlString(@PathVariable Long id) {
-        return R.data(defService.exportJson(id));
+        return R.ok("操作成功", defService.exportJson(id));
     }
 
     /**

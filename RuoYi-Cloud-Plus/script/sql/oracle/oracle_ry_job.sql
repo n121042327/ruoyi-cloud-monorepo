@@ -517,10 +517,10 @@ CREATE TABLE sj_job
 ALTER TABLE sj_job
     ADD CONSTRAINT pk_sj_job PRIMARY KEY (id);
 
-CREATE UNIQUE INDEX uk_sj_job_01 ON sj_job (namespace_id, biz_id);
 CREATE INDEX idx_sj_job_01 ON sj_job (namespace_id, group_name);
 CREATE INDEX idx_sj_job_02 ON sj_job (job_status, bucket_index);
 CREATE INDEX idx_sj_job_03 ON sj_job (create_dt);
+CREATE UNIQUE INDEX uk_sj_job_01 ON sj_job (namespace_id, biz_id);
 
 COMMENT ON COLUMN sj_job.id IS '主键';
 COMMENT ON COLUMN sj_job.namespace_id IS '命名空间id';
@@ -741,7 +741,7 @@ CREATE TABLE sj_retry_summary
     id            number GENERATED ALWAYS AS IDENTITY,
     namespace_id  varchar2(64) DEFAULT '764d604ec6fc45f68cd92514c40e9e1a' NULL,
     group_name    varchar2(64) DEFAULT ''                                 NULL,
-    scene_name    varchar2(64) DEFAULT ''                                 NULL,
+    scene_name    varchar2(50) DEFAULT ''                                 NULL,
     trigger_at    date         DEFAULT CURRENT_TIMESTAMP                  NOT NULL,
     running_num   number       DEFAULT 0                                  NOT NULL,
     finish_num    number       DEFAULT 0                                  NOT NULL,
@@ -801,9 +801,9 @@ CREATE TABLE sj_workflow
 ALTER TABLE sj_workflow
     ADD CONSTRAINT pk_sj_workflow PRIMARY KEY (id);
 
-CREATE UNIQUE INDEX uk_sj_workflow_01 ON sj_workflow (namespace_id, biz_id);
 CREATE INDEX idx_sj_workflow_01 ON sj_workflow (create_dt);
 CREATE INDEX idx_sj_workflow_02 ON sj_workflow (namespace_id, group_name);
+CREATE UNIQUE INDEX uk_sj_workflow_01 ON sj_workflow (namespace_id, biz_id);
 
 COMMENT ON COLUMN sj_workflow.id IS '主键';
 COMMENT ON COLUMN sj_workflow.workflow_name IS '工作流名称';

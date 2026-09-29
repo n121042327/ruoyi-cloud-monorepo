@@ -1,28 +1,40 @@
 <template>
-  <div class="editor-shell">
-    <EditorToolbar :editor="editorRef" :default-config="toolbarConfig" mode="default" class="editor-toolbar" />
-    <div class="editor-body" :style="styles">
-      <WangEditor
-        v-model="content"
-        :default-config="editorConfig"
-        mode="default"
-        class="editor-content"
-        @onCreated="handleCreated"
-      />
-    </div>
+  <div>
+    <el-upload
+      v-if="type === 'url'"
+      :action="upload.url"
+      :before-upload="handleBeforeUpload"
+      :on-success="handleUploadSuccess"
+      :on-error="handleUploadError"
+      class="editor-img-uploader"
+      name="file"
+      :show-file-list="false"
+      :headers="upload.headers"
+    >
+      <i ref="uploadRef"></i>
+    </el-upload>
+  </div>
+  <div class="editor">
+    <quill-editor
+      ref="quillEditorRef"
+      v-model:content="content"
+      content-type="html"
+      :options="options"
+      :style="styles"
+      @text-change="(e: any) => $emit('update:modelValue', content)"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import '@wangeditor-next/editor/dist/css/style.css';
-import type { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor-next/editor';
-import { Editor as WangEditor, Toolbar as EditorToolbar } from '@wangeditor-next/editor-for-vue';
-import { listByIds } from '@/api/system/oss';
-import modal from '@/plugins/modal';
+import '@vueup/vue-quill/dist/vue-quill.snow.css';
+
+import { QuillEditor, Quill } from '@vueup/vue-quill';
 import { propTypes } from '@/utils/propTypes';
 import { globalHeaders } from '@/utils/request';
 
-const OSS_MARKER_RE = /oss:\/\/([\w-]+)/g;
+defineEmits(['update:modelValue']);
+
 const props = defineProps({
   /* 编辑器的内容 */
   modelValue: propTypes.string,
@@ -32,31 +44,58 @@ const props = defineProps({
   minHeight: propTypes.number.def(400),
   /* 只读 */
   readOnly: propTypes.bool.def(false),
-  /* 图片上传文件大小限制(MB) */
+  /* 上传文件大小限制(MB) */
   fileSize: propTypes.number.def(5),
-  /* 视频上传文件大小限制(MB) */
-  videoSize: propTypes.number.def(100),
-  /* 类型（base64格式、url格式） url模式下存储 oss://ossId 标记，展示时通过后端动态解析为可用URL */
+  /* 类型（base64格式、url格式） */
   type: propTypes.string.def('url')
 });
 
-const emit = defineEmits(['update:modelValue']);
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
-const editorRef = shallowRef<IDomEditor>();
-const content = ref('');
+const upload = reactive<UploadOption>({
+  headers: globalHeaders(),
+  url: import.meta.env.VITE_APP_BASE_API + '/resource/oss/upload'
+});
+const quillEditorRef = ref();
+const uploadRef = ref<HTMLDivElement>();
 
-const baseUrl = import.meta.env.VITE_APP_BASE_API;
-const uploadOssUrl = baseUrl + '/resource/oss/upload';
-
-// URL → ossId 映射，在上传和解析阶段填充
-const ossUrlToId = new Map<string, string>();
-// 防止 modelValue ↔ content 双向 watch 循环
-const isResolvingContent = ref(false);
-// 记录最后一次 encode 后 emit 的值，用于跳过自身触发的 modelValue 变更
-const lastEncodedValue = ref('');
+const options = ref<any>({
+  theme: 'snow',
+  bounds: document.body,
+  debug: 'warn',
+  modules: {
+    // 工具栏配置
+    toolbar: {
+      container: [
+        ['bold', 'italic', 'underline', 'strike'], // 加粗 斜体 下划线 删除线
+        ['blockquote', 'code-block'], // 引用  代码块
+        [{ list: 'ordered' }, { list: 'bullet' }], // 有序、无序列表
+        [{ indent: '-1' }, { indent: '+1' }], // 缩进
+        [{ size: ['small', false, 'large', 'huge'] }], // 字体大小
+        [{ header: [1, 2, 3, 4, 5, 6, false] }], // 标题
+        [{ color: [] }, { background: [] }], // 字体颜色、字体背景颜色
+        [{ align: [] }], // 对齐方式
+        ['clean'], // 清除文本格式
+        ['link', 'image', 'video'] // 链接、图片、视频
+      ],
+      handlers: {
+        image: (value: boolean) => {
+          if (value) {
+            // 调用element图片上传
+            uploadRef.value.click();
+          } else {
+            Quill.format('image', true);
+          }
+        }
+      }
+    }
+  },
+  placeholder: '请输入内容',
+  readOnly: props.readOnly
+});
 
 const styles = computed(() => {
-  const style: Record<string, string> = {};
+  const style: any = {};
   if (props.minHeight) {
     style.minHeight = `${props.minHeight}px`;
   }
@@ -66,280 +105,140 @@ const styles = computed(() => {
   return style;
 });
 
-const toolbarConfig = computed<Partial<IToolbarConfig>>(() => {
-  const excludeKeys = ['fullScreen'];
-
-  if (!props.type) {
-    excludeKeys.push('uploadImage');
-    excludeKeys.push('uploadVideo');
-  }
-
-  return {
-    modalAppendToBody: false,
-    excludeKeys
-  };
-});
-
-/* ==================== OSS 上传 & 内容转换 ==================== */
-
-const uploadToOss = async (file: File): Promise<{ url: string; fileName: string; ossId: string }> => {
-  const formData = new FormData();
-  formData.append('file', file);
-
-  const res = await fetch(uploadOssUrl, {
-    method: 'POST',
-    headers: globalHeaders(),
-    body: formData
-  });
-  const data = await res.json();
-
-  if (data.code === 200) {
-    ossUrlToId.set(data.data.url, String(data.data.ossId));
-    return data.data;
-  }
-  throw new Error(data.msg || '上传失败');
-};
-
-/**
- * 编码：将编辑器内容中的 OSS 真实 URL 替换为 oss://ossId 标记（用于存储）
- */
-const encodeOssContent = (html: string): string => {
-  if (!html) return html;
-  let result = html;
-  for (const [url, ossId] of ossUrlToId) {
-    result = result.replaceAll(url, `oss://${ossId}`);
-  }
-  return result;
-};
-
-/**
- * 解码：将存储的 oss://ossId 标记批量替换为真实可用 URL（用于编辑/展示）
- */
-const decodeOssContent = async (html: string): Promise<string> => {
-  if (!html) return html;
-
-  const matches = [...html.matchAll(OSS_MARKER_RE)];
-  if (matches.length === 0) return html;
-
-  const ossIds = [...new Set(matches.map(m => m[1]))];
-
-  try {
-    const res = await listByIds(ossIds.join(','));
-    let result = html;
-    for (const oss of res.data) {
-      const id = String(oss.ossId);
-      ossUrlToId.set(oss.url, id);
-      result = result.replaceAll(`oss://${id}`, oss.url);
-    }
-    return result;
-  } catch {
-    return html;
-  }
-};
-
-/* ==================== 文件校验 ==================== */
-
-const validateImageFile = (file: File) => {
-  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/svg', 'image/svg+xml'];
-  if (!allowedTypes.includes(file.type)) {
-    modal.msgError('图片格式错误!');
-    return false;
-  }
-
-  if (props.fileSize) {
-    const isLt = file.size / 1024 / 1024 < props.fileSize;
-    if (!isLt) {
-      modal.msgError(`上传图片大小不能超过 ${props.fileSize} MB!`);
-      return false;
-    }
-  }
-
-  return true;
-};
-
-const validateVideoFile = (file: File) => {
-  const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg'];
-  if (!allowedTypes.includes(file.type)) {
-    modal.msgError('视频格式错误, 请上传 mp4/webm/ogg 格式!');
-    return false;
-  }
-
-  if (props.videoSize) {
-    const isLt = file.size / 1024 / 1024 < props.videoSize;
-    if (!isLt) {
-      modal.msgError(`上传视频大小不能超过 ${props.videoSize} MB!`);
-      return false;
-    }
-  }
-
-  return true;
-};
-
-/* ==================== wangeditor 菜单配置 ==================== */
-
-const getUploadImageMenuConfig = () => {
-  if (props.type === 'base64') {
-    return {
-      allowedFileTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/svg+xml'],
-      customUpload(file: File, insertFn: (url: string, alt?: string, href?: string) => void) {
-        if (!validateImageFile(file)) return;
-
-        modal.loading('正在上传图片，请稍候...');
-        const reader = new FileReader();
-
-        reader.onload = () => {
-          insertFn(reader.result as string, file.name);
-          modal.closeLoading();
-        };
-
-        reader.onerror = () => {
-          modal.msgError('图片插入失败');
-          modal.closeLoading();
-        };
-
-        reader.readAsDataURL(file);
-      }
-    };
-  }
-
-  return {
-    allowedFileTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/svg+xml'],
-    async customUpload(file: File, insertFn: (url: string, alt?: string, href?: string) => void) {
-      if (!validateImageFile(file)) return;
-
-      modal.loading('正在上传图片，请稍候...');
-      try {
-        const result = await uploadToOss(file);
-        insertFn(result.url, file.name, result.url);
-      } catch {
-        modal.msgError('图片上传失败');
-      } finally {
-        modal.closeLoading();
-      }
-    }
-  };
-};
-
-const getUploadVideoMenuConfig = () => ({
-  allowedFileTypes: ['video/mp4', 'video/webm', 'video/ogg'],
-  async customUpload(file: File, insertFn: (url: string, poster?: string) => void) {
-    if (!validateVideoFile(file)) return;
-
-    modal.loading('正在上传视频，请稍候...');
-    try {
-      const result = await uploadToOss(file);
-      insertFn(result.url);
-    } catch {
-      modal.msgError('视频上传失败');
-    } finally {
-      modal.closeLoading();
-    }
-  }
-});
-
-const editorConfig = computed<Partial<IEditorConfig>>(() => ({
-  placeholder: '请输入内容',
-  autoFocus: false,
-  MENU_CONF: {
-    uploadImage: getUploadImageMenuConfig() as any,
-    uploadVideo: getUploadVideoMenuConfig() as any
-  }
-}));
-
-/* ==================== 双向数据绑定 ==================== */
-
-const syncReadOnly = () => {
-  const editor = editorRef.value;
-  if (!editor) {
-    return;
-  }
-
-  if (props.readOnly) {
-    editor.disable();
-  } else {
-    editor.enable();
-  }
-};
-
+const content = ref('');
 watch(
   () => props.modelValue,
-  async value => {
-    const nextValue = value || '';
-
-    // 跳过由自身 emit 引起的回传
-    if (nextValue === lastEncodedValue.value) return;
-
-    isResolvingContent.value = true;
-    const resolved = await decodeOssContent(nextValue);
-    if (resolved !== content.value) {
-      content.value = resolved;
+  (v: string) => {
+    if (v !== content.value) {
+      content.value = v || '<p></p>';
     }
-    nextTick(() => {
-      isResolvingContent.value = false;
-    });
   },
   { immediate: true }
 );
 
-watch(content, value => {
-  if (isResolvingContent.value) return;
-
-  const encoded = encodeOssContent(value);
-  lastEncodedValue.value = encoded;
-  if (encoded !== props.modelValue) {
-    emit('update:modelValue', encoded);
+// 图片上传成功返回图片地址
+const handleUploadSuccess = (res: any) => {
+  // 如果上传成功
+  if (res.code === 200) {
+    // 获取富文本实例
+    const quill = toRaw(quillEditorRef.value).getQuill();
+    // 获取光标位置
+    const length = quill.selection.savedRange.index;
+    // 插入图片，res为服务器返回的图片链接地址
+    quill.insertEmbed(length, 'image', res.data.url);
+    // 调整光标到最后
+    quill.setSelection(length + 1);
+    proxy?.$modal.closeLoading();
+  } else {
+    proxy?.$modal.msgError('图片插入失败');
+    proxy?.$modal.closeLoading();
   }
-});
-
-watch(
-  () => props.readOnly,
-  () => {
-    syncReadOnly();
-  }
-);
-
-const handleCreated = (editor: IDomEditor) => {
-  editorRef.value = editor;
-  syncReadOnly();
 };
 
-onBeforeUnmount(() => {
-  editorRef.value?.destroy();
-});
+// 图片上传前拦截
+const handleBeforeUpload = (file: any) => {
+  const type = ['image/jpeg', 'image/jpg', 'image/png', 'image/svg'];
+  const isJPG = type.includes(file.type);
+  //检验文件格式
+  if (!isJPG) {
+    proxy?.$modal.msgError(`图片格式错误!`);
+    return false;
+  }
+  // 校检文件大小
+  if (props.fileSize) {
+    const isLt = file.size / 1024 / 1024 < props.fileSize;
+    if (!isLt) {
+      proxy?.$modal.msgError(`上传文件大小不能超过 ${props.fileSize} MB!`);
+      return false;
+    }
+  }
+  proxy?.$modal.loading('正在上传文件，请稍候...');
+  return true;
+};
+
+// 图片失败拦截
+const handleUploadError = (err: any) => {
+  proxy?.$modal.msgError('上传文件失败');
+};
 </script>
 
-<style scoped>
-.editor-shell {
-  border: 1px solid var(--el-border-color);
-  border-radius: var(--el-border-radius-base);
-  overflow: hidden;
-  background: var(--el-bg-color);
+<style>
+.editor-img-uploader {
+  display: none;
 }
-
-.editor-toolbar {
-  border-bottom: 1px solid var(--el-border-color);
+.editor,
+.ql-toolbar {
+  white-space: pre-wrap !important;
+  line-height: normal !important;
 }
-
-.editor-body {
-  display: flex;
-  flex-direction: column;
+.quill-img {
+  display: none;
 }
-
-.editor-content {
-  height: 100%;
+.ql-snow .ql-tooltip[data-mode='link']::before {
+  content: '请输入链接地址:';
 }
-
-.editor-shell :deep(.w-e-toolbar) {
-  border: 0 !important;
-  background-color: transparent;
+.ql-snow .ql-tooltip.ql-editing a.ql-action::after {
+  border-right: 0;
+  content: '保存';
+  padding-right: 0;
 }
-
-.editor-shell :deep(.w-e-text-container) {
-  border: 0 !important;
-  background-color: transparent;
+.ql-snow .ql-tooltip[data-mode='video']::before {
+  content: '请输入视频地址:';
 }
-
-.editor-shell :deep(.w-e-text-container [data-slate-editor]) {
-  min-height: inherit;
+.ql-snow .ql-picker.ql-size .ql-picker-label::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item::before {
+  content: '14px';
+}
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value='small']::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value='small']::before {
+  content: '10px';
+}
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value='large']::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value='large']::before {
+  content: '18px';
+}
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value='huge']::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value='huge']::before {
+  content: '32px';
+}
+.ql-snow .ql-picker.ql-header .ql-picker-label::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item::before {
+  content: '文本';
+}
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value='1']::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value='1']::before {
+  content: '标题1';
+}
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value='2']::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value='2']::before {
+  content: '标题2';
+}
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value='3']::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value='3']::before {
+  content: '标题3';
+}
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value='4']::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value='4']::before {
+  content: '标题4';
+}
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value='5']::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value='5']::before {
+  content: '标题5';
+}
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value='6']::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value='6']::before {
+  content: '标题6';
+}
+.ql-snow .ql-picker.ql-font .ql-picker-label::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item::before {
+  content: '标准字体';
+}
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value='serif']::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value='serif']::before {
+  content: '衬线字体';
+}
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value='monospace']::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value='monospace']::before {
+  content: '等宽字体';
 }
 </style>

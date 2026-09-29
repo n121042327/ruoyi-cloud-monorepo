@@ -11,6 +11,11 @@ import lombok.Data;
 public class OssProperties {
 
     /**
+     * 租户id
+     */
+    private String tenantId;
+
+    /**
      * 访问站点
      */
     private String endpoint;
@@ -18,7 +23,7 @@ public class OssProperties {
     /**
      * 自定义域名
      */
-    private String domainUrl;
+    private String domain;
 
     /**
      * 前缀

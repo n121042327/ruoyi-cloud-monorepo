@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.dromara.common.core.exception.ServiceException;
-import org.dromara.common.mail.core.MailBuilder;
+import org.dromara.common.mail.utils.MailUtils;
 import org.dromara.resource.api.RemoteMailService;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +28,7 @@ public class RemoteMailServiceImpl implements RemoteMailService {
      */
     @Override
     public void send(String to, String subject, String text) throws ServiceException {
-        MailBuilder.of().to(to).subject(subject).text(text).send();
+        MailUtils.sendText(to, subject, text);
     }
 
 }

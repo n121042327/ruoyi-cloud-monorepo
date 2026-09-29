@@ -1,69 +1,54 @@
-import { ecb } from '@noble/ciphers/aes.js';
+import CryptoJS from 'crypto-js';
 
 /**
  * 随机生成32位的字符串
  * @returns {string}
  */
-const generateRandomString = (): string => {
-  const array = new Uint8Array(32);
-  crypto.getRandomValues(array);
-  return Array.from(array, b => b.toString(16).padStart(2, '0'))
-    .join('')
-    .slice(0, 32);
-};
-
-const encoder = new TextEncoder();
-const decoder = new TextDecoder();
-
-const bytesToBase64 = (bytes: Uint8Array): string => {
-  let binary = '';
-  for (const byte of bytes) {
-    binary += String.fromCharCode(byte);
+const generateRandomString = () => {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  const charactersLength = characters.length;
+  for (let i = 0; i < 32; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
-  return btoa(binary);
-};
-
-const base64ToBytes = (str: string): Uint8Array => {
-  const binary = atob(str);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes;
+  return result;
 };
 
 /**
  * 随机生成aes 密钥
- * @returns {Uint8Array}
+ * @returns {string}
  */
-export const generateAesKey = (): Uint8Array => {
-  return encoder.encode(generateRandomString());
+export const generateAesKey = () => {
+  return CryptoJS.enc.Utf8.parse(generateRandomString());
 };
 
 /**
  * 加密base64
  * @returns {string}
  */
-export const encryptBase64 = (bytes: Uint8Array): string => {
-  return bytesToBase64(bytes);
+export const encryptBase64 = (str: CryptoJS.lib.WordArray) => {
+  return CryptoJS.enc.Base64.stringify(str);
 };
 
 /**
  * 解密base64
  */
-export const decryptBase64 = (str: string): Uint8Array => {
-  return base64ToBytes(str);
+export const decryptBase64 = (str: string) => {
+  return CryptoJS.enc.Base64.parse(str);
 };
 
 /**
- * 使用密钥对数据进行加密 (AES/ECB/PKCS7Padding 与后端保持一致)
+ * 使用密钥对数据进行加密
  * @param message
  * @param aesKey
  * @returns {string}
  */
-export const encryptWithAes = (message: string, aesKey: Uint8Array): string => {
-  const encrypted = ecb(aesKey).encrypt(encoder.encode(message));
-  return bytesToBase64(encrypted);
+export const encryptWithAes = (message: string, aesKey: CryptoJS.lib.WordArray) => {
+  const encrypted = CryptoJS.AES.encrypt(message, aesKey, {
+    mode: CryptoJS.mode.ECB,
+    padding: CryptoJS.pad.Pkcs7
+  });
+  return encrypted.toString();
 };
 
 /**
@@ -72,7 +57,10 @@ export const encryptWithAes = (message: string, aesKey: Uint8Array): string => {
  * @param aesKey
  * @returns {string}
  */
-export const decryptWithAes = (message: string, aesKey: Uint8Array): string => {
-  const decrypted = ecb(aesKey).decrypt(base64ToBytes(message));
-  return decoder.decode(decrypted);
+export const decryptWithAes = (message: string, aesKey: CryptoJS.lib.WordArray) => {
+  const decrypted = CryptoJS.AES.decrypt(message, aesKey, {
+    mode: CryptoJS.mode.ECB,
+    padding: CryptoJS.pad.Pkcs7
+  });
+  return decrypted.toString(CryptoJS.enc.Utf8);
 };

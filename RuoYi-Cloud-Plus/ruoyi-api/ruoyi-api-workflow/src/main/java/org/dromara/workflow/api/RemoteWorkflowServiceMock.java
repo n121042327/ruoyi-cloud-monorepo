@@ -52,6 +52,11 @@ public class RemoteWorkflowServiceMock implements RemoteWorkflowService {
     }
 
     @Override
+    public void syncDef(String tenantId) {
+        log.warn("服务调用异常 -> 降级处理");
+    }
+
+    @Override
     public RemoteStartProcessReturn startWorkFlow(RemoteStartProcess startProcess) {
         log.warn("服务调用异常 -> 降级处理");
         return null;

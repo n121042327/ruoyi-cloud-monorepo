@@ -1,119 +1,72 @@
 <template>
-  <div class="p-2 app-container workflow-all-task-page">
-    <div class="search-wrap">
-      <el-card shadow="hover" class="search-panel" :class="{ 'is-collapsed': !showSearch }">
-        <template #header>
-          <div class="panel-heading search-panel-toggle" @click.stop="showSearch = !showSearch">
-            <div><h3>筛选条件</h3></div>
-          </div>
-        </template>
-        <el-form ref="queryFormRef" :model="queryParams" :inline="true" class="query-form">
-          <el-form-item>
-            <el-badge :value="userSelectCount" :max="10" class="item">
-              <el-button type="primary" @click="openUserSelect">选择申请人</el-button>
-            </el-badge>
-          </el-form-item>
-          <el-form-item label="任务名称" prop="nodeName">
-            <el-input v-model="queryParams.nodeName" placeholder="请输入任务名称" @keyup.enter="handleQuery" />
-          </el-form-item>
-          <el-form-item label="流程定义名称" label-width="100" prop="flowName">
-            <el-input v-model="queryParams.flowName" placeholder="请输入流程定义名称" @keyup.enter="handleQuery" />
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-            <el-button icon="Refresh" @click="resetQuery">重置</el-button>
-          </el-form-item>
-        </el-form>
-      </el-card>
-    </div>
-    <el-card shadow="hover" class="table-panel">
+  <div class="p-2">
+    <transition :enter-active-class="proxy?.animate.searchAnimate.enter" :leave-active-class="proxy?.animate.searchAnimate.leave">
+      <div v-show="showSearch" class="mb-[10px]">
+        <el-card shadow="hover">
+          <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" :inline="true">
+            <el-form-item>
+              <el-badge :value="userSelectCount" :max="10" class="item">
+                <el-button type="primary" @click="openUserSelect">选择申请人</el-button>
+              </el-badge>
+            </el-form-item>
+            <el-form-item label="任务名称" prop="nodeName">
+              <el-input v-model="queryParams.nodeName" placeholder="请输入任务名称" @keyup.enter="handleQuery" />
+            </el-form-item>
+            <el-form-item label="流程定义名称" label-width="100" prop="flowName">
+              <el-input v-model="queryParams.flowName" placeholder="请输入流程定义名称" @keyup.enter="handleQuery" />
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+              <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+            </el-form-item>
+          </el-form>
+        </el-card>
+      </div>
+    </transition>
+    <el-card shadow="hover">
       <template #header>
-        <div class="toolbar-shell">
-          <div class="table-heading">
-            <h3>全部任务</h3>
-          </div>
-          <div class="toolbar-actions">
-            <template v-if="tab === 'waiting'">
-              <el-button
-                class="todo-action-btn todo-action-btn--primary"
-                type="primary"
-                plain
-                icon="Edit"
-                :disabled="multiple"
-                @click="handleUserOpen()"
-              >
-                修改办理人
-              </el-button>
-              <el-button
-                class="todo-action-btn todo-action-btn--warning"
-                type="warning"
-                plain
-                icon="Bell"
-                :disabled="multiple"
-                @click="handleUrgeTaskOpen()"
-              >
-                催办
-              </el-button>
-            </template>
-            <right-toolbar v-model:show-search="showSearch" :search="false" @query-table="handleQuery"></right-toolbar>
-          </div>
-        </div>
+        <el-row :gutter="10" class="mb8">
+          <el-col :span="1.5" v-if="tab === 'waiting'">
+            <el-button class="todo-action-btn todo-action-btn--primary" type="primary" plain icon="Edit" :disabled="multiple" @click="handleUserOpen()"
+              >修改办理人
+            </el-button>
+            <el-button class="todo-action-btn todo-action-btn--warning" type="warning" plain icon="Bell" :disabled="multiple" @click="handleUrgeTaskOpen()"
+              >催办
+            </el-button>
+          </el-col>
+          <right-toolbar v-model:show-search="showSearch" @query-table="handleQuery"></right-toolbar>
+        </el-row>
       </template>
       <el-tabs v-model="tab" @tab-click="changeTab">
-        <el-tab-pane name="waiting" label="待办任务"></el-tab-pane>
-        <el-tab-pane name="finish" label="已办任务"></el-tab-pane>
-        <el-table
-          v-loading="loading"
-          border
-          class="data-table"
-          :data="taskList"
-          @selection-change="handleSelectionChange"
-        >
+        <el-tab-pane name="waiting" label="待办任务"> </el-tab-pane>
+        <el-tab-pane name="finish" label="已办任务"> </el-tab-pane>
+        <el-table v-loading="loading" border :data="taskList" @selection-change="handleSelectionChange">
           <el-table-column type="selection" width="55" align="center" />
           <el-table-column align="center" type="index" label="序号" width="60"></el-table-column>
-          <el-table-column
-            :show-overflow-tooltip="true"
-            prop="businessCode"
-            align="center"
-            label="业务编码"
-          ></el-table-column>
-          <el-table-column
-            :show-overflow-tooltip="true"
-            prop="businessTitle"
-            align="center"
-            label="业务标题"
-          ></el-table-column>
-          <el-table-column
-            :show-overflow-tooltip="true"
-            prop="flowName"
-            align="center"
-            width="120"
-            label="流程定义名称"
-          ></el-table-column>
+          <el-table-column :show-overflow-tooltip="true" prop="businessCode" align="center" label="业务编码"></el-table-column>
+          <el-table-column :show-overflow-tooltip="true" prop="businessTitle" align="center" label="业务标题"></el-table-column>
+          <el-table-column :show-overflow-tooltip="true" prop="flowName" align="center" width="120" label="流程定义名称"></el-table-column>
           <el-table-column align="center" prop="flowCode" width="120" label="流程定义编码"></el-table-column>
           <el-table-column align="center" prop="categoryName" label="流程分类"></el-table-column>
           <el-table-column align="center" prop="version" label="版本号" width="90">
-            <template #default="scope">v{{ scope.row.version }}.0</template>
+            <template #default="scope"> v{{ scope.row.version }}.0</template>
           </el-table-column>
-          <el-table-column
-            align="center"
-            prop="nodeName"
-            :show-overflow-tooltip="true"
-            label="任务名称"
-          ></el-table-column>
-          <el-table-column
-            align="center"
-            prop="createByName"
-            :show-overflow-tooltip="true"
-            label="申请人"
-          ></el-table-column>
-          <el-table-column align="center" label="办理人" min-width="180">
+          <el-table-column align="center" prop="nodeName" :show-overflow-tooltip="true" label="任务名称"></el-table-column>
+          <el-table-column align="center" prop="createByName" :show-overflow-tooltip="true" label="申请人"></el-table-column>
+          <el-table-column align="center" label="办理人">
             <template #default="scope">
               <template v-if="tab === 'waiting'">
-                <UserNameDisplay :content="scope.row.assigneeNames" />
+                <template v-if="scope.row.assigneeNames">
+                  <el-tag v-for="(name, index) in scope.row.assigneeNames.split(',')" :key="index" type="success">
+                    {{ name }}
+                  </el-tag>
+                </template>
+                <template v-else>
+                  <el-tag type="success"> 无</el-tag>
+                </template>
               </template>
               <template v-else>
-                <UserNameDisplay :content="scope.row.approverName" />
+                <el-tag type="success"> {{ scope.row.approveName }}</el-tag>
               </template>
             </template>
           </el-table-column>
@@ -135,9 +88,7 @@
                   <el-button type="primary" size="small" icon="View" @click="handleView(scope.row)">查看</el-button>
                 </el-col>
                 <el-col :span="1.5" v-if="tab === 'waiting'">
-                  <el-button type="primary" size="small" icon="Setting" @click="handleMeddle(scope.row)">
-                    流程干预
-                  </el-button>
+                  <el-button type="primary" size="small" icon="Setting" @click="handleMeddle(scope.row)">流程干预 </el-button>
                 </el-col>
               </el-row>
             </template>
@@ -157,35 +108,22 @@
     <!-- 流程干预组件 -->
     <processMeddle ref="processMeddleRef" @submitCallback="getWaitingList"></processMeddle>
     <!-- 申请人 -->
-    <UserSelect
-      ref="applyUserSelectRef"
-      :multiple="true"
-      :data="selectUserIds"
-      @confirm-call-back="userSelectCallBack"
-    ></UserSelect>
+    <UserSelect ref="applyUserSelectRef" :multiple="true" :data="selectUserIds" @confirm-call-back="userSelectCallBack"></UserSelect>
     <!-- 流程干预组件 -->
     <messageType ref="messageTypeRef" @submitCallback="handleUserTask"></messageType>
   </div>
 </template>
 
 <script setup lang="ts">
-import { TabsPaneContext } from 'element-plus';
-import { UserVO } from '@/api/system/user/types';
 import { pageByAllTaskWait, pageByAllTaskFinish, updateAssignee, urgeTask } from '@/api/workflow/task';
-import { TaskQuery, FlowTaskVO } from '@/api/workflow/task/types';
+import UserSelect from '@/components/UserSelect';
+import { TaskQuery } from '@/api/workflow/task/types';
 import workflowCommon from '@/api/workflow/workflowCommon';
 import { RouterJumpVo } from '@/api/workflow/workflowCommon/types';
-import messageType from '@/components/Process/MessageType.vue';
-import processMeddle from '@/components/Process/processMeddle.vue';
-import UserNameDisplay from '@/components/Process/UserNameDisplay.vue';
-import UserSelect from '@/components/UserSelect/index.vue';
-import { useLoading } from '@/hooks/async/useLoading';
-import { useSearchReset } from '@/hooks/form/useSearchReset';
-import { useSearchToggle } from '@/hooks/form/useSearchToggle';
-import { useTableSelection } from '@/hooks/table/useTableSelection';
-import modal from '@/plugins/modal';
-import { useDict } from '@/utils/dict';
-
+import processMeddle from '@/components/Process/processMeddle';
+import messageType from '@/components/Process/MessageType';
+import { UserVO } from '@/api/system/user/types';
+import { TabsPaneContext } from 'element-plus';
 //选人组件
 const userSelectRef = ref<InstanceType<typeof UserSelect>>();
 //流程干预组件
@@ -195,12 +133,20 @@ const applyUserSelectRef = ref<InstanceType<typeof UserSelect>>();
 //消息组件
 const messageTypeRef = ref<InstanceType<typeof messageType>>();
 const queryFormRef = ref<ElFormInstance>();
-const { wf_business_status } = toRefs<any>(useDict('wf_business_status'));
-const { wf_task_status } = toRefs<any>(useDict('wf_task_status'));
-const { loading, withLoading } = useLoading(true);
-const { ids, single, multiple, handleSelectionChange } = useTableSelection<FlowTaskVO, string>(item => String(item.id));
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { wf_business_status } = toRefs<any>(proxy?.useDict('wf_business_status'));
+const { wf_task_status } = toRefs<any>(proxy?.useDict('wf_task_status'));
+// 遮罩层
+const loading = ref(true);
+// 选中数组
+const ids = ref<Array<any>>([]);
+// 非单个禁用
+const single = ref(true);
+// 非多个禁用
+const multiple = ref(true);
 const userMultiple = ref(false);
-const { showSearch } = useSearchToggle();
+// 显示搜索条件
+const showSearch = ref(true);
 // 总条数
 const total = ref(0);
 // 模型定义表格数据
@@ -220,21 +166,6 @@ const queryParams = ref<TaskQuery>({
   createByIds: []
 });
 const tab = ref('waiting');
-const { resetQuery } = useSearchReset({
-  queryFormRef,
-  queryParams,
-  pageNumKey: 'pageNum',
-  pageSizeKey: 'pageSize',
-  initialPageSize: 10,
-  resetExtras: () => {
-    queryParams.value.createByIds = [];
-    userSelectCount.value = 0;
-    selectUserIds.value = [];
-  },
-  afterReset: () => {
-    handleQuery();
-  }
-});
 
 /** 搜索按钮操作 */
 const handleQuery = () => {
@@ -243,6 +174,22 @@ const handleQuery = () => {
   } else {
     getFinishList();
   }
+};
+/** 重置按钮操作 */
+const resetQuery = () => {
+  queryFormRef.value?.resetFields();
+  queryParams.value.pageNum = 1;
+  queryParams.value.pageSize = 10;
+  queryParams.value.createByIds = [];
+  userSelectCount.value = 0;
+  selectUserIds.value = [];
+  handleQuery();
+};
+// 多选框选中数据
+const handleSelectionChange = (selection: any) => {
+  ids.value = selection.map((item: any) => item.id);
+  single.value = selection.length !== 1;
+  multiple.value = !selection.length;
 };
 const changeTab = async (data: TabsPaneContext) => {
   taskList.value = [];
@@ -255,17 +202,19 @@ const changeTab = async (data: TabsPaneContext) => {
 };
 //分页
 const getWaitingList = () => {
-  withLoading(async () => {
-    const resp = await pageByAllTaskWait(queryParams.value);
-    taskList.value = resp.data?.rows;
-    total.value = resp.data?.total;
+  loading.value = true;
+  pageByAllTaskWait(queryParams.value).then((resp) => {
+    taskList.value = resp.rows;
+    total.value = resp.total;
+    loading.value = false;
   });
 };
 const getFinishList = () => {
-  withLoading(async () => {
-    const resp = await pageByAllTaskFinish(queryParams.value);
-    taskList.value = resp.data?.rows;
-    total.value = resp.data?.total;
+  loading.value = true;
+  pageByAllTaskFinish(queryParams.value).then((resp) => {
+    taskList.value = resp.rows;
+    total.value = resp.total;
+    loading.value = false;
   });
 };
 // 打开催办
@@ -278,27 +227,28 @@ const handleUserOpen = () => {
 };
 
 //打开修改选人
-const handleUserTask = async data => {
-  await modal.confirm('是否确认提交？');
+const handleUserTask = async (data) => {
+  await proxy?.$modal.confirm('是否确认提交？');
   data.taskIdList = ids.value;
   await urgeTask(data);
   messageTypeRef.value.close();
-  modal.msgSuccess('操作成功');
+  proxy?.$modal.msgSuccess('操作成功');
   handleQuery();
 };
 //修改办理人
-const submitCallback = async data => {
+const submitCallback = async (data) => {
   if (data && data.length > 0) {
-    await modal.confirm('是否确认提交？');
+    await proxy?.$modal.confirm('是否确认提交？');
+    loading.value = true;
     await updateAssignee(ids.value, data[0].userId);
     handleQuery();
-    modal.msgSuccess('操作成功');
+    proxy?.$modal.msgSuccess('操作成功');
   } else {
-    modal.msgWarning('请选择用户！');
+    proxy?.$modal.msgWarning('请选择用户！');
   }
 };
 /** 查看按钮操作 */
-const handleView = row => {
+const handleView = (row) => {
   const routerJumpVo = reactive<RouterJumpVo>({
     businessId: row.businessId,
     taskId: row.id,
@@ -306,9 +256,9 @@ const handleView = row => {
     formCustom: row.formCustom,
     formPath: row.formPath
   });
-  workflowCommon.routerJump(routerJumpVo);
+  workflowCommon.routerJump(routerJumpVo, proxy);
 };
-const handleMeddle = row => {
+const handleMeddle = (row) => {
   processMeddleRef.value.open(row.id);
 };
 //打开申请人选择
@@ -323,7 +273,7 @@ const userSelectCallBack = (data: UserVO[]) => {
 
   if (data && data.length > 0) {
     userSelectCount.value = data.length;
-    selectUserIds.value = data.map(item => item.userId);
+    selectUserIds.value = data.map((item) => item.userId);
     queryParams.value.createByIds = selectUserIds.value;
   }
 };
@@ -361,7 +311,7 @@ onMounted(() => {
   --el-button-hover-border-color: var(--el-color-warning-light-5);
 }
 
-html.dark {
+:global(html.dark) {
   .todo-action-btn {
     --el-button-bg-color: rgba(148, 163, 184, 0.12);
     --el-button-border-color: rgba(148, 163, 184, 0.3);

@@ -1,77 +1,56 @@
 <template>
-  <div class="p-2 app-container workflow-my-document-page">
-    <el-row :gutter="20" class="content-grid">
+  <div class="p-2">
+    <el-row :gutter="20">
       <!-- 流程分类树 -->
-      <tree-panel
-        ref="treePanelRef"
-        v-model:collapsed="treeCollapsed"
-        title="流程分类"
-        placeholder="请输入流程分类名"
-        :data="categoryOptions"
-        :expanded-span="4"
-        filter-field="categoryName"
-        @node-click="handleNodeClick"
-      />
-      <el-col
-        :lg="treeCollapsed ? 23 : 20"
-        :xs="24"
-        class="tree-content-col content-main"
-        :class="{ 'is-tree-collapsed': treeCollapsed }"
-      >
-        <div class="search-wrap">
-          <el-card shadow="hover" class="search-panel" :class="{ 'is-collapsed': !showSearch }">
-            <template #header>
-              <div class="panel-heading search-panel-toggle" @click.stop="showSearch = !showSearch">
-                <div><h3>筛选条件</h3></div>
-              </div>
-            </template>
-            <el-form ref="queryFormRef" :model="queryParams" :inline="true" label-width="120px" class="query-form">
-              <el-form-item label="流程定义编码" prop="flowCode">
-                <el-input v-model="queryParams.flowCode" placeholder="请输入流程定义编码" @keyup.enter="handleQuery" />
-              </el-form-item>
-              <el-form-item>
-                <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-                <el-button icon="Refresh" @click="resetQuery">重置</el-button>
-              </el-form-item>
-            </el-form>
-          </el-card>
-        </div>
-        <el-card shadow="hover" class="table-panel">
+      <el-col :lg="4" :xs="24" style="">
+        <el-card shadow="hover">
+          <el-input v-model="categoryName" placeholder="请输入流程分类名" prefix-icon="Search" clearable />
+          <el-tree
+            ref="categoryTreeRef"
+            class="mt-2"
+            node-key="id"
+            :data="categoryOptions"
+            :props="{ label: 'label', children: 'children' } as any"
+            :expand-on-click-node="false"
+            :filter-node-method="filterNode"
+            highlight-current
+            default-expand-all
+            @node-click="handleNodeClick"
+          ></el-tree>
+        </el-card>
+      </el-col>
+      <el-col :lg="20" :xs="24">
+        <transition :enter-active-class="proxy?.animate.searchAnimate.enter" :leave-active-class="proxy?.animate.searchAnimate.leave">
+          <div v-show="showSearch" class="mb-[10px]">
+            <el-card shadow="hover">
+              <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" :inline="true" label-width="120px">
+                <el-form-item label="流程定义编码" prop="flowCode">
+                  <el-input v-model="queryParams.flowCode" placeholder="请输入流程定义编码" @keyup.enter="handleQuery" />
+                </el-form-item>
+                <el-form-item>
+                  <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+                  <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+                </el-form-item>
+              </el-form>
+            </el-card>
+          </div>
+        </transition>
+        <el-card shadow="hover">
           <template #header>
-            <div class="toolbar-shell">
-              <div class="table-heading">
-                <h3>我的单据</h3>
-              </div>
-              <div class="toolbar-actions">
-                <right-toolbar
-                  v-model:show-search="showSearch"
-                  :search="false"
-                  @query-table="handleQuery"
-                ></right-toolbar>
-              </div>
-            </div>
+            <el-row :gutter="10" class="mb8">
+              <right-toolbar v-model:show-search="showSearch" @query-table="handleQuery"></right-toolbar>
+            </el-row>
           </template>
 
-          <el-table
-            v-loading="loading"
-            border
-            class="data-table"
-            :data="processInstanceList"
-            @selection-change="handleSelectionChange"
-          >
+          <el-table v-loading="loading" border :data="processInstanceList" @selection-change="handleSelectionChange">
             <el-table-column type="selection" width="55" align="center" />
             <el-table-column align="center" type="index" label="序号" width="60"></el-table-column>
             <el-table-column v-if="false" align="center" prop="id" label="id"></el-table-column>
-            <el-table-column
-              :show-overflow-tooltip="true"
-              prop="flowName"
-              align="center"
-              label="流程定义名称"
-            ></el-table-column>
+            <el-table-column :show-overflow-tooltip="true" prop="flowName" align="center" label="流程定义名称"> </el-table-column>
             <el-table-column align="center" prop="flowCode" label="流程定义编码"></el-table-column>
             <el-table-column align="center" prop="categoryName" label="流程分类"></el-table-column>
             <el-table-column align="center" prop="version" label="版本号" width="90">
-              <template #default="scope">v{{ scope.row.version }}.0</template>
+              <template #default="scope"> v{{ scope.row.version }}.0</template>
             </el-table-column>
             <el-table-column v-if="tab === 'running'" align="center" prop="isSuspended" label="状态" min-width="70">
               <template #default="scope">
@@ -88,46 +67,21 @@
             <el-table-column label="操作" align="center" width="162">
               <template #default="scope">
                 <el-row :gutter="10" class="mb8">
-                  <el-col
-                    :span="1.5"
-                    v-if="
-                      scope.row.flowStatus === 'draft' ||
-                      scope.row.flowStatus === 'cancel' ||
-                      scope.row.flowStatus === 'back'
-                    "
-                  >
-                    <el-button type="primary" size="small" icon="Edit" @click="handleOpen(scope.row, 'update')">
-                      编辑
-                    </el-button>
+                  <el-col :span="1.5" v-if="scope.row.flowStatus === 'draft' || scope.row.flowStatus === 'cancel' || scope.row.flowStatus === 'back'">
+                    <el-button type="primary" size="small" icon="Edit" @click="handleOpen(scope.row, 'update')">编辑</el-button>
                   </el-col>
-                  <el-col
-                    :span="1.5"
-                    v-if="
-                      scope.row.flowStatus === 'draft' ||
-                      scope.row.flowStatus === 'cancel' ||
-                      scope.row.flowStatus === 'back'
-                    "
-                  >
-                    <el-button type="primary" size="small" icon="Delete" @click="handleDelete(scope.row)">
-                      删除
-                    </el-button>
+                  <el-col :span="1.5" v-if="scope.row.flowStatus === 'draft' || scope.row.flowStatus === 'cancel' || scope.row.flowStatus === 'back'">
+                    <el-button type="primary" size="small" icon="Delete" @click="handleDelete(scope.row)">删除</el-button>
                   </el-col>
                 </el-row>
                 <el-row :gutter="10" class="mb8">
                   <el-col :span="1.5">
-                    <el-button type="primary" size="small" icon="View" @click="handleOpen(scope.row, 'view')">
-                      查看
-                    </el-button>
+                    <el-button type="primary" size="small" icon="View" @click="handleOpen(scope.row, 'view')">查看</el-button>
                   </el-col>
                   <el-col :span="1.5" v-if="scope.row.flowStatus === 'waiting'">
-                    <el-button
-                      type="primary"
-                      size="small"
-                      icon="Notification"
-                      @click="handleCancelProcessApply(scope.row.businessId)"
+                    <el-button type="primary" size="small" icon="Notification" @click="handleCancelProcessApply(scope.row.businessId)"
+                      >撤销</el-button
                     >
-                      撤销
-                    </el-button>
                   </el-col>
                 </el-row>
               </template>
@@ -149,39 +103,35 @@
 </template>
 
 <script setup lang="ts">
+import { pageByCurrent, deleteByInstanceIds, cancelProcessApply } from '@/api/workflow/instance';
 import { categoryTree } from '@/api/workflow/category';
 import { CategoryTreeVO } from '@/api/workflow/category/types';
-import { pageByCurrent, deleteByInstanceIds, cancelProcessApply } from '@/api/workflow/instance';
 import { FlowInstanceQuery, FlowInstanceVO } from '@/api/workflow/instance/types';
 import workflowCommon from '@/api/workflow/workflowCommon';
 import { RouterJumpVo } from '@/api/workflow/workflowCommon/types';
-import TreePanel from '@/components/TreePanel/index.vue';
-import { useLoading } from '@/hooks/async/useLoading';
-import { useSearchReset } from '@/hooks/form/useSearchReset';
-import { useSearchToggle } from '@/hooks/form/useSearchToggle';
-import { useTableSelection } from '@/hooks/table/useTableSelection';
-import { useTreeCollapsed } from '@/hooks/tree/useTreeCollapsed';
-import modal from '@/plugins/modal';
-import { useDict } from '@/utils/dict';
-
-const { wf_business_status } = toRefs<any>(useDict('wf_business_status'));
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { wf_business_status } = toRefs<any>(proxy?.useDict('wf_business_status'));
 const queryFormRef = ref<ElFormInstance>();
+const categoryTreeRef = ref<ElTreeInstance>();
 
-const { loading, setLoading, withLoading } = useLoading(true);
-const {
-  ids: instanceIds,
-  single,
-  multiple,
-  handleSelectionChange
-} = useTableSelection<FlowInstanceVO>(item => item.id);
-const { showSearch } = useSearchToggle();
+// 遮罩层
+const loading = ref(true);
+// 选中数组
+const businessIds = ref<Array<number | string>>([]);
+const instanceIds = ref<Array<number | string>>([]);
+// 非单个禁用
+const single = ref(true);
+// 非多个禁用
+const multiple = ref(true);
+// 显示搜索条件
+const showSearch = ref(true);
 // 总条数
 const total = ref(0);
 // 模型定义表格数据
 const processInstanceList = ref<FlowInstanceVO[]>([]);
 
 const categoryOptions = ref<CategoryTreeVO[]>([]);
-const { treeCollapsed } = useTreeCollapsed();
+const categoryName = ref('');
 
 const tab = ref('running');
 // 查询参数
@@ -205,6 +155,21 @@ const handleNodeClick = (data: CategoryTreeVO) => {
   }
   handleQuery();
 };
+/** 通过条件过滤节点  */
+const filterNode = (value: string, data: any) => {
+  if (!value) return true;
+  return data.categoryName.indexOf(value) !== -1;
+};
+/** 根据名称筛选部门树 */
+watchEffect(
+  () => {
+    categoryTreeRef.value.filter(categoryName.value);
+  },
+  {
+    flush: 'post' // watchEffect会在DOM挂载或者更新之前就会触发，此属性控制在DOM元素更新后运行
+  }
+);
+
 /** 查询流程分类下拉树结构 */
 const getTreeselect = async () => {
   const res = await categoryTree();
@@ -215,53 +180,56 @@ const getTreeselect = async () => {
 const handleQuery = () => {
   getList();
 };
-const { resetQuery } = useSearchReset({
-  queryFormRef,
-  queryParams,
-  pageNumKey: 'pageNum',
-  pageSizeKey: 'pageSize',
-  initialPageSize: 10,
-  resetExtras: () => {
-    queryParams.value.category = '';
-  },
-  afterReset: () => {
-    handleQuery();
-  }
-});
+/** 重置按钮操作 */
+const resetQuery = () => {
+  queryFormRef.value?.resetFields();
+  queryParams.value.category = '';
+  queryParams.value.pageNum = 1;
+  queryParams.value.pageSize = 10;
+  handleQuery();
+};
+// 多选框选中数据
+const handleSelectionChange = (selection: FlowInstanceVO[]) => {
+  businessIds.value = selection.map((item: any) => item.businessId);
+  instanceIds.value = selection.map((item: FlowInstanceVO) => item.id);
+  single.value = selection.length !== 1;
+  multiple.value = !selection.length;
+};
 //分页
 const getList = () => {
-  withLoading(async () => {
-    const resp = await pageByCurrent(queryParams.value);
-    processInstanceList.value = resp.data?.rows;
-    total.value = resp.data?.total;
+  loading.value = true;
+  pageByCurrent(queryParams.value).then((resp) => {
+    processInstanceList.value = resp.rows;
+    total.value = resp.total;
+    loading.value = false;
   });
 };
 
 /** 删除按钮操作 */
-const handleDelete = async (row: Partial<FlowInstanceVO>) => {
+const handleDelete = async (row: FlowInstanceVO) => {
   const instanceIdList = row.id || instanceIds.value;
-  await modal.confirm('是否确认删除？');
-  setLoading(true);
+  await proxy?.$modal.confirm('是否确认删除？');
+  loading.value = true;
   if ('running' === tab.value) {
-    await deleteByInstanceIds(instanceIdList).finally(() => setLoading(false));
+    await deleteByInstanceIds(instanceIdList).finally(() => (loading.value = false));
     getList();
   }
-  modal.msgSuccess('删除成功');
+  proxy?.$modal.msgSuccess('删除成功');
 };
 
 /** 撤销按钮操作 */
 const handleCancelProcessApply = async (businessId: string) => {
-  await modal.confirm('是否确认撤销当前单据？');
-  setLoading(true);
+  await proxy?.$modal.confirm('是否确认撤销当前单据？');
+  loading.value = true;
   if ('running' === tab.value) {
     const data = {
       businessId: businessId,
       message: '申请人撤销流程！'
     };
-    await cancelProcessApply(data).finally(() => setLoading(false));
+    await cancelProcessApply(data).finally(() => (loading.value = false));
     getList();
   }
-  modal.msgSuccess('撤销成功');
+  proxy?.$modal.msgSuccess('撤销成功');
 };
 
 //办理
@@ -273,18 +241,6 @@ const handleOpen = async (row, type) => {
     formCustom: row.formCustom,
     formPath: row.formPath
   });
-  workflowCommon.routerJump(routerJumpVo);
+  workflowCommon.routerJump(routerJumpVo, proxy);
 };
 </script>
-
-<style lang="scss" scoped>
-@use '@/assets/styles/components/page-shell' as pageShell;
-
-@include pageShell.tree-table-crud-page;
-
-.content-main {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-</style>

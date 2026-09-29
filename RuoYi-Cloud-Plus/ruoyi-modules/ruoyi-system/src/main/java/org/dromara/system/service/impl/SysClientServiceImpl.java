@@ -4,15 +4,16 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.constant.CacheNames;
-import org.dromara.common.core.domain.PageResult;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
-import org.dromara.common.mybatis.core.query.QueryBuilder;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.system.domain.SysClient;
 import org.dromara.system.domain.bo.SysClientBo;
 import org.dromara.system.domain.vo.SysClientVo;
@@ -24,7 +25,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.function.UnaryOperator;
 
 /**
  * 客户端管理Service业务层处理
@@ -36,17 +36,15 @@ import java.util.function.UnaryOperator;
 @Service
 public class SysClientServiceImpl implements ISysClientService {
 
-    private static final String CLIENT_RULE_SEPARATOR_REGEX = "[,;\\r\\n]+";
-
-    private final SysClientMapper clientMapper;
+    private final SysClientMapper baseMapper;
 
     /**
      * 查询客户端管理
      */
     @Override
     public SysClientVo queryById(Long id) {
-        SysClientVo vo = clientMapper.selectVoById(id);
-        fillClientRuleFields(vo);
+        SysClientVo vo = baseMapper.selectVoById(id);
+        vo.setGrantTypeList(StringUtils.splitList(vo.getGrantType()));
         return vo;
     }
 
@@ -56,20 +54,18 @@ public class SysClientServiceImpl implements ISysClientService {
     @Cacheable(cacheNames = CacheNames.SYS_CLIENT, key = "#clientId")
     @Override
     public SysClientVo queryByClientId(String clientId) {
-        SysClientVo vo = clientMapper.lambda().eq(SysClient::getClientId, clientId).voOne();
-        fillClientRuleFields(vo);
-        return vo;
+        return baseMapper.selectVoOne(new LambdaQueryWrapper<SysClient>().eq(SysClient::getClientId, clientId));
     }
 
     /**
      * 查询客户端管理列表
      */
     @Override
-    public PageResult<SysClientVo> queryPageList(SysClientBo bo, PageQuery pageQuery) {
+    public TableDataInfo<SysClientVo> queryPageList(SysClientBo bo, PageQuery pageQuery) {
         LambdaQueryWrapper<SysClient> lqw = buildQueryWrapper(bo);
-        Page<SysClientVo> result = clientMapper.selectVoPage(pageQuery.build(), lqw);
-        result.getRecords().forEach(this::fillClientRuleFields);
-        return PageResult.build(result.getRecords(), result.getTotal());
+        Page<SysClientVo> result = baseMapper.selectVoPage(pageQuery.build(), lqw);
+        result.getRecords().forEach(r -> r.setGrantTypeList(StringUtils.splitList(r.getGrantType())));
+        return TableDataInfo.build(result);
     }
 
     /**
@@ -78,19 +74,17 @@ public class SysClientServiceImpl implements ISysClientService {
     @Override
     public List<SysClientVo> queryList(SysClientBo bo) {
         LambdaQueryWrapper<SysClient> lqw = buildQueryWrapper(bo);
-        List<SysClientVo> list = clientMapper.selectVoList(lqw);
-        list.forEach(this::fillClientRuleFields);
-        return list;
+        return baseMapper.selectVoList(lqw);
     }
 
     private LambdaQueryWrapper<SysClient> buildQueryWrapper(SysClientBo bo) {
-        return QueryBuilder.lambda(SysClient.class)
-            .eqIfText(SysClient::getClientId, bo.getClientId())
-            .eqIfText(SysClient::getClientKey, bo.getClientKey())
-            .eqIfText(SysClient::getClientSecret, bo.getClientSecret())
-            .eqIfText(SysClient::getStatus, bo.getStatus())
-            .orderByAsc(SysClient::getId)
-            .build();
+        LambdaQueryWrapper<SysClient> lqw = Wrappers.lambdaQuery();
+        lqw.eq(StringUtils.isNotBlank(bo.getClientId()), SysClient::getClientId, bo.getClientId());
+        lqw.eq(StringUtils.isNotBlank(bo.getClientKey()), SysClient::getClientKey, bo.getClientKey());
+        lqw.eq(StringUtils.isNotBlank(bo.getClientSecret()), SysClient::getClientSecret, bo.getClientSecret());
+        lqw.eq(StringUtils.isNotBlank(bo.getStatus()), SysClient::getStatus, bo.getStatus());
+        lqw.orderByAsc(SysClient::getId);
+        return lqw;
     }
 
     /**
@@ -100,13 +94,11 @@ public class SysClientServiceImpl implements ISysClientService {
     public Boolean insertByBo(SysClientBo bo) {
         SysClient add = MapstructUtils.convert(bo, SysClient.class);
         add.setGrantType(CollUtil.join(bo.getGrantTypeList(), StringUtils.SEPARATOR));
-        add.setAccessPath(resolveRuleValue(bo.getAccessPath(), bo.getAccessPathList(), this::normalizeAccessPath));
-        add.setIpWhitelist(resolveRuleValue(bo.getIpWhitelist(), bo.getIpWhitelistList(), UnaryOperator.identity()));
         // 生成clientId
         String clientKey = bo.getClientKey();
         String clientSecret = bo.getClientSecret();
         add.setClientId(SecureUtil.md5(clientKey + clientSecret));
-        boolean flag = clientMapper.insert(add) > 0;
+        boolean flag = baseMapper.insert(add) > 0;
         if (flag) {
             bo.setId(add.getId());
         }
@@ -121,9 +113,7 @@ public class SysClientServiceImpl implements ISysClientService {
     public Boolean updateByBo(SysClientBo bo) {
         SysClient update = MapstructUtils.convert(bo, SysClient.class);
         update.setGrantType(StringUtils.joinComma(bo.getGrantTypeList()));
-        update.setAccessPath(resolveRuleValue(bo.getAccessPath(), bo.getAccessPathList(), this::normalizeAccessPath));
-        update.setIpWhitelist(resolveRuleValue(bo.getIpWhitelist(), bo.getIpWhitelistList(), UnaryOperator.identity()));
-        return clientMapper.updateById(update) > 0;
+        return baseMapper.updateById(update) > 0;
     }
 
     /**
@@ -132,10 +122,10 @@ public class SysClientServiceImpl implements ISysClientService {
     @CacheEvict(cacheNames = CacheNames.SYS_CLIENT, key = "#clientId")
     @Override
     public int updateClientStatus(String clientId, String status) {
-        return clientMapper.lambda()
-            .set(SysClient::getStatus, status)
-            .eq(SysClient::getClientId, clientId)
-            .updateCount();
+        return baseMapper.update(null,
+            new LambdaUpdateWrapper<SysClient>()
+                .set(SysClient::getStatus, status)
+                .eq(SysClient::getClientId, clientId));
     }
 
     /**
@@ -144,7 +134,7 @@ public class SysClientServiceImpl implements ISysClientService {
     @CacheEvict(cacheNames = CacheNames.SYS_CLIENT, allEntries = true)
     @Override
     public Boolean deleteWithValidByIds(Collection<Long> ids, Boolean isValid) {
-        return clientMapper.deleteByIds(ids) > 0;
+        return baseMapper.deleteByIds(ids) > 0;
     }
 
     /**
@@ -155,66 +145,10 @@ public class SysClientServiceImpl implements ISysClientService {
      */
     @Override
     public boolean checkClickKeyUnique(SysClientBo client) {
-        boolean exist = clientMapper.lambda()
+        boolean exist = baseMapper.exists(new LambdaQueryWrapper<SysClient>()
             .eq(SysClient::getClientKey, client.getClientKey())
-            .neIfPresent(SysClient::getId, client.getId())
-            .exists();
+            .ne(ObjectUtil.isNotNull(client.getId()), SysClient::getId, client.getId()));
         return !exist;
-    }
-
-    /**
-     * 回填客户端扩展规则字段，便于前端直接展示和编辑。
-     */
-    private void fillClientRuleFields(SysClientVo vo) {
-        if (ObjectUtil.isNull(vo)) {
-            return;
-        }
-        vo.setGrantTypeList(StringUtils.splitList(vo.getGrantType()));
-        vo.setAccessPathList(parseRuleList(vo.getAccessPath(), this::normalizeAccessPath));
-        vo.setIpWhitelistList(parseRuleList(vo.getIpWhitelist(), UnaryOperator.identity()));
-    }
-
-    /**
-     * 统一处理白名单与路径规则的入库格式。
-     */
-    private String resolveRuleValue(String rawValue, List<String> listValue, UnaryOperator<String> normalizer) {
-        List<String> rules = rawValue != null
-            ? StringUtils.str2List(rawValue, CLIENT_RULE_SEPARATOR_REGEX, true, true)
-            : listValue;
-        if (CollUtil.isEmpty(rules)) {
-            return listValue != null || rawValue != null ? "" : null;
-        }
-        return CollUtil.join(rules.stream()
-            .map(normalizer)
-            .filter(StringUtils::isNotBlank)
-            .toList(), StringUtils.SEPARATOR);
-    }
-
-    /**
-     * 将规则串转换为列表。
-     */
-    private List<String> parseRuleList(String value, UnaryOperator<String> normalizer) {
-        return StringUtils.str2List(value, CLIENT_RULE_SEPARATOR_REGEX, true, true).stream()
-            .map(normalizer)
-            .filter(StringUtils::isNotBlank)
-            .toList();
-    }
-
-    /**
-     * 统一补齐路径前导斜杠，避免配置成 app/** 时无法命中。
-     */
-    private String normalizeAccessPath(String path) {
-        if (StringUtils.isBlank(path)) {
-            return null;
-        }
-        String accessPath = StringUtils.trim(path);
-        if (StringUtils.isBlank(accessPath)) {
-            return null;
-        }
-        if (StringUtils.equals(accessPath, "*") || StringUtils.equals(accessPath, "/**")) {
-            return "/**";
-        }
-        return accessPath.startsWith(StringUtils.SLASH) ? accessPath : StringUtils.SLASH + accessPath;
     }
 
 }

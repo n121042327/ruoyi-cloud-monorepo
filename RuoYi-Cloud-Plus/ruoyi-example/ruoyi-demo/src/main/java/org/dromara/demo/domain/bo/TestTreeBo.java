@@ -4,14 +4,11 @@ import io.github.linpeilie.annotations.AutoMapper;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.dromara.common.core.validate.AddGroup;
 import org.dromara.common.core.validate.EditGroup;
+import org.dromara.common.mybatis.core.domain.BaseEntity;
 import org.dromara.demo.domain.TestTree;
-
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 测试树表业务对象 test_tree
@@ -21,11 +18,9 @@ import java.util.Map;
  */
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @AutoMapper(target = TestTree.class, reverseConvertGenerate = false)
-public class TestTreeBo implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 1L;
+public class TestTreeBo extends BaseEntity {
 
     /**
      * 主键
@@ -55,10 +50,5 @@ public class TestTreeBo implements Serializable {
      */
     @NotBlank(message = "树节点名不能为空", groups = {AddGroup.class, EditGroup.class})
     private String treeName;
-
-    /**
-     * 请求参数
-     */
-    private Map<String, Object> params = new HashMap<>();
 
 }

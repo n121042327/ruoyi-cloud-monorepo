@@ -1,92 +1,21 @@
-import type { LoadingInstance } from 'element-plus';
-import axiosModule from 'axios';
-import { HttpStatus } from '@/enums/RespEnum';
-import { getLanguage } from '@/lang';
-import cache from '@/plugins/cache';
-import router from '@/router';
+import axios, { AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { useUserStore } from '@/store/modules/user';
 import { getToken } from '@/utils/auth';
-import { decryptBase64, decryptWithAes, encryptBase64, encryptWithAes, generateAesKey } from '@/utils/crypto';
+import { tansParams, blobValidate } from '@/utils/ruoyi';
+import cache from '@/plugins/cache';
+import { HttpStatus } from '@/enums/RespEnum';
 import { errorCode } from '@/utils/errorCode';
-import { decrypt, encrypt } from '@/utils/jsencrypt';
-import { blobValidate, tansParams } from '@/utils/ruoyi';
-import { saveBlob } from '@/utils/save';
-
-/** axios 1.13 + TS6：默认导出在类型上会被解析为不可调用的 export= 形态 */
-const axios = axiosModule as any;
+import { LoadingInstance } from 'element-plus/es/components/loading/src/loading';
+import FileSaver from 'file-saver';
+import { getLanguage } from '@/lang';
+import { encryptBase64, encryptWithAes, generateAesKey, decryptWithAes, decryptBase64 } from '@/utils/crypto';
+import { encrypt, decrypt } from '@/utils/jsencrypt';
+import router from '@/router';
 
 const encryptHeader = 'encrypt-key';
-let downloadLoadingInstance: LoadingInstance | undefined;
+let downloadLoadingInstance: LoadingInstance;
 // 是否显示重新登录
 export const isRelogin = { show: false };
-
-function createHandledError(message: string) {
-  const error = new Error(message) as Error & { isHandled?: boolean };
-  error.isHandled = true;
-  return error;
-}
-
-export function isHandledRequestError(error: unknown) {
-  return Boolean((error as { isHandled?: boolean } | undefined)?.isHandled);
-}
-
-function normalizeErrorMessage(message?: string) {
-  if (!message) {
-    return undefined;
-  }
-  if (message === 'Network Error') {
-    return '后端接口连接异常';
-  }
-  if (message.includes('timeout')) {
-    return '系统接口请求超时';
-  }
-  if (message.includes('Request failed with status code')) {
-    return '系统接口' + message.slice(-3) + '异常';
-  }
-  return message;
-}
-
-async function parseResponseErrorData(data: unknown): Promise<string | undefined> {
-  if (!data) {
-    return undefined;
-  }
-
-  if (data instanceof Blob) {
-    return parseResponseErrorData(await data.text());
-  }
-
-  if (data instanceof ArrayBuffer) {
-    return parseResponseErrorData(new TextDecoder().decode(data));
-  }
-
-  if (typeof data === 'string') {
-    const text = data.trim();
-    if (!text) {
-      return undefined;
-    }
-    try {
-      return parseResponseErrorData(JSON.parse(text));
-    } catch {
-      return text;
-    }
-  }
-
-  if (typeof data === 'object') {
-    const payload = data as Record<string, any>;
-    return payload.msg || payload.message || errorCode[payload.code] || errorCode['default'];
-  }
-
-  return undefined;
-}
-
-export async function extractErrorMessage(error: any): Promise<string | undefined> {
-  const responseMessage = await parseResponseErrorData(error?.response?.data);
-  if (responseMessage) {
-    return responseMessage;
-  }
-  return normalizeErrorMessage(error?.message);
-}
-
 export const globalHeaders = () => {
   return {
     Authorization: 'Bearer ' + getToken(),
@@ -108,7 +37,7 @@ const service = axios.create({
 
 // 请求拦截器
 service.interceptors.request.use(
-  (config: any) => {
+  (config: InternalAxiosRequestConfig) => {
     // 对应国际化资源文件后缀
     config.headers['Content-Language'] = getLanguage();
 
@@ -158,10 +87,7 @@ service.interceptors.request.use(
         // 生成一个 AES 密钥
         const aesKey = generateAesKey();
         config.headers[encryptHeader] = encrypt(encryptBase64(aesKey));
-        config.data =
-          typeof config.data === 'object'
-            ? encryptWithAes(JSON.stringify(config.data), aesKey)
-            : encryptWithAes(config.data, aesKey);
+        config.data = typeof config.data === 'object' ? encryptWithAes(JSON.stringify(config.data), aesKey) : encryptWithAes(config.data, aesKey);
       }
     }
     // FormData数据去请求头Content-Type
@@ -177,7 +103,7 @@ service.interceptors.request.use(
 
 // 响应拦截器
 service.interceptors.response.use(
-  (res: any) => {
+  (res: AxiosResponse) => {
     if (import.meta.env.VITE_APP_ENCRYPT === 'true') {
       // 加密后的 AES 秘钥
       const keyStr = res.headers[encryptHeader];
@@ -197,7 +123,7 @@ service.interceptors.response.use(
     // 未设置状态码则默认成功状态
     const code = res.data.code || HttpStatus.SUCCESS;
     // 获取错误信息
-    const msg = res.data.msg || errorCode[code] || errorCode['default'];
+    const msg = errorCode[code] || res.data.msg || errorCode['default'];
     // 二进制数据则直接返回
     if (res.request.responseType === 'blob' || res.request.responseType === 'arraybuffer') {
       return res.data;
@@ -205,92 +131,82 @@ service.interceptors.response.use(
     if (code === 401) {
       // prettier-ignore
       if (!isRelogin.show) {
-				isRelogin.show = true;
-				ElMessageBox.confirm(
-					"登录状态已过期，您可以继续留在该页面，或者重新登录",
-					"系统提示",
-					{
-						confirmButtonText: "重新登录",
-						cancelButtonText: "取消",
-						type: "warning",
-					},
-				)
-					.then(() => {
-						isRelogin.show = false;
-						useUserStore()
-							.logout()
-							.then(() => {
-								router.replace({
-									path: "/login",
-									query: {
-										redirect: encodeURIComponent(
-											router.currentRoute.value.fullPath || "/",
-										),
-									},
-								});
-							});
-					})
-					.catch(() => {
-						isRelogin.show = false;
-					});
-			}
+        isRelogin.show = true;
+        ElMessageBox.confirm('登录状态已过期，您可以继续留在该页面，或者重新登录', '系统提示', {
+          confirmButtonText: '重新登录',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          isRelogin.show = false;
+          useUserStore().logout().then(() => {
+            router.replace({
+              path: '/login',
+              query: {
+                redirect: encodeURIComponent(router.currentRoute.value.fullPath || '/')
+              }
+            })
+          });
+        }).catch(() => {
+          isRelogin.show = false;
+        });
+      }
       return Promise.reject('无效的会话，或者会话已过期，请重新登录。');
     } else if (code === HttpStatus.SERVER_ERROR) {
       ElMessage({ message: msg, type: 'error' });
-      return Promise.reject(createHandledError(msg));
+      return Promise.reject(new Error(msg));
     } else if (code === HttpStatus.WARN) {
       ElMessage({ message: msg, type: 'warning' });
-      return Promise.reject(createHandledError(msg));
+      return Promise.reject(new Error(msg));
     } else if (code !== HttpStatus.SUCCESS) {
       ElNotification.error({ title: msg });
-      return Promise.reject(createHandledError(msg));
+      return Promise.reject('error');
     } else {
       return Promise.resolve(res.data);
     }
   },
-  async (error: any) => {
-    const message = (await extractErrorMessage(error)) || errorCode['default'];
+  (error: any) => {
+    let { message } = error;
+    if (message == 'Network Error') {
+      message = '后端接口连接异常';
+    } else if (message.includes('timeout')) {
+      message = '系统接口请求超时';
+    } else if (message.includes('Request failed with status code')) {
+      message = '系统接口' + message.substr(message.length - 3) + '异常';
+    }
     ElMessage({ message: message, type: 'error', duration: 5 * 1000 });
-    error.isHandled = true;
     return Promise.reject(error);
   }
 );
 // 通用下载方法
 export function download(url: string, params: any, fileName: string) {
-  downloadLoadingInstance = ElLoading.service({
-    text: '正在下载数据，请稍候',
-    background: 'rgba(0, 0, 0, 0.7)'
-  });
+  downloadLoadingInstance = ElLoading.service({ text: '正在下载数据，请稍候', background: 'rgba(0, 0, 0, 0.7)' });
   // prettier-ignore
-  return service
-		.post(url, params, {
-			transformRequest: [
-				(params: any) => {
-					return tansParams(params);
-				},
-			],
-			headers: { "Content-Type": "application/x-www-form-urlencoded" },
-			responseType: "blob",
-		})
-		.then(async (resp: any) => {
-			const isLogin = blobValidate(resp);
-			if (isLogin) {
-				const blob = new Blob([resp]);
-				saveBlob(blob, fileName);
-			} else {
-				const blob = new Blob([resp]);
-				const resText = await blob.text();
-				const rspObj = JSON.parse(resText);
-				const errMsg =
-					errorCode[rspObj.code] || rspObj.msg || errorCode["default"];
-				ElMessage.error(errMsg);
-			}
-			downloadLoadingInstance?.close();
-		})
-		.catch((r: any) => {
-			console.error(r);
-			downloadLoadingInstance?.close();
-		});
+  return service.post(url, params, {
+      transformRequest: [
+        (params: any) => {
+          return tansParams(params);
+        }
+      ],
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      responseType: 'blob'
+    }).then(async (resp: any) => {
+      const isLogin = blobValidate(resp);
+      if (isLogin) {
+        const blob = new Blob([resp]);
+        FileSaver.saveAs(blob, fileName);
+      } else {
+        const blob = new Blob([resp]);
+        const resText = await blob.text();
+        const rspObj = JSON.parse(resText);
+        const errMsg = errorCode[rspObj.code] || rspObj.msg || errorCode['default'];
+        ElMessage.error(errMsg);
+      }
+      downloadLoadingInstance.close();
+    }).catch((r: any) => {
+      console.error(r);
+      ElMessage.error('下载文件出现错误，请联系管理员！');
+      downloadLoadingInstance.close();
+    });
 }
 // 导出 axios 实例
 export default service;

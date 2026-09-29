@@ -6,8 +6,8 @@ import org.dromara.system.domain.SysMenu;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -59,12 +59,12 @@ public class SysMenuVo implements Serializable {
     private String queryParam;
 
     /**
-     * 是否为外链（Y是 N否）
+     * 是否为外链（0是 1否）
      */
     private String isFrame;
 
     /**
-     * 是否缓存（Y缓存 N不缓存）
+     * 是否缓存（0缓存 1不缓存）
      */
     private String isCache;
 
@@ -94,16 +94,6 @@ public class SysMenuVo implements Serializable {
     private String icon;
 
     /**
-     * 激活菜单路径
-     */
-    private String activeMenu;
-
-    /**
-     * 扩展字段
-     */
-    private String ext;
-
-    /**
      * 创建部门
      */
     private Long createDept;
@@ -116,7 +106,7 @@ public class SysMenuVo implements Serializable {
     /**
      * 创建时间
      */
-    private LocalDateTime createTime;
+    private Date createTime;
 
     /**
      * 子菜单

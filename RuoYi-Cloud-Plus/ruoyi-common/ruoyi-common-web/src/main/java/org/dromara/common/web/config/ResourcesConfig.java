@@ -3,8 +3,7 @@ package org.dromara.common.web.config;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import org.dromara.common.core.utils.ObjectUtils;
-import org.dromara.common.json.enhance.JsonValueEnhancer;
-import org.dromara.common.web.advice.ResponseEnhancementAdvice;
+import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.web.handler.GlobalExceptionHandler;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -13,7 +12,6 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 
 /**
@@ -39,13 +37,6 @@ public class ResourcesConfig implements WebMvcConfigurer {
             }
             return parse.toJdkDate();
         });
-        registry.addConverter(String.class, LocalDateTime.class, source -> {
-            DateTime parse = DateUtil.parse(source);
-            if (ObjectUtils.isNull(parse)) {
-                return null;
-            }
-            return parse.toLocalDateTime();
-        });
     }
 
     @Override
@@ -59,16 +50,4 @@ public class ResourcesConfig implements WebMvcConfigurer {
     public GlobalExceptionHandler globalExceptionHandler() {
         return new GlobalExceptionHandler();
     }
-
-    /**
-     * 注册响应增强处理器。
-     *
-     * @param jsonValueEnhancer JSON 字段增强器
-     * @return 响应增强处理器
-     */
-    @Bean
-    public ResponseEnhancementAdvice responseEnhancementAdvice(JsonValueEnhancer jsonValueEnhancer) {
-        return new ResponseEnhancementAdvice(jsonValueEnhancer);
-    }
-
 }

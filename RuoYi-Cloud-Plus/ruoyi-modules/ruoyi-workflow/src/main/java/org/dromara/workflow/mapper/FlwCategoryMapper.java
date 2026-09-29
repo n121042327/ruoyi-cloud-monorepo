@@ -1,6 +1,8 @@
 package org.dromara.workflow.mapper;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.dromara.common.mybatis.core.mapper.BaseMapperPlus;
+import org.dromara.common.mybatis.helper.DataBaseHelper;
 import org.dromara.workflow.domain.FlowCategory;
 import org.dromara.workflow.domain.vo.FlowCategoryVo;
 
@@ -23,10 +25,9 @@ public interface FlwCategoryMapper extends BaseMapperPlus<FlowCategory, FlowCate
      * @return 包含子流程分类的列表
      */
     default List<FlowCategory> selectListByParentId(Long parentId) {
-        return this.lambda()
+        return this.selectList(new LambdaQueryWrapper<FlowCategory>()
             .select(FlowCategory::getCategoryId)
-            .findInSet(parentId, FlowCategory::getAncestors)
-            .list();
+            .apply(DataBaseHelper.findInSet(parentId, "ancestors")));
     }
 
     /**

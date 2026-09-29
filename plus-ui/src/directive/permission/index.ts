@@ -1,4 +1,4 @@
-import type { Directive, DirectiveBinding } from 'vue';
+import { Directive, DirectiveBinding } from 'vue';
 import { useUserStore } from '@/store/modules/user';
 /**
  * 操作权限处理

@@ -61,12 +61,12 @@ public class SysMenu extends BaseEntity {
     private String queryParam;
 
     /**
-     * 是否为外链（Y是 N否）
+     * 是否为外链（0是 1否）
      */
     private String isFrame;
 
     /**
-     * 是否缓存（Y缓存 N不缓存）
+     * 是否缓存（0缓存 1不缓存）
      */
     private String isCache;
 
@@ -94,16 +94,6 @@ public class SysMenu extends BaseEntity {
      * 菜单图标
      */
     private String icon;
-
-    /**
-     * 激活菜单路径
-     */
-    private String activeMenu;
-
-    /**
-     * 扩展字段
-     */
-    private String ext;
 
     /**
      * 备注
@@ -145,7 +135,7 @@ public class SysMenu extends BaseEntity {
         }
         // 非外链并且是一级目录（类型为目录）
         if (Constants.TOP_PARENT_ID.equals(getParentId()) && SystemConstants.TYPE_DIR.equals(getMenuType())
-            && SystemConstants.NO.equals(getIsFrame())) {
+            && SystemConstants.NO_FRAME.equals(getIsFrame())) {
             routerPath = "/" + this.path;
         }
         // 非外链并且是一级目录（类型为菜单）
@@ -174,14 +164,14 @@ public class SysMenu extends BaseEntity {
      * 是否为菜单内部跳转
      */
     public boolean isMenuFrame() {
-        return Constants.TOP_PARENT_ID.equals(getParentId()) && SystemConstants.TYPE_MENU.equals(menuType) && isFrame.equals(SystemConstants.NO);
+        return Constants.TOP_PARENT_ID.equals(getParentId()) && SystemConstants.TYPE_MENU.equals(menuType) && isFrame.equals(SystemConstants.NO_FRAME);
     }
 
     /**
      * 是否为内链组件
      */
     public boolean isInnerLink() {
-        return isFrame.equals(SystemConstants.NO) && StringUtils.ishttp(path);
+        return isFrame.equals(SystemConstants.NO_FRAME) && StringUtils.ishttp(path);
     }
 
     /**
@@ -195,7 +185,7 @@ public class SysMenu extends BaseEntity {
      * 内链域名特殊字符替换
      */
     public static String innerLinkReplaceEach(String path) {
-        return StringUtils.replaceEach(path, new String[]{Constants.HTTP, Constants.HTTPS, Constants.WWW, ".", StringUtils.COLON},
+        return StringUtils.replaceEach(path, new String[]{Constants.HTTP, Constants.HTTPS, Constants.WWW, ".", ":"},
             new String[]{"", "", "", "/", "/"});
     }
 }

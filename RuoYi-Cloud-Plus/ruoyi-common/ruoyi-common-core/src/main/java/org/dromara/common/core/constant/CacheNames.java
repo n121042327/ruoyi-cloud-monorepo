@@ -37,6 +37,11 @@ public interface CacheNames {
     String SYS_DICT_TYPE = "sys_dict_type";
 
     /**
+     * 租户
+     */
+    String SYS_TENANT = GlobalConstants.GLOBAL_REDIS_KEY + "sys_tenant#30d";
+
+    /**
      * 客户端
      */
     String SYS_CLIENT = GlobalConstants.GLOBAL_REDIS_KEY + "sys_client#30d";
@@ -80,15 +85,5 @@ public interface CacheNames {
      * 在线用户
      */
     String ONLINE_TOKEN = "online_tokens";
-
-    /**
-     * 在线用户 redis key
-     */
-    String ONLINE_TOKEN_KEY = "online_tokens:";
-
-    /**
-     * 登录账户密码错误次数 redis key
-     */
-    String PWD_ERR_CNT_KEY = "pwd_err_cnt:";
 
 }

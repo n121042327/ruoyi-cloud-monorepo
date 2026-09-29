@@ -10,7 +10,6 @@ import org.mapstruct.ReportingPolicy;
 
 /**
  * 操作日志转换器
- *
  * @author zhujie
  */
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
@@ -18,7 +17,6 @@ public interface SysOperLogBoConvert extends BaseMapper<RemoteOperLogBo, SysOper
 
     /**
      * RemoteOperLogBoToSysOperLogBo
-     *
      * @param remoteOperLogBo 待转换对象
      * @return 转换后对象
      */

@@ -32,11 +32,11 @@ public class TestMapReduceAnnotation1 {
     public ExecuteResult rootMapExecute(MapArgs mapArgs, MapHandler mapHandler) {
         int partitionSize = 50;
         List<List<Integer>> partition = IntStream.rangeClosed(1, 200)
-            .boxed()
-            .collect(Collectors.groupingBy(i -> (i - 1) / partitionSize))
-            .values()
-            .stream()
-            .toList();
+                .boxed()
+                .collect(Collectors.groupingBy(i -> (i - 1) / partitionSize))
+                .values()
+                .stream()
+                .toList();
         SnailJobLog.REMOTE.info("端口:{}完成分配任务", SpringUtil.getProperty("server.port"));
         return mapHandler.doMap(partition, "doCalc");
     }

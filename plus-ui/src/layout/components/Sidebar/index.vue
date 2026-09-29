@@ -1,12 +1,15 @@
 <template>
-  <div class="sidebar-shell" :class="{ 'has-logo': showLogo }" :style="menuStyle">
+  <div :class="{ 'has-logo': showLogo }" :style="{ backgroundColor: bgColor }">
     <logo v-if="showLogo" :collapse="isCollapse" />
     <el-scrollbar :class="sideTheme" wrap-class="scrollbar-wrapper">
-      <transition :enter-active-class="animateConfig.menuSearchAnimate.enter" mode="out-in">
+      <transition :enter-active-class="proxy?.animate.menuSearchAnimate.enter" mode="out-in">
         <el-menu
           :default-active="activeMenu"
           :collapse="isCollapse"
+          :background-color="bgColor"
+          :text-color="textColor"
           :unique-opened="true"
+          :active-text-color="theme"
           :collapse-transition="false"
           :popper-offset="12"
           mode="vertical"
@@ -19,13 +22,15 @@
 </template>
 
 <script setup lang="ts">
-import { RouteRecordRaw } from 'vue-router';
-import animateConfig from '@/animate';
-import { useAppStore } from '@/store/modules/app';
-import { usePermissionStore } from '@/store/modules/permission';
-import { useSettingsStore } from '@/store/modules/settings';
 import Logo from './Logo.vue';
 import SidebarItem from './SidebarItem.vue';
+import variables from '@/assets/styles/variables.module.scss';
+import { useAppStore } from '@/store/modules/app';
+import { useSettingsStore } from '@/store/modules/settings';
+import { usePermissionStore } from '@/store/modules/permission';
+import { RouteRecordRaw } from 'vue-router';
+
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
 const route = useRoute();
 const appStore = useAppStore();
@@ -46,43 +51,6 @@ const activeMenu = computed(() => {
   return path;
 });
 
-const bgColor = computed(() => (sideTheme.value === 'theme-dark' ? '#111827' : '#ffffff'));
-const textColor = computed(() => (sideTheme.value === 'theme-dark' ? '#e5edf8' : '#1f2937'));
-const menuStyle = computed(() => ({
-  backgroundColor: bgColor.value,
-  '--el-menu-bg-color': bgColor.value,
-  '--el-menu-text-color': textColor.value,
-  '--el-menu-active-color': theme.value
-}));
+const bgColor = computed(() => (sideTheme.value === 'theme-dark' ? variables.menuBackground : variables.menuLightBackground));
+const textColor = computed(() => (sideTheme.value === 'theme-dark' ? variables.menuColor : variables.menuLightColor));
 </script>
-
-<style lang="scss" scoped>
-.sidebar-shell {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px 8px 12px;
-  border: 1px solid var(--app-sidebar-border);
-  border-radius: var(--app-radius-base);
-  box-shadow: var(--app-shadow-sm);
-  background: v-bind(bgColor) !important;
-  overflow: hidden;
-}
-
-:deep(.el-scrollbar__view) {
-  min-height: 0;
-  padding-bottom: 12px;
-}
-
-:deep(.el-scrollbar) {
-  flex: 1;
-  min-height: 0;
-  height: auto !important;
-}
-
-:deep(.el-scrollbar__wrap) {
-  height: 100%;
-  overflow-x: hidden;
-}
-</style>
