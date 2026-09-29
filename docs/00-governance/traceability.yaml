@@ -9,19 +9,20 @@ traceability: []
 
 template:
   requirement_id: REQ-STU-001
-  title: 学生列表按姓名 / 学号 / 班级筛选
-  source: docs/10-prd/modules/student/PRD.md#故事1
-  business_rules: [BR-STU-003]
-  permission: 校领导 / 年级主任 / 班主任 / 任课教师 各自可见范围
+  title: 学生列表分页查询
+  source: docs/10-prd/modules/student/PRD.md#41-学生列表与检索
+  business_rules: [BR-STU-009, BR-DATA-001]
+  permission: 各角色 person.student 的 read，范围按 DS-04 ~ DS-09 解析
   prototype_functional: prototypes/functional/v1/pages/student-list.html
   prototype_hifi: prototypes/high-fidelity/v1/pages/student-list.html
-  api_operation_ids: [eduStudentPage]
-  tables: [edu_student, edu_student_class]
+  api_operation_ids: [listStudent]
+  tables: [edu_student]
+  acceptance_cases: [AC-STU-001]
   frontend:
     page: apps/plus-ui/src/views/edu/student/index.vue
     composable: apps/plus-ui/src/views/edu/student/composables/useStudentList.ts
   backend:
-    controller: EduStudentController#page
+    controller: EduStudentController#list
     service: IEduStudentService#queryPageList
   tests:
     unit: []

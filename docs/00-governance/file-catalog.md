@@ -69,18 +69,28 @@
 
 | 路径 | 用途 | 状态 |
 |---|---|---|
-| `docs/10-prd/modules/student/PRD.md` | 学生管理 PRD（**样板**） | `planned` |
-| `docs/10-prd/modules/student/acceptance.md` | 学生管理验收标准 | `planned` |
+| `docs/10-prd/modules/student/PRD.md` | 学生管理 PRD（**样板**，97 条需求，v1.0.2-draft） | `review` |
+| `docs/10-prd/modules/student/acceptance.md` | 学生管理验收标准（97 条功能用例 + 15 条越权用例 + 30 条审计 / 性能 / 兼容用例） | `review` |
 | `docs/10-prd/modules/teacher/PRD.md` | 教师管理 PRD | `planned` |
+| `docs/10-prd/modules/teacher/acceptance.md` | 教师管理验收标准 | `planned` |
 | `docs/10-prd/modules/class/PRD.md` | 班级管理 PRD | `planned` |
+| `docs/10-prd/modules/class/acceptance.md` | 班级管理验收标准 | `planned` |
 | `docs/10-prd/modules/grade/PRD.md` | 年级管理 PRD | `planned` |
+| `docs/10-prd/modules/grade/acceptance.md` | 年级管理验收标准 | `planned` |
 | `docs/10-prd/modules/school/PRD.md` | 学校管理 PRD | `planned` |
+| `docs/10-prd/modules/school/acceptance.md` | 学校管理验收标准 | `planned` |
 | `docs/10-prd/modules/term/PRD.md` | 学年学期管理 PRD | `planned` |
+| `docs/10-prd/modules/term/acceptance.md` | 学年学期管理验收标准 | `planned` |
 | `docs/10-prd/modules/subject/PRD.md` | 学科与学科配置 PRD | `planned` |
+| `docs/10-prd/modules/subject/acceptance.md` | 学科与学科配置验收标准 | `planned` |
 | `docs/10-prd/modules/promotion/PRD.md` | 升班 / 调班 / 留级 / 毕业 / 休复学 PRD | `planned` |
+| `docs/10-prd/modules/promotion/acceptance.md` | 升班与学籍异动验收标准 | `planned` |
 | `docs/10-prd/modules/stream/PRD.md` | 3+1+2 选科与教学班 PRD | `planned` |
+| `docs/10-prd/modules/stream/acceptance.md` | 选科与教学班验收标准 | `planned` |
 | `docs/10-prd/modules/import-export/PRD.md` | 导入导出与异步任务 PRD | `planned` |
+| `docs/10-prd/modules/import-export/acceptance.md` | 导入导出与异步任务验收标准 | `planned` |
 | `docs/10-prd/modules/audit/PRD.md` | 审计与操作日志 PRD | `planned` |
+| `docs/10-prd/modules/audit/acceptance.md` | 审计与操作日志验收标准 | `planned` |
 
 ---
 

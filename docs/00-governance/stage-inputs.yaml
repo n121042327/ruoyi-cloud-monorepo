@@ -57,6 +57,7 @@ stages:
       - prototypes/functional/v1/markup-contract.md（先产出）
     outputs:
       - prototypes/functional/v1/**
+    blocking_gaps: []
     gates:
       - 原型可从真实入口点击走通关键路径
       - 每个 PRD 用户故事都有对应页面或页面状态
@@ -140,12 +141,12 @@ stages:
     outputs:
       - docs/40-detailed-design/**
       - docs/40-detailed-design/migrations/*.sql
+    blocking_gaps: []
     gates:
       - physical-schema.md 逐表覆盖字段、主键、唯一键、外键、索引
       - er-diagram 与 domain-table-map 与建表脚本三者一致
       - 迁移脚本在真实 MySQL 8 空库安装通过，且存量升级路径验证通过
       - OpenAPI 通过校验工具检查
-    blocking_gaps: []
     batch_plan:
       - batch: 5-0
         content: 学生 / 教师模块详细设计 + 表结构 + 迁移脚本
@@ -172,6 +173,7 @@ stages:
       - apps/plus-ui/src/api/edu/**
       - apps/plus-ui/src/types/edu/**
       - apps/plus-ui/src/components/Edu/**
+    blocking_gaps: []
     gates:
       - vue-tsc 类型检查通过
       - ESLint 通过
@@ -198,6 +200,7 @@ stages:
       - services/RuoYi-Cloud-Plus/AGENTS.md
     outputs:
       - services/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-edu/**
+    blocking_gaps: []
     gates:
       - JDK 17 编译通过
       - 显式启用测试（-DskipTests=false），并核对实际执行用例数与结果

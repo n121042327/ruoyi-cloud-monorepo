@@ -333,17 +333,20 @@ resolved_questions:
     answer: 要
     applied_to: platform_ops.note
     resolved_at: 2026-09-29
-
-open_questions:
   - id: PM-Q-005
     question: 集团租户的管理员是否可以只读下属学校的学生名单？
-    current: 禁止（集团默认只有 DS-03 集团自有数据）
-    impact: 影响集团侧是否需要"全集团花名册"这类功能
+    answer: 禁止。集团默认只有 DS-03 集团自有数据；跨校可见性只能来自运营方创建的数据共享授权
+    applied_to: group_expert / group_leader 的 note 与 BR-ORG-007、BR-ORG-008
+    resolved_at: 2026-09-30
   - id: PM-Q-006
     question: 运营方协助排查时，"只读"是否也包含敏感字段（证件号、手机号）？
-    current: 包含，但走掩码展示，查看全量需额外授权
-    impact: 影响敏感字段权限模型
+    answer: 包含，但默认走掩码展示；查看全量需要 `read_sensitive` / `read_contact` 独立权限并写访问日志
+    applied_to: sensitive_fields
+    resolved_at: 2026-09-30
   - id: PM-Q-007
     question: 家长账号是否在首轮建立？
-    current: 数据模型建立，端不实现（BR-ACCOUNT-010）
-    impact: 影响监护人与学生的关联表是否进入首轮迁移脚本
+    answer: 数据模型与表在首轮建立，端不实现；表进入首轮迁移脚本
+    applied_to: guardian 的 status 与 D-033、GAP-017
+    resolved_at: 2026-09-30
+
+open_questions: []

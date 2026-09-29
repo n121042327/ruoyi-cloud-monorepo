@@ -45,27 +45,33 @@
 | `PER-` | 角色 | `PER-HOMEROOM` |
 | `SCN-` | 场景 | `SCN-STU-01` |
 | `BR-<域>-` | 业务规则 | `BR-STU-003` |
-| `PM-` | 权限矩阵条目 | `PM-STU-EDIT-GUARDIAN` |
-| `FD-` | 字段字典条目 | `FD-ENROLL-STATUS` |
+| `FD-` | 字段字典条目（字段名或枚举名） | `FD-student_no` |
 | `NFR-` | 非功能需求 | `NFR-PERF-01` |
-| `DS-` | 数据范围规则 | `DS-SCHOOL-01` |
+| `DS-` | 数据范围类型、规则与拒绝规则 | `DS-DENY-03` |
 | `REQ-` | 模块级需求（在模块 PRD 中定义） | `REQ-STU-001` |
+| `AC-` | 验收用例（在模块 `acceptance.md` 中定义） | `AC-STU-001` |
+
+权限不单独编号。模块 PRD 引用权限时，使用 `05-permission-matrix.yaml` 中的
+「角色 / 资源 / 操作」三元组，例如「`homeroom` / `person.student_guardian` / `update`」。
 
 ## 首轮模块清单
 
-| 模块 | PRD 路径 | 批次 |
-|---|---|---|
-| 学生管理 | `modules/student/PRD.md` | 批次 1-1（样板） |
-| 教师管理 | `modules/teacher/PRD.md` | 批次 1-2 |
-| 班级管理 | `modules/class/PRD.md` | 批次 1-2 |
-| 年级管理 | `modules/grade/PRD.md` | 批次 1-2 |
-| 学校管理 | `modules/school/PRD.md` | 批次 1-2 |
-| 学年学期 | `modules/term/PRD.md` | 批次 1-3 |
-| 学科与学科配置 | `modules/subject/PRD.md` | 批次 1-3 |
-| 升班与学籍异动 | `modules/promotion/PRD.md` | 批次 1-3 |
-| 3+1+2 选科与教学班 | `modules/stream/PRD.md` | 批次 1-3 |
-| 导入导出与异步任务 | `modules/import-export/PRD.md` | 批次 1-4 |
-| 审计与操作日志 | `modules/audit/PRD.md` | 批次 1-4 |
+| 模块 | PRD 路径 | 验收标准 | 批次 | 状态 |
+|---|---|---|---|---|
+| 学生管理 | `modules/student/PRD.md` | `modules/student/acceptance.md` | 批次 1-1（样板） | 待验收 |
+| 教师管理 | `modules/teacher/PRD.md` | `modules/teacher/acceptance.md` | 批次 1-2 | 未开始 |
+| 班级管理 | `modules/class/PRD.md` | `modules/class/acceptance.md` | 批次 1-2 | 未开始 |
+| 年级管理 | `modules/grade/PRD.md` | `modules/grade/acceptance.md` | 批次 1-2 | 未开始 |
+| 学校管理 | `modules/school/PRD.md` | `modules/school/acceptance.md` | 批次 1-2 | 未开始 |
+| 学年学期 | `modules/term/PRD.md` | `modules/term/acceptance.md` | 批次 1-3 | 未开始 |
+| 学科与学科配置 | `modules/subject/PRD.md` | `modules/subject/acceptance.md` | 批次 1-3 | 未开始 |
+| 升班与学籍异动 | `modules/promotion/PRD.md` | `modules/promotion/acceptance.md` | 批次 1-3 | 未开始 |
+| 3+1+2 选科与教学班 | `modules/stream/PRD.md` | `modules/stream/acceptance.md` | 批次 1-3 | 未开始 |
+| 导入导出与异步任务 | `modules/import-export/PRD.md` | `modules/import-export/acceptance.md` | 批次 1-4 | 未开始 |
+| 审计与操作日志 | `modules/audit/PRD.md` | `modules/audit/acceptance.md` | 批次 1-4 | 未开始 |
+
+批次 1-1 通过验收后，学生管理模块的文档结构、章节粒度、编号密度与追踪方式
+作为其余模块的写作基准。
 
 ## 变更规则
 

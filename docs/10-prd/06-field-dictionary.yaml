@@ -10,8 +10,12 @@ common_columns:
     note: 主键。后端序列化为字符串返回，前端一律按 string 处理，禁止 Number() 转换
   - name: tenant_id
     type: varchar(20)
-    required: true
-    note: 租户隔离键。所有教育表必须携带，且所有查询必须带该条件
+    required: false
+    note: |
+      租户隔离键。学校级及以下的教育表必须携带，且所有查询必须带该条件。
+      例外：平台级实体（`edu_student` 学生主体、`edu_guardian` 监护人主体）不参与学校租户隔离，
+      不设该列，见 D-037、D-030；这两张表的访问改用平台级数据权限 + 两段式查询（DS-DENY-07）。
+      详见 NFR-SEC-01 的平台级实体例外条款。
   - name: school_id
     type: bigint
     required: false
@@ -60,25 +64,64 @@ enums:
   - name: enrollment_status
     name_cn: 学籍状态（描述一条在校记录的状态，不是学生主体）
     entries:
+      - { code: pending_enroll, label: 转入未报到, terminal: false }
       - { code: enrolled, label: 在读, terminal: false }
       - { code: suspended, label: 休学, terminal: false }
+      - { code: studying_abroad, label: 出国, terminal: false }
+      - { code: missing, label: 失踪, terminal: false }
       - { code: transferred_out, label: 已转出, terminal: true }
       - { code: graduated, label: 毕业, terminal: true }
+      - { code: course_completed, label: 结业, terminal: true }
+      - { code: course_incomplete, label: 肄业, terminal: true }
+      - { code: expelled, label: 开除, terminal: true }
       - { code: withdrawn, label: 退学, terminal: true }
+      - { code: deceased, label: 死亡, terminal: true }
     note: |
-      跨校转入不在原学校记录上变更状态，而是在目标学校新建一条在校记录，初始状态为 enrolled。
-      见 BR-STU-002 与 BR-PROMO-011。
+      跨校转入不在原学校记录上变更状态，而是在目标学校新建一条在校记录：
+      转入校接收时初始状态为 pending_enroll（转入未报到），学生实际报到后转为 enrolled。
+      见 BR-STU-002、BR-STU-023 与 BR-PROMO-011。
+      共 12 个状态，其中 7 个为终态：已转出、毕业、结业、肄业、开除、退学、死亡。终态互不可转（BR-PROMO-010）。
+      学段限制：义务教育阶段（小学、初中）不得开除，也不适用结业与肄业，见 BR-STU-024 与 BR-STU-027。
+      死亡状态涉及隐私，见 BR-STU-028。
     transitions:
+      - { from: "（转入接收）", to: pending_enroll, action: transfer_in_accept }
+      - { from: pending_enroll, to: enrolled, action: check_in }
       - { from: enrolled, to: suspended, action: suspend }
       - { from: suspended, to: enrolled, action: resume }
+      - { from: enrolled, to: studying_abroad, action: study_abroad }
+      - { from: studying_abroad, to: enrolled, action: resume_from_abroad }
+      - { from: enrolled, to: missing, action: report_missing }
+      - { from: missing, to: enrolled, action: found }
+      - { from: missing, to: withdrawn, action: withdraw_after_missing }
       - { from: enrolled, to: transferred_out, action: transfer_out }
       - { from: enrolled, to: graduated, action: graduate }
+      - { from: enrolled, to: course_completed, action: complete_course }
+      - { from: enrolled, to: course_incomplete, action: incomplete_course }
       - { from: enrolled, to: withdrawn, action: withdraw }
+      - { from: enrolled, to: expelled, action: expel }
+      - { from: suspended, to: expelled, action: expel }
+      - { from: suspended, to: withdrawn, action: withdraw }
+      - { from: enrolled, to: deceased, action: deceased }
+      - { from: suspended, to: deceased, action: deceased }
+      - { from: pending_enroll, to: deceased, action: deceased }
       - { from: "（新建记录）", to: enrolled, action: enroll }
     forbidden_transitions:
       - { from: graduated, to: withdrawn, reason: BR-PROMO-010 终态不可互转 }
       - { from: withdrawn, to: graduated, reason: BR-PROMO-010 }
+      - { from: graduated, to: expelled, reason: BR-PROMO-010 终态不可互转 }
+      - { from: course_completed, to: graduated, reason: BR-PROMO-010 终态不可互转 }
+      - { from: course_incomplete, to: graduated, reason: BR-PROMO-010 终态不可互转 }
+      - { from: course_completed, to: enrolled, reason: BR-PROMO-010 终态不可互转 }
+      - { from: course_incomplete, to: enrolled, reason: BR-PROMO-010 终态不可互转 }
+      - { from: expelled, to: enrolled, reason: BR-PROMO-010 终态不可互转 }
+      - { from: expelled, to: suspended, reason: BR-PROMO-010 终态不可互转 }
+      - { from: deceased, to: enrolled, reason: BR-PROMO-010 终态不可互转 }
       - { from: transferred_out, to: enrolled, reason: 跨校转入在目标学校新建记录，不在原记录上复活 }
+      - { from: pending_enroll, to: transferred_out, reason: 未报到学生由转入校撤销接收（逻辑删除该在校记录），不产生转出记录 }
+      - { from: pending_enroll, to: graduated, reason: 未报到不产生毕业，见 BR-STU-023 }
+      - { from: pending_enroll, to: expelled, reason: 未报到不产生开除，见 BR-STU-023 }
+      - { from: pending_enroll, to: course_completed, reason: 未报到不产生结业，见 BR-STU-023 }
+      - { from: pending_enroll, to: course_incomplete, reason: 未报到不产生肄业，见 BR-STU-023 }
 
   - name: class_type
     name_cn: 班级类型
@@ -165,7 +208,7 @@ fields:
   - { name: national_student_no, cn: 全国学籍号, type: varchar(64), required: false, unique_scope: platform, br: BR-STU-022, note: 官方 G / L 开头号码，允许为空，非空时全平台唯一 }
   - { name: student_name, cn: 学生姓名, type: varchar(50), required: true }
   - { name: id_type, cn: 证件类型, type: varchar(20), required: false }
-  - { name: id_card_no, cn: 证件号码, type: varchar(64), required: false, unique_scope: tenant, sensitive: true }
+  - { name: id_card_no, cn: 证件号码, type: varchar(64), required: false, unique_scope: platform, sensitive: true, br: BR-STU-008, note: 允许为空，非空时全平台唯一 }
   - { name: birth_date, cn: 出生日期, type: date, required: false, sensitive: true }
   - { name: enroll_year, cn: 入学年份, type: smallint, required: true }
   - { name: graduation_date, cn: 毕业日期, type: date, required: false }
@@ -173,7 +216,7 @@ fields:
   - { name: teacher_no, cn: 工号, type: varchar(32), required: true, unique_scope: tenant, br: BR-TEACHER-007 }
   - { name: teacher_name, cn: 教师姓名, type: varchar(50), required: true }
 
-  - { name: login_name, cn: 登录名, type: varchar(64), required: true, unique_scope: platform, note: 全局唯一，学生提案为 s + 学号，见 BR-ACCOUNT-002 }
+  - { name: login_name, cn: 登录名, type: varchar(64), required: true, unique_scope: platform, note: 全局唯一，学生为 s + 学号，见 BR-ACCOUNT-002 }
   - { name: root_tenant_id, cn: 根租户, type: varchar(20), required: true, note: 学校租户向上追溯到的最高集团租户；无集团时为自身，见 BR-ORG-012 }
   - { name: parent_tenant_id, cn: 上级租户, type: varchar(20), required: false, note: 运营方为空；集团指向运营方；学校指向集团 }
 
@@ -207,6 +250,7 @@ fields:
 
 unique_keys:
   - { table: edu_student, columns: [student_no], br: BR-STU-001, note: 学号全平台唯一，由系统统一发号，序号按年重置 }
+  - { table: edu_student, columns: [id_card_no], br: BR-STU-008, note: 允许为空，非空时全平台唯一 }
   - { table: edu_guardian, columns: [phone], br: BR-ACCOUNT-011 }
   - { table: edu_guardian_student, columns: [guardian_id, student_id], br: BR-ACCOUNT-005 }
   - { table: edu_student, columns: [national_student_no], br: BR-STU-022, note: 允许为空，非空时全平台唯一 }

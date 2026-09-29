@@ -410,6 +410,167 @@ gaps:
     resolved_at: 2026-09-29
     status: closed
 
+  - id: GAP-019
+    title: 学生主体是平台级还是学校租户级，上游表述互相矛盾
+    discovered_at: 2026-09-30
+    discovered_by: 批次 1-1 学生管理 PRD 撰写
+    evidence: |
+      BR-STU-001 规定学号全平台唯一、BR-STU-020 规定跨校转学学号不变、
+      BR-STU-002 却写"一名学生在一个租户内只有一条学生主体记录"，
+      而 docs/10-prd/09-guardian-and-onboarding.md 给 edu_student 定义了 tenant_id = 学校租户 ID。
+      三者不能同时成立：学生主体若绑定学校租户，跨校转学就必须改行的 tenant_id 或新建行，
+      与"不新建学生"矛盾。
+    expected: 明确学生主体是平台级实体，还是学校租户级实体；以及跨校转学的数据动作
+    actual: 未定义
+    impact: |
+      决定阶段 5 的表结构：学生主体与在校记录是否拆表、唯一键列组合、
+      导入去重规则、跨校转学的写入路径。也决定 NFR-SEC-01 中"所有教育数据查询必须带 tenant_id"
+      对学生主表是否成立。
+    options:
+      - 1a 学生主体为平台级且**不设 tenant_id 列**，把该表加入租户拦截器忽略表，单独实现平台级数据权限；
+        学校侧只能经在校记录 / 班级关系两段式取数。语义最干净，报表需 join 在校记录才能得知当前学校
+      - 1b 学生主体为平台级但**保留 tenant_id 作为"当前所在学校"冗余列**（同样加入忽略表，不参与隔离），
+        跨校转学时更新该列，历史由在校记录承载。需要显式标注"此列不参与隔离"，否则会被误用
+      - 1c 学生主体的 tenant_id 填运营方租户 ID。**不推荐**：学校用户的租户上下文是学校租户，
+        自动租户过滤会把行的 tenant_id 与上下文比对而导致学校用户查不到任何学生；
+        绕开的方式只能是忽略该表，此时这一列已与隔离无关，填运营方 ID 只会误导；
+        同时违反 BR-ORG-006（教学数据落学校租户），并让带 tenant_id 的唯一键退化为常量
+      - 2 学生主体为学校租户级，跨校转学时把主体行迁移到转入校租户
+      - 3 学生主体为学校租户级，跨校转学时在转入校新建主体行，用 national_student_no 关联同一人。
+        与 BR-STU-001 / D-027（一个学号只能一行）冲突
+    recommended: 1a（语义与 D-027 / D-031 / D-030 一致，且不留可被误用的列）
+    blocking: true
+    blocks_stages: [stage5]
+    owner: 用户
+    resolution: |
+      用户答复"学生主体为平台级"。
+      实现方式定为 1a：edu_student 完全不设 tenant_id 列，加入租户拦截器忽略表，
+      学校侧一律经在校记录 / 班级关系两段式取数（DS-DENY-07）。
+      理由：列不存在就不会被误用；与 D-030 监护人平台级实体同一机制。
+      配套动作：NFR-SEC-01 增加平台级实体例外条款；BR-STU-002 表述待 GAP-022 一并修正。
+    resolved_at: 2026-09-30
+    status: closed
+
+  - id: GAP-020
+    title: 学生证件号的唯一范围未定
+    discovered_at: 2026-09-30
+    discovered_by: 批次 1-1 学生管理 PRD 撰写
+    evidence: |
+      BR-STU-008 写"证件号在同一租户内若填写则必须唯一"，
+      06-field-dictionary.yaml 的 id_card_no 也标 unique_scope: tenant；
+      但 GAP-019 若采纳"学生主体为平台级"，同一人的证件号可能跨校重复。
+    expected: 明确证件号的唯一范围
+    actual: 未定义
+    impact: 唯一键列组合、导入去重规则、家长认领时的匹配规则（GB-05 允许用证件号后四位认领）
+    options:
+      - 平台唯一（允许为空，非空唯一）
+      - 同校唯一，跨校重复时仅提示
+      - 不做唯一约束，只做重复提示
+    recommended: 选项 1；若学校确有跨校同号场景（随迁子女重复录入），退到选项 2
+    blocking: true
+    blocks_stages: [stage5]
+    owner: 用户
+    resolution: |
+      用户答复："平台唯一"。
+      即 id_card_no 允许为空，非空时全平台唯一，唯一键为 (id_card_no)。
+      与 GAP-019 的裁决（学生主体平台级）保持一致，也与 BR-STU-022 全国学籍号的处理方式一致。
+      影响：导入去重规则、家长认领匹配（GB-05）均以平台唯一为准。
+      配套动作：BR-STU-008 的"同一租户内唯一"与 06-field-dictionary.yaml 的
+      id_card_no.unique_scope: tenant 待 GAP-022 一并修正。
+    resolved_at: 2026-09-30
+    status: closed
+
+  - id: GAP-021
+    title: 学生初始密码策略未确认
+    discovered_at: 2026-09-30
+    discovered_by: 批次 1-1 学生管理 PRD 撰写
+    evidence: BR-ACCOUNT-003 至今仍标注 [待确认]
+    expected: 明确学生初始密码如何产生、如何下发、是否强制首改
+    actual: 未定义
+    impact: 学生账号首登流程、导入后的下发方式、REQ-STU-071 与 REQ-STU-073 的实现
+    options:
+      - 一次性激活码：账号创建时生成 8 位激活码并加密存储；班主任在花名册查看或批量打印密码条；
+        教务主任可下载全校未激活加密清单；学生首次登录输入登录名 + 激活码后直接进入设置密码页，
+        设置成功后激活码立即作废；丢码由班主任重置
+      - 系统生成随机初始密码，导出为加密表格交学校下发，首次登录强制修改
+      - 学校自定义规则（如学号后 6 位），首次登录强制修改
+      - 不设密码，采用学校侧统一身份认证或区域教育云单点登录
+    recommended: 选项 1（一次性激活码）
+    blocking: false
+    blocks_stages: [stage6, stage7]
+    owner: 用户
+    resolution: |
+      用户答复：采用一次性激活码机制。
+      已落地 BR-ACCOUNT-003，并在学生管理 PRD 4.10 节展开为 REQ-STU-069 ~ 074 与 REQ-STU-086 ~ 092：
+        账号创建时生成 8 位激活码（排除易混字符）并加密存储，不设长期初始密码
+        班主任在班级花名册查看（默认掩码、揭示留痕）或批量打印密码条分发
+        教务主任可下载全校未激活加密清单
+        学生首次登录输入登录名 + 激活码后直接进入"设置密码"页，设置成功即作废且明文不可再查
+        丢码由班主任重置，旧码立即失效；登录失败按学号限流
+        小学低年级由班主任代激活并设置密码
+      同步取消"短信下发"（小学生不采集手机号）与"学号后 6 位"等可预测规则。
+      裁决记录见 decisions.md D-039。
+    resolved_at: 2026-09-30
+    status: closed
+
+  - id: GAP-022
+    title: 上游文档仍残留旧租户模型的表述，与 D-026 / D-027 / D-028 / D-031 冲突
+    discovered_at: 2026-09-30
+    discovered_by: 批次 1-1 学生管理 PRD 撰写
+    evidence: |
+      02-personas-and-scenarios.md：SCN-STU-01 成功标准写"学号在租户内唯一"
+      03-glossary.md：学生"一名学生在一个租户内只有一条主体记录"；
+        学号"跨校唯一，即全租户内唯一"；根租户"学号在该范围内唯一"；
+        跨校转学"在同一租户内从 A 校转到 B 校"；工号"唯一性口径待模块 PRD 明确"
+      04-business-rules.md：BR-STU-002 / BR-PROMO-011 / BR-ACCOUNT-004 中的"同一租户内 / 根租户内"
+      01-product-context.md：第 8 节假设 1"一个租户下有多所学校"；
+        第 4.2 节"跨校教学数据共享 首轮不做"
+      AGENTS.md 第 7 节："租户 = 教育机构或教育集团，租户下辖多所学校"；
+        "学校数据各自维护，首轮不跨校共享教学数据"
+      05-permission-matrix.yaml：open_questions 中 PM-Q-005 ~ PM-Q-007 已有结论未归位
+    expected: 全部表述与 D-026（租户即组织单元）、D-027（学号全平台唯一）、
+      D-028 / D-036（跨校共享用数据权限、只读、不设审批）、D-031（系统统一发号）一致
+    actual: 残留旧模型表述
+    impact: 下游按旧模型实现会造成跨校判断错误；术语表与业务规则是权威文档，
+      不一致会直接传导到原型、详细设计与代码
+    options:
+      - 按 D-026 ~ D-036 统一修正这 6 个文件（推荐，属文档缺陷修正，不改业务决策）
+      - 只修正与本批次相关的条目，其余待各模块 PRD 撰写时顺带修正
+      - 暂不修正，在学生管理 PRD 中逐条标注以公共前置为准
+    recommended: 选项 1（已采纳）
+    blocking: true
+    blocks_stages: [stage1, stage2]
+    owner: 用户
+    resolution: |
+      用户答复：统一修正残留的旧租户模型表述。
+      已按 D-026 ~ D-038 完成修正，共 10 个文件：
+        AGENTS.md 第 7 节：删除"首轮不跨校共享"，改为"跨校共享只能由运营方显式授权且只读"；
+          新增"学生主体与监护人主体是平台级实体"一条
+        docs/10-prd/01-product-context.md：第 4.2 节改为"自动化的跨校共享不做，改为运营方逐条授权"；
+          第 8 节假设 1、2 改为租户即组织单元 + 共享只能来自授权
+        docs/10-prd/02-personas-and-scenarios.md：SCN-STU-01 成功标准改为学号全平台唯一
+        docs/10-prd/03-glossary.md：根租户改为"不参与学号唯一性判定"；学生改为平台级实体；
+          学号改为全平台唯一；工号改为租户内唯一；学生登录名去掉"提案"；跨校转学改为跨学校租户且学号不变
+        docs/10-prd/04-business-rules.md：BR-ORG-006 增补平台级实体例外；BR-ORG-008 改为"无自动下钻，只有运营方授权"；
+          BR-STU-002 改为平台级主体；BR-STU-008 与 D-038 对齐为平台唯一；BR-STU-017 由提案转已确认；
+          BR-PROMO-011 改为跨学校租户；BR-ACCOUNT-004 改为全平台唯一；BR-ACCOUNT-007 / 008 由待确认转已确认；
+          BR-ACCOUNT-013 去重并转已确认
+        docs/10-prd/05-permission-matrix.yaml：PM-Q-005 ~ PM-Q-007 由 open_questions 移入 resolved_questions
+        docs/10-prd/06-field-dictionary.yaml：tenant_id 增加平台级实体例外说明；id_card_no 改为 platform 唯一；
+          login_name 去掉"提案"；unique_keys 增加 edu_student(id_card_no)
+        docs/10-prd/07-non-functional-requirements.md：NFR-SEC-01 增加例外指引；新增 NFR-SEC-10 平台级实体例外条款
+        docs/10-prd/08-data-scope-model.md：学生资源行改为两段式取数；新增 DS-DENY-09
+        docs/10-prd/09-guardian-and-onboarding.md：领域模型改为"平台级主体 + 在校记录"结构；
+          edu_student 去掉 tenant_id 与学籍状态，补 edu_student_school_record；GB-08 / GB-16 改为按在校记录取租户
+        docs/10-prd/10-data-permission-schema.md：边界表新增平台级实体（加入租户拦截器忽略表）
+      验证：python tools/check_docs.py 通过，0 问题。
+    resolved_at: 2026-09-30
+    status: closed
+
 open_questions_for_user:
-  - "阶段 1 公共前置全部无阻塞项，11 个文件齐备。"
-  - "等待你确认后进入批次 1-1：学生管理 PRD 样板（含验收标准）。"
+  - "批次 1-1 学生管理 PRD 样板 + 验收标准已产出，等待验收：docs/10-prd/modules/student/PRD.md、docs/10-prd/modules/student/acceptance.md。"
+  - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
+  - "GAP-020 已关闭：证件号平台唯一、允许为空；上游表述待 GAP-022 一并修正。"
+  - "GAP-021 已关闭：学生初始凭据采用「一次性激活码」机制。（原待确认项）"
+  - "GAP-022 已关闭：10 个文件的旧租户模型表述已统一修正，核查通过。（原待确认项）"
+  - "待你验收批次 1-1：学生管理 PRD 与学生管理验收标准。"

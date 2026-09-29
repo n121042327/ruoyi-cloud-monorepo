@@ -76,19 +76,27 @@
 ## 5. 领域模型
 
 ```
-租户(tenant)
-  ├─ 学校租户 ── 学生(student) ── 行政班(class)
-  │                  │
-  │                  ├─ 学生资料变更申请(profile_change)
-  │                  └─ 绑定申请(bind_request) ── 班级二维码(qrcode)
-  │
-  └─ 运营方租户 ── 数据共享授权(data_grant)
+租户树
+  ├─ 运营方租户 ── 数据共享授权(data_grant)
+  └─ 学校租户 ── 在校记录(student_school_record) ── 行政班(class)
+                        │
+                        ├─ 学生资料变更申请(profile_change)
+                        └─ 绑定申请(bind_request) ── 班级二维码(qrcode)
 
-监护人(guardian) ── 监护人学生关联(guardian_student) ── 学生(student)
+平台级主体（不参与学校租户隔离）
+  ├─ 学生(student)      ── 一名学生全平台一条，学号全平台唯一
+  └─ 监护人(guardian)   ── 手机号全平台唯一
+
+学生(student) ── 在校记录(student_school_record) ── 学校租户
+学生(student) ── 监护人学生关联(guardian_student) ── 监护人(guardian)
 ```
 
-关键点：**监护人位于租户树之上**，不属于任何学校租户。
-这是"一个家长可以同时是 A 校和 B 校孩子的家长"这一场景的唯一可行解。
+关键点有两个：
+
+1. **监护人位于租户树之上**，不属于任何学校租户。这是"一个家长可以同时是 A 校和 B 校孩子的家长"这一场景的唯一可行解。
+2. **学生主体同样是平台级主体**。学号全平台唯一（`D-027`）与跨校转学学号不变（`BR-STU-020`）
+   共同要求学生不能按学校租户分裂。学校与学生之间的归属关系由 `edu_student_school_record`（在校记录）承载，
+   它才是带 `tenant_id` 的隔离表。见 `D-037`。
 
 ## 6. 表结构草案
 
@@ -99,16 +107,36 @@
 | 列 | 类型 | 说明 |
 |---|---|---|
 | `id` | bigint | 主键 |
-| `tenant_id` | varchar(20) | 学校租户 ID，教学数据隔离键 |
-| `root_tenant_id` | varchar(20) | 根租户，用于统计与授权展开 |
 | `student_no` | varchar(32) | 学号，**全平台唯一**（见 BR-STU-001） |
+| `national_student_no` | varchar(64) | 全国学籍号，允许为空，非空时全平台唯一（见 BR-STU-022） |
 | `student_name` | varchar(50) | 姓名 |
 | `gender` | char(1) | 性别 |
 | `enroll_year` | smallint | 入学年份 |
-| `enrollment_status` | varchar(20) | 学籍状态 |
 | `del_flag` | char(1) | 逻辑删除 |
 
 唯一键：`uk_student_no (student_no)`
+
+**本表不设 `tenant_id`，也不存学籍状态。** 原因见 `D-037`：学生主体是平台级实体，
+学籍状态描述的是"在某所学校的学籍期间"，属于在校记录。学校侧读学生必须经在校记录两段式取数。
+
+配套表 `edu_student_school_record`（在校记录）承载带租户隔离的部分：
+
+| 列 | 类型 | 说明 |
+|---|---|---|
+| `id` | bigint | 主键 |
+| `student_id` | bigint | 学生主体（平台级） |
+| `tenant_id` | varchar(20) | 学校租户 ID，教学数据隔离键 |
+| `school_id` | bigint | 学校 |
+| `enrollment_status` | varchar(20) | 学籍状态（转入未报到 / 在读 / 休学 / 出国 / 失踪 / 已转出 / 毕业 / 结业 / 肄业 / 开除 / 退学 / 死亡），共 12 项 |
+| `enroll_date` | date | 入学日期 |
+| `graduation_date` | date | 离校日期，可空 |
+| `is_current` | char(1) | 是否为该学生当前有效的在校记录 |
+| `create_by` / `create_time` / `update_by` / `update_time` | | 审计列 |
+| `del_flag` | char(1) | 逻辑删除 |
+
+唯一键：`uk_student_school (student_id, tenant_id, enroll_date)`
+索引：`idx_tenant_status (tenant_id, enrollment_status)`、`idx_student_current (student_id, is_current)`
+外键：`student_id → edu_student.id`（禁止级联删除）
 
 ### 6.2 `edu_guardian` 监护人主体（平台级）
 
@@ -222,7 +250,7 @@
 ```
 监护人请求 /guardian/children            → 返回本人全部生效绑定的孩子（跨租户列表）
 监护人请求 /guardian/child/{studentId}/* → 校验该 studentId 在本人绑定列表内
-                                          然后把范围切到该学生所属学校租户
+                                          然后取该学生"当前有效的在校记录"，把范围切到其所属学校租户
 学校侧请求 /edu/student/*                → 走学校租户的常规数据权限
 ```
 
@@ -230,7 +258,7 @@
 
 | 编号 | 约束 |
 |---|---|
-| GB-08 | 监护人接口必须先校验绑定关系，再用该学生所属学校租户构造范围 |
+| GB-08 | 监护人接口必须先校验绑定关系，再用该学生"当前有效的在校记录"所属学校租户构造范围 |
 | GB-09 | 不允许通过"监护人已登录"直接放行跨租户查询 |
 | GB-10 | 学校侧读取监护人信息时，只允许读取与本校学生有关联的记录，禁止全表查询 |
 
@@ -283,7 +311,7 @@
 | 编号 | 约束 |
 |---|---|
 | GB-15 | 每次请求必须显式携带 `studentId`，服务端校验该学生在当前监护人的生效绑定列表内 |
-| GB-16 | 校验通过后，用该学生的 `tenant_id` 构造本次请求的数据范围，不复用上一次请求的范围 |
+| GB-16 | 校验通过后，用该学生当前有效在校记录上的 `tenant_id` 构造本次请求的数据范围，不复用上一次请求的范围 |
 | GB-17 | 不允许把多个孩子的范围合并成一个查询，除非这些孩子属于同一学校租户且同一资源类型 |
 | GB-18 | "我的孩子"列表接口只返回摘要字段，不返回联系方式、证件号、地址等敏感信息 |
 | GB-19 | 前端切换孩子时必须清空上一个孩子的页面状态与缓存，避免串数据 |

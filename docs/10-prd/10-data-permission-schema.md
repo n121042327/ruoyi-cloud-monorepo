@@ -214,6 +214,7 @@ status = '生效' AND now >= effective_start AND (effective_end IS NULL OR now <
 | 项 | 处理方式 |
 |---|---|
 | `ruoyi-common-tenant` 的 `tenant_id` 过滤 | 保留。学校租户的数据仍按 `tenant_id` 隔离 |
+| 平台级实体 | `edu_student`（学生主体）与 `edu_guardian`（监护人主体）**加入租户拦截器的忽略表**，不设 `tenant_id`。学校侧的租户隔离由 `edu_student_school_record`（在校记录）与 `edu_student_class`（行政班关系）承载，读学生一律两段式取数（见 `D-037`、`NFR-SEC-10`） |
 | 租户管理员的放行逻辑 | **不继承**。教育服务独立实现数据范围判定 |
 | 多租户上下文 | 学校租户请求用请求级上下文；共享授权作为叠加范围，不改变上下文的租户 |
 | 缓存前缀 | 复用现有 Redis 前缀规则，权限键额外加 `edu:` 命名空间 |

@@ -239,6 +239,127 @@ def check_cross_references(rule_ids: set[str]) -> None:
                 rep("BR-REF", f"{rel(path)} 引用了不存在的规则 {ref}")
 
 
+def collect_reference_definitions() -> dict[str, set[str]]:
+    """从公共前置文档中收集各类编号的定义集合。"""
+    defined: dict[str, set[str]] = {"SCN": set(), "PER": set(), "CTX": set(), "NFR": set(), "DS": set()}
+
+    scen = os.path.join(REPO_ROOT, "docs", "10-prd", "02-personas-and-scenarios.md")
+    if os.path.exists(scen):
+        body = read(scen)
+        defined["SCN"] |= set(re.findall(r"^###\s+(SCN-[A-Z]+-\d{2})", body, flags=re.MULTILINE))
+        defined["PER"] |= set(re.findall(r"\|\s*(PER-[A-Z0-9-]+)\s*\|", body))
+
+    ctx = os.path.join(REPO_ROOT, "docs", "10-prd", "01-product-context.md")
+    if os.path.exists(ctx):
+        defined["CTX"] |= set(re.findall(r"\|\s*(CTX-[A-Z0-9-]+)\s*\|", read(ctx)))
+
+    nfr = os.path.join(REPO_ROOT, "docs", "10-prd", "07-non-functional-requirements.md")
+    if os.path.exists(nfr):
+        defined["NFR"] |= set(re.findall(r"\|\s*(NFR-[A-Z0-9-]+)\s*\|", read(nfr)))
+
+    ds = os.path.join(REPO_ROOT, "docs", "10-prd", "08-data-scope-model.md")
+    if os.path.exists(ds):
+        body = read(ds)
+        defined["DS"] |= set(re.findall(r"\|\s*(DS-\d{2})\s*\|", body))
+        defined["DS"] |= set(re.findall(r"(DS-(?:RULE|DENY)-\d{2})", body))
+
+    return defined
+
+
+def collect_fd_definitions() -> set[str]:
+    """字段字典中可被 FD- 引用的条目：字段名与枚举名，统一小写。"""
+    fd = require(os.path.join(REPO_ROOT, "docs", "10-prd", "06-field-dictionary.yaml"))
+    if fd is None:
+        return set()
+    names = {f["name"].lower() for f in fd.get("fields", [])}
+    names |= {e["name"].lower() for e in fd.get("enums", [])}
+    return names
+
+
+def check_reference_ids(defined: dict[str, set[str]], fd_names: set[str]) -> None:
+    """核对 SCN / PER / CTX-GOAL / NFR / DS / FD 引用是否都有定义。"""
+    patterns = {
+        "SCN": r"SCN-[A-Z]+-\d{2}",
+        "PER": r"PER-[A-Z]+(?:-[A-Z]+)+",
+        "CTX": r"CTX-[A-Z]+-\d{2}",
+        "NFR": r"NFR-[A-Z]+-\d{2}",
+        "DS": r"DS-(?:RULE|DENY)-\d{2}|\bDS-\d{2}\b",
+    }
+    skip = {
+        "01-product-context.md",
+        "02-personas-and-scenarios.md",
+        "05-permission-matrix.yaml",
+        "06-field-dictionary.yaml",
+        "07-non-functional-requirements.md",
+        "08-data-scope-model.md",
+    }
+    for path in glob_docs("docs/**/*.md", "docs/**/*.yaml", "docs/**/*.yml"):
+        if os.path.basename(path) in skip:
+            continue
+        body = read(path)
+        for kind, pattern in patterns.items():
+            for ref in sorted(set(re.findall(pattern, body))):
+                if ref not in defined[kind]:
+                    rep(f"{kind}-REF", f"{rel(path)} 引用了不存在的编号 {ref}")
+        for raw in sorted(set(re.findall(r"FD-[A-Za-z0-9_-]+", body))):
+            token = raw[3:].lower().replace("-", "_")
+            if token not in fd_names:
+                rep("FD-REF", f"{rel(path)} 引用了字段字典中不存在的条目 {raw}")
+
+
+def expand_case_references(body: str, prefix: str) -> set[str]:
+    """收集 AC-<前缀>-xxx 引用，并把 `AC-X-001` ~ `AC-X-010` 这类区间展开成全部编号。"""
+    refs = set(re.findall(rf"AC-{prefix}-\d{{3}}", body))
+    for start, end in re.findall(
+        rf"`AC-{prefix}-(\d{{3}})`\s*~\s*`AC-{prefix}-(\d{{3}})`", body
+    ):
+        lo, hi = int(start), int(end)
+        if lo <= hi:
+            refs |= {f"AC-{prefix}-{n:03d}" for n in range(lo, hi + 1)}
+    return refs
+
+
+def check_module_prd() -> None:
+    """核对模块 PRD 的需求编号连续，且引用的验收用例都真实存在。"""
+    for prd_path in glob_docs("docs/10-prd/modules/*/PRD.md"):
+        module_dir = os.path.dirname(prd_path)
+        body = read(prd_path)
+        # 需求定义取自表格首列，正文中的出现属于引用
+        definitions = re.findall(r"^\|\s*`(REQ-[A-Z]+-\d{3})`\s*\|", body, flags=re.MULTILINE)
+        prefixes = {d.split("-")[1] for d in definitions}
+        if not prefixes:
+            rep("MODULE", f"{rel(prd_path)} 未定义任何 REQ- 需求编号")
+            continue
+        if len(prefixes) > 1:
+            rep("MODULE", f"{rel(prd_path)} 出现多个需求前缀: {sorted(prefixes)}")
+            continue
+        prefix = prefixes.pop()
+        nums = sorted(int(d.rsplit("-", 1)[1]) for d in definitions)
+        if len(nums) != len(set(nums)):
+            rep("MODULE", f"{rel(prd_path)} 的 REQ-{prefix} 编号存在重复")
+        if nums and nums != list(range(1, max(nums) + 1)):
+            missing = sorted(set(range(1, max(nums) + 1)) - set(nums))
+            rep("MODULE", f"{rel(prd_path)} 的 REQ-{prefix} 编号不连续，缺失: {missing}")
+
+        acc_path = os.path.join(module_dir, "acceptance.md")
+        if not os.path.exists(acc_path):
+            rep("MODULE", f"{rel(prd_path)} 缺少配套的 acceptance.md")
+            continue
+        acc_body = read(acc_path)
+        # 用例定义同样取自表格首列，正文中的出现属于引用
+        acc_defs = re.findall(rf"^\|\s*`(AC-{prefix}-\d{{3}})`\s*\|", acc_body, flags=re.MULTILINE)
+        defined_acc = set(acc_defs)
+        referenced_acc = expand_case_references(body, prefix)
+        for ref in sorted(referenced_acc - defined_acc):
+            rep("MODULE", f"{rel(prd_path)} 引用了 acceptance.md 中不存在的用例 {ref}")
+        for ref in sorted(defined_acc - referenced_acc):
+            rep("MODULE", f"{rel(acc_path)} 的用例 {ref} 未被 PRD 引用")
+
+        acc_nums = sorted(int(d.rsplit("-", 1)[1]) for d in acc_defs)
+        if len(acc_nums) != len(set(acc_nums)):
+            rep("MODULE", f"{rel(acc_path)} 的 AC-{prefix} 编号存在重复")
+
+
 def check_declared_files() -> None:
     """核对 file-catalog.md 中标记为 review 的路径是否真实存在。"""
     path = os.path.join(REPO_ROOT, "docs", "00-governance", "file-catalog.md")
@@ -271,6 +392,8 @@ def main() -> int:
     check_field_dictionary()
     rule_ids = check_business_rules()
     check_cross_references(rule_ids)
+    check_reference_ids(collect_reference_definitions(), collect_fd_definitions())
+    check_module_prd()
     check_declared_files()
 
     print("=== 文档一致性核查 ===")
