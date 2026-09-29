@@ -10,18 +10,22 @@
 |---|---|
 | 根仓库 | `D:\work\person_work\ruoyi-cloud-monorepo` |
 | 当前分支 | `main` |
-| 工作区状态 | 有未提交改动：1622 个重命名已暂存、68 个 `.git1` 删除已暂存、根 `AGENTS.md` 与 `docs/` 未跟踪 |
+| 工作区状态 | 阶段 0 已提交（`5541365`）。本地 `main` 领先 `origin/main` 7 个提交，未推送 |
 | 远端 | `git@github.com:n121042327/ruoyi-cloud-monorepo.git` |
 
 近期提交：
 
 ```
-4b79a46 Merge branch 'codex/monorepo-init'
-ec67c94 install superpowers-zh
-214a11d Merge branch 'codex/monorepo-init'
-6dab382 回退到2.6.2，这版有租户相关逻辑
-b394ab5 chore(仓库): 初始化 monorepo，引入 RuoYi-Cloud-Plus 与 plus-ui 代码基线
+c535370 Merge branch 'codex/monorepo-init'
+5541365 chore(工程治理): 落地 monorepo 骨架与阶段 0 工程约束
+202ba9a Merge branch 'codex/install-skills'
+d55db13 install superpowers-zh
+c365772 Merge branch 'codex/monorepo-init'
+ffdc300 chore(仓库)：初始化monorepo，引入 RuoYi-Cloud-Plus 与 plus-ui 代码基线
 ```
+
+说明：`ffdc300` 之后的提交由用户通过分支整理产生，原提交 `da9c227` 被择优复制为 `5541365`。
+该整理只带入了工程治理提交，PRD 提交（原 `15ff48b`）未带入，内容已从该提交恢复到工作区。
 
 ## 2. 顶层结构
 
@@ -33,8 +37,15 @@ b394ab5 chore(仓库): 初始化 monorepo，引入 RuoYi-Cloud-Plus 与 plus-ui 
 | `services/RuoYi-Cloud-Plus/` | 目录 | Java 后端，2026-09-29 由 `RuoYi-Cloud-Plus/` 迁移而来 |
 | `docs/` | 目录 | 全部设计与治理文档 |
 | `AGENTS.md` | 文件 | 根级 Codex 工程约定 |
+| `package.json` | 文件 | monorepo 根包，Turbo 脚本入口 |
+| `pnpm-workspace.yaml` | 文件 | pnpm 工作区与 `allowBuilds` 白名单 |
+| `turbo.json` | 文件 | Turbo 任务编排 |
+| `pnpm-lock.yaml` | 文件 | 依赖锁定，630 个包 |
+| `.gitignore` | 文件 | 根级忽略规则 |
+| `tools/` | 目录 | 工程检查脚本 |
+| `evidence/` | 目录 | 验收证据日志 |
 
-`prototypes/` 与 `evidence/` 尚未创建，将在阶段 2、阶段 8 建立。
+`prototypes/` 尚未创建，将在阶段 2 建立。
 
 ## 3. 前端事实
 

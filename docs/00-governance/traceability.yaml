@@ -8,10 +8,10 @@ status_values: [未开始, 部分覆盖, 已覆盖, 已验收]
 traceability: []
 
 template:
-  requirement_id: REQ-STUDENT-001
+  requirement_id: REQ-STU-001
   title: 学生列表按姓名 / 学号 / 班级筛选
   source: docs/10-prd/modules/student/PRD.md#故事1
-  business_rules: [BR-STUDENT-003]
+  business_rules: [BR-STU-003]
   permission: 校领导 / 年级主任 / 班主任 / 任课教师 各自可见范围
   prototype_functional: prototypes/functional/v1/pages/student-list.html
   prototype_hifi: prototypes/high-fidelity/v1/pages/student-list.html

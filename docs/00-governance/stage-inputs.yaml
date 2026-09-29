@@ -21,7 +21,7 @@ stages:
     gates:
       - 用户确认约束文件内容
       - gap-register.yaml 中无 blocking: true 的 open 项
-    blocking_gaps: [GAP-001, GAP-002, GAP-003, GAP-004]
+    blocking_gaps: [GAP-004]
 
   - id: stage1
     name: PRD

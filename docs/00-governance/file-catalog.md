@@ -27,6 +27,7 @@
 | `turbo.json` | Turbo 任务编排（build / dev / lint / typecheck / test） | `review` |
 | `pnpm-lock.yaml` | 依赖锁定（根 + apps/plus-ui 两个 importer，630 个包） | `review` |
 | `evidence/stage0-monorepo/**` | 基线检查原始日志 | `review` |
+| `tools/check_docs.py` | 文档一致性核查脚本 | `review` |
 | `AGENTS.md` | 根级 Codex 工程约定 | `review` |
 | `docs/00-governance/README.md` | 治理目录索引 | `review` |
 | `docs/00-governance/repo-baseline.md` | 仓库基线核查报告 | `review` |
@@ -40,8 +41,8 @@
 | `docs/00-governance/traceability.yaml` | 追踪矩阵骨架 | `review` |
 | `docs/00-governance/task-packet.md` | 任务包模板 | `review` |
 | `docs/00-governance/baseline-manifest.schema.json` | 冻结清单 Schema | `review` |
-| `apps/plus-ui/AGENTS.md` | 前端子级约定（迁移后随目录移动） | `draft` |
-| `services/RuoYi-Cloud-Plus/AGENTS.md` | 后端子级约定（迁移后随目录移动） | `draft` |
+| `apps/plus-ui/AGENTS.md` | 前端子级约定（组件映射、代码写法、视觉规范） | `review` |
+| `services/RuoYi-Cloud-Plus/AGENTS.md` | 后端子级约定（分层、接口形状、数据权限、测试） | `review` |
 | `.agents/skills/edu-*/SKILL.md` | 项目专用 Codex 技能 | `planned` |
 
 ---
@@ -52,15 +53,15 @@
 
 | 路径 | 用途 | 状态 |
 |---|---|---|
-| `docs/10-prd/00-index.md` | PRD 索引与阅读顺序 | `planned` |
-| `docs/10-prd/01-product-context.md` | 产品背景、目标、边界、成功指标 | `planned` |
-| `docs/10-prd/02-personas-and-scenarios.md` | 角色画像与典型场景 | `planned` |
-| `docs/10-prd/03-glossary.md` | 术语表（行政班 / 教学班 / 选科 / 学年学期 …） | `planned` |
-| `docs/10-prd/04-business-rules.md` | 业务规则总表（编号 BR-xxx） | `planned` |
-| `docs/10-prd/05-permission-matrix.yaml` | 角色 × 资源 × 操作 权限矩阵 | `planned` |
-| `docs/10-prd/06-field-dictionary.yaml` | 全局字段字典（枚举、字典、复用字段） | `planned` |
-| `docs/10-prd/07-non-functional-requirements.md` | 非功能需求（性能、并发、安全、审计、可用性） | `planned` |
-| `docs/10-prd/08-data-scope-model.md` | 数据归属与数据权限模型 | `planned` |
+| `docs/10-prd/00-index.md` | PRD 索引与阅读顺序 | `review` |
+| `docs/10-prd/01-product-context.md` | 产品背景、目标、边界、成功指标 | `review` |
+| `docs/10-prd/02-personas-and-scenarios.md` | 角色画像与典型场景 | `review` |
+| `docs/10-prd/03-glossary.md` | 术语表（行政班 / 教学班 / 选科 / 学年学期 …） | `review` |
+| `docs/10-prd/04-business-rules.md` | 业务规则总表（编号 BR-xxx） | `review` |
+| `docs/10-prd/05-permission-matrix.yaml` | 角色 × 资源 × 操作 权限矩阵 | `review` |
+| `docs/10-prd/06-field-dictionary.yaml` | 全局字段字典（枚举、字典、复用字段） | `review` |
+| `docs/10-prd/07-non-functional-requirements.md` | 非功能需求（性能、并发、安全、审计、可用性） | `review` |
+| `docs/10-prd/08-data-scope-model.md` | 数据归属与数据权限模型 | `review` |
 
 ### 模块 PRD（首轮）
 

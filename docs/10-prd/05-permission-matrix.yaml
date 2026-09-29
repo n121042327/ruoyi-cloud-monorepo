@@ -1,0 +1,320 @@
+schema_version: "1.0"
+purpose: |
+  权限矩阵。功能权限与数据范围是两个维度：
+  - function_permission 决定"能不能做这个操作"
+  - data_scope 决定"能在哪些数据上做"
+  两者都必须通过才允许执行。数据范围模型详见 08-data-scope-model.md。
+
+roles:
+  - code: platform_ops
+    name: 平台运营
+    home: platform
+    default_data_scope: platform
+    note: 查看 / 修改 / 导出 三项独立授权，缺一项即拒绝
+
+  - code: tenant_admin
+    name: 租户管理员
+    home: tenant
+    default_data_scope: tenant_org
+    note: 只覆盖组织结构与非教学配置，不自动获得学校教学数据
+
+  - code: group_expert
+    name: 集团专家
+    home: tenant
+    default_data_scope: group_own
+    note: 首轮只读
+
+  - code: group_leader
+    name: 集团领导
+    home: tenant
+    default_data_scope: group_own
+    note: 首轮只读
+
+  - code: school_leader
+    name: 校领导
+    home: school
+    default_data_scope: school
+    note: 本校全部教育数据；选科逾期变更的审批人
+
+  - code: academic_director
+    name: 教务主任
+    home: school
+    default_data_scope: school
+    note: 编班、学年升级、导入导出的主要操作者
+
+  - code: grade_leader
+    name: 年级主任
+    home: school
+    default_data_scope: grade
+
+  - code: homeroom
+    name: 班主任
+    home: school
+    default_data_scope: class
+
+  - code: subject_teacher
+    name: 任课教师
+    home: school
+    default_data_scope: teaching_class
+    note: 任教班级的必要基本资料 + 本人所授学科数据
+
+  - code: student
+    name: 学生
+    home: self
+    default_data_scope: self
+
+  - code: guardian
+    name: 家长
+    home: self
+    default_data_scope: self_children
+    note: 后续小程序阶段
+
+resources:
+  - code: org.tenant
+    name: 租户
+    module: school
+  - code: org.school
+    name: 学校
+    module: school
+  - code: org.term
+    name: 学年学期
+    module: term
+  - code: org.subject
+    name: 学科
+    module: subject
+  - code: org.grade
+    name: 年级
+    module: grade
+  - code: org.class
+    name: 行政班
+    module: class
+  - code: org.teaching_class
+    name: 教学班
+    module: class
+  - code: person.student
+    name: 学生
+    module: student
+  - code: person.student_guardian
+    name: 学生监护人信息
+    module: student
+  - code: person.student_contact
+    name: 学生联系方式
+    module: student
+  - code: person.teacher
+    name: 教师
+    module: teacher
+  - code: person.teaching_assignment
+    name: 任教关系
+    module: teacher
+  - code: enrollment.status
+    name: 学籍状态
+    module: promotion
+  - code: enrollment.transfer
+    name: 学籍异动
+    module: promotion
+  - code: promotion.batch
+    name: 学年升级任务
+    module: promotion
+  - code: stream.selection
+    name: 学生选科
+    module: stream
+  - code: stream.change_request
+    name: 选科变更申请
+    module: stream
+  - code: stream.config
+    name: 选科开放期与截止日期配置
+    module: stream
+  - code: data.import
+    name: 批量导入
+    module: import
+  - code: data.export
+    name: 导出
+    module: import
+  - code: data.async_task
+    name: 异步任务
+    module: async
+  - code: audit.log
+    name: 审计日志
+    module: audit
+
+actions: [read, create, update, delete, export, approve, import]
+
+matrix:
+  # 平台运营
+  - role: platform_ops
+    entries:
+      - { resource: org.tenant, actions: [read, create, update] }
+      - { resource: org.school, actions: [read, create, update] }
+      - { resource: org.term, actions: [read] }
+      - { resource: org.subject, actions: [read] }
+      - { resource: org.grade, actions: [read] }
+      - { resource: org.class, actions: [read] }
+      - { resource: person.student, actions: [read] }
+      - { resource: person.teacher, actions: [read] }
+      - { resource: data.export, actions: [export], condition: 需显式授予导出权限 }
+      - { resource: data.async_task, actions: [read] }
+      - { resource: audit.log, actions: [read], condition: 平台自身的访问也需留痕 }
+    forbidden:
+      - 无 person.student.update
+      - 无 enrollment.transfer.update
+      - 无 stream.selection.update
+    note: |
+      平台运营默认只读业务数据。任何修改业务数据的权限不通过角色默认授予，
+      必须逐次授权并留痕。这是与现有"平台超管"习惯最大的差异点，需在实现时明确。
+
+  # 租户管理员
+  - role: tenant_admin
+    entries:
+      - { resource: org.school, actions: [read, create, update] }
+      - { resource: org.term, actions: [read, create, update] }
+      - { resource: org.subject, actions: [read, create, update] }
+      - { resource: org.grade, actions: [read, create, update] }
+      - { resource: org.class, actions: [read] }
+      - { resource: person.teacher, actions: [read, create, update] }
+      - { resource: person.teaching_assignment, actions: [read, create, update] }
+    forbidden:
+      - 无 person.student.read（学校教学数据不属于租户管理员默认范围）
+      - 无 org.class.update
+      - 无 enrollment.*
+      - 无 stream.*
+    note: 若租户管理员确实需要查看教学数据，需由平台显式授予，且要留痕。
+
+  # 校领导
+  - role: school_leader
+    entries:
+      - { resource: org.term, actions: [read] }
+      - { resource: org.subject, actions: [read] }
+      - { resource: org.grade, actions: [read, create, update] }
+      - { resource: org.class, actions: [read] }
+      - { resource: org.teaching_class, actions: [read] }
+      - { resource: person.student, actions: [read] }
+      - { resource: person.student_guardian, actions: [read] }
+      - { resource: person.student_contact, actions: [read] }
+      - { resource: person.teacher, actions: [read] }
+      - { resource: enrollment.transfer, actions: [read, approve] }
+      - { resource: promotion.batch, actions: [read, approve] }
+      - { resource: stream.change_request, actions: [read, approve] }
+      - { resource: stream.config, actions: [read, update] }
+      - { resource: data.export, actions: [export] }
+      - { resource: audit.log, actions: [read], condition: 仅本校范围 }
+    data_scope: school
+
+  # 教务主任
+  - role: academic_director
+    entries:
+      - { resource: org.grade, actions: [read, create, update] }
+      - { resource: org.class, actions: [read, create, update, delete] }
+      - { resource: org.teaching_class, actions: [read, create, update, delete] }
+      - { resource: person.student, actions: [read, create, update] }
+      - { resource: person.student_guardian, actions: [read, create, update] }
+      - { resource: person.student_contact, actions: [read, create, update] }
+      - { resource: person.teacher, actions: [read, create, update] }
+      - { resource: person.teaching_assignment, actions: [read, create, update, delete] }
+      - { resource: enrollment.status, actions: [read, create, update] }
+      - { resource: enrollment.transfer, actions: [read, create] }
+      - { resource: promotion.batch, actions: [read, create] }
+      - { resource: stream.config, actions: [read, update] }
+      - { resource: stream.selection, actions: [read, update] }
+      - { resource: data.import, actions: [import] }
+      - { resource: data.export, actions: [export] }
+      - { resource: data.async_task, actions: [read] }
+    data_scope: school
+
+  # 年级主任
+  - role: grade_leader
+    entries:
+      - { resource: org.class, actions: [read, create, update] }
+      - { resource: person.student, actions: [read, create, update] }
+      - { resource: person.student_contact, actions: [read, update] }
+      - { resource: person.student_guardian, actions: [read] }
+      - { resource: person.teaching_assignment, actions: [read, create] }
+      - { resource: enrollment.status, actions: [read] }
+      - { resource: enrollment.transfer, actions: [read, create] }
+      - { resource: stream.selection, actions: [read] }
+      - { resource: data.export, actions: [export] }
+    data_scope: grade
+    forbidden:
+      - 无 person.student_guardian.update（班主任可改，年级主任只读）
+
+  # 班主任
+  - role: homeroom
+    entries:
+      - { resource: org.class, actions: [read] }
+      - { resource: person.student, actions: [read] }
+      - { resource: person.student_guardian, actions: [read, update] }
+      - { resource: person.student_contact, actions: [read, update] }
+      - { resource: stream.change_request, actions: [read, create] }
+      - { resource: data.export, actions: [export], condition: 仅本班且仅授权字段 }
+    data_scope: class
+    field_rules:
+      - resource: person.student
+        readable_fields: [student_no, name, gender, birth_date, enrollment_status, class_name, guardian_summary]
+        updatable_fields: []
+      - resource: person.student_guardian
+        readable_fields: ["*"]
+        updatable_fields: [guardian_name, relation, phone, remark]
+      - resource: person.student_contact
+        readable_fields: ["*"]
+        updatable_fields: [phone, address, remark]
+    note: 班主任可以修改监护人信息与联系方式，但不能改学号、姓名、班级归属与学籍状态。
+
+  # 任课教师
+  - role: subject_teacher
+    entries:
+      - { resource: person.student, actions: [read], condition: 仅任教班级的必要基本资料 }
+      - { resource: org.teaching_class, actions: [read] }
+      - { resource: person.student_contact, actions: [] }
+    data_scope: teaching_class
+    field_rules:
+      - resource: person.student
+        readable_fields: [student_no, name, gender, class_name]
+        note: 不包含证件号、出生日期、监护人信息与联系方式
+    forbidden:
+      - 无 person.student_guardian.read
+      - 无任何 export
+
+  # 学生与家长
+  - role: student
+    entries:
+      - { resource: stream.selection, actions: [read, create, update], condition: 仅本人，且受选科开放期约束 }
+      - { resource: org.class, actions: [read], condition: 仅本人所在班级 }
+    data_scope: self
+
+  - role: guardian
+    entries:
+      - { resource: person.student, actions: [read], condition: 仅本人子女，且仅授权字段 }
+    data_scope: self_children
+    status: 后续小程序阶段
+
+sensitive_fields:
+  - field: person.student.id_card_no
+    mask: 前 6 位与后 4 位之外的字符掩码
+    view_requires: [read_sensitive]
+  - field: person.student_contact.phone
+    mask: 中间 4 位掩码
+    view_requires: [read_contact]
+  - field: person.student_guardian.phone
+    mask: 中间 4 位掩码
+    view_requires: [read_contact]
+  - field: person.student.address
+    mask: 不掩码，但按数据范围限制
+    view_requires: []
+
+deny_rules:
+  - id: PM-DENY-001
+    rule: 缺少 tenant_id 时不执行任何教育数据查询，直接拒绝
+  - id: PM-DENY-002
+    rule: 缺少 school_id 且角色数据范围不是 platform 时，拒绝执行学校级数据操作
+  - id: PM-DENY-003
+    rule: 数据范围解析结果为空集时，返回空列表而不是全量列表
+    note: 这一条最容易实现错，必须有专门测试
+  - id: PM-DENY-004
+    rule: 导出、文件下载、异步任务结果查询都重新执行数据范围判定，不复用列表页的缓存结果
+  - id: PM-DENY-005
+    rule: 教育数据权限独立实现，不依赖也不继承系统租户管理员的放行逻辑
+
+open_questions:
+  - 任课教师能否导出任教班级的名单？当前矩阵为禁止，需确认
+  - 年级主任是否需要修改学生监护人信息的权限？当前为只读
+  - 集团专家与集团领导首轮是否需要任何写权限？当前为只读
+  - 平台运营协助排查问题时，是否可以临时被授予"查看"权限而不留痕到租户侧？当前要求留痕

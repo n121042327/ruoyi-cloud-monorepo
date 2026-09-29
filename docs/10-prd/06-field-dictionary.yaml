@@ -1,0 +1,208 @@
+schema_version: "1.0"
+purpose: |
+  全局字段字典。任何模块 PRD、原型表单、接口契约、数据库迁移脚本中的字段，
+  都必须能在这里找到定义，或在此登记新增。字段命名以本文件的 name 为准。
+
+common_columns:
+  - name: id
+    type: bigint
+    required: true
+    note: 主键。后端序列化为字符串返回，前端一律按 string 处理，禁止 Number() 转换
+  - name: tenant_id
+    type: varchar(20)
+    required: true
+    note: 租户隔离键。所有教育表必须携带，且所有查询必须带该条件
+  - name: school_id
+    type: bigint
+    required: false
+    note: 学校归属。学校级及以下的数据必须携带
+  - name: create_by
+    type: bigint
+    required: true
+  - name: create_time
+    type: datetime
+    required: true
+  - name: update_by
+    type: bigint
+    required: false
+  - name: update_time
+    type: datetime
+    required: false
+  - name: del_flag
+    type: char(1)
+    required: true
+    default: "0"
+    note: "0 存在，1 删除。历史与学籍类表禁止物理删除"
+
+enums:
+  - name: gender
+    entries:
+      - { code: "1", label: 男 }
+      - { code: "2", label: 女 }
+      - { code: "0", label: 未知 }
+
+  - name: stage_code
+    name_cn: 学段
+    entries:
+      - { code: primary, label: 小学, grade_range: "1-6" }
+      - { code: junior, label: 初中, grade_range: "1-3" }
+      - { code: senior, label: 高中, grade_range: "1-3" }
+    note: 年级与学段的对应关系固定，见 BR-GRADE-001 / BR-GRADE-006
+
+  - name: enrollment_status
+    name_cn: 学籍状态（描述一条在校记录的状态，不是学生主体）
+    entries:
+      - { code: enrolled, label: 在读, terminal: false }
+      - { code: suspended, label: 休学, terminal: false }
+      - { code: transferred_out, label: 已转出, terminal: true }
+      - { code: graduated, label: 毕业, terminal: true }
+      - { code: withdrawn, label: 退学, terminal: true }
+    note: |
+      跨校转入不在原学校记录上变更状态，而是在目标学校新建一条在校记录，初始状态为 enrolled。
+      见 BR-STU-002 与 BR-PROMO-011。
+    transitions:
+      - { from: enrolled, to: suspended, action: suspend }
+      - { from: suspended, to: enrolled, action: resume }
+      - { from: enrolled, to: transferred_out, action: transfer_out }
+      - { from: enrolled, to: graduated, action: graduate }
+      - { from: enrolled, to: withdrawn, action: withdraw }
+      - { from: "（新建记录）", to: enrolled, action: enroll }
+    forbidden_transitions:
+      - { from: graduated, to: withdrawn, reason: BR-PROMO-010 终态不可互转 }
+      - { from: withdrawn, to: graduated, reason: BR-PROMO-010 }
+      - { from: transferred_out, to: enrolled, reason: 跨校转入在目标学校新建记录，不在原记录上复活 }
+
+  - name: class_type
+    name_cn: 班级类型
+    entries:
+      - { code: administrative, label: 行政班 }
+      - { code: teaching, label: 教学班 }
+    note: 行政班与教学班是独立关系，见 BR-CLASS-001
+
+  - name: edu_role
+    name_cn: 教育角色
+    entries:
+      - { code: school_leader, label: 校领导 }
+      - { code: academic_director, label: 教务主任 }
+      - { code: grade_leader, label: 年级主任 }
+      - { code: homeroom, label: 班主任 }
+      - { code: subject_teacher, label: 任课教师 }
+    note: 与系统权限角色不同；教育角色决定数据范围
+
+  - name: subject_code
+    name_cn: 学科编码
+    entries:
+      - { code: chinese, label: 语文, stream_role: none }
+      - { code: math, label: 数学, stream_role: none }
+      - { code: english, label: 外语, stream_role: none }
+      - { code: physics, label: 物理, stream_role: primary }
+      - { code: history, label: 历史, stream_role: primary }
+      - { code: chemistry, label: 化学, stream_role: secondary }
+      - { code: biology, label: 生物, stream_role: secondary }
+      - { code: politics, label: 思想政治, stream_role: secondary }
+      - { code: geography, label: 地理, stream_role: secondary }
+    note: 首选科目为物理/历史，再选科目为化学/生物/思想政治/地理，见 BR-SUBJECT-003
+
+  - name: stream_request_status
+    name_cn: 选科变更申请状态
+    entries:
+      - { code: draft, label: 草稿 }
+      - { code: pending, label: 待审批 }
+      - { code: approved, label: 已通过 }
+      - { code: rejected, label: 已驳回 }
+      - { code: cancelled, label: 已撤销 }
+    transitions:
+      - { from: draft, to: pending }
+      - { from: pending, to: approved }
+      - { from: pending, to: rejected }
+      - { from: pending, to: cancelled }
+
+  - name: promotion_task_status
+    name_cn: 升班任务状态
+    entries:
+      - { code: draft, label: 草稿 }
+      - { code: previewed, label: 已预览待确认 }
+      - { code: validating, label: 校验中 }
+      - { code: running, label: 执行中 }
+      - { code: succeeded, label: 已完成 }
+      - { code: partial_failed, label: 部分失败 }
+      - { code: failed, label: 失败 }
+      - { code: cancelled, label: 已取消 }
+
+  - name: async_task_status
+    name_cn: 异步任务状态
+    entries:
+      - { code: queued, label: 排队中 }
+      - { code: running, label: 执行中 }
+      - { code: succeeded, label: 成功 }
+      - { code: partial_failed, label: 部分失败 }
+      - { code: failed, label: 失败 }
+      - { code: cancelled, label: 已取消 }
+
+  - name: data_scope_type
+    name_cn: 数据范围类型
+    entries:
+      - { code: platform, label: 全平台, level: 0 }
+      - { code: tenant_org, label: 租户组织, level: 1 }
+      - { code: group_own, label: 集团自有, level: 2 }
+      - { code: school, label: 本校, level: 3 }
+      - { code: grade, label: 本年级, level: 4 }
+      - { code: class, label: 本班, level: 5 }
+      - { code: teaching_class, label: 任教班级, level: 5 }
+      - { code: self, label: 本人, level: 6 }
+      - { code: self_children, label: 本人子女, level: 6 }
+
+fields:
+  - { name: student_no, cn: 学号, type: varchar(32), required: true, unique_scope: tenant, br: BR-STU-001 }
+  - { name: student_name, cn: 学生姓名, type: varchar(50), required: true }
+  - { name: id_type, cn: 证件类型, type: varchar(20), required: false }
+  - { name: id_card_no, cn: 证件号码, type: varchar(64), required: false, unique_scope: tenant, sensitive: true }
+  - { name: birth_date, cn: 出生日期, type: date, required: false, sensitive: true }
+  - { name: enroll_year, cn: 入学年份, type: smallint, required: true }
+  - { name: graduation_date, cn: 毕业日期, type: date, required: false }
+
+  - { name: teacher_no, cn: 工号, type: varchar(32), required: true, unique_scope: tenant, br: BR-TEACHER-007 }
+  - { name: teacher_name, cn: 教师姓名, type: varchar(50), required: true }
+
+  - { name: guardian_name, cn: 监护人姓名, type: varchar(50), required: true }
+  - { name: relation, cn: 与监护人关系, type: varchar(20), required: true }
+  - { name: guardian_phone, cn: 监护人电话, type: varchar(20), required: false, sensitive: true }
+  - { name: student_phone, cn: 学生电话, type: varchar(20), required: false, sensitive: true }
+  - { name: address, cn: 联系地址, type: varchar(200), required: false, sensitive: true }
+
+  - { name: academic_year_code, cn: 学年编码, type: varchar(9), required: true, format: "YYYY-YYYY", br: BR-TERM-003 }
+  - { name: term_code, cn: 学期编码, type: varchar(20), required: true }
+  - { name: start_date, cn: 开始日期, type: date, required: true }
+  - { name: end_date, cn: 结束日期, type: date, required: true }
+  - { name: is_current, cn: 是否当前, type: tinyint, required: true, note: 同一学校同一时间只能有一个 1，见 BR-TERM-002 }
+
+  - { name: grade_name, cn: 年级名称, type: varchar(50), required: true }
+  - { name: grade_level, cn: 学段内序号, type: tinyint, required: true, note: 与 stage_code 共同确定年级 }
+  - { name: class_name, cn: 班级名称, type: varchar(50), required: true, br: BR-CLASS-003 }
+  - { name: class_capacity, cn: 班级容量, type: smallint, required: false, note: 仅提示，不强制校验，见 BR-CLASS-005 }
+  - { name: head_teacher_id, cn: 班主任, type: bigint, required: false }
+
+  - { name: primary_subject_code, cn: 首选科目, type: varchar(20), required: true, enum_ref: subject_code, br: BR-STREAM-001 }
+  - { name: secondary_subject_codes, cn: 再选科目, type: varchar(64), required: true, note: 两个编码以逗号分隔，需校验数量为 2，见 BR-STREAM-002 }
+  - { name: stream_deadline, cn: 选科截止日期, type: datetime, required: false, br: BR-STREAM-004 }
+
+  - { name: change_type, cn: 变更类型, type: varchar(30), required: true }
+  - { name: effective_date, cn: 生效日期, type: date, required: true }
+  - { name: reason, cn: 原因, type: varchar(500), required: false }
+  - { name: before_value, cn: 变更前值, type: json, required: false }
+  - { name: after_value, cn: 变更后值, type: json, required: false }
+
+unique_keys:
+  - { table: edu_student, columns: [tenant_id, student_no], br: BR-STU-001 }
+  - { table: edu_teacher, columns: [tenant_id, teacher_no], br: BR-TEACHER-007 }
+  - { table: edu_school, columns: [tenant_id, school_code], br: BR-ORG-008 }
+  - { table: edu_academic_year, columns: [tenant_id, school_id, academic_year_code], br: BR-TERM-003 }
+  - { table: edu_class, columns: [school_id, term_id, stage_code, class_name], br: BR-CLASS-003 }
+  - { table: edu_student_class, columns: [term_id, student_id, class_type], note: 仅对行政班生效，见 BR-STU-003 }
+  - { table: edu_student_stream, columns: [term_id, student_id], br: BR-STREAM-007 }
+
+index_conventions:
+  - rule: 所有教育表的主查询条件第一列必须带 tenant_id 或 school_id 作为前缀索引
+  - rule: 列表页的筛选组合必须能命中索引，索引在实际查询场景确定后再建
+  - rule: 禁止在低基数列（如 del_flag、gender）上单独建索引
+  - rule: 逻辑删除的表使用 del_flag，唯一键需考虑删除后的复用策略，方案在详细设计阶段确定

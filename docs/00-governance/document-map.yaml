@@ -64,6 +64,9 @@ nodes:
   - id: dd.schema
     path: docs/40-detailed-design/database/physical-schema.md
     kind: design
+  - id: dd.domain_table_map
+    path: docs/40-detailed-design/database/domain-table-map.csv
+    kind: design
   - id: dd.migration
     path: docs/40-detailed-design/migrations
     kind: artifact
