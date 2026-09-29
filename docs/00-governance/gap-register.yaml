@@ -1,0 +1,235 @@
+schema_version: "1.0"
+purpose: 缺项登记。阻塞性缺项未解决前，不得执行依赖它的下游任务。
+
+status_values: [open, answered, closed, waived]
+
+gaps:
+  - id: GAP-001
+    title: services/RuoYi-Cloud-Plus/.claude/agents 目录不存在
+    discovered_at: 2026-09-29
+    discovered_by: 仓库扫描
+    evidence: "Test-Path 'services/RuoYi-Cloud-Plus/.claude' 返回 False；全仓库递归搜索 .claude 目录无结果"
+    expected: 用户希望读取其中的智能体定义，判断能否改写为基于 Codex 的技能
+    actual: 该目录不存在
+    impact: 无法复用其内容；但仓库根 .agents/skills 已有 22 个 superpowers-zh 技能可作为基础
+    options:
+      - 用户确认目录位置（可能在其它磁盘 / 其它仓库 / 未同步），提供后我再读
+      - 直接改用仓库根 .agents/skills 作为基础，另建教育项目专用技能
+      - 两者都做：等目录到位后对比，缺位期间先用 .agents/skills
+    recommended: 选项 3
+    blocking: false
+    blocks_stages: []
+    owner: 用户
+    resolution: 用户答复"目录不存在就算了"，采用 .agents/skills 作为技能基线
+    resolved_at: 2026-09-29
+    status: waived
+
+  - id: GAP-002
+    title: 缺少原型视觉与布局规范（用户明确反馈"空洞"的根因）
+    discovered_at: 2026-09-29
+    discovered_by: 用户反馈 + 仓库扫描
+    evidence: 仓库中不存在任何设计规范、色彩规范、组件规范文件
+    expected: 生成原型前应有可量化的视觉与布局约束
+    actual: 无
+    impact: 若不先补，阶段 2 / 3 仍会产出"看起来像 demo"的页面
+    options:
+      - 由我基于 Element Plus 设计语言与企业后台通用规范起草一套，交你审核后冻结
+      - 用户提供公司现有设计规范 / 品牌色 / 参考系统截图，我据此提炼
+      - 用户指定一个参考产品（如钉钉、飞书、某教务系统），我做风格对齐
+    recommended: 选项 2 优先，其次选项 1
+    blocking: true
+    blocks_stages: [stage2, stage3, stage6]
+    owner: 用户
+    resolution: |
+      用户答复：按 Element Plus 设计规范，同时参考现有 apps/plus-ui 的既有设计风格，
+      美观度可以在此之上提升。
+      落地方式：阶段 3 先产出 design-tokens.json + component-spec.md，经用户验收后冻结为视觉标准。
+    resolved_at: 2026-09-29
+    status: answered
+
+  - id: GAP-003
+    title: 缺少原型元素到组件库组件的映射约定
+    discovered_at: 2026-09-29
+    discovered_by: 用户反馈
+    evidence: 历史上原型用 a / div / button 表达按钮，转生产代码时缺少映射规则
+    expected: 原型阶段就产出可机器读取的 component-mapping.yaml
+    actual: 无
+    impact: 阶段 6 会出现组件选型不一致、按钮层级混乱
+    resolution_plan: 在阶段 3 交付物中新增 component-mapping.yaml 与 business-components.yaml，并在 markup-contract.md 中要求原型元素携带语义标记
+    blocking: true
+    blocks_stages: [stage6]
+    owner: 我方产出，用户确认
+    resolution: 用户确认按该方案执行；组件映射的权威文件为 prototypes/high-fidelity/v1/component-mapping.yaml
+    resolved_at: 2026-09-29
+    status: answered
+
+  - id: GAP-004
+    title: 数据权限落地方式未在现有代码中核实
+    discovered_at: 2026-09-29
+    discovered_by: 仓库扫描
+    evidence: ruoyi-common-mybatis 与 ruoyi-common-tenant 存在，但租户管理员放行逻辑、请求级租户隔离机制未逐行核实
+    expected: 校园级 / 年级级 / 班级级 / 个人级四层数据权限，且不被租户管理员逻辑绕过
+    actual: 未核实
+    impact: 若直接沿用现有逻辑，可能造成跨校数据串读；这是本项目的安全红线
+    resolution_plan: 阶段 5 开始前，专项核查 ruoyi-common-tenant 与 ruoyi-common-mybatis 的 DataPermission 实现并输出结论
+    blocking: false
+    blocks_stages: [stage5]
+    owner: 我方
+    status: open
+
+  - id: GAP-005
+    title: 前端包管理锁定文件与 workspace 配置未核实
+    discovered_at: 2026-09-29
+    discovered_by: 仓库扫描
+    evidence: apps/plus-ui/package.json 声明 engines，但根目录与 plus-ui 下锁文件情况未逐一确认
+    expected: pnpm-lock.yaml 存在且与 package.json 一致；根级 pnpm-workspace.yaml 与 turbo.json 待建
+    actual: 待核实
+    impact: 影响 monorepo 编排与依赖可复现性
+    blocking: false
+    blocks_stages: [stage0]
+    owner: 我方
+    resolution: |
+      已核实：apps/plus-ui 下无 pnpm-lock.yaml、无 package-lock.json、无 node_modules；
+      仓库根无 pnpm-workspace.yaml、无 turbo.json、无 package.json。
+      结论：workspace 与 Turbo 需从零建立，属阶段 0 下一批工作。
+    resolved_at: 2026-09-29
+    status: answered
+
+  - id: GAP-006
+    title: 首轮是否引入 Turbo 与 workspace 结构调整未最终确认
+    discovered_at: 2026-09-29
+    discovered_by: 计划评审
+    evidence: 用户要求 monorepo + turbo，但目录迁移涉及移动含内层 .git 的目录，属红线操作
+    expected: 明确迁移方案与备份方式
+    actual: 待确认
+    impact: 若不迁移，apps/ 与 services/ 的路径约定无法落地；若迁移，需先备份内层 Git 元数据
+    blocking: true
+    blocks_stages: [stage0]
+    owner: 用户
+    resolution: |
+      用户批准执行迁移。已完成：
+      plus-ui -> apps/plus-ui（整体 git mv 成功）
+      RuoYi-Cloud-Plus -> services/RuoYi-Cloud-Plus（逐条目 git mv 成功）
+      Git 识别 1622 条改名，后端 2328 个文件完整。
+      内层 .git / .git1 由用户先行删除并暂存，保持删除状态。
+    resolved_at: 2026-09-29
+    status: closed
+
+  - id: GAP-007
+    title: 教育业务关键规则缺少用户口径
+    discovered_at: 2026-09-29
+    discovered_by: 计划评审
+    evidence: 以下规则在任何现有文件中都无依据
+    items:
+      - 学号是否允许跨校重复、由谁生成
+      - 学生是否允许跨校转学，若允许，历史学籍如何保留
+      - 一个学生是否允许同时属于多个行政班
+      - 班主任是否能修改学生联系方式与监护人信息，还是只能查看
+      - 年级与学段的对应关系是否固定（如小学 1-6 年级）
+      - 3+1+2 选科变更的截止时点与审批要求
+      - 教师是否一人多校、是否允许跨校任教
+      - 班级容量上限是否强制校验
+    expected: 有明确业务口径
+    actual: 无
+    impact: 影响 PRD、表结构、唯一键设计与数据权限
+    blocking: true
+    blocks_stages: [stage1, stage5]
+    owner: 用户
+    resolution: |
+      用户已答复 7 条，剩 1 条未定（3+1+2 选科变更截止与审批），已拆分为 GAP-010：
+        学号跨校唯一 = 是，全租户内唯一
+        跨校转学 = 允许
+        学生与行政班 = 同一时间只能属于一个行政班
+        班主任改监护人信息 = 可以
+        年级与学段对应 = 固定
+        教师跨校任教 = 允许
+        班级容量强制校验 = 否，仅提示不拦截
+    resolved_at: 2026-09-29
+    status: answered
+
+  - id: GAP-008
+    title: 非功能指标缺少数值口径
+    discovered_at: 2026-09-29
+    discovered_by: 计划评审
+    evidence: 计划中有"100 校、10 万学生、200 并发"的模型，但未确认
+    expected: 明确目标规模、P95 指标、可用性要求、数据保留期限
+    actual: 待确认
+    impact: 影响索引设计、缓存策略、分页方案、异步任务架构
+    blocking: false
+    blocks_stages: [stage5, stage8]
+    owner: 用户
+    resolution: |
+      用户答复：按 65 所学校 / 10 万学生 / 200 并发活跃用户设计。
+      P95 目标沿用：查询 ≤ 1 秒，普通写入 ≤ 2 秒。
+    resolved_at: 2026-09-29
+    status: answered
+
+  - id: GAP-010
+    title: 3+1+2 选科变更的截止时点与审批要求未定
+    discovered_at: 2026-09-29
+    discovered_by: 用户答复中缺少该项口径
+    evidence: 用户在 GAP-007 的答复里列出了其余 7 条规则，唯独"3+1+2 变更截止与审批"未给出结论
+    expected: 明确"何时之后不允许变更"与"变更是否需要审批、由谁审批"
+    actual: 未定
+    impact: 阻塞选科相关表结构（是否需要审批流表）与状态机设计
+    options:
+      - 学校自行配置截止日期，逾期需校级管理员审批
+      - 固定截止时点（例如选科学期结束前 N 天），逾期不可变更
+      - 不设截止，全程可变更，仅留变更历史
+    recommended: 选项 1（可配置截止 + 审批），兼顾灵活与可控
+    blocking: true
+    blocks_stages: [stage1, stage5]
+    owner: 用户
+    resolution: |
+      用户答复：学校可配置截止日期，逾期需校级管理员审批。
+      影响：选科需要"截止时间"字段 + 审批流表（逾期变更单）。
+    resolved_at: 2026-09-29
+    status: answered
+
+  - id: GAP-009
+    title: 内层 .git / .git1 在阶段 0 执行期间从工作区消失，且有未知进程切换分支
+    discovered_at: 2026-09-29
+    discovered_by: 本阶段 git status 与 git reflog 核查
+    evidence: |
+      git status 显示 68 个删除项，全部位于 apps/plus-ui/.git1 与 services/RuoYi-Cloud-Plus/.git1；
+      git reflog 显示 15:06:24—15:06:47 之间发生四次分支切换，非本阶段发起；
+      plus-ui 与 RuoYi-Cloud-Plus 目录修改时间为 15:06:22。
+      详见 docs/00-governance/repo-baseline.md 第 9 节。
+    expected: 内层 Git 元数据按计划备份后处理，且执行期间仓库无并发写入者
+    actual: 四个目录均已从工作区消失；两个 .git1 可从 HEAD 恢复，两个 .git 无法从本仓库恢复
+    impact: |
+      正面：目录迁移不再需要处理嵌套仓库；
+      负面：存在未知并发进程操作本仓库，可能与本项目的分支、文件与验收节奏冲突。
+    options:
+      - 先排查并发分支切换来源，确认仓库稳定后再继续
+      - 接受现状，.git1 保持删除（历史已归档在根仓库），继续迁移
+      - 先 git restore 恢复两个 .git1，再迁移
+    recommended: 先排查来源，再在"保持删除"与"恢复"之间选一个
+    blocking: true
+    blocks_stages: [stage0, stage1]
+    owner: 用户
+    resolution: 用户答复该操作由本人执行，非异常进程；.git1 保持删除（已暂存）
+    resolved_at: 2026-09-29
+    status: closed
+
+  - id: GAP-011
+    title: 前端基线类型检查与 Lint 未通过（上游遗留）
+    discovered_at: 2026-09-29
+    discovered_by: monorepo 骨架建立后的基线检查
+    evidence: |
+      typecheck：49 个 TypeScript 错误，分布在 src/views/workflow(18)、src/layout/components(11)、
+        src/views/system(9)、src/components/Process(3)、src/components/DictTag(2)、
+        src/views/monitor(2)、src/views/tool(2)、src/components/FileUpload(1)、src/views/register.vue(1)。
+      lint：125 个问题（prettier/prettier 124、vue/block-lang 1），涉及 17 个文件。
+      日志：evidence/stage0-monorepo/2026-09-29_typecheck.log、2026-09-29_lint.log
+    expected: 类型检查与 Lint 全绿
+    actual: 基线即失败，均为上游既有代码
+    impact: 阶段 6 的"通过"判定不能只看命令退出码，必须与基线错误数对比
+    resolution: 按 decisions.md D-024 执行"新增代码零错误 + 既有错误数不增加"，上游清理单独排期
+    blocking: false
+    blocks_stages: []
+    owner: 我方
+    status: answered
+
+open_questions_for_user:
+  - "阶段 0 剩余待办：GAP-004（数据权限落地方式核查，阶段 5 前完成）。当前无阻塞项。"

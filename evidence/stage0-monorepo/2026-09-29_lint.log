@@ -1,0 +1,170 @@
+$ eslint
+
+D:\work\person_work\ruoyi-cloud-monorepo\apps\plus-ui\src\api\system\user\types.ts
+  23:13  error  Delete `·`  prettier/prettier
+
+D:\work\person_work\ruoyi-cloud-monorepo\apps\plus-ui\src\api\workflow\spel\types.ts
+   36:1   error  Delete `␍⏎`               prettier/prettier
+   74:1   error  Delete `␍⏎`               prettier/prettier
+   77:47  error  Delete `␍⏎`               prettier/prettier
+  104:3   error  Delete `··`               prettier/prettier
+  105:1   error  Delete `··`               prettier/prettier
+  106:4   error  Delete `··`               prettier/prettier
+  107:1   error  Replace `····` with `··`  prettier/prettier
+  109:1   error  Delete `␍⏎␍⏎␍⏎`           prettier/prettier
+
+D:\work\person_work\ruoyi-cloud-monorepo\apps\plus-ui\src\components\DictTag\index.vue
+  53:96  error  Insert `;`                                                             prettier/prettier
+  91:28  error  Replace `val·=>·val·==·itemValue)` with `(val)·=>·val·==·itemValue);`  prettier/prettier
+  92:2   error  Insert `;`                                                             prettier/prettier
+
+D:\work\person_work\ruoyi-cloud-monorepo\apps\plus-ui\src\layout\components\Navbar.vue
+   37:31  error  Replace `flex;align-items:` with `·flex;·align-items:·`                                         prettier/prettier
+  108:18  error  Replace `"@/layout/components/Sidebar/Logo.vue"` with `'@/layout/components/Sidebar/Logo.vue'`  prettier/prettier
+  109:30  error  Insert `;`                                                                                      prettier/prettier
+  285:1   error  Delete `␍⏎`                                                                                     prettier/prettier
+  313:20  error  Replace `·background·0.2s·ease,` with `␍⏎··········background·0.2s·ease,␍⏎·········`            prettier/prettier
+
+D:\work\person_work\ruoyi-cloud-monorepo\apps\plus-ui\src\layout\components\Sidebar\Logo.vue
+    2:7    error  Replace `␍⏎····class="sidebar-logo-container"␍⏎····:class="{·collapse:·collapse·}"␍⏎··` with `·class="sidebar-logo-container"·:class="{·collapse:·collapse·}"`  prettier/prettier
+   44:31   error  Insert `;`                                                                                                                                                      prettier/prettier
+   47:41   error  Insert `;`                                                                                                                                                      prettier/prettier
+   49:93   error  Insert `;`                                                                                                                                                      prettier/prettier
+   50:3    error  Insert `;`                                                                                                                                                      prettier/prettier
+   55:33   error  Insert `;`                                                                                                                                                      prettier/prettier
+   58:41   error  Insert `;`                                                                                                                                                      prettier/prettier
+   60:101  error  Insert `;`                                                                                                                                                      prettier/prettier
+   61:3    error  Insert `;`                                                                                                                                                      prettier/prettier
+  101:19   error  Replace `·Avenir,·Helvetica·Neue,·Arial,·Helvetica,` with `␍⏎········Avenir,␍⏎········Helvetica·Neue,␍⏎········Arial,␍⏎········Helvetica,␍⏎·······`             prettier/prettier
+
+D:\work\person_work\ruoyi-cloud-monorepo\apps\plus-ui\src\layout\components\TagsView\index.vue
+   15:116  error  Insert `·`                                                                                                                                                                                    prettier/prettier
+   55:61   error  Insert `;`                                                                                                                                                                                    prettier/prettier
+  264:18   error  Replace `·box-shadow·0.2s·ease,·transform·0.2s·ease,·border-color·0.2s·ease,` with `␍⏎········box-shadow·0.2s·ease,␍⏎········transform·0.2s·ease,␍⏎········border-color·0.2s·ease,␍⏎·······`  prettier/prettier
+
+D:\work\person_work\ruoyi-cloud-monorepo\apps\plus-ui\src\layout\components\TopBar\index.vue
+   14:1    error  The 'lang' attribute of '<script>' is missing                                                                                                                                                  vue/block-lang
+   15:49   error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   16:9    error  Replace `useAppStore}·from·'@/store/modules/app'` with `·useAppStore·}·from·'@/store/modules/app';`                                                                                            prettier/prettier
+   17:9    error  Replace `useSettingsStore}·from·'@/store/modules/settings'` with `·useSettingsStore·}·from·'@/store/modules/settings';`                                                                        prettier/prettier
+   18:9    error  Replace `usePermissionStore}·from·'@/store/modules/permission'` with `·usePermissionStore·}·from·'@/store/modules/permission';`                                                                prettier/prettier
+   20:25   error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   21:31   error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   22:41   error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   23:45   error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   25:70   error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   26:50   error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   27:47   error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   29:31   error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   31:27   error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   33:14   error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   34:3    error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   36:29   error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   38:95   error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   39:3    error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   41:143  error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   42:3    error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   44:58   error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   46:17   error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   48:49   error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   52:54   error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   53:3    error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   55:57   error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   56:3    error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   59:21   error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   60:3    error  Insert `;`                                                                                                                                                                                     prettier/prettier
+   63:20   error  Delete `␍⏎`                                                                                                                                                                                    prettier/prettier
+   66:59   error  Replace `·` with `␍⏎`                                                                                                                                                                          prettier/prettier
+   79:34   error  Replace `·.el-menu-item.is-active·.svg-icon·+·span,·.el-sub-menu.is-active·.svg-icon·+·span,·` with `␍⏎.el-menu-item.is-active·.svg-icon·+·span,␍⏎.el-sub-menu.is-active·.svg-icon·+·span,␍⏎`  prettier/prettier
+   88:22   error  Insert `·`                                                                                                                                                                                     prettier/prettier
+  100:54   error  Replace `·` with `␍⏎`                                                                                                                                                                          prettier/prettier
+
+D:\work\person_work\ruoyi-cloud-monorepo\apps\plus-ui\src\layout\index.vue
+  130:44  error  Delete `0`  prettier/prettier
+
+D:\work\person_work\ruoyi-cloud-monorepo\apps\plus-ui\src\router\index.ts
+  95:49  error  Delete `␍⏎␍⏎`  prettier/prettier
+
+D:\work\person_work\ruoyi-cloud-monorepo\apps\plus-ui\src\views\system\menu\index.vue
+  31:147  error  Replace `>级联删除</el-button` with `␍⏎··············>级联删除</el-button␍⏎············`  prettier/prettier
+
+D:\work\person_work\ruoyi-cloud-monorepo\apps\plus-ui\src\views\system\user\index.vue
+  618:34  error  Replace `␍⏎····new·Map([...data.roles,·...data.user.roles].map(role·=>·[role.roleId,·role])).values()␍⏎··` with `new·Map([...data.roles,·...data.user.roles].map((role)·=>·[role.roleId,·role])).values()`  prettier/prettier
+
+D:\work\person_work\ruoyi-cloud-monorepo\apps\plus-ui\src\views\tool\gen\genInfoForm.vue
+  84:1  error  Delete `␍⏎`  prettier/prettier
+
+D:\work\person_work\ruoyi-cloud-monorepo\apps\plus-ui\src\views\workflow\processDefinition\index.vue
+   48:139  error  Replace `>修改</el-button` with `␍⏎··················>修改</el-button␍⏎················`                                                                                                                                                                                                                                                                                                                                                                                                                                                             prettier/prettier
+   51:144  error  Replace `>删除</el-button` with `␍⏎··················>删除</el-button␍⏎················`                                                                                                                                                                                                                                                                                                                                                                                                                                                             prettier/prettier
+   54:143  error  Replace `>部署流程文件</el-button` with `␍⏎··················>部署流程文件</el-button␍⏎················`                                                                                                                                                                                                                                                                                                                                                                                                                                                     prettier/prettier
+   57:146  error  Replace `>导出</el-button` with `␍⏎··················>导出</el-button␍⏎················`                                                                                                                                                                                                                                                                                                                                                                                                                                                             prettier/prettier
+   96:33   error  Replace `·v-hasPermi="['workflow:definition:remove']"·link·type="primary"·size="small"·icon="Delete"·@click="handleDelete(scope.row)">删除流程</el-button` with `␍⏎························v-hasPermi="['workflow:definition:remove']"␍⏎························link␍⏎························type="primary"␍⏎························size="small"␍⏎························icon="Delete"␍⏎························@click="handleDelete(scope.row)"␍⏎························>删除流程</el-button␍⏎······················`                               prettier/prettier
+   99:33   error  Replace `·v-hasPermi="['workflow:definition:copy']"·link·type="primary"·size="small"·icon="CopyDocument"·@click="handleCopyDef(scope.row)">复制流程</el-button` with `␍⏎························v-hasPermi="['workflow:definition:copy']"␍⏎························link␍⏎························type="primary"␍⏎························size="small"␍⏎························icon="CopyDocument"␍⏎························@click="handleCopyDef(scope.row)"␍⏎························>复制流程</el-button␍⏎······················`                     prettier/prettier
+  104:33   error  Replace `·v-hasPermi="['workflow:definition:query']"·link·type="primary"·v-if="scope.row.isPublish·===·0"·icon="Pointer"·size="small"` with `␍⏎························v-hasPermi="['workflow:definition:query']"␍⏎························link␍⏎························type="primary"␍⏎························v-if="scope.row.isPublish·===·0"␍⏎························icon="Pointer"␍⏎························size="small"␍⏎·······················`                                                                                        prettier/prettier
+  107:33   error  Replace `·v-hasPermi="['workflow:definition:query']"·link·type="primary"·v-else·icon="View"·size="small"·@click="designView(scope.row)">查看流程</el-button` with `␍⏎························v-hasPermi="['workflow:definition:query']"␍⏎························link␍⏎························type="primary"␍⏎························v-else␍⏎························icon="View"␍⏎························size="small"␍⏎························@click="designView(scope.row)"␍⏎························>查看流程</el-button␍⏎······················`  prettier/prettier
+  110:33   error  Replace `·v-hasPermi="['workflow:definition:publish']"·link·type="primary"·size="small"·icon="CircleCheck"·@click="handlePublish(scope.row)">发布流程</el-button` with `␍⏎························v-hasPermi="['workflow:definition:publish']"␍⏎························link␍⏎························type="primary"␍⏎························size="small"␍⏎························icon="CircleCheck"␍⏎························@click="handlePublish(scope.row)"␍⏎························>发布流程</el-button␍⏎······················`                 prettier/prettier
+
+D:\work\person_work\ruoyi-cloud-monorepo\apps\plus-ui\src\views\workflow\processInstance\index.vue
+   53:146  error  Replace `>删除</el-button` with `␍⏎··················>删除</el-button␍⏎················`                                                                                                                                                                                                                                                                                                                                                                                                                             prettier/prettier
+   78:31   error  Replace `·v-if="tab·===·'running'"·v-hasPermi="['workflow:instance:active']"·align="center"·prop="isSuspended"·label="状态"·min-width="70"` with `␍⏎················v-if="tab·===·'running'"␍⏎················v-hasPermi="['workflow:instance:active']"␍⏎················align="center"␍⏎················prop="isSuspended"␍⏎················label="状态"␍⏎················min-width="70"␍⏎··············`                                                                                                           prettier/prettier
+  107:149  error  Replace `>删除` with `␍⏎························>删除␍⏎·····················`                                                                                                                                                                                                                                                                                                                                                                                                                                        prettier/prettier
+  112:145  error  Replace `>查看</el-button` with `␍⏎························>查看</el-button␍⏎······················`                                                                                                                                                                                                                                                                                                                                                                                                                 prettier/prettier
+  115:33   error  Replace `·v-hasPermi="['workflow:instance:variableQuery']"·type="primary"·size="small"·icon="Document"·@click="handleInstanceVariable(scope.row)">·变量` with `␍⏎························v-hasPermi="['workflow:instance:variableQuery']"␍⏎························type="primary"␍⏎························size="small"␍⏎························icon="Document"␍⏎························@click="handleInstanceVariable(scope.row)"␍⏎······················>␍⏎························变量␍⏎·····················`  prettier/prettier
+
+D:\work\person_work\ruoyi-cloud-monorepo\apps\plus-ui\src\views\workflow\spel\index.vue
+   29:135  error  Replace `>修改</el-button` with `␍⏎··············>修改</el-button␍⏎············`                                                                                                                                                 prettier/prettier
+   32:140  error  Replace `>删除</el-button` with `␍⏎··············>删除</el-button␍⏎············`                                                                                                                                                 prettier/prettier
+  182:20   error  Delete `,`                                                                                                                                                                                                                   prettier/prettier
+  183:2    error  Insert `;`                                                                                                                                                                                                                   prettier/prettier
+  185:10   error  Replace `...initFormData` with `·...initFormData·`                                                                                                                                                                           prettier/prettier
+  194:14   error  Delete `␍⏎····`                                                                                                                                                                                                              prettier/prettier
+  198:14   error  Replace `␍⏎······{·required:·true,·message:·"状态不能为空",·trigger:·"change"·}␍⏎····],` with `{·required:·true,·message:·'状态不能为空',·trigger:·'change'·}]`                                                                          prettier/prettier
+  213:2    error  Insert `;`                                                                                                                                                                                                                   prettier/prettier
+  219:2    error  Insert `;`                                                                                                                                                                                                                   prettier/prettier
+  223:17   error  Replace `...initFormData` with `·...initFormData·`                                                                                                                                                                           prettier/prettier
+  225:2    error  Insert `;`                                                                                                                                                                                                                   prettier/prettier
+  231:2    error  Insert `;`                                                                                                                                                                                                                   prettier/prettier
+  237:2    error  Insert `;`                                                                                                                                                                                                                   prettier/prettier
+  241:29   error  Replace `item` with `(item)`                                                                                                                                                                                                 prettier/prettier
+  244:2    error  Insert `;`                                                                                                                                                                                                                   prettier/prettier
+  250:18   error  Replace `"添加流程spel表达式定义"` with `'添加流程spel表达式定义'`                                                                                                                                                                             prettier/prettier
+  251:2    error  Insert `;`                                                                                                                                                                                                                   prettier/prettier
+  256:38   error  Insert `;`                                                                                                                                                                                                                   prettier/prettier
+  260:18   error  Replace `"修改流程spel表达式定义"` with `'修改流程spel表达式定义'`                                                                                                                                                                             prettier/prettier
+  261:2    error  Insert `;`                                                                                                                                                                                                                   prettier/prettier
+  269:52   error  Replace `·buttonLoading.value·=·false` with `(buttonLoading.value·=·false)`                                                                                                                                                  prettier/prettier
+  271:49   error  Replace `·buttonLoading.value·=·false` with `(buttonLoading.value·=·false)`                                                                                                                                                  prettier/prettier
+  273:32   error  Replace `"操作成功"` with `'操作成功'`                                                                                                                                                                                               prettier/prettier
+  278:2    error  Insert `;`                                                                                                                                                                                                                   prettier/prettier
+  283:88   error  Replace `loading.value·=·false)` with `(loading.value·=·false))`                                                                                                                                                             prettier/prettier
+  285:28   error  Replace `"删除成功"` with `'删除成功'`                                                                                                                                                                                               prettier/prettier
+  287:2    error  Insert `;`                                                                                                                                                                                                                   prettier/prettier
+  305:31   error  Insert `␍⏎······`                                                                                                                                                                                                            prettier/prettier
+  306:11   error  Replace `(p` with `((p)`                                                                                                                                                                                                     prettier/prettier
+  307:14   error  Replace `(p` with `((p)`                                                                                                                                                                                                     prettier/prettier
+  325:25   error  Insert `␍⏎······`                                                                                                                                                                                                            prettier/prettier
+  326:11   error  Replace `(p` with `((p)`                                                                                                                                                                                                     prettier/prettier
+  327:15   error  Replace `p` with `(p)`                                                                                                                                                                                                       prettier/prettier
+  330:41   error  Replace `␍⏎····?·'('·+·paramList.map(p·=>·`#${p}`).join(',')·+·')'␍⏎···` with `·?·'('·+·paramList.map((p)·=>·`#${p}`).join(',')·+·')'`                                                                                       prettier/prettier
+  338:7    error  Replace `␍⏎··()·=>·[form.value.componentName,·form.value.methodName,·form.value.methodParams],␍⏎··updateViewSpel␍⏎` with `()·=>·[form.value.componentName,·form.value.methodName,·form.value.methodParams],·updateViewSpel`  prettier/prettier
+  355:24   error  Delete `···`                                                                                                                                                                                                                 prettier/prettier
+  356:21   error  Delete `······`                                                                                                                                                                                                              prettier/prettier
+  357:20   error  Delete `······`                                                                                                                                                                                                              prettier/prettier
+
+D:\work\person_work\ruoyi-cloud-monorepo\apps\plus-ui\src\views\workflow\task\allTaskWaiting.vue
+  30:23  error  Replace `·class="todo-action-btn·todo-action-btn--primary"·type="primary"·plain·icon="Edit"·:disabled="multiple"` with `␍⏎··············class="todo-action-btn·todo-action-btn--primary"␍⏎··············type="primary"␍⏎··············plain␍⏎··············icon="Edit"␍⏎··············:disabled="multiple"␍⏎·············`  prettier/prettier
+  33:23  error  Replace `·class="todo-action-btn·todo-action-btn--warning"·type="warning"·plain·icon="Bell"·:disabled="multiple"` with `␍⏎··············class="todo-action-btn·todo-action-btn--warning"␍⏎··············type="warning"␍⏎··············plain␍⏎··············icon="Bell"␍⏎··············:disabled="multiple"␍⏎·············`  prettier/prettier
+
+D:\work\person_work\ruoyi-cloud-monorepo\apps\plus-ui\vite\plugins\icons.ts
+  7:15  error  Replace `"vue3"` with `'vue3'`  prettier/prettier
+
+✖ 125 problems (125 errors, 0 warnings)
+  124 errors and 0 warnings potentially fixable with the `--fix` option.
+
+[ELIFECYCLE] Command failed with exit code 1.
+Error: ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL
+
+  × "pnpm recursive run" failed in D:\work\person_work\ruoyi-cloud-
+  │ monorepo\apps\plus-ui
+

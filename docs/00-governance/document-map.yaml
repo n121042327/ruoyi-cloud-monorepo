@@ -1,0 +1,153 @@
+schema_version: "1.0"
+purpose: 文档依赖图。用于回答"改了这个文件，要连带改哪些"。
+
+nodes:
+  - id: gov.agents.root
+    path: AGENTS.md
+    kind: constraint
+    frozen_after: stage0
+  - id: gov.stack
+    path: docs/00-governance/stack-lock.md
+    kind: constraint
+  - id: gov.decisions
+    path: docs/00-governance/decisions.md
+    kind: record
+  - id: gov.gap
+    path: docs/00-governance/gap-register.yaml
+    kind: record
+
+  - id: prd.common
+    path: docs/10-prd/0*.md
+    kind: spec
+  - id: prd.permission
+    path: docs/10-prd/05-permission-matrix.yaml
+    kind: spec
+  - id: prd.field
+    path: docs/10-prd/06-field-dictionary.yaml
+    kind: spec
+  - id: prd.student
+    path: docs/10-prd/modules/student/PRD.md
+    kind: spec
+  - id: prd.promotion
+    path: docs/10-prd/modules/promotion/PRD.md
+    kind: spec
+  - id: prd.stream
+    path: docs/10-prd/modules/stream/PRD.md
+    kind: spec
+
+  - id: proto.functional
+    path: prototypes/functional/v1
+    kind: artifact
+  - id: proto.hifi
+    path: prototypes/high-fidelity/v1
+    kind: artifact
+  - id: proto.tokens
+    path: prototypes/high-fidelity/v1/design-tokens.json
+    kind: constraint
+  - id: proto.mapping
+    path: prototypes/high-fidelity/v1/component-mapping.yaml
+    kind: constraint
+
+  - id: arch.overview
+    path: docs/30-architecture
+    kind: design
+  - id: arch.api_catalog
+    path: docs/30-architecture/06-api-catalog.md
+    kind: design
+  - id: arch.data_ownership
+    path: docs/30-architecture/05-data-ownership.md
+    kind: design
+
+  - id: dd.openapi
+    path: docs/40-detailed-design/api/openapi.yaml
+    kind: design
+  - id: dd.schema
+    path: docs/40-detailed-design/database/physical-schema.md
+    kind: design
+  - id: dd.migration
+    path: docs/40-detailed-design/migrations
+    kind: artifact
+  - id: dd.page_tree
+    path: docs/40-detailed-design/frontend-page-tree.yaml
+    kind: design
+  - id: dd.page_action_map
+    path: docs/40-detailed-design/page-action-api-map.yaml
+    kind: design
+
+  - id: fe.code
+    path: apps/plus-ui/src
+    kind: artifact
+  - id: be.code
+    path: services/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-edu
+    kind: artifact
+  - id: evidence
+    path: evidence
+    kind: artifact
+
+edges:
+  - from: gov.stack
+    to: arch.overview
+    rule: 概要设计的技术选型必须与锁定表一致，冲突需 ADR
+  - from: prd.permission
+    to: arch.overview
+    rule: 权限矩阵是数据权限架构的唯一来源
+  - from: prd.permission
+    to: dd.openapi
+    rule: 每个 operationId 必须声明其数据范围
+  - from: prd.field
+    to: proto.functional
+    rule: 原型表单字段必须能在字段字典中找到定义
+  - from: prd.field
+    to: dd.schema
+    rule: 字段字典是建表字段命名的依据
+  - from: prd.student
+    to: proto.functional
+    rule: 原型页面覆盖 PRD 中每个用户故事
+  - from: prd.promotion
+    to: dd.schema
+    rule: 升班涉及的历史表结构由 PRD 流程决定
+  - from: prd.stream
+    to: dd.schema
+    rule: 3+1+2 选科表结构由该 PRD 决定
+  - from: proto.functional
+    to: proto.hifi
+    rule: 高保真必须覆盖业务原型的全部页面与状态，不得删减功能
+  - from: proto.tokens
+    to: fe.code
+    rule: 前端颜色 / 间距 / 字号必须来自 design-tokens
+  - from: proto.mapping
+    to: fe.code
+    rule: 原型元素到组件库组件的映射必须逐条实现
+  - from: arch.api_catalog
+    to: dd.openapi
+    rule: 接口清单与 OpenAPI 必须一一对应
+  - from: arch.data_ownership
+    to: dd.schema
+    rule: 表归属决定它出现在哪个服务的迁移脚本里
+  - from: dd.schema
+    to: dd.migration
+    rule: 物理表结构文档与迁移脚本必须能互相还原
+  - from: dd.openapi
+    to: fe.code
+    rule: 前端请求路径与类型由 OpenAPI 生成或手工对齐
+  - from: dd.openapi
+    to: be.code
+    rule: 后端 Controller 必须实现 OpenAPI 声明的全部 operationId
+  - from: dd.schema
+    to: be.code
+    rule: 实体字段与表字段一一对应
+  - from: dd.page_action_map
+    to: fe.code
+    rule: 页面中每个动作都要落到映射表里的组件与接口
+
+impact_rules:
+  - when_changed: prd.permission
+    must_recheck: [arch.overview, dd.openapi, dd.page_tree, fe.code, be.code]
+  - when_changed: prd.field
+    must_recheck: [proto.functional, proto.hifi, dd.schema, dd.migration, dd.openapi, fe.code, be.code]
+  - when_changed: proto.tokens
+    must_recheck: [proto.hifi, fe.code]
+  - when_changed: dd.schema
+    must_recheck: [dd.migration, be.code, dd.domain_table_map]
+  - when_changed: any_frozen
+    action: 走 change-control.md，产出新版本，不得就地覆盖

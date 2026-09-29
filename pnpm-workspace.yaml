@@ -1,0 +1,9 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# pnpm 10 起默认阻止依赖的安装脚本。以下两个包的构建脚本是必需的：
+# esbuild 依赖它准备平台二进制，@parcel/watcher 是 UnoCSS / Vite 用的原生文件监听
+allowBuilds:
+  "@parcel/watcher": true
+  esbuild: true

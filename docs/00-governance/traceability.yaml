@@ -1,0 +1,44 @@
+schema_version: "1.0"
+purpose: |
+  需求追踪矩阵骨架。每条需求从 PRD 一路追到原型、接口、表、前端页面、后端实现与测试。
+  阶段 5 开始逐条填充；阶段 8 用它检查是否有孤儿产物。
+
+status_values: [未开始, 部分覆盖, 已覆盖, 已验收]
+
+traceability: []
+
+template:
+  requirement_id: REQ-STUDENT-001
+  title: 学生列表按姓名 / 学号 / 班级筛选
+  source: docs/10-prd/modules/student/PRD.md#故事1
+  business_rules: [BR-STUDENT-003]
+  permission: 校领导 / 年级主任 / 班主任 / 任课教师 各自可见范围
+  prototype_functional: prototypes/functional/v1/pages/student-list.html
+  prototype_hifi: prototypes/high-fidelity/v1/pages/student-list.html
+  api_operation_ids: [eduStudentPage]
+  tables: [edu_student, edu_student_class]
+  frontend:
+    page: apps/plus-ui/src/views/edu/student/index.vue
+    composable: apps/plus-ui/src/views/edu/student/composables/useStudentList.ts
+  backend:
+    controller: EduStudentController#page
+    service: IEduStudentService#queryPageList
+  tests:
+    unit: []
+    integration: []
+    permission: []
+  status: 未开始
+
+coverage_checks:
+  - id: CHK-ORPHAN-PROTO
+    rule: 原型中每个页面与状态都能追溯到至少一条 REQ
+  - id: CHK-ORPHAN-API
+    rule: OpenAPI 中每个 operationId 都能追溯到至少一条 REQ
+  - id: CHK-ORPHAN-TABLE
+    rule: 每张教育表都能追溯到至少一个领域对象
+  - id: CHK-ORPHAN-CODE
+    rule: 前端每个页面与后端每个 Controller 方法都能追溯到 REQ
+  - id: CHK-PERMISSION
+    rule: 每条 REQ 都声明数据范围，且对应越权测试用例存在
+  - id: CHK-PROMOTION-IDEMPOTENT
+    rule: 升班、选科相关的每条 REQ 都有幂等与并发测试用例
