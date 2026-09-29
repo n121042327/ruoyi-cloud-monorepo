@@ -2,6 +2,8 @@ schema_version: "1.0"
 purpose: 缺项登记。阻塞性缺项未解决前，不得执行依赖它的下游任务。
 
 status_values: [open, answered, closed, waived]
+# blocking 表示该缺项是否阻塞 blocks_stages 中列出的阶段。
+# 状态为 answered / closed / waived 的项不再阻塞，阶段门禁按 status 判定，不按 blocking 判定。
 
 gaps:
   - id: GAP-001
@@ -75,7 +77,19 @@ gaps:
     blocking: false
     blocks_stages: [stage5]
     owner: 我方
-    status: open
+    resolution: |
+      用户答复：改为"设计相关的表结构关系并落盘"。
+      已交付 docs/10-prd/10-data-permission-schema.md：
+        六类数据范围各自的权威来源表
+        edu_user_role / edu_grade_leader / edu_class.head_teacher_id /
+        edu_teaching_assignment / edu_data_grant / edu_data_grant_scope 的字段、唯一键、索引
+        五步范围解析流程
+        缓存键与版本失效机制
+        与现有 ruoyi-common-tenant 的边界
+      代码层核查（现有 DataPermission 实现的逐行确认）移交阶段 5 作为实现前置任务，
+      不再作为缺项阻塞。
+    resolved_at: 2026-09-29
+    status: closed
 
   - id: GAP-005
     title: 前端包管理锁定文件与 workspace 配置未核实
@@ -231,5 +245,171 @@ gaps:
     owner: 我方
     status: answered
 
+  - id: GAP-012
+    title: 租户模型修订后，学号的唯一范围需要重新确认
+    discovered_at: 2026-09-29
+    discovered_by: 租户模型由"租户下辖多校"改为"租户即组织单元"后的推导
+    evidence: |
+      原口径"学号跨校唯一"在旧的租户模型下等价于"租户内唯一"。
+      新模型下每个学校是独立租户，"跨校唯一"只能理解为在更上层的集团内唯一。
+      当前按"根租户内唯一"处理，唯一键为 (root_tenant_id, student_no)。
+    expected: 明确学号唯一范围是"集团内唯一"、"全平台唯一"，还是"仅本校唯一"
+    actual: 暂按根租户内唯一实现
+    impact: 决定唯一键列组合、导入去重规则、跨校转学时学号是否保留
+    options:
+      - 集团内唯一（根租户内唯一）：跨校转学保留学号，独立学校租户内唯一
+      - 全平台唯一：所有学校的学号都不能重复，实施时需要一个全局发号器
+      - 仅本校唯一：各校自行编号，跨校转学必须换号
+    recommended: 选项 1（集团内唯一）
+    blocking: true
+    blocks_stages: [stage1, stage5]
+    owner: 用户
+    resolution: 用户答复：**按全平台唯一**。edu_student 唯一键为 (student_no)，学生登录名 s+学号 也因此全平台唯一。衍生出 GAP-016（学号生成规则）
+    resolved_at: 2026-09-29
+    status: closed
+
+  - id: GAP-013
+    title: 集团跨学校租户查询的实现方式未定
+    discovered_at: 2026-09-29
+    discovered_by: 租户模型修订后的架构推导
+    evidence: |
+      教学数据的 tenant_id = 学校租户 ID。
+      集团用户若被授权查看下属学校数据，需要跨多个 tenant_id 查询，
+      这与现有 ruoyi-common-tenant 的"单租户上下文 + tenant_id 过滤"模式冲突。
+    expected: 明确集团跨租户查询的落地方式
+    actual: 未定
+    impact: 影响数据权限拦截器、SQL 生成、缓存键设计，是阶段 4 概要设计的核心输入
+    options:
+      - 范围展开：把允许的学校租户 ID 集合拼进 where（tenant_id in (...)），不改隔离框架
+      - 冗余根租户列：教学数据行上冗余 root_tenant_id，集团查询按 root_tenant_id 过滤
+      - 租户内多校：不用学校级租户，退回"一个租户下辖多校"的旧模型
+    recommended: 选项 1，必要时叠加选项 2
+    blocking: true
+    blocks_stages: [stage4, stage5]
+    owner: 用户
+    resolution: |
+      用户答复：集团**不看**下属学校教学数据，因此不存在"按租户树自动下钻"的默认诉求。
+      跨校共享改为运营方显式授权。方案定为"授权展开"：
+      权限解析时把生效中的共享授权展开为额外的学校租户 ID 集合，拼进 where，
+      不修改 ruoyi-common-tenant 的隔离框架，也不放宽 tenant_id 条件。
+      见 D-028 与 BR-ORG-013 / BR-DATA-011 ~ 013。
+    resolved_at: 2026-09-29
+    status: closed
+
+  - id: GAP-014
+    title: 学生登录名方案待确认
+    discovered_at: 2026-09-29
+    discovered_by: 用户提出的问题（小学生没有手机号，登录名用什么）
+    evidence: 用户明确提出"学生有些是小学生，登录名用什么呢"
+    expected: 确认学生登录名规则
+    actual: 暂按 BR-ACCOUNT-002 的提案：s + 学号，初始密码由学校批量生成并强制首改
+    impact: 影响账号表唯一键、导入流程、登录页输入提示
+    options:
+      - s + 学号（如 s20260001）
+      - 纯学号
+      - 学校编码 + 学号
+    recommended: 选项 1，加前缀可避免与教师账号、管理员账号冲突
+    blocking: true
+    blocks_stages: [stage1, stage5]
+    owner: 用户
+    resolution: 用户答复：`s` + 学号可以。已写入 BR-ACCOUNT-002 并确认为正式规则
+    resolved_at: 2026-09-29
+    status: closed
+
+  - id: GAP-015
+    title: 监护人跨校跨集团关联多个孩子的账号模型待确认
+    discovered_at: 2026-09-29
+    discovered_by: 用户提出的场景（一个家长多个孩子，含同班到跨集团）
+    evidence: 用户明确要求考虑"一个家长多个孩子（含同班级、同年级、同学校、不同学校场景）"
+    expected: 明确监护人账号是否跨租户、关联由谁审核、首轮是否建表
+    actual: 暂按 BR-ACCOUNT-005 ~ 010 的提案：多对多、账号不绑单一学校租户、学校侧审核、首轮只建模型不实现端
+    impact: 影响监护人与学生关联表是否进入首轮迁移脚本，以及家长端后续的账号体系
+    options:
+      - 账号跨租户、关联多对多、学校侧审核，首轮建表不实现端（当前提案）
+      - 家长账号绑定单个学校租户，跨校孩子需要多个账号
+      - 首轮完全不建模型，等做家长端时再设计
+    recommended: 选项 1
+    blocking: false
+    blocks_stages: [stage5]
+    owner: 用户
+    resolution: |
+      用户答复：按"跨租户 + 多对多 + 学校侧审核"设计表结构与关系。
+      已交付 docs/10-prd/09-guardian-and-onboarding.md，含 6 张表的草案、
+      唯一键与索引、绑定流程、防滥用约束与数据范围收窄规则。
+    resolved_at: 2026-09-29
+    status: closed
+
+  - id: GAP-016
+    title: 学号生成规则未定（全平台唯一与各校自编学号冲突）
+    discovered_at: 2026-09-29
+    discovered_by: 学号改为全平台唯一后的推导
+    evidence: |
+      各校惯用的学号形如 20260001，跨校必然重复；
+      但学号已定为全平台唯一，因此必须引入学校标识或全局发号。
+    expected: 明确学号由谁生成、格式如何、导入时如何处理学校自带学号
+    actual: 未定
+    impact: 影响唯一索引、导入流程、学生账号创建、跨校转学时学号是否保留
+    options:
+      - 学号 = 学校编码 + 序号（如 BJYZ20260001），学校录入系统校验全局唯一
+      - 系统统一发号，学校不自编，导入时忽略源文件学号
+      - 学校自编，系统检测冲突后自动加后缀并提示
+    recommended: 选项 1，兼顾学校习惯与全局唯一
+    blocking: true
+    blocks_stages: [stage1, stage5]
+    owner: 用户
+    resolution: |
+      用户答复：**系统统一发号**，学校不自编。
+      已落地 BR-STU-001 与 BR-STU-017 ~ 021：
+        格式 = 入学年份(4) + 全局序号(6)，如 2026000001，序号按年重置
+        学号永不回收、永不重用
+        导入时忽略源学号，导入完成后提供学号对照表
+        跨校转学学号不变
+        修改学号需校级管理员权限并留审计
+      技术影响：需要全平台级发号器，且批量导入必须用号段模式。
+      衍生问题见 GAP-018。
+    resolved_at: 2026-09-29
+    status: closed
+
+  - id: GAP-017
+    title: 家长相关表是否进入首轮迁移脚本
+    discovered_at: 2026-09-29
+    discovered_by: 09-guardian-and-onboarding.md 的落地范围判断
+    evidence: 用户已确认家长端首轮不实现，但要求模型先行设计
+    expected: 明确 6 张家长相关表是否进入首轮迁移脚本
+    actual: 文档建议建表，尚未确认
+    impact: 影响首轮迁移脚本范围与阶段 5 工作量
+    options:
+      - 建表，不实现接口与界面（当前建议）
+      - 只写设计文档，不建表
+    recommended: 选项 1
+    blocking: false
+    blocks_stages: [stage5]
+    owner: 用户
+    resolution: 用户答复：**进入首轮迁移脚本**。家长相关表建表，不实现接口与界面
+    resolved_at: 2026-09-29
+    status: closed
+
+  - id: GAP-018
+    title: 全国学籍号是否需要单独字段
+    discovered_at: 2026-09-29
+    discovered_by: 学号改为系统统一发号后的推导
+    evidence: |
+      学号由系统发号后，学校原有的官方学籍号（全国学籍号，通常以 G 或 L 开头）
+      在系统里没有归属字段。若学校需要对外报表使用该号码，必须单独存储。
+    expected: 明确系统是否需要存储全国学籍号 / 学籍辅号
+    actual: 未定
+    impact: 影响学生表字段与导入模板列
+    options:
+      - 新增 national_student_no 字段，全平台唯一且允许为空
+      - 不存储，学校自行在自有系统维护
+    recommended: 选项 1，字段允许为空，避免影响存量导入
+    blocking: false
+    blocks_stages: [stage5]
+    owner: 用户
+    resolution: 用户答复：**加字段**。已落地 BR-STU-022 与字段字典 national_student_no，允许为空，非空时全平台唯一
+    resolved_at: 2026-09-29
+    status: closed
+
 open_questions_for_user:
-  - "阶段 0 剩余待办：GAP-004（数据权限落地方式核查，阶段 5 前完成）。当前无阻塞项。"
+  - "阶段 1 公共前置全部无阻塞项，11 个文件齐备。"
+  - "等待你确认后进入批次 1-1：学生管理 PRD 样板（含验收标准）。"

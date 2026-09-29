@@ -213,19 +213,20 @@ def check_business_rules() -> set[str]:
         rep("MISSING", f"必需文件不存在: {rel(path)}")
         return set()
     body = read(path)
-    rules = re.findall(r"BR-[A-Z]+-\d{3}", body)
-    duplicates = {r for r in rules if rules.count(r) > 1}
+    # 只有表格首列才算"定义"，正文中的出现属于引用
+    definitions = re.findall(r"^\|\s*(BR-[A-Z]+-\d{3})\s*\|", body, flags=re.MULTILINE)
+    duplicates = {r for r in definitions if definitions.count(r) > 1}
     if duplicates:
-        rep("BR", f"编号重复: {sorted(duplicates)}")
+        rep("BR", f"编号重复定义: {sorted(duplicates)}")
     by_domain: dict[str, list[int]] = {}
-    for rule in sorted(set(rules)):
+    for rule in sorted(set(definitions)):
         domain, num = rule.rsplit("-", 1)
         by_domain.setdefault(domain, []).append(int(num))
     for domain, nums in sorted(by_domain.items()):
         nums.sort()
         if nums != list(range(1, len(nums) + 1)):
             rep("BR", f"{domain} 编号不连续: {nums}")
-    return set(rules)
+    return set(definitions)
 
 
 def check_cross_references(rule_ids: set[str]) -> None:

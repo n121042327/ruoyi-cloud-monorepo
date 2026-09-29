@@ -62,6 +62,8 @@
 | `docs/10-prd/06-field-dictionary.yaml` | 全局字段字典（枚举、字典、复用字段） | `review` |
 | `docs/10-prd/07-non-functional-requirements.md` | 非功能需求（性能、并发、安全、审计、可用性） | `review` |
 | `docs/10-prd/08-data-scope-model.md` | 数据归属与数据权限模型 | `review` |
+| `docs/10-prd/09-guardian-and-onboarding.md` | 家长绑定与学生数据采集模型（含表结构草案） | `review` |
+| `docs/10-prd/10-data-permission-schema.md` | 数据权限表结构与关系（含范围解析与缓存失效） | `review` |
 
 ### 模块 PRD（首轮）
 

@@ -10,7 +10,10 @@ roles:
     name: 平台运营
     home: platform
     default_data_scope: platform
-    note: 查看 / 修改 / 导出 三项独立授权，缺一项即拒绝
+    note: |
+      平台运营方本身也是一个租户，且是超级租户，可查看全平台数据。
+      但查看 / 修改 / 导出仍是三项独立授权，缺一项即拒绝；
+      任何数据访问都必须留痕，并可被租户侧要求导出（已确认）。
 
   - code: tenant_admin
     name: 租户管理员
@@ -313,8 +316,34 @@ deny_rules:
   - id: PM-DENY-005
     rule: 教育数据权限独立实现，不依赖也不继承系统租户管理员的放行逻辑
 
+resolved_questions:
+  - question: 任课教师能否导出任教班级的名单？
+    answer: 禁止
+    applied_to: subject_teacher.forbidden
+    resolved_at: 2026-09-29
+  - question: 年级主任能否修改学生监护人信息？
+    answer: 只读，只有班主任能改
+    applied_to: grade_leader.forbidden
+    resolved_at: 2026-09-29
+  - question: 集团专家与集团领导首轮是否需要写权限？
+    answer: 只读
+    applied_to: group_expert / group_leader
+    resolved_at: 2026-09-29
+  - question: 平台运营协助排查时临时授予查看权限，是否留痕到租户侧？
+    answer: 要
+    applied_to: platform_ops.note
+    resolved_at: 2026-09-29
+
 open_questions:
-  - 任课教师能否导出任教班级的名单？当前矩阵为禁止，需确认
-  - 年级主任是否需要修改学生监护人信息的权限？当前为只读
-  - 集团专家与集团领导首轮是否需要任何写权限？当前为只读
-  - 平台运营协助排查问题时，是否可以临时被授予"查看"权限而不留痕到租户侧？当前要求留痕
+  - id: PM-Q-005
+    question: 集团租户的管理员是否可以只读下属学校的学生名单？
+    current: 禁止（集团默认只有 DS-03 集团自有数据）
+    impact: 影响集团侧是否需要"全集团花名册"这类功能
+  - id: PM-Q-006
+    question: 运营方协助排查时，"只读"是否也包含敏感字段（证件号、手机号）？
+    current: 包含，但走掩码展示，查看全量需额外授权
+    impact: 影响敏感字段权限模型
+  - id: PM-Q-007
+    question: 家长账号是否在首轮建立？
+    current: 数据模型建立，端不实现（BR-ACCOUNT-010）
+    impact: 影响监护人与学生的关联表是否进入首轮迁移脚本

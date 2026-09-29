@@ -14,6 +14,8 @@
 | 6 | [04-business-rules.md](04-business-rules.md) | 业务判断的硬规则 | 所有人 |
 | 7 | [06-field-dictionary.yaml](06-field-dictionary.yaml) | 字段与枚举的标准定义 | 后端、前端、数据库设计 |
 | 8 | [07-non-functional-requirements.md](07-non-functional-requirements.md) | 性能、安全、审计、可用性底线 | 后端、架构、测试 |
+| 9 | [09-guardian-and-onboarding.md](09-guardian-and-onboarding.md) | 学生数据由谁录入、班级关系由谁定、家长如何绑定并补充资料 | 产品、设计、后端、测试 |
+| 10 | [10-data-permission-schema.md](10-data-permission-schema.md) | 数据权限落到哪些表、范围怎么解析、缓存怎么失效 | 后端、测试、架构 |
 
 以上 8 个文件是**公共前置**，不针对某个模块。
 模块级 PRD 放在 `modules/<模块>/PRD.md`，必须引用公共前置中的编号，不重复定义。
@@ -30,6 +32,8 @@
 | `06-field-dictionary.yaml` | 待验收 |
 | `07-non-functional-requirements.md` | 待验收 |
 | `08-data-scope-model.md` | 待验收 |
+| `09-guardian-and-onboarding.md` | 待验收 |
+| `10-data-permission-schema.md` | 待验收 |
 
 ## 编号约定
 

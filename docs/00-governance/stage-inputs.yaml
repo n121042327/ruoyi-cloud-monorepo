@@ -21,7 +21,7 @@ stages:
     gates:
       - 用户确认约束文件内容
       - gap-register.yaml 中无 blocking: true 的 open 项
-    blocking_gaps: [GAP-004]
+    blocking_gaps: []
 
   - id: stage1
     name: PRD
@@ -34,6 +34,7 @@ stages:
       - 公共前置文件齐备（背景、角色、术语、业务规则、权限矩阵、字段字典、非功能）
       - 学生管理 PRD 样板经用户验收
       - 每个需求都有编号，可被原型引用
+    blocking_gaps: []
     batch_plan:
       - batch: 1-0
         content: 公共前置 8 个文件
@@ -120,7 +121,9 @@ stages:
     gates:
       - 架构图、模块划分、技术选型、数据归属、接口清单齐备
       - 数据权限架构能表达校级 / 年级 / 班级 / 个人四层，且不依赖租户管理员放行
+      - 集团跨学校租户的查询方案明确
       - 接口清单覆盖原型中每一个动作
+    blocking_gaps: []
     batch_plan:
       - batch: 4-0
         content: 上下文 + 架构 + 模块划分 + 技术选型 + 数据归属
@@ -142,6 +145,7 @@ stages:
       - er-diagram 与 domain-table-map 与建表脚本三者一致
       - 迁移脚本在真实 MySQL 8 空库安装通过，且存量升级路径验证通过
       - OpenAPI 通过校验工具检查
+    blocking_gaps: []
     batch_plan:
       - batch: 5-0
         content: 学生 / 教师模块详细设计 + 表结构 + 迁移脚本

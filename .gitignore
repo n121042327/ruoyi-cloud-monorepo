@@ -99,3 +99,7 @@ components.d.ts
 
 # 验收证据中的临时文件
 evidence/**/*.tmp
+
+# Python 工具链
+__pycache__/
+*.py[cod]

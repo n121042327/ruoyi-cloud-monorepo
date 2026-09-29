@@ -35,6 +35,14 @@ common_columns:
     note: "0 存在，1 删除。历史与学籍类表禁止物理删除"
 
 enums:
+  - name: tenant_type
+    name_cn: 租户类型
+    entries:
+      - { code: operator, label: 运营方（超级租户）, level: 0 }
+      - { code: group, label: 集团, level: 1 }
+      - { code: school, label: 学校, level: 2 }
+    note: 层级不超过三级，见 BR-ORG-001 与 BR-ORG-003
+
   - name: gender
     entries:
       - { code: "1", label: 男 }
@@ -153,7 +161,8 @@ enums:
       - { code: self_children, label: 本人子女, level: 6 }
 
 fields:
-  - { name: student_no, cn: 学号, type: varchar(32), required: true, unique_scope: tenant, br: BR-STU-001 }
+  - { name: student_no, cn: 学号, type: varchar(32), required: true, unique_scope: platform, br: BR-STU-001, format: "入学年份(4) + 全局序号(6)", note: 系统统一发号；永不回收；导入时忽略源学号；修改需校级管理员且留审计 }
+  - { name: national_student_no, cn: 全国学籍号, type: varchar(64), required: false, unique_scope: platform, br: BR-STU-022, note: 官方 G / L 开头号码，允许为空，非空时全平台唯一 }
   - { name: student_name, cn: 学生姓名, type: varchar(50), required: true }
   - { name: id_type, cn: 证件类型, type: varchar(20), required: false }
   - { name: id_card_no, cn: 证件号码, type: varchar(64), required: false, unique_scope: tenant, sensitive: true }
@@ -163,6 +172,10 @@ fields:
 
   - { name: teacher_no, cn: 工号, type: varchar(32), required: true, unique_scope: tenant, br: BR-TEACHER-007 }
   - { name: teacher_name, cn: 教师姓名, type: varchar(50), required: true }
+
+  - { name: login_name, cn: 登录名, type: varchar(64), required: true, unique_scope: platform, note: 全局唯一，学生提案为 s + 学号，见 BR-ACCOUNT-002 }
+  - { name: root_tenant_id, cn: 根租户, type: varchar(20), required: true, note: 学校租户向上追溯到的最高集团租户；无集团时为自身，见 BR-ORG-012 }
+  - { name: parent_tenant_id, cn: 上级租户, type: varchar(20), required: false, note: 运营方为空；集团指向运营方；学校指向集团 }
 
   - { name: guardian_name, cn: 监护人姓名, type: varchar(50), required: true }
   - { name: relation, cn: 与监护人关系, type: varchar(20), required: true }
@@ -193,9 +206,13 @@ fields:
   - { name: after_value, cn: 变更后值, type: json, required: false }
 
 unique_keys:
-  - { table: edu_student, columns: [tenant_id, student_no], br: BR-STU-001 }
+  - { table: edu_student, columns: [student_no], br: BR-STU-001, note: 学号全平台唯一，由系统统一发号，序号按年重置 }
+  - { table: edu_guardian, columns: [phone], br: BR-ACCOUNT-011 }
+  - { table: edu_guardian_student, columns: [guardian_id, student_id], br: BR-ACCOUNT-005 }
+  - { table: edu_student, columns: [national_student_no], br: BR-STU-022, note: 允许为空，非空时全平台唯一 }
   - { table: edu_teacher, columns: [tenant_id, teacher_no], br: BR-TEACHER-007 }
-  - { table: edu_school, columns: [tenant_id, school_code], br: BR-ORG-008 }
+  - { table: edu_school, columns: [parent_tenant_id, school_code], br: BR-ORG-011 }
+  - { table: edu_guardian_student, columns: [guardian_id, student_id, relation], br: BR-ACCOUNT-005 }
   - { table: edu_academic_year, columns: [tenant_id, school_id, academic_year_code], br: BR-TERM-003 }
   - { table: edu_class, columns: [school_id, term_id, stage_code, class_name], br: BR-CLASS-003 }
   - { table: edu_student_class, columns: [term_id, student_id, class_type], note: 仅对行政班生效，见 BR-STU-003 }
