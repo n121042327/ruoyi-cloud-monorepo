@@ -1,0 +1,181 @@
+# AGENTS.md — K12 教育 ToB 平台（monorepo 根级约定）
+
+本文件对 `D:\work\person_work\ruoyi-cloud-monorepo` 全仓库生效。
+`apps/**` 与 `services/**` 下如存在自己的 `AGENTS.md`，以更靠近被修改文件的为准；
+但本文件的第 3 节（阶段门禁）、第 4 节（缺项处理）、第 8 节（红线）任何下层文件都不得放宽。
+
+## 1. 项目身份
+
+- 产品：K12 教育 ToB 平台，PC 端 B/S 架构
+- 客户形态：教育机构 / 教育集团为租户，一个租户下辖多所学校
+- 用户群：学校（老师、学生、领导）、基教集团（专家、领导）、平台运营方
+- 后续扩展：Pad 教师端、Pad 学生端、家长小程序端；ToC 校区外师生
+- 首轮交付范围：**年级管理、班级管理、教师管理、学生管理**，以及支撑这四项所必需的能力——
+  学校、学年学期、学科配置、教育角色、任教关系、租户接入、
+  升班 / 调班 / 留级 / 毕业 / 休复学、3+1+2 选科、教学班、导入导出、异步任务、审计
+- 首轮明确不做：自动排课、自动优化编班、移动端、题库、作业、考试、练习、错题、学情分析
+- ToC 场景：只做架构设计、详细设计与预留 DDL，**不进入首轮迁移脚本**
+
+## 2. 目录约定（目标态）
+
+```
+ruoyi-cloud-monorepo/
+  apps/plus-ui/                     # Vue3 前端   ← 迁移已完成
+  services/RuoYi-Cloud-Plus/        # Java 后端   ← 迁移已完成
+    ruoyi-modules/ruoyi-edu/        # 新增教育业务服务
+  docs/                             # 全部设计与约束文档
+  prototypes/functional/v1/         # 业务原型
+  prototypes/high-fidelity/v1/      # 独立高保真原型
+  evidence/                         # 验收证据（命令输出、截图、报告）
+  .agents/skills/                   # Codex 技能
+```
+
+目录迁移已于 2026-09-29 完成，Git 识别为改名（rename），提交历史连续。
+内层 `.git` / `.git1` 由用户删除并暂存，其内容以 pack 形式保留在根仓库对象库中。
+后续如再调整顶层目录结构，仍属红线操作，必须先征求确认。
+
+## 3. 阶段门禁（不可跳步）
+
+固定流水线：
+
+```
+项目核查与工程约束 → PRD → 业务原型 → 独立高保真原型 → 概要设计
+→ 详细设计及建表 → 生产前端 → 生产后端 → 联调验收
+```
+
+| 阶段 | 输入 | 输出 | 通过条件 |
+|---|---|---|---|
+| 0 项目核查与工程约束 | 现有仓库代码 | 本文件、`docs/00-governance/**` | 用户确认约束文件 |
+| 1 PRD | 阶段 0 产物 | `docs/10-prd/**` | 用户确认 PRD 样板 |
+| 2 业务原型 | PRD + 原型约束 | `prototypes/functional/v1/**` | 样板页人工验收 |
+| 3 高保真原型 | PRD + 业务原型 + 视觉规范 | `prototypes/high-fidelity/v1/**` | 视觉标准冻结 |
+| 4 概要设计 | PRD + 原型 | `docs/30-architecture/**` | 用户确认架构与接口清单 |
+| 5 详细设计及建表 | 概要设计 | `docs/40-detailed-design/**` + 迁移脚本 | 迁移脚本在 MySQL 8 验证通过 |
+| 6 生产前端 | 详细设计 + 高保真原型 + 映射文件 | `apps/plus-ui/**` | 类型检查、Lint、构建、交互对照通过 |
+| 7 生产后端 | 详细设计 | `services/**` | 编译 + 显式启用测试 + 接口测试通过 |
+| 8 联调验收 | 全部 | `evidence/**` | 验收清单逐条有证据 |
+
+上游产物未被用户确认前，不得开始下游阶段。
+若下游设计必须回头修改已冻结的上游产物，先说明影响范围，取得确认后产生**新版本**，
+不得就地覆盖已冻结版本。
+
+## 4. 缺项处理（强制）
+
+任何阶段发现下列情况，都必须**停下来先问**：
+
+1. 计划中列出的前置文件不存在或内容为空
+2. 需要判断但仓库中无依据的业务规则（例如"留级是否允许跨校""班主任能否修改学号"）
+3. 两份上游文档互相矛盾
+4. 技术选型与现有代码冲突
+
+处理动作固定为四步，缺一不可：
+
+```
+记录缺项 → 说明影响范围 → 提出补全建议 → 等用户确认 → 补全并验证 → 继续
+```
+
+禁止在没有确认的情况下自行补造业务规则、接口、表结构或技术决策。
+缺项一律登记到 `docs/00-governance/gap-register.yaml`，
+状态只有 `open` / `answered` / `closed` / `waived`。
+
+## 5. 批量执行与人工验收
+
+- 计划必须拆成可独立验收的小批，默认每批 **2—3 个页面或 1 个服务模块**
+- 首批必须只做一个样板（业务原型、高保真原型、前端页面、后端模块各自的第一件）
+- 样板验收通过后，用同一标准批量复制，其余批次仍逐批暂停验收
+- 每批结束时输出：本批产物清单、验收方法、已知缺口、下一批建议
+- 未经要求不自动继续下一批
+
+## 6. 技术栈（锁定值）
+
+完整版本与证据见 `docs/00-governance/stack-lock.md`。要点：
+
+| 层 | 选型 |
+|---|---|
+| 前端 | Vue 3.5 + TypeScript 5.9 + Vite 7 + Pinia 3 + Vue Router 5 + Element Plus 2.13 + UnoCSS + Axios + `pnpm` |
+| 前端写法 | `<script setup lang="ts">` + Composition API + composable + 独立 `api/` 层 |
+| 后端 | JDK 17 + Spring Boot 3.5.15 + Spring Cloud 2025.0.3 + RuoYi-Cloud-Plus 2.6.2 + Dubbo + Sa-Token |
+| 持久层 | MyBatis 3.5.19 + MyBatis-Plus 3.5.16 + MySQL 8 |
+| 中间件 | Redis（热点缓存）、RabbitMQ（削峰、异步）、Elasticsearch（后续题库检索） |
+| 构建 | Maven（后端）、pnpm workspace + Turbo（前端与 monorepo 编排） |
+| 部署 | Docker |
+
+**实际现有代码的版本优先于本表。** 若计划中的版本与 `pom.xml` / `package.json` 冲突，
+以实际文件为准，并把差异记入 `docs/00-governance/decisions.md`。
+首轮保留现有编辑器与前端基础设施；Tiptap + KaTeX 属于后续题库阶段，不在首轮引入。
+
+## 7. 教学业务硬约束（AI 最容易做错的地方）
+
+- 租户 = 教育机构或教育集团，租户下辖多所学校
+- 学校数据各自维护，**首轮不跨校共享教学数据**
+- 数据权限：校领导看本校全部；年级主任看负责年级；班主任看负责班级；任课教师看本人任教班级的必要资料与本人所授学科数据
+- 集团身份不自动获得学校教学数据的读取权；集团只能看集团自有数据
+- 平台运营方全平台可见，但"查看 / 修改 / 导出"分别授权、分别审计
+- 教育数据权限**不得被现有租户管理员的放行逻辑绕过**；缺少租户、学校或执行人上下文时必须拒绝执行
+- 列表、详情、批量操作、导出、文件访问、缓存、异步任务必须执行同一套权限规则
+- 升班新增下一学年的班级与学生关系，**覆盖历史**，不改写历史记录
+- 行政班与教学班是两套独立关系，选科组合不等于行政班
+- 同服务内核心关系使用物理外键，禁止级联删除；跨服务关系用逻辑引用 + 一致性检查
+
+## 8. 红线
+
+以下操作必须先征得用户确认：
+
+1. 删除文件、目录或 Git 历史
+2. 修改 `.env`、密钥、Token、证书、CI/CD 配置
+3. `git push`、`git rebase`、`git reset --hard`、强制推送
+4. 公开发布、生产部署
+5. 移动现有代码目录（含 monorepo 目录结构调整）
+
+另外：**不自动 commit、不自动 push**。提交前先展示变更摘要。
+commit message 使用 Conventional Commits，scope 与描述用中文。
+
+## 9. 质量与状态口径
+
+功能状态只允许四选一：`已设计` / `已实现` / `已启用` / `已验证`。
+检查结果只允许五选一：`通过` / `失败` / `未执行` / `不适用` / `已失效`。
+不得把"编译通过"写成"测试通过"。
+
+后端特别注意：根 `pom.xml` 默认 `<skipTests>true</skipTests>`，
+`mvn package` **不能**作为测试通过的证据；必须显式启用测试并核对实际执行的用例数量。
+
+证据落盘在 `evidence/`，命名要能单独看懂，例如
+`evidence/stage6-frontend/2026-09-29_student-list_tsc.log`。
+
+## 10. 文档语言与命名
+
+- 文档、注释、提交信息用中文；代码标识符、文件路径、命令用英文
+- 中文与英文之间加空格，中文标点用全角
+- 文档编号遵循 `docs/00-governance/file-catalog.md` 的目录约定
+- 每个交接者都是全新上下文：写文档时假设读者没看过对话
+
+## 11. 常用命令
+
+前端（`apps/plus-ui`）：
+
+```bash
+cd apps/plus-ui
+pnpm install
+pnpm dev
+pnpm lint:eslint
+pnpm build:prod
+```
+
+后端（`services/RuoYi-Cloud-Plus`）：
+
+```bash
+cd services/RuoYi-Cloud-Plus
+mvn -q -DskipTests=false -pl ruoyi-modules/ruoyi-edu -am test
+```
+
+## 12. 文件地图
+
+| 文件 | 用途 |
+|---|---|
+| `docs/00-governance/stack-lock.md` | 技术栈锁定值与证据 |
+| `docs/00-governance/file-catalog.md` | 全部交付物清单与状态 |
+| `docs/00-governance/stage-inputs.yaml` | 每阶段输入 / 输出 / 门禁 |
+| `docs/00-governance/gap-register.yaml` | 缺项登记 |
+| `docs/00-governance/decisions.md` | 已确认决策与裁决 |
+| `docs/00-governance/change-control.md` | 变更流程 |
+| `docs/00-governance/traceability.yaml` | 需求 → 原型 → 接口 → 表 → 测试 追踪 |

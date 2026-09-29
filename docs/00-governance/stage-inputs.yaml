@@ -1,0 +1,227 @@
+schema_version: "1.0"
+purpose: 每个阶段的输入、输出与放行门禁。未满足门禁不得进入下游。
+execution_policy:
+  batch_size_default: "2-3 个页面 或 1 个服务模块"
+  pause_between_batches: true
+  auto_commit: false
+  auto_push: false
+  missing_input_policy: "停下 -> 记录 gap -> 提补全建议 -> 等确认 -> 补全 -> 验证 -> 继续"
+
+stages:
+  - id: stage0
+    name: 项目核查与工程约束
+    inputs:
+      - 现有仓库代码（只读）
+      - 用户已确认的决策清单
+    outputs:
+      - AGENTS.md
+      - docs/00-governance/**
+      - apps/plus-ui/AGENTS.md
+      - services/RuoYi-Cloud-Plus/AGENTS.md
+    gates:
+      - 用户确认约束文件内容
+      - gap-register.yaml 中无 blocking: true 的 open 项
+    blocking_gaps: [GAP-001, GAP-002, GAP-003, GAP-004]
+
+  - id: stage1
+    name: PRD
+    inputs:
+      - stage0 outputs
+      - 用户提供的业务背景（若有）
+    outputs:
+      - docs/10-prd/**（公共前置 + 模块 PRD）
+    gates:
+      - 公共前置文件齐备（背景、角色、术语、业务规则、权限矩阵、字段字典、非功能）
+      - 学生管理 PRD 样板经用户验收
+      - 每个需求都有编号，可被原型引用
+    batch_plan:
+      - batch: 1-0
+        content: 公共前置 8 个文件
+        pause_for_review: true
+      - batch: 1-1
+        content: 学生管理 PRD 样板 + 验收标准
+        pause_for_review: true
+      - batch: 1-2
+        content: 教师 / 班级 / 年级 PRD
+        pause_for_review: true
+      - batch: 1-3
+        content: 升班 / 选科 / 导入导出 / 审计 PRD
+        pause_for_review: true
+
+  - id: stage2
+    name: 业务原型
+    inputs:
+      - docs/10-prd/**
+      - docs/00-governance/stack-lock.md（仅用于尺寸与分辨率约束）
+      - prototypes/functional/v1/markup-contract.md（先产出）
+    outputs:
+      - prototypes/functional/v1/**
+    gates:
+      - 原型可从真实入口点击走通关键路径
+      - 每个 PRD 用户故事都有对应页面或页面状态
+      - 每个可交互元素带 markup-contract 要求的 data-* 标记
+      - 样板页经用户验收
+    batch_plan:
+      - batch: 2-0
+        content: 原型规范（layout-spec / page-actions / navigation / markup-contract / 样例数据）
+        pause_for_review: true
+      - batch: 2-1
+        content: 学生管理列表 + 新增编辑抽屉（样板）
+        pause_for_review: true
+      - batch: 2-2
+        content: 教师管理 + 年级管理
+        pause_for_review: true
+      - batch: 2-3
+        content: 班级管理 + 班级详情 + 升班向导
+        pause_for_review: true
+      - batch: 2-4
+        content: 导入向导 + 登录 + 异常页
+        pause_for_review: true
+
+  - id: stage3
+    name: 独立高保真原型
+    inputs:
+      - docs/10-prd/**
+      - prototypes/functional/v1/**（作为功能清单与布局基准）
+      - 视觉规范：design-tokens.json + component-spec.md（先产出）
+    outputs:
+      - prototypes/high-fidelity/v1/**（新目录，不修改阶段 2 文件）
+    gates:
+      - 覆盖业务原型全部页面与状态，无功能删减
+      - design-tokens 中的色彩 / 间距 / 字号被逐页落实
+      - 1366 / 1440 / 1920 三档截图无布局破裂
+      - component-mapping.yaml 覆盖每个可交互元素
+      - 样板页经用户验收并冻结视觉标准
+    batch_plan:
+      - batch: 3-0
+        content: design-tokens + component-spec + component-mapping + visual-checklist
+        pause_for_review: true
+      - batch: 3-1
+        content: 学生管理列表 + 编辑抽屉（样板）
+        pause_for_review: true
+      - batch: 3-2
+        content: 教师 / 年级
+        pause_for_review: true
+      - batch: 3-3
+        content: 班级 / 班级详情 / 升班向导
+        pause_for_review: true
+      - batch: 3-4
+        content: 导入向导 / 登录 / 异常页
+        pause_for_review: true
+
+  - id: stage4
+    name: 概要设计
+    inputs:
+      - docs/10-prd/**
+      - prototypes/high-fidelity/v1/**
+      - docs/00-governance/stack-lock.md
+    outputs:
+      - docs/30-architecture/**
+    gates:
+      - 架构图、模块划分、技术选型、数据归属、接口清单齐备
+      - 数据权限架构能表达校级 / 年级 / 班级 / 个人四层，且不依赖租户管理员放行
+      - 接口清单覆盖原型中每一个动作
+    batch_plan:
+      - batch: 4-0
+        content: 上下文 + 架构 + 模块划分 + 技术选型 + 数据归属
+        pause_for_review: true
+      - batch: 4-1
+        content: 接口清单 + 同步异步边界 + 缓存 + 权限架构
+        pause_for_review: true
+
+  - id: stage5
+    name: 详细设计与建表
+    inputs:
+      - docs/30-architecture/**
+      - prototypes/high-fidelity/v1/**
+    outputs:
+      - docs/40-detailed-design/**
+      - docs/40-detailed-design/migrations/*.sql
+    gates:
+      - physical-schema.md 逐表覆盖字段、主键、唯一键、外键、索引
+      - er-diagram 与 domain-table-map 与建表脚本三者一致
+      - 迁移脚本在真实 MySQL 8 空库安装通过，且存量升级路径验证通过
+      - OpenAPI 通过校验工具检查
+    batch_plan:
+      - batch: 5-0
+        content: 学生 / 教师模块详细设计 + 表结构 + 迁移脚本
+        pause_for_review: true
+      - batch: 5-1
+        content: 年级 / 班级模块详细设计 + 表结构 + 迁移脚本
+        pause_for_review: true
+      - batch: 5-2
+        content: 升班 / 选科 / 支撑能力详细设计 + 表结构 + 迁移脚本
+        pause_for_review: true
+
+  - id: stage6
+    name: 生产前端
+    inputs:
+      - docs/40-detailed-design/frontend-page-tree.yaml
+      - docs/40-detailed-design/page-action-api-map.yaml
+      - docs/40-detailed-design/api/openapi.yaml
+      - prototypes/high-fidelity/v1/**
+      - prototypes/high-fidelity/v1/design-tokens.json
+      - prototypes/high-fidelity/v1/component-mapping.yaml
+      - apps/plus-ui/AGENTS.md
+    outputs:
+      - apps/plus-ui/src/views/edu/**
+      - apps/plus-ui/src/api/edu/**
+      - apps/plus-ui/src/types/edu/**
+      - apps/plus-ui/src/components/Edu/**
+    gates:
+      - vue-tsc 类型检查通过
+      - ESLint 通过
+      - pnpm build:prod 通过
+      - 与高保真原型逐页视觉对照通过
+      - 每个动作能映射到 OpenAPI 中的 operationId
+    batch_plan:
+      - batch: 6-0
+        content: 学生管理列表 + 编辑抽屉（样板，含 api / types / composable / 组件）
+        pause_for_review: true
+      - batch: 6-1
+        content: 教师 / 年级
+        pause_for_review: true
+      - batch: 6-2
+        content: 班级 / 班级详情 / 升班向导
+        pause_for_review: true
+
+  - id: stage7
+    name: 生产后端
+    inputs:
+      - docs/40-detailed-design/api/openapi.yaml
+      - docs/40-detailed-design/database/physical-schema.md
+      - docs/40-detailed-design/modules/**
+      - services/RuoYi-Cloud-Plus/AGENTS.md
+    outputs:
+      - services/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-edu/**
+    gates:
+      - JDK 17 编译通过
+      - 显式启用测试（-DskipTests=false），并核对实际执行用例数与结果
+      - 接口与 OpenAPI 一致
+      - 数据权限用例（跨租户 / 跨校 / 跨年级 / 跨班 / ID 猜测）全部通过
+      - 升班与选科流程的幂等与并发用例通过
+    batch_plan:
+      - batch: 7-0
+        content: 模块骨架 + 学生管理（样板，含权限拦截与测试）
+        pause_for_review: true
+      - batch: 7-1
+        content: 教师 / 年级 / 班级
+        pause_for_review: true
+      - batch: 7-2
+        content: 升班 / 选科 / 导入导出 / 审计
+        pause_for_review: true
+
+  - id: stage8
+    name: 联调验收
+    inputs:
+      - stage6 outputs
+      - stage7 outputs
+      - docs/50-delivery/test-plan.md
+    outputs:
+      - evidence/**
+      - docs/50-delivery/acceptance-checklist.md
+      - docs/50-delivery/known-issues.md
+    gates:
+      - 验收清单逐条有证据
+      - 性能指标在指定模型与资源下达成：查询 P95 ≤ 1s，普通写入 P95 ≤ 2s
+      - Redis 隔离、RabbitMQ 重复 / 重试 / 死信 / 恢复验证通过

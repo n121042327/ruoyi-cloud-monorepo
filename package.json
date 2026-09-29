@@ -1,0 +1,21 @@
+{
+  "name": "ruoyi-cloud-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "K12 教育 ToB 平台 monorepo：apps/plus-ui 前端，services/RuoYi-Cloud-Plus 后端",
+  "packageManager": "pnpm@12.3.4",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build:prod",
+    "lint": "turbo run lint:eslint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "turbo": "turbo"
+  },
+  "devDependencies": {
+    "turbo": "^2.11.5"
+  }
+}
