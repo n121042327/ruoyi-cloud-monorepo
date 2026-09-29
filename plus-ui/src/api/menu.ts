@@ -1,6 +1,6 @@
-import type { RouteRecordRaw } from 'vue-router';
-import type { AxiosPromise } from '@/utils/api-types';
 import request from '@/utils/request';
+import { AxiosPromise } from 'axios';
+import { RouteRecordRaw } from 'vue-router';
 
 // 获取路由
 export function getRouters(): AxiosPromise<RouteRecordRaw[]> {

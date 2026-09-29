@@ -2,23 +2,21 @@ package org.dromara.resource.controller;
 
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
-import org.dromara.common.core.domain.PageResult;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.core.validate.QueryGroup;
-import org.dromara.common.json.utils.JsonUtils;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
-import org.dromara.resource.domain.SysOssExt;
 import org.dromara.resource.domain.bo.SysOssBo;
 import org.dromara.resource.domain.vo.SysOssUploadVo;
 import org.dromara.resource.domain.vo.SysOssVo;
 import org.dromara.resource.service.ISysOssService;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,15 +36,15 @@ import java.util.List;
 @RequestMapping("/oss")
 public class SysOssController extends BaseController {
 
-    private final ISysOssService ossService;
+    private final ISysOssService iSysOssService;
 
     /**
      * 查询OSS对象存储列表
      */
     @SaCheckPermission("system:oss:list")
     @GetMapping("/list")
-    public R<PageResult<SysOssVo>> list(@Validated(QueryGroup.class) SysOssBo bo, PageQuery pageQuery) {
-        return R.ok(ossService.queryPageList(bo, pageQuery));
+    public TableDataInfo<SysOssVo> list(@Validated(QueryGroup.class) SysOssBo bo, PageQuery pageQuery) {
+        return iSysOssService.queryPageList(bo, pageQuery);
     }
 
     /**
@@ -57,7 +55,7 @@ public class SysOssController extends BaseController {
     @SaCheckPermission("system:oss:query")
     @GetMapping("/listByIds/{ossIds}")
     public R<List<SysOssVo>> listByIds(@NotEmpty(message = "主键不能为空") @PathVariable Long[] ossIds) {
-        List<SysOssVo> list = ossService.listByIds(Arrays.asList(ossIds));
+        List<SysOssVo> list = iSysOssService.listByIds(Arrays.asList(ossIds));
         return R.ok(list);
     }
 
@@ -69,8 +67,8 @@ public class SysOssController extends BaseController {
     @SaCheckPermission("system:oss:upload")
     @Log(title = "OSS对象存储", businessType = BusinessType.INSERT)
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public R<SysOssUploadVo> upload(@RequestPart("file") MultipartFile file, @RequestParam(value = "ossExt", required = false) String ossExtJson) {
-        SysOssVo oss = ossService.upload(file, JsonUtils.parseObject(ossExtJson, SysOssExt.class));
+    public R<SysOssUploadVo> upload(@RequestPart("file") MultipartFile file) {
+        SysOssVo oss = iSysOssService.upload(file);
         SysOssUploadVo uploadVo = new SysOssUploadVo();
         uploadVo.setUrl(oss.getUrl());
         uploadVo.setFileName(oss.getOriginalName());
@@ -79,15 +77,14 @@ public class SysOssController extends BaseController {
     }
 
     /**
-     * 下载OSS对象
+     * 下载OSS对象存储
      *
      * @param ossId OSS对象ID
-     * @throws IOException IO 异常
      */
     @SaCheckPermission("system:oss:download")
     @GetMapping("/download/{ossId}")
-    public ResponseEntity<byte[]> download(@PathVariable Long ossId) throws IOException {
-        return ossService.download(ossId);
+    public void download(@PathVariable Long ossId, HttpServletResponse response) throws IOException {
+        iSysOssService.download(ossId, response);
     }
 
     /**
@@ -99,7 +96,7 @@ public class SysOssController extends BaseController {
     @Log(title = "OSS对象存储", businessType = BusinessType.DELETE)
     @DeleteMapping("/{ossIds}")
     public R<Void> remove(@NotEmpty(message = "主键不能为空") @PathVariable Long[] ossIds) {
-        return toAjax(ossService.deleteWithValidByIds(Arrays.asList(ossIds), true));
+        return toAjax(iSysOssService.deleteWithValidByIds(Arrays.asList(ossIds), true));
     }
 
 }

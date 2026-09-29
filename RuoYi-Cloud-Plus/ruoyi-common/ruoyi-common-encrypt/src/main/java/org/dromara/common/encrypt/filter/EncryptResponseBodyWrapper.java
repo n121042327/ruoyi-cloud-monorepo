@@ -1,5 +1,6 @@
 package org.dromara.common.encrypt.filter;
 
+import cn.hutool.core.util.RandomUtil;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletResponse;
@@ -10,10 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
-import java.util.Base64;
 
 /**
  * 加密响应参数包装类
@@ -22,30 +20,19 @@ import java.util.Base64;
  */
 public class EncryptResponseBodyWrapper extends HttpServletResponseWrapper {
 
-    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-    private static final Charset RESPONSE_CHARSET = StandardCharsets.UTF_8;
-
     private final ByteArrayOutputStream byteArrayOutputStream;
     private final ServletOutputStream servletOutputStream;
-    private PrintWriter printWriter;
+    private final PrintWriter printWriter;
 
-    /**
-     * 构造加密响应包装器。
-     *
-     * @param response 原始响应
-     * @throws IOException 创建输出流异常
-     */
     public EncryptResponseBodyWrapper(HttpServletResponse response) throws IOException {
         super(response);
         this.byteArrayOutputStream = new ByteArrayOutputStream();
         this.servletOutputStream = this.getOutputStream();
+        this.printWriter = new PrintWriter(new OutputStreamWriter(byteArrayOutputStream));
     }
 
     @Override
     public PrintWriter getWriter() {
-        if (printWriter == null) {
-            printWriter = new PrintWriter(new OutputStreamWriter(byteArrayOutputStream, RESPONSE_CHARSET));
-        }
         return printWriter;
     }
 
@@ -64,31 +51,14 @@ public class EncryptResponseBodyWrapper extends HttpServletResponseWrapper {
         byteArrayOutputStream.reset();
     }
 
-    @Override
-    public void resetBuffer() {
-        byteArrayOutputStream.reset();
-    }
-
-    /**
-     * 获取已缓存的响应字节。
-     *
-     * @return 响应字节数组
-     * @throws IOException 刷新响应缓冲异常
-     */
     public byte[] getResponseData() throws IOException {
         flushBuffer();
         return byteArrayOutputStream.toByteArray();
     }
 
-    /**
-     * 获取已缓存的响应内容。
-     *
-     * @return 响应文本
-     * @throws IOException 刷新响应缓冲异常
-     */
     public String getContent() throws IOException {
         flushBuffer();
-        return byteArrayOutputStream.toString(RESPONSE_CHARSET);
+        return byteArrayOutputStream.toString();
     }
 
     /**
@@ -102,24 +72,20 @@ public class EncryptResponseBodyWrapper extends HttpServletResponseWrapper {
      */
     public String getEncryptContent(HttpServletResponse servletResponse, String publicKey, String headerFlag) throws IOException {
         // 生成秘钥
-        String aesPassword = generateAesPassword();
+        String aesPassword = RandomUtil.randomString(32);
         // 秘钥使用 Base64 编码
         String encryptAes = EncryptUtils.encryptByBase64(aesPassword);
         // Rsa 公钥加密 Base64 编码
         String encryptPassword = EncryptUtils.encryptByRsa(encryptAes, publicKey);
 
         // 设置响应头
-        // vue版本需要设置
-        servletResponse.addHeader("Access-Control-Expose-Headers", headerFlag);
         servletResponse.setHeader(headerFlag, encryptPassword);
-        servletResponse.setCharacterEncoding(RESPONSE_CHARSET.name());
+        servletResponse.setCharacterEncoding(StandardCharsets.UTF_8.toString());
 
         // 获取原始内容
         String originalBody = this.getContent();
         // 对内容进行加密
-        String encryptContent = EncryptUtils.encryptByAes(originalBody, aesPassword);
-        servletResponse.setContentLengthLong(encryptContent.getBytes(RESPONSE_CHARSET).length);
-        return encryptContent;
+        return EncryptUtils.encryptByAes(originalBody, aesPassword);
     }
 
     @Override
@@ -127,7 +93,7 @@ public class EncryptResponseBodyWrapper extends HttpServletResponseWrapper {
         return new ServletOutputStream() {
             @Override
             public boolean isReady() {
-                return true;
+                return false;
             }
 
             @Override
@@ -150,12 +116,6 @@ public class EncryptResponseBodyWrapper extends HttpServletResponseWrapper {
                 byteArrayOutputStream.write(b, off, len);
             }
         };
-    }
-
-    private String generateAesPassword() {
-        byte[] bytes = new byte[24];
-        SECURE_RANDOM.nextBytes(bytes);
-        return Base64.getEncoder().encodeToString(bytes);
     }
 
 }

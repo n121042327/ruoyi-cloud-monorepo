@@ -1,34 +1,32 @@
 import { to as tos } from 'await-to-js';
-import { ElMessage } from 'element-plus/es';
-import * as NProgressModule from 'nprogress';
-import 'nprogress/nprogress.css';
-import { usePermissionStore } from '@/store/modules/permission';
-import { useSettingsStore } from '@/store/modules/settings';
-import { useUserStore } from '@/store/modules/user';
-import { getToken } from '@/utils/auth';
-import { isHandledRequestError, isRelogin } from '@/utils/request';
-import { isHttp, isPathMatch } from '@/utils/validate';
 import router from './router';
-
-const NProgress = ('default' in NProgressModule ? NProgressModule.default : NProgressModule) as typeof NProgressModule;
+import NProgress from 'nprogress';
+import 'nprogress/nprogress.css';
+import { getToken } from '@/utils/auth';
+import { isHttp, isPathMatch } from '@/utils/validate';
+import { isRelogin } from '@/utils/request';
+import { useUserStore } from '@/store/modules/user';
+import { useSettingsStore } from '@/store/modules/settings';
+import { usePermissionStore } from '@/store/modules/permission';
+import { ElMessage } from 'element-plus/es';
 
 NProgress.configure({ showSpinner: false });
 const whiteList = ['/login', '/register', '/social-callback', '/register*', '/register/*'];
 
 const isWhiteList = (path: string) => {
-  return whiteList.some(pattern => isPathMatch(pattern, path));
+  return whiteList.some((pattern) => isPathMatch(pattern, path));
 };
 
-router.beforeEach(async (to, from) => {
+router.beforeEach(async (to, from, next) => {
   NProgress.start();
   if (getToken()) {
     to.meta.title && useSettingsStore().setTitle(to.meta.title as string);
     /* has token*/
     if (to.path === '/login') {
+      next({ path: '/' });
       NProgress.done();
-      return { path: '/' };
     } else if (isWhiteList(to.path)) {
-      return true;
+      next();
     } else {
       if (useUserStore().roles.length === 0) {
         isRelogin.show = true;
@@ -36,42 +34,33 @@ router.beforeEach(async (to, from) => {
         const [err] = await tos(useUserStore().getInfo());
         if (err) {
           await useUserStore().logout();
-          if (!isHandledRequestError(err)) {
-            ElMessage.error(err instanceof Error ? err.message : String(err));
-          }
-          return { path: '/' };
+          ElMessage.error(err);
+          next({ path: '/' });
         } else {
           isRelogin.show = false;
           const accessRoutes = await usePermissionStore().generateRoutes();
           // 根据roles权限生成可访问的路由表
-          accessRoutes.forEach(route => {
+          accessRoutes.forEach((route) => {
             if (!isHttp(route.path)) {
               router.addRoute(route); // 动态添加可访问路由表
             }
           });
-          // hack方法 确保addRoutes已完成
-          return {
-            path: to.path,
-            replace: true,
-            params: to.params,
-            query: to.query,
-            hash: to.hash,
-            name: to.name as string
-          };
+          // @ts-expect-error hack方法 确保addRoutes已完成
+          next({ path: to.path, replace: true, params: to.params, query: to.query, hash: to.hash, name: to.name as string }); // hack方法 确保addRoutes已完成
         }
       } else {
-        return true;
+        next();
       }
     }
   } else {
     // 没有token
     if (isWhiteList(to.path)) {
       // 在免登录白名单，直接进入
-      return true;
+      next();
     } else {
       const redirect = encodeURIComponent(to.fullPath || '/');
+      next(`/login?redirect=${redirect}`); // 否则全部重定向到登录页
       NProgress.done();
-      return `/login?redirect=${redirect}`; // 否则全部重定向到登录页
     }
   }
 });

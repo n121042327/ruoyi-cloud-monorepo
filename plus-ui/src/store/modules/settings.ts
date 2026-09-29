@@ -1,14 +1,13 @@
-import { useStorage } from '@vueuse/core';
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
-import { NavTypeEnum } from '@/enums/NavTypeEnum';
 import defaultSettings from '@/settings';
 import { useDynamicTitle } from '@/utils/dynamicTitle';
+import { useStorage } from '@vueuse/core';
+import { ref } from 'vue';
+import { NavTypeEnum } from '@/enums/NavTypeEnum';
 
 export const useSettingsStore = defineStore('setting', () => {
   const storageSetting = useStorage<LayoutSetting>('layout-setting', {
     tagsView: defaultSettings.tagsView,
-    tagsViewPersist: defaultSettings.tagsViewPersist,
     tagsIcon: defaultSettings.tagsIcon,
     fixedHeader: defaultSettings.fixedHeader,
     sidebarLogo: defaultSettings.sidebarLogo,
@@ -16,15 +15,13 @@ export const useSettingsStore = defineStore('setting', () => {
     sideTheme: defaultSettings.sideTheme,
     theme: defaultSettings.theme,
     navType: defaultSettings.navType,
-    radiusBase: defaultSettings.radiusBase,
-    fullHeightTable: defaultSettings.fullHeightTable
+    radiusBase: defaultSettings.radiusBase
   });
   const title = ref<string>(defaultSettings.title);
   const theme = ref<string>(storageSetting.value.theme);
   const sideTheme = ref<string>(storageSetting.value.sideTheme);
   const showSettings = ref<boolean>(defaultSettings.showSettings);
   const tagsView = ref<boolean>(storageSetting.value.tagsView);
-  const tagsViewPersist = ref<boolean>(storageSetting.value.tagsViewPersist);
   const tagsIcon = ref<boolean>(storageSetting.value.tagsIcon);
   const fixedHeader = ref<boolean>(storageSetting.value.fixedHeader);
   const sidebarLogo = ref<boolean>(storageSetting.value.sidebarLogo);
@@ -33,7 +30,6 @@ export const useSettingsStore = defineStore('setting', () => {
   const dark = ref<boolean>(defaultSettings.dark);
   const navType = ref<NavTypeEnum>(storageSetting.value.navType || NavTypeEnum.LEFT);
   const radiusBase = ref<number>(storageSetting.value.radiusBase ?? defaultSettings.radiusBase);
-  const fullHeightTable = ref<boolean>(storageSetting.value.fullHeightTable ?? defaultSettings.fullHeightTable);
 
   const setTitle = (value: string) => {
     title.value = value;
@@ -45,7 +41,6 @@ export const useSettingsStore = defineStore('setting', () => {
     sideTheme,
     showSettings,
     tagsView,
-    tagsViewPersist,
     tagsIcon,
     fixedHeader,
     sidebarLogo,
@@ -54,7 +49,6 @@ export const useSettingsStore = defineStore('setting', () => {
     dark,
     navType,
     radiusBase,
-    fullHeightTable,
     setTitle
   };
 });

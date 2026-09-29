@@ -9,7 +9,7 @@ import org.dromara.workflow.common.constant.FlowConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -28,12 +28,17 @@ public class FlowHisTaskVo implements Serializable {
     /**
      * 创建时间
      */
-    private LocalDateTime createTime;
+    private Date createTime;
 
     /**
      * 更新时间
      */
-    private LocalDateTime updateTime;
+    private Date updateTime;
+
+    /**
+     * 租户ID
+     */
+    private String tenantId;
 
     /**
      * 删除标记
@@ -109,7 +114,7 @@ public class FlowHisTaskVo implements Serializable {
      * 审批者
      */
     @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "approver")
-    private String approverName;
+    private String approveName;
 
     /**
      * 协作人(只有转办、会签、票签、委派)
@@ -215,7 +220,7 @@ public class FlowHisTaskVo implements Serializable {
      *
      * @param createTime 创建时间
      */
-    public void setCreateTime(LocalDateTime createTime) {
+    public void setCreateTime(Date createTime) {
         this.createTime = createTime;
         updateRunDuration();
     }
@@ -225,7 +230,7 @@ public class FlowHisTaskVo implements Serializable {
      *
      * @param updateTime 更新时间
      */
-    public void setUpdateTime(LocalDateTime updateTime) {
+    public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
         updateRunDuration();
     }
@@ -236,7 +241,7 @@ public class FlowHisTaskVo implements Serializable {
     private void updateRunDuration() {
         // 如果创建时间和更新时间均不为空，计算它们之间的时长
         if (this.updateTime != null && this.createTime != null) {
-            this.runDuration = DateUtils.formatBetweenBySecond(this.updateTime, this.createTime);
+            this.runDuration = DateUtils.getTimeDifference(this.updateTime, this.createTime);
         }
     }
 
@@ -246,6 +251,10 @@ public class FlowHisTaskVo implements Serializable {
     public void setCooperateType(Integer cooperateType) {
         this.cooperateType = cooperateType;
         this.cooperateTypeName = CooperateType.getValueByKey(cooperateType);
+    }
+
+    public String getCreateTime() {
+        return DateUtils.formatFriendlyTime(createTime);
     }
 
 }

@@ -6,9 +6,7 @@ import org.dromara.system.domain.bo.SysMenuBo;
 import org.dromara.system.domain.vo.RouterVo;
 import org.dromara.system.domain.vo.SysMenuVo;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -52,14 +50,6 @@ public interface ISysMenuService {
     Set<String> selectMenuPermsByRoleId(Long roleId);
 
     /**
-     * 根据角色ID列表批量查询权限
-     *
-     * @param roleIds 角色ID列表
-     * @return 角色权限映射
-     */
-    Map<Long, Set<String>> selectMenuPermsByRoleIds(Collection<Long> roleIds);
-
-    /**
      * 根据用户ID查询菜单树信息
      *
      * @param userId 用户ID
@@ -74,6 +64,14 @@ public interface ISysMenuService {
      * @return 选中菜单列表
      */
     List<Long> selectMenuListByRoleId(Long roleId);
+
+    /**
+     * 根据租户套餐ID查询菜单树信息
+     *
+     * @param packageId 租户套餐ID
+     * @return 选中菜单列表
+     */
+    List<Long> selectMenuListByPackageId(Long packageId);
 
     /**
      * 构建前端路由所需要的菜单
@@ -110,10 +108,10 @@ public interface ISysMenuService {
     /**
      * 是否存在菜单子节点
      *
-     * @param menuIds 菜单ID列表
+     * @param menuIds 菜单ID串
      * @return 结果 true 存在 false 不存在
      */
-    boolean hasChildByMenuId(Collection<Long> menuIds);
+    boolean hasChildByMenuId(List<Long> menuIds);
 
     /**
      * 查询菜单是否存在角色
@@ -150,9 +148,10 @@ public interface ISysMenuService {
     /**
      * 批量删除菜单管理信息
      *
-     * @param menuIds 菜单ID列表
+     * @param menuIds 菜单ID串
+     * @return 结果
      */
-    void deleteMenuById(Collection<Long> menuIds);
+    void deleteMenuById(List<Long> menuIds);
 
     /**
      * 校验菜单名称是否唯一
@@ -169,5 +168,4 @@ public interface ISysMenuService {
      * @return 结果
      */
     boolean checkRouteConfigUnique(SysMenuBo menu);
-
 }

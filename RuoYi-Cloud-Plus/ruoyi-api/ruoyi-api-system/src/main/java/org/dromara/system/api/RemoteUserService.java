@@ -7,7 +7,6 @@ import org.dromara.system.api.domain.vo.RemoteUserVo;
 import org.dromara.system.api.model.LoginUser;
 import org.dromara.system.api.model.XcxLoginUser;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -22,33 +21,37 @@ public interface RemoteUserService {
      * 通过用户名查询用户信息
      *
      * @param username 用户名
+     * @param tenantId 租户id
      * @return 结果
      */
-    LoginUser getUserInfo(String username) throws UserException;
+    LoginUser getUserInfo(String username, String tenantId) throws UserException;
 
     /**
      * 通过用户id查询用户信息
      *
-     * @param userId 用户id
+     * @param userId   用户id
+     * @param tenantId 租户id
      * @return 结果
      */
-    LoginUser getUserInfo(Long userId) throws UserException;
+    LoginUser getUserInfo(Long userId, String tenantId) throws UserException;
 
     /**
      * 通过手机号查询用户信息
      *
-     * @param phoneNumber 手机号
+     * @param phonenumber 手机号
+     * @param tenantId    租户id
      * @return 结果
      */
-    LoginUser getUserInfoByPhoneNumber(String phoneNumber) throws UserException;
+    LoginUser getUserInfoByPhonenumber(String phonenumber, String tenantId) throws UserException;
 
     /**
      * 通过邮箱查询用户信息
      *
-     * @param email 邮箱
+     * @param email    邮箱
+     * @param tenantId 租户id
      * @return 结果
      */
-    LoginUser getUserInfoByEmail(String email) throws UserException;
+    LoginUser getUserInfoByEmail(String email, String tenantId) throws UserException;
 
     /**
      * 通过openid查询用户信息
@@ -120,7 +123,7 @@ public interface RemoteUserService {
      * @param userIds 用户ids
      * @return 用户列表
      */
-    List<RemoteUserVo> selectListByIds(Collection<Long> userIds);
+    List<RemoteUserVo> selectListByIds(List<Long> userIds);
 
     /**
      * 通过角色ID查询用户ID
@@ -128,7 +131,7 @@ public interface RemoteUserService {
      * @param roleIds 角色ids
      * @return 用户ids
      */
-    List<Long> selectUserIdsByRoleIds(Collection<Long> roleIds);
+    List<Long> selectUserIdsByRoleIds(List<Long> roleIds);
 
     /**
      * 通过角色ID查询用户
@@ -136,7 +139,7 @@ public interface RemoteUserService {
      * @param roleIds 角色ids
      * @return 用户
      */
-    List<RemoteUserVo> selectUsersByRoleIds(Collection<Long> roleIds);
+    List<RemoteUserVo> selectUsersByRoleIds(List<Long> roleIds);
 
     /**
      * 通过部门ID查询用户
@@ -144,7 +147,7 @@ public interface RemoteUserService {
      * @param deptIds 部门ids
      * @return 用户
      */
-    List<RemoteUserVo> selectUsersByDeptIds(Collection<Long> deptIds);
+    List<RemoteUserVo> selectUsersByDeptIds(List<Long> deptIds);
 
     /**
      * 通过岗位ID查询用户
@@ -152,7 +155,7 @@ public interface RemoteUserService {
      * @param postIds 岗位ids
      * @return 用户
      */
-    List<RemoteUserVo> selectUsersByPostIds(Collection<Long> postIds);
+    List<RemoteUserVo> selectUsersByPostIds(List<Long> postIds);
 
     /**
      * 根据用户 ID 列表查询用户昵称映射关系
@@ -160,6 +163,6 @@ public interface RemoteUserService {
      * @param userIds 用户 ID 列表
      * @return Map，其中 key 为用户 ID，value 为对应的用户昵称
      */
-    Map<Long, String> selectUserNicksByIds(Collection<Long> userIds);
+    Map<Long, String> selectUserNicksByIds(List<Long> userIds);
 
 }

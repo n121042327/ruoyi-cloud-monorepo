@@ -1,10 +1,10 @@
 package org.dromara.demo.controller;
 
-import lombok.Data;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.sensitive.annotation.Sensitive;
 import org.dromara.common.sensitive.core.SensitiveStrategy;
 import org.dromara.common.web.core.BaseController;
+import lombok.Data;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

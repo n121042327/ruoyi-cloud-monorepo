@@ -1,8 +1,8 @@
 package org.dromara.common.encrypt.properties;
 
+import org.dromara.common.encrypt.enumd.AlgorithmType;
+import org.dromara.common.encrypt.enumd.EncodeType;
 import lombok.Data;
-import org.dromara.common.encrypt.enums.AlgorithmType;
-import org.dromara.common.encrypt.enums.EncodeType;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -23,7 +23,7 @@ public class EncryptorProperties {
     /**
      * 默认算法
      */
-    private AlgorithmType algorithm = AlgorithmType.BASE64;
+    private AlgorithmType algorithm;
 
     /**
      * 安全秘钥
@@ -43,6 +43,6 @@ public class EncryptorProperties {
     /**
      * 编码方式，base64/hex
      */
-    private EncodeType encode = EncodeType.BASE64;
+    private EncodeType encode;
 
 }

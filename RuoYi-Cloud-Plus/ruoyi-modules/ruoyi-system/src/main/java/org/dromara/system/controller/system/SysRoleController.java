@@ -4,14 +4,13 @@ import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.lang.tree.Tree;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.dromara.common.core.domain.PageResult;
 import org.dromara.common.core.domain.R;
-import org.dromara.common.core.utils.SpringUtils;
-import org.dromara.common.excel.utils.ExcelBuilder;
+import org.dromara.common.excel.utils.ExcelUtil;
+import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
-import org.dromara.common.redis.annotation.RepeatSubmit;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.system.domain.SysUserRole;
 import org.dromara.system.domain.bo.SysDeptBo;
@@ -19,7 +18,6 @@ import org.dromara.system.domain.bo.SysRoleBo;
 import org.dromara.system.domain.bo.SysUserBo;
 import org.dromara.system.domain.vo.SysRoleVo;
 import org.dromara.system.domain.vo.SysUserVo;
-import org.dromara.system.event.OnlineUserCleanEvent;
 import org.dromara.system.service.ISysDeptService;
 import org.dromara.system.service.ISysRoleService;
 import org.dromara.system.service.ISysUserService;
@@ -48,8 +46,8 @@ public class SysRoleController extends BaseController {
      */
     @SaCheckPermission("system:role:list")
     @GetMapping("/list")
-    public R<PageResult<SysRoleVo>> list(SysRoleBo role, PageQuery pageQuery) {
-        return R.ok(roleService.selectPageRoleList(role, pageQuery));
+    public TableDataInfo<SysRoleVo> list(SysRoleBo role, PageQuery pageQuery) {
+        return roleService.selectPageRoleList(role, pageQuery);
     }
 
     /**
@@ -60,7 +58,7 @@ public class SysRoleController extends BaseController {
     @PostMapping("/export")
     public void export(SysRoleBo role, HttpServletResponse response) {
         List<SysRoleVo> list = roleService.selectRoleList(role);
-        ExcelBuilder.of(list, SysRoleVo.class).sheetName("角色数据").toResponse(response);
+        ExcelUtil.exportExcel(list, "角色数据", SysRoleVo.class, response);
     }
 
     /**
@@ -94,10 +92,7 @@ public class SysRoleController extends BaseController {
     }
 
     /**
-     * 修改角色基础信息（不包含菜单权限、数据权限）。
-     *
-     * @param role 角色参数
-     * @return 操作结果
+     * 修改保存角色
      */
     @SaCheckPermission("system:role:edit")
     @Log(title = "角色管理", businessType = BusinessType.UPDATE)
@@ -112,31 +107,24 @@ public class SysRoleController extends BaseController {
             return R.fail("修改角色'" + role.getRoleName() + "'失败，角色权限已存在");
         }
 
-        if (roleService.updateRoleBaseInfo(role) > 0) {
-            SpringUtils.context().publishEvent(OnlineUserCleanEvent.byRole(role.getRoleId()));
+        if (roleService.updateRole(role) > 0) {
+            roleService.cleanOnlineUserByRole(role.getRoleId());
             return R.ok();
         }
         return R.fail("修改角色'" + role.getRoleName() + "'失败，请联系管理员");
     }
 
     /**
-     * 修改角色权限信息（菜单权限 + 数据权限）。
-     *
-     * @param role 角色参数
-     * @return 操作结果
+     * 修改保存数据权限
      */
     @SaCheckPermission("system:role:edit")
     @Log(title = "角色管理", businessType = BusinessType.UPDATE)
     @RepeatSubmit()
-    @PutMapping("/permission")
-    public R<Void> editPermission(@RequestBody SysRoleBo role) {
+    @PutMapping("/dataScope")
+    public R<Void> dataScope(@RequestBody SysRoleBo role) {
         roleService.checkRoleAllowed(role);
         roleService.checkRoleDataScope(role.getRoleId());
-        if (roleService.updateRolePermission(role) > 0) {
-            SpringUtils.context().publishEvent(OnlineUserCleanEvent.byRole(role.getRoleId()));
-            return R.ok();
-        }
-        return R.fail("修改角色'" + role.getRoleName() + "'权限失败，请联系管理员");
+        return toAjax(roleService.authDataScope(role));
     }
 
     /**
@@ -149,11 +137,7 @@ public class SysRoleController extends BaseController {
     public R<Void> changeStatus(@RequestBody SysRoleBo role) {
         roleService.checkRoleAllowed(role);
         roleService.checkRoleDataScope(role.getRoleId());
-        if (roleService.updateRoleStatus(role.getRoleId(), role.getStatus()) > 0) {
-            SpringUtils.context().publishEvent(OnlineUserCleanEvent.byRole(role.getRoleId()));
-            return R.ok();
-        }
-        return R.fail("修改角色'" + role.getRoleName() + "'状态失败，请联系管理员");
+        return toAjax(roleService.updateRoleStatus(role.getRoleId(), role.getStatus()));
     }
 
     /**
@@ -184,8 +168,8 @@ public class SysRoleController extends BaseController {
      */
     @SaCheckPermission("system:role:list")
     @GetMapping("/authUser/allocatedList")
-    public R<PageResult<SysUserVo>> allocatedList(SysUserBo user, PageQuery pageQuery) {
-        return R.ok(userService.selectAllocatedList(user, pageQuery));
+    public TableDataInfo<SysUserVo> allocatedList(SysUserBo user, PageQuery pageQuery) {
+        return userService.selectAllocatedList(user, pageQuery);
     }
 
     /**
@@ -193,8 +177,8 @@ public class SysRoleController extends BaseController {
      */
     @SaCheckPermission("system:role:list")
     @GetMapping("/authUser/unallocatedList")
-    public R<PageResult<SysUserVo>> unallocatedList(SysUserBo user, PageQuery pageQuery) {
-        return R.ok(userService.selectUnallocatedList(user, pageQuery));
+    public TableDataInfo<SysUserVo> unallocatedList(SysUserBo user, PageQuery pageQuery) {
+        return userService.selectUnallocatedList(user, pageQuery);
     }
 
     /**
@@ -257,7 +241,7 @@ public class SysRoleController extends BaseController {
      * @param checkedKeys 选中部门列表
      * @param depts       下拉树结构列表
      */
-    public record DeptTreeSelectVo(List<Long> checkedKeys, List<Tree<Long>> depts) {
-    }
+    public record DeptTreeSelectVo(List<Long> checkedKeys, List<Tree<Long>> depts) {}
 
 }
+

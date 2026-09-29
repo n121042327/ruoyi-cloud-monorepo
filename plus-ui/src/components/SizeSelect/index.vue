@@ -6,12 +6,7 @@
       </div>
       <template #dropdown>
         <el-dropdown-menu>
-          <el-dropdown-item
-            v-for="item of sizeOptions"
-            :key="item.value"
-            :disabled="size === item.value"
-            :command="item.value"
-          >
+          <el-dropdown-item v-for="item of sizeOptions" :key="item.value" :disabled="size === item.value" :command="item.value">
             {{ item.label }}
           </el-dropdown-item>
         </el-dropdown-menu>
@@ -39,15 +34,8 @@ const handleSetSize = (size: 'large' | 'default' | 'small') => {
 
 <style lang="scss" scoped>
 .size-icon--style {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-
-  :deep(.svg-icon) {
-    width: 16px;
-    height: 16px;
-  }
+  font-size: 18px;
+  line-height: 50px;
+  padding-right: 7px;
 }
 </style>

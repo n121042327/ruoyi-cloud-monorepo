@@ -77,7 +77,7 @@ public class PageQuery implements Serializable {
 
     /**
      * 构建排序
-     * <p>
+     *
      * 支持的用法如下:
      * {isAsc:"asc",orderByColumn:"id"} order by id asc
      * {isAsc:"asc",orderByColumn:"id,createTime"} order by id asc,create_time asc
@@ -86,16 +86,16 @@ public class PageQuery implements Serializable {
      */
     private List<OrderItem> buildOrderItem() {
         if (StringUtils.isBlank(orderByColumn) || StringUtils.isBlank(isAsc)) {
-            return List.of();
+            return null;
         }
         String orderBy = SqlUtil.escapeOrderBySql(orderByColumn);
         orderBy = StringUtils.toUnderScoreCase(orderBy);
 
         // 兼容前端排序类型
-        String orderDirection = StringUtils.replaceEach(isAsc, new String[]{"ascending", "descending"}, new String[]{"asc", "desc"});
+        isAsc = StringUtils.replaceEach(isAsc, new String[]{"ascending", "descending"}, new String[]{"asc", "desc"});
 
         String[] orderByArr = orderBy.split(StringUtils.SEPARATOR);
-        String[] isAscArr = orderDirection.split(StringUtils.SEPARATOR);
+        String[] isAscArr = isAsc.split(StringUtils.SEPARATOR);
         if (isAscArr.length != 1 && isAscArr.length != orderByArr.length) {
             throw new ServiceException("排序参数有误");
         }
@@ -116,27 +116,11 @@ public class PageQuery implements Serializable {
         return list;
     }
 
-    /**
-     * 获取当前页起始行号。
-     *
-     * @return 起始行号
-     */
     @JsonIgnore
     public Integer getFirstNum() {
-        Integer currentPageNum = ObjectUtil.defaultIfNull(getPageNum(), DEFAULT_PAGE_NUM);
-        Integer currentPageSize = ObjectUtil.defaultIfNull(getPageSize(), DEFAULT_PAGE_SIZE);
-        if (currentPageNum <= 0) {
-            currentPageNum = DEFAULT_PAGE_NUM;
-        }
-        return (currentPageNum - 1) * currentPageSize;
+        return (pageNum - 1) * pageSize;
     }
 
-    /**
-     * 构造分页查询对象。
-     *
-     * @param pageSize 分页大小
-     * @param pageNum  当前页码
-     */
     public PageQuery(Integer pageSize, Integer pageNum) {
         this.pageSize = pageSize;
         this.pageNum = pageNum;

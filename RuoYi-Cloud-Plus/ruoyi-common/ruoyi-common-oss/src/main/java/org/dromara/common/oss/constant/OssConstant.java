@@ -25,16 +25,16 @@ public interface OssConstant {
     /**
      * 系统数据ids
      */
-    List<Long> SYSTEM_DATA_IDS = Arrays.asList(
-        1761900000000000001L,
-        1761900000000000002L,
-        1761900000000000003L,
-        1761900000000000004L
-    );
+    List<Long> SYSTEM_DATA_IDS = Arrays.asList(1L, 2L, 3L, 4L);
 
     /**
      * 云服务商
      */
-    String[] CLOUD_SERVICE = new String[]{"aliyun", "qcloud", "qiniu", "obs"};
+    String[] CLOUD_SERVICE = new String[] {"aliyun", "qcloud", "qiniu", "obs"};
+
+    /**
+     * https 状态
+     */
+    String IS_HTTPS = "Y";
 
 }

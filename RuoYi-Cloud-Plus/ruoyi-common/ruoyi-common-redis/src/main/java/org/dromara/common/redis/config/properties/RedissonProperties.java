@@ -23,12 +23,12 @@ public class RedissonProperties {
     /**
      * 线程池数量,默认值 = 当前处理核数量 * 2
      */
-    private int threads = Runtime.getRuntime().availableProcessors() * 2;
+    private int threads;
 
     /**
      * Netty线程池数量,默认值 = 当前处理核数量 * 2
      */
-    private int nettyThreads = Runtime.getRuntime().availableProcessors() * 2;
+    private int nettyThreads;
 
     /**
      * 单机服务配置
@@ -40,9 +40,6 @@ public class RedissonProperties {
      */
     private ClusterServersConfig clusterServersConfig;
 
-    /**
-     * Redisson 单机服务配置。
-     */
     @Data
     @NoArgsConstructor
     public static class SingleServerConfig {
@@ -79,9 +76,6 @@ public class RedissonProperties {
 
     }
 
-    /**
-     * Redisson 集群服务配置。
-     */
     @Data
     @NoArgsConstructor
     public static class ClusterServersConfig {

@@ -6,7 +6,7 @@ import org.dromara.system.domain.SysSocial;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 
 /**
@@ -30,6 +30,11 @@ public class SysSocialVo implements Serializable {
      * 用户ID
      */
     private Long userId;
+
+    /**
+     * 租户ID
+     */
+    private String tenantId;
 
     /**
      * 认证唯一ID
@@ -135,5 +140,5 @@ public class SysSocialVo implements Serializable {
     /**
      * 显示绑定时间
      */
-    private LocalDateTime createTime;
+    private Date createTime;
 }

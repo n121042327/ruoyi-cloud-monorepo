@@ -166,6 +166,7 @@ CREATE TABLE `flow_user`
 create table flow_category
 (
     category_id   bigint(20)  not null comment '流程分类ID',
+    tenant_id     varchar(20)  default '000000' comment '租户编号',
     parent_id     bigint(20)   default 0 comment '父流程分类id',
     ancestors     varchar(500) default '' comment '祖级列表',
     category_name varchar(30) not null comment '流程分类名称',
@@ -179,16 +180,16 @@ create table flow_category
     primary key (category_id)
 ) engine = innodb comment = '流程分类';
 
-INSERT INTO flow_category values (1762300000000000100, 0, '0', 'OA审批', 0, '0', 1761000000000000103, 1761100000000000001, sysdate(), null, null);
-INSERT INTO flow_category values (1762300000000000101, 1762300000000000100, '0,1762300000000000100', '假勤管理', 0, '0', 1761000000000000103, 1761100000000000001, sysdate(), null, null);
-INSERT INTO flow_category values (1762300000000000102, 1762300000000000100, '0,1762300000000000100', '人事管理', 1, '0', 1761000000000000103, 1761100000000000001, sysdate(), null, null);
-INSERT INTO flow_category values (1762300000000000103, 1762300000000000101, '0,1762300000000000100,1762300000000000101', '请假', 0, '0', 1761000000000000103, 1761100000000000001, sysdate(), null, null);
-INSERT INTO flow_category values (1762300000000000104, 1762300000000000101, '0,1762300000000000100,1762300000000000101', '出差', 1, '0', 1761000000000000103, 1761100000000000001, sysdate(), null, null);
-INSERT INTO flow_category values (1762300000000000105, 1762300000000000101, '0,1762300000000000100,1762300000000000101', '加班', 2, '0', 1761000000000000103, 1761100000000000001, sysdate(), null, null);
-INSERT INTO flow_category values (1762300000000000106, 1762300000000000101, '0,1762300000000000100,1762300000000000101', '换班', 3, '0', 1761000000000000103, 1761100000000000001, sysdate(), null, null);
-INSERT INTO flow_category values (1762300000000000107, 1762300000000000101, '0,1762300000000000100,1762300000000000101', '外出', 4, '0', 1761000000000000103, 1761100000000000001, sysdate(), null, null);
-INSERT INTO flow_category values (1762300000000000108, 1762300000000000102, '0,1762300000000000100,1762300000000000102', '转正', 1, '0', 1761000000000000103, 1761100000000000001, sysdate(), null, null);
-INSERT INTO flow_category values (1762300000000000109, 1762300000000000102, '0,1762300000000000100,1762300000000000102', '离职', 2, '0', 1761000000000000103, 1761100000000000001, sysdate(), null, null);
+INSERT INTO flow_category values (100, '000000', 0, '0', 'OA审批', 0, '0', 103, 1, sysdate(), null, null);
+INSERT INTO flow_category values (101, '000000', 100, '0,100', '假勤管理', 0, '0', 103, 1, sysdate(), null, null);
+INSERT INTO flow_category values (102, '000000', 100, '0,100', '人事管理', 1, '0', 103, 1, sysdate(), null, null);
+INSERT INTO flow_category values (103, '000000', 101, '0,100,101', '请假', 0, '0', 103, 1, sysdate(), null, null);
+INSERT INTO flow_category values (104, '000000', 101, '0,100,101', '出差', 1, '0', 103, 1, sysdate(), null, null);
+INSERT INTO flow_category values (105, '000000', 101, '0,100,101', '加班', 2, '0', 103, 1, sysdate(), null, null);
+INSERT INTO flow_category values (106, '000000', 101, '0,100,101', '换班', 3, '0', 103, 1, sysdate(), null, null);
+INSERT INTO flow_category values (107, '000000', 101, '0,100,101', '外出', 4, '0', 103, 1, sysdate(), null, null);
+INSERT INTO flow_category values (108, '000000', 102, '0,100,102', '转正', 1, '0', 103, 1, sysdate(), null, null);
+INSERT INTO flow_category values (109, '000000', 102, '0,100,102', '离职', 2, '0', 103, 1, sysdate(), null, null);
 
 -- ----------------------------
 -- 流程spel表达式定义表
@@ -211,8 +212,8 @@ CREATE TABLE flow_spel (
     PRIMARY KEY (id)
 ) ENGINE = InnoDB COMMENT='流程spel表达式定义表';
 
-INSERT INTO flow_spel VALUES (1762400000000000001, 'spelRuleComponent', 'selectDeptLeaderById', 'initiatorDeptId', '#{@spelRuleComponent.selectDeptLeaderById(#initiatorDeptId)}', '根据部门id获取部门负责人', '0', '0', 1761000000000000103, 1761100000000000001, sysdate(), 1761100000000000001, sysdate());
-INSERT INTO flow_spel VALUES (1762400000000000002, NULL, NULL, 'initiator', '${initiator}', '流程发起人', '0', '0', 1761000000000000103, 1761100000000000001, sysdate(), 1761100000000000001, sysdate());
+INSERT INTO flow_spel VALUES (1, 'spelRuleComponent', 'selectDeptLeaderById', 'initiatorDeptId', '#{@spelRuleComponent.selectDeptLeaderById(#initiatorDeptId)}', '根据部门id获取部门负责人', '0', '0', 103, 1, sysdate(), 1, sysdate());
+INSERT INTO flow_spel VALUES (2, NULL, NULL, 'initiator', '${initiator}', '流程发起人', '0', '0', 103, 1, sysdate(), 1, sysdate());
 
 -- ----------------------------
 -- 流程实例业务扩展表
@@ -220,6 +221,7 @@ INSERT INTO flow_spel VALUES (1762400000000000002, NULL, NULL, 'initiator', '${i
 
 create table flow_instance_biz_ext (
     id             bigint                       not null comment '主键id',
+    tenant_id      varchar(20) default '000000' null comment '租户编号',
     create_dept    bigint                       null comment '创建部门',
     create_by      bigint                       null comment '创建者',
     create_time    datetime                     null comment '创建时间',
@@ -240,6 +242,7 @@ create table flow_instance_biz_ext (
 create table test_leave
 (
     id          bigint(20)   not null comment 'id',
+    tenant_id   varchar(20)  default '000000' comment '租户编号',
     apply_code  varchar(50)  not null comment '申请编号',
     leave_type  varchar(255) not null comment '请假类型',
     start_date  datetime     not null comment '开始时间',

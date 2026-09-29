@@ -6,12 +6,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.dromara.common.mybatis.core.domain.BaseEntity;
 import org.dromara.system.domain.SysDept;
-
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 部门业务对象 sys_dept
@@ -20,11 +17,9 @@ import java.util.Map;
  */
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @AutoMapper(target = SysDept.class, reverseConvertGenerate = false)
-public class SysDeptBo implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 1L;
+public class SysDeptBo extends BaseEntity {
 
     /**
      * 部门id
@@ -82,10 +77,5 @@ public class SysDeptBo implements Serializable {
      * 归属部门id（部门树）
      */
     private Long belongDeptId;
-
-    /**
-     * 请求参数
-     */
-    private Map<String, Object> params = new HashMap<>();
 
 }

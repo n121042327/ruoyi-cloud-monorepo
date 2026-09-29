@@ -17,7 +17,7 @@ public class DataPermissionPointcutAdvisor extends AbstractPointcutAdvisor {
 
     public DataPermissionPointcutAdvisor() {
         this.advice = new DataPermissionAdvice();
-        this.pointcut = new DataPermissionPointcut();
+        this.pointcut =  new DataPermissionPointcut();
     }
 
     @Override

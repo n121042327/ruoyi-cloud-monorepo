@@ -1,6 +1,6 @@
-import type { TreeForm, TreeQuery, TreeVO } from '@/api/demo/tree/types';
-import type { AxiosPromise } from '@/utils/api-types';
 import request from '@/utils/request';
+import { AxiosPromise } from 'axios';
+import { TreeVO, TreeForm, TreeQuery } from '@/api/demo/tree/types';
 
 /**
  * 查询测试树列表

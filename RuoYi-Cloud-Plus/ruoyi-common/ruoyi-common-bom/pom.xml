@@ -14,7 +14,7 @@
     </description>
 
     <properties>
-        <revision>6.0.0</revision>
+        <revision>2.6.2</revision>
     </properties>
 
     <dependencyManagement>
@@ -124,6 +124,20 @@
                 <version>${revision}</version>
             </dependency>
 
+            <!-- 限流功能 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>ruoyi-common-ratelimiter</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 幂等功能 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>ruoyi-common-idempotent</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
             <!-- 邮件模块 -->
             <dependency>
                 <groupId>org.dromara</groupId>
@@ -194,18 +208,17 @@
                 <version>${revision}</version>
             </dependency>
 
-
-            <!-- 消息推送模块 -->
+            <!-- 租户模块 -->
             <dependency>
                 <groupId>org.dromara</groupId>
-                <artifactId>ruoyi-common-push</artifactId>
+                <artifactId>ruoyi-common-tenant</artifactId>
                 <version>${revision}</version>
             </dependency>
 
-            <!-- liteflow模块 -->
+            <!-- websocket模块 -->
             <dependency>
                 <groupId>org.dromara</groupId>
-                <artifactId>ruoyi-common-liteflow</artifactId>
+                <artifactId>ruoyi-common-websocket</artifactId>
                 <version>${revision}</version>
             </dependency>
 
@@ -230,23 +243,10 @@
                 <version>${revision}</version>
             </dependency>
 
-            <!-- AI模块 -->
+            <!-- sse -->
             <dependency>
                 <groupId>org.dromara</groupId>
-                <artifactId>ruoyi-common-ai</artifactId>
-                <version>${revision}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>ruoyi-common-mqtt</artifactId>
-                <version>${revision}</version>
-            </dependency>
-
-            <!-- mcp模块 -->
-            <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>ruoyi-common-mcp</artifactId>
+                <artifactId>ruoyi-common-sse</artifactId>
                 <version>${revision}</version>
             </dependency>
 

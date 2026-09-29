@@ -4,16 +4,16 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import lombok.RequiredArgsConstructor;
-import org.dromara.common.core.domain.PageResult;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.demo.domain.TestDemo;
 import org.dromara.demo.domain.bo.TestDemoBo;
 import org.dromara.demo.domain.vo.TestDemoVo;
 import org.dromara.demo.mapper.TestDemoMapper;
 import org.dromara.demo.service.ITestDemoService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -30,33 +30,33 @@ import java.util.Map;
 @Service
 public class TestDemoServiceImpl implements ITestDemoService {
 
-    private final TestDemoMapper demoMapper;
+    private final TestDemoMapper baseMapper;
 
     @Override
     public TestDemoVo queryById(Long id) {
-        return demoMapper.selectVoById(id);
+        return baseMapper.selectVoById(id);
     }
 
     @Override
-    public PageResult<TestDemoVo> queryPageList(TestDemoBo bo, PageQuery pageQuery) {
+    public TableDataInfo<TestDemoVo> queryPageList(TestDemoBo bo, PageQuery pageQuery) {
         LambdaQueryWrapper<TestDemo> lqw = buildQueryWrapper(bo);
-        Page<TestDemoVo> result = demoMapper.selectVoPage(pageQuery.build(), lqw);
-        return PageResult.build(result.getRecords(), result.getTotal());
+        Page<TestDemoVo> result = baseMapper.selectVoPage(pageQuery.build(), lqw);
+        return TableDataInfo.build(result);
     }
 
     /**
      * 自定义分页查询
      */
     @Override
-    public PageResult<TestDemoVo> customPageList(TestDemoBo bo, PageQuery pageQuery) {
+    public TableDataInfo<TestDemoVo> customPageList(TestDemoBo bo, PageQuery pageQuery) {
         LambdaQueryWrapper<TestDemo> lqw = buildQueryWrapper(bo);
-        Page<TestDemoVo> result = demoMapper.customPageList(pageQuery.build(), lqw);
-        return PageResult.build(result.getRecords(), result.getTotal());
+        Page<TestDemoVo> result = baseMapper.customPageList(pageQuery.build(), lqw);
+        return TableDataInfo.build(result);
     }
 
     @Override
     public List<TestDemoVo> queryList(TestDemoBo bo) {
-        return demoMapper.selectVoList(buildQueryWrapper(bo));
+        return baseMapper.selectVoList(buildQueryWrapper(bo));
     }
 
     private LambdaQueryWrapper<TestDemo> buildQueryWrapper(TestDemoBo bo) {
@@ -76,7 +76,7 @@ public class TestDemoServiceImpl implements ITestDemoService {
     public Boolean insertByBo(TestDemoBo bo) {
         TestDemo add = BeanUtil.toBean(bo, TestDemo.class);
         validEntityBeforeSave(add);
-        boolean flag = demoMapper.insert(add) > 0;
+        boolean flag = baseMapper.insert(add) > 0;
         if (flag) {
             bo.setId(add.getId());
         }
@@ -87,7 +87,7 @@ public class TestDemoServiceImpl implements ITestDemoService {
     public Boolean updateByBo(TestDemoBo bo) {
         TestDemo update = BeanUtil.toBean(bo, TestDemo.class);
         validEntityBeforeSave(update);
-        return demoMapper.updateById(update) > 0;
+        return baseMapper.updateById(update) > 0;
     }
 
     /**
@@ -103,16 +103,16 @@ public class TestDemoServiceImpl implements ITestDemoService {
     public Boolean deleteWithValidByIds(Collection<Long> ids, Boolean isValid) {
         if (isValid) {
             // 做一些业务上的校验,判断是否需要校验
-            List<TestDemo> list = demoMapper.selectByIds(ids);
+            List<TestDemo> list = baseMapper.selectByIds(ids);
             if (list.size() != ids.size()) {
                 throw new ServiceException("您没有删除权限!");
             }
         }
-        return demoMapper.deleteByIds(ids) > 0;
+        return baseMapper.deleteByIds(ids) > 0;
     }
 
     @Override
     public Boolean saveBatch(List<TestDemo> list) {
-        return demoMapper.insertBatch(list);
+        return baseMapper.insertBatch(list);
     }
 }

@@ -1,15 +1,15 @@
-import type { ComponentInternalInstance as ComponentInstance } from 'vue';
+import type { PropType as VuePropType, ComponentInternalInstance as ComponentInstance } from 'vue';
 import { LanguageEnum } from '@/enums/LanguageEnum';
 import { NavTypeEnum } from '@/enums/NavTypeEnum';
 
 declare global {
   /** vue Instance */
-  type ComponentInternalInstance = ComponentInstance;
+  declare type ComponentInternalInstance = ComponentInstance;
 
   /**
    * 界面字段隐藏属性
    */
-  interface FieldOption {
+  declare interface FieldOption {
     key: number;
     label: string;
     visible: boolean;
@@ -19,7 +19,7 @@ declare global {
   /**
    * 弹窗属性
    */
-  interface DialogOption {
+  declare interface DialogOption {
     /**
      * 弹窗标题
      */
@@ -30,7 +30,7 @@ declare global {
     visible: boolean;
   }
 
-  interface UploadOption {
+  declare interface UploadOption {
     /** 设置上传的请求头部 */
     headers: { [key: string]: any };
 
@@ -41,7 +41,7 @@ declare global {
   /**
    * 导入属性
    */
-  interface ImportOption extends UploadOption {
+  declare interface ImportOption extends UploadOption {
     /** 是否显示弹出层 */
     open: boolean;
     /** 弹出层标题 */
@@ -57,14 +57,14 @@ declare global {
   /**
    * 字典数据  数据配置
    */
-  interface DictDataOption {
+  declare interface DictDataOption {
     label: string;
     value: string;
     elTagType?: ElTagType;
     elTagClass?: string;
   }
 
-  interface BaseEntity {
+  declare interface BaseEntity {
     createBy?: any;
     createDept?: any;
     createTime?: string;
@@ -77,7 +77,7 @@ declare global {
    * T : 表单数据
    * D : 查询参数
    */
-  interface PageData<T, D> {
+  declare interface PageData<T, D> {
     form: T;
     queryParams: D;
     rules: ElFormRules;
@@ -85,11 +85,11 @@ declare global {
   /**
    * 分页查询参数
    */
-  interface PageQuery {
+  declare interface PageQuery {
     pageNum: number;
     pageSize: number;
   }
-  interface LayoutSetting {
+  declare interface LayoutSetting {
     /**
      * 默认布局
      */
@@ -99,10 +99,6 @@ declare global {
      * 是否显示多标签导航
      */
     tagsView: boolean;
-    /**
-     * 是否持久化标签页
-     */
-    tagsViewPersist: boolean;
     /**
      * 显示页签图标
      */
@@ -131,14 +127,9 @@ declare global {
      * 页面圆角大小
      */
     radiusBase: number;
-
-    /**
-     * 表格全高内部滚动
-     */
-    fullHeightTable: boolean;
   }
 
-  interface DefaultSettings extends LayoutSetting {
+  declare interface DefaultSettings extends LayoutSetting {
     /**
      * 网页标题
      */
@@ -177,3 +168,4 @@ declare global {
     dark: boolean;
   }
 }
+export {};

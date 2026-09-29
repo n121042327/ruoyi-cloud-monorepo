@@ -22,7 +22,7 @@
                 <el-option label="Integer" value="Integer" />
                 <el-option label="Double" value="Double" />
                 <el-option label="BigDecimal" value="BigDecimal" />
-                <el-option label="LocalDateTime" value="LocalDateTime" />
+                <el-option label="Date" value="Date" />
                 <el-option label="Boolean" value="Boolean" />
               </el-select>
             </template>
@@ -74,14 +74,12 @@
           </el-table-column>
           <el-table-column label="显示类型" min-width="12%">
             <template #default="scope">
-              <el-select v-model="scope.row.htmlType" @change="handleHtmlTypeChange(scope.row)">
+              <el-select v-model="scope.row.htmlType">
                 <el-option label="文本框" value="input" />
-                <el-option label="数字输入" value="inputNumber" />
                 <el-option label="文本域" value="textarea" />
                 <el-option label="下拉框" value="select" />
                 <el-option label="单选框" value="radio" />
                 <el-option label="复选框" value="checkbox" />
-                <el-option label="开关" value="switch" />
                 <el-option label="日期控件" value="datetime" />
                 <el-option label="图片上传" value="imageUpload" />
                 <el-option label="文件上传" value="fileUpload" />
@@ -91,20 +89,8 @@
           </el-table-column>
           <el-table-column label="字典类型" min-width="12%">
             <template #default="scope">
-              <el-select
-                v-model="scope.row.dictType"
-                clearable
-                filterable
-                placeholder="请选择"
-                value-on-clear=""
-                :disabled="!supportsDictHtmlType(scope.row.htmlType)"
-              >
-                <el-option
-                  v-for="dict in dictOptions"
-                  :key="dict.dictType"
-                  :label="dict.dictName"
-                  :value="dict.dictType"
-                >
+              <el-select v-model="scope.row.dictType" clearable filterable placeholder="请选择" value-on-clear="">
+                <el-option v-for="dict in dictOptions" :key="dict.dictType" :label="dict.dictName" :value="dict.dictType">
                   <span style="float: left">{{ dict.dictName }}</span>
                   <span style="float: right; color: #8492a6; font-size: 13px">{{ dict.dictType }}</span>
                 </el-option>
@@ -114,7 +100,7 @@
         </el-table>
       </el-tab-pane>
       <el-tab-pane label="生成信息" name="genInfo">
-        <gen-info-form ref="genInfo" :info="info" :columns="columns" />
+        <gen-info-form ref="genInfo" :info="info" :tables="tables" />
       </el-tab-pane>
     </el-tabs>
     <el-form label-width="100px">
@@ -127,107 +113,86 @@
 </template>
 
 <script setup name="GenEdit" lang="ts">
-import { useRoute } from 'vue-router';
-import { optionselect as getDictOptionselect } from '@/api/system/dict/type';
-import { DictTypeVO } from '@/api/system/dict/type/types';
 import { getGenTable, updateGenTable } from '@/api/tool/gen';
 import { DbColumnVO, DbTableVO } from '@/api/tool/gen/types';
-import modal from '@/plugins/modal';
-import tab from '@/plugins/tab';
+import { optionselect as getDictOptionselect } from '@/api/system/dict/type';
+import { DictTypeVO } from '@/api/system/dict/type/types';
 import BasicInfoForm from './basicInfoForm.vue';
 import GenInfoForm from './genInfoForm.vue';
+import { RouteLocationNormalized } from 'vue-router';
 
 const route = useRoute();
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+
 const activeName = ref('columnInfo');
 const tableHeight = ref(document.documentElement.scrollHeight - 245 + 'px');
+const tables = ref<DbTableVO[]>([]);
 const columns = ref<DbColumnVO[]>([]);
 const dictOptions = ref<DictTypeVO[]>([]);
 const info = ref<Partial<DbTableVO>>({});
-const DICT_HTML_TYPES = ['select', 'radio', 'checkbox', 'switch'];
 
 const basicInfo = ref<InstanceType<typeof BasicInfoForm>>();
 const genInfo = ref<InstanceType<typeof GenInfoForm>>();
 
-const supportsDictHtmlType = (htmlType?: string) => DICT_HTML_TYPES.includes(htmlType ?? '');
-
-const normalizeColumnDictType = (column: Partial<DbColumnVO>) => {
-  if (!supportsDictHtmlType(String(column.htmlType ?? ''))) {
-    column.dictType = '';
-  }
-};
-
-const handleHtmlTypeChange = (column: Partial<DbColumnVO>) => {
-  normalizeColumnDictType(column);
-};
-
 /** 提交按钮 */
-const submitForm = async () => {
-  const basicOk = (await basicInfo.value?.validate()) ?? false;
-  const genOk = (await genInfo.value?.validate()) ?? false;
-  if (!basicOk || !genOk) {
-    modal.msgError('表单校验未通过，请重新检查提交内容');
-    return;
-  }
-  columns.value.forEach(normalizeColumnDictType);
-  const genTable: Record<string, unknown> = { ...info.value };
-  genTable.columns = columns.value;
-  genTable.params = {
-    treeCode: info.value?.treeCode,
-    treeName: info.value.treeName,
-    treeParentCode: info.value.treeParentCode,
-    parentMenuId: info.value.parentMenuId,
-    enableExport: info.value.enableExport,
-    enableStatus: info.value.enableStatus,
-    statusField: info.value.statusField,
-    enableUnique: info.value.enableUnique,
-    uniqueFields: info.value.uniqueFields,
-    enableSort: info.value.enableSort,
-    sortField: info.value.sortField,
-    treeRootValue: info.value.treeRootValue,
-    treeAncestors: info.value.treeAncestorsField,
-    treeOrderField: info.value.treeOrderField
-  };
-  const response = await updateGenTable(genTable as any);
-  modal.msgSuccess(response.msg ?? '');
-  if (response.code === 200) {
-    close();
-  }
-};
+const submitForm = () => {
+  const basicForm = basicInfo.value?.$refs.basicInfoForm;
+  const genForm = genInfo.value?.$refs.genInfoForm;
 
+  Promise.all([basicForm, genForm].map(getFormPromise)).then(async (res) => {
+    const validateResult = res.every((item) => !!item);
+    if (validateResult) {
+      const genTable: any = Object.assign({}, info.value);
+      genTable.columns = columns.value;
+      genTable.params = {
+        treeCode: info.value?.treeCode,
+        treeName: info.value.treeName,
+        treeParentCode: info.value.treeParentCode,
+        parentMenuId: info.value.parentMenuId
+      };
+      const response = await updateGenTable(genTable);
+      proxy?.$modal.msgSuccess(response.msg);
+      if (response.code === 200) {
+        close();
+      }
+    } else {
+      proxy?.$modal.msgError('表单校验未通过，请重新检查提交内容');
+    }
+  });
+};
+const getFormPromise = (form: any) => {
+  return new Promise((resolve) => {
+    form.validate((res: any) => {
+      resolve(res);
+    });
+  });
+};
 const close = () => {
-  tab.closeOpenPage({
+  const obj: RouteLocationNormalized = {
     path: '/tool/gen',
+    fullPath: '',
+    hash: '',
+    matched: [],
+    meta: undefined,
+    name: undefined,
+    params: undefined,
+    redirectedFrom: undefined,
     query: { t: Date.now().toString(), pageNum: route.query.pageNum }
-  });
+  };
+  proxy?.$tab.closeOpenPage(obj);
 };
 
-onMounted(async () => {
-  const tableId = route.params?.tableId as string | undefined;
-  if (!tableId) return;
-  const res = await getGenTable(tableId);
-  const detail = res.data;
-  if (!detail) return;
-  columns.value = (detail.rows ?? []).map(column => {
-    const item = { ...column };
-    normalizeColumnDictType(item);
-    return item;
-  });
-  info.value = {
-    enableExport: detail.info.enableExport ?? true,
-    enableStatus: detail.info.enableStatus ?? false,
-    statusField: detail.info.statusField ?? '',
-    enableUnique: detail.info.enableUnique ?? false,
-    uniqueFields: detail.info.uniqueFields ?? [],
-    enableSort: detail.info.enableSort ?? false,
-    sortField: detail.info.sortField ?? '',
-    frontendType: detail.info.frontendType ?? 'vue',
-    treeRootValue: detail.info.treeRootValue ?? '0',
-    treeAncestorsField: detail.info.treeAncestorsField ?? '',
-    treeOrderField: detail.info.treeOrderField ?? '',
-    ...detail.info
-  };
-  info.value.frontendType ||= 'vue';
-  const response = await getDictOptionselect();
-  dictOptions.value = response.data;
-});
+(async () => {
+  const tableId = route.params && (route.params.tableId as string);
+  if (tableId) {
+    // 获取表详细信息
+    const res = await getGenTable(tableId);
+    columns.value = res.data.rows;
+    info.value = res.data.info;
+    tables.value = res.data.tables;
+    /** 查询字典下拉列表 */
+    const response = await getDictOptionselect();
+    dictOptions.value = response.data;
+  }
+})();
 </script>

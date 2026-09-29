@@ -5,15 +5,15 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.dromara.common.core.domain.PageResult;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.core.validate.AddGroup;
 import org.dromara.common.core.validate.EditGroup;
-import org.dromara.common.excel.utils.ExcelBuilder;
+import org.dromara.common.excel.utils.ExcelUtil;
+import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
-import org.dromara.common.redis.annotation.RepeatSubmit;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.workflow.common.ConditionalOnEnable;
 import org.dromara.workflow.domain.bo.TestLeaveBo;
@@ -44,8 +44,8 @@ public class TestLeaveController extends BaseController {
      */
     @SaCheckPermission("workflow:leave:list")
     @GetMapping("/list")
-    public R<PageResult<TestLeaveVo>> list(TestLeaveBo bo, PageQuery pageQuery) {
-        return R.ok(testLeaveService.queryPageList(bo, pageQuery));
+    public TableDataInfo<TestLeaveVo> list(TestLeaveBo bo, PageQuery pageQuery) {
+        return testLeaveService.queryPageList(bo, pageQuery);
     }
 
     /**
@@ -56,7 +56,7 @@ public class TestLeaveController extends BaseController {
     @PostMapping("/export")
     public void export(TestLeaveBo bo, HttpServletResponse response) {
         List<TestLeaveVo> list = testLeaveService.queryList(bo);
-        ExcelBuilder.of(list, TestLeaveVo.class).sheetName("请假").toResponse(response);
+        ExcelUtil.exportExcel(list, "请假", TestLeaveVo.class, response);
     }
 
     /**

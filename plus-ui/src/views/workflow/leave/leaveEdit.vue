@@ -15,14 +15,7 @@
       />
     </el-card>
     <el-card shadow="never" style="height: 78vh; overflow-y: auto">
-      <el-form
-        ref="leaveFormRef"
-        v-loading="loading"
-        :disabled="routeParams.type === 'view'"
-        :model="form"
-        :rules="rules"
-        label-width="80px"
-      >
+      <el-form ref="leaveFormRef" v-loading="loading" :disabled="routeParams.type === 'view'" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="流程定义" v-if="routeParams.type === 'add'">
           <el-select v-model="flowCode" placeholder="选择流程定义" style="width: 100%">
             <el-option v-for="item in flowCodeOptions" :key="item.value" :label="item.label" :value="item.value" />
@@ -61,19 +54,15 @@
 </template>
 
 <script setup name="Leave" lang="ts">
-import { useRoute } from 'vue-router';
 import { addLeave, getLeave, submitAndFlowStart, updateLeave } from '@/api/workflow/leave';
 import { LeaveForm, LeaveQuery, LeaveVO } from '@/api/workflow/leave/types';
 import { startWorkFlow } from '@/api/workflow/task';
-import { StartProcessBo } from '@/api/workflow/workflowCommon/types';
-import ApprovalButton from '@/components/Process/approvalButton.vue';
-import ApprovalRecord from '@/components/Process/approvalRecord.vue';
 import SubmitVerify from '@/components/Process/submitVerify.vue';
-import modal from '@/plugins/modal';
-import tab from '@/plugins/tab';
-import router from '@/router';
-
-const route = useRoute();
+import ApprovalRecord from '@/components/Process/approvalRecord.vue';
+import ApprovalButton from '@/components/Process/approvalButton.vue';
+import { AxiosResponse } from 'axios';
+import { StartProcessBo } from '@/api/workflow/workflowCommon/types';
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
 const buttonLoading = ref(false);
 const loading = ref(true);
@@ -201,7 +190,7 @@ const getInfo = () => {
 /** 提交按钮 */
 const submitForm = (status: string, mode: boolean) => {
   if (leaveTime.value.length === 0) {
-    modal.msgError('请假时间不能为空');
+    proxy?.$modal.msgError('请假时间不能为空');
     return;
   }
   try {
@@ -215,9 +204,9 @@ const submitForm = (status: string, mode: boolean) => {
           const res = await submitAndFlowStart(form.value).finally(() => (buttonLoading.value = false));
           form.value = res.data;
           buttonLoading.value = false;
-          modal.msgSuccess('操作成功');
-          tab.closePage(route);
-          router.go(-1);
+          proxy?.$modal.msgSuccess('操作成功');
+          proxy.$tab.closePage(proxy.$route);
+          proxy.$router.go(-1);
         } else {
           let res;
           if (form.value.id) {
@@ -228,9 +217,9 @@ const submitForm = (status: string, mode: boolean) => {
           form.value = res.data;
           if (status === 'draft') {
             buttonLoading.value = false;
-            modal.msgSuccess('暂存成功');
-            tab.closePage(route);
-            router.go(-1);
+            proxy?.$modal.msgSuccess('暂存成功');
+            proxy.$tab.closePage(proxy.$route);
+            proxy.$router.go(-1);
           } else {
             await handleStartWorkFlow(res.data);
           }
@@ -276,8 +265,8 @@ const handleApprovalRecord = () => {
 };
 //提交回调
 const submitCallback = async () => {
-  await tab.closePage(route);
-  router.go(-1);
+  await proxy.$tab.closePage(proxy.$route);
+  proxy.$router.go(-1);
 };
 //审批
 const approvalVerifyOpen = async () => {
@@ -286,14 +275,10 @@ const approvalVerifyOpen = async () => {
 
 onMounted(() => {
   nextTick(async () => {
-    routeParams.value = route.query;
+    routeParams.value = proxy.$route.query;
     reset();
     loading.value = false;
-    if (
-      routeParams.value.type === 'update' ||
-      routeParams.value.type === 'view' ||
-      routeParams.value.type === 'approval'
-    ) {
+    if (routeParams.value.type === 'update' || routeParams.value.type === 'view' || routeParams.value.type === 'approval') {
       getInfo();
     }
   });

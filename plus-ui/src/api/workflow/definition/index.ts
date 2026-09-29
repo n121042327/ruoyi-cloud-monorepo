@@ -1,19 +1,13 @@
-import type { PageResult } from '@/api/types';
-import type {
-  definitionXmlVO,
-  FlowDefinitionForm,
-  FlowDefinitionQuery,
-  FlowDefinitionVo
-} from '@/api/workflow/definition/types';
-import type { AxiosPromise } from '@/utils/api-types';
 import request from '@/utils/request';
+import { FlowDefinitionQuery, definitionXmlVO, FlowDefinitionForm, FlowDefinitionVo } from '@/api/workflow/definition/types';
+import { AxiosPromise } from 'axios';
 
 /**
  * 获取流程定义列表
  * @param query 流程实例id
  * @returns
  */
-export const listDefinition = (query: FlowDefinitionQuery): AxiosPromise<PageResult<FlowDefinitionVo>> => {
+export const listDefinition = (query: FlowDefinitionQuery): AxiosPromise<FlowDefinitionVo[]> => {
   return request({
     url: `/workflow/definition/list`,
     method: 'get',
@@ -26,7 +20,7 @@ export const listDefinition = (query: FlowDefinitionQuery): AxiosPromise<PageRes
  * @param query 流程实例id
  * @returns
  */
-export const unPublishList = (query: FlowDefinitionQuery): AxiosPromise<PageResult<FlowDefinitionVo>> => {
+export const unPublishList = (query: FlowDefinitionQuery): AxiosPromise<FlowDefinitionVo[]> => {
   return request({
     url: `/workflow/definition/unPublishList`,
     method: 'get',

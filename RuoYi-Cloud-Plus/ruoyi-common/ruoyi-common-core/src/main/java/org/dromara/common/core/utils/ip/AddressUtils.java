@@ -21,15 +21,9 @@ public class AddressUtils {
     // 内网地址
     public static final String LOCAL_ADDRESS = "内网IP";
 
-    /**
-     * 根据 IP 查询真实地址。
-     *
-     * @param ip IP 地址
-     * @return 真实地址
-     */
     public static String getRealAddressByIP(String ip) {
         // 处理空串并过滤HTML标签
-        ip = HtmlUtil.cleanHtmlTag(StringUtils.blankToDefault(ip, ""));
+        ip = HtmlUtil.cleanHtmlTag(StringUtils.blankToDefault(ip,""));
         // 判断是否为IPv4
         boolean isIPv4 = NetUtils.isIPv4(ip);
         // 判断是否为IPv6

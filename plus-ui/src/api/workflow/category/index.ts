@@ -1,6 +1,6 @@
-import type { CategoryForm, CategoryQuery, CategoryTreeVO, CategoryVO } from '@/api/workflow/category/types';
-import type { AxiosPromise } from '@/utils/api-types';
 import request from '@/utils/request';
+import { AxiosPromise } from 'axios';
+import { CategoryVO, CategoryForm, CategoryQuery, CategoryTreeVO } from '@/api/workflow/category/types';
 
 /**
  * 查询流程分类列表

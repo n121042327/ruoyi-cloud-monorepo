@@ -5,13 +5,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.dromara.common.core.constant.RegexConstants;
+import org.dromara.common.mybatis.core.domain.BaseEntity;
 import org.dromara.system.domain.SysDictType;
-
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 字典类型业务对象 sys_dict_type
@@ -20,11 +17,9 @@ import java.util.Map;
  */
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @AutoMapper(target = SysDictType.class, reverseConvertGenerate = false)
-public class SysDictTypeBo implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 1L;
+public class SysDictTypeBo extends BaseEntity {
 
     /**
      * 字典主键
@@ -50,11 +45,6 @@ public class SysDictTypeBo implements Serializable {
      * 备注
      */
     private String remark;
-
-    /**
-     * 请求参数
-     */
-    private Map<String, Object> params = new HashMap<>();
 
 
 }

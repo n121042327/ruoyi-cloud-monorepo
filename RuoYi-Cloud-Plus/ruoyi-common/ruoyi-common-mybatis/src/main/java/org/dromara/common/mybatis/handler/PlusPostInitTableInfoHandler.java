@@ -16,13 +16,12 @@ import org.dromara.common.core.utils.reflect.ReflectUtils;
 public class PlusPostInitTableInfoHandler implements PostInitTableInfoHandler {
 
     @Override
-    public TableInfo postTableInfo(TableInfo tableInfo, Configuration configuration) {
+    public void postTableInfo(TableInfo tableInfo, Configuration configuration) {
         String flag = SpringUtils.getProperty("mybatis-plus.enableLogicDelete", "true");
         // 只有关闭时 统一设置false 为true时mp自动判断不处理
         if (!Convert.toBool(flag)) {
             ReflectUtils.setFieldValue(tableInfo, "withLogicDelete", false);
         }
-        return tableInfo;
     }
 
 }

@@ -1,14 +1,14 @@
 package org.dromara.workflow.domain.vo;
 
+import cn.idev.excel.annotation.ExcelIgnoreUnannotated;
+import cn.idev.excel.annotation.ExcelProperty;
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
-import org.apache.fesod.sheet.annotation.ExcelIgnoreUnannotated;
-import org.apache.fesod.sheet.annotation.ExcelProperty;
 import org.dromara.workflow.domain.TestLeave;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 
 /**
@@ -47,13 +47,13 @@ public class TestLeaveVo implements Serializable {
      * 开始时间
      */
     @ExcelProperty(value = "开始时间")
-    private LocalDateTime startDate;
+    private Date startDate;
 
     /**
      * 结束时间
      */
     @ExcelProperty(value = "结束时间")
-    private LocalDateTime endDate;
+    private Date endDate;
 
     /**
      * 请假天数

@@ -1,7 +1,6 @@
 package org.dromara.system.api.domain.vo;
 
 import lombok.Data;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
@@ -52,16 +51,6 @@ public class RemoteClientVo implements Serializable {
      * 设备类型
      */
     private String deviceType;
-
-    /**
-     * 允许访问路径
-     */
-    private String accessPath;
-
-    /**
-     * IP白名单
-     */
-    private String ipWhitelist;
 
     /**
      * token活跃超时时间

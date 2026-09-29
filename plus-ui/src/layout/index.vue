@@ -1,25 +1,34 @@
 <template>
   <div :class="classObj" class="app-wrapper" :style="{ '--current-color': theme }">
     <div v-if="device === 'mobile' && sidebar.opened" class="drawer-bg" @click="handleClickOutside" />
-    <side-bar v-if="showSidebar" class="sidebar-container" />
+    <side-bar v-if="!sidebar.hide" class="sidebar-container" />
     <div :class="{ hasTagsView: needTagsView, sidebarHide: sidebar.hide }" class="main-container">
-      <div :class="{ 'fixed-header': fixedHeader }" class="layout-header">
-        <navbar @set-layout="setLayout" />
+      <!-- <el-scrollbar>
+        <div :class="{ 'fixed-header': fixedHeader }">
+          <navbar ref="navbarRef" @setLayout="setLayout" />
+          <tags-view v-if="needTagsView" />
+        </div>
+        <app-main />
+        <settings ref="settingRef" />
+      </el-scrollbar> -->
+      <div :class="{ 'fixed-header': fixedHeader }">
+        <navbar ref="navbarRef" @set-layout="setLayout" />
         <tags-view v-if="needTagsView" />
       </div>
-      <app-main :class="{ 'with-fixed-header': fixedHeader, 'with-tags-view': needTagsView }" />
+      <app-main />
       <settings ref="settingRef" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { NavTypeEnum } from '@/enums/NavTypeEnum';
+import SideBar from './components/Sidebar/index.vue';
+import { AppMain, Navbar, Settings, TagsView } from './components';
 import { useAppStore } from '@/store/modules/app';
 import { useSettingsStore } from '@/store/modules/settings';
-import { initMessageBox, initPush } from '@/utils/push';
-import { AppMain, Navbar, Settings, TagsView } from './components';
-import SideBar from './components/Sidebar/index.vue';
+import { NavTypeEnum } from '@/enums/NavTypeEnum';
+import { initWebSocket } from '@/utils/websocket';
+import { initSSE } from '@/utils/sse';
 
 const settingsStore = useSettingsStore();
 const theme = computed(() => settingsStore.theme);
@@ -45,27 +54,34 @@ const classObj = computed(() => ({
 const { width } = useWindowSize();
 const WIDTH = 992; // refer to Bootstrap's responsive design
 
-watch(
-  width,
-  w => {
-    if (w - 1 < WIDTH) {
-      useAppStore().toggleDevice('mobile');
-      useAppStore().closeSideBar({ withoutAnimation: true });
-    } else {
-      useAppStore().toggleDevice('desktop');
-    }
-  },
-  { immediate: true }
-);
+watchEffect(() => {
+  if (device.value === 'mobile') {
+    useAppStore().closeSideBar({ withoutAnimation: false });
+  }
+  if (width.value - 1 < WIDTH) {
+    useAppStore().toggleDevice('mobile');
+    useAppStore().closeSideBar({ withoutAnimation: true });
+  } else {
+    useAppStore().toggleDevice('desktop');
+  }
+});
 
+const navbarRef = ref<InstanceType<typeof Navbar>>();
 const settingRef = ref<InstanceType<typeof Settings>>();
 
-onMounted(async () => {
-  try {
-    await initMessageBox();
-  } finally {
-    initPush();
-  }
+onMounted(() => {
+  nextTick(() => {
+    navbarRef.value?.initTenantList();
+  });
+});
+
+onMounted(() => {
+  const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+  initWebSocket(protocol + window.location.host + import.meta.env.VITE_APP_BASE_API + '/resource/websocket');
+});
+
+onMounted(() => {
+  initSSE(import.meta.env.VITE_APP_BASE_API + '/resource/sse');
 });
 
 const handleClickOutside = () => {
@@ -79,14 +95,13 @@ const setLayout = () => {
 
 <style lang="scss" scoped>
 @use '@/assets/styles/mixin.scss';
-@use '@/assets/styles/tokens/sass-vars' as *;
+@use '@/assets/styles/variables.module.scss' as *;
 
 .app-wrapper {
   @include mixin.clearfix;
   position: relative;
   height: 100%;
   width: 100%;
-  background: var(--app-shell-bg);
 
   &.mobile.openSidebar {
     position: fixed;
@@ -96,7 +111,7 @@ const setLayout = () => {
 
 .drawer-bg {
   background: #000;
-  opacity: 0.4;
+  opacity: 0.3;
   width: 100%;
   top: 0;
   height: 100%;
@@ -104,26 +119,19 @@ const setLayout = () => {
   z-index: 999;
 }
 
-.layout-header {
-  position: relative;
-  z-index: 9;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 12px 12px 0;
-  background: transparent;
-}
-
 .fixed-header {
   position: fixed;
   top: 0;
   right: 0;
-  width: calc(100% - #{$base-sidebar-width} - 12px);
+  z-index: 9;
+  width: calc(100% - #{$base-sidebar-width});
   transition: width 0.28s;
+  background: $fixed-header-bg;
+  box-shadow: 0 2px 8px rgba(0, 21, 41, 0.10);
 }
 
 .hideSidebar .fixed-header {
-  width: calc(100% - 70px);
+  width: calc(100% - 54px);
 }
 
 .sidebarHide .fixed-header {
@@ -132,6 +140,5 @@ const setLayout = () => {
 
 .mobile .fixed-header {
   width: 100%;
-  top: 0;
 }
 </style>

@@ -63,6 +63,13 @@ public interface RemoteWorkflowService {
     Long getInstanceIdByBusinessId(String businessId);
 
     /**
+     * 新增租户流程定义
+     *
+     * @param tenantId 租户id
+     */
+    void syncDef(String tenantId);
+
+    /**
      * 启动流程
      *
      * @param startProcess 参数

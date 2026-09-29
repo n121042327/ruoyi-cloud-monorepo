@@ -1,8 +1,8 @@
 package org.dromara.common.encrypt.core;
 
+import org.dromara.common.encrypt.enumd.AlgorithmType;
+import org.dromara.common.encrypt.enumd.EncodeType;
 import lombok.Data;
-import org.dromara.common.encrypt.enums.AlgorithmType;
-import org.dromara.common.encrypt.enums.EncodeType;
 
 /**
  * 加密上下文 用于encryptor传递必要的参数。

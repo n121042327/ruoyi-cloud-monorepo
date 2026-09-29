@@ -8,7 +8,8 @@ import org.dromara.system.domain.SysNotice;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.Date;
+
 
 
 /**
@@ -67,6 +68,6 @@ public class SysNoticeVo implements Serializable {
     /**
      * 创建时间
      */
-    private LocalDateTime createTime;
+    private Date createTime;
 
 }

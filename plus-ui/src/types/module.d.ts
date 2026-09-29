@@ -1,22 +1,41 @@
-import type { LanguageType } from '@/lang';
-import auth from '@/plugins/auth';
-import cache from '@/plugins/cache';
-import download from '@/plugins/download';
 import modal from '@/plugins/modal';
 import tab from '@/plugins/tab';
+import download from '@/plugins/download';
+import auth from '@/plugins/auth';
+import cache from '@/plugins/cache';
+import animate from '@/animate';
+import { useDict } from '@/utils/dict';
+import { handleTree, addDateRange, selectDictLabel, selectDictLabels, parseTime } from '@/utils/ruoyi';
+import { getConfigKey, updateConfigByKey } from '@/api/system/config';
+import { download as rd } from '@/utils/request';
+import type { LanguageType } from '@/lang';
+
+export {};
 
 declare module 'vue' {
   interface ComponentCustomProperties {
+    // 全局方法声明
     $modal: typeof modal;
     $tab: typeof tab;
     $download: typeof download;
     $auth: typeof auth;
     $cache: typeof cache;
+    animate: typeof animate;
     /**
      * i18n $t方法支持ts类型提示
      * @param key i18n key
      */
     $t(key: ObjKeysToUnion<LanguageType>): string;
+
+    useDict: typeof useDict;
+    addDateRange: typeof addDateRange;
+    download: typeof rd;
+    handleTree: typeof handleTree;
+    getConfigKey: typeof getConfigKey;
+    updateConfigByKey: typeof updateConfigByKey;
+    selectDictLabel: typeof selectDictLabel;
+    selectDictLabels: typeof selectDictLabels;
+    parseTime: typeof parseTime;
   }
 }
 

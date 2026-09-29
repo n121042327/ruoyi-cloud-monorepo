@@ -2,48 +2,40 @@ package org.dromara.gateway.filter;
 
 import cn.dev33.satoken.SaManager;
 import cn.dev33.satoken.same.SaSameUtil;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.dromara.gateway.filter.support.MutableHttpServletRequest;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
 /**
- * 转发请求头过滤器:
- * 1. 转发内部 same-token
+ * 转发认证过滤器(内部服务外网隔离)
  *
  * @author Lion Li
  */
 @Component
-@Order(Ordered.HIGHEST_PRECEDENCE + 15)
-public class ForwardAuthFilter extends OncePerRequestFilter {
-
+public class ForwardAuthFilter implements GlobalFilter, Ordered {
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        return request.getRequestURI().startsWith("/actuator");
-    }
-
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-        throws ServletException, IOException {
-        MutableHttpServletRequest newRequest = null;
-
-        if (SaManager.getConfig().getCheckSameToken()) {
-            newRequest = getOrCreateMutableRequest(request, newRequest);
-            newRequest.putHeader(SaSameUtil.SAME_TOKEN, SaSameUtil.getToken());
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        // 未开启配置则直接跳过
+        if (!SaManager.getConfig().getCheckSameToken()) {
+            return chain.filter(exchange);
         }
-
-        filterChain.doFilter(newRequest == null ? request : newRequest, response);
+        ServerHttpRequest newRequest = exchange
+            .getRequest()
+            .mutate()
+            // 为请求追加 Same-Token 参数
+            .header(SaSameUtil.SAME_TOKEN, SaSameUtil.getToken())
+            .build();
+        ServerWebExchange newExchange = exchange.mutate().request(newRequest).build();
+        return chain.filter(newExchange);
     }
 
-    private MutableHttpServletRequest getOrCreateMutableRequest(HttpServletRequest request,
-                                                                MutableHttpServletRequest currentRequest) {
-        return currentRequest != null ? currentRequest : new MutableHttpServletRequest(request);
+    @Override
+    public int getOrder() {
+        return -100;
     }
 }
+

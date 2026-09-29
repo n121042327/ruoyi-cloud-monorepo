@@ -1,14 +1,13 @@
-import type { PageResult } from '@/api/types';
-import type { FlowTaskVO, TaskOperationBo, TaskQuery } from '@/api/workflow/task/types';
-import type { AxiosPromise } from '@/utils/api-types';
 import request from '@/utils/request';
+import { AxiosPromise } from 'axios';
+import { TaskQuery, FlowTaskVO, TaskOperationBo } from '@/api/workflow/task/types';
 
 /**
  * 查询待办列表
  * @param query
  * @returns {*}
  */
-export const pageByTaskWait = (query: TaskQuery): AxiosPromise<PageResult<FlowTaskVO>> => {
+export const pageByTaskWait = (query: TaskQuery): AxiosPromise<FlowTaskVO[]> => {
   return request({
     url: '/workflow/task/pageByTaskWait',
     method: 'get',
@@ -21,7 +20,7 @@ export const pageByTaskWait = (query: TaskQuery): AxiosPromise<PageResult<FlowTa
  * @param query
  * @returns {*}
  */
-export const pageByTaskFinish = (query: TaskQuery): AxiosPromise<PageResult<FlowTaskVO>> => {
+export const pageByTaskFinish = (query: TaskQuery): AxiosPromise<FlowTaskVO[]> => {
   return request({
     url: '/workflow/task/pageByTaskFinish',
     method: 'get',
@@ -34,7 +33,7 @@ export const pageByTaskFinish = (query: TaskQuery): AxiosPromise<PageResult<Flow
  * @param query
  * @returns {*}
  */
-export const pageByTaskCopy = (query: TaskQuery): AxiosPromise<PageResult<FlowTaskVO>> => {
+export const pageByTaskCopy = (query: TaskQuery): AxiosPromise<FlowTaskVO[]> => {
   return request({
     url: '/workflow/task/pageByTaskCopy',
     method: 'get',
@@ -43,11 +42,11 @@ export const pageByTaskCopy = (query: TaskQuery): AxiosPromise<PageResult<FlowTa
 };
 
 /**
- * 查询全部待办任务
+ * 当前租户所有待办任务
  * @param query
  * @returns {*}
  */
-export const pageByAllTaskWait = (query: TaskQuery): AxiosPromise<PageResult<FlowTaskVO>> => {
+export const pageByAllTaskWait = (query: TaskQuery): AxiosPromise<FlowTaskVO[]> => {
   return request({
     url: '/workflow/task/pageByAllTaskWait',
     method: 'get',
@@ -56,11 +55,11 @@ export const pageByAllTaskWait = (query: TaskQuery): AxiosPromise<PageResult<Flo
 };
 
 /**
- * 查询全部已办任务
+ * 当前租户所有已办任务
  * @param query
  * @returns {*}
  */
-export const pageByAllTaskFinish = (query: TaskQuery): AxiosPromise<PageResult<FlowTaskVO>> => {
+export const pageByAllTaskFinish = (query: TaskQuery): AxiosPromise<FlowTaskVO[]> => {
   return request({
     url: '/workflow/task/pageByAllTaskFinish',
     method: 'get',

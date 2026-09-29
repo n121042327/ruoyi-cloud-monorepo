@@ -1,108 +1,100 @@
 <template>
-  <div class="home">
-    <section class="hero-panel">
-      <div class="hero-copy">
-        <h1>RuoYi-Vue-Plus 控制台</h1>
+  <div class="app-container home">
+    <el-row :gutter="20">
+      <el-col :sm="24" :lg="12" style="padding-left: 20px">
+        <h2>RuoYi-Vue-Plus多租户管理系统</h2>
         <p>
-          企业级后台管理系统 重写 RuoYi-Vue 所有功能 集成 Sa-Token、Mybatis-Plus、WarmFlow、SpringDoc、Hutool、OSS
-          等组件
+          RuoYi-Vue-Plus 是基于 RuoYi-Vue 针对 分布式集群 场景升级(不兼容原框架)
+          <br />
+          * 前端开发框架 Vue3、TS、Element Plus<br />
+          * 后端开发框架 Spring Boot<br />
+          * 容器框架 Undertow 基于 Netty 的高性能容器<br />
+          * 权限认证框架 Sa-Token 支持多终端认证系统<br />
+          * 关系数据库 MySQL 适配 8.X 最低 5.7<br />
+          * 缓存数据库 Redis 适配 6.X 最低 4.X<br />
+          * 数据库框架 Mybatis-Plus 快速 CRUD 增加开发效率<br />
+          * 数据库框架 p6spy 更强劲的 SQL 分析<br />
+          * 多数据源框架 dynamic-datasource 支持主从与多种类数据库异构<br />
+          * 序列化框架 Jackson 统一使用 jackson 高效可靠<br />
+          * Redis客户端 Redisson 性能强劲、API丰富<br />
+          * 分布式限流 Redisson 全局、请求IP、集群ID 多种限流<br />
+          * 分布式锁 Lock4j 注解锁、工具锁 多种多样<br />
+          * 分布式幂等 Lock4j 基于分布式锁实现<br />
+          * 分布式链路追踪 SkyWalking 支持链路追踪、网格分析、度量聚合、可视化<br />
+          * 分布式任务调度 SnailJob 高性能 高可靠 易扩展<br />
+          * 文件存储 Minio 本地存储<br />
+          * 文件存储 七牛、阿里、腾讯 云存储<br />
+          * 监控框架 SpringBoot-Admin 全方位服务监控<br />
+          * 校验框架 Validation 增强接口安全性 严谨性<br />
+          * Excel框架 FastExcel(原Alibaba EasyExcel) 性能优异 扩展性强<br />
+          * 文档框架 SpringDoc、javadoc 无注解零入侵基于java注释<br />
+          * 工具类框架 Hutool、Lombok 减少代码冗余 增加安全性<br />
+          * 代码生成器 适配MP、SpringDoc规范化代码 一键生成前后端代码<br />
+          * 部署方式 Docker 容器编排 一键部署业务集群<br />
+          * 国际化 SpringMessage Spring标准国际化方案<br />
         </p>
-        <div class="hero-actions">
-          <el-button type="primary" @click="goTarget('https://gitee.com/dromara/RuoYi-Vue-Plus')">查看源码</el-button>
-          <el-button plain @click="goTarget('https://plus-doc.dromara.org/#/ruoyi-vue-plus/changlog')">
-            更新日志
-          </el-button>
-        </div>
-      </div>
-    </section>
+        <p><b>当前版本:</b> <span>v5.6.2</span></p>
+        <p>
+          <el-tag type="danger">&yen;免费开源</el-tag>
+        </p>
+        <p>
+          <el-button type="primary" icon="Cloudy" plain @click="goTarget('https://gitee.com/dromara/RuoYi-Vue-Plus')">访问码云</el-button>
+          <el-button type="primary" icon="Cloudy" plain @click="goTarget('https://github.com/dromara/RuoYi-Vue-Plus')">访问GitHub</el-button>
+          <el-button type="primary" icon="Cloudy" plain @click="goTarget('https://plus-doc.dromara.org/#/ruoyi-vue-plus/changlog')"
+            >更新日志</el-button
+          >
+        </p>
+      </el-col>
 
-    <div class="content-grid">
-      <section class="section-card">
-        <div class="section-head">
-          <div>
-            <h2>项目矩阵</h2>
-          </div>
-        </div>
-        <div class="product-list">
-          <article v-for="product in products" :key="product.name" class="product-card">
-            <div class="product-top">
-              <div>
-                <h3>{{ product.name }}</h3>
-                <p>{{ product.summary }}</p>
-              </div>
-              <span class="product-version">{{ product.version }}</span>
-            </div>
-            <div class="product-tags">
-              <el-tag v-for="tag in product.tags" :key="tag" effect="plain">{{ tag }}</el-tag>
-            </div>
-            <div class="product-actions">
-              <el-button type="primary" plain @click="goTarget(product.primaryUrl)">
-                {{ product.primaryLabel }}
-              </el-button>
-              <el-button plain @click="goTarget(product.secondaryUrl)">{{ product.secondaryLabel }}</el-button>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section class="section-card capability-card">
-        <div class="section-head">
-          <div>
-            <h2>能力地图</h2>
-          </div>
-        </div>
-        <div class="capability-groups">
-          <article v-for="group in capabilityGroups" :key="group.title" class="capability-group">
-            <h3>{{ group.title }}</h3>
-            <ul>
-              <li v-for="item in group.items" :key="item">{{ item }}</li>
-            </ul>
-          </article>
-        </div>
-      </section>
-    </div>
+      <el-col :sm="24" :lg="12" style="padding-left: 20px">
+        <h2>RuoYi-Cloud-Plus多租户微服务管理系统</h2>
+        <p>
+          RuoYi-Cloud-Plus 微服务通用权限管理系统 重写 RuoYi-Cloud 全方位升级(不兼容原框架)
+          <br />
+          * 前端开发框架 Vue3、TS、Element UI<br />
+          * 后端开发框架 Spring Boot<br />
+          * 微服务开发框架 Spring Cloud、Spring Cloud Alibaba<br />
+          * 容器框架 Undertow 基于 XNIO 的高性能容器<br />
+          * 权限认证框架 Sa-Token、Jwt 支持多终端认证系统<br />
+          * 关系数据库 MySQL 适配 8.X 最低 5.7<br />
+          * 关系数据库 Oracle 适配 11g 12c<br />
+          * 关系数据库 PostgreSQL 适配 13 14<br />
+          * 关系数据库 SQLServer 适配 2017 2019<br />
+          * 缓存数据库 Redis 适配 6.X 最低 5.X<br />
+          * 分布式注册中心 Alibaba Nacos 采用2.X 基于GRPC通信高性能<br />
+          * 分布式配置中心 Alibaba Nacos 采用2.X 基于GRPC通信高性能<br />
+          * 服务网关 Spring Cloud Gateway 响应式高性能网关<br />
+          * 负载均衡 Spring Cloud Loadbalancer 负载均衡处理<br />
+          * RPC远程调用 Apache Dubbo 原生态使用体验、高性能<br />
+          * 分布式限流熔断 Alibaba Sentinel 无侵入、高扩展<br />
+          * 分布式事务 Alibaba Seata 无侵入、高扩展 支持 四种模式<br />
+          * 分布式消息队列 Apache Kafka 高性能高速度<br />
+          * 分布式消息队列 Apache RocketMQ 高可用功能多样<br />
+          * 分布式消息队列 RabbitMQ 支持各种扩展插件功能多样性<br />
+          * 分布式搜索引擎 ElasticSearch 业界知名<br />
+          * 分布式链路追踪 Apache SkyWalking 链路追踪、网格分析、度量聚合、可视化<br />
+          * 分布式日志中心 ELK 业界成熟解决方案<br />
+          * 分布式监控 Prometheus、Grafana 全方位性能监控<br />
+          * 其余与 Vue 版本一致<br />
+        </p>
+        <p><b>当前版本:</b> <span>v2.6.2</span></p>
+        <p>
+          <el-tag type="danger">&yen;免费开源</el-tag>
+        </p>
+        <p>
+          <el-button type="primary" icon="Cloudy" plain @click="goTarget('https://gitee.com/dromara/RuoYi-Cloud-Plus')">访问码云</el-button>
+          <el-button type="primary" icon="Cloudy" plain @click="goTarget('https://github.com/dromara/RuoYi-Cloud-Plus')">访问GitHub</el-button>
+          <el-button type="primary" icon="Cloudy" plain @click="goTarget('https://plus-doc.dromara.org/#/ruoyi-cloud-plus/changlog')"
+            >更新日志</el-button
+          >
+        </p>
+      </el-col>
+    </el-row>
+    <el-divider />
   </div>
 </template>
 
 <script setup name="Index" lang="ts">
-const products = [
-  {
-    name: 'RuoYi-Vue-Plus',
-    version: 'v6.0.0',
-    summary: '面向分布式集群场景的后台管理系统，保持现有业务接口与权限逻辑，适合先完成前端壳升级。',
-    tags: ['Vue 3', 'Element Plus', 'Spring Boot', 'Sa-Token'],
-    primaryLabel: '访问 GitHub',
-    primaryUrl: 'https://github.com/dromara/RuoYi-Vue-Plus',
-    secondaryLabel: '查看更新日志',
-    secondaryUrl: 'https://plus-doc.dromara.org/#/ruoyi-vue-plus/changlog'
-  },
-  {
-    name: 'RuoYi-Cloud-Plus',
-    version: 'v6.0.0',
-    summary: '微服务通用权限管理系统，适合更复杂的服务治理场景，也可以沿用同样的前端升级思路。',
-    tags: ['Spring Cloud', 'Gateway', 'Nacos', 'Dubbo'],
-    primaryLabel: '访问 GitHub',
-    primaryUrl: 'https://github.com/dromara/RuoYi-Cloud-Plus',
-    secondaryLabel: '查看更新日志',
-    secondaryUrl: 'https://plus-doc.dromara.org/#/ruoyi-cloud-plus/changlog'
-  }
-];
-
-const capabilityGroups = [
-  {
-    title: '后端基建',
-    items: ['Spring Boot / Spring Cloud', 'Sa-Token 认证与权限', 'MySQL / Redis', '代码生成器']
-  },
-  {
-    title: '平台能力',
-    items: ['动态菜单与按钮权限', '监控、日志、在线用户', '任务调度与工作流', '文件存储与多云适配']
-  },
-  {
-    title: '前端方向',
-    items: ['UI 卡片化', '主题与布局统一', '通用页面容器规范化', '企业化布局']
-  }
-];
-
 const goTarget = (url: string) => {
   window.open(url, '__blank');
 };
@@ -110,261 +102,64 @@ const goTarget = (url: string) => {
 
 <style lang="scss" scoped>
 .home {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.hero-panel,
-.section-card {
-  border-radius: 28px;
-  border: 1px solid var(--app-surface-border);
-  background: var(--app-surface-bg);
-  box-shadow: var(--app-shadow-sm);
-  backdrop-filter: blur(18px);
-}
-
-.hero-panel {
-  display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
-  gap: 18px;
-  padding: 30px;
-  background: radial-gradient(circle at top left, rgba(53, 109, 255, 0.16), transparent 30%), var(--app-surface-bg);
-}
-
-.hero-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-
-  h1 {
-    margin: 0;
-    font-size: clamp(30px, 4vw, 46px);
-    line-height: 1.06;
-    letter-spacing: -0.04em;
-    color: var(--app-text-title);
+  blockquote {
+    padding: 10px 20px;
+    margin: 0 0 20px;
+    font-size: 17.5px;
+    border-left: 5px solid #eee;
   }
-
-  p {
-    margin: 0;
-    max-width: 760px;
-    color: var(--app-text-muted);
-    font-size: 15px;
-    line-height: 1.8;
+  hr {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border: 0;
+    border-top: 1px solid #eee;
   }
-}
-
-.hero-badge {
-  display: inline-flex;
-  width: fit-content;
-  padding: 8px 14px;
-  border-radius: 999px;
-  background: rgba(53, 109, 255, 0.12);
-  color: var(--app-accent-strong);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 8px;
-}
-
-.hero-stats {
-  display: grid;
-  gap: 12px;
-}
-
-.stat-card {
-  padding: 18px 20px;
-  border-radius: 22px;
-  background: var(--app-elevated-soft-bg);
-  border: 1px solid var(--app-surface-border);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-
-  strong {
-    color: var(--app-text-title);
-    font-size: 24px;
-    letter-spacing: -0.03em;
-  }
-
-  span {
-    color: var(--app-text-muted);
-    font-size: 13px;
-  }
-}
-
-.content-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
-  gap: 20px;
-}
-
-.section-card {
-  padding: 24px;
-}
-
-.section-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 18px;
-
-  h2 {
-    margin: 6px 0 0;
-    color: var(--app-text-title);
-    font-size: 26px;
-    letter-spacing: -0.03em;
-  }
-}
-
-.section-kicker {
-  color: var(--app-text-muted);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.product-list,
-.capability-groups {
-  display: grid;
-  gap: 16px;
-}
-
-.product-card {
-  padding: 22px;
-  border-radius: 24px;
-  background: var(--app-elevated-soft-bg);
-  border: 1px solid var(--app-surface-border);
-  transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease,
-    border-color 0.25s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--app-shadow-sm);
-    border-color: rgba(53, 109, 255, 0.2);
-  }
-}
-
-.product-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-
-  h3 {
-    margin: 0 0 8px;
-    color: var(--app-text-title);
-    font-size: 22px;
-    letter-spacing: -0.03em;
-  }
-
-  p {
-    margin: 0;
-    color: var(--app-text-muted);
-    line-height: 1.8;
-  }
-}
-
-.product-version {
-  flex-shrink: 0;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: rgba(53, 109, 255, 0.12);
-  color: var(--app-accent-strong);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.product-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 18px;
-}
-
-.product-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 18px;
-}
-
-.capability-card {
-  background: radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 28%), var(--app-surface-bg);
-}
-
-.capability-group {
-  padding: 18px 18px 18px 20px;
-  border-radius: 22px;
-  background: var(--app-elevated-soft-bg);
-  border: 1px solid var(--app-surface-border);
-
-  h3 {
-    margin: 0 0 12px;
-    color: var(--app-text-title);
-    font-size: 18px;
+  .col-item {
+    margin-bottom: 20px;
   }
 
   ul {
-    margin: 0;
     padding: 0;
-    list-style: none;
-    display: grid;
-    gap: 10px;
+    margin: 0;
   }
 
-  li {
-    position: relative;
-    padding-left: 16px;
-    color: var(--app-text-muted);
-    line-height: 1.7;
+  font-family: 'open sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  color: #676a6c;
+  overflow-x: hidden;
 
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 10px;
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--app-accent-strong);
-      box-shadow: 0 0 0 5px rgba(53, 109, 255, 0.12);
+  ul {
+    list-style-type: none;
+  }
+
+  h4 {
+    margin-top: 0px;
+  }
+
+  h2 {
+    margin-top: 10px;
+    font-size: 26px;
+    font-weight: 100;
+  }
+
+  p {
+    margin-top: 10px;
+
+    b {
+      font-weight: 700;
     }
   }
-}
 
-@media (max-width: 960px) {
-  .hero-panel,
-  .content-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 640px) {
-  .hero-panel,
-  .section-card {
-    padding: 20px;
-    border-radius: 22px;
-  }
-
-  .product-top {
-    flex-direction: column;
-  }
-}
-
-html.dark {
-  .hero-panel {
-    background: radial-gradient(circle at top left, rgba(53, 109, 255, 0.18), transparent 30%), var(--app-surface-bg);
+  .update-log {
+    ol {
+      display: block;
+      list-style-type: decimal;
+      margin-block-start: 1em;
+      margin-block-end: 1em;
+      margin-inline-start: 0;
+      margin-inline-end: 0;
+      padding-inline-start: 40px;
+    }
   }
 }
 </style>

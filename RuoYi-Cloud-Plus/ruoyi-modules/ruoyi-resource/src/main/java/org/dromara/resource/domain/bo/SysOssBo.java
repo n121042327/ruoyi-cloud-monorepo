@@ -2,12 +2,9 @@ package org.dromara.resource.domain.bo;
 
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.dromara.common.mybatis.core.domain.BaseEntity;
 import org.dromara.resource.domain.SysOss;
-
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * OSS对象存储分页查询对象 sys_oss
@@ -15,11 +12,9 @@ import java.util.Map;
  * @author Lion Li
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @AutoMapper(target = SysOss.class, reverseConvertGenerate = false)
-public class SysOssBo implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 1L;
+public class SysOssBo extends BaseEntity {
 
     /**
      * ossId
@@ -55,15 +50,5 @@ public class SysOssBo implements Serializable {
      * 服务商
      */
     private String service;
-
-    /**
-     * 创建者
-     */
-    private Long createBy;
-
-    /**
-     * 请求参数
-     */
-    private Map<String, Object> params = new HashMap<>();
 
 }

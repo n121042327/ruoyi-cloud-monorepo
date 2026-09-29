@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.dromara.common.core.enums.BusinessStatusEnum;
-import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.system.api.RemoteUserService;
@@ -26,9 +25,6 @@ import org.dromara.workflow.common.constant.FlowConstant;
 import org.dromara.workflow.common.enums.TaskStatusEnum;
 import org.dromara.workflow.domain.bo.FlowCopyBo;
 import org.dromara.workflow.domain.vo.NodeExtVo;
-import org.dromara.workflow.event.WorkflowCopyEvent;
-import org.dromara.workflow.event.WorkflowResultMessageEvent;
-import org.dromara.workflow.event.WorkflowTaskMessageEvent;
 import org.dromara.workflow.handler.FlowProcessEventHandler;
 import org.dromara.workflow.service.IFlwCommonService;
 import org.dromara.workflow.service.IFlwInstanceService;
@@ -96,8 +92,7 @@ public class WorkflowGlobalListener implements GlobalListener {
                     bo.setNickName(nickNameMap.getOrDefault(id, StringUtils.EMPTY));
                     return bo;
                 });
-                // 节点配置仅作为默认值，保留本次办理显式提交的抄送人或空名单。
-                variable.putIfAbsent(FlowConstant.FLOW_COPY_LIST, list);
+                variable.put(FlowConstant.FLOW_COPY_LIST, list);
             }
             if (CollUtil.isNotEmpty(nodeExt.getVariables())) {
                 variable.putAll(nodeExt.getVariables());
@@ -208,14 +203,12 @@ public class WorkflowGlobalListener implements GlobalListener {
             String status = determineFlowStatus(instance);
             if (StringUtils.isNotBlank(status)) {
                 flowProcessEventHandler.processHandler(definition.getFlowCode(), instance, status, params, false);
-                notifyInitiatorIfNeeded(definition, instance, status, variable);
             }
             if (!BusinessStatusEnum.initialState(instance.getFlowStatus())) {
                 if (task != null && CollUtil.isNotEmpty(nextTasks) && nextTasks.size() == 1
-                    && flwCommonService.applyNodeCode(definition.getId()).equals(nextTasks.getFirst().getNodeCode())) {
+                    && flwCommonService.applyNodeCode(definition.getId()).equals(nextTasks.get(0).getNodeCode())) {
                     // 如果为画线指定驳回 线条指定为驳回 驳回得节点为申请人节点 则修改流程状态为退回
                     flowProcessEventHandler.processHandler(definition.getFlowCode(), instance, BusinessStatusEnum.BACK.getStatus(), params, false);
-                    notifyInitiatorIfNeeded(definition, instance, BusinessStatusEnum.BACK.getStatus(), variable);
                     // 修改流程实例状态
                     instance.setFlowStatus(BusinessStatusEnum.BACK.getStatus());
                     FlowEngine.insService().updateById(instance);
@@ -242,14 +235,12 @@ public class WorkflowGlobalListener implements GlobalListener {
         if (variable.containsKey(FlowConstant.FLOW_COPY_LIST)) {
             List<FlowCopyBo> flowCopyList = MapUtil.get(variable, FlowConstant.FLOW_COPY_LIST, new TypeReference<>() {});
             // 添加抄送人
-            SpringUtils.context().publishEvent(new WorkflowCopyEvent(task, flowCopyList));
+            flwTaskService.setCopy(task, flowCopyList);
         }
         if (variable.containsKey(FlowConstant.MESSAGE_TYPE)) {
             List<String> messageType = MapUtil.get(variable, FlowConstant.MESSAGE_TYPE, new TypeReference<>() {});
             String notice = MapUtil.getStr(variable, FlowConstant.MESSAGE_NOTICE);
-            if (shouldSendTaskMessage(flowParams, definition, nextTasks)) {
-                SpringUtils.context().publishEvent(new WorkflowTaskMessageEvent(definition.getFlowName(), instance.getId(), messageType, notice));
-            }
+            flwCommonService.sendMessage(definition.getFlowName(), instance.getId(), messageType, notice);
         }
         FlowEngine.insService().removeVariables(instance.getId(),
             FlowConstant.FLOW_COPY_LIST,
@@ -257,31 +248,6 @@ public class WorkflowGlobalListener implements GlobalListener {
             FlowConstant.MESSAGE_NOTICE,
             FlowConstant.SUBMIT
         );
-    }
-
-    private boolean shouldSendTaskMessage(FlowParams flowParams, Definition definition, List<Task> nextTasks) {
-        if (flowParams == null || !TaskStatusEnum.BACK.getStatus().equals(flowParams.getHisStatus())) {
-            return true;
-        }
-        if (CollUtil.isEmpty(nextTasks) || nextTasks.size() != 1) {
-            return true;
-        }
-        String applyNodeCode = flwCommonService.applyNodeCode(definition.getId());
-        return !StringUtils.equals(applyNodeCode, nextTasks.getFirst().getNodeCode());
-    }
-
-    private void notifyInitiatorIfNeeded(Definition definition, Instance instance, String status, Map<String, Object> variable) {
-        if (!StringUtils.equalsAny(status, BusinessStatusEnum.FINISH.getStatus(), BusinessStatusEnum.BACK.getStatus())) {
-            return;
-        }
-        if (StringUtils.isBlank(instance.getCreateBy())) {
-            return;
-        }
-        List<String> messageType = null;
-        if (MapUtil.isNotEmpty(variable) && variable.containsKey(FlowConstant.MESSAGE_TYPE)) {
-            messageType = MapUtil.get(variable, FlowConstant.MESSAGE_TYPE, new TypeReference<>() {});
-        }
-        SpringUtils.context().publishEvent(new WorkflowResultMessageEvent(definition.getFlowName(), status, instance.getCreateBy(), messageType));
     }
 
     /**

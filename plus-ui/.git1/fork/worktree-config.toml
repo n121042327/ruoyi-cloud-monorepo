@@ -1,0 +1,9 @@
+draft_message = ""
+hide_stashes = false
+hide_tags = false
+hide_untracked_files = false
+filter_references = []
+hidden_references = []
+collapse_all_mode = false
+collapse_toggled_shas = []
+expanded_sidebar_items = ["Branches", "Remotes/origin", "Tags", "Stashes"]

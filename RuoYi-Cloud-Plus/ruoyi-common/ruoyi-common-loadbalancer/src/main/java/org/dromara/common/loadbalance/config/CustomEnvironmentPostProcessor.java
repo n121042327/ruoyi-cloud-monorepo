@@ -1,7 +1,7 @@
 package org.dromara.common.loadbalance.config;
 
-import org.springframework.boot.EnvironmentPostProcessor;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 
@@ -12,14 +12,14 @@ import org.springframework.core.env.ConfigurableEnvironment;
  */
 public class CustomEnvironmentPostProcessor implements EnvironmentPostProcessor, Ordered {
 
-    @Override
-    public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+	@Override
+	public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
         System.setProperty("dubbo.consumer.loadbalance", "customDubboLoadBalancer");
-    }
+	}
 
-    @Override
-    public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE;
-    }
+	@Override
+	public int getOrder() {
+		return Ordered.HIGHEST_PRECEDENCE;
+	}
 
 }

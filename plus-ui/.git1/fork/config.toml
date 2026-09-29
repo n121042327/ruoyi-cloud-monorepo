@@ -1,0 +1,10 @@
+pinned_references = []
+sign_off = false
+tab_width = 4
+show_bugtracker_links = true
+trust_shared_commands = false
+lean_branching_no_fast_forward = false
+gitignore_suggestion_dismissed = false
+pull_requests_recent_search_queries = []
+issues_recent_search_queries = []
+recent_revision_search_queries = []

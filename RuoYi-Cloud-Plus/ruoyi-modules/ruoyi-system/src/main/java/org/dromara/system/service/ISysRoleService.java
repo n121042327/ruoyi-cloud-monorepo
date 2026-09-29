@@ -1,7 +1,7 @@
 package org.dromara.system.service;
 
-import org.dromara.common.core.domain.PageResult;
 import org.dromara.common.mybatis.core.page.PageQuery;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.system.domain.SysUserRole;
 import org.dromara.system.domain.bo.SysRoleBo;
 import org.dromara.system.domain.vo.SysRoleVo;
@@ -23,7 +23,7 @@ public interface ISysRoleService {
      * @param pageQuery 分页参数
      * @return 角色分页列表
      */
-    PageResult<SysRoleVo> selectPageRoleList(SysRoleBo role, PageQuery pageQuery);
+    TableDataInfo<SysRoleVo> selectPageRoleList(SysRoleBo role, PageQuery pageQuery);
 
     /**
      * 根据条件分页查询角色数据
@@ -142,20 +142,12 @@ public interface ISysRoleService {
     int insertRole(SysRoleBo bo);
 
     /**
-     * 修改角色基础信息（不包含菜单/数据权限）。
+     * 修改保存角色信息
      *
      * @param bo 角色信息
-     * @return 影响行数
+     * @return 结果
      */
-    int updateRoleBaseInfo(SysRoleBo bo);
-
-    /**
-     * 修改角色权限信息（菜单权限 + 数据权限）。
-     *
-     * @param bo 角色权限参数
-     * @return 影响行数
-     */
-    int updateRolePermission(SysRoleBo bo);
+    int updateRole(SysRoleBo bo);
 
     /**
      * 修改角色状态
@@ -165,6 +157,14 @@ public interface ISysRoleService {
      * @return 结果
      */
     int updateRoleStatus(Long roleId, String status);
+
+    /**
+     * 修改数据权限信息
+     *
+     * @param bo 角色信息
+     * @return 结果
+     */
+    int authDataScope(SysRoleBo bo);
 
     /**
      * 通过角色ID删除角色

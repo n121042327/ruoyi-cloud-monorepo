@@ -1,17 +1,17 @@
 package org.dromara.common.excel.core;
 
 import cn.hutool.core.util.StrUtil;
+import cn.idev.excel.context.AnalysisContext;
+import cn.idev.excel.event.AnalysisEventListener;
+import cn.idev.excel.exception.ExcelAnalysisException;
+import cn.idev.excel.exception.ExcelDataConvertException;
+import org.dromara.common.core.utils.StreamUtils;
+import org.dromara.common.core.utils.ValidatorUtils;
+import org.dromara.common.json.utils.JsonUtils;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.fesod.sheet.context.AnalysisContext;
-import org.apache.fesod.sheet.event.AnalysisEventListener;
-import org.apache.fesod.sheet.exception.ExcelAnalysisException;
-import org.apache.fesod.sheet.exception.ExcelDataConvertException;
-import org.dromara.common.core.utils.StreamUtils;
-import org.dromara.common.core.utils.ValidatorUtils;
-import org.dromara.common.json.utils.JsonUtils;
 
 import java.util.Map;
 import java.util.Set;
@@ -39,31 +39,11 @@ public class DefaultExcelListener<T> extends AnalysisEventListener<T> implements
     /**
      * 导入回执
      */
-    private final ExcelResult<T> excelResult = new DefaultExcelResult<>();
+    private ExcelResult<T> excelResult;
 
-    /**
-     * 发生异常时是否立即终止读取，默认保持原有快速失败行为
-     */
-    private Boolean failFast = Boolean.TRUE;
-
-    /**
-     * 构造 Excel 导入监听器。
-     *
-     * @param isValidate 是否执行 Validator 校验
-     */
     public DefaultExcelListener(boolean isValidate) {
+        this.excelResult = new DefaultExcelResult<>();
         this.isValidate = isValidate;
-    }
-
-    /**
-     * 构造 Excel 导入监听器。
-     *
-     * @param isValidate 是否执行 Validator 校验
-     * @param failFast   发生异常时是否立即终止读取
-     */
-    public DefaultExcelListener(boolean isValidate, boolean failFast) {
-        this.isValidate = isValidate;
-        this.failFast = failFast;
     }
 
     /**
@@ -80,9 +60,9 @@ public class DefaultExcelListener<T> extends AnalysisEventListener<T> implements
             Integer rowIndex = excelDataConvertException.getRowIndex();
             Integer columnIndex = excelDataConvertException.getColumnIndex();
             errMsg = StrUtil.format("第{}行-第{}列-表头{}: 解析异常<br/>",
-                rowIndex + 1, columnIndex + 1, headMap == null ? "" : headMap.get(columnIndex));
+                rowIndex + 1, columnIndex + 1, headMap.get(columnIndex));
             if (log.isDebugEnabled()) {
-                log.warn(errMsg);
+                log.error(errMsg);
             }
         }
         if (exception instanceof ConstraintViolationException constraintViolationException) {
@@ -90,17 +70,11 @@ public class DefaultExcelListener<T> extends AnalysisEventListener<T> implements
             String constraintViolationsMsg = StreamUtils.join(constraintViolations, ConstraintViolation::getMessage, ", ");
             errMsg = StrUtil.format("第{}行数据校验异常: {}", context.readRowHolder().getRowIndex() + 1, constraintViolationsMsg);
             if (log.isDebugEnabled()) {
-                log.warn(errMsg);
+                log.error(errMsg);
             }
         }
-        if (errMsg == null) {
-            errMsg = StrUtil.format("第{}行数据异常: {}", context.readRowHolder().getRowIndex() + 1, exception.getMessage());
-            log.warn(errMsg, exception);
-        }
         excelResult.getErrorList().add(errMsg);
-        if (failFast) {
-            throw new ExcelAnalysisException(errMsg);
-        }
+        throw new ExcelAnalysisException(errMsg);
     }
 
     @Override

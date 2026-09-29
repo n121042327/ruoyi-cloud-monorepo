@@ -2,20 +2,22 @@ package org.dromara.demo.service.impl;
 
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.idev.excel.write.metadata.WriteSheet;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.apache.fesod.sheet.write.metadata.WriteSheet;
 import org.dromara.common.core.constant.SystemConstants;
 import org.dromara.common.core.enums.UserStatus;
 import org.dromara.common.core.utils.StreamUtils;
+import org.dromara.common.core.utils.file.FileUtils;
 import org.dromara.common.excel.core.DropDownOptions;
-import org.dromara.common.excel.utils.ExcelBuilder;
+import org.dromara.common.excel.utils.ExcelUtil;
 import org.dromara.common.excel.utils.ExcelWriterWrapper;
 import org.dromara.demo.domain.vo.ExportDemoVo;
 import org.dromara.demo.service.IExportExcelService;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -102,17 +104,14 @@ public class ExportExcelServiceImpl implements IExportExcelService {
             return everyRowData;
         });
 
-        ExcelBuilder.of(outList, ExportDemoVo.class)
-            .sheetName("下拉框示例")
-            .options(options)
-            .toResponse(response);
+        ExcelUtil.exportExcel(outList, "下拉框示例", ExportDemoVo.class, response, options);
     }
 
     private String buildOptions(List<DemoCityData> cityDataList, Integer id) {
         Map<Integer, List<DemoCityData>> groupByIdMap =
             cityDataList.stream().collect(Collectors.groupingBy(DemoCityData::getId));
         if (groupByIdMap.containsKey(id)) {
-            DemoCityData demoCityData = groupByIdMap.get(id).getFirst();
+            DemoCityData demoCityData = groupByIdMap.get(id).get(0);
             return DropDownOptions.createOptionValue(demoCityData.getName(), demoCityData.getId());
         } else {
             return StrUtil.EMPTY;
@@ -206,14 +205,47 @@ public class ExportExcelServiceImpl implements IExportExcelService {
 
         sonList.forEach(everySon -> {
             if (parentGroupByIdMap.containsKey(everySon.getPid())) {
-                everySon.setPData(parentGroupByIdMap.get(everySon.getPid()).getFirst());
+                everySon.setPData(parentGroupByIdMap.get(everySon.getPid()).get(0));
             }
         });
     }
 
+    /**
+     * 模拟的数据库省市县
+     */
+    @Data
+    private static class DemoCityData {
+        /**
+         * 数据库id字段
+         */
+        private Integer id;
+        /**
+         * 数据库pid字段
+         */
+        private Integer pid;
+        /**
+         * 数据库name字段
+         */
+        private String name;
+        /**
+         * MyBatisPlus连带查询父数据
+         */
+        private DemoCityData pData;
+
+        public DemoCityData(Integer id, Integer pid, String name) {
+            this.id = id;
+            this.pid = pid;
+            this.name = name;
+        }
+    }
+
     @Override
-    public void customExport(HttpServletResponse response) {
-        ExcelBuilder.writer(ExportDemoVo.class).sheetName("自定义导出").toResponse(response, wrapper -> {
+    public void customExport(HttpServletResponse response) throws IOException {
+        String filename = ExcelUtil.encodingFilename("自定义导出");
+        FileUtils.setAttachmentResponseHeader(response, filename);
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8");
+
+        ExcelUtil.exportExcel(ExportDemoVo.class, response.getOutputStream(), wrapper -> {
             // 创建表格数据，业务中一般通过数据库查询
             List<ExportDemoVo> excelDataList = new ArrayList<>();
             for (int i = 0; i < 30; i++) {
@@ -261,34 +293,5 @@ public class ExportExcelServiceImpl implements IExportExcelService {
             // WriteSheet sheet2 = ExcelWriterWrapper.sheetBuilder("自定义导出demo2").build();
             // wrapper.write(excelDataList2, sheet2);
         });
-    }
-
-    /**
-     * 模拟的数据库省市县
-     */
-    @Data
-    private static class DemoCityData {
-        /**
-         * 数据库id字段
-         */
-        private Integer id;
-        /**
-         * 数据库pid字段
-         */
-        private Integer pid;
-        /**
-         * 数据库name字段
-         */
-        private String name;
-        /**
-         * MyBatisPlus连带查询父数据
-         */
-        private DemoCityData pData;
-
-        public DemoCityData(Integer id, Integer pid, String name) {
-            this.id = id;
-            this.pid = pid;
-            this.name = name;
-        }
     }
 }

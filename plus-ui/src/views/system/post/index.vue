@@ -1,137 +1,90 @@
 <template>
-  <div class="p-2 app-container system-post-page">
-    <el-row :gutter="20" class="content-grid">
+  <div class="p-2">
+    <el-row :gutter="20">
       <!-- 部门树 -->
-      <tree-panel
-        ref="treePanelRef"
-        v-model:collapsed="treeCollapsed"
-        title="部门结构"
-        placeholder="请输入部门名称"
-        :data="deptOptions"
-        :expanded-span="5"
-        @node-click="handleNodeClick"
-      />
-      <el-col
-        :lg="treeCollapsed ? 23 : 19"
-        :xs="24"
-        class="tree-content-col content-main"
-        :class="{ 'is-tree-collapsed': treeCollapsed }"
-      >
-        <div class="search-wrap">
-          <el-card shadow="hover" class="search-panel" :class="{ 'is-collapsed': !showSearch }">
-            <template #header>
-              <div class="panel-heading search-panel-toggle" @click.stop="showSearch = !showSearch">
-                <div>
-                  <span class="panel-kicker">Search Filters</span>
-                  <h3>筛选条件</h3>
-                </div>
-              </div>
-            </template>
-            <el-form ref="queryFormRef" :model="queryParams" :inline="true" class="query-form">
-              <el-form-item label="岗位编码" prop="postCode">
-                <el-input
-                  v-model="queryParams.postCode"
-                  placeholder="请输入岗位编码"
-                  clearable
-                  @keyup.enter="handleQuery"
-                />
-              </el-form-item>
-              <el-form-item label="类别编码" prop="postCategory">
-                <el-input
-                  v-model="queryParams.postCategory"
-                  placeholder="请输入类别编码"
-                  clearable
-                  style="width: 200px"
-                  @keyup.enter="handleQuery"
-                />
-              </el-form-item>
-              <el-form-item label="岗位名称" prop="postName">
-                <el-input
-                  v-model="queryParams.postName"
-                  placeholder="请输入岗位名称"
-                  clearable
-                  @keyup.enter="handleQuery"
-                />
-              </el-form-item>
-              <el-form-item label="部门" prop="deptId">
-                <el-tree-select
-                  v-model="queryParams.deptId"
-                  :data="deptOptions"
-                  :props="{ value: 'id', label: 'label', children: 'children' } as any"
-                  value-key="id"
-                  placeholder="请选择部门"
-                  check-strictly
-                />
-              </el-form-item>
-              <el-form-item label="状态" prop="status">
-                <el-select v-model="queryParams.status" placeholder="岗位状态" clearable>
-                  <el-option
-                    v-for="dict in sys_normal_disable"
-                    :key="dict.value"
-                    :label="dict.label"
-                    :value="dict.value"
+      <el-col :lg="4" :xs="24" style="">
+        <el-card shadow="hover">
+          <el-input v-model="deptName" placeholder="请输入部门名称" prefix-icon="Search" clearable />
+          <el-tree
+            ref="deptTreeRef"
+            class="mt-2"
+            node-key="id"
+            :data="deptOptions"
+            :props="{ label: 'label', children: 'children' } as any"
+            :expand-on-click-node="false"
+            :filter-node-method="filterNode"
+            highlight-current
+            default-expand-all
+            @node-click="handleNodeClick"
+          />
+        </el-card>
+      </el-col>
+      <el-col :lg="20" :xs="24">
+        <transition :enter-active-class="proxy?.animate.searchAnimate.enter" :leave-active-class="proxy?.animate.searchAnimate.leave">
+          <div v-show="showSearch" class="mb-[10px]">
+            <el-card shadow="hover">
+              <el-form ref="queryFormRef" :model="queryParams" :inline="true">
+                <el-form-item label="岗位编码" prop="postCode">
+                  <el-input v-model="queryParams.postCode" placeholder="请输入岗位编码" clearable @keyup.enter="handleQuery" />
+                </el-form-item>
+                <el-form-item label="类别编码" prop="postCategory">
+                  <el-input
+                    v-model="queryParams.postCategory"
+                    placeholder="请输入类别编码"
+                    clearable
+                    style="width: 200px"
+                    @keyup.enter="handleQuery"
                   />
-                </el-select>
-              </el-form-item>
-              <el-form-item>
-                <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-                <el-button icon="Refresh" @click="resetQuery">重置</el-button>
-              </el-form-item>
-            </el-form>
-          </el-card>
-        </div>
-        <el-card shadow="hover" class="table-panel">
+                </el-form-item>
+                <el-form-item label="岗位名称" prop="postName">
+                  <el-input v-model="queryParams.postName" placeholder="请输入岗位名称" clearable @keyup.enter="handleQuery" />
+                </el-form-item>
+                <el-form-item label="部门" prop="deptId">
+                  <el-tree-select
+                    v-model="queryParams.deptId"
+                    :data="deptOptions"
+                    :props="{ value: 'id', label: 'label', children: 'children' } as any"
+                    value-key="id"
+                    placeholder="请选择部门"
+                    check-strictly
+                  />
+                </el-form-item>
+                <el-form-item label="状态" prop="status">
+                  <el-select v-model="queryParams.status" placeholder="岗位状态" clearable>
+                    <el-option v-for="dict in sys_normal_disable" :key="dict.value" :label="dict.label" :value="dict.value" />
+                  </el-select>
+                </el-form-item>
+                <el-form-item>
+                  <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+                  <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+                </el-form-item>
+              </el-form>
+            </el-card>
+          </div>
+        </transition>
+        <el-card shadow="hover">
           <template #header>
-            <div class="toolbar-shell">
-              <div class="table-heading">
-                <span class="panel-kicker">Post Dataset</span>
-                <h3>岗位列表</h3>
-                <p>共 {{ total }} 条记录，支持按部门筛选、岗位维护和导出。</p>
-              </div>
-              <div class="toolbar-actions">
-                <el-button v-hasPermi="['system:post:add']" type="primary" plain icon="Plus" @click="handleAdd">
-                  新增
-                </el-button>
-                <el-button
-                  v-hasPermi="['system:post:edit']"
-                  type="success"
-                  plain
-                  icon="Edit"
-                  :disabled="single"
-                  @click="handleUpdate()"
+            <el-row :gutter="10" class="mb8">
+              <el-col :span="1.5">
+                <el-button v-hasPermi="['system:post:add']" type="primary" plain icon="Plus" @click="handleAdd">新增</el-button>
+              </el-col>
+              <el-col :span="1.5">
+                <el-button v-hasPermi="['system:post:edit']" type="success" plain icon="Edit" :disabled="single" @click="handleUpdate()"
+                  >修改</el-button
                 >
-                  修改
-                </el-button>
-                <el-button
-                  v-hasPermi="['system:post:remove']"
-                  type="danger"
-                  plain
-                  icon="Delete"
-                  :disabled="multiple"
-                  @click="handleDelete()"
-                >
+              </el-col>
+              <el-col :span="1.5">
+                <el-button v-hasPermi="['system:post:remove']" type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete()">
                   删除
                 </el-button>
-                <el-button
-                  v-hasPermi="['system:post:export']"
-                  type="warning"
-                  plain
-                  icon="Download"
-                  @click="handleExport"
-                >
-                  导出
-                </el-button>
-                <right-toolbar v-model:show-search="showSearch" :search="false" @query-table="getList"></right-toolbar>
-              </div>
-            </div>
+              </el-col>
+              <el-col :span="1.5">
+                <el-button v-hasPermi="['system:post:export']" type="warning" plain icon="Download" @click="handleExport">导出</el-button>
+              </el-col>
+              <right-toolbar v-model:show-search="showSearch" @query-table="getList"></right-toolbar>
+            </el-row>
           </template>
-          <el-table
-            v-loading="loading"
-            border
-            class="data-table"
-            :data="postList"
-            @selection-change="handleSelectionChange"
-          >
+          <el-table v-loading="loading" border :data="postList" @selection-change="handleSelectionChange">
             <el-table-column type="selection" width="55" align="center" />
             <el-table-column v-if="false" label="岗位编号" align="center" prop="postId" />
             <el-table-column label="岗位编码" align="center" prop="postCode" />
@@ -146,28 +99,16 @@
             </el-table-column>
             <el-table-column label="创建时间" align="center" prop="createTime" width="180">
               <template #default="scope">
-                <span>{{ parseTime(scope.row.createTime) }}</span>
+                <span>{{ proxy.parseTime(scope.row.createTime) }}</span>
               </template>
             </el-table-column>
             <el-table-column label="操作" width="180" align="center" class-name="small-padding fixed-width">
               <template #default="scope">
                 <el-tooltip content="修改" placement="top">
-                  <el-button
-                    v-hasPermi="['system:post:edit']"
-                    link
-                    type="primary"
-                    icon="Edit"
-                    @click="handleUpdate(scope.row)"
-                  ></el-button>
+                  <el-button v-hasPermi="['system:post:edit']" link type="primary" icon="Edit" @click="handleUpdate(scope.row)"></el-button>
                 </el-tooltip>
                 <el-tooltip content="删除" placement="top">
-                  <el-button
-                    v-hasPermi="['system:post:remove']"
-                    link
-                    type="primary"
-                    icon="Delete"
-                    @click="handleDelete(scope.row)"
-                  ></el-button>
+                  <el-button v-hasPermi="['system:post:remove']" link type="primary" icon="Delete" @click="handleDelete(scope.row)"></el-button>
                 </el-tooltip>
               </template>
             </el-table-column>
@@ -209,9 +150,7 @@
             </el-form-item>
             <el-form-item label="岗位状态" prop="status">
               <el-radio-group v-model="form.status">
-                <el-radio v-for="dict in sys_normal_disable" :key="dict.value" :value="dict.value">
-                  {{ dict.label }}
-                </el-radio>
+                <el-radio v-for="dict in sys_normal_disable" :key="dict.value" :value="dict.value">{{ dict.label }}</el-radio>
               </el-radio-group>
             </el-form-item>
             <el-form-item label="备注" prop="remark">
@@ -231,33 +170,30 @@
 </template>
 
 <script setup name="Post" lang="ts">
-import { DeptTreeVO, DeptVO } from '@/api/system/dept/types';
 import { listPost, addPost, delPost, getPost, updatePost, deptTreeSelect } from '@/api/system/post';
 import { PostForm, PostQuery, PostVO } from '@/api/system/post/types';
-import TreePanel from '@/components/TreePanel/index.vue';
-import { useLoading } from '@/hooks/async/useLoading';
-import { useFormDialog } from '@/hooks/dialog/useFormDialog';
-import { useSearchReset } from '@/hooks/form/useSearchReset';
-import { useSearchToggle } from '@/hooks/form/useSearchToggle';
-import { useTableSelection } from '@/hooks/table/useTableSelection';
-import { useTreeCollapsed } from '@/hooks/tree/useTreeCollapsed';
-import modal from '@/plugins/modal';
-import { useDict } from '@/utils/dict';
-import { download as requestDownload } from '@/utils/request';
-import { parseTime } from '@/utils/ruoyi';
+import { DeptTreeVO, DeptVO } from '@/api/system/dept/types';
 
-const { sys_normal_disable } = toRefs<any>(useDict('sys_normal_disable'));
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { sys_normal_disable } = toRefs<any>(proxy?.useDict('sys_normal_disable'));
 
 const postList = ref<PostVO[]>([]);
-const { loading, withLoading } = useLoading(true);
-const { showSearch } = useSearchToggle();
-const { ids, single, multiple, handleSelectionChange } = useTableSelection<PostVO>(item => item.postId);
+const loading = ref(true);
+const showSearch = ref(true);
+const ids = ref<Array<number | string>>([]);
+const single = ref(true);
+const multiple = ref(true);
 const total = ref(0);
-const { treeCollapsed } = useTreeCollapsed();
+const deptName = ref('');
 const deptOptions = ref<DeptTreeVO[]>([]);
-const treePanelRef = ref<InstanceType<typeof TreePanel>>();
+const deptTreeRef = ref<ElTreeInstance>();
 const postFormRef = ref<ElFormInstance>();
 const queryFormRef = ref<ElFormInstance>();
+
+const dialog = reactive<DialogOption>({
+  visible: false,
+  title: ''
+});
 
 const initFormData: PostForm = {
   postId: undefined,
@@ -291,24 +227,22 @@ const data = reactive<PageData<PostForm, PostQuery>>({
 });
 
 const { queryParams, form, rules } = toRefs<PageData<PostForm, PostQuery>>(data);
-const { dialog, resetForm, openDialog, showDialog, closeDialog } = useFormDialog({
-  form,
-  formRef: postFormRef,
-  initialFormData: initFormData
-});
-const { resetQuery } = useSearchReset({
-  queryFormRef,
-  queryParams,
-  pageNumKey: 'pageNum',
-  resetExtras: () => {
-    queryParams.value.deptId = undefined;
-    treePanelRef.value?.setCurrentKey(undefined);
-    queryParams.value.belongDeptId = undefined;
+
+/** 通过条件过滤节点  */
+const filterNode = (value: string, data: any) => {
+  if (!value) return true;
+  return data.label.indexOf(value) !== -1;
+};
+
+/** 根据名称筛选部门树 */
+watchEffect(
+  () => {
+    deptTreeRef.value?.filter(deptName.value);
   },
-  afterReset: () => {
-    handleQuery();
+  {
+    flush: 'post' // watchEffect会在DOM挂载或者更新之前就会触发，此属性控制在DOM元素更新后运行
   }
-});
+);
 
 /** 查询部门下拉树结构 */
 const getTreeSelect = async () => {
@@ -325,17 +259,23 @@ const handleNodeClick = (data: DeptVO) => {
 
 /** 查询岗位列表 */
 const getList = async () => {
-  await withLoading(async () => {
-    const res = await listPost(queryParams.value);
-    postList.value = res.data?.rows;
-    total.value = res.data?.total;
-  });
+  loading.value = true;
+  const res = await listPost(queryParams.value);
+  postList.value = res.rows;
+  total.value = res.total;
+  loading.value = false;
 };
 
 /** 取消按钮 */
 const cancel = () => {
-  closeDialog();
-  resetForm();
+  reset();
+  dialog.visible = false;
+};
+
+/** 表单重置 */
+const reset = () => {
+  form.value = { ...initFormData };
+  postFormRef.value?.resetFields();
 };
 
 /** 搜索按钮操作 */
@@ -347,18 +287,39 @@ const handleQuery = () => {
   getList();
 };
 
+/** 重置按钮操作 */
+const resetQuery = () => {
+  queryFormRef.value?.resetFields();
+  queryParams.value.pageNum = 1;
+  queryParams.value.deptId = undefined;
+  deptTreeRef.value?.setCurrentKey(undefined);
+  /** 清空左边部门树选中值 */
+  queryParams.value.belongDeptId = undefined;
+  handleQuery();
+};
+
+/** 多选框选中数据 */
+const handleSelectionChange = (selection: PostVO[]) => {
+  ids.value = selection.map((item) => item.postId);
+  single.value = selection.length != 1;
+  multiple.value = !selection.length;
+};
+
 /** 新增按钮操作 */
 const handleAdd = () => {
-  openDialog('添加岗位');
+  reset();
+  dialog.visible = true;
+  dialog.title = '添加岗位';
 };
 
 /** 修改按钮操作 */
-const handleUpdate = async (row?: Partial<PostVO>) => {
-  resetForm();
+const handleUpdate = async (row?: PostVO) => {
+  reset();
   const postId = row?.postId || ids.value[0];
   const res = await getPost(postId);
   Object.assign(form.value, res.data);
-  showDialog('修改岗位');
+  dialog.visible = true;
+  dialog.title = '修改岗位';
 };
 
 /** 提交按钮 */
@@ -366,25 +327,25 @@ const submitForm = () => {
   postFormRef.value?.validate(async (valid: boolean) => {
     if (valid) {
       form.value.postId ? await updatePost(form.value) : await addPost(form.value);
-      modal.msgSuccess('操作成功');
-      closeDialog();
+      proxy?.$modal.msgSuccess('操作成功');
+      dialog.visible = false;
       await getList();
     }
   });
 };
 
 /** 删除按钮操作 */
-const handleDelete = async (row?: Partial<PostVO>) => {
+const handleDelete = async (row?: PostVO) => {
   const postIds = row?.postId || ids.value;
-  await modal.confirm('是否确认删除岗位编号为"' + postIds + '"的数据项？');
+  await proxy?.$modal.confirm('是否确认删除岗位编号为"' + postIds + '"的数据项？');
   await delPost(postIds);
   await getList();
-  modal.msgSuccess('删除成功');
+  proxy?.$modal.msgSuccess('删除成功');
 };
 
 /** 导出按钮操作 */
 const handleExport = () => {
-  requestDownload(
+  proxy?.download(
     'system/post/export',
     {
       ...queryParams.value
@@ -398,9 +359,3 @@ onMounted(() => {
   getList();
 });
 </script>
-
-<style lang="scss" scoped>
-@use '@/assets/styles/components/page-shell' as pageShell;
-
-@include pageShell.tree-table-crud-page;
-</style>

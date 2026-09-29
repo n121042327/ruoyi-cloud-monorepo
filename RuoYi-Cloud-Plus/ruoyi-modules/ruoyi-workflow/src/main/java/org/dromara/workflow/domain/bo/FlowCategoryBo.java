@@ -4,14 +4,11 @@ import io.github.linpeilie.annotations.AutoMapper;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.dromara.common.core.validate.AddGroup;
 import org.dromara.common.core.validate.EditGroup;
+import org.dromara.common.mybatis.core.domain.BaseEntity;
 import org.dromara.workflow.domain.FlowCategory;
-
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 流程分类业务对象 wf_category
@@ -20,16 +17,14 @@ import java.util.Map;
  * @date 2023-06-27
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @AutoMapper(target = FlowCategory.class, reverseConvertGenerate = false)
-public class FlowCategoryBo implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 1L;
+public class FlowCategoryBo extends BaseEntity {
 
     /**
      * 流程分类ID
      */
-    @NotNull(message = "流程分类ID不能为空", groups = {EditGroup.class})
+    @NotNull(message = "流程分类ID不能为空", groups = { EditGroup.class })
     private Long categoryId;
 
     /**
@@ -48,10 +43,5 @@ public class FlowCategoryBo implements Serializable {
      * 显示顺序
      */
     private Long orderNum;
-
-    /**
-     * 请求参数
-     */
-    private Map<String, Object> params = new HashMap<>();
 
 }

@@ -1,12 +1,6 @@
 <template>
   <div v-if="!item.hidden">
-    <template
-      v-if="
-        hasOneShowingChild(item, item.children) &&
-        (!onlyOneChild.children || onlyOneChild.noShowingChildren) &&
-        !item.alwaysShow
-      "
-    >
+    <template v-if="hasOneShowingChild(item, item.children) && (!onlyOneChild.children || onlyOneChild.noShowingChildren) && !item.alwaysShow">
       <app-link v-if="onlyOneChild.meta" :to="resolvePath(onlyOneChild.path, onlyOneChild.query)">
         <el-menu-item :index="resolvePath(onlyOneChild.path)" :class="{ 'submenu-title-noDropdown': !isNest }">
           <svg-icon :icon-class="onlyOneChild.meta.icon || (item.meta && item.meta.icon)" />
@@ -17,14 +11,7 @@
       </app-link>
     </template>
 
-    <el-sub-menu
-      v-else
-      ref="subMenu"
-      :index="resolvePath(item.path)"
-      :popper-offset="isNest ? 4 : 12"
-      :popper-class="popperClass"
-      teleported
-    >
+    <el-sub-menu v-else ref="subMenu" :index="resolvePath(item.path)" teleported>
       <template v-if="item.meta" #title>
         <svg-icon :icon-class="item.meta ? item.meta.icon : ''" />
         <span class="menu-title" :title="hasTitle(item.meta?.title)">{{ item.meta?.title }}</span>
@@ -35,7 +22,6 @@
         :key="child.path + index"
         :is-nest="true"
         :item="child"
-        :popper-class="popperClass"
         :base-path="resolvePath(child.path)"
         class="nest-menu"
       />
@@ -44,10 +30,10 @@
 </template>
 
 <script setup lang="ts">
-import { RouteRecordRaw } from 'vue-router';
-import { getNormalPath } from '@/utils/ruoyi';
 import { isExternal } from '@/utils/validate';
 import AppLink from './Link.vue';
+import { getNormalPath } from '@/utils/ruoyi';
+import { RouteRecordRaw } from 'vue-router';
 
 const props = defineProps({
   item: {
@@ -61,10 +47,6 @@ const props = defineProps({
   basePath: {
     type: String,
     default: ''
-  },
-  popperClass: {
-    type: String,
-    default: ''
   }
 });
 
@@ -74,7 +56,7 @@ const hasOneShowingChild = (parent: RouteRecordRaw, children?: RouteRecordRaw[])
   if (!children) {
     children = [];
   }
-  const showingChildren = children.filter(item => {
+  const showingChildren = children.filter((item) => {
     if (item.hidden) {
       return false;
     }
@@ -105,10 +87,7 @@ const resolvePath = (routePath: string, routeQuery?: string): any => {
   }
   if (routeQuery) {
     const query = JSON.parse(routeQuery);
-    return {
-      path: getNormalPath(props.basePath + '/' + routePath),
-      query: query
-    };
+    return { path: getNormalPath(props.basePath + '/' + routePath), query: query };
   }
   return getNormalPath(props.basePath + '/' + routePath);
 };

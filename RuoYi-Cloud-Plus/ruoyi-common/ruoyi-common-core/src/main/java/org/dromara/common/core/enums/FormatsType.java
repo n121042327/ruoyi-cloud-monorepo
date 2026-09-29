@@ -135,12 +135,6 @@ public enum FormatsType {
      */
     private final String timeFormat;
 
-    /**
-     * 根据字符串内容匹配时间格式类型。
-     *
-     * @param str 字符串内容
-     * @return 时间格式类型
-     */
     public static FormatsType getFormatsType(String str) {
         for (FormatsType value : values()) {
             if (StringUtils.contains(str, value.getTimeFormat())) {

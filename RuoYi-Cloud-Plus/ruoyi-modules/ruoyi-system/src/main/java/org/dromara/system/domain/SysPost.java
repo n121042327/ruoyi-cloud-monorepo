@@ -1,11 +1,10 @@
 package org.dromara.system.domain;
 
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
+import org.dromara.common.tenant.core.TenantEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.dromara.common.mybatis.core.domain.BaseEntity;
 
 /**
  * 岗位表 sys_post
@@ -16,7 +15,7 @@ import org.dromara.common.mybatis.core.domain.BaseEntity;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("sys_post")
-public class SysPost extends BaseEntity {
+public class SysPost extends TenantEntity {
 
     /**
      * 岗位序号
@@ -53,12 +52,6 @@ public class SysPost extends BaseEntity {
      * 状态（0正常 1停用）
      */
     private String status;
-
-    /**
-     * 删除标志（0代表存在 1代表删除）
-     */
-    @TableLogic
-    private String delFlag;
 
     /**
      * 备注

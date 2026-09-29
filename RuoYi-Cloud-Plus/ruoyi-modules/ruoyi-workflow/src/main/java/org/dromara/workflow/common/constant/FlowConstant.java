@@ -59,26 +59,6 @@ public interface FlowConstant {
     String MESSAGE_NOTICE = "messageNotice";
 
     /**
-     * 我的发起页面路径
-     */
-    String PATH_MY_DOCUMENT = "/task/myDocument";
-
-    /**
-     * 我的待办页面路径
-     */
-    String PATH_TASK_WAITING = "/task/taskWaiting";
-
-    /**
-     * 我的已办页面路径
-     */
-    String PATH_TASK_FINISH = "/task/taskFinish";
-
-    /**
-     * 我的抄送页面路径
-     */
-    String PATH_TASK_COPY = "/task/taskCopyList";
-
-    /**
      * 任务状态
      */
     String WF_TASK_STATUS = "wf_task_status";
@@ -107,15 +87,5 @@ public interface FlowConstant {
      * 忽略-会签票签处理（true：忽略，false：不忽略）
      */
     String VAR_IGNORE_COOPERATE = "ignoreCooperate";
-
-    /**
-     * 未删除（正常数据）
-     */
-    Integer NOT_DELETED = 0;
-
-    /**
-     * 已删除（逻辑删除）
-     */
-    Integer DELETED = 1;
 
 }

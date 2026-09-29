@@ -1,12 +1,5 @@
 <template>
-  <el-drawer
-    v-model="showSettings"
-    class="settings-drawer"
-    :with-header="false"
-    direction="rtl"
-    size="300px"
-    close-on-click-modal
-  >
+  <el-drawer v-model="showSettings" :with-header="false" direction="rtl" size="300px" close-on-click-modal>
     <h3 class="drawer-title">菜单导航设置</h3>
     <div class="nav-wrap">
       <el-tooltip content="左侧菜单" placement="bottom">
@@ -16,8 +9,7 @@
           :style="{ '--theme': theme }"
           :class="{ activeItem: navType == NavTypeEnum.LEFT }"
         >
-          <b></b>
-          <b></b>
+          <b></b><b></b>
         </div>
       </el-tooltip>
 
@@ -28,8 +20,7 @@
           :style="{ '--theme': theme }"
           :class="{ activeItem: navType == NavTypeEnum.MIX }"
         >
-          <b></b>
-          <b></b>
+          <b></b><b></b>
         </div>
       </el-tooltip>
       <el-tooltip content="顶部菜单" placement="bottom">
@@ -39,8 +30,7 @@
           :style="{ '--theme': theme }"
           :class="{ activeItem: navType == NavTypeEnum.TOP }"
         >
-          <b></b>
-          <b></b>
+          <b></b><b></b>
         </div>
       </el-tooltip>
     </div>
@@ -52,15 +42,7 @@
         <img src="@/assets/images/dark.svg" alt="dark" />
         <div v-if="sideTheme === 'theme-dark'" class="setting-drawer-block-checbox-selectIcon" style="display: block">
           <i aria-label="图标: check" class="anticon anticon-check">
-            <svg
-              viewBox="64 64 896 896"
-              data-icon="check"
-              width="1em"
-              height="1em"
-              :fill="theme"
-              aria-hidden="true"
-              focusable="false"
-            >
+            <svg viewBox="64 64 896 896" data-icon="check" width="1em" height="1em" :fill="theme" aria-hidden="true" focusable="false" class>
               <path
                 d="M912 190h-69.9c-9.8 0-19.1 4.5-25.1 12.2L404.7 724.5 207 474a32 32 0 0 0-25.1-12.2H112c-6.7 0-10.4 7.7-6.3 12.9l273.9 347c12.8 16.2 37.4 16.2 50.3 0l488.4-618.9c4.1-5.1.4-12.8-6.3-12.8z"
               />
@@ -72,15 +54,7 @@
         <img src="@/assets/images/light.svg" alt="light" />
         <div v-if="sideTheme === 'theme-light'" class="setting-drawer-block-checbox-selectIcon" style="display: block">
           <i aria-label="图标: check" class="anticon anticon-check">
-            <svg
-              viewBox="64 64 896 896"
-              data-icon="check"
-              width="1em"
-              height="1em"
-              :fill="theme"
-              aria-hidden="true"
-              focusable="false"
-            >
+            <svg viewBox="64 64 896 896" data-icon="check" width="1em" height="1em" :fill="theme" aria-hidden="true" focusable="false" class>
               <path
                 d="M912 190h-69.9c-9.8 0-19.1 4.5-25.1 12.2L404.7 724.5 207 474a32 32 0 0 0-25.1-12.2H112c-6.7 0-10.4 7.7-6.3 12.9l273.9 347c12.8 16.2 37.4 16.2 50.3 0l488.4-618.9c4.1-5.1.4-12.8-6.3-12.8z"
               />
@@ -120,13 +94,6 @@
     </div>
 
     <div class="drawer-item">
-      <span>持久化标签页</span>
-      <span class="comp-style">
-        <el-switch v-model="settingsStore.tagsViewPersist" :disabled="!settingsStore.tagsView" class="drawer-switch" />
-      </span>
-    </div>
-
-    <div class="drawer-item">
       <span>显示页签图标</span>
       <span class="comp-style">
         <el-switch v-model="settingsStore.tagsIcon" :disabled="!settingsStore.tagsView" class="drawer-switch" />
@@ -154,13 +121,6 @@
       </span>
     </div>
 
-    <div class="drawer-item">
-      <span>全高表格</span>
-      <span class="comp-style">
-        <el-switch v-model="settingsStore.fullHeightTable" class="drawer-switch" />
-      </span>
-    </div>
-
     <el-divider />
 
     <el-button type="primary" plain icon="DocumentAdd" @click="saveSetting">保存配置</el-button>
@@ -169,16 +129,16 @@
 </template>
 
 <script setup lang="ts">
-import { NavTypeEnum } from '@/enums/NavTypeEnum';
-import { SideThemeEnum } from '@/enums/SideThemeEnum';
-import modal from '@/plugins/modal';
-import defaultSettings from '@/settings';
-import { useAppStore } from '@/store/modules/app';
-import { usePermissionStore } from '@/store/modules/permission';
-import { useSettingsStore } from '@/store/modules/settings';
 import { useDynamicTitle } from '@/utils/dynamicTitle';
+import { useAppStore } from '@/store/modules/app';
+import { useSettingsStore } from '@/store/modules/settings';
+import { usePermissionStore } from '@/store/modules/permission';
 import { handleThemeStyle } from '@/utils/theme';
+import { SideThemeEnum } from '@/enums/SideThemeEnum';
+import { NavTypeEnum } from '@/enums/NavTypeEnum';
+import defaultSettings from '@/settings';
 
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const appStore = useAppStore();
 const settingsStore = useSettingsStore();
 const permissionStore = usePermissionStore();
@@ -208,19 +168,19 @@ const toggleDark = () => useToggle(isDark);
 
 /** 菜单导航设置 */
 watch(
-  navType,
-  val => {
-    if (val === NavTypeEnum.TOP) {
+  () => navType,
+  (val: string) => {
+    if (val.value === NavTypeEnum.TOP) {
       appStore.toggleSideBarHide(true);
       permissionStore.setSidebarRouters(permissionStore.defaultRoutes as any);
-    } else if (val === NavTypeEnum.LEFT) {
+    } else if (val.value === NavTypeEnum.LEFT) {
       appStore.toggleSideBarHide(false);
       permissionStore.setSidebarRouters(permissionStore.defaultRoutes as any);
-    } else if (val === NavTypeEnum.MIX) {
+    } else if (val.value === NavTypeEnum.MIX) {
       appStore.toggleSideBarHide(false);
     }
   },
-  { immediate: true }
+  { immediate: true, deep: true }
 );
 
 const handleNavType = (val: NavTypeEnum) => {
@@ -239,8 +199,13 @@ const themeChange = (val: string) => {
 };
 const radiusBaseChange = (val: number) => {
   settingsStore.radiusBase = val;
-  // 更新 CSS 变量
-  document.documentElement.style.setProperty('--app-radius-base', `${val}px`);
+  const el = document.documentElement;
+  el.style.setProperty('--app-radius-base', `${val}px`);
+  el.style.setProperty('--app-radius-sm', `${Math.round(val * 0.6)}px`);
+  el.style.setProperty('--app-radius-md', `${val}px`);
+  el.style.setProperty('--app-radius-lg', `${Math.round(val * 1.4)}px`);
+  el.style.setProperty('--el-border-radius-base', `${val}px`);
+  el.style.setProperty('--el-border-radius-small', `${Math.round(val * 0.6)}px`);
 };
 const handleTheme = (val: string) => {
   sideTheme.value = val;
@@ -252,13 +217,9 @@ const handleTheme = (val: string) => {
   settingsStore.sideTheme = val;
 };
 const saveSetting = () => {
-  modal.loading('正在保存到本地，请稍候...');
+  proxy?.$modal.loading('正在保存到本地，请稍候...');
   const settings = useStorage<LayoutSetting>('layout-setting', defaultSettings);
-  if (!storeSettings.value.tagsViewPersist) {
-    localStorage.removeItem('tags-view-visited');
-  }
   settings.value.tagsView = storeSettings.value.tagsView;
-  settings.value.tagsViewPersist = storeSettings.value.tagsViewPersist;
   settings.value.tagsIcon = storeSettings.value.tagsIcon;
   settings.value.fixedHeader = storeSettings.value.fixedHeader;
   settings.value.sidebarLogo = storeSettings.value.sidebarLogo;
@@ -267,14 +228,12 @@ const saveSetting = () => {
   settings.value.theme = storeSettings.value.theme;
   settings.value.navType = storeSettings.value.navType;
   settings.value.radiusBase = storeSettings.value.radiusBase;
-  settings.value.fullHeightTable = storeSettings.value.fullHeightTable;
   setTimeout(() => {
-    modal.closeLoading();
+    proxy?.$modal.closeLoading();
   }, 1000);
 };
 const resetSetting = () => {
-  modal.loading('正在清除设置缓存并刷新，请稍候...');
-  localStorage.removeItem('tags-view-visited');
+  proxy?.$modal.loading('正在清除设置缓存并刷新，请稍候...');
   useStorage<any>('layout-setting', null).value = null;
   setTimeout('window.location.reload()', 1000);
 };
@@ -292,18 +251,9 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
-.settings-drawer {
-  :deep(.el-drawer__body) {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 18px 18px 20px;
-  }
-}
-
 .setting-drawer-title {
   margin-bottom: 12px;
-  color: var(--app-text-title);
+  color: rgba(0, 0, 0, 0.85);
   line-height: 22px;
   font-weight: bold;
   .drawer-title {
@@ -320,23 +270,12 @@ defineExpose({
   .setting-drawer-block-checbox-item {
     position: relative;
     margin-right: 16px;
-    border-radius: 12px;
+    border-radius: 2px;
     cursor: pointer;
-    overflow: hidden;
-    border: 1px solid var(--app-surface-border);
-    transition:
-      border-color 0.2s ease,
-      transform 0.2s ease;
-
-    &:hover {
-      border-color: rgba(64, 158, 255, 0.28);
-      transform: translateY(-1px);
-    }
 
     img {
       width: 48px;
       height: 48px;
-      display: block;
     }
 
     .custom-img {
@@ -354,7 +293,9 @@ defineExpose({
       height: 100%;
       padding-top: 15px;
       padding-left: 24px;
-      color: var(--app-accent-strong);
+      color: #1890ff;
+      font-weight: 700;
+      font-size: 14px;
     }
   }
 }
@@ -362,8 +303,6 @@ defineExpose({
 .drawer-item {
   padding: 12px 0;
   font-size: 14px;
-  color: var(--app-text-title);
-  border-bottom: 1px solid var(--app-surface-border);
 
   .comp-style {
     float: right;
@@ -389,16 +328,9 @@ defineExpose({
     cursor: pointer;
     width: 56px;
     height: 48px;
-    border-radius: 12px;
-    background: var(--app-elevated-soft-bg);
+    border-radius: 4px;
+    background: #f0f2f5;
     border: 2px solid transparent;
-    transition:
-      transform 0.2s ease,
-      border-color 0.2s ease;
-
-    &:hover {
-      transform: translateY(-1px);
-    }
   }
 
   .left {
@@ -407,7 +339,6 @@ defineExpose({
       height: 30%;
       background: #fff;
     }
-
     b:last-child {
       width: 30%;
       background: #1b2a47;
@@ -417,7 +348,6 @@ defineExpose({
       border-radius: 4px 0 0 4px;
     }
   }
-
   .mix {
     b:first-child {
       border-radius: 4px 4px 0 0;
@@ -425,7 +355,6 @@ defineExpose({
       height: 30%;
       background: #1b2a47;
     }
-
     b:last-child {
       width: 30%;
       background: #1b2a47;
@@ -434,17 +363,12 @@ defineExpose({
       border-radius: 0 0 0 4px;
     }
   }
-
   .top {
     b:first-child {
       display: block;
       height: 30%;
       background: #1b2a47;
       border-radius: 4px 4px 0 0;
-    }
-
-    b:last-child {
-      display: none;
     }
   }
 }

@@ -1,29 +1,28 @@
 package org.dromara.system.controller.system;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.hutool.crypto.digest.BCrypt;
 import cn.hutool.core.lang.tree.Tree;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.crypto.digest.BCrypt;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.dromara.common.core.constant.CacheNames;
 import org.dromara.common.core.constant.SystemConstants;
-import org.dromara.common.core.domain.PageResult;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.encrypt.annotation.ApiEncrypt;
 import org.dromara.common.excel.core.ExcelResult;
-import org.dromara.common.excel.utils.ExcelBuilder;
+import org.dromara.common.excel.utils.ExcelUtil;
+import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.mybatis.helper.DataPermissionHelper;
-import org.dromara.common.redis.annotation.RepeatSubmit;
-import org.dromara.common.redis.utils.RedisUtils;
 import org.dromara.common.satoken.utils.LoginHelper;
+import org.dromara.common.tenant.helper.TenantHelper;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.system.api.model.LoginUser;
 import org.dromara.system.domain.bo.SysDeptBo;
@@ -32,10 +31,7 @@ import org.dromara.system.domain.bo.SysRoleBo;
 import org.dromara.system.domain.bo.SysUserBo;
 import org.dromara.system.domain.vo.*;
 import org.dromara.system.listener.SysUserImportListener;
-import org.dromara.system.service.ISysDeptService;
-import org.dromara.system.service.ISysPostService;
-import org.dromara.system.service.ISysRoleService;
-import org.dromara.system.service.ISysUserService;
+import org.dromara.system.service.*;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -59,14 +55,15 @@ public class SysUserController extends BaseController {
     private final ISysRoleService roleService;
     private final ISysPostService postService;
     private final ISysDeptService deptService;
+    private final ISysTenantService tenantService;
 
     /**
      * 获取用户列表
      */
     @SaCheckPermission("system:user:list")
     @GetMapping("/list")
-    public R<PageResult<SysUserVo>> list(SysUserBo user, PageQuery pageQuery) {
-        return R.ok(userService.selectPageUserList(user, pageQuery));
+    public TableDataInfo<SysUserVo> list(SysUserBo user, PageQuery pageQuery) {
+        return userService.selectPageUserList(user, pageQuery);
     }
 
     /**
@@ -77,7 +74,7 @@ public class SysUserController extends BaseController {
     @PostMapping("/export")
     public void export(SysUserBo user, HttpServletResponse response) {
         List<SysUserExportVo> list = userService.selectUserExportList(user);
-        ExcelBuilder.of(list, SysUserExportVo.class).sheetName("用户数据").toResponse(response);
+        ExcelUtil.exportExcel(list, "用户数据", SysUserExportVo.class, response);
     }
 
     /**
@@ -90,9 +87,7 @@ public class SysUserController extends BaseController {
     @SaCheckPermission("system:user:import")
     @PostMapping(value = "/importData", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public R<Void> importData(@RequestPart("file") MultipartFile file, boolean updateSupport) throws Exception {
-        ExcelResult<SysUserImportVo> result = ExcelBuilder.read(file.getInputStream(), SysUserImportVo.class)
-            .listener(new SysUserImportListener(updateSupport))
-            .doRead();
+        ExcelResult<SysUserImportVo> result = ExcelUtil.importExcel(file.getInputStream(), SysUserImportVo.class, new SysUserImportListener(updateSupport));
         return R.ok(result.getAnalysis());
     }
 
@@ -101,7 +96,7 @@ public class SysUserController extends BaseController {
      */
     @PostMapping("/importTemplate")
     public void importTemplate(HttpServletResponse response) {
-        ExcelBuilder.of(new ArrayList<>(), SysUserImportVo.class).sheetName("用户数据").toResponse(response);
+        ExcelUtil.exportExcel(new ArrayList<>(), "用户数据", SysUserImportVo.class, response);
     }
 
     /**
@@ -113,6 +108,10 @@ public class SysUserController extends BaseController {
     public R<UserInfoVo> getInfo() {
         UserInfoVo userInfoVo = new UserInfoVo();
         LoginUser loginUser = LoginHelper.getLoginUser();
+        if (TenantHelper.isEnable() && LoginHelper.isSuperAdmin()) {
+            // 超级管理员 如果重新加载用户信息需清除动态租户
+            TenantHelper.clearDynamic();
+        }
         SysUserVo user = DataPermissionHelper.ignore(() -> userService.selectUserById(loginUser.getUserId()));
         if (ObjectUtil.isNull(user)) {
             return R.fail("没有权限访问用户数据!");
@@ -164,10 +163,15 @@ public class SysUserController extends BaseController {
         deptService.checkDeptDataScope(user.getDeptId());
         if (!userService.checkUserNameUnique(user)) {
             return R.fail("新增用户'" + user.getUserName() + "'失败，登录账号已存在");
-        } else if (StringUtils.isNotEmpty(user.getPhoneNumber()) && !userService.checkPhoneUnique(user)) {
+        } else if (StringUtils.isNotEmpty(user.getPhonenumber()) && !userService.checkPhoneUnique(user)) {
             return R.fail("新增用户'" + user.getUserName() + "'失败，手机号码已存在");
         } else if (StringUtils.isNotEmpty(user.getEmail()) && !userService.checkEmailUnique(user)) {
             return R.fail("新增用户'" + user.getUserName() + "'失败，邮箱账号已存在");
+        }
+        if (TenantHelper.isEnable()) {
+            if (!tenantService.checkAccountBalance(TenantHelper.getTenantId())) {
+                return R.fail("当前租户下用户名额不足，请联系管理员");
+            }
         }
         user.setPassword(BCrypt.hashpw(user.getPassword()));
         return toAjax(userService.insertUser(user));
@@ -186,7 +190,7 @@ public class SysUserController extends BaseController {
         deptService.checkDeptDataScope(user.getDeptId());
         if (!userService.checkUserNameUnique(user)) {
             return R.fail("修改用户'" + user.getUserName() + "'失败，登录账号已存在");
-        } else if (StringUtils.isNotEmpty(user.getPhoneNumber()) && !userService.checkPhoneUnique(user)) {
+        } else if (StringUtils.isNotEmpty(user.getPhonenumber()) && !userService.checkPhoneUnique(user)) {
             return R.fail("修改用户'" + user.getUserName() + "'失败，手机号码已存在");
         } else if (StringUtils.isNotEmpty(user.getEmail()) && !userService.checkEmailUnique(user)) {
             return R.fail("修改用户'" + user.getUserName() + "'失败，邮箱账号已存在");
@@ -248,27 +252,6 @@ public class SysUserController extends BaseController {
         userService.checkUserAllowed(user.getUserId());
         userService.checkUserDataScope(user.getUserId());
         return toAjax(userService.updateUserStatus(user.getUserId(), user.getStatus()));
-    }
-
-    /**
-     * 解锁用户
-     */
-    @SaCheckPermission("system:user:edit")
-    @Log(title = "用户解锁", businessType = BusinessType.OTHER)
-    @RepeatSubmit()
-    @GetMapping("/unlock/{userId}")
-    public R<Void> unlock(@PathVariable Long userId) {
-        userService.checkUserAllowed(userId);
-        userService.checkUserDataScope(userId);
-        SysUserVo user = userService.selectUserById(userId);
-        if (ObjectUtil.isNull(user)) {
-            return R.fail("用户不存在");
-        }
-        String loginName = CacheNames.PWD_ERR_CNT_KEY + user.getUserName();
-        if (RedisUtils.hasKey(loginName)) {
-            RedisUtils.deleteObject(loginName);
-        }
-        return R.ok();
     }
 
     /**

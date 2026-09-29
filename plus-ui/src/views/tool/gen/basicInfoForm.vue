@@ -1,5 +1,5 @@
 <template>
-  <el-form ref="formRef" :model="infoForm" :rules="rules" label-width="150px">
+  <el-form ref="basicInfoForm" :model="infoForm" :rules="rules" label-width="150px">
     <el-row>
       <el-col :span="12">
         <el-form-item label="表名称" prop="tableName">
@@ -31,7 +31,6 @@
 </template>
 
 <script setup lang="ts">
-import type { FormInstance } from 'element-plus';
 import { propTypes } from '@/utils/propTypes';
 
 const prop = defineProps({
@@ -39,7 +38,6 @@ const prop = defineProps({
 });
 
 const infoForm = computed(() => prop.info);
-const formRef = ref<FormInstance>();
 
 // 表单校验
 const rules = ref({
@@ -48,17 +46,4 @@ const rules = ref({
   className: [{ required: true, message: '请输入实体类名称', trigger: 'blur' }],
   functionAuthor: [{ required: true, message: '请输入作者', trigger: 'blur' }]
 });
-
-/** Element Plus 推荐：通过 validate() 的 Promise 做校验 */
-async function validate(): Promise<boolean> {
-  if (!formRef.value) return false;
-  try {
-    await formRef.value.validate();
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-defineExpose({ validate });
 </script>

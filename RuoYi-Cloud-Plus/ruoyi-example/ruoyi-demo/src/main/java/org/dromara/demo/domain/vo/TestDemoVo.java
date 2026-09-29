@@ -1,19 +1,19 @@
 package org.dromara.demo.domain.vo;
 
-import io.github.linpeilie.annotations.AutoMapper;
-import lombok.Data;
-import org.apache.fesod.sheet.annotation.ExcelIgnoreUnannotated;
-import org.apache.fesod.sheet.annotation.ExcelProperty;
-import org.apache.fesod.sheet.annotation.format.DateTimeFormat;
+import cn.idev.excel.annotation.ExcelIgnoreUnannotated;
+import cn.idev.excel.annotation.ExcelProperty;
+import cn.idev.excel.annotation.format.DateTimeFormat;
 import org.dromara.common.excel.annotation.ExcelNotation;
 import org.dromara.common.excel.annotation.ExcelRequired;
 import org.dromara.common.translation.annotation.Translation;
 import org.dromara.common.translation.constant.TransConstant;
 import org.dromara.demo.domain.TestDemo;
+import io.github.linpeilie.annotations.AutoMapper;
+import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 
 /**
@@ -77,7 +77,7 @@ public class TestDemoVo implements Serializable {
     @ExcelRequired
     @DateTimeFormat("yyyy-MM-dd HH:mm:ss")
     @ExcelProperty(value = "创建时间")
-    private LocalDateTime createTime;
+    private Date createTime;
 
     /**
      * 创建人
@@ -96,7 +96,7 @@ public class TestDemoVo implements Serializable {
      * 更新时间
      */
     @ExcelProperty(value = "更新时间")
-    private LocalDateTime updateTime;
+    private Date updateTime;
 
     /**
      * 更新人

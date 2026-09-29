@@ -1,6 +1,6 @@
-import type { AxiosPromise } from '@/utils/api-types';
 import request from '@/utils/request';
-import { type DeptForm, type DeptQuery, type DeptVO } from './types';
+import { AxiosPromise } from 'axios';
+import { DeptForm, DeptQuery, DeptTreeVO, DeptVO } from './types';
 
 // 查询部门列表
 export const listDept = (query?: DeptQuery) => {

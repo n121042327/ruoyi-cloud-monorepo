@@ -59,7 +59,7 @@ public class SnailJobConfig {
         if (StringUtils.isNotBlank(serverName)) {
             List<ServiceInstance> instances = discoveryClient.getInstances(serverName);
             if (CollUtil.isNotEmpty(instances)) {
-                ServiceInstance instance = instances.getFirst();
+                ServiceInstance instance = instances.get(0);
                 System.setProperty("snail-job.server.host", instance.getHost());
                 System.setProperty("snail-job.server.port", properties.getPort());
             }

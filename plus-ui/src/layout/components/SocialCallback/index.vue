@@ -4,8 +4,8 @@
 
 <script setup lang="ts">
 import { login, callback } from '@/api/login';
-import { LoginData } from '@/api/types';
 import { setToken, getToken } from '@/utils/auth';
+import { LoginData } from '@/api/types';
 
 const route = useRoute();
 const loading = ref(true);
@@ -17,6 +17,9 @@ const loading = ref(true);
 const code = route.query.code as string;
 const state = route.query.state as string;
 const source = route.query.source as string;
+const stateJson = JSON.parse(atob(state));
+const tenantId = (stateJson.tenantId as string) ? (stateJson.tenantId as string) : '000000';
+const domain = stateJson.domain as string;
 
 const processResponse = async (res: any) => {
   if (res.code !== 200) {
@@ -59,9 +62,19 @@ const loginByCode = async (data: LoginData) => {
 };
 
 const init = async () => {
+  // 如果域名不相等 则重定向处理
+  const host = window.location.host;
+  if (domain !== host) {
+    const urlFull = new URL(window.location.href);
+    urlFull.host = domain;
+    window.location.href = urlFull.toString();
+    return;
+  }
+
   const data: LoginData = {
     socialCode: code,
     socialState: state,
+    tenantId: tenantId,
     source: source,
     clientId: import.meta.env.VITE_APP_CLIENT_ID,
     grantType: 'social'

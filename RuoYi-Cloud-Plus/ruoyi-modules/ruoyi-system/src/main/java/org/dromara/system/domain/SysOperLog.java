@@ -6,7 +6,7 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * 操作日志记录表 oper_log
@@ -26,6 +26,11 @@ public class SysOperLog implements Serializable {
      */
     @TableId(value = "oper_id")
     private Long operId;
+
+    /**
+     * 租户编号
+     */
+    private String tenantId;
 
     /**
      * 操作模块
@@ -58,39 +63,9 @@ public class SysOperLog implements Serializable {
     private String operName;
 
     /**
-     * 操作用户ID
-     */
-    private Long userId;
-
-    /**
-     * 操作部门ID
-     */
-    private Long deptId;
-
-    /**
      * 部门名称
      */
     private String deptName;
-
-    /**
-     * 客户端
-     */
-    private String clientKey;
-
-    /**
-     * 设备类型
-     */
-    private String deviceType;
-
-    /**
-     * 浏览器类型
-     */
-    private String browser;
-
-    /**
-     * 操作系统
-     */
-    private String os;
 
     /**
      * 请求url
@@ -130,7 +105,7 @@ public class SysOperLog implements Serializable {
     /**
      * 操作时间
      */
-    private LocalDateTime operTime;
+    private Date operTime;
 
     /**
      * 消耗时间

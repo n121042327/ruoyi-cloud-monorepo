@@ -1,16 +1,17 @@
 package org.dromara.common.json.config;
 
+import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.json.handler.BigNumberSerializer;
 import org.dromara.common.json.handler.CustomDateDeserializer;
-import org.dromara.common.json.handler.CustomLocalDateTimeDeserializer;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
-import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
+import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import tools.jackson.databind.ext.javatime.ser.LocalDateTimeSerializer;
-import tools.jackson.databind.module.SimpleModule;
-import tools.jackson.databind.ser.std.ToStringSerializer;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -29,24 +30,24 @@ import java.util.TimeZone;
 public class JacksonConfig {
 
     @Bean
-    public SimpleModule registerJavaTimeModule() {
+    public Module registerJavaTimeModule() {
         // 全局配置序列化返回 JSON 处理
-        SimpleModule module = new SimpleModule();
-        module.addSerializer(Long.class, BigNumberSerializer.INSTANCE);
-        module.addSerializer(Long.TYPE, BigNumberSerializer.INSTANCE);
-        module.addSerializer(BigInteger.class, BigNumberSerializer.INSTANCE);
-        module.addSerializer(BigDecimal.class, ToStringSerializer.instance);
+        JavaTimeModule javaTimeModule = new JavaTimeModule();
+        javaTimeModule.addSerializer(Long.class, BigNumberSerializer.INSTANCE);
+        javaTimeModule.addSerializer(Long.TYPE, BigNumberSerializer.INSTANCE);
+        javaTimeModule.addSerializer(BigInteger.class, BigNumberSerializer.INSTANCE);
+        javaTimeModule.addSerializer(BigDecimal.class, ToStringSerializer.instance);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        module.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(formatter));
-        module.addDeserializer(LocalDateTime.class, new CustomLocalDateTimeDeserializer());
-        module.addDeserializer(Date.class, new CustomDateDeserializer());
-        return module;
+        javaTimeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(formatter));
+        javaTimeModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(formatter));
+        javaTimeModule.addDeserializer(Date.class, new CustomDateDeserializer());
+        return javaTimeModule;
     }
 
     @Bean
-    public JsonMapperBuilderCustomizer jsonInitCustomizer() {
+    public Jackson2ObjectMapperBuilderCustomizer customizer() {
         return builder -> {
-            builder.defaultTimeZone(TimeZone.getDefault());
+            builder.timeZone(TimeZone.getDefault());
             log.info("初始化 jackson 配置");
         };
     }

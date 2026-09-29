@@ -1,29 +1,31 @@
 <template>
   <div class="navbar" :class="'nav' + navType">
-    <div class="navbar-left">
-      <div v-if="navType !== NavTypeEnum.TOP" class="hamburger-shell">
-        <hamburger
-          id="hamburger-container"
-          :is-active="appStore.sidebar.opened"
-          class="hamburger-container"
-          @toggle-click="toggleSideBar"
-        />
-      </div>
-      <router-link v-else-if="showLogo" to="/" class="navtop-logo-shell">
-        <img :src="appLogo" class="navtop-logo-icon" alt="logo" />
-      </router-link>
+    <hamburger id="hamburger-container" :is-active="appStore.sidebar.opened" class="hamburger-container" @toggle-click="toggleSideBar" />
 
-      <div class="nav-context">
-        <breadcrumb v-if="navType == NavTypeEnum.LEFT" id="breadcrumb-container" class="breadcrumb-container" />
-        <top-nav v-if="navType == NavTypeEnum.MIX" id="topmenu-container" class="topmenu-container" />
+    <breadcrumb v-if="navType == NavTypeEnum.LEFT" id="breadcrumb-container" class="breadcrumb-container" />
+    <top-nav v-if="navType == NavTypeEnum.MIX" id="topmenu-container" class="topmenu-container" />
 
-        <template v-if="navType == NavTypeEnum.TOP">
-          <top-bar id="topbar-container" class="topbar-container" />
-        </template>
-      </div>
-    </div>
+    <template v-if="navType == NavTypeEnum.TOP">
+      <logo v-show="showLogo" :collapse="false"></logo>
+      <top-bar id="topbar-container" class="topbar-container" />
+    </template>
     <div class="right-menu flex align-center">
       <template v-if="appStore.device !== 'mobile'">
+        <el-select
+          v-if="userId === 1 && tenantEnabled"
+          v-model="companyName"
+          class="min-w-244px mr-2"
+          clearable
+          filterable
+          reserve-keyword
+          :placeholder="proxy.$t('navbar.selectTenant')"
+          @change="dynamicTenantEvent"
+          @clear="dynamicClearEvent"
+        >
+          <el-option v-for="item in tenantList" :key="item.tenantId" :label="item.companyName" :value="item.tenantId"> </el-option>
+          <template #prefix><svg-icon icon-class="company" class="el-input__icon input-icon" /></template>
+        </el-select>
+
         <search-menu ref="searchMenuRef" />
         <el-tooltip content="搜索" effect="dark" placement="bottom">
           <div class="right-menu-item hover-effect" @click="openSearchMenu">
@@ -31,14 +33,12 @@
           </div>
         </el-tooltip>
         <!-- 消息 -->
-        <el-tooltip :content="$t('navbar.message')" effect="dark" placement="bottom">
-          <div>
+        <el-tooltip :content="proxy.$t('navbar.message')" effect="dark" placement="bottom">
+          <div style="display:flex;align-items:center">
             <el-popover placement="bottom" trigger="click" transition="el-zoom-in-top" :width="300" :persistent="false">
               <template #reference>
-                <el-badge :value="noticeStore.unreadCount.value > 0 ? noticeStore.unreadCount.value : ''" :max="99">
-                  <div class="right-menu-item hover-effect message-trigger">
-                    <svg-icon icon-class="message" />
-                  </div>
+                <el-badge :value="newNotice > 0 ? newNotice : ''" :max="99">
+                  <div class="right-menu-item hover-effect"><svg-icon icon-class="message" /></div>
                 </el-badge>
               </template>
               <template #default>
@@ -51,42 +51,38 @@
           <ruo-yi-git id="ruoyi-git" class="right-menu-item hover-effect" />
         </el-tooltip>
 
-        <el-tooltip :content="$t('navbar.document')" effect="dark" placement="bottom">
+        <el-tooltip :content="proxy.$t('navbar.document')" effect="dark" placement="bottom">
           <ruo-yi-doc id="ruoyi-doc" class="right-menu-item hover-effect" />
         </el-tooltip>
 
-        <el-tooltip :content="$t('navbar.full')" effect="dark" placement="bottom">
+        <el-tooltip :content="proxy.$t('navbar.full')" effect="dark" placement="bottom">
           <screenfull id="screenfull" class="right-menu-item hover-effect" />
         </el-tooltip>
 
-        <el-tooltip :content="$t('navbar.language')" effect="dark" placement="bottom">
+        <el-tooltip :content="proxy.$t('navbar.language')" effect="dark" placement="bottom">
           <lang-select id="lang-select" class="right-menu-item hover-effect" />
         </el-tooltip>
 
-        <el-tooltip :content="$t('navbar.layoutSize')" effect="dark" placement="bottom">
+        <el-tooltip :content="proxy.$t('navbar.layoutSize')" effect="dark" placement="bottom">
           <size-select id="size-select" class="right-menu-item hover-effect" />
         </el-tooltip>
       </template>
       <div class="avatar-container">
-        <el-dropdown class="avatar-dropdown" trigger="click" @command="handleCommand">
+        <el-dropdown class="right-menu-item hover-effect" trigger="click" @command="handleCommand">
           <div class="avatar-wrapper">
             <img :src="userStore.avatar" class="user-avatar" />
-            <div class="avatar-meta">
-              <span class="avatar-name">{{ displayName }}</span>
-              <span class="avatar-role">Workspace</span>
-            </div>
-            <el-icon class="avatar-arrow"><caret-bottom /></el-icon>
+            <el-icon><caret-bottom /></el-icon>
           </div>
           <template #dropdown>
             <el-dropdown-menu>
-              <router-link to="/user/profile">
-                <el-dropdown-item>{{ $t('navbar.personalCenter') }}</el-dropdown-item>
+              <router-link v-if="!dynamic" to="/user/profile">
+                <el-dropdown-item>{{ proxy.$t('navbar.personalCenter') }}</el-dropdown-item>
               </router-link>
               <el-dropdown-item v-if="settingsStore.showSettings" command="setLayout">
-                <span>{{ $t('navbar.layoutSetting') }}</span>
+                <span>{{ proxy.$t('navbar.layoutSetting') }}</span>
               </el-dropdown-item>
               <el-dropdown-item divided command="logout">
-                <span>{{ $t('navbar.logout') }}</span>
+                <span>{{ proxy.$t('navbar.logout') }}</span>
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>
@@ -97,35 +93,77 @@
 </template>
 
 <script setup lang="ts">
-import type { ElMessageBoxOptions } from 'element-plus';
-import { CaretBottom } from '@element-plus/icons-vue';
-import appLogo from '@/assets/logo/logo.png';
-import { NavTypeEnum } from '@/enums/NavTypeEnum';
-import tab from '@/plugins/tab';
-import router from '@/router';
-import { useAppStore } from '@/store/modules/app';
-import { useNoticeStore } from '@/store/modules/notice';
-import { useSettingsStore } from '@/store/modules/settings';
-import { useUserStore } from '@/store/modules/user';
-import notice from './notice/index.vue';
-import TopBar from './TopBar/index.vue';
 import SearchMenu from './TopBar/search.vue';
+import { useAppStore } from '@/store/modules/app';
+import { useUserStore } from '@/store/modules/user';
+import { useSettingsStore } from '@/store/modules/settings';
+import { useNoticeStore } from '@/store/modules/notice';
+import { getTenantList } from '@/api/login';
+import { dynamicClear, dynamicTenant } from '@/api/system/tenant';
+import { TenantVO } from '@/api/types';
+import notice from './notice/index.vue';
+import router from '@/router';
+import { ElMessageBoxOptions } from 'element-plus/es/components/message-box/src/message-box.type';
+import { NavTypeEnum } from '@/enums/NavTypeEnum';
+import Logo from "@/layout/components/Sidebar/Logo.vue";
+import TopBar from './TopBar'
 
 const appStore = useAppStore();
 const userStore = useUserStore();
 const settingsStore = useSettingsStore();
 const noticeStore = storeToRefs(useNoticeStore());
+const newNotice = ref(<number>0);
 
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+
+const userId = ref(userStore.userId);
 const navType = computed(() => settingsStore.navType);
 const showLogo = computed(() => settingsStore.sidebarLogo);
-const displayName = computed(() => userStore.nickname || '管理员');
 
+const companyName = ref(undefined);
+const tenantList = ref<TenantVO[]>([]);
+// 是否切换了租户
+const dynamic = ref(false);
+// 租户开关
+const tenantEnabled = ref(true);
 // 搜索菜单
 const searchMenuRef = ref<InstanceType<typeof SearchMenu>>();
 
 const openSearchMenu = () => {
   searchMenuRef.value?.openSearch();
 };
+
+// 动态切换
+const dynamicTenantEvent = async (tenantId: string) => {
+  if (companyName.value != null && companyName.value !== '') {
+    await dynamicTenant(tenantId);
+    dynamic.value = true;
+    await proxy?.$router.push('/');
+    await proxy?.$tab.closeAllPage();
+    await proxy?.$tab.refreshPage();
+  }
+};
+
+const dynamicClearEvent = async () => {
+  await dynamicClear();
+  dynamic.value = false;
+  await proxy?.$router.push('/');
+  await proxy?.$tab.closeAllPage();
+  await proxy?.$tab.refreshPage();
+};
+
+/** 租户列表 */
+const initTenantList = async () => {
+  const { data } = await getTenantList(true);
+  tenantEnabled.value = data.tenantEnabled === undefined ? true : data.tenantEnabled;
+  if (tenantEnabled.value) {
+    tenantList.value = data.voList;
+  }
+};
+
+defineExpose({
+  initTenantList
+});
 
 const toggleSideBar = () => {
   appStore.toggleSideBar(false);
@@ -144,7 +182,7 @@ const logout = async () => {
         redirect: encodeURIComponent(router.currentRoute.value.fullPath || '/')
       }
     });
-    tab.closeAllPage();
+    proxy?.$tab.closeAllPage();
   });
 };
 
@@ -163,56 +201,20 @@ const handleCommand = (command: string) => {
     commandMap[command]();
   }
 };
+//用深度监听 消息
+watch(
+  () => noticeStore.state.value.notices,
+  (newVal) => {
+    newNotice.value = newVal.filter((item: any) => !item.read).length;
+  },
+  { deep: true }
+);
 </script>
 
 <style lang="scss" scoped>
 .navbar.navtop {
-  .nav-context {
-    flex: 1;
-  }
-
-  .navtop-logo-shell {
-    width: 48px;
-    height: 40px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 12px;
-    flex-shrink: 0;
-    border-radius: 14px;
-    border: 1px solid var(--app-surface-border);
-    background: var(--app-surface-bg);
-    box-shadow: var(--app-shadow-sm);
-    transition:
-      transform 0.2s ease,
-      border-color 0.2s ease,
-      box-shadow 0.2s ease;
-
-    &:hover {
-      transform: translateY(-1px);
-      border-color: rgba(64, 158, 255, 0.22);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.76),
-        0 10px 22px rgba(15, 23, 42, 0.08);
-    }
-  }
-
-  .navtop-logo-icon {
-    width: 32px;
-    height: 32px;
-    display: block;
-    border-radius: 11px;
-  }
-
-  .topbar-container {
-    flex: 1;
-    min-width: 0;
-    margin-left: 0;
-    padding: 4px 8px;
-    border-radius: var(--app-radius-base);
-    background: var(--app-surface-bg);
-    border: 1px solid var(--app-surface-border);
-    box-shadow: var(--app-shadow-sm);
+  .hamburger-container {
+    display: none !important;
   }
 }
 
@@ -221,17 +223,7 @@ const handleCommand = (command: string) => {
 }
 
 :deep(.el-badge__content.is-fixed) {
-  top: 8px;
-  right: 6px;
-}
-
-:deep(.el-badge) {
-  display: inline-flex;
-  align-items: center;
-}
-
-:deep(.el-dropdown) {
-  outline: none;
+  top: 12px;
 }
 
 .flex {
@@ -243,71 +235,42 @@ const handleCommand = (command: string) => {
 }
 
 .navbar {
-  min-height: 52px;
+  height: 50px;
   overflow: hidden;
   position: relative;
-  background: var(--app-navbar-bg);
-  border: 1px solid var(--app-navbar-border);
-  box-shadow: var(--app-navbar-shadow);
+  background: var(--el-bg-color);
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  box-shadow: none;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  border-radius: var(--app-radius-base);
-  padding: 6px 12px;
+  // padding: 0 8px;
   box-sizing: border-box;
 
-  .navbar-left {
-    display: flex;
-    align-items: center;
-    min-width: 0;
-    gap: 10px;
-    flex: 1;
-  }
-
-  .hamburger-shell {
-    width: 36px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    background: transparent;
-    color: var(--app-accent-strong);
-    flex-shrink: 0;
-    border: 1px solid var(--app-surface-border);
-  }
-
   .hamburger-container {
-    line-height: 32px;
+    line-height: 46px;
     height: 100%;
+    //float: left;
     cursor: pointer;
     transition: background 0.3s;
     -webkit-tap-highlight-color: transparent;
     display: flex;
     align-items: center;
     flex-shrink: 0;
-    justify-content: center;
+    margin-right: 8px;
 
     &:hover {
-      background: transparent;
+      background: var(--el-fill-color-lighter);
     }
   }
 
-  .nav-context {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 0;
-  }
-
   .breadcrumb-container {
+    //float: left;
     flex-shrink: 0;
   }
 
   .topmenu-container {
-    position: static;
-    min-width: 0;
+    position: absolute;
+    left: 50px;
   }
 
   .topbar-container {
@@ -319,159 +282,68 @@ const handleCommand = (command: string) => {
     margin-left: 8px;
   }
 
+
+  .errLog-container {
+    display: inline-block;
+    vertical-align: top;
+  }
+
   .right-menu {
     height: 100%;
-    line-height: 1;
     display: flex;
     align-items: center;
-    gap: 6px;
     margin-left: auto;
-    flex-wrap: nowrap;
 
     &:focus {
       outline: none;
-    }
-
-    > * {
-      flex-shrink: 0;
     }
 
     .right-menu-item {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 32px;
+      padding: 0 8px;
       height: 32px;
-      font-size: 16px;
-      color: var(--app-text-muted);
-      border-radius: 12px;
-      vertical-align: text-bottom;
-      background: transparent;
-      border: 1px solid transparent;
-      flex-shrink: 0;
-
-      :deep(.svg-icon),
-      :deep(svg),
-      :deep(.el-icon) {
-        width: 16px;
-        height: 16px;
-        font-size: 16px;
-        display: block;
-      }
+      font-size: 18px;
+      color: var(--el-text-color-regular);
+      border-radius: var(--app-radius-md);
 
       &.hover-effect {
         cursor: pointer;
-        transition:
-          background 0.3s,
-          color 0.3s;
+        transition: background 0.2s ease, color 0.2s ease;
 
         &:hover {
-          background: var(--app-accent-soft);
-          color: var(--app-accent-strong);
-          border-color: rgba(64, 158, 255, 0.16);
+          background: var(--el-fill-color-light);
+          color: var(--el-color-primary);
         }
       }
-    }
-
-    .message-trigger {
-      display: inline-flex;
     }
 
     .avatar-container {
-      margin-left: 6px;
-      margin-right: 0;
-      flex-shrink: 0;
-
-      .avatar-dropdown {
-        display: block;
-        width: auto;
-        height: auto;
-        border: none;
-        background: transparent;
-      }
+      margin-right: 40px;
 
       .avatar-wrapper {
+        margin-top: 0;
         position: relative;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 4px 8px 4px 4px;
-        border-radius: var(--app-radius-base);
-        background: var(--app-surface-bg);
-        border: 1px solid var(--app-surface-border);
-        min-width: 0;
-        cursor: pointer;
-        transition:
-          background 0.3s,
-          border-color 0.3s;
-
-        &:hover {
-          background: var(--app-accent-soft);
-          border-color: rgba(64, 158, 255, 0.16);
-        }
 
         .user-avatar {
           cursor: pointer;
-          width: 28px;
-          height: 28px;
-          border-radius: 12px;
-          object-fit: cover;
-          box-shadow: none;
+          width: 40px;
+          height: 40px;
+          border-radius: var(--app-radius-md);
+          margin-top: 0;
+          display: block;
         }
 
-        .avatar-meta {
-          display: flex;
-          flex-direction: column;
-          min-width: 0;
-          gap: 2px;
-        }
-
-        .avatar-name {
-          max-width: 88px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          color: var(--app-text-title);
+        i {
+          cursor: pointer;
+          position: absolute;
+          right: -20px;
+          top: 25px;
           font-size: 12px;
-          font-weight: 600;
-        }
-
-        .avatar-role {
-          color: var(--app-text-muted);
-          font-size: 11px;
-        }
-
-        .avatar-arrow {
-          color: var(--app-text-muted);
-          font-size: 12px;
-          flex-shrink: 0;
         }
       }
     }
-  }
-}
-
-html.dark {
-  .navbar.navtop .navtop-logo-shell {
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.82));
-    border-color: rgba(71, 85, 105, 0.42);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.06),
-      0 8px 18px rgba(0, 0, 0, 0.24);
-  }
-
-  .navbar.navtop .topbar-container {
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.7));
-    border-color: rgba(71, 85, 105, 0.34);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.05),
-      0 8px 22px rgba(0, 0, 0, 0.2);
-  }
-
-  .navbar .right-menu .right-menu-item,
-  .navbar .right-menu .avatar-wrapper {
-    background: var(--app-navbar-bg);
-    border-color: var(--app-navbar-border);
   }
 }
 </style>

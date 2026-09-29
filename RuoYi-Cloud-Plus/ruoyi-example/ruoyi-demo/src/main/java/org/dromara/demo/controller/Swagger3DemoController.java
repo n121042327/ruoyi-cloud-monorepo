@@ -25,7 +25,7 @@ public class Swagger3DemoController {
      */
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public R<String> upload(@RequestPart("file") MultipartFile file) {
-        return R.data(file.getOriginalFilename());
+        return R.ok("操作成功", file.getOriginalFilename());
     }
 
 }

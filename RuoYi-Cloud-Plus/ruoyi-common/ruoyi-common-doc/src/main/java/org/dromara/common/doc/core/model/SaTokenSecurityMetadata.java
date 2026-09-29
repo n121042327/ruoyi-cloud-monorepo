@@ -86,7 +86,7 @@ public class SaTokenSecurityMetadata {
             return sb.toString();
         }
 
-        if (!ignore && permissions.isEmpty() && roles.isEmpty()) {
+        if (!ignore && permissions.isEmpty() && roles.isEmpty()){
             sb.append("> **权限策略**：需要登录<br><br>");
             return sb.toString();
         }
@@ -162,7 +162,6 @@ public class SaTokenSecurityMetadata {
 
         /**
          * 重写mode的获取方法，返回符号而非文字
-         *
          * @return AND→&，OR→|，默认→&
          */
         public String getModeSymbol() {

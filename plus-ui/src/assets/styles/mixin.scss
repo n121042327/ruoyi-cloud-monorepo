@@ -1,4 +1,3 @@
-// 清除浮动（嵌套用）
 @mixin clearfix {
   &:after {
     content: '';
@@ -7,10 +6,9 @@
   }
 }
 
-// WebKit 滚动条配色（用于可滚动容器）
 @mixin scrollBar {
   &::-webkit-scrollbar-track-piece {
-    background: var(--app-surface-border);
+    background: #d3dce6;
   }
 
   &::-webkit-scrollbar {
@@ -18,26 +16,23 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    background: var(--app-text-muted);
+    background: #99a9bf;
     border-radius: 20px;
   }
 }
 
-// 铺满父级的相对定位层
 @mixin relative {
   position: relative;
   width: 100%;
   height: 100%;
 }
 
-// 百分比宽度水平居中块
 @mixin pct($pct) {
   width: #{$pct};
   position: relative;
   margin: 0 auto;
 }
 
-// CSS 三角箭头（极少用，保留兼容）
 @mixin triangle($width, $height, $color, $direction) {
   $width: $width/2;
   $color-border-style: $height solid $color;

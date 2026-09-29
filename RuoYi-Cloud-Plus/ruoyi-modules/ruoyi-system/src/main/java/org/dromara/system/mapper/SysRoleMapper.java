@@ -1,19 +1,16 @@
 package org.dromara.system.mapper;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Constants;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.github.yulichang.base.MPJBaseMapper;
 import org.apache.ibatis.annotations.Param;
 import org.dromara.common.mybatis.annotation.DataColumn;
 import org.dromara.common.mybatis.annotation.DataPermission;
 import org.dromara.common.mybatis.core.mapper.BaseMapperPlus;
-import org.dromara.common.mybatis.core.query.QueryBuilder;
 import org.dromara.system.domain.SysRole;
-import org.dromara.system.domain.SysUserRole;
 import org.dromara.system.domain.vo.SysRoleVo;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -21,7 +18,19 @@ import java.util.List;
  *
  * @author Lion Li
  */
-public interface SysRoleMapper extends BaseMapperPlus<SysRole, SysRoleVo>, MPJBaseMapper<SysRole> {
+public interface SysRoleMapper extends BaseMapperPlus<SysRole, SysRoleVo> {
+
+    /**
+     * 构建根据用户ID查询角色ID的SQL子查询
+     *
+     * @param userId 用户ID
+     * @return 查询用户对应角色ID的SQL语句字符串
+     */
+    default String buildRoleByUserSql(Long userId) {
+        return """
+                select role_id from sys_user_role where user_id = %d
+            """.formatted(userId);
+    }
 
     /**
      * 分页查询角色列表
@@ -62,8 +71,8 @@ public interface SysRoleMapper extends BaseMapperPlus<SysRole, SysRoleVo>, MPJBa
         @DataColumn(key = "deptName", value = "create_dept"),
         @DataColumn(key = "userName", value = "create_by")
     })
-    default long selectRoleCount(Collection<Long> roleIds) {
-        return this.lambda().in(SysRole::getRoleId, roleIds).count();
+    default long selectRoleCount(List<Long> roleIds) {
+        return this.selectCount(new LambdaQueryWrapper<SysRole>().in(SysRole::getRoleId, roleIds));
     }
 
     /**
@@ -87,12 +96,10 @@ public interface SysRoleMapper extends BaseMapperPlus<SysRole, SysRoleVo>, MPJBa
      * @return 角色列表
      */
     default List<SysRoleVo> selectRolesByUserId(Long userId) {
-        return this.selectJoinList(SysRoleVo.class, QueryBuilder.lambdaJoin("r", SysRole.class)
+        return this.selectVoList(new LambdaQueryWrapper<SysRole>()
             .select(SysRole::getRoleId, SysRole::getRoleName, SysRole::getRoleKey,
                 SysRole::getRoleSort, SysRole::getDataScope, SysRole::getStatus)
-            .leftJoin(SysUserRole.class, "sur", SysUserRole::getRoleId, SysRole::getRoleId)
-            .eq("sur", SysUserRole::getUserId, userId)
-            .build());
+            .inSql(SysRole::getRoleId, this.buildRoleByUserSql(userId)));
     }
 
 }

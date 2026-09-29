@@ -1,5 +1,5 @@
-import type { PostVO } from '@/api/system/post/types';
-import type { RoleVO } from '@/api/system/role/types';
+import { RoleVO } from '@/api/system/role/types';
+import { PostVO } from '@/api/system/post/types';
 
 /**
  * 用户信息
@@ -16,11 +16,11 @@ export interface UserInfo {
 export interface UserQuery extends PageQuery {
   userName?: string;
   nickName?: string;
-  phoneNumber?: string;
+  phonenumber?: string;
   status?: string;
   deptId?: string | number;
   roleId?: string | number;
-  userIds?: string | number | (string | number)[] | undefined;
+  userIds?:  string | number | (string | number)[] | undefined;
 }
 
 /**
@@ -34,18 +34,15 @@ export interface UserVO extends BaseEntity {
   nickName: string;
   userType: string;
   email: string;
-  phoneNumber: string;
-  gender: string;
-  avatar?: string | number;
-  avatarUrl?: string;
+  phonenumber: string;
+  sex: string;
+  avatar: string;
   status: string;
   delFlag: string;
   loginIp: string;
   loginDate: string;
   remark: string;
   deptName: string;
-  /** 详情接口可能返回嵌套部门 */
-  dept?: { deptName?: string };
   roles: RoleVO[];
   roleIds: any;
   postIds: any;
@@ -63,25 +60,13 @@ export interface UserForm {
   userName: string;
   nickName?: string;
   password: string;
-  phoneNumber?: string;
+  phonenumber?: string;
   email?: string;
-  gender?: string;
+  sex?: string;
   status: string;
   remark?: string;
-  avatar?: string | number;
   postIds: string[];
   roleIds: string[];
-}
-
-/**
- * 个人资料表单类型
- */
-export interface UserProfileForm {
-  nickName?: string;
-  phoneNumber?: string;
-  email?: string;
-  gender?: string;
-  avatar?: string | number;
 }
 
 export interface UserInfoVO {

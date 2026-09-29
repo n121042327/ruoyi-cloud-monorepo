@@ -9,7 +9,6 @@ import java.lang.annotation.Target;
 
 /**
  * 是否必填
- *
  * @author guzhouyanyu
  */
 @Target({ElementType.FIELD})

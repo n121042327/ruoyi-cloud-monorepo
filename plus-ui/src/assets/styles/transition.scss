@@ -1,6 +1,5 @@
-// 全局 Vue transition 类名（fade / fade-transform / breadcrumb），与业务模块无关
+// global transition css
 
-// --- 淡入淡出 ---
 /* fade */
 .fade-enter-active,
 .fade-leave-active {
@@ -12,7 +11,6 @@
   opacity: 0;
 }
 
-// --- 带水平位移的淡入淡出（常用于主视图切换） ---
 /* fade-transform */
 .fade-transform--move,
 .fade-transform-leave-active,
@@ -30,7 +28,6 @@
   transform: translateX(30px);
 }
 
-// --- 面包屑列表项进出场 ---
 /* breadcrumb transition */
 .breadcrumb-enter-active,
 .breadcrumb-leave-active {

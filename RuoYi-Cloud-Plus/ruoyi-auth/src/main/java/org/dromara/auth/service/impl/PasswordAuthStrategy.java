@@ -1,8 +1,8 @@
 package org.dromara.auth.service.impl;
 
+import cn.hutool.crypto.digest.BCrypt;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.stp.parameter.SaLoginParameter;
-import cn.hutool.crypto.digest.BCrypt;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboReference;
@@ -22,6 +22,7 @@ import org.dromara.common.core.utils.ValidatorUtils;
 import org.dromara.common.json.utils.JsonUtils;
 import org.dromara.common.redis.utils.RedisUtils;
 import org.dromara.common.satoken.utils.LoginHelper;
+import org.dromara.common.tenant.helper.TenantHelper;
 import org.dromara.system.api.RemoteUserService;
 import org.dromara.system.api.domain.vo.RemoteClientVo;
 import org.dromara.system.api.model.LoginUser;
@@ -48,6 +49,7 @@ public class PasswordAuthStrategy implements IAuthStrategy {
     public LoginVo login(String body, RemoteClientVo client) {
         PasswordLoginBody loginBody = JsonUtils.parseObject(body, PasswordLoginBody.class);
         ValidatorUtils.validate(loginBody);
+        String tenantId = loginBody.getTenantId();
         String username = loginBody.getUsername();
         String password = loginBody.getPassword();
         String code = loginBody.getCode();
@@ -55,13 +57,22 @@ public class PasswordAuthStrategy implements IAuthStrategy {
 
         // 验证码开关
         if (captchaProperties.getEnabled()) {
-            validateCaptcha(username, code, uuid);
+            validateCaptcha(tenantId, username, code, uuid);
         }
-        LoginUser loginUser = remoteUserService.getUserInfo(username);
-        loginService.checkLogin(LoginType.PASSWORD, username, () -> !BCrypt.checkpw(password, loginUser.getPassword()));
+        LoginUser loginUser = TenantHelper.dynamic(tenantId, () -> {
+            LoginUser user = remoteUserService.getUserInfo(username, tenantId);
+            loginService.checkLogin(LoginType.PASSWORD, tenantId, username, () -> !BCrypt.checkpw(password, user.getPassword()));
+            return user;
+        });
         loginUser.setClientKey(client.getClientKey());
         loginUser.setDeviceType(client.getDeviceType());
-        SaLoginParameter model = IAuthStrategy.buildLoginParameter(client);
+        SaLoginParameter model = new SaLoginParameter();
+        model.setDeviceType(client.getDeviceType());
+        // 自定义分配 不同用户体系 不同 token 授权时间 不设置默认走全局 yml 配置
+        // 例如: 后台用户30分钟过期 app用户1天过期
+        model.setTimeout(client.getTimeout());
+        model.setActiveTimeout(client.getActiveTimeout());
+        model.setExtra(LoginHelper.CLIENT_KEY, client.getClientId());
         // 生成token
         LoginHelper.login(loginUser, model);
 
@@ -79,16 +90,16 @@ public class PasswordAuthStrategy implements IAuthStrategy {
      * @param code     验证码
      * @param uuid     唯一标识
      */
-    private void validateCaptcha(String username, String code, String uuid) {
+    private void validateCaptcha(String tenantId, String username, String code, String uuid) {
         String verifyKey = GlobalConstants.CAPTCHA_CODE_KEY + StringUtils.blankToDefault(uuid, "");
         String captcha = RedisUtils.getCacheObject(verifyKey);
         RedisUtils.deleteObject(verifyKey);
         if (captcha == null) {
-            loginService.recordLoginInfo(username, Constants.LOGIN_FAIL, MessageUtils.message("user.jcaptcha.expire"));
+            loginService.recordLogininfor(tenantId, username, Constants.LOGIN_FAIL, MessageUtils.message("user.jcaptcha.expire"));
             throw new CaptchaExpireException();
         }
         if (!StringUtils.equalsIgnoreCase(code, captcha)) {
-            loginService.recordLoginInfo(username, Constants.LOGIN_FAIL, MessageUtils.message("user.jcaptcha.error"));
+            loginService.recordLogininfor(tenantId, username, Constants.LOGIN_FAIL, MessageUtils.message("user.jcaptcha.error"));
             throw new CaptchaException();
         }
     }

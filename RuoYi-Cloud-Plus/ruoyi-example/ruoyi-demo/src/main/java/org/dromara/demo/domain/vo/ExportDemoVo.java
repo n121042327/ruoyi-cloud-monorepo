@@ -1,12 +1,12 @@
 package org.dromara.demo.domain.vo;
 
+import cn.idev.excel.annotation.ExcelIgnoreUnannotated;
+import cn.idev.excel.annotation.ExcelProperty;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.fesod.sheet.annotation.ExcelIgnoreUnannotated;
-import org.apache.fesod.sheet.annotation.ExcelProperty;
 import org.dromara.common.core.enums.UserStatus;
 import org.dromara.common.core.validate.AddGroup;
 import org.dromara.common.core.validate.EditGroup;
@@ -51,7 +51,7 @@ public class ExportDemoVo {
      * 使用ExcelDictFormat注解需要进行下拉选的部分
      */
     @ExcelProperty(value = "性别", index = 2, converter = ExcelDictConvert.class)
-    @ExcelDictFormat(dictType = "sys_user_gender")
+    @ExcelDictFormat(dictType = "sys_user_sex")
     @NotEmpty(message = "性别不能为空", groups = AddGroup.class)
     private String gender;
 

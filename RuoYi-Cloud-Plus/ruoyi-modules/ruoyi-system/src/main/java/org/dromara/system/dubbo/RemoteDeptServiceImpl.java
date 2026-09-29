@@ -2,7 +2,7 @@ package org.dromara.system.dubbo;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.dromara.common.core.constant.SystemConstants;
@@ -15,7 +15,6 @@ import org.dromara.system.mapper.SysDeptMapper;
 import org.dromara.system.service.ISysDeptService;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +52,7 @@ public class RemoteDeptServiceImpl implements RemoteDeptService {
     @Override
     public Long selectDeptLeaderById(Long deptId) {
         SysDeptVo vo = deptService.selectDeptById(deptId);
-        return ObjectUtil.isNull(vo) ? null : vo.getLeader();
+        return vo.getLeader();
     }
 
     /**
@@ -63,10 +62,9 @@ public class RemoteDeptServiceImpl implements RemoteDeptService {
      */
     @Override
     public List<RemoteDeptVo> selectDeptsByList() {
-        List<SysDeptVo> list = deptMapper.lambda()
+        List<SysDeptVo> list = deptMapper.selectDeptList(new LambdaQueryWrapper<SysDept>()
             .select(SysDept::getDeptId, SysDept::getDeptName, SysDept::getParentId)
-            .eq(SysDept::getStatus, SystemConstants.NORMAL)
-            .voList();
+            .eq(SysDept::getStatus, SystemConstants.NORMAL));
         return BeanUtil.copyToList(list, RemoteDeptVo.class);
     }
 
@@ -77,14 +75,15 @@ public class RemoteDeptServiceImpl implements RemoteDeptService {
      * @return Map，其中 key 为部门 ID，value 为对应的部门名称
      */
     @Override
-    public Map<Long, String> selectDeptNamesByIds(Collection<Long> deptIds) {
+    public Map<Long, String> selectDeptNamesByIds(List<Long> deptIds) {
         if (CollUtil.isEmpty(deptIds)) {
             return Collections.emptyMap();
         }
-        List<SysDept> list = deptMapper.lambda()
-            .select(SysDept::getDeptId, SysDept::getDeptName)
-            .in(SysDept::getDeptId, deptIds)
-            .list();
+        List<SysDept> list = deptMapper.selectList(
+            new LambdaQueryWrapper<SysDept>()
+                .select(SysDept::getDeptId, SysDept::getDeptName)
+                .in(SysDept::getDeptId, deptIds)
+        );
         return StreamUtils.toMap(list, SysDept::getDeptId, SysDept::getDeptName);
     }
 

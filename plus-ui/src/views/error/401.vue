@@ -1,6 +1,6 @@
 <template>
   <div class="errPage-container">
-    <el-button icon="arrow-left" class="pan-back-btn" @click="back">返回</el-button>
+    <el-button icon="arrow-left" class="pan-back-btn" @click="back"> 返回 </el-button>
     <el-row>
       <el-col :span="12">
         <h1 class="text-jumbo text-ginormous">401错误!</h1>
@@ -8,7 +8,7 @@
         <h6>对不起，您没有访问权限，请不要进行非法操作！您可以返回主页面</h6>
         <ul class="list-unstyled">
           <li class="link-type">
-            <router-link to="/">回首页</router-link>
+            <router-link to="/"> 回首页 </router-link>
           </li>
         </ul>
       </el-col>
@@ -20,19 +20,17 @@
 </template>
 
 <script setup lang="ts">
-import { useRoute, useRouter } from 'vue-router';
 import errImage from '@/assets/401_images/401.gif';
 
-const route = useRoute();
-const router = useRouter();
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
 const errGif = ref(errImage + '?' + +new Date());
 
 function back() {
-  if (route.query.noGoBack) {
-    router.push({ path: '/' });
+  if (proxy?.$route.query.noGoBack) {
+    proxy.$router.push({ path: '/' });
   } else {
-    router.go(-1);
+    proxy?.$router.go(-1);
   }
 }
 </script>

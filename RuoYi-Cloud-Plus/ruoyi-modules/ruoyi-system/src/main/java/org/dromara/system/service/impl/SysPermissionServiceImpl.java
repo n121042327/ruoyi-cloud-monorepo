@@ -1,17 +1,15 @@
 package org.dromara.system.service.impl;
 
-import cn.hutool.core.collection.CollUtil;
 import lombok.RequiredArgsConstructor;
-import org.dromara.common.core.constant.SystemConstants;
-import org.dromara.common.core.utils.StreamUtils;
+import org.dromara.common.core.constant.TenantConstants;
 import org.dromara.common.satoken.utils.LoginHelper;
-import org.dromara.system.api.model.RoleDTO;
 import org.dromara.system.service.ISysMenuService;
 import org.dromara.system.service.ISysPermissionService;
 import org.dromara.system.service.ISysRoleService;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 用户权限处理
@@ -28,7 +26,7 @@ public class SysPermissionServiceImpl implements ISysPermissionService {
     /**
      * 获取角色数据权限
      *
-     * @param userId 用户id
+     * @param userId  用户id
      * @return 角色权限信息
      */
     @Override
@@ -36,7 +34,7 @@ public class SysPermissionServiceImpl implements ISysPermissionService {
         Set<String> roles = new HashSet<>();
         // 管理员拥有所有权限
         if (LoginHelper.isSuperAdmin(userId)) {
-            roles.add(SystemConstants.SUPER_ADMIN_ROLE_KEY);
+            roles.add(TenantConstants.SUPER_ADMIN_ROLE_KEY);
         } else {
             roles.addAll(roleService.selectRolePermissionByUserId(userId));
         }
@@ -46,7 +44,7 @@ public class SysPermissionServiceImpl implements ISysPermissionService {
     /**
      * 获取菜单数据权限
      *
-     * @param userId 用户id
+     * @param userId  用户id
      * @return 菜单权限信息
      */
     @Override
@@ -59,21 +57,5 @@ public class SysPermissionServiceImpl implements ISysPermissionService {
             perms.addAll(menuService.selectMenuPermsByUserId(userId));
         }
         return perms;
-    }
-
-    @Override
-    public Map<String, List<Long>> getDataScopeRoleMap(List<RoleDTO> roles) {
-        if (CollUtil.isEmpty(roles)) {
-            return Map.of();
-        }
-        List<Long> roleIds = StreamUtils.toList(roles, RoleDTO::getRoleId);
-        Map<Long, Set<String>> permsRoleIds = menuService.selectMenuPermsByRoleIds(roleIds);
-        Map<String, List<Long>> rolePermsMap = new LinkedHashMap<>();
-        permsRoleIds.forEach((roleId, perms) ->
-            perms.forEach(perm ->
-                rolePermsMap.computeIfAbsent(perm, key -> new ArrayList<>()).add(roleId)
-            )
-        );
-        return rolePermsMap;
     }
 }

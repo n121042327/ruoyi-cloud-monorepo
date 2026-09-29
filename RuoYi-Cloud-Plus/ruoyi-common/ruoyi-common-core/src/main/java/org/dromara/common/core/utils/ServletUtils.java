@@ -1,7 +1,6 @@
 package org.dromara.common.core.utils;
 
 import cn.hutool.core.convert.Convert;
-import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.extra.servlet.JakartaServletUtil;
 import cn.hutool.http.HttpStatus;
 import jakarta.servlet.ServletRequest;
@@ -10,7 +9,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.util.LinkedCaseInsensitiveMap;
 import org.springframework.web.context.request.RequestAttributes;
@@ -32,7 +30,6 @@ import java.util.Map;
  * @author ruoyi
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-@Slf4j
 public class ServletUtils extends JakartaServletUtil {
 
     /**
@@ -225,7 +222,7 @@ public class ServletUtils extends JakartaServletUtil {
             response.setCharacterEncoding(StandardCharsets.UTF_8.toString());
             response.getWriter().print(string);
         } catch (IOException e) {
-            log.error("渲染响应内容异常", e);
+            e.printStackTrace();
         }
     }
 
@@ -251,7 +248,7 @@ public class ServletUtils extends JakartaServletUtil {
 
         // 判断 URI 后缀是否为 .json 或 .xml
         String uri = request.getRequestURI();
-        if (StringUtils.endsWithAny(StringUtils.lowerCase(uri), ".json", ".xml")) {
+        if (StringUtils.equalsAnyIgnoreCase(uri, ".json", ".xml")) {
             return true;
         }
 
@@ -267,23 +264,6 @@ public class ServletUtils extends JakartaServletUtil {
      */
     public static String getClientIP() {
         return getClientIP(getRequest());
-    }
-
-    /**
-     * 获取客户端 IP 地址（支持自定义请求头）
-     *
-     * @param request          请求对象
-     * @param otherHeaderNames 其他请求头名称
-     * @return 客户端 IP 地址
-     */
-    public static String getClientIP(HttpServletRequest request, String... otherHeaderNames) {
-        String[] headers = {"X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP", "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR"};
-        if (ArrayUtil.isNotEmpty(otherHeaderNames)) {
-            headers = ArrayUtil.addAll(otherHeaderNames, headers);
-        }
-
-        String ip = getClientIPByHeader(request, headers);
-        return StringUtils.strip(ip, "[]");
     }
 
     /**

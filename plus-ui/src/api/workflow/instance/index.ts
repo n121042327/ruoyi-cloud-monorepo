@@ -1,14 +1,13 @@
-import type { PageResult } from '@/api/types';
-import type { FlowInstanceQuery, FlowInstanceVO } from '@/api/workflow/instance/types';
-import type { AxiosPromise } from '@/utils/api-types';
 import request from '@/utils/request';
+import { FlowInstanceQuery, FlowInstanceVO } from '@/api/workflow/instance/types';
+import { AxiosPromise } from 'axios';
 
 /**
  * 查询运行中实例列表
  * @param query
  * @returns {*}
  */
-export const pageByRunning = (query: FlowInstanceQuery): AxiosPromise<PageResult<FlowInstanceVO>> => {
+export const pageByRunning = (query: FlowInstanceQuery): AxiosPromise<FlowInstanceVO[]> => {
   return request({
     url: '/workflow/instance/pageByRunning',
     method: 'get',
@@ -21,7 +20,7 @@ export const pageByRunning = (query: FlowInstanceQuery): AxiosPromise<PageResult
  * @param query
  * @returns {*}
  */
-export const pageByFinish = (query: FlowInstanceQuery): AxiosPromise<PageResult<FlowInstanceVO>> => {
+export const pageByFinish = (query: FlowInstanceQuery): AxiosPromise<FlowInstanceVO[]> => {
   return request({
     url: '/workflow/instance/pageByFinish',
     method: 'get',
@@ -34,7 +33,7 @@ export const pageByFinish = (query: FlowInstanceQuery): AxiosPromise<PageResult<
  */
 export const flowHisTaskList = (businessId: string | number) => {
   return request({
-    url: `/workflow/instance/flowHisTaskList/${businessId}?t=${Math.random()}`,
+    url: `/workflow/instance/flowHisTaskList/${businessId}` + '?t' + Math.random(),
     method: 'get'
   });
 };
@@ -44,7 +43,7 @@ export const flowHisTaskList = (businessId: string | number) => {
  * @param query
  * @returns {*}
  */
-export const pageByCurrent = (query: FlowInstanceQuery): AxiosPromise<PageResult<FlowInstanceVO>> => {
+export const pageByCurrent = (query: FlowInstanceQuery): AxiosPromise<FlowInstanceVO[]> => {
   return request({
     url: '/workflow/instance/pageByCurrent',
     method: 'get',

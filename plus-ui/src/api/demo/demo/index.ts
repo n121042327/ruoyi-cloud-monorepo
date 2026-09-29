@@ -1,14 +1,13 @@
-import type { DemoForm, DemoQuery, DemoVO } from '@/api/demo/demo/types';
-import type { PageResult } from '@/api/types';
-import type { AxiosPromise } from '@/utils/api-types';
 import request from '@/utils/request';
+import { AxiosPromise } from 'axios';
+import { DemoVO, DemoForm, DemoQuery } from '@/api/demo/demo/types';
 
 /**
  * 查询测试单列表
  * @param query
  * @returns {*}
  */
-export const listDemo = (query?: DemoQuery): AxiosPromise<PageResult<DemoVO>> => {
+export const listDemo = (query?: DemoQuery): AxiosPromise<DemoVO[]> => {
   return request({
     url: '/demo/demo/list',
     method: 'get',

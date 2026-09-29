@@ -2,7 +2,6 @@ package org.dromara.resource.api;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.dromara.resource.api.domain.RemotePushPayLoad;
 
 import java.util.List;
 
@@ -32,15 +31,6 @@ public class RemoteMessageServiceStub implements RemoteMessageService {
         }
     }
 
-    @Override
-    public void publishMessagePayload(List<Long> userIds, RemotePushPayLoad payload) {
-        try {
-            remoteMessageService.publishMessagePayload(userIds, payload);
-        } catch (Exception e) {
-            log.warn("推送功能未开启或服务未找到");
-        }
-    }
-
     /**
      * 发布订阅的消息(群发)
      *
@@ -54,14 +44,4 @@ public class RemoteMessageServiceStub implements RemoteMessageService {
             log.warn("推送功能未开启或服务未找到");
         }
     }
-
-    @Override
-    public void publishAllPayload(RemotePushPayLoad payload) {
-        try {
-            remoteMessageService.publishAllPayload(payload);
-        } catch (Exception e) {
-            log.warn("推送功能未开启或服务未找到");
-        }
-    }
-
 }

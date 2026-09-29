@@ -3,22 +3,22 @@ package org.dromara.system.controller.system;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.lang.tree.Tree;
 import cn.hutool.core.util.ObjectUtil;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.constant.SystemConstants;
-import org.dromara.common.core.domain.PageResult;
 import org.dromara.common.core.domain.R;
-import org.dromara.common.excel.utils.ExcelBuilder;
+import org.dromara.common.excel.utils.ExcelUtil;
+import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
-import org.dromara.common.redis.annotation.RepeatSubmit;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.system.domain.bo.SysDeptBo;
 import org.dromara.system.domain.bo.SysPostBo;
 import org.dromara.system.domain.vo.SysPostVo;
 import org.dromara.system.service.ISysDeptService;
 import org.dromara.system.service.ISysPostService;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,8 +45,8 @@ public class SysPostController extends BaseController {
      */
     @SaCheckPermission("system:post:list")
     @GetMapping("/list")
-    public R<PageResult<SysPostVo>> list(SysPostBo post, PageQuery pageQuery) {
-        return R.ok(postService.selectPagePostList(post, pageQuery));
+    public TableDataInfo<SysPostVo> list(SysPostBo post, PageQuery pageQuery) {
+        return postService.selectPagePostList(post, pageQuery);
     }
 
     /**
@@ -57,7 +57,7 @@ public class SysPostController extends BaseController {
     @PostMapping("/export")
     public void export(SysPostBo post, HttpServletResponse response) {
         List<SysPostVo> list = postService.selectPostList(post);
-        ExcelBuilder.of(list, SysPostVo.class).sheetName("岗位数据").toResponse(response);
+        ExcelUtil.exportExcel(list, "岗位数据", SysPostVo.class, response);
     }
 
     /**

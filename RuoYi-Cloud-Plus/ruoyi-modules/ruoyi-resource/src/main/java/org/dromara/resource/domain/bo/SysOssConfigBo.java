@@ -1,18 +1,16 @@
 package org.dromara.resource.domain.bo;
 
 import io.github.linpeilie.annotations.AutoMapper;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.dromara.common.core.validate.AddGroup;
+import org.dromara.common.core.validate.EditGroup;
+import org.dromara.common.mybatis.core.domain.BaseEntity;
+import org.dromara.resource.domain.SysOssConfig;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
-import org.dromara.common.core.validate.AddGroup;
-import org.dromara.common.core.validate.EditGroup;
-import org.dromara.resource.domain.SysOssConfig;
-
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 对象存储配置业务对象 sys_oss_config
@@ -22,11 +20,9 @@ import java.util.Map;
  * @date 2021-08-13
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @AutoMapper(target = SysOssConfig.class, reverseConvertGenerate = false)
-public class SysOssConfigBo implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 1L;
+public class SysOssConfigBo extends BaseEntity {
 
     /**
      * 主键
@@ -77,7 +73,7 @@ public class SysOssConfigBo implements Serializable {
     /**
      * 自定义域名
      */
-    private String domainUrl;
+    private String domain;
 
     /**
      * 是否https（Y=是,N=否）
@@ -85,7 +81,7 @@ public class SysOssConfigBo implements Serializable {
     private String isHttps;
 
     /**
-     * 是否默认（Y=是,N=否）
+     * 是否默认（0=是,1=否）
      */
     private String status;
 
@@ -109,10 +105,5 @@ public class SysOssConfigBo implements Serializable {
      */
     @NotBlank(message = "桶权限类型不能为空", groups = {AddGroup.class, EditGroup.class})
     private String accessPolicy;
-
-    /**
-     * 请求参数
-     */
-    private Map<String, Object> params = new HashMap<>();
 
 }

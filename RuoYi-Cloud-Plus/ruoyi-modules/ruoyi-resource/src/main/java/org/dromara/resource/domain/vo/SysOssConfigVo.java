@@ -60,7 +60,7 @@ public class SysOssConfigVo implements Serializable {
     /**
      * 自定义域名
      */
-    private String domainUrl;
+    private String domain;
 
     /**
      * 是否https（Y=是,N=否）
@@ -73,7 +73,7 @@ public class SysOssConfigVo implements Serializable {
     private String region;
 
     /**
-     * 是否默认（Y=是,N=否）
+     * 是否默认（0=是,1=否）
      */
     private String status;
 

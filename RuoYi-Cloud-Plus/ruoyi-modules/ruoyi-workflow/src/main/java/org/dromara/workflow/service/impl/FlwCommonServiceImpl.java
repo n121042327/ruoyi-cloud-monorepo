@@ -5,18 +5,13 @@ import cn.hutool.core.util.ObjectUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboReference;
-import org.dromara.common.core.enums.BusinessStatusEnum;
-import org.dromara.common.core.enums.PushSourceEnum;
-import org.dromara.common.core.enums.PushTypeEnum;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
-import org.dromara.common.core.utils.ThreadUtils;
 import org.dromara.resource.api.RemoteMailService;
 import org.dromara.resource.api.RemoteMessageService;
 import org.dromara.resource.api.RemoteSmsService;
-import org.dromara.resource.api.domain.RemotePushPayLoad;
 import org.dromara.system.api.domain.vo.RemoteUserVo;
 import org.dromara.warm.flow.core.FlowEngine;
 import org.dromara.warm.flow.core.entity.Node;
@@ -29,11 +24,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
-
-import static org.dromara.workflow.common.constant.FlowConstant.PATH_MY_DOCUMENT;
-import static org.dromara.workflow.common.constant.FlowConstant.PATH_TASK_WAITING;
 
 
 /**
@@ -81,7 +73,7 @@ public class FlwCommonServiceImpl implements IFlwCommonService {
         if (CollUtil.isEmpty(userList)) {
             return;
         }
-        sendMessage(messageType, message, DEFAULT_SUBJECT, userList, PATH_TASK_WAITING);
+        sendMessage(messageType, message, DEFAULT_SUBJECT, userList);
     }
 
     /**
@@ -94,62 +86,38 @@ public class FlwCommonServiceImpl implements IFlwCommonService {
      */
     @Override
     public void sendMessage(List<String> messageType, String message, String subject, List<RemoteUserVo> userList) {
-        sendMessage(messageType, message, subject, userList, null);
-    }
-
-    @Override
-    public void sendResultMessage(String flowName, BusinessStatusEnum status, List<String> messageType, List<RemoteUserVo> userList) {
-        if (status == null || CollUtil.isEmpty(messageType) || CollUtil.isEmpty(userList)) {
-            return;
-        }
-        String message = "您发起的【" + flowName + "】单据审批已" + status.getDesc() + "。";
-        sendMessage(messageType, message, DEFAULT_SUBJECT, userList, PATH_MY_DOCUMENT);
-    }
-
-    @Override
-    public void sendMessage(List<String> messageType, String message, String subject, List<RemoteUserVo> userList, String path) {
         if (CollUtil.isEmpty(messageType) || CollUtil.isEmpty(userList)) {
             return;
         }
         List<Long> userIds = new ArrayList<>(StreamUtils.toSet(userList, RemoteUserVo::getUserId));
-        Set<String> emailSet = StreamUtils.toSet(userList, RemoteUserVo::getEmail);
-        emailSet.removeIf(StringUtils::isBlank);
-        String emails = StringUtils.joinComma(emailSet);
+        String emails = StreamUtils.join(userList, RemoteUserVo::getEmail);
 
-        Runnable[] sendTasks = messageType.stream()
-            .map(code -> (Runnable) () -> sendMessageByType(code, message, subject, path, userIds, emails, userList.size()))
-            .toArray(Runnable[]::new);
-        ThreadUtils.virtualInvokeAll(sendTasks);
-    }
-
-    private void sendMessageByType(String code, String message, String subject, String path, List<Long> userIds, String emails, int userCount) {
-        MessageTypeEnum messageTypeEnum = MessageTypeEnum.getByCode(code);
-        if (ObjectUtil.isEmpty(messageTypeEnum)) {
-            return;
-        }
-        try {
-            switch (messageTypeEnum) {
-                case SYSTEM_MESSAGE -> {
-                    RemotePushPayLoad payload = RemotePushPayLoad.of(
-                        PushTypeEnum.MESSAGE,
-                        PushSourceEnum.WORKFLOW,
-                        message, null, path
-                    );
-                    remoteMessageService.publishMessagePayload(userIds, payload);
-                }
-                case EMAIL_MESSAGE -> remoteMailService.send(emails, subject, message);
-                case SMS_MESSAGE -> {
+        for (String code : messageType) {
+            MessageTypeEnum messageTypeEnum = MessageTypeEnum.getByCode(code);
+            if (ObjectUtil.isEmpty(messageTypeEnum)) {
+                continue;
+            }
+            try {
+                switch (messageTypeEnum) {
+                    case SYSTEM_MESSAGE -> {
+                        remoteMessageService.publishMessage(userIds, message);
+                    }
+                    case EMAIL_MESSAGE -> {
+                        remoteMailService.send(emails, subject, message);
+                    }
+                    case SMS_MESSAGE -> {
 //                        LinkedHashMap<String, String> map = new LinkedHashMap<>(1);
 //                        // 根据具体短信服务商参数用法传参
 //                        map.put("code", "1234");
 //                        remoteSmsService.sendMessage(phones, templateId, map);
-                    log.info("【短信发送 - TODO】用户数量={} 内容={}", userCount, message);
+                        log.info("【短信发送 - TODO】用户数量={} 内容={}", userList.size(), message);
+                    }
+                    default -> log.warn("【消息发送】未处理的消息类型：{}", messageTypeEnum);
                 }
-                default -> log.warn("【消息发送】未处理的消息类型：{}", messageTypeEnum);
+            } catch (Exception ex) {
+                // 记录错误但不抛出，确保主逻辑不受影响
+                log.error("【消息发送失败】类型={}，原因={}", messageTypeEnum, ex.getMessage(), ex);
             }
-        } catch (Exception ex) {
-            // 记录错误但不抛出，确保主逻辑不受影响
-            log.error("【消息发送失败】类型={}，原因={}", messageTypeEnum, ex.getMessage(), ex);
         }
     }
 
@@ -165,7 +133,7 @@ public class FlwCommonServiceImpl implements IFlwCommonService {
         if (CollUtil.isEmpty(firstBetweenNode)) {
             throw new ServiceException("流程定义缺少申请人节点，请检查流程定义配置");
         }
-        return firstBetweenNode.getFirst().getNodeCode();
+        return firstBetweenNode.get(0).getNodeCode();
     }
 
 }

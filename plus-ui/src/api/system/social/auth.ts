@@ -1,10 +1,14 @@
 import request from '@/utils/request';
 
 // 获取跳转URL
-export function authRouterUrl(source: string) {
+export function authRouterUrl(source: string, tenantId: string) {
   return request({
     url: '/auth/binding/' + source,
-    method: 'get'
+    method: 'get',
+    params: {
+      tenantId: tenantId,
+      domain: window.location.host
+    }
   });
 }
 

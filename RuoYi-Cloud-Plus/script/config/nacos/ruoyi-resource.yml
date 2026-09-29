@@ -24,23 +24,18 @@ spring:
 #          username: ${datasource.system-postgres.username}
 #          password: ${datasource.system-postgres.password}
 
-# 统一消息推送配置
-message:
+# 默认/推荐使用sse推送
+sse:
   enabled: true
-  # sse / websocket
-  transport: sse
-  # 统一访问路径
-  path: /message
-  # websocket 允许的跨域来源
+  path: /sse
+
+websocket:
+  # 如果关闭 需要和前端开关一起关闭
+  enabled: false
+  # 路径
+  path: /websocket
+  # 设置访问源地址
   allowedOrigins: '*'
-  # SSE 连接超时时间，单位毫秒
-  sse-timeout: 86400000
-  # 本地连接心跳检测间隔，单位秒
-  heartbeat-interval: 60
-  # WebSocket 单次发送超时时间，单位毫秒
-  web-socket-send-time-limit: 10000
-  # WebSocket 发送缓冲区大小
-  web-socket-buffer-size-limit: 64000
 
 mail:
   enabled: false

@@ -25,17 +25,14 @@ import java.util.Map;
 @Component
 public class MyBatisDataSourceMonitor implements DataSourceMonitor {
 
-    private final Map<String, String> features = new HashMap<>();
-
-    /**
-     * 初始化 anyline 与动态数据源联动所需的元数据解析策略。
-     */
     public MyBatisDataSourceMonitor() {
         // 调整执行模式为自定义
         ConfigTable.KEEP_ADAPTER = 2;
         // 禁用缓存
         ConfigTable.METADATA_CACHE_SCOPE = 0;
     }
+
+    private final Map<String, String> features = new HashMap<>();
 
     /**
      * 数据源特征 用来定准 adapter 包含数据库或JDBC协议关键字<br/>
@@ -75,16 +72,14 @@ public class MyBatisDataSourceMonitor implements DataSourceMonitor {
 
     /**
      * 数据源唯一标识 如果不实现则默认feature
-     *
-     * @param runtime    数据运行时上下文
      * @param datasource 数据源
      * @return String 返回null由上层自动提取
      */
     @Override
     public String key(DataRuntime runtime, Object datasource) {
-        if (datasource instanceof JdbcTemplate jdbc) {
+        if(datasource instanceof JdbcTemplate jdbc){
             DataSource ds = jdbc.getDataSource();
-            if (ds instanceof DynamicRoutingDataSource) {
+            if(ds instanceof DynamicRoutingDataSource){
                 return DynamicDataSourceContextHolder.peek();
             }
         }
@@ -95,7 +90,6 @@ public class MyBatisDataSourceMonitor implements DataSourceMonitor {
      * ConfigTable.KEEP_ADAPTER=2 : 根据当前接口判断是否保持同一个数据源绑定同一个adapter<br/>
      * DynamicRoutingDataSource类型的返回false,因为同一个DynamicRoutingDataSource可能对应多类数据库, 如果项目中只有一种数据库 应该直接返回true
      *
-     * @param runtime    数据运行时上下文
      * @param datasource 数据源
      * @return boolean
      */

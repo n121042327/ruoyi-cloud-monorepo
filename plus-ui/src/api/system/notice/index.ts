@@ -1,9 +1,8 @@
-import type { PageResult } from '@/api/types';
-import type { AxiosPromise } from '@/utils/api-types';
 import request from '@/utils/request';
-import type { NoticeForm, NoticeQuery, NoticeVO } from './types';
+import { NoticeForm, NoticeQuery, NoticeVO } from './types';
+import { AxiosPromise } from 'axios';
 // 查询公告列表
-export function listNotice(query: NoticeQuery): AxiosPromise<PageResult<NoticeVO>> {
+export function listNotice(query: NoticeQuery): AxiosPromise<NoticeVO[]> {
   return request({
     url: '/system/notice/list',
     method: 'get',

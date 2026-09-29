@@ -1,14 +1,14 @@
 package org.dromara.system.domain.vo;
 
+import cn.idev.excel.annotation.ExcelIgnoreUnannotated;
+import cn.idev.excel.annotation.ExcelProperty;
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
-import org.apache.fesod.sheet.annotation.ExcelIgnoreUnannotated;
-import org.apache.fesod.sheet.annotation.ExcelProperty;
 import org.dromara.system.domain.SysDictType;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 
 /**
@@ -52,6 +52,6 @@ public class SysDictTypeVo implements Serializable {
      * 创建时间
      */
     @ExcelProperty(value = "创建时间")
-    private LocalDateTime createTime;
+    private Date createTime;
 
 }

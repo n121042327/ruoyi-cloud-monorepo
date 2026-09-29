@@ -14,11 +14,11 @@ type CompressionKind = 'gzip' | 'brotli';
 const compressionHandlers: Record<CompressionKind, { ext: string; compress: (content: Buffer) => Promise<Buffer> }> = {
   gzip: {
     ext: '.gz',
-    compress: content => gzip(content, { level: zlib.constants.Z_BEST_COMPRESSION })
+    compress: (content) => gzip(content, { level: zlib.constants.Z_BEST_COMPRESSION })
   },
   brotli: {
     ext: '.br',
-    compress: content =>
+    compress: (content) =>
       brotliCompress(content, {
         params: {
           [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MAX_QUALITY,
@@ -31,7 +31,7 @@ const compressionHandlers: Record<CompressionKind, { ext: string; compress: (con
 async function collectFiles(rootDir: string): Promise<string[]> {
   const entries = await fs.readdir(rootDir, { withFileTypes: true });
   const files = await Promise.all(
-    entries.map(async entry => {
+    entries.map(async (entry) => {
       const fullPath = path.join(rootDir, entry.name);
       if (entry.isDirectory()) {
         return collectFiles(fullPath);
@@ -59,7 +59,7 @@ function createCompressionPlugin(kind: CompressionKind): Plugin {
       const compressedEntries: Array<{ file: string; originalKb: string; compressedKb: string }> = [];
 
       await Promise.all(
-        files.map(async filePath => {
+        files.map(async (filePath) => {
           const stat = await fs.stat(filePath);
           if (stat.size < defaultThreshold) {
             return;
@@ -85,9 +85,7 @@ function createCompressionPlugin(kind: CompressionKind): Plugin {
       compressedEntries.sort((a, b) => a.file.localeCompare(b.file));
       config?.logger.info(`\n[compression:${kind}] generated ${compressedEntries.length} files`);
       for (const entry of compressedEntries) {
-        config?.logger.info(
-          `${path.basename(outputDir)}/${entry.file} ${entry.originalKb}kb -> ${entry.compressedKb}kb`
-        );
+        config?.logger.info(`${path.basename(outputDir)}/${entry.file} ${entry.originalKb}kb -> ${entry.compressedKb}kb`);
       }
       config?.logger.info('');
     }
@@ -101,7 +99,7 @@ export default (env: Record<string, string>) => {
     return plugins;
   }
 
-  const compressionList = VITE_BUILD_COMPRESS.split(',').map(item => item.trim()) as CompressionKind[];
+  const compressionList = VITE_BUILD_COMPRESS.split(',').map((item) => item.trim()) as CompressionKind[];
   if (compressionList.includes('gzip')) {
     plugins.push(createCompressionPlugin('gzip'));
   }
