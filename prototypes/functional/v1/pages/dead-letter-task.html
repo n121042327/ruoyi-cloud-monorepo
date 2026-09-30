@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>死信任务 — 业务原型 v1（批次 2-9）</title>
+<link rel="stylesheet" href="../assets/prototype-shell.css" />
+<script src="../assets/prototype-shell.js"></script>
+<style>#dlq-table td.actions { white-space: nowrap; }</style>
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-IMP-DEADLETTER"
+  data-menu-page="PAGE-IMP-TASK-LIST"
+  data-breadcrumb="平台与运维 / 异步任务 / 死信任务"
+  data-tab="死信任务"
+  data-tenant="平台运营 · 全平台">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-IMP-DEADLETTER" data-role="page">
+
+  <div data-normal-view>
+
+  <div class="page-head">
+    <h1>死信任务</h1>
+    <span class="scope-hint" data-role="scope-hint">数据范围：全平台（DS-01）· 运维页</span>
+    <span class="el-tag warning">2 条待处理</span>
+    <span class="el-tag info">最大重试 3 次</span>
+  </div>
+
+  <div class="alert info">
+    <span>为什么会有死信</span>
+    <span>超过最大重试次数的任务进入死信，提供运维查看与重放（<span class="mono">REQ-IMP-038</span>）；
+      <b>重放动作写入审计</b>，记录操作人与时间。重试次数、退避间隔与最大并发可配置，且配置项对外可观测（<span class="mono">REQ-IMP-039</span>）。</span>
+  </div>
+
+  <section class="card" data-block="toolbar" data-role="toolbar" data-component="el-card.hover">
+    <div class="card-header">
+      <div class="toolbar" data-demo-state-target="toolbar">
+        <select class="select" data-role="filter" data-action-id="ACT-TASK-040" data-field="task_type" data-default="">
+          <option value="">全部任务类型</option>
+          <option value="import">导入</option>
+          <option value="export">导出</option>
+          <option value="promotion">升班</option>
+        </select>
+        <input class="input" type="search" placeholder="按任务编号 / 原批次号" data-role="filter" data-action-id="ACT-TASK-041" data-field="keyword" />
+      </div>
+      <div class="header-right">
+        <button class="btn" data-role="action" data-action-id="ACT-TASK-042" data-component="el-button"
+                data-permission="data.async_task:read" data-api="listDeadLetterTask" data-demo-message="已刷新死信任务列表。">刷新</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" data-block="list" data-role="section" data-component="el-card.hover">
+    <div class="card-header"><h2>死信明细</h2><span class="el-tag info">listDeadLetterTask</span></div>
+    <div class="card-body">
+      <div class="table-scroll">
+        <table class="el-table" id="dlq-table" data-role="table" data-component="el-table" data-api="listDeadLetterTask"
+               style="min-width:1120px;table-layout:fixed">
+          <thead>
+            <tr>
+              <th data-role="column" data-field="task_no" style="width:190px">任务编号</th>
+              <th data-role="column" data-field="task_type" style="width:90px">类型</th>
+              <th data-role="column" data-field="dead_time" style="width:150px">进入死信时间</th>
+              <th data-role="column" data-field="retry_count" style="width:100px">重试次数</th>
+              <th data-role="column" data-field="last_error" style="width:250px">最后错误</th>
+              <th data-role="column" data-field="batch_no" style="width:180px">原批次号</th>
+              <th class="actions" style="width:160px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="dlq-rows">
+            <tr data-role="row" data-task="TASK-20260925-000241" data-type-cn="导入" data-retry="3"
+                data-error="数据库连接超时（3 次重试均失败）" data-batch="IMP-20260925-0007">
+              <td class="mono">TASK-20260925-000241</td><td>导入</td><td class="mono">2026-09-25 15:03:10</td>
+              <td class="num">3 / 3</td><td class="cell-secondary">数据库连接超时（3 次重试均失败）</td><td class="mono">IMP-20260925-0007</td>
+              <td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-task="TASK-20260919-000176" data-type-cn="升班" data-retry="3"
+                data-error="消息消费幂等键冲突（批次号已被同校其它任务占用）" data-batch="PRM-20260919-0002">
+              <td class="mono">TASK-20260919-000176</td><td>升班</td><td class="mono">2026-09-19 20:41:55</td>
+              <td class="num">3 / 3</td><td class="cell-secondary">消息消费幂等键冲突（批次号已被同校其它任务占用）</td><td class="mono">PRM-20260919-0002</td>
+              <td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-task="TASK-20260918-000152" data-type-cn="导出" data-retry="2"
+                data-error="已重放成功（保留记录用于追溯）" data-batch="—">
+              <td class="mono">TASK-20260918-000152</td><td>导出</td><td class="mono">2026-09-18 09:12:03</td>
+              <td class="num">2 / 3</td><td class="cell-secondary">已重放成功（保留记录用于追溯）</td><td class="mono">—</td>
+              <td class="actions"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination"><span class="total">共 3 条死信记录 · 其中 2 条待处理（本页显示 3 行样例）</span></div>
+      <div class="legend" style="margin-top:8px"><span>死信记录只允许追加与重放，<b>不提供删除</b>：删除死信等于丢掉排障线索（与审计日志的只追加口径一致）。</span></div>
+    </div>
+  </section>
+
+  <section class="card" data-block="quota" data-role="section" data-component="el-card.hover">
+    <div class="card-header"><h2>重试与并发配置（可观测）</h2><span class="el-tag info">REQ-IMP-039 / 052</span></div>
+    <div class="card-body">
+      <div class="stat-row">
+        <div class="stat-card"><div class="label">最大重试次数</div><div class="value">3 次</div></div>
+        <div class="stat-card"><div class="label">退避间隔</div><div class="value">30s / 2m / 8m</div></div>
+        <div class="stat-card"><div class="label">同一学校导入并发</div><div class="value">3 个</div></div>
+        <div class="stat-card"><div class="label">同一用户导入并发</div><div class="value">1 个</div></div>
+        <div class="stat-card"><div class="label">当前排队</div><div class="value">1 个</div></div>
+      </div>
+      <div class="legend" style="margin-top:10px"><span>配额与并发配置对租户可观测：租户管理员可查看本租户当前占用与排队情况（<span class="mono">REQ-IMP-052</span>）；
+        超配额的任务进入排队而不直接失败（<span class="mono">REQ-IMP-049</span>）。</span></div>
+    </div>
+  </section>
+
+  </div>
+
+  <!-- DIALOG-DLQ-REPLAY：死信重放二次确认（危险动作） -->
+  <div class="overlay" data-demo="panel" data-demo-panel="DIALOG-DLQ-REPLAY" data-overlay-kind="dialog">
+    <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="sm" data-page="DIALOG-DLQ-REPLAY" data-block="form">
+      <div class="dialog-header"><h2>重放死信任务 · <span id="dlq-replay-no">TASK-20260925-000241</span></h2><span class="el-tag danger">危险操作</span><button class="close-x" data-close-panel="DIALOG-DLQ-REPLAY" title="关闭">✕</button></div>
+      <div class="dialog-body">
+        <div class="alert warning">
+          <span>影响范围</span>
+          <span>重放会复用<b>原批次号与幂等键</b>重新入队：已成功的行不会重复写入（<span class="mono">REQ-IMP-037</span>），
+            重放动作写入审计（<span class="mono">REQ-IMP-038</span>）。</span>
+        </div>
+        <div class="form-grid">
+          <div class="field span-2" data-field="replay_reason">
+            <label>重放原因<span class="required">*</span></label>
+            <textarea class="input" rows="2" style="width:100%;min-width:100%" id="dlq-reason"
+                      data-component="el-input.textarea" data-required data-required-message="请填写重放原因（至少 5 个字）"
+                      placeholder="如：数据库连接已恢复，确认可重放"></textarea>
+            <div class="error-text"></div>
+            <div class="hint">原因会写进审计，用于事后判断「谁在什么情况下重放了哪个任务」。</div>
+          </div>
+        </div>
+        <div class="alert danger state-hidden" data-validate-summary>表单校验未通过：请修正下方标红的字段后重试。</div>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn" data-role="action" data-action-id="ACT-TASK-050" data-component="el-button" data-close-panel="DIALOG-DLQ-REPLAY">取消</button>
+        <button class="btn danger" data-role="action" data-action-id="ACT-TASK-051" data-component="el-button.danger"
+                data-permission="data.async_task:read" data-api="replayDeadLetterTask" data-validate-on-submit data-after-success="close-panel"
+                data-demo-message="已重放：任务沿用原批次号与幂等键重新入队，重放动作已写审计。">确认重放</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="state-hidden" data-demo-state-panel="loading">
+    <section class="card"><div class="card-body">
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:190px"></div><div class="skeleton-bar" style="width:250px"></div></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:190px"></div><div class="skeleton-bar" style="width:250px"></div></div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="empty">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">✅</div>
+        <div class="title">当前没有死信任务</div>
+        <div class="desc">没有死信是好状态：说明所有任务都在最大重试次数内完成；这里保持空态而不是提示“查询失败”。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="error">
+    <section class="card"><div class="card-body">
+      <div class="state-block error">
+        <div class="icon">⚠️</div>
+        <div class="title">死信列表读取失败</div>
+        <div class="desc">重试不会跳过校验；死信记录只追加不删除。</div>
+        <div class="req-id">请求编号 REQ-20261001-002580 · 错误码 EDU-IMP-5007</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-TASK-042" data-component="el-button.primary.plain" data-api="listDeadLetterTask">重试</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="forbidden">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">🔒</div>
+        <div class="title">你没有死信任务的权限</div>
+        <div class="desc">死信任务是<b>运维页</b>，只有平台运营可查与重放（PRD 6.1）；租户侧在「异步任务」里看自己的任务即可。无权限时不进入空白页（<span class="mono">DS-DENY-03</span>）。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="submitting">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⏳</div>
+        <div class="title">正在重放</div>
+        <div class="desc">按钮已置 loading 并禁用；重放动作写审计。</div>
+      </div>
+    </div></section>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  // 导入导出 PRD 6.1：死信任务 = 平台运营（运维页）；超管全放行。
+  var READ_ROLES = ['super_admin', 'platform_ops'];
+  function q(sel) { return document.querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function currentRole() { return window.PrototypeShell.currentRole(); }
+
+  function rowActions() {
+    var canReplay = READ_ROLES.indexOf(currentRole()) !== -1;
+    qa('#dlq-rows tr').forEach(function (row) {
+      var box = row.querySelector('td.actions');
+      box.innerHTML = '';
+      box.style.color = '';
+      box.style.fontSize = '';
+      if (!canReplay) { box.textContent = '只读'; box.style.color = 'var(--app-text-secondary)'; box.style.fontSize = '12px'; return; }
+      var replayable = row.getAttribute('data-retry') === '3' && row.getAttribute('data-error').indexOf('已重放成功') === -1;
+      var b = document.createElement('button');
+      b.className = 'btn link';
+      b.textContent = replayable ? '重放' : '已重放';
+      b.setAttribute('data-role', 'row-action');
+      b.setAttribute('data-action-id', replayable ? 'ACT-TASK-045' : 'ACT-TASK-046');
+      b.setAttribute('data-component', 'el-button.link.primary');
+      b.setAttribute('data-permission', 'data.async_task:read');
+      b.setAttribute('data-nav', replayable ? 'DIALOG-DLQ-REPLAY' : 'PAGE-IMP-TASK-DETAIL');
+      b.setAttribute('data-overlay', replayable ? 'dialog' : 'drawer');
+      b.setAttribute('data-task', row.getAttribute('data-task'));
+      box.appendChild(b);
+    });
+  }
+
+  document.addEventListener('click', function (event) {
+    var node = event.target;
+    if (node.closest('input, select, textarea, label')) return;
+    var btn = node.closest('[data-action-id="ACT-TASK-045"]');
+    if (btn) q('#dlq-replay-no').textContent = btn.closest('tr').getAttribute('data-task');
+  });
+
+  var lastRole = '';
+  function applyRoleState(role) {
+    if (role === lastRole) return;
+    lastRole = role;
+    rowActions();
+    if (READ_ROLES.indexOf(role) === -1) window.PrototypeShell.applyState('forbidden');
+    else if (window.PrototypeShell.currentState() === 'forbidden') window.PrototypeShell.applyState('normal');
+    var hint = q('[data-role="scope-hint"]');
+    if (role === 'platform_ops') hint.textContent = '数据范围：全平台（DS-01）· 运维页（可重放，动作写审计）';
+    else if (role === 'super_admin') hint.textContent = '数据范围：全平台 · 不受限制（BR-ORG-014）';
+    else hint.textContent = '数据范围：本校（DS-04）· 无死信任务权限（运维页仅平台运营）';
+  }
+
+  rowActions();
+  document.addEventListener('prototype:params', function () { lastRole = ''; applyRoleState(currentRole()); });
+  new MutationObserver(function () { applyRoleState(currentRole()); })
+    .observe(document.body, { attributes: true, attributeFilter: ['data-current-role'] });
+  applyRoleState(currentRole());
+})();
+</script>
+</body>
+</html>

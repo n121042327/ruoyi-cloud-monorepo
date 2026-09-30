@@ -856,3 +856,46 @@ harness：`verify-audit.html`（5 个 iframe，`AU-01` ~ `AU-28` 共 28 条断�
 | `audit-archive_role-platform-ops_1440x900.png` | 1440×900 | 角色 = 平台运营 | 归档批次 + 检索该批次 / 重试归档 + 运维提醒 |
 | `audit-archive_state-forbidden_1440x900.png` | 1440×900 | 角色 = 教务主任 | 无权限形态（运维页仅平台运营），不进入空白页 |
 | `audit_verify-results.png` | 1100×1900 | harness 结果清单 | `合计 28 / 28 条，通过 28 条，不通过 0 条 —— 全部通过` |
+
+### 6.13 批次 2-9（异步任务中心与死信任务）的交付说明
+
+| 页面 | 文件 | 说明 |
+|---|---|---|
+| `PAGE-IMP-TASK-LIST` + `PAGE-IMP-TASK-DETAIL` + `PAGE-IMP-EXPORT` | `pages/async-task-list.html` | 异步任务列表 8 列 7 行（编号 / 类型 / 状态 / 进度 / 发起人 / 发起时间 / 耗时 / 操作）+ 5 个筛选器 + 自动刷新开关 + 导出任务清单；行内动作严格由状态驱动；详情抽屉（批次号幂等键 / 参数摘要 / 进度 / 结果文件 + 重试与下载）；导出配置弹窗（列选择 + 掩码 / 明文开关，> 2000 行转异步） |
+| `PAGE-IMP-DEADLETTER` + `DIALOG-DLQ-REPLAY` | `pages/dead-letter-task.html` | 死信任务 7 列 3 行（编号 / 类型 / 进入死信时间 / 重试次数 / 最后错误 / 原批次号 / 操作）+ 重试与并发配置统计卡（最大重试 / 退避 / 同校并发 / 同用户并发 / 当前排队）；重放二次确认且原因必填 |
+
+harness：`verify-task.html`（2 个 iframe / 5 个同页片段，`AT-01` ~ `AT-22` 共 22 条断言，22 / 22 通过）。
+动作组：`async_task_center`（`ACT-TASK-001` ~ `030`）、`dead_letter`（`ACT-TASK-040` ~ `051`）。
+本批同时执行 `CR-019`：导入导出 PRD 升 1.0.1-draft 并补登记 `DIALOG-DLQ-REPLAY`（`REQ-IMP-038` 要求重放写审计、
+`layout-spec` 要求危险动作二次确认，6.1 原本没有该片段）。
+
+| 截图 | 分辨率 | 场景 | 用于验证 |
+|---|---|---|---|
+| `async-task-list_1440x900.png` | 1440×900 | 异步任务（教务主任） | 8 列 7 行、状态驱动的行内动作、默认只看本人任务 |
+| `async-task-list_drawer-detail_1440x900.png` | 1440×900 | 深链接 `#panel=PAGE-IMP-TASK-DETAIL` | 批次号幂等键、进度、结果文件、重试 / 下载 |
+| `async-task-list_dialog-export_1440x900.png` | 1440×900 | 深链接 `#panel=PAGE-IMP-EXPORT` | 列选择 + 掩码 / 明文开关 + > 2000 行转异步 |
+| `async-task-list_state-queued_1440x900.png` | 1440×900 | 深链接 `#state=queued` | 排队中形态（配额满时不直接失败，REQ-IMP-049） |
+| `async-task-list_role-grade-leader_1440x900.png` | 1440×900 | 角色 = 年级主任 | DS-05 只看本人任务、无重试 / 取消、导出仍可见 |
+| `dead-letter-task_state-forbidden_1440x900.png` | 1440×900 | 角色 = 教务主任 | 无权限形态（运维页仅平台运营） |
+| `dead-letter-task_role-platform-ops_1440x900.png` | 1440×900 | 角色 = 平台运营 | 死信明细 + 重放入口 + 配置可观测统计卡 |
+| `dead-letter-task_dialog-replay_1440x900.png` | 1440×900 | 角色 = 平台运营 + `#panel=DIALOG-DLQ-REPLAY` | 重放二次确认 + 原因必填 + 幂等口径 |
+| `task_verify-results.png` | 1100×1700 | harness 结果清单 | `合计 22 / 22 条，通过 22 条，不通过 0 条 —— 全部通过` |
+
+### 6.14 阶段 2（业务原型）收尾口径
+
+2-1 ~ 2-9 共 9 批全部产出待验收：
+
+| 批次 | 内容 | 页面编号 | harness |
+|---|---|---|---|
+| 2-1 | 学生管理列表 + 新增 / 编辑 | 3 | — |
+| 2-2 | 教师管理 + 年级管理 | 13 | `verify-grade-list` 38、`verify-detail-entry` 6 |
+| 2-3 | 班级管理 + 班级详情 + 升班向导 | 17 | `verify-class-list` 39、`verify-class-detail` 20、`verify-class-roster` 34、`verify-class-dialogs` 36、`verify-promotion-wizard` 39、`verify-promotion-create` 22、`verify-promotion-list` 36、`verify-carrier-change` 14 |
+| 2-4 | 导入向导 + 登录 + 异常页 | 11 | `verify-import-login` 30 |
+| 2-5 | 学生模块剩余 | 8 | `verify-student-module` 28 |
+| 2-6 | 学校 / 学年学期 / 学科与配置 | 19 | `verify-school` 16、`verify-org-config` 23、`verify-subject` 14 |
+| 2-7 | 选科与教学班 | 12 | `verify-stream` 26、`verify-stream-b` 37 |
+| 2-8 | 审计与操作日志 | 8 | `verify-audit` 28 |
+| 2-9 | 异步任务中心与死信 | 5 | `verify-task` 22 |
+
+累计 45 个页面文件、96 个页面编号、19 个 harness（合计 508 条断言）全绿；`python tools/check_docs.py` 通过。
+阶段 2 之后进入阶段 3（独立高保真原型），高保真目录为 `prototypes/high-fidelity/v1/`，不改本目录的配色与字体。

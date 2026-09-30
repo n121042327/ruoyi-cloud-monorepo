@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>批次 2-9（异步任务 / 任务详情 / 导出配置 / 死信任务）交互验证</title>
+<style>
+  body { margin: 14px; background: #fff; color: #24292f; font: 13px/1.55 Consolas, "Microsoft YaHei", monospace; }
+  h1 { font-size: 17px; margin: 0 0 8px; }
+  ol { margin: 0 0 10px; padding-left: 22px; }
+  li.ok { color: #1a7f37; }
+  li.bad { color: #c0392b; font-weight: 700; }
+  p.sum { font-weight: 700; }
+  p.sum.bad { color: #c0392b; }
+  iframe { width: 1440px; height: 860px; border: 1px solid #dcdfe6; }
+  iframe.offscreen { display: none; }
+</style>
+</head>
+<body>
+<h1>批次 2-9（异步任务列表 / 任务详情抽屉 / 导出配置弹窗 / 死信任务与重放确认）交互验证（真实事件派发）</h1>
+<ol id="results"><li>运行中…</li></ol>
+<iframe id="f-task" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/async-task-list.html"></iframe>
+<iframe id="f-dlq" class="offscreen" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/dead-letter-task.html"></iframe>
+<script>
+(function () {
+  'use strict';
+  var RESULTS = [];
+  var F = { task: document.getElementById('f-task'), dlq: document.getElementById('f-dlq') };
+
+  function rec(id, name, pass, detail) { RESULTS.push({ id: id, name: name, pass: Boolean(pass), detail: detail || '' }); }
+  function d(k) { return F[k].contentDocument; }
+  function w(k) { return F[k].contentWindow; }
+  function q(k, sel) { return d(k).querySelector(sel); }
+  function qa(k, sel) { return Array.prototype.slice.call(d(k).querySelectorAll(sel)); }
+  function text(k, sel) { var n = q(k, sel); return n ? n.textContent.replace(/\s+/g, ' ').trim() : ''; }
+  function attr(k, sel, name) { var n = q(k, sel); return n ? n.getAttribute(name) : null; }
+  function hasClass(k, sel, cls) { var n = q(k, sel); return Boolean(n && n.classList.contains(cls)); }
+  function widths(k, tableSel) {
+    return qa(k, tableSel + ' thead th[style]').reduce(function (s, th) { return s + (parseInt(th.style.width, 10) || 0); }, 0);
+  }
+  function click(k, sel) {
+    var n = q(k, sel);
+    if (!n) throw new Error('找不到元素 ' + sel);
+    n.click();
+    return n;
+  }
+  function setVal(k, sel, value) {
+    var n = q(k, sel);
+    if (!n) throw new Error('找不到元素 ' + sel);
+    n.value = value;
+    n.dispatchEvent(new (w(k).Event)('change', { bubbles: true }));
+    return n;
+  }
+  function delay(k) { return new Promise(function (r) { w(k).setTimeout(r, 80); }); }
+  function role(k, code, label) {
+    var btn = qa(k, '[data-demo="role-switcher"] .pbtn').filter(function (b) { return b.textContent.trim() === label; })[0];
+    if (btn) { btn.click(); return delay(k); }
+    w(k).PrototypeShell.applyRole(code);
+    return delay(k);
+  }
+  function panelOpen(k, id) { return Boolean(q(k, '[data-demo-panel="' + id + '"].open')); }
+  function statePanels(k, codes) {
+    codes = codes || ['loading', 'empty', 'error', 'forbidden', 'submitting'];
+    return codes.filter(function (c) { return !q(k, '[data-demo-state-panel="' + c + '"]'); });
+  }
+  function actionsOf(k, taskNo) {
+    return qa(k, '#task-rows tr[data-task="' + taskNo + '"] [data-action-id], #dlq-rows tr[data-task="' + taskNo + '"] [data-action-id]')
+      .map(function (b) { return b.getAttribute('data-action-id'); });
+  }
+  function frameReady(k) {
+    return new Promise(function (resolve) {
+      if (d(k) && d(k).readyState === 'complete' && d(k).querySelector('#page-root')) { resolve(); return; }
+      F[k].addEventListener('load', function () { w(k).setTimeout(resolve, 250); });
+    });
+  }
+  function allReady() { return Promise.all(Object.keys(F).map(frameReady)); }
+
+  var steps = [
+    function (next) {
+      return allReady().then(function () {
+        var cols = qa('task', '#task-table thead th').map(function (th) { return th.textContent.trim(); });
+        rec('AT-01', '异步任务列表：8 列 7 行；列宽之和 = 表格 min-width = 1110（1366×768 无表格内横向滚动）',
+          cols.length === 8 && cols[0] === '任务编号' && cols[7] === '操作'
+          && qa('task', '#task-rows tr').length === 7
+          && widths('task', '#task-table') === 1110 && q('task', '#task-table').style.minWidth === '1110px',
+          cols.join(' | ') + ' · 列宽 ' + widths('task', '#task-table'));
+        rec('AT-02', '任务列表要素：5 个筛选器（类型 / 状态 / 起止时间 / 任务编号）+ 操作栏（自动刷新开关 / 导出任务清单 / 刷新），默认只看本人任务',
+          qa('task', '[data-role="filter"]').length === 5
+          && Boolean(q('task', '[data-action-id="ACT-TASK-006"]'))
+          && Boolean(q('task', '[data-action-id="ACT-TASK-007"]'))
+          && text('task', '[data-role="scope-hint"]').indexOf('本人任务') !== -1,
+          '筛选 ' + qa('task', '[data-role="filter"]').length + ' 个');
+        rec('AT-03', '页面写明三条口径：默认只看本人任务（REQ-IMP-032）、自动刷新失败降级手动（REQ-IMP-035）、结果查询与下载重新解析范围（REQ-IMP-036）',
+          text('task', '.alert.info').indexOf('REQ-IMP-032') !== -1
+          && text('task', '.alert.info').indexOf('REQ-IMP-035') !== -1
+          && text('task', '.alert.info').indexOf('REQ-IMP-036') !== -1
+          && text('task', '.alert.info').indexOf('DS-DENY-04') !== -1,
+          text('task', '.alert.info').slice(0, 26));
+        next();
+      });
+    },
+    function (next) {
+      rec('AT-04', '教务主任：行内动作按状态渲染 —— queued 详情 + 取消、running 仅详情、succeeded 详情 + 下载、partial_failed 详情 + 重试 + 下载、failed 详情 + 重试、cancelled 仅详情',
+        actionsOf('task', 'TASK-20260930-000331').join(',') === 'ACT-TASK-023,ACT-TASK-025'
+        && actionsOf('task', 'TASK-20260928-000312').join(',') === 'ACT-TASK-023'
+        && actionsOf('task', 'TASK-20260927-000288').join(',') === 'ACT-TASK-023,ACT-TASK-026'
+        && actionsOf('task', 'TASK-20260926-000255').join(',') === 'ACT-TASK-023,ACT-TASK-024,ACT-TASK-026'
+        && actionsOf('task', 'TASK-20260925-000241').join(',') === 'ACT-TASK-023,ACT-TASK-024'
+        && actionsOf('task', 'TASK-20260924-000226').join(',') === 'ACT-TASK-023',
+        'queued: ' + actionsOf('task', 'TASK-20260930-000331').join(',') + ' / partial: ' + actionsOf('task', 'TASK-20260926-000255').join(','));
+      click('task', '#task-rows tr[data-task="TASK-20260928-000312"] [data-action-id="ACT-TASK-023"]');
+      return delay('task').then(function () {
+        rec('AT-05', '点行内「详情」打开 PAGE-IMP-TASK-DETAIL 并带入该任务（编号 / 类型 / 状态 / 批次号幂等键 / 耗时 / 发起人 / 时间 / 结果文件）',
+          panelOpen('task', 'PAGE-IMP-TASK-DETAIL')
+          && text('task', '#task-detail-no') === 'TASK-20260928-000312'
+          && text('task', '#task-d-type') === '导入'
+          && text('task', '#task-d-batch') === 'IMP-20260928-0001'
+          && text('task', '#task-d-elapsed') === '1 分 12 秒'
+          && text('task', '#task-d-owner') === '郑雅琴',
+          text('task', '#task-detail-no') + ' / ' + text('task', '#task-d-batch'));
+        rec('AT-06', '任务详情：进度条 + 结果文件说明 + 三个动作（重试 retryAsyncTask / 下载 downloadTaskResult / 关闭）',
+          qa('task', '[data-demo-panel="PAGE-IMP-TASK-DETAIL"] .progress-track').length >= 1
+          && Boolean(q('task', '[data-action-id="ACT-TASK-021"]'))
+          && Boolean(q('task', '[data-action-id="ACT-TASK-022"]'))
+          && text('task', '#task-d-file').length > 0,
+          text('task', '#task-d-file'));
+        rec('AT-07', '任务详情写明：下载前重新解析数据范围（REQ-IMP-036）、短时签名与登录态绑定（REQ-IMP-042）、下载写审计（REQ-IMP-043）',
+          text('task', '[data-demo-panel="PAGE-IMP-TASK-DETAIL"]').indexOf('REQ-IMP-036') !== -1
+          && text('task', '[data-demo-panel="PAGE-IMP-TASK-DETAIL"]').indexOf('REQ-IMP-042') !== -1
+          && text('task', '[data-demo-panel="PAGE-IMP-TASK-DETAIL"]').indexOf('REQ-IMP-043') !== -1,
+          'ok');
+        w('task').PrototypeShell.closePanel('all');
+        next();
+      });
+    },
+    function (next) {
+      click('task', '[data-action-id="ACT-TASK-007"]');
+      return delay('task').then(function () {
+        var opened = panelOpen('task', 'PAGE-IMP-EXPORT');
+        qa('task', '[data-demo-panel="PAGE-IMP-EXPORT"] input[name="exp-col"]').forEach(function (c) { c.checked = false; });
+        click('task', '[data-action-id="ACT-TASK-011"]');
+        return delay('task').then(function () {
+          rec('AT-08', '点「导出任务清单」打开 PAGE-IMP-EXPORT；一列都不选点「开始导出」被字段级拦截（参数在弹窗内校验）',
+            opened && hasClass('task', '[data-demo-panel="PAGE-IMP-EXPORT"] [data-field="columns"]', 'has-error')
+            && panelOpen('task', 'PAGE-IMP-EXPORT'),
+            '打开 ' + opened);
+          rec('AT-09', '导出配置：列选择 + 掩码 / 明文开关（BR-IMP-012）+ 行数 > 2000 转异步任务提示；开始导出走 exportData（data.export:export）',
+            qa('task', '[data-demo-panel="PAGE-IMP-EXPORT"] input[name="exp-col"]').length === 4
+            && qa('task', '[data-demo-panel="PAGE-IMP-EXPORT"] input[name="exp-plain"]').length === 2
+            && text('task', '[data-demo-panel="PAGE-IMP-EXPORT"]').indexOf('转异步任务') !== -1
+            && attr('task', '[data-action-id="ACT-TASK-011"]', 'data-api') === 'exportData'
+            && attr('task', '[data-action-id="ACT-TASK-011"]', 'data-permission') === 'data.export:export',
+            attr('task', '[data-action-id="ACT-TASK-011"]', 'data-api'));
+          w('task').PrototypeShell.closePanel('all');
+          next();
+        });
+      });
+    },
+    function (next) {
+      return role('task', 'grade_leader', '年级主任').then(function () {
+        rec('AT-10', '任务列表：年级主任范围收敛为 DS-05（只看本人任务），无重试与取消入口（矩阵只给 read），导出仍可见',
+          text('task', '[data-role="scope-hint"]').indexOf('DS-05') !== -1
+          && qa('task', '[data-action-id="ACT-TASK-024"]').length === 0
+          && qa('task', '[data-action-id="ACT-TASK-025"]').length === 0
+          && !hasClass('task', '[data-action-id="ACT-TASK-007"]', 'role-hidden'),
+          text('task', '[data-role="scope-hint"]'));
+        return role('task', 'subject_teacher', '任课教师');
+      }).then(function () {
+        rec('AT-11', '任务列表：任课教师进入无权限形态（DS-07 无导入导出权限），不进入空白页（DS-DENY-03）',
+          !hasClass('task', '[data-demo-state-panel="forbidden"]', 'state-hidden')
+          && text('task', '[data-demo-state-panel="forbidden"]').indexOf('DS-DENY-03') !== -1,
+          text('task', '[data-role="scope-hint"]'));
+        rec('AT-12', '任务列表六类状态片段齐全（五类 + 排队中 queued + 部分失败 partial）',
+          statePanels('task', ['loading', 'empty', 'error', 'forbidden', 'submitting', 'queued', 'partial']).length === 0,
+          statePanels('task', ['loading', 'empty', 'error', 'forbidden', 'submitting', 'queued', 'partial']).join(',') || '齐全');
+        rec('AT-13', '任务列表不提供「删除任务」入口（任务只允许取消 / 重试 / 下载，记录保留 90 天）',
+          qa('task', '#page-root button').every(function (b) { return b.textContent.indexOf('删除') === -1; }),
+          '删除入口 0 个');
+        return role('task', 'academic_director', '教务主任');
+      }).then(next);
+    },
+    function (next) {
+      var cols = qa('dlq', '#dlq-table thead th').map(function (th) { return th.textContent.trim(); });
+      rec('AT-14', '死信任务：7 列 3 行；列宽之和 = 表格 min-width = 1120',
+        cols.length === 7 && cols[0] === '任务编号' && cols[6] === '操作'
+        && qa('dlq', '#dlq-rows tr').length === 3
+        && widths('dlq', '#dlq-table') === 1120 && q('dlq', '#dlq-table').style.minWidth === '1120px',
+        cols.join(' | ') + ' · 列宽 ' + widths('dlq', '#dlq-table'));
+      rec('AT-15', '死信任务：默认（教务主任）进入无权限形态 —— 死信是平台运营的运维页（PRD 6.1）',
+        !hasClass('dlq', '[data-demo-state-panel="forbidden"]', 'state-hidden'),
+        text('dlq', '[data-role="scope-hint"]'));
+      return role('dlq', 'platform_ops', '平台运营').then(function () {
+        rec('AT-16', '死信任务（平台运营）：2 条待处理行有「重放」（指向 DIALOG-DLQ-REPLAY），1 条已重放行指向任务详情',
+          qa('dlq', '[data-action-id="ACT-TASK-045"]').length === 2
+          && qa('dlq', '[data-action-id="ACT-TASK-046"]').length === 1
+          && qa('dlq', '[data-action-id="ACT-TASK-045"]').every(function (b) { return b.getAttribute('data-nav') === 'DIALOG-DLQ-REPLAY'; }),
+          '重放 ' + qa('dlq', '[data-action-id="ACT-TASK-045"]').length + ' / 已重放 ' + qa('dlq', '[data-action-id="ACT-TASK-046"]').length);
+        next();
+      });
+    },
+    function (next) {
+      click('dlq', '#dlq-rows tr[data-task="TASK-20260925-000241"] [data-action-id="ACT-TASK-045"]');
+      return delay('dlq').then(function () {
+        rec('AT-17', '点「重放」打开 DIALOG-DLQ-REPLAY 并带入任务编号；写明复用原批次号与幂等键（REQ-IMP-037）与重放写审计（REQ-IMP-038）',
+          panelOpen('dlq', 'DIALOG-DLQ-REPLAY')
+          && text('dlq', '#dlq-replay-no') === 'TASK-20260925-000241'
+          && text('dlq', '[data-demo-panel="DIALOG-DLQ-REPLAY"]').indexOf('REQ-IMP-037') !== -1
+          && text('dlq', '[data-demo-panel="DIALOG-DLQ-REPLAY"]').indexOf('REQ-IMP-038') !== -1,
+          text('dlq', '#dlq-replay-no'));
+        setVal('dlq', '#dlq-reason', '');
+        click('dlq', '[data-action-id="ACT-TASK-051"]');
+        return delay('dlq');
+      }).then(function () {
+        rec('AT-18', '重放确认未填原因被字段级拦截：字段标红 + 汇总提示 + 弹窗不关闭；确认走 replayDeadLetterTask',
+          hasClass('dlq', '[data-demo-panel="DIALOG-DLQ-REPLAY"] [data-field="replay_reason"]', 'has-error')
+          && !hasClass('dlq', '[data-demo-panel="DIALOG-DLQ-REPLAY"] [data-validate-summary]', 'state-hidden')
+          && panelOpen('dlq', 'DIALOG-DLQ-REPLAY')
+          && attr('dlq', '[data-action-id="ACT-TASK-051"]', 'data-api') === 'replayDeadLetterTask',
+          text('dlq', '[data-field="replay_reason"] .error-text'));
+        w('dlq').PrototypeShell.closePanel('all');
+        setVal('dlq', '#dlq-reason', '');
+        next();
+      });
+    },
+    function (next) {
+      rec('AT-19', '死信任务：重试与并发配置可观测（最大重试 3 / 退避 / 同校并发 3 / 同用户并发 1 / 当前排队，REQ-IMP-039 / 052）',
+        qa('dlq', '[data-block="quota"] .stat-card').length === 5
+        && text('dlq', '[data-block="quota"]').indexOf('REQ-IMP-039') !== -1
+        && text('dlq', '[data-block="quota"]').indexOf('REQ-IMP-052') !== -1
+        && text('dlq', '[data-block="quota"]').indexOf('REQ-IMP-049') !== -1,
+        text('dlq', '[data-block="quota"] .stat-card .value').replace(/\s+/g, ' '));
+      rec('AT-20', '死信记录只允许追加与重放，不提供删除（删除死信等于丢弃排障线索）',
+        qa('dlq', '#page-root button').every(function (b) { return b.textContent.indexOf('删除') === -1; })
+        && text('dlq', '[data-block="list"]').indexOf('不提供删除') !== -1,
+        '删除入口 0 个');
+      rec('AT-21', '死信任务五类状态片段齐全（加载中 / 空数据 / 失败 / 无权限 / 提交中，空态给「当前没有死信任务」的正向文案）',
+        statePanels('dlq').length === 0
+        && text('dlq', '[data-demo-state-panel="empty"]').indexOf('没有死信任务') !== -1,
+        statePanels('dlq').join(',') || '齐全');
+      rec('AT-22', '两个页面都用 [data-normal-view] 承载主内容：状态片段替换内容而不是堆在内容之后（D-080 的载体口径）',
+        qa('task', '[data-normal-view]').length >= 1 && qa('dlq', '[data-normal-view]').length >= 1,
+        'task ' + qa('task', '[data-normal-view]').length + ' / dlq ' + qa('dlq', '[data-normal-view]').length);
+      next();
+    }
+  ];
+
+  var EXPECTED = 22;
+  var rendered = false;
+  function render() {
+    rendered = true;
+    var ol = document.getElementById('results');
+    ol.innerHTML = '';
+    var pass = 0;
+    RESULTS.forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = r.pass ? 'ok' : 'bad';
+      li.textContent = (r.pass ? '通过  ' : '不通过 ') + r.id + '  ' + r.name + (r.detail ? '  —— ' + r.detail : '');
+      ol.appendChild(li);
+      if (r.pass) pass += 1;
+    });
+    var p = document.createElement('p');
+    p.className = pass === EXPECTED && RESULTS.length === EXPECTED ? 'sum' : 'sum bad';
+    p.textContent = '合计 ' + RESULTS.length + ' / ' + EXPECTED + ' 条，通过 ' + pass + ' 条，不通过 '
+      + (RESULTS.length - pass) + ' 条' + (pass === EXPECTED && RESULTS.length === EXPECTED ? ' —— 全部通过' : '');
+    ol.appendChild(p);
+  }
+  function run(index) {
+    if (index >= steps.length) { render(); return; }
+    var called = false;
+    function next() { if (called) return; called = true; run(index + 1); }
+    var out;
+    try { out = steps[index](next); }
+    catch (err) {
+      rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步抛异常', false, String((err && err.message) || err));
+      run(index + 1); return;
+    }
+    if (out && typeof out.then === 'function') {
+      out.catch(function (err) {
+        rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步异步断言失败', false, String((err && err.message) || err));
+        next();
+      });
+    }
+  }
+  window.addEventListener('load', function () { window.setTimeout(function () { run(0); }, 600); });
+  window.setTimeout(function () { if (!rendered) { rec('WATCHDOG', '运行超时', false, ''); render(); } }, 60000);
+})();
+</script>
+</body>
+</html>

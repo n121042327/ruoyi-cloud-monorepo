@@ -1541,6 +1541,46 @@
 - 如果错了的代价：删除 5 个页面、回滚 `page-actions.yaml` 的 5 个动作组、`navigation.yaml` 的片段与页数、
   审计 PRD 的版本行与片段登记、`markup-contract.md` 的 11.1 节即可
 
+## D-083 交付批次 2-9：异步任务中心与死信任务（含 CR-019，阶段 2 收尾）
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要拍板的默认选推荐，执行完以后没有任何问题提交合并」）
+- 上游依据：导入导出 PRD 4.6 / 4.7 / 4.8 / 5.1 / 5.2 / 6.1 ~ 6.4 / 8 节；
+  `BR-IMP-009` / `012` / `013` / `014` / `015`、`REQ-IMP-032` ~ `043` / `047` ~ `052`、
+  `DS-07`、`DS-DENY-03` / `04`、`NFR-MQ-02` / `03` / `04`、`NFR-AUDIT-03`
+- 决策（全部取推荐方案，已落进 `CR-019`）：
+  1. **默认只看本人任务**（`REQ-IMP-032`）：任务列表不提供「看全平台」的开关，平台运营除外（`DS-01`）。
+  2. **行内动作严格由状态驱动**：`queued` 详情 + 取消（`REQ-IMP-034` 只有排队中可取消）、`running` 仅详情、
+     `succeeded` 详情 + 下载、`partial_failed` 详情 + 重试 + 下载、`failed` 详情 + 重试、`cancelled` 仅详情。
+  3. **结果查询与下载重新解析范围**（`REQ-IMP-036` / `DS-DENY-04`）：不复用发起时的判定，详情页明写这条口径。
+  4. **下载走短时签名且写审计**（`REQ-IMP-042` / `043`）：链接与登录态绑定，过期或跨账号一律拒绝。
+  5. **导出配置弹窗做同步 / 异步分流**：行数 ≤ 2000 同步下载、超过 2000 转异步任务；列选择至少一列，掩码为默认、明文需 `read_sensitive` + 明文导出授权（`BR-IMP-012`）。
+  6. **死信重放必须二次确认且原因必填**（`REQ-IMP-038` + `layout-spec` 的 `state_rules`）：重放复用原批次号与幂等键，
+     已成功的行不重复写入；死信记录只追加与重放、不提供删除（删除死信等于丢掉排障线索）。
+  7. **重试 / 退避 / 并发配置对租户可观测**（`REQ-IMP-039` / `052`）：死信页用 5 张统计卡展示最大重试、退避间隔、同校与同用户并发、当前排队。
+  8. **补登记 `DIALOG-DLQ-REPLAY`**：4.6 的需求 + `layout-spec` 的危险动作规则共同推出这个浮层，但 6.1 没有编号，按 `CR-019` 补登记（沿用 `GAP-059` 的判定口径）。
+- 关键设计：两个新页面都用 `[data-normal-view]` 承载主内容（沿用 D-080 的载体口径）；
+  任务列表额外带 `queued` 与 `partial` 两类状态片段，死信页的空态用正向文案「当前没有死信任务」而不是错误提示。
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/functional/v1/pages/async-task-list.html` | 新增：异步任务列表 8 列 7 行 + `PAGE-IMP-TASK-DETAIL` 详情抽屉 + `PAGE-IMP-EXPORT` 导出配置弹窗 |
+| `prototypes/functional/v1/pages/dead-letter-task.html` | 新增：死信任务 7 列 3 行 + 重试与并发配置统计卡 + `DIALOG-DLQ-REPLAY` 重放确认 |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `async_task_center`（`ACT-TASK-001` ~ `030`）与 `dead_letter`（`ACT-TASK-040` ~ `051`） |
+| `prototypes/functional/v1/navigation.yaml` | 4 个页面补 note、登记 `DIALOG-DLQ-REPLAY` 与 4 条跳转；批次 2-9 声明页数 4 → 5 并改为「已全部产出待验收」 |
+| `prototypes/functional/v1/assets/prototype-shell.js` | 菜单「异步任务」登记为已交付；`EXTRA_PAGES` 补死信任务页 |
+| `docs/10-prd/modules/import-export/PRD.md` | 升 1.0.1-draft：6.1 补 `DIALOG-DLQ-REPLAY` 登记与口径 |
+| `docs/00-governance/change-requests/CR-019.md` | 新增：死信重放确认片段补登记 |
+| `evidence/stage2-prototype/verify-task.html` | 新增：22 条断言 |
+| `evidence/stage2-prototype/async-task-list_*.png`、`dead-letter-task_*.png`、`task_verify-results.png` | 9 张截图 |
+
+- 验证证据：`verify-task.html` 22 / 22；19 个已交付 harness 全量回归；`python tools/check_docs.py` 通过
+- **阶段 2 收尾**：2-1 ~ 2-9 共 9 批全部产出。累计 **45 个页面文件**（`prototypes/functional/v1/pages/*.html`）
+  承载 **96 个页面编号**（2-1 3、2-2 13、2-3 17、2-4 11、2-5 8、2-6 19、2-7 12、2-8 8、2-9 5，见 `navigation.yaml` 的 `delivery_batches`），
+  **19 个 harness 全绿**（14 + 16 + 20 + 22 + 23 + 26 + 28 + 28 + 30 + 34 + 36 + 36 + 37 + 38 + 39 + 39 + 6 + 14 + 22 = 508 条断言）
+- 如果错了的代价：删除 2 个页面、回滚 `page-actions.yaml` 的 2 个动作组、`navigation.yaml` 的片段与页数、
+  导入导出 PRD 的版本行与片段登记即可
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |
@@ -1582,3 +1622,4 @@
 | R-035 | ~~选科模块的 3 个字段、权限码对齐与 `PAGE-STR-STAT` 载体是否一次 CR 补齐~~ → 已定：一次 CR 补全（3 个字段 + 9 条权限码 + 1 条页面载体）（D-080 / CR-016） | GAP-057 | 已关闭 |
 | R-036 | ~~教学班的「详情 / 停用 / 成员清单」缺 operationId，且教学班能否手工新增没有裁决~~ → 已定：补 3 个 operationId + 两个同页片段，创建入口唯一在生成向导（D-081 / CR-017） | GAP-058 | 已关闭 |
 | R-037 | ~~审计 PRD 6.3 要求「点击导出打开导出配置弹窗」，但 6.1 的页面清单没有登记该片段~~ → 已定：按选项 A 补登记 `DIALOG-AUD-EXPORT`（D-082 / CR-018） | GAP-059 | 已关闭 |
+| R-038 | ~~`REQ-IMP-038` 要求重放写审计 + `layout-spec` 要求危险动作二次确认，但导入导出 PRD 6.1 没有登记重放确认片段~~ → 已定：按选项 A 补登记 `DIALOG-DLQ-REPLAY`（D-083 / CR-019） | GAP-060 | 已关闭 |

@@ -3621,6 +3621,45 @@ audit_archive:
     - { id: ACT-AUD-064, element: 行内「检索该批次」, trigger: 点击行内按钮, condition: 有 audit.log:read；该批次状态为已完成, permission: "audit.log / read", api: searchArchivedLog, result: 按该批次范围检索归档日志（归档不删数据，检索能力与在线一致）, audit: 是, batch: "2-8" }
     - { id: ACT-AUD-065, element: 行内「重试归档」, trigger: 点击行内按钮, condition: 有 audit.log:read；该批次状态为失败, permission: "audit.log / read", api: searchArchivedLog, result: 重试失败分区；成功分区不重复归档（不做整批回滚），重试动作写日志（REQ-AUD-034 / 036）, audit: 是, batch: "2-8" }
 
+# ---------------------------------------------------------------------------
+# 异步任务中心（批次 2-9）：任务列表 / 详情抽屉 / 导出配置
+# ---------------------------------------------------------------------------
+async_task_center:
+  page: "PAGE-IMP-TASK-LIST / PAGE-IMP-TASK-DETAIL / PAGE-IMP-EXPORT"
+  actions:
+    - { id: ACT-TASK-001, element: 任务类型筛选, trigger: 变更, condition: 有 data.async_task:read；默认只看本人任务, permission: "data.async_task / read", api: listAsyncTask, result: 按导入 / 导出 / 升班筛选（REQ-IMP-032）, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-002, element: 状态筛选, trigger: 变更, condition: 有 data.async_task:read, permission: "data.async_task / read", api: listAsyncTask, result: 按 queued / running / succeeded / partial_failed / failed / cancelled 筛选（REQ-IMP-034）, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-003, element: 开始时间筛选, trigger: 变更, condition: 有 data.async_task:read, permission: "data.async_task / read", api: listAsyncTask, result: 收窄时间范围, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-004, element: 结束时间筛选, trigger: 变更, condition: 有 data.async_task:read, permission: "data.async_task / read", api: listAsyncTask, result: 收窄时间范围, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-005, element: 任务编号检索, trigger: 输入, condition: 有 data.async_task:read, permission: "data.async_task / read", api: listAsyncTask, result: 按任务编号检索（PRD 6.2）, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-006, element: 自动刷新开关, trigger: 点击, condition: 有 data.async_task:read, permission: "data.async_task / read", api: listAsyncTask, result: 开启后每 10 秒刷新；刷新失败降级为手动刷新并提示（REQ-IMP-035）, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-007, element: 导出任务清单, trigger: 点击, condition: 有 data.export:export, permission: "data.export / export", api: "-", result: 打开 PAGE-IMP-EXPORT 导出配置弹窗（PRD 6.2 / 6.3）, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-008, element: 刷新, trigger: 点击, condition: 有 data.async_task:read, permission: "data.async_task / read", api: listAsyncTask, result: 刷新任务列表（默认只看本人任务）, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-010, element: 导出配置「取消」, trigger: 点击, condition: 始终可用, permission: "-", api: "-", result: 关闭弹窗，不写入, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-011, element: 开始导出, trigger: 点击, condition: 有 data.export:export；至少选择一列；明文导出需 read_sensitive + 明文导出授权, permission: "data.export / export", api: exportData, result: 行数 ≤ 2000 同步下载、超出转异步任务；明文导出额外写审计（BR-IMP-012 / NFR-AUDIT-03）, audit: 是, batch: "2-9" }
+    - { id: ACT-TASK-020, element: 详情「关闭」, trigger: 点击, condition: 始终可用, permission: "-", api: "-", result: 关闭抽屉，保留列表筛选条件, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-021, element: 详情「重试」, trigger: 点击, condition: 有 data.async_task:read；任务状态为 failed / partial_failed；二次确认, permission: "data.async_task / read", api: retryAsyncTask, result: 重新入队，沿用原批次号与幂等键，不产生重复数据（REQ-IMP-037）, audit: 是, batch: "2-9" }
+    - { id: ACT-TASK-022, element: 详情「下载结果文件」, trigger: 点击, condition: 有 data.async_task:read；结果文件未过期, permission: "data.async_task / read", api: downloadTaskResult, result: 返回短时签名链接（与登录态绑定，过期或跨账号一律拒绝）；下载写审计（REQ-IMP-036 / 042 / 043）, audit: 是, batch: "2-9" }
+    - { id: ACT-TASK-023, element: 行内「详情」, trigger: 点击行内按钮, condition: 有 data.async_task:read, permission: "data.async_task / read", api: getAsyncTask, result: 打开 PAGE-IMP-TASK-DETAIL 抽屉并带入该任务（REQ-IMP-033）, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-024, element: 行内「重试」, trigger: 点击行内按钮, condition: 有 data.async_task:read；状态为 failed / partial_failed, permission: "data.async_task / read", api: retryAsyncTask, result: 重新入队并沿用原批次号（REQ-IMP-037）, audit: 是, batch: "2-9" }
+    - { id: ACT-TASK-025, element: 行内「取消」, trigger: 点击行内按钮, condition: 有 data.async_task:read；状态为 queued（只有排队中可取消）, permission: "data.async_task / read", api: cancelAsyncTask, result: 取消排队中的任务，不产生部分写入（REQ-IMP-034）, audit: 是, batch: "2-9" }
+    - { id: ACT-TASK-026, element: 行内「下载」, trigger: 点击行内按钮, condition: 有 data.async_task:read；状态为 succeeded / partial_failed, permission: "data.async_task / read", api: downloadTaskResult, result: 下载结果文件或失败明细（短时签名 + 写审计，REQ-IMP-042 / 043）, audit: 是, batch: "2-9" }
+    - { id: ACT-TASK-030, element: 空态「去发起导入」, trigger: 点击, condition: 有 data.import:import, permission: "data.import / import", api: "-", result: 跳转 PAGE-IMP-WIZARD（保留来源列表的筛选条件）, audit: 否, batch: "2-9" }
+
+# ---------------------------------------------------------------------------
+# 死信任务（PAGE-IMP-DEADLETTER）与重放确认（DIALOG-DLQ-REPLAY）——批次 2-9
+# ---------------------------------------------------------------------------
+dead_letter:
+  page: "PAGE-IMP-DEADLETTER / DIALOG-DLQ-REPLAY"
+  actions:
+    - { id: ACT-TASK-040, element: 任务类型筛选, trigger: 变更, condition: 有 data.async_task:read（平台运营 / 超管）, permission: "data.async_task / read", api: listDeadLetterTask, result: 按导入 / 导出 / 升班筛选死信, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-041, element: 关键字检索, trigger: 输入, condition: 有 data.async_task:read, permission: "data.async_task / read", api: listDeadLetterTask, result: 按任务编号 / 原批次号检索, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-042, element: 刷新, trigger: 点击, condition: 有 data.async_task:read, permission: "data.async_task / read", api: listDeadLetterTask, result: 刷新死信列表, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-045, element: 行内「重放」, trigger: 点击行内按钮, condition: 有 data.async_task:read；重试次数已达上限且未重放成功, permission: "data.async_task / read", api: "-", result: 打开 DIALOG-DLQ-REPLAY 二次确认并带入该任务（REQ-IMP-038）, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-046, element: 行内「已重放」, trigger: 点击行内按钮, condition: 有 data.async_task:read；该条已重放成功, permission: "data.async_task / read", api: "-", result: 打开任务详情抽屉查看重放后的执行结果（死信记录保留用于追溯）, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-050, element: 重放「取消」, trigger: 点击, condition: 始终可用, permission: "-", api: "-", result: 关闭弹窗，不写入, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-051, element: 确认重放, trigger: 点击, condition: 有 data.async_task:read；重放原因必填（至少 5 个字）, permission: "data.async_task / read", api: replayDeadLetterTask, result: 复用原批次号与幂等键重新入队；重放动作写入审计（REQ-IMP-037 / 038）, audit: 是, batch: "2-9" }
+
 batches_pending:
   - { batch: "2-2", pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-CREATE, PAGE-TCH-EDIT, PAGE-TCH-LEAVE, PAGE-TCH-ROLE, PAGE-TCH-ASSIGN], status: "2-2a、2-2b-1 与 2-2b-2 教师部分已产出待验收（ACT-TCH-001 ~ 039 已登记）" }
   - { batch: "2-2b-2b", pages: [PAGE-GRD-LIST, PAGE-GRD-DETAIL, PAGE-GRD-CREATE, PAGE-GRD-BATCH, PAGE-GRD-LEADER, PAGE-GRD-ARCHIVE], status: "PAGE-GRD-LIST 样板页已产出待验收（ACT-GRD-001 ~ 011 已登记）；其余 5 页待样板验收后铺开" }

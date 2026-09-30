@@ -831,3 +831,50 @@ $chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 表现为「默认角色加载后被放行」。审计模块的 4 个页面正好都是这种情况，`AU-15` / `AU-23` / `AU-25` 首次运行即为不通过。
 修法是在 `prototype:params`（init 的最后一步）之后再对齐一次角色形态；该写法已写进 `markup-contract.md` 11.1 节，
 后续页面按同一约定实现。
+
+## 23. 批次 2-9：异步任务中心与死信任务（阶段 2 收尾）
+
+新增 harness `evidence/stage2-prototype/verify-task.html`（2 个 iframe / 5 个同页片段 + 真实事件派发，`AT-01` ~ `AT-22`）。
+
+| 分组 | 覆盖 |
+|---|---|
+| 列表结构（`AT-01` / `AT-02`） | 8 列 7 行，列宽之和 = `min-width` = 1110；5 个筛选器 + 自动刷新开关 + 导出任务清单；默认只看本人任务 |
+| 三条口径（`AT-03`） | `REQ-IMP-032`（只看本人任务）/ `REQ-IMP-035`（自动刷新失败降级手动）/ `REQ-IMP-036` + `DS-DENY-04`（结果查询与下载重新解析范围） |
+| 状态驱动的行内动作（`AT-04`） | queued 详情 + 取消、running 仅详情、succeeded 详情 + 下载、partial_failed 详情 + 重试 + 下载、failed 详情 + 重试、cancelled 仅详情 |
+| 任务详情（`AT-05` ~ `AT-07`） | 点行内「详情」带入编号 / 类型 / 状态 / 批次号幂等键 / 耗时 / 发起人 / 时间 / 结果文件；含进度条与重试 / 下载入口；写明重新解析范围（`REQ-IMP-036`）、短时签名（`REQ-IMP-042`）、下载写审计（`REQ-IMP-043`） |
+| 导出配置（`AT-08` / `AT-09`） | 一列都不选被字段级拦截；列选择 4 项 + 掩码 / 明文开关 + > 2000 行转异步；开始导出走 `exportData`（`data.export:export`） |
+| 任务列表角色与状态（`AT-10` ~ `AT-13`） | 年级主任 `DS-05` 只看本人任务、无重试 / 取消、导出仍可见；任课教师无权限（`DS-07`）；六类状态片段齐全；不提供删除任务入口 |
+| 死信结构与载具（`AT-14` / `AT-15`） | 7 列 3 行，列宽之和 = 1120；默认角色进入无权限形态（运维页仅平台运营） |
+| 死信重放（`AT-16` ~ `AT-18`） | 2 条「重放」+ 1 条「已重放」；点「重放」打开 `DIALOG-DLQ-REPLAY` 并带入任务编号；未填原因被字段级拦截；确认走 `replayDeadLetterTask`，复用原批次号与幂等键（`REQ-IMP-037`）并写审计（`REQ-IMP-038`） |
+| 死信配置与状态（`AT-19` ~ `AT-22`） | 5 张配置统计卡（最大重试 / 退避 / 同校并发 / 同用户并发 / 当前排队，`REQ-IMP-039` / `052`）；只追加与重放、不提供删除；五类状态齐全且空态为正向文案；两页都用 `[data-normal-view]` |
+
+| harness | 结果 |
+|---|---|
+| `verify-task.html` | 22 / 22 通过 |
+
+本批回归（新增 2 个页面 + 2 个同页片段）：
+
+| harness | 结果 |
+|---|---|
+| `verify-audit.html` | 28 / 28 通过 |
+| `verify-stream.html` | 26 / 26 通过 |
+| `verify-stream-b.html` | 37 / 37 通过 |
+| `verify-subject.html` | 14 / 14 通过 |
+| `verify-org-config.html` | 23 / 23 通过 |
+| `verify-school.html` | 16 / 16 通过 |
+| `verify-student-module.html` | 28 / 28 通过 |
+| `verify-detail-entry.html` | 6 / 6 通过 |
+| `verify-import-login.html` | 30 / 30 通过 |
+| `verify-promotion-wizard.html` | 39 / 39 通过 |
+| `verify-promotion-create.html` | 22 / 22 通过 |
+| `verify-promotion-list.html` | 36 / 36 通过 |
+| `verify-class-list.html` | 39 / 39 通过 |
+| `verify-class-detail.html` | 20 / 20 通过 |
+| `verify-class-roster.html` | 34 / 34 通过 |
+| `verify-class-dialogs.html` | 36 / 36 通过 |
+| `verify-grade-list.html` | 38 / 38 通过 |
+| `verify-carrier-change.html` | 14 / 14 通过 |
+| `python tools/check_docs.py` | 通过：未发现问题 |
+
+**阶段 2（业务原型）收尾**：2-1 ~ 2-9 共 9 批全部产出待验收，累计 45 个页面文件承载 96 个页面编号，
+19 个 harness 全绿（合计 508 条断言）。下一步按用户授权合并本地 `main`，然后进阶段 3（独立高保真原型）。

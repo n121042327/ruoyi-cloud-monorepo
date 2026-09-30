@@ -54,7 +54,7 @@
       group: '平台与运维',
       items: [
         { id: 'PAGE-IMP-WIZARD', name: '导入导出', batch: '2-4', delivered: 'pages/import-wizard.html' },
-        { id: 'PAGE-IMP-TASK-LIST', name: '异步任务', batch: '2-9' },
+        { id: 'PAGE-IMP-TASK-LIST', name: '异步任务', batch: '2-9', delivered: 'pages/async-task-list.html' },
         { id: 'PAGE-AUDIT-LOG-LIST', name: '审计日志', batch: '2-8' }
       ]
     }
@@ -105,7 +105,8 @@
     'PAGE-AUDIT-OPS-ACCESS': { path: 'pages/audit-ops-access.html', name: '运营访问记录', batch: '2-8' },
     'PAGE-AUDIT-SENSITIVE-ACCESS': { path: 'pages/audit-sensitive-access.html', name: '敏感数据访问记录', batch: '2-8' },
     'PAGE-AUDIT-SECURITY-EVENT': { path: 'pages/audit-security-event.html', name: '登录与安全事件', batch: '2-8' },
-    'PAGE-AUDIT-ARCHIVE': { path: 'pages/audit-archive.html', name: '归档管理', batch: '2-8' }
+    'PAGE-AUDIT-ARCHIVE': { path: 'pages/audit-archive.html', name: '归档管理', batch: '2-8' },
+    'PAGE-IMP-DEADLETTER': { path: 'pages/dead-letter-task.html', name: '死信任务', batch: '2-9' }
   };
   Object.keys(EXTRA_PAGES).forEach(function (id) {
     PAGE_NAME[id] = EXTRA_PAGES[id].name;

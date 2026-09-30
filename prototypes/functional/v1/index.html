@@ -20,7 +20,7 @@
   </div>
 
   <section class="card">
-    <div class="card-header"><h3>已交付页面（批次 2-1 ~ 2-8）</h3><span class="el-tag success">待人工验收</span></div>
+    <div class="card-header"><h3>已交付页面（批次 2-1 ~ 2-9 · 阶段 2 收尾）</h3><span class="el-tag success">待人工验收</span></div>
     <div class="card-body">
       <table class="el-table">
         <thead>
@@ -475,6 +475,20 @@
 <td><a href="pages/audit-archive.html">pages/audit-archive.html</a></td>
 <td>7 列 4 行（归档批次 / 范围 / 行数 / 状态 / 操作人 / 归档时间 / 操作）+ 归档区间检索；归档 ≠ 删除、归档后仍可检索（REQ-AUD-033）、保留 ≥ 3 年（REQ-AUD-032）、归档动作写日志（REQ-AUD-034）；含写入失败与只读降级提醒（REQ-AUD-037 / 038）</td>
 </tr>
+<tr>
+<td class="mono">PAGE-IMP-TASK-LIST + PAGE-IMP-TASK-DETAIL + PAGE-IMP-EXPORT</td>
+<td>异步任务（批次 2-9）</td>
+<td>列表页 + 详情抽屉 + 导出配置弹窗</td>
+<td><a href="pages/async-task-list.html">pages/async-task-list.html</a></td>
+<td>8 列 7 行（编号 / 类型 / 状态 / 进度 / 发起人 / 发起时间 / 耗时 / 操作）；默认只看本人任务（REQ-IMP-032）；行内动作严格由状态驱动（queued 可取消、failed / partial_failed 可重试、succeeded / partial_failed 可下载）；详情写明下载重新解析范围（REQ-IMP-036）+ 短时签名（REQ-IMP-042）+ 下载写审计（REQ-IMP-043）；导出配置含列选择与掩码 / 明文开关，> 2000 行转异步</td>
+</tr>
+<tr>
+<td class="mono">PAGE-IMP-DEADLETTER + DIALOG-DLQ-REPLAY</td>
+<td>死信任务（批次 2-9）</td>
+<td>列表页（运维）+ 重放确认弹窗</td>
+<td><a href="pages/dead-letter-task.html">pages/dead-letter-task.html</a></td>
+<td>7 列 3 行（编号 / 类型 / 进入死信时间 / 重试次数 / 最后错误 / 原批次号 / 操作）+ 5 张配置统计卡（最大重试 / 退避 / 同校并发 / 同用户并发 / 当前排队，REQ-IMP-039 / 052）；重放二次确认且原因必填，复用原批次号与幂等键（REQ-IMP-037）写审计（REQ-IMP-038）；死信只追加与重放、不提供删除</td>
+</tr>
         </tbody>
       </table>
       <div class="legend" style="margin-top:10px">
@@ -514,6 +528,8 @@
         <li>打开 <a href="pages/audit-ops-access.html">运营访问记录</a>：默认角色是教务主任，直接进入无权限形态（租户侧只有租户管理员与校领导可查）；把角色切到「租户管理员」即可看到平台运营看过什么、用什么用途说明。</li>
         <li>打开 <a href="pages/audit-sensitive-access.html">敏感数据访问记录</a>：看「谁看过证件号 / 监护人手机号」；注意页面上写的是「掩码不记录、只有揭示明文才记录」。再打开 <a href="pages/audit-security-event.html">登录与安全事件</a>：默认角色无权限，切到「校领导」可看登录失败、锁定与激活码查看 / 重置。</li>
         <li>打开 <a href="pages/audit-archive.html">归档管理</a>：默认角色无权限（运维页）；切到「平台运营」可见归档批次与「检索该批次」，失败批次提供「重试归档」；页面写明归档 ≠ 删除、归档后仍可检索。</li>
+        <li>打开 <a href="pages/async-task-list.html">异步任务</a>：看 8 列与状态驱动的行内动作（排队中可取消、部分失败可重试 + 下载）；点行内「详情」看批次号幂等键与进度；点「导出任务清单」打开导出配置弹窗，一列都不选会拦下来。切到「年级主任」：只剩本人任务且没有重试 / 取消；切到「任课教师」则进无权限形态。</li>
+        <li>打开 <a href="pages/dead-letter-task.html">死信任务</a>：默认角色无权限（运维页），把角色切到「平台运营」：看死信明细与 5 张重试 / 并发配置卡；点行内「重放」打开二次确认，不填原因会被字段级拦截；「已重放」那一行指向任务详情而不是再次重放。</li>
       </ol>
     </div>
   </section>
@@ -554,7 +570,7 @@
           <tr><td>2-6</td><td>学校管理 + 学年学期 + 学科与配置（2-6a 学校 6 页、2-6b 校区/初始化/学年学期 4 页、2-6c 学科与配置 6 页）</td><td class="num">19</td><td><span class="el-tag warning">2-6 全部产出待验收</span></td></tr>
           <tr><td>2-7</td><td>选科与教学班（2-7a 选科配置 / 学生选科 / 选科清单；2-7b 组合分布统计 / 变更审批待办 / 按组合生成教学班 / 教学班管理 + 3 个同页片段）</td><td class="num">12</td><td><span class="el-tag warning">2-7 全部产出待验收</span></td></tr>
           <tr><td>2-8</td><td>审计与操作日志（操作日志 / 详情抽屉 / 对象时间线 / 导出配置片段 / 运营访问 / 敏感访问 / 安全事件 / 归档）</td><td class="num">8</td><td><span class="el-tag warning">2-8 全部产出待验收</span></td></tr>
-          <tr><td>2-9</td><td>异步任务中心 + 死信 + 导出配置</td><td class="num">4</td><td><span class="el-tag info">待开始</span></td></tr>
+          <tr><td>2-9</td><td>异步任务中心 + 死信 + 导出配置（任务列表 / 详情抽屉 / 导出配置弹窗 / 死信任务 / 重放确认片段）</td><td class="num">5</td><td><span class="el-tag warning">2-9 全部产出待验收</span></td></tr>
         </tbody>
       </table>
       <div class="legend" style="margin-top:10px"><span>批次状态以 <span class="mono">navigation.yaml</span> 的 <span class="mono">delivery_batches</span> 为准；每批结束时暂停，经人工验收后再进入下一批。</span></div>

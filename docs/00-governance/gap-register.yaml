@@ -1850,6 +1850,41 @@ gaps:
       navigation.yaml 登记该片段并补 2 条跳转，批次 2-8 声明页数 7 → 8；
       page-actions.yaml 新增 5 个审计动作组；verify-audit 28 / 28 通过，17 个已交付 harness 全量回归通过。
 
+  - id: GAP-060
+    title: 死信重放需要二次确认（危险动作 + 写审计），但导入导出 PRD 6.1 没有登记该确认片段
+    discovered_at: 2026-10-01
+    discovered_by: 批次 2-9 开工前的公共前置反查（死信任务）
+    evidence: |
+      docs/10-prd/modules/import-export/PRD.md 的 REQ-IMP-038 要求「超过最大重试次数的任务进入死信，
+      提供运维查看与重放；重放动作写入审计」；prototypes/functional/v1/layout-spec.yaml 的 state_rules 要求
+      「危险动作（删除 / 停用 / 归档 / 覆盖）必须二次确认，且文案写清对象与影响范围」。
+      重放会复用原批次号重新入队、真的改动业务数据，属于危险动作，必须有二次确认；
+      但 6.1 的页面清单只有 4 个页面，没有这个确认片段的编号。
+      判定口径沿用 GAP-059：「PRD 6.3 提到的每个浮层都在 6.1 的页面清单里有编号」——
+      本条虽未写进 6.3，但由 4.6 的需求 + layout-spec 的强制规则共同推出，不登记就会出现没有编号的浮层。
+    expected: 每个危险动作都有二次确认片段且片段在 navigation.yaml 有编号
+    actual: 重放确认片段没有编号
+    impact: |
+      不补：阶段 6 前端要么把重放做成一次点击（违反 layout-spec 的危险动作规则），
+      要么自造一个浮层编号（navigation.yaml 里查不到，后续维护会断链）。
+    options:
+      - A 补登记 `DIALOG-DLQ-REPLAY`（dialog / sm / parent `PAGE-IMP-DEADLETTER`），导入导出 PRD 6.1 同步补一条说明并升 1.0.1-draft，重放原因必填且写审计（推荐）
+      - B 不做二次确认，重放直接在行内触发（需要同时放宽 layout-spec 的危险动作规则）
+      - C 不改 PRD，由阶段 6 前端自行决定重放确认形态
+    recommended: |
+      选项 A。理由：`REQ-IMP-038` 已经把「重放写审计」定下来了，审计里最有价值的就是「谁在什么情况下重放」，
+      重放原因必填才有这条线索；同时与 CR-013 / CR-017 / CR-018 的处理方式一致。
+      选项 B 会削弱危险动作的保护；选项 C 会让同一件事在两个阶段各定一次。
+    blocking: false
+    blocks_stages: [stage6]
+    owner: 用户
+    status: closed
+    resolution: |
+      用户 2026-10-01 授权「需要拍板的默认选推荐」，取选项 A，经 CR-019 执行完毕（见 decisions.md D-083）：
+      导入导出 PRD 升 1.0.1-draft 并在 6.1 补登记 `DIALOG-DLQ-REPLAY`；
+      navigation.yaml 登记该片段并补 4 条跳转，批次 2-9 声明页数 4 → 5；
+      page-actions.yaml 新增 2 组动作；verify-task 22 / 22 通过，18 个已交付 harness 全量回归通过。
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"
@@ -1935,3 +1970,6 @@ open_questions_for_user:
   - "新增 GAP-059 并已关闭：审计 PRD 6.3 要求「点击导出打开导出配置弹窗」但 6.1 未登记该片段。用户授权默认取推荐，按 CR-018 补登记 DIALOG-AUD-EXPORT，审计 PRD 升 1.0.1-draft，见 D-082。"
   - "本批修掉一个共享缺陷（实证发现）：外壳 init() 的顺序是 applyRole → applyState('normal') → applyParams，当页面默认角色本来无权限时，那次复位会把 forbidden 形态冲掉（表现为「默认角色加载后被放行」）。审计 4 个页面受影响，三条断言 AU-15 / AU-23 / AU-25 首次运行即为不通过；修法是在 prototype:params 之后再对齐一次角色形态，并写进 markup-contract.md 11.1 节作为后续页面的统一写法。"
   - "下一步：2-9 异步任务中心（4 页：任务列表 / 任务详情 / 导出配置 / 死信任务）；阶段 2 全部完成且无问题后合并本地 main，再进阶段 3 高保真。"
+  - "阶段 2 批次 2-9 已产出待验收：异步任务列表（8 列 7 行 + PAGE-IMP-TASK-DETAIL 详情抽屉 + PAGE-IMP-EXPORT 导出配置弹窗）、死信任务（7 列 3 行 + 重试与并发配置统计卡 + DIALOG-DLQ-REPLAY 重放确认）；动作 ACT-TASK-001 ~ 051 已登记；harness verify-task 22 / 22 通过，见 D-083。"
+  - "新增 GAP-060 并已关闭：死信重放需要二次确认但导入导出 PRD 6.1 未登记片段。用户授权默认取推荐，按 CR-019 补登记 DIALOG-DLQ-REPLAY，导入导出 PRD 升 1.0.1-draft，见 D-083。"
+  - "**阶段 2（业务原型）已收尾**：2-1 ~ 2-9 共 9 批全部产出待验收，累计 45 个页面文件承载 96 个页面编号，19 个 harness 全绿（合计 508 条断言），check_docs 通过。下一步按用户授权合并本地 main，然后进阶段 3（独立高保真原型）。"

@@ -225,6 +225,11 @@
 | `evidence/stage2-prototype/verify-audit.html` | 批次 2-8 交互验证 harness（AU-01 ~ AU-28 共 28 条断言全部通过） | `review` |
 | `evidence/stage2-prototype/audit-*.png` | 批次 2-8 截图（9 张，见 README 第 6.12 节） | `review` |
 | `docs/00-governance/change-requests/CR-018.md` | 变更申请：审计模块补登记日志导出配置片段（已批准并执行，关联 D-082 / GAP-059） | `review` |
+| `prototypes/functional/v1/pages/async-task-list.html` | 异步任务列表 + 任务详情抽屉 + 导出配置弹窗（批次 2-9） | `review` |
+| `prototypes/functional/v1/pages/dead-letter-task.html` | 死信任务 + 重放确认片段（批次 2-9） | `review` |
+| `evidence/stage2-prototype/verify-task.html` | 批次 2-9 交互验证 harness（AT-01 ~ AT-22 共 22 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/async-task-list_*.png`、`evidence/stage2-prototype/dead-letter-task_*.png`、`evidence/stage2-prototype/task_verify-results.png` | 批次 2-9 截图（9 张，见 README 第 6.13 节） | `review` |
+| `docs/00-governance/change-requests/CR-019.md` | 变更申请：导入导出模块补登记死信重放确认片段（已批准并执行，关联 D-083 / GAP-060） | `review` |
 | `prototypes/functional/v1/pages/school-campus.html` | 校区管理（列表 + 页内表单 + 停用二次确认，批次 2-6b） | `review` |
 | `prototypes/functional/v1/pages/school-init.html` | 开通初始化四步向导（`initSchoolBaseline` 幂等，批次 2-6b） | `review` |
 | `prototypes/functional/v1/pages/term-list.html` | 学年列表 + 新建学年 / 设为当前 / 归档三个弹窗（批次 2-6b） | `review` |
