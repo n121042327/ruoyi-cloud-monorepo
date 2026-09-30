@@ -1,0 +1,274 @@
+schema_version: "1.0"
+purpose: |
+  动作清单：把每个页面上的按钮、链接、行操作、表单提交，翻译成"触发 → 条件 → 结果 → 权限 → 接口"。
+  原型里出现的任何可点击元素都必须在这里登记；这里没有登记的元素不允许出现在原型中。
+
+naming:
+  action_id: "ACT-<模块缩写>-<三位序号>，一经登记不得重排"
+  api: "建议 operationId，阶段 4 概要设计定稿后才算权威值"
+  status_values: [待开始, 待验收, 已验收, 已实现]
+
+fields:
+  id: 动作编号
+  page: 所属页面（对应 navigation.yaml 的 pages.id）
+  element: 页面上显示的文字或图标
+  trigger: 触发方式
+  condition: 显示或可用条件
+  permission: 所需功能权限（05-permission-matrix.yaml 的「角色 / 资源 / 操作」）
+  confirm: 是否需要二次确认，需要时写清文案要素
+  api: 建议接口
+  result: 触发后的结果（含跳转与提示）
+  audit: 是否写入审计
+  batch: 归属批次
+
+# ---------------------------------------------------------------------------
+# 1. 通用动作（所有列表页共用，原型中按同一形态实现）
+# ---------------------------------------------------------------------------
+common_actions:
+  - { id: ACT-COM-001, element: 搜索, trigger: 点击 / 回车, condition: 有查询权限, permission: "继承当前页面 read", api: "当前页面 list 接口", result: 按筛选条件重新查询并回到第 1 页, batch: "2-1" }
+  - { id: ACT-COM-002, element: 重置, trigger: 点击, condition: 始终可用, permission: "继承当前页面 read", api: "-", result: 清空筛选条件并重新查询, batch: "2-1" }
+  - { id: ACT-COM-003, element: 显示搜索 / 隐藏搜索, trigger: 点击, condition: 始终可用, permission: "-", api: "-", result: 折叠或展开搜索卡片，状态写入用户偏好, batch: "2-1" }
+  - { id: ACT-COM-004, element: 列配置, trigger: 点击, condition: 始终可用, permission: "-", api: "-", result: 打开列选择浮层，勾选后立即生效并写入用户偏好, batch: "2-1" }
+  - { id: ACT-COM-005, element: 刷新, trigger: 点击, condition: 始终可用, permission: "-", api: "当前页面 list 接口", result: 按当前条件重新查询，不重置页码, batch: "2-1" }
+  - { id: ACT-COM-006, element: 分页器, trigger: 翻页 / 改每页条数 / 跳页, condition: 总数大于 0, permission: "继承当前页面 read", api: "当前页面 list 接口", result: 加载对应页数据，保留筛选条件, batch: "2-1" }
+  - { id: ACT-COM-007, element: 导出, trigger: 点击, condition: 有导出权限, permission: "data.export:export", confirm: "导出行数超过 2000 时提示转异步", api: "exportData", result: "少于等于 2000 行直接下载，否则转异步任务并提示任务编号", audit: 是, batch: "2-1" }
+  - { id: ACT-COM-008, element: 批量选择, trigger: 勾选行 / 全选, condition: 页面启用批量操作, permission: "-", api: "-", result: "批量按钮由禁用变为可用；单选限制时只有一个勾选才可用", batch: "2-1" }
+
+# ---------------------------------------------------------------------------
+# 2. 学生管理列表（PAGE-STU-LIST）——批次 2-1 样板页
+# ---------------------------------------------------------------------------
+student_list:
+  page: PAGE-STU-LIST
+  actions:
+    - id: ACT-STU-001
+      element: 新增
+      trigger: 点击
+      condition: 有新增权限
+      permission: "academic_director / person.student / create"
+      api: "-"
+      result: 打开 PAGE-STU-CREATE 抽屉，重置为默认值
+      audit: 否
+      batch: "2-1"
+    - id: ACT-STU-002
+      element: 导入
+      trigger: 点击
+      condition: 有导入权限
+      permission: "data.import:import"
+      api: "-"
+      result: 打开 PAGE-STU-IMPORT 导入向导
+      audit: 否
+      batch: "2-1"
+    - id: ACT-STU-003
+      element: 导出
+      trigger: 点击
+      condition: 有导出权限
+      permission: "data.export:export"
+      confirm: 需要，提示"将按当前筛选条件导出，超出 2000 行转后台任务"
+      api: exportStudent
+      result: 下载文件或返回任务编号
+      audit: 是
+      batch: "2-1"
+    - id: ACT-STU-004
+      element: 下载模板
+      trigger: 点击
+      condition: 有导入权限
+      permission: "data.import:import"
+      api: downloadStudentImportTemplate
+      result: 下载当前版本的导入模板，版本号在文件内可见
+      audit: 是
+      batch: "2-1"
+    - id: ACT-STU-005
+      element: 行内编辑
+      trigger: 点击行内按钮
+      condition: 有编辑权限且行在数据范围内
+      permission: "homeroom / person.student_contact / update；academic_director / person.student / update"
+      api: "-"
+      result: 打开 PAGE-STU-EDIT 抽屉，按字段级权限渲染只读与可写
+      audit: 否
+      batch: "2-1"
+    - id: ACT-STU-006
+      element: 行内异动
+      trigger: 点击行内按钮
+      condition: 当前学籍状态存在可选流转
+      permission: "enrollment.transfer:create"
+      api: "-"
+      result: 打开 PAGE-STU-STATUS 弹窗，选项按当前状态动态计算；终态学生该按钮不出现
+      audit: 否
+      batch: "2-5"
+    - id: ACT-STU-007
+      element: 行内调班
+      trigger: 点击行内按钮
+      condition: 当前学年学期且行在数据范围内
+      permission: "academic_director / org.class / update"
+      api: "-"
+      result: 打开 PAGE-STU-TRANSFER 弹窗
+      audit: 否
+      batch: "2-5"
+    - id: ACT-STU-008
+      element: 点击行
+      trigger: 单击数据行
+      condition: 有读取权限
+      permission: "person.student:read"
+      api: getStudent
+      result: 打开 PAGE-STU-DETAIL 详情，关闭后回到列表并保留筛选与页码
+      audit: 否
+      batch: "2-1"
+    - id: ACT-STU-009
+      element: 证件号后四位
+      trigger: 输入并回车
+      condition: 具备敏感字段读取权限
+      permission: "read_sensitive"
+      api: listStudent
+      result: 精确匹配证件号后四位；无该权限时该筛选项整体不出现
+      audit: 否
+      batch: "2-1"
+    - id: ACT-STU-010
+      element: 查看完整证件号
+      trigger: 点击掩码旁图标
+      condition: 具备敏感字段读取权限
+      permission: "read_sensitive"
+      confirm: 需要，提示"查看完整证件号将记录访问日志"
+      api: "-"
+      result: 就地展示完整值，并写入访问日志
+      audit: 是
+      batch: "2-1"
+
+# ---------------------------------------------------------------------------
+# 3. 学生新增 / 编辑抽屉（PAGE-STU-CREATE / PAGE-STU-EDIT）——批次 2-1 样板
+# ---------------------------------------------------------------------------
+student_form:
+  page: [PAGE-STU-CREATE, PAGE-STU-EDIT]
+  actions:
+    - id: ACT-STU-011
+      element: 下一步
+      trigger: 点击
+      condition: 当前步骤校验通过
+      permission: "继承当前页面"
+      api: "-"
+      result: 进入下一步；校验失败时停留并高亮错误字段
+      audit: 否
+      batch: "2-1"
+    - id: ACT-STU-012
+      element: 上一步
+      trigger: 点击
+      condition: 非第一步
+      permission: "继承当前页面"
+      api: "-"
+      result: 返回上一步，已填内容保留
+      audit: 否
+      batch: "2-1"
+    - id: ACT-STU-013
+      element: 保存
+      trigger: 点击
+      condition: 必填与唯一性校验通过
+      permission: "academic_director / person.student / create 或 update"
+      confirm: 否
+      api: addStudent / updateStudent
+      result: 保存成功；新增时展示系统发号结果与"继续新增 / 查看详情"两个后续动作
+      audit: 是
+      batch: "2-1"
+    - id: ACT-STU-014
+      element: 取消 / 关闭
+      trigger: 点击
+      condition: 始终可用
+      permission: "继承当前页面"
+      confirm: 需要，提示"已填写的内容不会保存"
+      api: "-"
+      result: 关闭抽屉，不保存任何数据
+      audit: 否
+      batch: "2-1"
+    - id: ACT-STU-015
+      element: 添加监护人
+      trigger: 点击
+      condition: 已填监护人数少于上限
+      permission: "homeroom / person.student_guardian / update"
+      api: saveStudentGuardian
+      result: 新增一行监护人录入项；达到上限时按钮禁用并说明上限来源
+      audit: 是
+      batch: "2-1"
+    - id: ACT-STU-016
+      element: 删除监护人
+      trigger: 点击行内删除
+      condition: 至少保留一行或允许全空
+      permission: "homeroom / person.student_guardian / update"
+      confirm: 需要，提示"删除后需保存才生效"
+      api: saveStudentGuardian
+      result: 移除该行
+      audit: 是
+      batch: "2-1"
+    - id: ACT-STU-017
+      element: 设为主要联系人
+      trigger: 点击单选
+      condition: 监护人至少一行
+      permission: "homeroom / person.student_guardian / update"
+      api: saveStudentGuardian
+      result: 同一学生只允许一个主要联系人，选中后其余自动取消
+      audit: 是
+      batch: "2-1"
+    - id: ACT-STU-018
+      element: 修改学号
+      trigger: 抽屉内"高级操作"菜单
+      condition: 具备校级管理员权限
+      permission: "school_leader / person.student / update"
+      confirm: 需要，提示"学号修改后将同步变更学生登录名，且旧会话失效"
+      api: updateStudentNo
+      result: 修改成功并写审计
+      audit: 是
+      batch: "2-1"
+
+# ---------------------------------------------------------------------------
+# 4. 其余页面
+#     规则：每个批次开始时，把该批页面的动作追加到下面，并按本文件的字段定义登记。
+#     批次 2-0 只定词汇与样板页；后续批次逐批补齐，未登记的动作不得出现在原型中。
+# ---------------------------------------------------------------------------
+batches_pending:
+  - { batch: "2-2", pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-CREATE, PAGE-TCH-EDIT, PAGE-TCH-ROLE, PAGE-TCH-ASSIGN, PAGE-TCH-LEAVE, PAGE-GRD-LIST, PAGE-GRD-DETAIL, PAGE-GRD-CREATE, PAGE-GRD-BATCH, PAGE-GRD-LEADER, PAGE-GRD-ARCHIVE], status: 待开始 }
+  - { batch: "2-3", pages: [PAGE-CLS-LIST, PAGE-CLS-DETAIL, PAGE-CLS-CREATE, PAGE-CLS-BATCH, PAGE-CLS-ROSTER-ADD, PAGE-CLS-TRANSFER, PAGE-PRM-LIST, PAGE-PRM-CREATE, PAGE-PRM-PREVIEW, PAGE-PRM-VALIDATE, PAGE-PRM-EXECUTE, PAGE-PRM-RESULT], status: 待开始 }
+  - { batch: "2-4", pages: [PAGE-IMP-WIZARD, PAGE-IMP-TEMPLATE, PAGE-IMP-VALIDATE, PAGE-IMP-EXECUTE, PAGE-STU-IMPORT, PAGE-TCH-IMPORT, PAGE-CLS-ROSTER-IMPORT, PAGE-LOGIN, PAGE-403, PAGE-404, PAGE-500], status: 待开始 }
+
+# ---------------------------------------------------------------------------
+# 5. 动作的通用状态规则
+# ---------------------------------------------------------------------------
+state_rules:
+  - 提交类动作在请求中必须置 loading 并禁用，禁止重复提交
+  - 危险动作（删除 / 停用 / 归档 / 覆盖）必须二次确认，且文案写清对象与影响范围
+  - 任何写操作成功后，必须刷新受影响的列表或详情，不依赖前端本地拼接
+  - 任何失败都要给出可操作的提示（原因 + 下一步），不只显示"操作失败"
+  - 无权限时不渲染入口；绕过前端直接调接口必须被后端拒绝
+
+# ---------------------------------------------------------------------------
+# 6. 反馈文案模板（原型与生产共用）
+#    禁止出现"操作成功""操作失败""数据不存在"这类不含信息的文案。
+#    每条文案必须包含：发生了什么 + 对象是谁 + 下一步能做什么。
+#    变量用 {snake_case} 占位，变量名必须是字段字典中的字段或接口返回字段。
+# ---------------------------------------------------------------------------
+feedback_templates:
+  success:
+    - { scene: 新增学生成功, template: "已保存，学号为 {student_no}。可继续新增或查看详情。", channel: 页面内提示条 + 两个后续动作 }
+    - { scene: 编辑成功, template: "已保存。", channel: 顶部轻提示 }
+    - { scene: 导入校验通过, template: "共 {row_total} 行，可执行 {valid_count} 行，失败 {invalid_count} 行。确认后开始导入。", channel: 校验结果区 }
+    - { scene: 导入提交成功, template: "已开始执行，任务编号 {task_no}，可在异步任务中查看进度。", channel: 顶部轻提示 + 跳转链接 }
+    - { scene: 导出同步成功, template: "已生成 {row_count} 行，开始下载。", channel: 顶部轻提示 }
+    - { scene: 导出转异步, template: "本次导出共 {row_count} 行，已转后台任务（{task_no}）。", channel: 顶部轻提示 }
+    - { scene: 删除成功, template: "已删除 {object_name}。", channel: 顶部轻提示 }
+    - { scene: 重置激活码成功, template: "已为 {student_name} 生成新的激活码，旧码立即失效。", channel: 顶部轻提示 }
+  error:
+    - { scene: 无权限, template: "你没有该操作的权限（{permission}）。如需开通，请联系本校管理员。", channel: 页面内提示 }
+    - { scene: 唯一性冲突, template: "{field_label} 已存在（{conflict_value}），请核对后重新提交。", channel: 字段级红字 }
+    - { scene: 引用不存在, template: "第 {row_no} 行引用的 {field_label} 不存在，请先在对应模块创建。", channel: 失败明细行 }
+    - { scene: 并发冲突, template: "该记录已被 {operator} 于 {time} 更新，请刷新后重试。", channel: 弹窗 }
+    - { scene: 导入部分失败, template: "共 {row_total} 行，成功 {success_count} 行，失败 {failed_count} 行。失败明细可下载。", channel: 结果区 + 下载按钮 }
+    - { scene: 超限, template: "单次最多 {limit} 行，当前 {row_count} 行，请拆分后重新上传。", channel: 页面内提示 }
+    - { scene: 服务异常, template: "处理失败，请稍后重试。请求编号 {request_id}。", channel: 页面内提示 + 重试按钮 }
+  confirm:
+    - { scene: 删除, template: "确定删除 {object_name}？删除后不可恢复。" }
+    - { scene: 停用, template: "停用 {object_name} 后，该对象不再出现在业务选择项中，历史数据保留。" }
+    - { scene: 归档, template: "归档 {object_name} 后业务上不再可编辑，仍可查询。" }
+    - { scene: 导入执行, template: "将对 {row_total} 行执行导入；引用的学年学期、年级、班级必须已存在。" }
+    - { scene: 逾期变更, template: "已超过选科截止日期（{deadline}），提交后需校级管理员审批。" }
+    - { scene: 学号修改, template: "修改学号后，学生登录名将同步变更，旧会话失效，操作会写入审计。" }
+  rules:
+    - 成功提示必须包含"下一步能做什么"，不能只有"已保存"
+    - 失败提示必须包含原因或请求编号，并给出可执行的下一步
+    - 确认文案必须写清"对谁、做什么、影响范围"
+    - 敏感信息（证件号、完整手机号）不得出现在提示文案中

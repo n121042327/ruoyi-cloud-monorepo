@@ -101,24 +101,28 @@
 
 | 路径 | 用途 | 状态 |
 |---|---|---|
-| `index.html` | 原型入口与导航 | `planned` |
-| `README.md` | 原型说明、运行方式、与 PRD 的对应关系 | `planned` |
-| `navigation.yaml` | 菜单树、页面跳转关系、入口条件 | `planned` |
-| `page-specs/<page>.md` | 每个页面的规格：元素、状态、交互、跳转 | `planned` |
-| `layout-spec.yaml` | 栅格、区域划分、主内容区宽度规则 | `planned` |
-| `page-actions.yaml` | 动作清单：按钮 → 触发 → 结果 → 权限 | `planned` |
-| `content-samples.json` | 原型演示数据（真实感中文样例） | `planned` |
-| `markup-contract.md` | 原型 HTML 必须携带的 `data-*` 语义标记约定 | `planned` |
-| `pages/student-list.html` | 学生管理列表（**样板**） | `planned` |
-| `pages/student-form.html` | 学生新增 / 编辑抽屉（**样板**） | `planned` |
-| `pages/teacher-list.html` | 教师管理列表 | `planned` |
-| `pages/class-list.html` | 班级管理列表 | `planned` |
-| `pages/class-detail.html` | 班级详情与花名册 | `planned` |
-| `pages/grade-list.html` | 年级管理列表 | `planned` |
-| `pages/promotion-wizard.html` | 升班向导 | `planned` |
-| `pages/import-wizard.html` | 批量导入向导 | `planned` |
-| `pages/login.html` | 登录 | `planned` |
-| `pages/403.html` `pages/404.html` `pages/500.html` | 异常页 | `planned` |
+| `prototypes/functional/v1/README.md` | 原型说明、运行方式、批次对照 | `review` |
+| `prototypes/functional/v1/prototype-quality-spec.md` | 原型质量规范：14 类"空洞"根因与约束、数据真实性、边界数据、角色视角、组件选择决策、交批验收清单 | `review` |
+| `prototypes/functional/v1/layout-spec.yaml` | 栅格、区域划分、主内容区宽度、组件尺寸规则 | `review` |
+| `prototypes/functional/v1/navigation.yaml` | 菜单树、87 项页面注册表、跳转关系、入口条件、批次 | `review` |
+| `prototypes/functional/v1/page-actions.yaml` | 动作清单：按钮 → 触发 → 结果 → 权限 → 接口 | `review` |
+| `prototypes/functional/v1/markup-contract.md` | 原型 HTML 必须携带的 `data-*` 语义标记与组件映射表 | `review` |
+| `prototypes/functional/v1/content-samples.json` | 原型演示数据（真实感中文样例） | `review` |
+| `prototypes/functional/v1/page-specs/_template.md` | 页面规格模板 | `review` |
+| `prototypes/functional/v1/page-specs/<page>.md` | 每个页面的规格：元素、状态、交互、跳转（随各批产出） | `planned` |
+| `prototypes/functional/v1/index.html` | 原型入口与导航（批次 2-1） | `planned` |
+| `prototypes/functional/v1/pages/student-list.html` | 学生管理列表（**样板**） | `planned` |
+| `prototypes/functional/v1/pages/student-form.html` | 学生新增 / 编辑抽屉（**样板**） | `planned` |
+| `prototypes/functional/v1/pages/teacher-list.html` | 教师管理列表 | `planned` |
+| `prototypes/functional/v1/pages/grade-list.html` | 年级管理列表 | `planned` |
+| `prototypes/functional/v1/pages/class-list.html` | 班级管理列表 | `planned` |
+| `prototypes/functional/v1/pages/class-detail.html` | 班级详情与花名册 | `planned` |
+| `prototypes/functional/v1/pages/promotion-wizard.html` | 升班向导 | `planned` |
+| `prototypes/functional/v1/pages/import-wizard.html` | 批量导入向导 | `planned` |
+| `prototypes/functional/v1/pages/login.html` | 登录 | `planned` |
+| `prototypes/functional/v1/pages/403.html` | 无权限页 | `planned` |
+| `prototypes/functional/v1/pages/404.html` | 页面不存在 | `planned` |
+| `prototypes/functional/v1/pages/500.html` | 服务异常 | `planned` |
 
 ---
 

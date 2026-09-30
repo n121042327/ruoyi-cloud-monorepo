@@ -1,0 +1,240 @@
+schema_version: "1.0"
+purpose: |
+  原型导航规范：菜单树、页面注册表、跳转关系、入口条件。
+  页面总数、类型与批次以本文件为准；页面看不到的入口，原型里也不允许出现。
+
+source_of_truth:
+  - "docs/10-prd/**（各模块 PRD 第 6 节「界面需求」定义了页面清单，本文件是它们的汇总）"
+  - "docs/10-prd/05-permission-matrix.yaml（入口条件取自功能权限）"
+
+# ---------------------------------------------------------------------------
+# 1. 模块索引
+# ---------------------------------------------------------------------------
+module_index:
+  student:       { name: 学生管理,       prd: docs/10-prd/modules/student/PRD.md }
+  teacher:       { name: 教师管理,       prd: docs/10-prd/modules/teacher/PRD.md }
+  class:         { name: 班级管理,       prd: docs/10-prd/modules/class/PRD.md }
+  grade:         { name: 年级管理,       prd: docs/10-prd/modules/grade/PRD.md }
+  school:        { name: 学校管理,       prd: docs/10-prd/modules/school/PRD.md }
+  term:          { name: 学年学期,       prd: docs/10-prd/modules/term/PRD.md }
+  subject:       { name: 学科与配置,     prd: docs/10-prd/modules/subject/PRD.md }
+  promotion:     { name: 升班与学籍异动, prd: docs/10-prd/modules/promotion/PRD.md }
+  stream:        { name: 选科与教学班,   prd: docs/10-prd/modules/stream/PRD.md }
+  import-export: { name: 导入导出与异步任务, prd: docs/10-prd/modules/import-export/PRD.md }
+  audit:         { name: 审计与操作日志, prd: docs/10-prd/modules/audit/PRD.md }
+
+# ---------------------------------------------------------------------------
+# 2. 菜单树（左侧导航，顺序即展示顺序）
+# ---------------------------------------------------------------------------
+menus:
+  - id: edu
+    name: 教育管理
+    children:
+      - { id: menu-student, name: 学生管理, route: /edu/student/list, permission: "person.student:read" }
+      - { id: menu-teacher, name: 教师管理, route: /edu/teacher/list, permission: "person.teacher:read" }
+      - { id: menu-class, name: 班级管理, route: /edu/class/list, permission: "org.class:read" }
+      - { id: menu-grade, name: 年级管理, route: /edu/grade/list, permission: "org.grade:read" }
+      - { id: menu-promotion, name: 升班与学籍, route: /edu/promotion/list, permission: "promotion.batch:read" }
+      - { id: menu-stream, name: 选科与教学班, route: /edu/stream/list, permission: "stream.selection:read" }
+  - id: org
+    name: 组织与配置
+    children:
+      - { id: menu-school, name: 学校管理, route: /edu/school/list, permission: "org.school:read" }
+      - { id: menu-term, name: 学年学期, route: /edu/term/list, permission: "org.term:read" }
+      - { id: menu-subject, name: 学科与配置, route: /edu/subject/list, permission: "org.subject:read" }
+  - id: ops
+    name: 平台与运维
+    children:
+      - { id: menu-import, name: 导入导出, route: /edu/import/wizard, permission: "data.import:import" }
+      - { id: menu-task, name: 异步任务, route: /edu/async-task/list, permission: "data.async_task:read" }
+      - { id: menu-audit, name: 审计日志, route: /edu/audit/log/list, permission: "audit.log:read" }
+
+menu_rules:
+  - 菜单项按功能权限显隐；无任一子项可见时隐藏整个分组
+  - 菜单顺序固定，不按使用频率动态排序
+  - 需要多校切换的角色（集团管理员 / 平台运营）在顶部导航切换学校，不在菜单里重复
+
+# ---------------------------------------------------------------------------
+# 3. 页面注册表（86 项，含页面 / 详情 / 抽屉 / 弹窗 / 向导 / 页面内区块）
+#    type: page 独立页 | detail 详情 | drawer 抽屉 | dialog 弹窗 | wizard 向导 | block 页面内区块 | standalone 独立于菜单
+#    batch: 见第 4 节 delivery_batches；deferred 表示本轮不做
+# ---------------------------------------------------------------------------
+pages:
+  # ---- 学生管理 ----
+  - { id: PAGE-STU-LIST, name: 学生管理列表, module: student, type: page, route: /edu/student/list, template: TPL-LIST, batch: "2-1" }
+  - { id: PAGE-STU-CREATE, name: 新增学生, module: student, type: drawer, size: md, parent: PAGE-STU-LIST, batch: "2-1" }
+  - { id: PAGE-STU-EDIT, name: 编辑学生, module: student, type: drawer, size: md, parent: PAGE-STU-LIST, batch: "2-1" }
+  - { id: PAGE-STU-DETAIL, name: 学生详情, module: student, type: detail, route: /edu/student/detail, parent: PAGE-STU-LIST, batch: "2-5" }
+  - { id: PAGE-STU-STATUS, name: 学籍异动, module: student, type: dialog, size: md, parent: PAGE-STU-DETAIL, batch: "2-5" }
+  - { id: PAGE-STU-TRANSFER, name: 调班, module: student, type: dialog, size: sm, parent: PAGE-STU-DETAIL, batch: "2-5" }
+  - { id: PAGE-STU-HISTORY, name: 变更记录, module: student, type: block, parent: PAGE-STU-DETAIL, batch: "2-5" }
+  - { id: PAGE-STU-CROSS-TRANSFER, name: 跨校转学, module: student, type: wizard, route: /edu/student/cross-transfer, batch: "2-5" }
+  - { id: PAGE-STU-IMPORT, name: 批量导入向导, module: student, type: wizard, route: /edu/student/import, batch: "2-4" }
+
+  # ---- 教师管理 ----
+  - { id: PAGE-TCH-LIST, name: 教师管理列表, module: teacher, type: page, route: /edu/teacher/list, template: TPL-LIST, batch: "2-2" }
+  - { id: PAGE-TCH-DETAIL, name: 教师详情, module: teacher, type: detail, parent: PAGE-TCH-LIST, batch: "2-2" }
+  - { id: PAGE-TCH-CREATE, name: 新增教师, module: teacher, type: drawer, size: md, parent: PAGE-TCH-LIST, batch: "2-2" }
+  - { id: PAGE-TCH-EDIT, name: 编辑教师, module: teacher, type: drawer, size: md, parent: PAGE-TCH-LIST, batch: "2-2" }
+  - { id: PAGE-TCH-ROLE, name: 教育角色分配, module: teacher, type: dialog, size: sm, parent: PAGE-TCH-LIST, batch: "2-2" }
+  - { id: PAGE-TCH-ASSIGN, name: 任教关系设置, module: teacher, type: drawer, size: lg, parent: PAGE-TCH-LIST, batch: "2-2" }
+  - { id: PAGE-TCH-LEAVE, name: 离职与调离登记, module: teacher, type: dialog, size: sm, parent: PAGE-TCH-LIST, batch: "2-2" }
+  - { id: PAGE-TCH-IMPORT, name: 教师导入向导, module: teacher, type: wizard, route: /edu/teacher/import, batch: "2-4" }
+
+  # ---- 年级管理 ----
+  - { id: PAGE-GRD-LIST, name: 年级管理列表, module: grade, type: page, route: /edu/grade/list, template: TPL-LIST, batch: "2-2" }
+  - { id: PAGE-GRD-DETAIL, name: 年级详情, module: grade, type: detail, parent: PAGE-GRD-LIST, batch: "2-2" }
+  - { id: PAGE-GRD-CREATE, name: 新建年级, module: grade, type: drawer, size: sm, parent: PAGE-GRD-LIST, batch: "2-2" }
+  - { id: PAGE-GRD-BATCH, name: 按学段批量生成, module: grade, type: drawer, size: sm, parent: PAGE-GRD-LIST, batch: "2-2" }
+  - { id: PAGE-GRD-LEADER, name: 指定年级主任, module: grade, type: drawer, size: md, parent: PAGE-GRD-LIST, batch: "2-2" }
+  - { id: PAGE-GRD-ARCHIVE, name: 归档确认, module: grade, type: dialog, size: sm, parent: PAGE-GRD-LIST, batch: "2-2" }
+
+  # ---- 班级管理 ----
+  - { id: PAGE-CLS-LIST, name: 班级管理列表, module: class, type: page, route: /edu/class/list, template: TPL-LIST, batch: "2-3" }
+  - { id: PAGE-CLS-DETAIL, name: 班级详情, module: class, type: detail, route: /edu/class/detail, parent: PAGE-CLS-LIST, batch: "2-3" }
+  - { id: PAGE-CLS-CREATE, name: 新建班级, module: class, type: drawer, size: md, parent: PAGE-CLS-LIST, batch: "2-3" }
+  - { id: PAGE-CLS-BATCH, name: 批量生成班级, module: class, type: drawer, size: md, parent: PAGE-CLS-LIST, batch: "2-3" }
+  - { id: PAGE-CLS-ROSTER-ADD, name: 添加学生, module: class, type: drawer, size: lg, parent: PAGE-CLS-DETAIL, batch: "2-3" }
+  - { id: PAGE-CLS-TRANSFER, name: 调班, module: class, type: dialog, size: sm, parent: PAGE-CLS-DETAIL, batch: "2-3" }
+  - { id: PAGE-CLS-ROSTER-IMPORT, name: 编班表导入向导, module: class, type: wizard, route: /edu/class/import-roster, batch: "2-4" }
+  - { id: PAGE-CLS-TEACHING, name: 教学班管理, module: class, type: page, route: /edu/class/teaching, template: TPL-LIST, batch: "2-7" }
+  - { id: PAGE-CLS-MERGE, name: 班级合并, module: class, type: wizard, route: /edu/class/merge, batch: deferred, note: "PRD 已标明延后，本轮不做" }
+
+  # ---- 升班与学籍异动 ----
+  - { id: PAGE-PRM-LIST, name: 升班任务列表, module: promotion, type: page, route: /edu/promotion/list, template: TPL-LIST, batch: "2-3" }
+  - { id: PAGE-PRM-CREATE, name: 新建升班任务, module: promotion, type: wizard, route: /edu/promotion/create, batch: "2-3" }
+  - { id: PAGE-PRM-PREVIEW, name: 升班预览与调整, module: promotion, type: wizard, route: /edu/promotion/preview, batch: "2-3" }
+  - { id: PAGE-PRM-VALIDATE, name: 升班校验结果, module: promotion, type: wizard, route: /edu/promotion/validate, batch: "2-3" }
+  - { id: PAGE-PRM-EXECUTE, name: 执行与进度, module: promotion, type: wizard, route: /edu/promotion/execute, batch: "2-3" }
+  - { id: PAGE-PRM-RESULT, name: 执行结果与重试, module: promotion, type: page, route: /edu/promotion/result, batch: "2-3" }
+  - { id: PAGE-PRM-CHANGE, name: 学籍异动登记, module: promotion, type: dialog, size: md, parent: PAGE-STU-DETAIL, batch: "2-5" }
+  - { id: PAGE-PRM-TRANSFER, name: 跨校转学, module: promotion, type: wizard, route: /edu/promotion/transfer, batch: "2-5" }
+  - { id: PAGE-PRM-HISTORY, name: 异动历史, module: promotion, type: page, route: /edu/promotion/history, template: TPL-LIST, batch: "2-5" }
+
+  # ---- 学校管理 ----
+  - { id: PAGE-SCH-LIST, name: 学校管理列表, module: school, type: page, route: /edu/school/list, template: TPL-LIST, batch: "2-6" }
+  - { id: PAGE-SCH-DETAIL, name: 学校详情, module: school, type: detail, parent: PAGE-SCH-LIST, batch: "2-6" }
+  - { id: PAGE-SCH-CREATE, name: 新建学校, module: school, type: drawer, size: md, parent: PAGE-SCH-LIST, batch: "2-6" }
+  - { id: PAGE-SCH-EDIT, name: 编辑学校, module: school, type: drawer, size: md, parent: PAGE-SCH-LIST, batch: "2-6" }
+  - { id: PAGE-SCH-CAMPUS, name: 校区管理, module: school, type: drawer, size: lg, parent: PAGE-SCH-DETAIL, batch: "2-6" }
+  - { id: PAGE-SCH-STAGE, name: 学段配置, module: school, type: drawer, size: sm, parent: PAGE-SCH-DETAIL, batch: "2-6" }
+  - { id: PAGE-SCH-INIT, name: 开通初始化向导, module: school, type: wizard, route: /edu/school/init, batch: "2-6" }
+  - { id: PAGE-SCH-DISABLE, name: 停用确认, module: school, type: dialog, size: sm, parent: PAGE-SCH-LIST, batch: "2-6" }
+
+  # ---- 学年学期 ----
+  - { id: PAGE-TERM-LIST, name: 学年学期列表, module: term, type: page, route: /edu/term/list, template: TPL-LIST, batch: "2-6" }
+  - { id: PAGE-TERM-CREATE, name: 新建学年, module: term, type: drawer, size: sm, parent: PAGE-TERM-LIST, batch: "2-6" }
+  - { id: PAGE-TERM-TERMS, name: 学期管理, module: term, type: drawer, size: md, parent: PAGE-TERM-LIST, batch: "2-6" }
+  - { id: PAGE-TERM-SETCURRENT, name: 设为当前学年学期, module: term, type: dialog, size: sm, parent: PAGE-TERM-LIST, batch: "2-6" }
+  - { id: PAGE-TERM-ARCHIVE, name: 学年归档, module: term, type: dialog, size: sm, parent: PAGE-TERM-LIST, batch: "2-6" }
+
+  # ---- 学科与配置 ----
+  - { id: PAGE-SUB-LIST, name: 学科列表, module: subject, type: page, route: /edu/subject/list, template: TPL-LIST, batch: "2-6" }
+  - { id: PAGE-SUB-CREATE, name: 新建学科, module: subject, type: drawer, size: sm, parent: PAGE-SUB-LIST, batch: "2-6" }
+  - { id: PAGE-SUB-EDIT, name: 编辑学科, module: subject, type: drawer, size: sm, parent: PAGE-SUB-LIST, batch: "2-6" }
+  - { id: PAGE-SUB-STREAM, name: 选科角色配置, module: subject, type: drawer, size: sm, parent: PAGE-SUB-LIST, batch: "2-6" }
+  - { id: PAGE-SUB-STAGE, name: 学段启用配置, module: subject, type: drawer, size: sm, parent: PAGE-SUB-LIST, batch: "2-6" }
+  - { id: PAGE-SUB-BATCH, name: 按学段批量初始化, module: subject, type: drawer, size: sm, parent: PAGE-SUB-LIST, batch: "2-6" }
+
+  # ---- 选科与教学班 ----
+  - { id: PAGE-STR-CONFIG, name: 选科配置, module: stream, type: page, route: /edu/stream/config, template: TPL-DETAIL, batch: "2-7" }
+  - { id: PAGE-STR-STUDENT, name: 学生选科, module: stream, type: page, route: /edu/stream/selection, template: TPL-DETAIL, batch: "2-7" }
+  - { id: PAGE-STR-LIST, name: 选科清单, module: stream, type: page, route: /edu/stream/list, template: TPL-LIST, batch: "2-7" }
+  - { id: PAGE-STR-STAT, name: 组合分布统计, module: stream, type: block, parent: PAGE-STR-LIST, batch: "2-7" }
+  - { id: PAGE-STR-CHANGE, name: 发起变更申请, module: stream, type: dialog, size: sm, parent: PAGE-STR-LIST, batch: "2-7" }
+  - { id: PAGE-STR-APPROVE, name: 变更审批待办, module: stream, type: page, route: /edu/stream/approve, template: TPL-LIST, batch: "2-7" }
+  - { id: PAGE-STR-HISTORY, name: 选科历史, module: stream, type: block, parent: PAGE-STR-LIST, batch: "2-7" }
+  - { id: PAGE-STR-GEN-CLASS, name: 按组合生成教学班, module: stream, type: wizard, route: /edu/stream/generate-class, batch: "2-7" }
+
+  # ---- 导入导出与异步任务 ----
+  - { id: PAGE-IMP-WIZARD, name: 导入向导, module: import-export, type: wizard, route: /edu/import/wizard, batch: "2-4" }
+  - { id: PAGE-IMP-TEMPLATE, name: 模板下载与说明, module: import-export, type: block, parent: PAGE-IMP-WIZARD, batch: "2-4" }
+  - { id: PAGE-IMP-VALIDATE, name: 校验结果, module: import-export, type: block, parent: PAGE-IMP-WIZARD, batch: "2-4" }
+  - { id: PAGE-IMP-EXECUTE, name: 执行与进度, module: import-export, type: block, parent: PAGE-IMP-WIZARD, batch: "2-4" }
+  - { id: PAGE-IMP-TASK-LIST, name: 异步任务列表, module: import-export, type: page, route: /edu/async-task/list, template: TPL-LIST, batch: "2-9" }
+  - { id: PAGE-IMP-TASK-DETAIL, name: 任务详情, module: import-export, type: detail, parent: PAGE-IMP-TASK-LIST, batch: "2-9" }
+  - { id: PAGE-IMP-EXPORT, name: 导出配置, module: import-export, type: dialog, size: md, parent: PAGE-IMP-TASK-LIST, batch: "2-9" }
+  - { id: PAGE-IMP-DEADLETTER, name: 死信任务, module: import-export, type: page, route: /edu/async-task/dead-letter, template: TPL-LIST, batch: "2-9" }
+
+  # ---- 审计与操作日志 ----
+  - { id: PAGE-AUDIT-LOG-LIST, name: 操作日志, module: audit, type: page, route: /edu/audit/log/list, template: TPL-LIST, batch: "2-8" }
+  - { id: PAGE-AUDIT-LOG-DETAIL, name: 日志详情, module: audit, type: detail, parent: PAGE-AUDIT-LOG-LIST, batch: "2-8" }
+  - { id: PAGE-AUDIT-OBJECT-TIMELINE, name: 对象变更时间线, module: audit, type: block, parent: PAGE-AUDIT-LOG-DETAIL, batch: "2-8" }
+  - { id: PAGE-AUDIT-OPS-ACCESS, name: 运营访问记录, module: audit, type: page, route: /edu/audit/operator-access, template: TPL-LIST, batch: "2-8" }
+  - { id: PAGE-AUDIT-SENSITIVE-ACCESS, name: 敏感数据访问记录, module: audit, type: page, route: /edu/audit/sensitive-access, template: TPL-LIST, batch: "2-8" }
+  - { id: PAGE-AUDIT-SECURITY-EVENT, name: 登录与安全事件, module: audit, type: page, route: /edu/audit/security-event, template: TPL-LIST, batch: "2-8" }
+  - { id: PAGE-AUDIT-ARCHIVE, name: 归档管理, module: audit, type: page, route: /edu/audit/archive, template: TPL-LIST, batch: "2-8" }
+
+  # ---- 独立页（不属于任何模块菜单） ----
+  - { id: PAGE-LOGIN, name: 登录, module: common, type: standalone, route: /login, batch: "2-4" }
+  - { id: PAGE-403, name: 无权限, module: common, type: standalone, route: /403, batch: "2-4" }
+  - { id: PAGE-404, name: 页面不存在, module: common, type: standalone, route: /404, batch: "2-4" }
+  - { id: PAGE-500, name: 服务异常, module: common, type: standalone, route: /500, batch: "2-4" }
+
+# ---------------------------------------------------------------------------
+# 4. 交付批次（页面总数与 README 的对照表必须一致）
+# ---------------------------------------------------------------------------
+delivery_batches:
+  - { batch: "2-0", content: 原型规范（layout-spec / navigation / page-actions / markup-contract / 样例数据）, pages: 0, status: 本批 }
+  - { batch: "2-1", content: 学生管理列表 + 新增/编辑抽屉（样板）, pages: 3, status: 待验收 }
+  - { batch: "2-2", content: 教师管理 + 年级管理, pages: 13, status: 待开始 }
+  - { batch: "2-3", content: 班级管理 + 班级详情 + 升班向导, pages: 12, status: 待开始 }
+  - { batch: "2-4", content: 导入向导 + 登录 + 异常页, pages: 11, status: 待开始 }
+  - { batch: "2-5", content: 学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录）, pages: 8, status: 已确认（D-050），待开始 }
+  - { batch: "2-6", content: 学校管理 + 学年学期 + 学科与配置, pages: 19, status: 已确认（D-050），待开始 }
+  - { batch: "2-7", content: 选科与教学班, pages: 9, status: 已确认（D-050），待开始 }
+  - { batch: "2-8", content: 审计与操作日志, pages: 7, status: 已确认（D-050），待开始 }
+  - { batch: "2-9", content: 异步任务中心 + 死信 + 导出配置, pages: 4, status: 已确认（D-050），待开始 }
+  - { batch: deferred, content: "已延后页面（PRD 标注本轮不做）", pages: 1, status: 已延后 }
+
+# ---------------------------------------------------------------------------
+# 5. 关键跳转关系（原型必须能按这些路径点通）
+# ---------------------------------------------------------------------------
+jump_map:
+  - { from: PAGE-STU-LIST, trigger: 点击行, to: PAGE-STU-DETAIL, keep_filters: true }
+  - { from: PAGE-STU-LIST, trigger: 点击"新增", to: PAGE-STU-CREATE, overlay: drawer }
+  - { from: PAGE-STU-LIST, trigger: 行内"编辑", to: PAGE-STU-EDIT, overlay: drawer }
+  - { from: PAGE-STU-LIST, trigger: 点击"导入", to: PAGE-STU-IMPORT, overlay: page }
+  - { from: PAGE-STU-DETAIL, trigger: 行内"异动", to: PAGE-STU-STATUS, overlay: dialog }
+  - { from: PAGE-STU-DETAIL, trigger: 行内"调班", to: PAGE-STU-TRANSFER, overlay: dialog }
+  - { from: PAGE-STU-DETAIL, trigger: 锚点"变更记录", to: PAGE-STU-HISTORY, overlay: block }
+  - { from: PAGE-STU-DETAIL, trigger: 顶部"跨校转学", to: PAGE-STU-CROSS-TRANSFER, overlay: page }
+  - { from: PAGE-CLS-LIST, trigger: 点击行, to: PAGE-CLS-DETAIL, keep_filters: true }
+  - { from: PAGE-CLS-DETAIL, trigger: "添加学生", to: PAGE-CLS-ROSTER-ADD, overlay: drawer }
+  - { from: PAGE-CLS-DETAIL, trigger: 行内"调班", to: PAGE-CLS-TRANSFER, overlay: dialog }
+  - { from: PAGE-PRM-LIST, trigger: "新建升班任务", to: PAGE-PRM-CREATE, overlay: page }
+  - { from: PAGE-PRM-CREATE, trigger: 下一步, to: PAGE-PRM-PREVIEW, overlay: page }
+  - { from: PAGE-PRM-PREVIEW, trigger: 下一步, to: PAGE-PRM-VALIDATE, overlay: page }
+  - { from: PAGE-PRM-VALIDATE, trigger: 确认执行, to: PAGE-PRM-EXECUTE, overlay: page }
+  - { from: PAGE-PRM-EXECUTE, trigger: 执行完成, to: PAGE-PRM-RESULT, overlay: page }
+  - { from: PAGE-IMP-WIZARD, trigger: 步骤一, to: PAGE-IMP-TEMPLATE, overlay: block }
+  - { from: PAGE-IMP-WIZARD, trigger: 步骤三, to: PAGE-IMP-VALIDATE, overlay: block }
+  - { from: PAGE-IMP-WIZARD, trigger: 确认执行, to: PAGE-IMP-EXECUTE, overlay: block }
+  - { from: PAGE-IMP-TASK-LIST, trigger: 点击行, to: PAGE-IMP-TASK-DETAIL, overlay: detail }
+  - { from: PAGE-AUDIT-LOG-LIST, trigger: 点击行, to: PAGE-AUDIT-LOG-DETAIL, overlay: detail }
+  - { from: PAGE-AUDIT-LOG-DETAIL, trigger: "对象标识", to: PAGE-AUDIT-OBJECT-TIMELINE, overlay: block }
+
+back_rules:
+  - 抽屉与弹窗关闭后回到来源页面，且保留筛选条件与分页位置
+  - 详情页返回列表时保留筛选条件、分页与列配置
+  - 向导页的"取消"需二次确认，确认后回到列表并丢弃草稿
+
+# ---------------------------------------------------------------------------
+# 6. 入口条件（谁能看到入口）
+# ---------------------------------------------------------------------------
+entry_rules:
+  - 无功能权限时不渲染入口，且后台接口同样拒绝（NFR-SEC-05）
+  - 无数据范围时页面显示"当前账号没有可查看的数据"状态，不显示空表格
+  - 教师模块的任课教师：只能看到本人任教相关入口，不出现导入按钮
+  - 学生模块的班主任：不出现"新增 / 导入"，出现"编辑监护人信息"
+  - 平台运营：默认只读，不出现任何写操作入口，导出需显式授权
+  - 集团用户：只出现集团自有数据入口，不出现下属学校教学数据入口
+
+# ---------------------------------------------------------------------------
+# 7. 自查清单
+# ---------------------------------------------------------------------------
+checks:
+  - 每个页面都能在 page-actions.yaml 中找到它的动作
+  - 每条 jump_map 的两个端点都在 pages 中注册
+  - 每个页面的 batch 都在 delivery_batches 中有定义
+  - 菜单项的 permission 都能在 05-permission-matrix.yaml 中找到

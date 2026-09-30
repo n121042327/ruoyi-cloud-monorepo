@@ -632,6 +632,39 @@ gaps:
     resolved_at: 2026-09-30
     status: closed
 
+  - id: GAP-025
+    title: 阶段 2 原批次计划只覆盖约 20 个页面，实际需交付 86 个
+    discovered_at: 2026-09-30
+    discovered_by: 批次 2-0 编制 prototypes/functional/v1/navigation.yaml 时汇总各模块 PRD 的页面清单
+    evidence: |
+      stage-inputs.yaml 的 stage2 batch_plan 只有 2-1 ~ 2-4，合计约 20 个页面
+      （学生列表、学生表单、教师、年级、班级、班级详情、升班向导、导入向导、登录、异常页）。
+      但 11 个模块 PRD 第 6 节共定义 83 个页面/区块，加上登录与 3 个异常页共 87 项，
+      扣除 PRD 已标注延后的"班级合并"（PAGE-CLS-MERGE）1 项，仍需交付 86 项。
+      缺口集中在：学生模块剩余 5 项、学校与学年学期与学科 19 项、选科与教学班 9 项、
+      审计 7 项、异步任务中心与死信 4 项。
+    expected: 阶段 2 的批次计划覆盖全部 86 个页面，且每批可独立验收
+    actual: 原计划只覆盖约 20 个
+    impact: |
+      若按原计划执行，阶段 2 结束时无法满足门禁"每个 PRD 用户故事都有对应页面或页面状态"，
+      阶段 3 高保真也无从覆盖；缺口会在阶段 3 或阶段 6 才暴露，返工面更大。
+    options:
+      - A 接受扩展批次 2-5 ~ 2-9（navigation.yaml 已写好逐页映射），阶段 2 分 10 批交付，每批暂停验收
+      - B 保持 2-1 ~ 2-4 不变，其余页面在阶段 2 只出"页面骨架清单"不出 HTML，等阶段 3 补齐
+      - C 把其余模块的页面并入现有 2-1 ~ 2-4，每批页数由 3 ~ 13 增至 20 以上
+    recommended: 选项 A（每批 4 ~ 19 个页面，仍可分批验收；原批次内容不变，只做追加）
+    blocking: false
+    blocks_stages: [stage2, stage3]
+    owner: 用户
+    resolution: |
+      用户答复"同意"，采用选项 A：阶段 2 追加批次 2-5 ~ 2-9，共 10 批、86 个页面
+      （另有 1 项"班级合并"按 PRD 标注延后）。
+      已落地：stage-inputs.yaml 的 stage2 batch_plan 补齐 2-5 ~ 2-9；
+      navigation.yaml 的 delivery_batches 状态由"待确认"改为"已确认"；README.md 批次表同步。
+      裁决记录见 decisions.md D-050。
+    resolved_at: 2026-09-30
+    status: closed
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"
@@ -643,4 +676,7 @@ open_questions_for_user:
   - "CR-001 已执行：修正 9 份已冻结 acceptance.md 中 RV-*-01 的章节引用（原写「4.1 / 4.2 / 4.3 节」），并把 18 份模块文档的头部状态字段由 review 更正为 frozen；9 份 acceptance.md 升为 1.0.1 并补修订记录表。"
   - "公共前置本次有写入（已在冻结前完成）：docs/10-prd/02-personas-and-scenarios.md 新增 5 个场景（SCN-IMP-02、SCN-IMP-03、SCN-AUDIT-01 ~ 03）；docs/10-prd/04-business-rules.md 新增 BR-IMP-007 ~ 016、BR-AUDIT-006 ~ 012；docs/10-prd/05-permission-matrix.yaml 新增审计与异步任务的权限项；docs/10-prd/06-field-dictionary.yaml 新增 3 个枚举与 16 个字段。"
   - "下一步：阶段 2 业务原型，批次 2-0 先出原型规范（layout-spec / page-actions / navigation / markup-contract / 样例数据），批次 2-1 出学生管理列表与新增编辑抽屉样板页。"
+  - "阶段 2 批次 2-0 已产出：prototypes/functional/v1/ 下 README.md、layout-spec.yaml、navigation.yaml、page-actions.yaml、markup-contract.md、content-samples.json、page-specs/_template.md，等待验收。"
+  - "GAP-025 已关闭：用户同意选项 A，阶段 2 追加批次 2-5 ~ 2-9，共 10 批、86 个页面，见 D-050。"
+  - "下一步：阶段 2 批次 2-1（学生管理列表 + 新增/编辑抽屉样板页），需按 prototype-quality-spec.md 的 15 条交批清单交付。"
   - "未提交：批次 1-2 / 1-3 的 8 个模块目录与 6 个治理文件、批次 1-4 的全部产出目前都在工作区，尚未 git commit。"

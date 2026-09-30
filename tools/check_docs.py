@@ -66,12 +66,12 @@ def glob_docs(*patterns: str) -> list[str]:
 
 
 def check_serialization() -> None:
-    for path in glob_docs("docs/**/*.yaml", "docs/**/*.yml"):
+    for path in glob_docs("docs/**/*.yaml", "docs/**/*.yml", "prototypes/**/*.yaml", "prototypes/**/*.yml"):
         try:
             load_yaml(path)
         except Exception as exc:  # noqa: BLE001
             rep("YAML", f"{rel(path)}: {exc}")
-    for path in glob_docs("docs/**/*.json") + [
+    for path in glob_docs("docs/**/*.json", "prototypes/**/*.json") + [
         os.path.join(REPO_ROOT, "package.json"),
         os.path.join(REPO_ROOT, "turbo.json"),
         os.path.join(REPO_ROOT, "apps", "plus-ui", "package.json"),
@@ -360,6 +360,86 @@ def check_module_prd() -> None:
             rep("MODULE", f"{rel(acc_path)} 的 AC-{prefix} 编号存在重复")
 
 
+def check_prototype_navigation() -> None:
+    """核对业务原型的页面注册表：编号唯一、批次有定义、跳转端点存在、父页面存在。"""
+    path = os.path.join(REPO_ROOT, "prototypes", "functional", "v1", "navigation.yaml")
+    if not os.path.exists(path):
+        return
+    nav = require(path)
+    if nav is None:
+        return
+    pages = nav.get("pages", []) or []
+    ids = [p.get("id") for p in pages]
+    if len(ids) != len(set(ids)):
+        dup = sorted({i for i in ids if ids.count(i) > 1})
+        rep("PROTO", f"navigation.yaml 的 pages.id 存在重复: {dup}")
+    known = set(ids)
+    batches = {b.get("batch") for b in (nav.get("delivery_batches") or [])}
+    counts: dict[str, int] = {}
+    for page in pages:
+        pid = page.get("id", "<未命名>")
+        batch = page.get("batch")
+        if batch not in batches:
+            rep("PROTO", f"{pid} 的 batch 未在 delivery_batches 中定义: {batch}")
+        else:
+            counts[batch] = counts.get(batch, 0) + 1
+        parent = page.get("parent")
+        if parent and parent not in known:
+            rep("PROTO", f"{pid} 的 parent 不存在: {parent}")
+    for batch in nav.get("delivery_batches") or []:
+        declared = batch.get("pages")
+        real = counts.get(batch.get("batch"), 0)
+        if declared is not None and int(declared) != real:
+            rep("PROTO", f"批次 {batch.get('batch')} 声明 {declared} 个页面，实际 {real} 个")
+    for jump in nav.get("jump_map") or []:
+        for key in ("from", "to"):
+            if jump.get(key) not in known:
+                rep("PROTO", f"jump_map 的 {key} 未在 pages 中定义: {jump.get(key)}")
+
+
+PROTO_PLACEHOLDERS = ["张三", "李四", "王五", "赵六", "测试学校", "测试班级", "测试用户", "lorem", "Lorem", "xxx", "XXX"]
+
+
+def check_prototype_data() -> None:
+    """扫描原型数据文件里的占位内容，以及 HTML 中的标记是否能回查到规范文件。"""
+    for path in glob_docs(
+        "prototypes/**/*.json", "prototypes/**/*.yaml", "prototypes/**/*.yml", "prototypes/**/*.html"
+    ):
+        body = read(path)
+        for word in PROTO_PLACEHOLDERS:
+            if word in body:
+                rep("PROTO-DATA", f"{rel(path)} 含占位内容: {word}")
+
+    nav_path = os.path.join(REPO_ROOT, "prototypes", "functional", "v1", "navigation.yaml")
+    act_path = os.path.join(REPO_ROOT, "prototypes", "functional", "v1", "page-actions.yaml")
+    html_files = glob_docs("prototypes/**/*.html")
+    if not html_files:
+        return
+    page_ids: set[str] = set()
+    action_ids: set[str] = set()
+    if os.path.exists(nav_path):
+        nav = require(nav_path) or {}
+        page_ids = {p.get("id") for p in (nav.get("pages") or [])}
+    if os.path.exists(act_path):
+        act = require(act_path) or {}
+        for group in act.values():
+            if isinstance(group, dict):
+                for item in group.get("actions", []) or []:
+                    if isinstance(item, dict) and item.get("id"):
+                        action_ids.add(item["id"])
+        for item in act.get("common_actions", []) or []:
+            if isinstance(item, dict) and item.get("id"):
+                action_ids.add(item["id"])
+    for path in html_files:
+        body = read(path)
+        for pid in sorted(set(re.findall(r'data-page="(PAGE-[A-Z0-9-]+)"', body))):
+            if page_ids and pid not in page_ids:
+                rep("PROTO-HTML", f"{rel(path)} 引用了未注册的页面编号 {pid}")
+        for aid in sorted(set(re.findall(r'data-action-id="(ACT-[A-Z0-9-]+)"', body))):
+            if action_ids and aid not in action_ids:
+                rep("PROTO-HTML", f"{rel(path)} 引用了未登记的动作编号 {aid}")
+
+
 def check_declared_files() -> None:
     """核对 file-catalog.md 中标记为 review 的路径是否真实存在。"""
     path = os.path.join(REPO_ROOT, "docs", "00-governance", "file-catalog.md")
@@ -394,6 +474,8 @@ def main() -> int:
     check_cross_references(rule_ids)
     check_reference_ids(collect_reference_definitions(), collect_fd_definitions())
     check_module_prd()
+    check_prototype_navigation()
+    check_prototype_data()
     check_declared_files()
 
     print("=== 文档一致性核查 ===")
