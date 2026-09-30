@@ -3,7 +3,7 @@
   "purpose": "业务原型的演示数据。所有页面的样例内容必须取自本文件，不得在页面里临时编造；占位人名的判定见 prototype-quality-spec.md 第 2 节。",
   "generated_at": "2026-09-30",
   "notes": [
-    "数据规模刻意很小（3 所学校、4 个年级、6 个班级、10 名学生），目的是让每个字段都能在页面上被看到。",
+    "数据规模刻意很小（3 所学校、4 个年级、6 个班级、12 名学生），目的是让每个字段都能在页面上被看到。",
     "学号格式遵循 BR-STU-017：入学年份 4 位 + 全局序号 6 位，例如 2026000001。",
     "学生登录名遵循 BR-ACCOUNT-002：s + 学号，例如 s2026000001。",
     "证件号与手机号一律按脱敏后的形态给出，原型不出现完整值。",
@@ -12,7 +12,8 @@
     "学生 2026000005（转入未报到）的 class_id 为空：未报到不编入行政班，见 BR-STU-023。",
     "teachers_edge_cases 补齐教师模块的 5 类边界样本（校领导无任教、无手机号、姓名含间隔号、离职、调离），教师列表页必须从 teachers 与 teachers_edge_cases 两个节点取数。",
     "class_edge_cases 补齐班级模块的 4 类边界样本（空班、已停用、超容量、超长班级名称），班级列表页必须从 classes 与 class_edge_cases 两个节点取数。",
-    "班级在读人数分两档口径：classes 里的 20260101 / 20260102 / 20260103 / 20250101 / 20240101 / 20260201 与 student_class_relations 逐条一致；class_edge_cases 与班级数对应关系取自 grades 样例的统计示意值，两者都不代表真实规模（真实规模见 list_totals.class_list_total）。"
+    "班级在读人数分两档口径：classes 里的 20260101 / 20260102 / 20260103 / 20250101 / 20240101 / 20260201 与 student_class_relations 逐条一致；class_edge_cases 与班级数对应关系取自 grades 样例的统计示意值，两者都不代表真实规模（真实规模见 list_totals.class_list_total）。",
+    "学生 2026000013（潘思彤）与 2026000014（蒋知远）是批次 2-3d 新增的两条样本：在读、class_id 为空，用于「编班（添加学生）」页的学生池——没有他们，学生池里没有任何一个可编班的在读学生，页面只能演示冲突而演示不了成功路径。"
   ],
   "org": {
     "tenants": [
@@ -950,6 +951,46 @@
       "school_id": 202,
       "update_time": "2026-09-22 09:40",
       "note": "另一所学校的学生：只有平台运营切换学校后才可见，学校用户看不到他校学生；跨校转学在「升班与学籍异动」模块处理，不通过共享授权"
+    },
+    {
+      "student_id": 5015,
+      "student_no": "2026000013",
+      "login_name": "s2026000013",
+      "student_name": "潘思彤",
+      "gender": "女",
+      "enroll_year": 2026,
+      "stage_code": "senior",
+      "grade_id": 202601,
+      "class_id": null,
+      "enrollment_status": "enrolled",
+      "national_student_no": "G33010220260013",
+      "id_card_mask": "330102********4417",
+      "birth_date": "2010-09",
+      "phone_mask": "135****4417",
+      "guardian_count": 2,
+      "school_id": 201,
+      "update_time": "2026-09-30 08:40",
+      "note": "本校在读但还没有行政班：编班页学生池的可加入样本（一名学生同一学年学期只能属于一个行政班，BR-STU-003）"
+    },
+    {
+      "student_id": 5016,
+      "student_no": "2026000014",
+      "login_name": "s2026000014",
+      "student_name": "蒋知远",
+      "gender": "男",
+      "enroll_year": 2026,
+      "stage_code": "senior",
+      "grade_id": 202601,
+      "class_id": null,
+      "enrollment_status": "enrolled",
+      "national_student_no": "G33010520260014",
+      "id_card_mask": "330105********8830",
+      "birth_date": "2010-12",
+      "phone_mask": null,
+      "guardian_count": 1,
+      "school_id": 201,
+      "update_time": "2026-09-30 08:45",
+      "note": "本校在读但还没有行政班；无联系电话（监护人信息未补全），用于验证编班页不展示监护人字段时的形态"
     }
   ],
   "guardians": [

@@ -1169,7 +1169,7 @@ class_detail:
       condition: 有 org.class:update 权限，且不是历史学年学期
       permission: "academic_director / grade_leader / super_admin / org.class / update"
       api: "-"
-      result: 进入 PAGE-CLS-ROSTER-ADD 独立页（批次 2-3d）；加入前校验唯一行政班（REQ-CLS-028）
+      result: 进入 PAGE-CLS-ROSTER-ADD 独立页并带 class=<本班> 参数；加入前校验唯一行政班（REQ-CLS-028）
       audit: 否
       batch: "2-3"
     - id: ACT-CLS-022
@@ -1212,12 +1212,12 @@ class_detail:
     - id: ACT-CLS-026
       element: 移出（批量移出所选 / 行内移出）
       trigger: 点击
-      condition: 有 org.class:update 权限，且不是历史学年学期
+      condition: 有 org.class:update 权限，且不是历史学年学期；「移出所选」需要先在花名册勾选成员
       permission: "academic_director / grade_leader / super_admin / org.class / update"
       confirm: 需要，写清"移出后保留原关系历史，不删除学生主体"
-      api: removeClassRoster
-      result: 移出学生在读关系并写审计；批量时逐条校验，任一条失败列出失败清单（DS-DENY-06）；原关系保留历史（REQ-CLS-030）
-      audit: 是
+      api: "-"
+      result: 打开移出二次确认片段 DIALOG-CLS-ROSTER-REMOVE（批次 2-3d）；未勾选时提示先勾选，不打开弹窗；真正写入见 ACT-CLS-048
+      audit: 否
       batch: "2-3"
     - id: ACT-CLS-027
       element: 查看全部变更记录
@@ -1242,8 +1242,63 @@ class_detail:
       condition: 有 org.class:update 权限，且不是历史学年学期
       permission: "academic_director / grade_leader / super_admin / org.class / update"
       api: "-"
-      result: 打开调班弹窗（批次 2-3d，PAGE-CLS-TRANSFER），预填目标班级；原关系保留历史（REQ-CLS-031）
+      result: 打开调班弹窗（PAGE-CLS-TRANSFER，本页片段），预填该生与源班级并禁用源班级选项；原关系保留历史（REQ-CLS-031）
       audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-064
+      element: 花名册勾选待移出成员
+      trigger: 勾选 / 取消勾选
+      condition: 有 org.class:update 权限，且不是历史学年学期；只读角色不可勾选
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: "-"
+      result: 只维护本地勾选集合，供工具条「移出所选」使用；不写库
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-048
+      element: 确认移出
+      trigger: 点击
+      condition: 确认片段内已列出至少一名成员
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: removeClassRoster
+      confirm: 弹窗内已写明对象与影响范围（保留原关系历史、不删除学生主体）
+      result: 移出学生在读关系并写审计；批量时逐条校验，任一条失败列出失败清单（DS-DENY-06）；原关系保留历史（REQ-CLS-030）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-CLS-049
+      element: 取消移出
+      trigger: 点击或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭确认片段，不产生任何写入
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-050
+      element: 选择目标班级 / 生效日期
+      trigger: 选择
+      condition: 有 org.class:update 权限
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: "-"
+      result: 目标班级下拉排除源班级自身，已停用班级列出但不可选（REQ-CLS-044）；生效日期默认当前学年学期开始日
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-051
+      element: 取消调班
+      trigger: 点击或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，学生归属不变
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-052
+      element: 确认调班
+      trigger: 点击
+      condition: 目标班级与生效日期齐全，且目标班级不是已停用班级
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: transferClass
+      result: 结束原班关系并新增目标班关系（唯一行政班，BR-STU-003），写审计；原关系保留历史（REQ-CLS-031 / BR-PROMO-007）
+      audit: 是
       batch: "2-3"
 
 class_create:
@@ -1424,10 +1479,119 @@ class_leader:
       audit: 否
       batch: "2-3"
 
+class_roster_add:
+  page: PAGE-CLS-ROSTER-ADD
+  actions:
+    - id: ACT-CLS-058
+      element: 返回班级详情 / 取消
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 回到 PAGE-CLS-DETAIL，保留班级上下文（DP-01：编班入口只在班级模块）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-053
+      element: 学生池检索与筛选（姓名 / 学号、只看可加入、搜索 / 重置 / 清空清单）
+      trigger: 输入或点击
+      condition: 有 person.student:read 权限
+      permission: "person.student:read"
+      api: listStudent
+      result: 按关键字与视图收窄学生池；「只看可加入」只留校验通过的学生，清空清单不写库
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-054
+      element: 勾选 / 取消勾选学生
+      trigger: 勾选
+      condition: 该生不是终态、且不在本班；只读角色与历史学年学期不可勾选
+      permission: "org.class:update"
+      api: "-"
+      result: 加入 / 移出待加入清单；勾选到有冲突的学生时立即提示，提交时会被整体拒绝（REQ-CLS-028）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-055
+      element: 待加入清单行内「移除」
+      trigger: 点击
+      condition: 始终可用
+      permission: "org.class:update"
+      api: "-"
+      result: 从待加入清单移除该生，不写库
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-056
+      element: 冲突行「调班」入口
+      trigger: 点击
+      condition: 该生已有行政班（REQ-CLS-028）
+      permission: "org.class:update"
+      api: "-"
+      result: 跳到 PAGE-CLS-DETAIL 的调班弹窗，带 student / from / to 三个参数并预填（PRD 6.3「冲突时点击调班 → 直接进入调班弹窗，预填目标班级」）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-057
+      element: 加入班级
+      trigger: 点击
+      condition: 待加入清单非空，且所选学生在本学年学期都没有行政班（逐条校验）
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: addClassRoster
+      confirm: 需要，弹窗与页面提示都写明"任一条冲突则整体拒绝并列出冲突清单"
+      result: 任一条冲突则整体拒绝并列出冲突清单（REQ-CLS-029 / DS-DENY-06）；全部通过时追加行政班关系并写审计
+      audit: 是
+      batch: "2-3"
+
+class_move_students:
+  page: PAGE-CLS-MOVE
+  actions:
+    - id: ACT-CLS-063
+      element: 返回班级列表 / 取消
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 回到 PAGE-CLS-LIST，不产生任何写入
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-059
+      element: 勾选 / 全选 / 清空源班级在读成员
+      trigger: 勾选或点击
+      condition: 成员处于在读状态；休学等保留关系的成员不可选（BR-STU-012）
+      permission: "org.class:update"
+      api: "-"
+      result: 只维护本地勾选集合，影响预览随之重算；不写库
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-060
+      element: 选择目标班级 / 填写迁移说明
+      trigger: 选择或输入
+      condition: 有 org.class:update 权限
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: "-"
+      result: 目标班级只列本校同学年学期的行政班，已停用班级列出但不可选（REQ-CLS-044）；跨年级时给确认提示（BR-CLASS-008）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-061
+      element: 刷新影响预览
+      trigger: 点击
+      condition: 有 org.class:read 权限
+      permission: "org.class:read"
+      api: listClassRoster
+      result: 按最新勾选与目标班级重算影响预览；预览只读，不写库
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-062
+      element: 执行迁移
+      trigger: 点击
+      condition: 至少一名在读成员被勾选，且目标班级存在且未停用
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: transferClass
+      confirm: 需要，预览表格已展示每条影响；逐条校验、任一条失败列出失败清单
+      result: 批量结束原班关系并写入目标班关系（唯一行政班，BR-STU-003），原关系保留历史（BR-PROMO-007）；逐条校验，任一条失败列出失败清单（REQ-CLS-062 / DS-DENY-06）
+      audit: 是
+      batch: "2-3"
+
 batches_pending:
   - { batch: "2-2", pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-CREATE, PAGE-TCH-EDIT, PAGE-TCH-LEAVE, PAGE-TCH-ROLE, PAGE-TCH-ASSIGN], status: "2-2a、2-2b-1 与 2-2b-2 教师部分已产出待验收（ACT-TCH-001 ~ 039 已登记）" }
   - { batch: "2-2b-2b", pages: [PAGE-GRD-LIST, PAGE-GRD-DETAIL, PAGE-GRD-CREATE, PAGE-GRD-BATCH, PAGE-GRD-LEADER, PAGE-GRD-ARCHIVE], status: "PAGE-GRD-LIST 样板页已产出待验收（ACT-GRD-001 ~ 011 已登记）；其余 5 页待样板验收后铺开" }
-  - { batch: "2-3", pages: [PAGE-CLS-LIST, PAGE-CLS-DETAIL, PAGE-CLS-CREATE, PAGE-CLS-BATCH, PAGE-CLS-ROSTER-ADD, PAGE-CLS-TRANSFER, PAGE-CLS-LEADER, PAGE-CLS-COPY, PAGE-CLS-MOVE, PAGE-PRM-LIST, PAGE-PRM-CREATE, PAGE-PRM-PREVIEW, PAGE-PRM-ADJUST, PAGE-PRM-VALIDATE, PAGE-PRM-EXECUTE, PAGE-PRM-RESULT], status: "2-3a（class_list，ACT-CLS-001 ~ 016）、2-3b（class_detail，ACT-CLS-017 ~ 029）、2-3c（class_create / class_batch / class_copy / class_leader，ACT-CLS-030 ~ 047）已产出待验收；2-3d ~ 2-3e 待铺开" }
+  - { batch: "2-3", pages: [PAGE-CLS-LIST, PAGE-CLS-DETAIL, PAGE-CLS-CREATE, PAGE-CLS-BATCH, PAGE-CLS-ROSTER-ADD, PAGE-CLS-TRANSFER, PAGE-CLS-LEADER, PAGE-CLS-COPY, PAGE-CLS-MOVE, PAGE-PRM-LIST, PAGE-PRM-CREATE, PAGE-PRM-PREVIEW, PAGE-PRM-ADJUST, PAGE-PRM-VALIDATE, PAGE-PRM-EXECUTE, PAGE-PRM-RESULT], status: "2-3a（class_list，ACT-CLS-001 ~ 016）、2-3b（class_detail，ACT-CLS-017 ~ 029、048 ~ 052、064）、2-3c（class_create / class_batch / class_copy / class_leader，ACT-CLS-030 ~ 047）、2-3d（class_roster_add 053 ~ 058 / class_move_students 059 ~ 063）已产出待验收；2-3e（升班 6 页）待铺开" }
   - { batch: "2-4", pages: [PAGE-IMP-WIZARD, PAGE-IMP-TEMPLATE, PAGE-IMP-VALIDATE, PAGE-IMP-EXECUTE, PAGE-STU-IMPORT, PAGE-TCH-IMPORT, PAGE-CLS-ROSTER-IMPORT, PAGE-LOGIN, PAGE-403, PAGE-404, PAGE-500], status: 待开始 }
 
 # ---------------------------------------------------------------------------

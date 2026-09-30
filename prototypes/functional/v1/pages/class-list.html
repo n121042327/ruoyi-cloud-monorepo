@@ -1093,9 +1093,9 @@
     var type = row.getAttribute('data-type');
     var enrolled = Number(row.getAttribute('data-enrolled') || 0);
     var defs = [
-      { id: 'ACT-CLS-007', text: '编班（添加学生）', pending: '「添加学生」在批次 2-3d 交付（PAGE-CLS-ROSTER-ADD），本批只验证入口与权限显隐。' },
+      { id: 'ACT-CLS-007', text: '编班（添加学生）', jump: 'class-roster-add.html' },
       { id: 'ACT-CLS-008', text: '复制班级', need: COPY_ROLES.indexOf(role) !== -1, panel: 'PAGE-CLS-COPY' },
-      { id: 'ACT-CLS-009', text: '批量迁学生', need: enrolled > 0, pending: '「批量迁学生」在批次 2-3d 交付（PAGE-CLS-MOVE），本批只验证入口与权限显隐。' },
+      { id: 'ACT-CLS-009', text: '批量迁学生', need: enrolled > 0, jump: 'class-move-students.html' },
       { sep: true },
       { id: 'ACT-CLS-010', text: '停用', panel: 'DIALOG-CLS-DISABLE' },
       { id: 'ACT-CLS-013', text: '删除', danger: true, need: enrolled === 0 && DELETE_ROLES.indexOf(role) !== -1, panel: 'DIALOG-CLS-DELETE' }
@@ -1115,6 +1115,10 @@
         closeMoreMenu();
         if (def.id === 'ACT-CLS-008' && type === 'teaching') {
           window.PrototypeShell.toast('教学班的成员来自选科结果，复制班级只支持行政班；教学班的维护入口在批次 2-7 的教学班管理页（PAGE-CLS-TEACHING）。', 'warning');
+          return;
+        }
+        if (def.jump) {
+          window.location.href = def.jump + '#class=' + encodeURIComponent(classNameOf(row));
           return;
         }
         if (def.panel) {

@@ -31,6 +31,19 @@
   .page-head { flex-wrap: wrap; row-gap: 8px; }
   .page-head h1, .page-head .el-tag, .page-head .scope-hint { white-space: nowrap; }
   .page-head > span:last-child { flex-wrap: wrap; justify-content: flex-end; }
+  /* 花名册行内勾选与「移出所选」配套（批次 2-3d） */
+  #roster-rows input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; }
+  /* 弹窗内不放表格：移出清单与调班说明都用列表渲染 */
+  .list { display: flex; flex-direction: column; gap: 8px; }
+  .list-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--app-border-light);
+    border-radius: var(--app-radius-small);
+    background: #fafbfc;
+  }
+  .list-row .grow { flex: 1; min-width: 0; }
+  .cell-secondary { color: var(--app-text-secondary); font-size: 12px; }
 </style>
 </head>
 <body
@@ -152,9 +165,10 @@
         <div data-normal-view>
           <div class="table-scroll">
             <table class="el-table" id="roster-table" data-role="table" data-component="el-table" data-api="listClassRoster"
-                   style="min-width:1080px;table-layout:fixed">
+                   style="min-width:1122px;table-layout:fixed">
               <thead>
                 <tr>
+                  <th style="width:42px"></th>
                   <th data-role="column" data-field="student_no" style="width:130px">学号</th>
                   <th data-role="column" data-field="student_name" style="width:120px">姓名</th>
                   <th data-role="column" data-field="gender" style="width:70px">性别</th>
@@ -169,6 +183,7 @@
               <tbody id="roster-rows">
                 <tr data-role="row" data-nav="PAGE-STU-DETAIL" data-scope="studying" data-enroll="enrolled"
                     data-keyword="2026000001 王梓萱">
+                  <td><input type="checkbox" data-action-id="ACT-CLS-064" data-remove-pick="2026000001" aria-label="选择 王梓萱" /></td>
                   <td class="mono">2026000001</td>
                   <td>王梓萱</td>
                   <td>女</td>
@@ -181,6 +196,7 @@
                 </tr>
                 <tr data-role="row" data-nav="PAGE-STU-DETAIL" data-scope="studying" data-enroll="enrolled"
                     data-keyword="2026000002 李俊逸">
+                  <td><input type="checkbox" data-action-id="ACT-CLS-064" data-remove-pick="2026000002" aria-label="选择 李俊逸" /></td>
                   <td class="mono">2026000002</td>
                   <td>李俊逸</td>
                   <td>男</td>
@@ -193,6 +209,7 @@
                 </tr>
                 <tr data-role="row" data-nav="PAGE-STU-DETAIL" data-scope="all" data-enroll="suspended"
                     data-keyword="2026000003 陈思远">
+                  <td><input type="checkbox" data-action-id="ACT-CLS-064" data-remove-pick="2026000003" aria-label="选择 陈思远" /></td>
                   <td class="mono">2026000003</td>
                   <td>陈思远</td>
                   <td>男</td>
@@ -354,11 +371,117 @@
   </section>
 </div>
 
+<!-- ============================================================== 二次确认：移出学生（批次 2-3d，随本页交付）
+     REQ-CLS-030：移出保留原关系历史，不删除学生主体。 -->
+<div class="overlay" data-demo="panel" data-demo-panel="DIALOG-CLS-ROSTER-REMOVE" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="sm" data-block="form">
+    <div class="dialog-header">
+      <h2>移出学生 · <span id="remove-target">2 名在读成员</span></h2>
+      <span class="el-tag warning">保留关系历史</span>
+    </div>
+    <div class="dialog-body">
+      <div class="alert warning" style="margin-bottom:12px">
+        <span>影响范围</span>
+        <span>移出只结束本班在读关系：<b>学生主体不删除</b>，原关系在
+          <span class="mono">edu_student_class</span> 里追加结束日期后保留，历史花名册仍可查
+          （<span class="mono">REQ-CLS-030</span> / <span class="mono">BR-PROMO-007</span>）。
+          移出后本班在读人数相应减少；若只是换班，请改用「调班」（<span class="mono">REQ-CLS-031</span>）。</span>
+      </div>
+      <div class="field">
+        <label>将移出的成员</label>
+        <div class="list" id="remove-list"></div>
+      </div>
+      <div class="field" data-field="remark">
+        <label>移出原因</label>
+        <textarea class="input" rows="3" style="width:100%;min-width:100%" data-component="el-input.textarea"
+                  placeholder="选填，如：学期中转入其他班（请改用调班）"></textarea>
+        <div class="hint">原因会写入审计备注；移出本身无论是否填写原因都会写审计（<span class="mono">REQ-CLS-052</span>）。</div>
+      </div>
+      <div class="alert danger state-hidden" data-validate-summary>
+        <span>请先修正下面这些问题</span>
+        <span>至少要选择一名在读成员；修正后再确认。</span>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-CLS-049" data-component="el-button"
+              data-close-panel="DIALOG-CLS-ROSTER-REMOVE">取消</button>
+      <button class="btn danger-plain" data-role="action" data-action-id="ACT-CLS-048" data-component="el-button.danger.plain"
+              data-role-visible="academic_director,grade_leader,super_admin"
+              data-permission="org.class:update" data-api="removeClassRoster" data-after-success="close-panel"
+              data-demo-message="已移出所选学生：在读关系结束并保留历史，学生主体未被删除。">确认移出</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================== 弹窗：调班（批次 2-3d，随本页交付）
+     REQ-CLS-031：选择目标班级 + 生效日期 + 原因，原关系保留历史。
+     本片段只在班级详情页承载；编班页的冲突入口会带 源班级 / 目标班级 深链接跳到本弹窗。 -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-CLS-TRANSFER" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="sm" data-page="PAGE-CLS-TRANSFER" data-block="form">
+    <div class="dialog-header">
+      <h2>调班 · <span id="transfer-target">王梓萱</span></h2>
+      <span class="el-tag primary">原关系保留历史</span>
+      <button class="close-x" data-close-panel="PAGE-CLS-TRANSFER" title="关闭">✕</button>
+    </div>
+    <div class="dialog-body">
+      <div class="alert info">
+        <span>调班规则</span>
+        <span>一名学生同一学年学期<b>只能属于一个行政班</b>（<span class="mono">BR-STU-003</span>）：
+          调班相当于「结束原班关系 + 新增目标班关系」，两步都写审计，原关系保留历史
+          （<span class="mono">REQ-CLS-031</span> / <span class="mono">BR-PROMO-007</span>）。</span>
+      </div>
+      <div class="field">
+        <label>源班级（只读）</label>
+        <div class="list" id="transfer-source"></div>
+      </div>
+      <div class="field" data-field="target_class_id" data-role-editable="academic_director,grade_leader">
+        <label>目标班级<span class="required">*</span></label>
+        <select class="select" style="min-width:100%" id="transfer-target-class" data-component="el-select" data-required
+                data-required-message="请选择目标班级">
+          <option value="">请选择目标班级</option>
+          <option value="20260101">高一 (1) 班 · 在读 2 · 容量 45</option>
+          <option value="20260102">高一 (2) 班 · 在读 2 · 容量 45</option>
+          <option value="20260103">高一 (3) 班 · 在读 1 · 容量 45</option>
+          <option value="20250102">高二 (2) 班 · 在读 0 · 容量 45</option>
+          <option value="20240102">高三 (2) 班 · 在读 0 · 容量 45（已停用）</option>
+        </select>
+        <div class="error-text"></div>
+        <div class="hint">只列本校、同学年学期的行政班；已停用班级不可选（<span class="mono">REQ-CLS-044</span>）。</div>
+      </div>
+      <div class="field" data-field="effective_date" data-role-editable="academic_director,grade_leader">
+        <label>生效日期<span class="required">*</span></label>
+        <input class="input" style="min-width:100%" id="transfer-effective" data-component="el-date-picker"
+               data-required data-required-message="请选择生效日期" value="2026-09-01" />
+        <div class="error-text"></div>
+        <div class="hint">默认当前学年学期开始日；生效日期之前的归属按历史关系查询。</div>
+      </div>
+      <div class="field" data-field="remark" data-role-editable="academic_director,grade_leader">
+        <label>调班原因</label>
+        <textarea class="input" rows="2" style="width:100%;min-width:100%" data-component="el-input.textarea"
+                  id="transfer-remark" placeholder="选填，如：按分班结果调整，家长已确认"></textarea>
+        <div class="hint">写入审计备注；调班本身无论是否填写原因都会写审计（<span class="mono">REQ-CLS-052</span>）。</div>
+      </div>
+      <div class="alert danger state-hidden" data-validate-summary>
+        <span>请先修正下面这些问题</span>
+        <span>目标班级与生效日期都是必填项；修正后再确认。</span>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-CLS-051" data-component="el-button"
+              data-close-panel="PAGE-CLS-TRANSFER">取消</button>
+      <button class="btn primary" data-role="action" data-action-id="ACT-CLS-052" data-component="el-button.primary"
+              data-role-visible="academic_director,grade_leader,super_admin"
+              data-permission="org.class:update" data-api="transferClass" data-validate-on-submit data-after-success="close-panel"
+              data-demo-message="已调班：原班关系结束并保留历史，新班关系已写入，审计已记录。">确认调班</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============================================================== 批次 2-3b 演示脚本
      覆盖：页签切换、花名册成员筛选与检索、历史学年只读形态、按角色收口操作与字段、
           两种班级样本（高一 (1) 班 / 空班）、七类状态。
      数据来源：content-samples.json 的 classes / class_edge_cases / students / student_class_relations
-              与 teaching_assignments。 -->
+               与 teaching_assignments。 -->
 <script>
 (function () {
   'use strict';
@@ -379,6 +502,14 @@
   };
 
   var TERM_LABEL = { '202601': '2026-2027 学年 第一学期', '202501': '2025-2026 学年 第一学期（已归档）' };
+  /* 调班弹窗的目标班级下拉：班级名 → class_id（与 content-samples 的 classes / class_edge_cases 一致） */
+  var CLASS_OPTION_BY_NAME = {
+    '高一 (1) 班': '20260101',
+    '高一 (2) 班': '20260102',
+    '高一 (3) 班': '20260103',
+    '高二 (2) 班': '20250102',
+    '高三 (2) 班': '20240102'
+  };
   var READONLY_WHEN_HISTORICAL = ['ACT-CLS-019', 'ACT-CLS-020', 'ACT-CLS-021', 'ACT-CLS-022', 'ACT-CLS-023', 'ACT-CLS-026'];
   var ROLE_VISIBLE_ORIGINAL = {};
 
@@ -417,8 +548,7 @@
       });
       box.appendChild(detail);
       if (ROSTER_WRITE_ROLES.indexOf(role) === -1 || historical) return;
-      [['ACT-CLS-029', '调班', '调班在批次 2-3d 交付（PAGE-CLS-TRANSFER），本批只验证入口与权限显隐。'],
-       ['ACT-CLS-026', '移出', '移出学生在批次 2-3d 交付，本批只验证入口与权限显隐。']].forEach(function (def) {
+      [['ACT-CLS-029', '调班'], ['ACT-CLS-026', '移出']].forEach(function (def) {
         var b = el('button', 'btn link', def[1]);
         b.setAttribute('data-role', 'row-action');
         b.setAttribute('data-action-id', def[0]);
@@ -426,11 +556,64 @@
         b.setAttribute('data-permission', 'org.class:update');
         b.addEventListener('click', function (event) {
           event.stopImmediatePropagation();
-          window.PrototypeShell.toast(def[2], 'warning');
+          // 花名册列序：[0] 勾选 / [1] 学号 / [2] 姓名（批次 2-3d 新增了勾选列）
+          var name = row.children[2].textContent.trim();
+          var no = row.children[0].getAttribute('data-remove-pick') || row.children[1].textContent.trim();
+          if (def[0] === 'ACT-CLS-029') {
+            fillTransferDialog({ no: no, name: name, from: q('#detail-title').textContent.trim() });
+            window.PrototypeShell.openPanel('PAGE-CLS-TRANSFER');
+            return;
+          }
+          fillRemoveDialog([{ no: no, name: name }]);
+          window.PrototypeShell.openPanel('DIALOG-CLS-ROSTER-REMOVE');
         });
         box.appendChild(b);
       });
     });
+  }
+
+  /* ---------------- 1.5 批次 2-3d：移出确认与调班弹窗 ----------------
+     移出确认（DIALOG-CLS-ROSTER-REMOVE）与调班（PAGE-CLS-TRANSFER）都随本页交付：
+     花名册的行内「移出 / 调班」与工具条「移出所选」是这两个片段的唯一入口。 */
+
+  function fillRemoveDialog(list) {
+    var box = q('#remove-list');
+    box.innerHTML = '';
+    list.forEach(function (item) {
+      var line = el('div', 'list-row');
+      line.appendChild(el('span', 'grow', item.name + ' · ' + item.no));
+      line.appendChild(el('span', 'el-tag primary', q('#detail-title').textContent.trim()));
+      box.appendChild(line);
+    });
+    q('#remove-target').textContent = list.length + ' 名成员';
+    var summary = q('[data-demo-panel="DIALOG-CLS-ROSTER-REMOVE"] [data-validate-summary]');
+    if (summary) summary.classList.add('state-hidden');
+  }
+
+  function fillTransferDialog(info) {
+    q('#transfer-target').textContent = info.name + '（' + info.no + '）';
+    var from = info.from || q('#detail-title').textContent.trim();
+    var source = q('#transfer-source');
+    source.innerHTML = '';
+    var line = el('div', 'list-row');
+    line.appendChild(el('span', 'grow', from));
+    line.appendChild(el('span', 'el-tag primary', '行政班'));
+    source.appendChild(line);
+    var select = q('#transfer-target-class');
+    var fromId = CLASS_OPTION_BY_NAME[from];
+    // 目标班级不能是源班级本身；已停用班级列出但不可选（REQ-CLS-044）
+    Array.prototype.forEach.call(select.options, function (opt) {
+      if (!opt.value) return;
+      opt.disabled = opt.value === fromId || opt.textContent.indexOf('已停用') !== -1;
+    });
+    select.value = '';
+    if (info.to && CLASS_OPTION_BY_NAME[info.to]) {
+      var hit = select.querySelector('option[value="' + CLASS_OPTION_BY_NAME[info.to] + '"]');
+      if (hit && !hit.disabled) select.value = hit.value;
+    }
+    q('#transfer-effective').value = '2026-09-01';
+    var summary = q('[data-demo-panel="PAGE-CLS-TRANSFER"] [data-validate-summary]');
+    if (summary) summary.classList.add('state-hidden');
   }
 
   /* ---------------- 2. 花名册筛选（成员范围 + 关键字） ---------------- */
@@ -507,6 +690,11 @@
       else node.removeAttribute('data-role-visible');
     });
     window.PrototypeShell.applyRole(currentRole());
+    // 历史学年学期与只读角色都不允许勾选待移出成员（批次 2-3d 的勾选列）
+    qa('#roster-rows input[data-remove-pick]').forEach(function (box) {
+      box.disabled = historical || readOnlyRole();
+      if (box.disabled) box.checked = false;
+    });
     renderRosterActions();
   }
 
@@ -561,10 +749,39 @@
       }
     }
 
+    /* 批次 2-3d：编班与批量迁学生是独立页（D-059），带源班级参数真实跳转 */
+    var pageJump = [
+      ['ACT-CLS-021', 'class-roster-add.html'],
+      ['ACT-CLS-023', 'class-move-students.html']
+    ];
+    for (var pi = 0; pi < pageJump.length; pi += 1) {
+      if (node.closest('[data-action-id="' + pageJump[pi][0] + '"]')) {
+        event.stopImmediatePropagation();
+        window.location.href = pageJump[pi][1] + '#class='
+          + encodeURIComponent(q('#detail-title').textContent.trim());
+        return;
+      }
+    }
+
+    /* 批次 2-3d：工具条「移出所选」→ 带勾选成员打开移出确认片段
+       （行内「移出」由按钮自己的监听处理，不经过这里） */
+    if (node.closest('[data-action-id="ACT-CLS-026"]')) {
+      event.stopImmediatePropagation();
+      var chosen = qa('#roster-rows input[data-remove-pick]').filter(function (b) { return b.checked; })
+        .map(function (b) {
+          var row = b.closest('tr');
+          return { no: b.getAttribute('data-remove-pick'), name: row.children[2].textContent.trim() };
+        });
+      if (!chosen.length) {
+        window.PrototypeShell.toast('请先在花名册里勾选要移出的成员，再点「移出所选」。', 'warning');
+        return;
+      }
+      fillRemoveDialog(chosen);
+      window.PrototypeShell.openPanel('DIALOG-CLS-ROSTER-REMOVE');
+      return;
+    }
+
     var pendingMap = [
-      ['ACT-CLS-021', '「添加学生」在批次 2-3d 交付（PAGE-CLS-ROSTER-ADD），本批只验证入口与权限显隐。'],
-      ['ACT-CLS-023', '「批量迁学生」在批次 2-3d 交付（PAGE-CLS-MOVE），本批只验证入口与权限显隐。'],
-      ['ACT-CLS-026', '批量移出在批次 2-3d 交付，本批只验证入口与权限显隐。'],
       ['ACT-CLS-027', '操作日志在批次 2-8 交付（PAGE-AUDIT-LOG-LIST），本批只验证入口与权限显隐。']
     ];
     for (var i = 0; i < pendingMap.length; i += 1) {
@@ -601,6 +818,32 @@
     }
     if (params.sample) renderSample(params.sample);
     renderHistorical(params.term || '202601');
+    /* 批次 2-3d：从编班页的冲突清单跳过来时，直接把调班弹窗打开并带入该生与源 / 目标班级
+       （编班页的「调班」入口带 student / from / to 三个参数） */
+    if (params.panel === 'PAGE-CLS-TRANSFER' && params.student) {
+      var info = {
+        no: params.student,
+        name: params.name || params.student,
+        from: params.from || q('#detail-title').textContent.trim()
+      };
+      // 花名册里有该生时用真实姓名，避免弹窗标题只显示学号
+      var hit = qa('#roster-rows tr').filter(function (tr) {
+        return tr.children[0].getAttribute('data-remove-pick') === params.student;
+      })[0];
+      if (hit) info.name = hit.children[2].textContent.trim();
+      info.to = params.to || '';
+      fillTransferDialog(info);
+    }
+    /* 截图与评审辅助：直接把移出确认片段打开在指定的成员上（#panel=DIALOG-CLS-ROSTER-REMOVE&remove=2026000001,2026000002） */
+    if (params.panel === 'DIALOG-CLS-ROSTER-REMOVE' && params.remove) {
+      var picked = params.remove.split(',').map(function (no) {
+        var hit = qa('#roster-rows tr').filter(function (tr) {
+          return tr.children[0].getAttribute('data-remove-pick') === no;
+        })[0];
+        return { no: no, name: hit ? hit.children[2].textContent.trim() : no };
+      });
+      fillRemoveDialog(picked);
+    }
     applyRosterFilter();
   }
   document.addEventListener('prototype:params', function (event) { applyPageParams(event.detail); });

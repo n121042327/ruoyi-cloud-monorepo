@@ -970,6 +970,37 @@
 - 如果错了的代价：四项都是原型内的弹窗，回退只需改 `class-list.html` 与对应页面规格；
   `GAP-049` 若切选项 B，代价是多一次 CR 与一个接口，不影响已交付的页面结构
 
+## D-067 批次 2-3d 交付：编班、批量迁学生、移出确认与调班
+
+- 日期：2026-09-30
+- 触发：`D-066` 之后的第四个小批；按用户「1a2a 提交。继续」推进
+- 交付物：
+  - `prototypes/functional/v1/pages/class-roster-add.html`（`PAGE-CLS-ROSTER-ADD`，独立页：左学生池 + 右待加入清单）
+  - `prototypes/functional/v1/pages/class-move-students.html`（`PAGE-CLS-MOVE`，独立页：选学生 → 选目标班 → 影响预览 → 执行）
+  - `pages/class-detail.html` 新增两块片段：`DIALOG-CLS-ROSTER-REMOVE`（移出确认）与 `PAGE-CLS-TRANSFER`（调班），并给花名册加勾选列
+  - `page-specs/class-roster-add.md` / `class-move-students.md` / `class-transfer.md`
+  - `page-actions.yaml`：`class_roster_add`（`ACT-CLS-053` ~ `058`）、`class_move_students`（`ACT-CLS-059` ~ `063`）、`class_detail` 补 `048` ~ `052` 与 `064`
+- 关键工程决策：
+
+| 事项 | 决定 | 依据 |
+|---|---|---|
+| 编班的载体 | 独立页，双栏（左学生池 + 右待加入） | `CR-009` / `D-059` 已裁决"含检索列表改独立页"；双栏来自 class PRD 6.1 原文 |
+| 冲突处理 | 允许勾选冲突学生 → 提交时**整体拒绝并列出冲突清单**，每个冲突行给「调班」入口 | `REQ-CLS-028` / `029` 的原文；若直接禁用冲突行，就演示不了"整体拒绝"这条需求 |
+| 编班页的「调班」入口 | 跳 `class-detail.html#panel=PAGE-CLS-TRANSFER&student=…&from=…&to=…`，由详情页的弹窗承载 | PRD 6.3「冲突时点击调班 → 直接进入调班弹窗，预填目标班级」；弹窗片段只维护一份，避免两页漂移 |
+| 调班与移出的承载页 | 都放在班级详情页（父页面就是 `PAGE-CLS-DETAIL`） | `DP-01`：花名册关系变更只有班级模块一个写入入口 |
+| 花名册勾选列 | 班级详情花名册加一列复选框（表格 min-width 1080 → 1122） | 工具条「移出所选」需要一个选择控件；`verify-class-detail` 用属性选择器断言，加列不影响既有 20 条用例 |
+| 批量迁学生可迁移范围 | 只列「学籍状态 = 在读」的成员可迁移；休学 / 出国留学等保留关系成员显示但不可选 | `BR-STU-012` 的口径；同时把「出国留学是否计入在读」登记为 `GAP-051` 待裁决 |
+| 批量迁学生的接口 | 复用 `transferClass`（单条 = 调班，多条 = 批量迁移） | class PRD 第 8 节没有为批量迁移单列 operationId；与 `GAP-049` 同一处理原则 |
+| 样例数据补充 | `content-samples.json` 新增 2 条「在读但无行政班」学生（潘思彤 / 蒋知远） | 原有 15 条样本里没有任何可编班的学生，编班页无法演示成功路径；新增样本已在 `notes` 说明 |
+
+- 验证证据：`evidence/stage2-prototype/verify-class-roster.html`（`RA-01` ~ `RA-13`、`MV-01` ~ `MV-10`、`TR-01` ~ `TR-11`，**34/34 通过**，
+  用三个 iframe 分别加载编班页、批量迁学生页、班级详情页）；全量回归 class-list 39/39、class-detail 20/20、
+  class-dialogs 36/36、grade-list 38/38、detail-entry 6/6、carrier-change 14/14；截图 7 张；`python tools/check_docs.py` 通过
+- 待用户拍板：`GAP-051`（出国留学是否计入在读，推荐选项 A）
+- 下一批建议：2-3e 升班四步向导（`PAGE-PRM-LIST` / `CREATE` / `PREVIEW` / `VALIDATE` / `EXECUTE` / `RESULT`）
+  与预览中的「调整学生去向」弹窗（`ACT` / `PAGE-PRM-ADJUST`）
+- 如果错了的代价：三块都是原型页；`GAP-051` 若切选项 B，只需改批量迁学生页的可迁移判定与样例统计
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |
@@ -1003,3 +1034,4 @@
 | R-027 | ~~「按学校检索校区」是否补入口，以及学校 → 校区 → 年级 → 班级 → 学生 的级联联动规则~~ → 已定：选项 A，统一级联规则 + 校区检索入口复用校区管理页（D-064） | GAP-046 | 已关闭 |
 | R-028 | ~~新建班级弹窗里「班级类型」的可选范围~~ → 已定：选项 A，只建行政班，教学班创建留在批次 2-7（D-066） | GAP-048 | 已关闭 |
 | R-029 | ~~复制班级是否新增独立 operationId~~ → 已定：选项 A，复用 `addClass`，不新增 `copyClass`（D-066） | GAP-049 | 已关闭 |
+| R-030 | 出国留学（保留学籍）是否计入班级在读人数 → 推荐 A（不计入，与休学同口径，并把高二 (1) 班样例数 2 → 1） | GAP-051 | **待你答复** |

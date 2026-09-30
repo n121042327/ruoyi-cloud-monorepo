@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>PAGE-CLS-ROSTER-ADD / PAGE-CLS-MOVE / PAGE-CLS-TRANSFER 交互验证</title>
+<style>
+  body { margin: 14px; background: #fff; color: #24292f;
+         font: 13px/1.55 Consolas, "Microsoft YaHei", monospace; }
+  h1 { font-size: 17px; margin: 0 0 8px; }
+  ol { margin: 0 0 10px; padding-left: 22px; }
+  li.ok { color: #1a7f37; }
+  li.bad { color: #c0392b; font-weight: 700; }
+  p.sum { font-weight: 700; }
+  iframe { width: 1440px; height: 820px; border: 1px solid #dcdfe6; }
+  iframe.small { height: 640px; }
+</style>
+</head>
+<body>
+<h1>编班 / 批量迁学生 / 移出与调班 交互验证（真实事件派发，非人工目视）</h1>
+<ol id="results"><li>运行中…</li></ol>
+<iframe id="frame1" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/class-roster-add.html"></iframe>
+<iframe id="frame2" class="small" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/class-move-students.html"></iframe>
+<iframe id="frame3" class="small" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/class-detail.html"></iframe>
+<script>
+(function () {
+  'use strict';
+  var RESULTS = [];
+  var f1 = document.getElementById('frame1');
+  var f2 = document.getElementById('frame2');
+  var f3 = document.getElementById('frame3');
+
+  function rec(id, name, pass, detail) {
+    RESULTS.push({ id: id, name: name, pass: Boolean(pass), detail: detail || '' });
+  }
+  function winOf(f) { return f.contentWindow; }
+  function docOf(f) { return f.contentDocument; }
+  function q(f, sel) { return docOf(f).querySelector(sel); }
+  function qa(f, sel) { return Array.prototype.slice.call(docOf(f).querySelectorAll(sel)); }
+  function txt(f, sel) {
+    var n = q(f, sel);
+    return n ? n.textContent.replace(/\s+/g, ' ').trim() : '';
+  }
+  function panel(f, id) { return docOf(f).querySelector('[data-demo-panel="' + id + '"]'); }
+  function isOpen(f, id) {
+    var p = panel(f, id);
+    return Boolean(p && p.classList.contains('open'));
+  }
+  function toast(f) {
+    var host = docOf(f).querySelector('.toast-host');
+    return host ? host.textContent : '';
+  }
+  function clearToast(f) {
+    var host = docOf(f).querySelector('.toast-host');
+    if (host) host.innerHTML = '';
+  }
+  function click(f, sel) {
+    var n = q(f, sel);
+    if (!n) throw new Error('找不到元素 ' + sel);
+    n.click();
+    return n;
+  }
+  function setVal(f, sel, value) {
+    var n = q(f, sel);
+    n.value = value;
+    n.dispatchEvent(new (winOf(f).Event)('change', { bubbles: true }));
+    return n;
+  }
+  function setCheck(f, sel, checked) {
+    var n = q(f, sel);
+    n.checked = checked;
+    n.dispatchEvent(new (winOf(f).Event)('change', { bubbles: true }));
+    return n;
+  }
+  /* 学生池行的校验结果文本（编班页） */
+  function poolVerdicts() {
+    return qa(f1, '#pool-rows tr').map(function (tr) {
+      var cell = tr.querySelector('[data-cell="check"]');
+      return { no: tr.getAttribute('data-no'), text: cell ? cell.textContent.trim() : '' };
+    });
+  }
+  function pickListTexts() {
+    return qa(f1, '#picked-list .list-row').map(function (row) {
+      return row.textContent.replace(/\s+/g, ' ').trim();
+    });
+  }
+  function previewCells() {
+    return qa(f2, '#preview-rows tr').map(function (tr) {
+      return Array.prototype.map.call(tr.children, function (td) {
+        return td.textContent.replace(/\s+/g, ' ').trim();
+      });
+    });
+  }
+
+  var steps = [
+
+    /* ================= A. 编班（添加学生）独立页 ================= */
+
+    function (next) {
+      var ok = txt(f1, '#target-class-name') === '高一 (1) 班'
+        && txt(f1, '#target-class-type') === '行政班'
+        && txt(f1, '#target-class-term').indexOf('2026-2027') !== -1
+        && txt(f1, '#target-class-capacity').indexOf('容量 45') !== -1;
+      rec('RA-01', '编班页页头带目标班级、类型、学年学期与容量标签，容量写明「只提示不强制」', ok,
+        txt(f1, '#target-class-name') + ' / ' + txt(f1, '#target-class-capacity'));
+      next();
+    },
+    function (next) {
+      var rows = qa(f1, '#pool-rows tr');
+      rec('RA-02', '本校学生池渲染 15 行样例（students 12 条 + students_edge_cases 4 条 - 他校 1 条）',
+        rows.length === 15, rows.length + ' 行');
+      next();
+    },
+    function (next) {
+      var v = poolVerdicts();
+      var joinable = v.filter(function (r) { return r.text === '可加入'; });
+      var inClass = v.filter(function (r) { return r.text.indexOf('已在本班') !== -1; });
+      var conflict = v.filter(function (r) { return r.text.indexOf('已有行政班') !== -1; });
+      var pending = v.filter(function (r) { return r.text.indexOf('转入未报到') !== -1; });
+      var terminal = v.filter(function (r) { return r.text.indexOf('终态不能编班') !== -1; });
+      var ok = joinable.length === 2 && inClass.length === 4 && conflict.length === 6
+        && pending.length === 1 && terminal.length === 2;
+      rec('RA-03', '逐行判定校验结果（BR-STU-003 / BR-STU-023）：可加入 2 / 已在本班 4 / 已有行政班 6 / 转入未报到 1 / 终态 2',
+        ok, '可加入 ' + joinable.length + ' · 本班 ' + inClass.length + ' · 冲突 ' + conflict.length
+        + ' · 未报到 ' + pending.length + ' · 终态 ' + terminal.length);
+      next();
+    },
+    function (next) {
+      var boxes = qa(f1, '#pool-rows input[type="checkbox"]');
+      var disabled = boxes.filter(function (b) { return b.disabled; });
+      var ok = boxes.length === 15 && disabled.length === 6;
+      rec('RA-04', '勾选可用性：已在本班（4）与终态（2）禁用，其余 9 行可勾选', ok,
+        '禁用 ' + disabled.length + ' / 可勾选 ' + (boxes.length - disabled.length));
+      next();
+    },
+    function (next) {
+      click(f1, '[data-pool-view="joinable"]');
+      var visible = qa(f1, '#pool-rows tr').filter(function (tr) { return !tr.classList.contains('state-hidden'); });
+      var names = visible.map(function (tr) { return tr.getAttribute('data-name'); });
+      rec('RA-05', '「只看可加入」只留下校验通过的学生（潘思彤、蒋知远）',
+        visible.length === 2 && names.join(',') === '潘思彤,蒋知远', names.join(',') || '（空）');
+      click(f1, '[data-pool-view="all"]');
+      next();
+    },
+    function (next) {
+      setVal(f1, '#f-pool-keyword', '赵一诺');
+      click(f1, '[data-action-id="ACT-CLS-053"]');
+      var visible = qa(f1, '#pool-rows tr').filter(function (tr) { return !tr.classList.contains('state-hidden'); });
+      var ok = visible.length === 1 && visible[0].getAttribute('data-no') === '2026000004';
+      rec('RA-06', '按姓名检索学生池：输入「赵一诺」后只剩 1 行（REQ-CLS-027）', ok, visible.length + ' 行');
+      setVal(f1, '#f-pool-keyword', '');
+      next();
+    },
+    function (next) {
+      setCheck(f1, 'input[data-pick="2026000013"]', true);
+      var list = pickListTexts();
+      var ok = list.length === 1 && list[0].indexOf('潘思彤') !== -1
+        && list[0].indexOf('校验通过') !== -1
+        && txt(f1, '#picked-count') === '已选 1 人';
+      rec('RA-07', '勾选可加入的学生后进入待加入清单并标「可加入 / 校验通过」', ok,
+        list.join(' | ').slice(0, 70));
+      next();
+    },
+    function (next) {
+      setCheck(f1, 'input[data-pick="2026000004"]', true);
+      var row = qa(f1, '#picked-list .list-row').filter(function (r) {
+        return r.textContent.indexOf('赵一诺') !== -1;
+      })[0];
+      var ok = Boolean(row) && row.className.indexOf('conflict') !== -1
+        && Boolean(row.querySelector('[data-action-id="ACT-CLS-056"]'))
+        && row.textContent.indexOf('已有行政班') !== -1;
+      rec('RA-08', '勾选已有行政班的学生：清单标红并给出「调班」入口（REQ-CLS-028）', ok,
+        row ? row.textContent.replace(/\s+/g, ' ').trim().slice(0, 60) : '（找不到该行）');
+      next();
+    },
+    function (next) {
+      clearToast(f1);
+      var before = txt(f1, '#picked-count');
+      click(f1, '[data-action-id="ACT-CLS-057"]');
+      var box = q(f1, '#conflict-box');
+      var ok = !box.classList.contains('state-hidden')
+        && toast(f1).indexOf('整体拒绝') !== -1
+        && txt(f1, '#picked-count') === before;
+      rec('RA-09', '任一条冲突则整体拒绝：冲突清单块出现、提示写明整体拒绝、清单不被清空（REQ-CLS-029 / DS-DENY-06）',
+        ok, toast(f1).slice(0, 46));
+      next();
+    },
+    function (next) {
+      click(f1, '[data-remove-no="2026000004"]');
+      var ok = txt(f1, '#picked-count') === '已选 1 人'
+        && qa(f1, '#picked-list .list-row').length === 1
+        && q(f1, '#conflict-box').classList.contains('state-hidden');
+      rec('RA-10', '从待加入清单移除冲突学生后，冲突块自动收起', ok, txt(f1, '#picked-count'));
+      next();
+    },
+    function (next) {
+      click(f1, '[data-action-id="ACT-CLS-057"]');
+      window.setTimeout(function () {
+        var box = q(f1, '#partial-box');
+        var ok = !box.classList.contains('state-hidden')
+          && txt(f1, '#partial-text').indexOf('已加入 1 名学生') !== -1
+          && txt(f1, '#picked-count') === '已选 0 人';
+        rec('RA-11', '只勾选可加入的学生时保存成功：出现「加入结果」块、待加入清单清空', ok,
+          txt(f1, '#partial-text').slice(0, 60));
+        next();
+      }, 1400);
+    },
+    function (next) {
+      winOf(f1).PrototypeShell.applyParams({ class: '高一 (2) 班' });
+      var v = poolVerdicts();
+      var self = v.filter(function (r) { return r.text.indexOf('已在本班') !== -1; });
+      var wang = v.filter(function (r) { return r.no === '2026000001'; })[0];
+      var ok = txt(f1, '#target-class-name') === '高一 (2) 班'
+        && self.length === 2
+        && wang && wang.text.indexOf('已有行政班：高一 (1) 班') !== -1;
+      rec('RA-12', '深链接 #class=高一 (2) 班：目标班级切换后「已在本班」判定跟着变（王梓萱变成冲突）',
+        ok, '本班 ' + self.length + ' 人 / 王梓萱=' + (wang ? wang.text : '（缺）'));
+      winOf(f1).PrototypeShell.applyParams({ class: '高一 (1) 班' });
+      next();
+    },
+    function (next) {
+      var table = q(f1, '#pool-table');
+      var sum = qa(f1, '#pool-table thead th').reduce(function (acc, th) {
+        var w = parseInt(th.style.width || '0', 10);
+        return acc + (isNaN(w) ? 0 : w);
+      }, 0);
+      var minWidth = parseInt(table.style.minWidth || '0', 10);
+      rec('RA-13', '学生池表格列宽之和 = min-width（两栏布局下窄屏会出现表格内滚动，属选择器页的预期形态，不出现列错位）',
+        sum === minWidth && sum > 0, '列宽之和 ' + sum + ' / min-width ' + minWidth);
+      next();
+    },
+
+    /* ================= B. 批量迁学生独立页 ================= */
+
+    function (next) {
+      var ok = txt(f2, '#source-class-tag') === '高一 (1) 班'
+        && txt(f2, '#source-summary') === '在读 2 人 · 已选 2 人';
+      rec('MV-01', '源班级默认高一 (1) 班：在读 2 人、默认全选 2 人（REQ-CLS-062）', ok, txt(f2, '#source-summary'));
+      next();
+    },
+    function (next) {
+      var visible = qa(f2, '#source-rows tr').filter(function (tr) { return !tr.classList.contains('state-hidden'); });
+      var suspended = visible.filter(function (tr) { return tr.getAttribute('data-movable') === 'false'; });
+      var box = suspended.length ? suspended[0].querySelector('input[type="checkbox"]') : null;
+      var ok = visible.length === 3 && suspended.length === 1 && Boolean(box) && box.disabled === true;
+      rec('MV-02', '源班级只显示本班成员：2 名在读 + 1 名休学，休学行复选框禁用（BR-STU-012）',
+        ok, '可见 ' + visible.length + ' 行 / 不可迁移 ' + suspended.length + ' 行');
+      next();
+    },
+    function (next) {
+      var cells = previewCells();
+      var ok = cells.length === 2 && cells[0].length === 5
+        && cells.every(function (r) { return r[4] === '校验通过：可迁移'; })
+        && txt(f2, '#preview-summary') === '将迁移 2 名学生到 高一 (3) 班';
+      rec('MV-03', '影响预览 5 列 2 行，全部校验通过，摘要写明迁移目标班级', ok,
+        cells.length + ' 行 × ' + (cells[0] ? cells[0].length : 0) + ' 列 / ' + txt(f2, '#preview-summary'));
+      next();
+    },
+    function (next) {
+      click(f2, '[data-action-id="ACT-CLS-059"]');
+      var label = qa(f2, '[data-action-id="ACT-CLS-059"]').filter(function (b) {
+        return b.textContent.trim() === '清空选择';
+      })[0];
+      if (label) label.click();
+      var cells = previewCells();
+      var ok = cells.length === 1 && cells[0][0].indexOf('请先') !== -1
+        && txt(f2, '#source-summary') === '在读 2 人 · 已选 0 人';
+      rec('MV-04', '清空选择后预览给出「请先勾选」提示，已选人数归零', ok, cells[0] ? cells[0][0].slice(0, 30) : '（空）');
+      next();
+    },
+    function (next) {
+      var boxes = qa(f2, '#source-rows input[data-pick]').filter(function (b) { return !b.disabled; });
+      boxes.forEach(function (b) {
+        b.checked = true;
+        b.dispatchEvent(new (winOf(f2).Event)('change', { bubbles: true }));
+      });
+      setVal(f2, '#f-target', '20240102');
+      var cells = previewCells();
+      var ok = !q(f2, '#target-stopped').classList.contains('state-hidden')
+        && cells.every(function (r) { return r[4] === '目标班级已停用，不可迁入'; });
+      rec('MV-05', '目标班级选到已停用班级：出现停用提示，预览每行标「不可迁入」（REQ-CLS-044）',
+        ok, cells[0] ? cells[0][4] : '（空）');
+      next();
+    },
+    function (next) {
+      setVal(f2, '#f-target', '20250102');
+      var ok = !q(f2, '#cross-grade-warning').classList.contains('state-hidden')
+        && txt(f2, '#cross-grade-text').indexOf('2025 级 高二') !== -1;
+      rec('MV-06', '跨年级目标班级给出确认提示并写明依据（BR-CLASS-008）', ok,
+        txt(f2, '#cross-grade-text').slice(0, 50));
+      next();
+    },
+    function (next) {
+      setVal(f2, '#f-target', '20240102');
+      clearToast(f2);
+      click(f2, '[data-action-id="ACT-CLS-062"]');
+      var ok = toast(f2).indexOf('已停用') !== -1
+        && q(f2, '#move-done').classList.contains('state-hidden');
+      rec('MV-07', '目标班级已停用时点执行迁移被拦：提示 + 不出现迁移结果块', ok, toast(f2).slice(0, 40));
+      next();
+    },
+    function (next) {
+      setVal(f2, '#f-target', '20260103');
+      click(f2, '[data-action-id="ACT-CLS-062"]');
+      window.setTimeout(function () {
+        var box = q(f2, '#move-done');
+        var ok = !box.classList.contains('state-hidden')
+          && txt(f2, '#move-done-text').indexOf('已迁移 2 名学生') !== -1;
+        rec('MV-08', '正常执行迁移：1.2 秒后出现结果块，写明源班级 → 目标班级与原关系保留历史', ok,
+          txt(f2, '#move-done-text').slice(0, 60));
+        next();
+      }, 1400);
+    },
+    function (next) {
+      winOf(f2).PrototypeShell.applyParams({ class: '高二 (2) 班' });
+      var tableHidden = q(f2, '#source-table').classList.contains('state-hidden');
+      var emptyShown = !panel(f2, 'empty') && !q(f2, '[data-demo-state-panel="empty"]').classList.contains('state-hidden');
+      rec('MV-09', '深链接到空班（高二 (2) 班）：给出空态而不是一张空表',
+        tableHidden && emptyShown, '表格隐藏=' + tableHidden + ' / 空态可见=' + emptyShown);
+      winOf(f2).PrototypeShell.applyParams({ class: '高一 (1) 班' });
+      next();
+    },
+    function (next) {
+      var heads = qa(f2, '#preview-table thead th').map(function (th) { return th.textContent.trim(); });
+      var ok = heads.join(',') === '学号,学生,当前行政班,迁移后行政班,校验结果' && heads.length === 5;
+      rec('MV-10', '影响预览列与 REQ-CLS-062 一致：学生 / 当前班 / 迁移后班 / 校验结果', ok, heads.join(' | '));
+      next();
+    },
+
+    /* ================= C. 移出确认与调班弹窗（随班级详情页交付） ================= */
+
+    function (next) {
+      var boxes = qa(f3, '#roster-rows input[data-remove-pick]');
+      var heads = qa(f3, '#roster-table thead th').length;
+      rec('TR-01', '花名册新增勾选列：3 行复选框 + 表头多一列（批次 2-3d 的「移出所选」需要）',
+        boxes.length === 3 && heads === 10, '复选框 ' + boxes.length + ' / 表头 ' + heads + ' 列');
+      next();
+    },
+    function (next) {
+      var row = qa(f3, '#roster-rows tr')[0];
+      row.querySelector('[data-action-id="ACT-CLS-026"]').click();
+      var ok = isOpen(f3, 'DIALOG-CLS-ROSTER-REMOVE')
+        && qa(f3, '#remove-list .list-row').length === 1
+        && txt(f3, '#remove-target') === '1 名成员';
+      rec('TR-02', '行内「移出」打开移出确认片段并带入该生（REQ-CLS-030）', ok,
+        txt(f3, '#remove-target') + ' / ' + qa(f3, '#remove-list .list-row').length + ' 行');
+      winOf(f3).PrototypeShell.closePanel('DIALOG-CLS-ROSTER-REMOVE');
+      next();
+    },
+    function (next) {
+      clearToast(f3);
+      click(f3, '[data-action-id="ACT-CLS-026"]');
+      var ok = toast(f3).indexOf('请先在花名册里勾选') !== -1
+        && !isOpen(f3, 'DIALOG-CLS-ROSTER-REMOVE');
+      rec('TR-03', '未勾选任何成员时点「移出所选」：只给提示，不打开空弹窗', ok, toast(f3).slice(0, 40));
+      next();
+    },
+    function (next) {
+      setCheck(f3, '#roster-rows input[data-remove-pick="2026000002"]', true);
+      click(f3, '[data-action-id="ACT-CLS-026"]');
+      var ok = isOpen(f3, 'DIALOG-CLS-ROSTER-REMOVE')
+        && qa(f3, '#remove-list .list-row').length === 1
+        && txt(f3, '#remove-list').indexOf('李俊逸') !== -1;
+      rec('TR-04', '勾选 1 名成员后点「移出所选」：确认片段列出该成员', ok, txt(f3, '#remove-list').slice(0, 40));
+      next();
+    },
+    function (next) {
+      var btn = q(f3, '[data-action-id="ACT-CLS-048"]');
+      var ok = btn.getAttribute('data-api') === 'removeClassRoster'
+        && btn.getAttribute('data-permission') === 'org.class:update'
+        && btn.getAttribute('data-after-success') === 'close-panel';
+      rec('TR-05', '确认移出走 removeClassRoster（DELETE /edu/class/{id}/roster/{studentId}），成功后关闭片段',
+        ok, btn.getAttribute('data-api'));
+      winOf(f3).PrototypeShell.closePanel('DIALOG-CLS-ROSTER-REMOVE');
+      setCheck(f3, '#roster-rows input[data-remove-pick="2026000002"]', false);
+      next();
+    },
+    function (next) {
+      var row = qa(f3, '#roster-rows tr')[0];
+      row.querySelector('[data-action-id="ACT-CLS-029"]').click();
+      var fromId = '20260101';
+      var srcOption = q(f3, '#transfer-target-class option[value="' + fromId + '"]');
+      var ok = isOpen(f3, 'PAGE-CLS-TRANSFER')
+        && txt(f3, '#transfer-target').indexOf('王梓萱') !== -1
+        && txt(f3, '#transfer-source').indexOf('高一 (1) 班') !== -1
+        && srcOption && srcOption.disabled === true;
+      rec('TR-06', '行内「调班」打开调班弹窗：带入该生与源班级，且源班级选项不可选（REQ-CLS-031）',
+        ok, txt(f3, '#transfer-target') + ' / 源选项禁用=' + Boolean(srcOption && srcOption.disabled));
+      next();
+    },
+    function (next) {
+      setVal(f3, '#transfer-target-class', '');
+      click(f3, '[data-action-id="ACT-CLS-052"]');
+      var wrap = q(f3, '#transfer-target-class').closest('.field');
+      var summary = panel(f3, 'PAGE-CLS-TRANSFER').querySelector('[data-validate-summary]');
+      var ok = wrap.classList.contains('has-error')
+        && wrap.querySelector('.error-text').textContent.indexOf('请选择目标班级') !== -1
+        && summary && !summary.classList.contains('state-hidden')
+        && isOpen(f3, 'PAGE-CLS-TRANSFER');
+      rec('TR-07', '调班必填校验：未选目标班级时保存被拦，字段级错误 + 顶部汇总 + 弹窗不关闭', ok,
+        wrap.querySelector('.error-text').textContent.slice(0, 26));
+      next();
+    },
+    function (next) {
+      var btn = q(f3, '[data-action-id="ACT-CLS-052"]');
+      var stopped = q(f3, '#transfer-target-class option[value="20240102"]');
+      var ok = btn.getAttribute('data-api') === 'transferClass'
+        && btn.getAttribute('data-permission') === 'org.class:update'
+        && stopped && stopped.disabled === true;
+      rec('TR-08', '确认调班走 transferClass（POST /edu/class/roster/transfer），已停用班级不可选（REQ-CLS-044）',
+        ok, btn.getAttribute('data-api') + ' / 停用选项禁用=' + Boolean(stopped && stopped.disabled));
+      winOf(f3).PrototypeShell.closePanel('PAGE-CLS-TRANSFER');
+      next();
+    },
+    function (next) {
+      winOf(f3).PrototypeShell.applyParams({
+        panel: 'PAGE-CLS-TRANSFER', student: '2026000004',
+        from: '高一 (2) 班', to: '高一 (1) 班'
+      });
+      var ok = isOpen(f3, 'PAGE-CLS-TRANSFER')
+        && txt(f3, '#transfer-target').indexOf('2026000004') !== -1
+        && txt(f3, '#transfer-source').indexOf('高一 (2) 班') !== -1
+        && q(f3, '#transfer-target-class').value === '20260101';
+      rec('TR-09', '编班页冲突行的「调班」深链接：弹窗带入 student / from / to 三个参数并预填目标班级（PRD 6.3）',
+        ok, txt(f3, '#transfer-target') + ' / 目标=' + q(f3, '#transfer-target-class').value);
+      winOf(f3).PrototypeShell.closePanel('PAGE-CLS-TRANSFER');
+      next();
+    },
+    function (next) {
+      winOf(f3).PrototypeShell.applyParams({ term: '202501' });
+      var boxes = qa(f3, '#roster-rows input[data-remove-pick]');
+      var rowActions = qa(f3, '#roster-rows td.actions [data-action-id]').map(function (b) {
+        return b.getAttribute('data-action-id');
+      });
+      var allDetailOnly = rowActions.length > 0 && rowActions.every(function (id) { return id === 'ACT-CLS-028'; });
+      var ok = boxes.every(function (b) { return b.disabled; }) && allDetailOnly
+        && rowActions.indexOf('ACT-CLS-026') === -1 && rowActions.indexOf('ACT-CLS-029') === -1;
+      rec('TR-10', '历史学年学期：勾选列全部禁用、行内只剩只读「详情」（REQ-CLS-032）', ok,
+        '复选框禁用=' + boxes.every(function (b) { return b.disabled; }) + ' / 行内 ' + rowActions.join(','));
+      winOf(f3).PrototypeShell.applyParams({ term: '202601' });
+      next();
+    },
+    function (next) {
+      var ids = ['DIALOG-CLS-ROSTER-REMOVE', 'PAGE-CLS-TRANSFER'];
+      var bad = ids.filter(function (id) {
+        var p = panel(f3, id);
+        return p && p.querySelector('table');
+      });
+      rec('TR-11', '移出确认与调班两个片段内都不含表格（layout-spec：弹窗内不放表格）',
+        bad.length === 0, bad.length ? bad.join(' | ') : '表格式内容 0 处');
+      next();
+    }
+  ];
+
+  var EXPECTED = 34;
+
+  function render() {
+    var ol = document.getElementById('results');
+    ol.innerHTML = '';
+    var pass = 0;
+    RESULTS.forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = r.pass ? 'ok' : 'bad';
+      li.textContent = (r.pass ? '通过  ' : '不通过 ') + r.id + '  ' + r.name + (r.detail ? '  —— ' + r.detail : '');
+      ol.appendChild(li);
+      if (r.pass) pass += 1;
+    });
+    var p = document.createElement('p');
+    p.className = pass === EXPECTED ? 'sum' : 'sum bad';
+    p.textContent = '合计 ' + RESULTS.length + ' / ' + EXPECTED + ' 条，通过 ' + pass + ' 条，不通过 '
+      + (RESULTS.length - pass) + ' 条' + (pass === EXPECTED && RESULTS.length === EXPECTED ? ' —— 全部通过' : '');
+    ol.appendChild(p);
+  }
+
+  function run(index) {
+    if (index >= steps.length) { render(); return; }
+    var called = false;
+    function next() {
+      if (called) return;
+      called = true;
+      run(index + 1);
+    }
+    try {
+      steps[index](next);
+    } catch (err) {
+      rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步抛异常（后续步骤已跳过）',
+        false, String(err && err.message || err));
+      run(index + 1);
+    }
+  }
+
+  var started = 0;
+  function maybeStart() {
+    if (started < 3) return;
+    window.setTimeout(function () { run(0); }, 400);
+  }
+  [f1, f2, f3].forEach(function (f) {
+    f.addEventListener('load', function () {
+      started += 1;
+      if (started <= 3) maybeStart();
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,9 +1,10 @@
-# 阶段 2 业务原型 · 验收证据（批次 2-1、2-2a、2-2b-1、2-2b-2、2-2b-2b、2-3a、2-3b、2-3c）
+# 阶段 2 业务原型 · 验收证据（批次 2-1、2-2a、2-2b-1、2-2b-2、2-2b-2b、2-3a、2-3b、2-3c、2-3d）
 
 本目录保存批次 2-1（学生管理列表 + 新增/编辑抽屉样板页）、2-2a（教师管理列表样板页）、
 2-2b-1（教师详情 + 新增教师 + 编辑教师，含放弃确认弹窗）、2-2b-2（教育角色分配 + 任教关系设置独立页）、
 2-2b-2b（年级管理列表样板页 + 删除确认弹窗）、2-3a（班级管理列表样板页 + 停用/删除确认）、
-2-3b（班级详情与花名册）、2-3c（新建/编辑、批量生成、复制、指定班主任四个弹窗）的截图证据。
+2-3b（班级详情与花名册）、2-3c（新建/编辑、批量生成、复制、指定班主任四个弹窗）、
+2-3d（编班、批量迁学生、移出确认与调班）的截图证据。
 截图由本机 Chrome 无头模式生成，命令可复现，见文末。
 
 ## 1. 截图清单
@@ -419,4 +420,28 @@ $ python tools/check_docs.py
 - `GAP-048`：新建班级弹窗里「班级类型」只允许行政班（教学班创建在批次 2-7），是否需要改成弹窗内可切换。
 - `GAP-049`：班级 PRD 第 8 节没有 `copyClass`，本批复制班级复用 `addClass`，是否需要补独立 operationId。
 
-下一批建议：2-3d 添加学生（`PAGE-CLS-ROSTER-ADD`）/ 调班（`PAGE-CLS-TRANSFER`）/ 批量迁学生（`PAGE-CLS-MOVE`），随后 2-3e 升班四步向导与结果页。
+### 5.7 批次 2-3d（编班 / 批量迁学生 / 移出与调班）的交付说明
+
+| 产物 | 路径 |
+|---|---|
+| 独立页 | `prototypes/functional/v1/pages/class-roster-add.html`（`PAGE-CLS-ROSTER-ADD`，左学生池 + 右待加入清单） |
+| 独立页 | `prototypes/functional/v1/pages/class-move-students.html`（`PAGE-CLS-MOVE`，选学生 → 选目标班 → 影响预览 → 执行） |
+| 片段（随班级详情） | `pages/class-detail.html` 的 `DIALOG-CLS-ROSTER-REMOVE`（移出确认）与 `PAGE-CLS-TRANSFER`（调班），花名册新增勾选列（表格 min-width 1080 → 1122） |
+| 页面规格 | `page-specs/class-roster-add.md` / `class-move-students.md` / `class-transfer.md` |
+| 动作清单 | `class_roster_add`（`ACT-CLS-053` ~ `058`）、`class_move_students`（`ACT-CLS-059` ~ `063`）、`class_detail` 补 `048` ~ `052` 与 `064` |
+| 外壳登记 | `prototype-shell.js` 的 `EXTRA_PAGES` 增加 `PAGE-CLS-ROSTER-ADD` 与 `PAGE-CLS-MOVE` |
+| 样例数据 | `content-samples.json` 新增 2 条「在读但无行政班」学生（2026000013 潘思彤 / 2026000014 蒋知远），`notes` 同步说明；总学生数 10 → 12 |
+| 截图 | `class-roster-add_1440x900.png` / `class-roster-add_conflict_1440x900.png` / `class-move-students_1440x900.png` / `class-move-students_stopped_1440x900.png` / `class-detail_dialog-remove_1440x900.png` / `class-detail_dialog-transfer_1440x900.png` / `class-roster_verify-results.png` |
+| 验证 | `verify-class-roster.html` 34 / 34 通过（RA-01 ~ RA-13、MV-01 ~ MV-10、TR-01 ~ TR-11，三个 iframe）；回归 class-list 39 / 39、class-detail 20 / 20、class-dialogs 36 / 36、grade-list 38 / 38、detail-entry 6 / 6、carrier-change 14 / 14；`python tools/check_docs.py` 通过 |
+
+本批的关键点：
+
+- 编班页允许勾选**已有行政班**的学生，提交时才整体拒绝并列出冲突清单——直接禁用冲突行就演示不了
+  `REQ-CLS-029` 的「任一条冲突则整体拒绝」。
+- 冲突行的「调班」按 class PRD 6.3 直接跳到班级详情页的调班弹窗，并带 `student` / `from` / `to` 三个参数预填。
+- 批量迁学生只允许「学籍状态 = 在读」的成员迁移；休学 / 出国留学等保留关系成员显示但不可选（`BR-STU-012` 口径）。
+- 待你拍板一项（非阻塞，见 `gap-register.yaml`）：`GAP-051`——「出国留学（保留学籍）」是否计入班级在读人数。
+  样例里高二 (1) 班的 `student_count=2` 与「1 名在读 + 1 名出国留学」并存，推荐选项 A（与休学同口径不计入在读，并把该班样例数改成 1）。
+
+下一批建议：2-3e 升班四步向导与结果页（`PAGE-PRM-LIST` / `CREATE` / `PREVIEW` / `VALIDATE` / `EXECUTE` / `RESULT`）
+与预览里的「调整学生去向」弹窗（`PAGE-PRM-ADJUST`）。

@@ -73,7 +73,9 @@
   // menu 之外的页面无法从 MENUS 推导交付状态与名称，必须在这里显式登记，否则点击只会得到"后续批次交付"提示。
   var EXTRA_PAGES = {
     'PAGE-TCH-ASSIGN': { path: 'pages/teacher-assign.html', name: '任教关系设置', batch: '2-2' },
-    'PAGE-CLS-DETAIL': { path: 'pages/class-detail.html', name: '班级详情', batch: '2-3' }
+    'PAGE-CLS-DETAIL': { path: 'pages/class-detail.html', name: '班级详情', batch: '2-3' },
+    'PAGE-CLS-ROSTER-ADD': { path: 'pages/class-roster-add.html', name: '编班（添加学生）', batch: '2-3' },
+    'PAGE-CLS-MOVE': { path: 'pages/class-move-students.html', name: '批量迁学生', batch: '2-3' }
   };
   Object.keys(EXTRA_PAGES).forEach(function (id) {
     PAGE_NAME[id] = EXTRA_PAGES[id].name;

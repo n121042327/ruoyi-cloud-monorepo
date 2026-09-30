@@ -326,3 +326,36 @@ $chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
   "file:///D:/work/person_work/ruoyi-cloud-monorepo/evidence/stage2-prototype/verify-class-dialogs.html" |
   Select-String -Pattern 'class="sum'
 ```
+
+---
+
+## 11. 批次 2-3d：编班 / 批量迁学生 / 移出与调班（`verify-class-roster.html`）
+
+新增 `evidence/stage2-prototype/verify-class-roster.html`（34 条断言），用**三个 iframe** 分别加载
+`pages/class-roster-add.html`（编班）、`pages/class-move-students.html`（批量迁学生）与
+`pages/class-detail.html`（移出确认 / 调班弹窗），三份文档都加载完成后再按顺序跑断言。
+
+| 分组 | 用例 | 关键断言 |
+|---|---|---|
+| 编班页 | RA-01 ~ RA-13 | 页头标签；学生池 15 行；逐行判定 可加入 2 / 已在本班 4 / 已有行政班 6 / 转入未报到 1 / 终态 2；勾选可用性 6 禁用 / 9 可用；「只看可加入」只剩 2 行；姓名检索；勾选后可加入与冲突两种清单形态；任一条冲突则整体拒绝且清单不清空；移除后冲突块收起；全部通过时保存成功；深链接切目标班级后「已在本班」判定跟着变；列宽之和 = min-width |
+| 批量迁学生页 | MV-01 ~ MV-10 | 源班级在读 2 人默认全选；休学成员不可选；影响预览 5 列 2 行；清空选择给提示；目标班级已停用 → 提示块 + 每行不可迁入；跨年级 → 确认提示；停用目标点执行被拦；正常执行 1.2 秒后出结果块；深链接到空班给空态；预览列与 REQ-CLS-062 一致 |
+| 移出与调班 | TR-01 ~ TR-11 | 花名册勾选列（3 行 / 表头 10 列）；行内「移出」带入该生；未勾选时只提示不开空弹窗；勾选后确认片段列出成员；确认移出走 `removeClassRoster`；行内「调班」带入该生与源班级且源班级选项禁用；必填校验不关弹窗；确认调班走 `transferClass` 且已停用班级不可选；编班页深链接三个参数全部生效；历史学年学期勾选列禁用且行内只剩「详情」；两块片段内都不含表格 |
+
+### 11.1 与上一批的关系
+
+本批改了 `pages/class-detail.html` 的花名册（新增勾选列，表格 min-width 1080 → 1122），
+因此把 `verify-class-detail.html` 一起重跑：20 / 20 通过（它的断言用 `th[data-field=…]` 与 `td.actions` 选取，
+不受新增列影响）。其余 4 个 harness 也全部重跑通过。
+
+### 11.2 全量回归结果（批次 2-3d 结束时）
+
+| harness | 结果 |
+|---|---|
+| `verify-class-roster.html` | 34 / 34 通过 |
+| `verify-class-list.html` | 39 / 39 通过 |
+| `verify-class-detail.html` | 20 / 20 通过 |
+| `verify-class-dialogs.html` | 36 / 36 通过 |
+| `verify-grade-list.html` | 38 / 38 通过 |
+| `verify-detail-entry.html` | 6 / 6 通过 |
+| `verify-carrier-change.html` | 14 / 14 通过 |
+| `python tools/check_docs.py` | 通过：未发现问题 |

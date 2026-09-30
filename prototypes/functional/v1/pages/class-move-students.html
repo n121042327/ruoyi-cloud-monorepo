@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>批量迁学生 — 业务原型 v1（批次 2-3d）</title>
+<link rel="stylesheet" href="../assets/prototype-shell.css" />
+<script src="../assets/prototype-shell.js"></script>
+<style>
+  /* 独立页（D-059：含影响预览表格的内容用独立页，不用抽屉 / 弹窗） */
+  .move-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  #source-rows .ellipsis, #preview-rows .ellipsis { max-width: 100%; }
+  #source-rows input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; }
+  .move-config { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 20px; }
+  .field { margin-bottom: 18px; }
+  .field > label { display: block; margin-bottom: 6px; font-size: 14px; color: var(--app-text-regular); }
+  .field .required { color: var(--app-danger); margin-left: 2px; }
+  .field .hint { margin-top: 4px; font-size: 12px; color: var(--app-text-secondary); }
+  .field .error-text { display: none; margin-top: 4px; font-size: 12px; color: var(--app-danger); }
+  .field.has-error .error-text { display: block; }
+  .field.has-error .input, .field.has-error .select { border-color: var(--app-danger); }
+  .summary-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+    border: 1px solid var(--app-border-light); border-radius: var(--app-radius-small); background: #fafbfc; }
+  .summary-row .grow { flex: 1; min-width: 0; }
+  .cell-secondary { color: var(--app-text-secondary); font-size: 12px; }
+</style>
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-CLS-MOVE"
+  data-menu-page="PAGE-CLS-LIST"
+  data-breadcrumb="教育管理 / 班级管理 / 批量迁学生"
+  data-tab="批量迁学生"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-CLS-MOVE" data-role="page">
+
+  <!-- ============================================================ 页头 -->
+  <div class="page-head">
+    <button class="btn" data-role="action" data-action-id="ACT-CLS-063" data-component="el-button"
+            data-nav="PAGE-CLS-LIST">← 返回班级列表</button>
+    <h1>批量迁学生</h1>
+    <span class="el-tag primary" id="source-class-tag">高一 (1) 班</span>
+    <span class="el-tag info">2026-2027 学年 第一学期</span>
+    <span class="scope-hint" data-role="scope-hint">数据范围：本校（DS-04）· 教务主任与年级主任可迁移</span>
+  </div>
+
+  <div class="alert info">
+    <span>迁移规则</span>
+    <span>把一个班级的<b>在读学生整体迁入目标班级</b>：逐条校验唯一行政班，先展示影响预览再执行
+      （<span class="mono">REQ-CLS-062</span>）；原班级关系保留历史、不覆盖（<span class="mono">BR-PROMO-007</span>）；
+      休学成员保留原关系但不参与迁移（<span class="mono">BR-STU-012</span>）。批量执行逐条校验，
+      任一条失败时列出失败清单，不做整体回滚（<span class="mono">DS-DENY-06</span>）。</span>
+  </div>
+
+  <div class="alert warning state-hidden" id="history-readonly">
+    <span>历史学年学期只读</span>
+    <span>源班级属于已归档学年学期，关系只读，不提供迁移入口（<span class="mono">REQ-CLS-032</span>）。</span>
+  </div>
+
+  <div class="move-grid">
+
+    <!-- 1. 源班级与在读成员 -->
+    <section class="card" data-block="table" data-role="table-block" data-component="el-card.hover">
+      <div class="card-header">
+        <h3>1 · 选择要迁移的学生</h3>
+        <span class="el-tag info" id="source-summary">在读 2 人 · 已选 2 人</span>
+      </div>
+      <div class="card-body">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+          <button class="btn" data-role="action" data-action-id="ACT-CLS-059" data-component="el-button"
+                  data-permission="org.class:update">全选在读成员</button>
+          <button class="btn" data-role="action" data-action-id="ACT-CLS-059" data-component="el-button"
+                  data-permission="org.class:update">清空选择</button>
+          <span class="cell-secondary">休学成员保留原关系但不计入在读名单，因此不参与批量迁移（BR-STU-012）</span>
+        </div>
+        <div data-normal-view>
+          <div class="table-scroll">
+            <table class="el-table" id="source-table" data-role="table" data-component="el-table" data-api="listClassRoster"
+                   style="min-width:660px;table-layout:fixed">
+              <thead>
+                <tr>
+                  <th style="width:44px"></th>
+                  <th data-role="column" data-field="student_no" style="width:148px">学号</th>
+                  <th data-role="column" data-field="student_name" style="width:150px">姓名</th>
+                  <th data-role="column" data-field="enrollment_status" style="width:130px">学籍状态</th>
+                  <th data-role="column" data-field="student_class_id" style="width:188px">当前行政班</th>
+                </tr>
+              </thead>
+              <tbody id="source-rows">
+                <tr data-role="row" data-no="2026000001" data-name="王梓萱" data-status="在读" data-movable="true"
+                    data-class-id="20260101">
+                  <td><input type="checkbox" checked data-action-id="ACT-CLS-059" data-pick="2026000001" /></td>
+                  <td class="mono">2026000001</td>
+                  <td>王梓萱</td>
+                  <td><span class="el-tag success">在读</span></td>
+                  <td data-cell="class"></td>
+                </tr>
+                <tr data-role="row" data-no="2026000002" data-name="李俊逸" data-status="在读" data-movable="true"
+                    data-class-id="20260101">
+                  <td><input type="checkbox" checked data-action-id="ACT-CLS-059" data-pick="2026000002" /></td>
+                  <td class="mono">2026000002</td>
+                  <td>李俊逸</td>
+                  <td><span class="el-tag success">在读</span></td>
+                  <td data-cell="class"></td>
+                </tr>
+                <tr data-role="row" data-no="2026000003" data-name="陈思远" data-status="休学（保留关系）" data-movable="false"
+                    data-class-id="20260101">
+                  <td><input type="checkbox" data-pick="2026000003" disabled /></td>
+                  <td class="mono">2026000003</td>
+                  <td>陈思远</td>
+                  <td><span class="el-tag warning">休学（保留关系）</span></td>
+                  <td data-cell="class"></td>
+                </tr>
+                <tr data-role="row" data-no="2026000004" data-name="赵一诺" data-status="在读" data-movable="true"
+                    data-class-id="20260102">
+                  <td><input type="checkbox" checked data-action-id="ACT-CLS-059" data-pick="2026000004" /></td>
+                  <td class="mono">2026000004</td>
+                  <td>赵一诺</td>
+                  <td><span class="el-tag success">在读</span></td>
+                  <td data-cell="class"></td>
+                </tr>
+                <tr data-role="row" data-no="2026000012" data-name="阿依古丽·买买提" data-status="在读" data-movable="true"
+                    data-class-id="20260102">
+                  <td><input type="checkbox" checked data-action-id="ACT-CLS-059" data-pick="2026000012" /></td>
+                  <td class="mono">2026000012</td>
+                  <td><span class="ellipsis" title="阿依古丽·买买提">阿依古丽·买买提</span></td>
+                  <td><span class="el-tag success">在读</span></td>
+                  <td data-cell="class"></td>
+                </tr>
+                <tr data-role="row" data-no="2026000006" data-name="吴雨桐" data-status="在读" data-movable="true"
+                    data-class-id="20260103">
+                  <td><input type="checkbox" checked data-action-id="ACT-CLS-059" data-pick="2026000006" /></td>
+                  <td class="mono">2026000006</td>
+                  <td>吴雨桐</td>
+                  <td><span class="el-tag success">在读</span></td>
+                  <td data-cell="class"></td>
+                </tr>
+                <tr data-role="row" data-no="2025000002" data-name="孙悠然" data-status="在读" data-movable="true"
+                    data-class-id="20250101">
+                  <td><input type="checkbox" checked data-action-id="ACT-CLS-059" data-pick="2025000002" /></td>
+                  <td class="mono">2025000002</td>
+                  <td>孙悠然</td>
+                  <td><span class="el-tag success">在读</span></td>
+                  <td data-cell="class"></td>
+                </tr>
+                <tr data-role="row" data-no="2025000001" data-name="徐昊然" data-status="出国留学（保留学籍）" data-movable="false"
+                    data-class-id="20250101">
+                  <td><input type="checkbox" data-pick="2025000001" disabled /></td>
+                  <td class="mono">2025000001</td>
+                  <td>徐昊然</td>
+                  <td><span class="el-tag info">出国留学（保留学籍）</span></td>
+                  <td data-cell="class"></td>
+                </tr>
+                <tr data-role="row" data-no="2024000001" data-name="马嘉懿" data-status="在读" data-movable="true"
+                    data-class-id="20240101">
+                  <td><input type="checkbox" checked data-action-id="ACT-CLS-059" data-pick="2024000001" /></td>
+                  <td class="mono">2024000001</td>
+                  <td>马嘉懿</td>
+                  <td><span class="el-tag success">在读</span></td>
+                  <td data-cell="class"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="state-hidden" data-demo-state-panel="empty">
+          <div class="state-block">
+            <div class="icon">🗂️</div>
+            <div class="title" id="move-empty-title">源班级没有在读成员</div>
+            <div class="desc" id="move-empty-desc">空班或全部成员都处于休学等非在读状态：没有可迁移的学生，
+              可在班级详情用「编班」先加入学生。</div>
+            <button class="btn primary" data-role="action" data-action-id="ACT-CLS-063" data-component="el-button.primary"
+                    data-nav="PAGE-CLS-LIST" data-demo-toast="已返回班级列表。" data-demo-toast-type="info">返回班级列表</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. 目标班级 -->
+    <section class="card" data-block="form" data-role="form" data-component="el-card.hover">
+      <div class="card-header">
+        <h3>2 · 选择目标班级</h3>
+        <span class="el-tag info" id="target-term-tag">同学年学期内迁移</span>
+      </div>
+      <div class="card-body">
+        <div class="move-config">
+          <div class="field" data-field="target_class_id" data-role-editable="academic_director,grade_leader">
+            <label>目标班级<span class="required">*</span></label>
+            <select class="select" style="min-width:100%" id="f-target" data-component="el-select" data-required
+                    data-required-message="请选择目标班级">
+              <option value="">请选择目标班级</option>
+              <option value="20260102">高一 (2) 班 · 在读 2 · 容量 45</option>
+              <option value="20260103" selected>高一 (3) 班 · 在读 1 · 容量 45</option>
+              <option value="20250102">高二 (2) 班 · 在读 0 · 容量 45</option>
+              <option value="20240101">高三 (1) 班 · 在读 1 · 容量 45</option>
+              <option value="20240102">高三 (2) 班 · 在读 0 · 容量 45（已停用）</option>
+            </select>
+            <div class="error-text"></div>
+            <div class="hint">只列本校、同学年学期的行政班；源班级自身与已停用班级不可选（<span class="mono">REQ-CLS-044</span>）。</div>
+          </div>
+          <div class="field" data-field="remark" data-role-editable="academic_director,grade_leader">
+            <label>迁移说明</label>
+            <input class="input" style="min-width:100%" id="f-remark" data-component="el-input"
+                   placeholder="选填，如：按学期初分班结果调整" />
+            <div class="hint">写入审计备注；迁移本身无论是否填写都会写审计（<span class="mono">REQ-CLS-052</span>）。</div>
+          </div>
+        </div>
+
+        <div class="alert danger state-hidden" id="target-stopped">
+          <span>目标班级已停用</span>
+          <span>已停用班级不再接受编班、班主任变更与批量迁学生（<span class="mono">REQ-CLS-044</span>）；请另选目标班级。</span>
+        </div>
+        <div class="alert warning state-hidden" id="cross-grade-warning">
+          <span>跨年级迁移</span>
+          <span id="cross-grade-text">目标班级的年级与源班级不同：迁移会同时改变学生的年级归属，
+            请确认这符合你们的教务口径（同一年学年学期内允许，<span class="mono">BR-CLASS-008</span>）。</span>
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn" data-role="action" data-action-id="ACT-CLS-061" data-component="el-button"
+                  data-api="listClassRoster" data-permission="org.class:read"
+                  data-demo-message="影响预览已按最新选择重新计算。">刷新影响预览</button>
+          <span class="cell-secondary">预览只读，不写库；点「执行迁移」才写入</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. 影响预览 -->
+    <section class="card" data-block="table" data-role="table-block" data-component="el-card.hover">
+      <div class="card-header">
+        <h3>3 · 影响预览</h3>
+        <span class="el-tag info" id="preview-summary">将迁移 2 名学生</span>
+      </div>
+      <div class="card-body">
+        <div class="table-scroll">
+          <table class="el-table" id="preview-table" data-role="table" data-component="el-table"
+                 style="min-width:760px;table-layout:fixed">
+            <thead>
+              <tr>
+                <th data-role="column" data-field="student_no" style="width:140px">学号</th>
+                <th data-role="column" data-field="student_name" style="width:150px">学生</th>
+                <th data-role="column" data-field="student_class_id" style="width:160px">当前行政班</th>
+                <th data-role="column" data-field="target_class_id" style="width:160px">迁移后行政班</th>
+                <th data-role="column" data-field="move_check" style="width:150px">校验结果</th>
+              </tr>
+            </thead>
+            <tbody id="preview-rows"></tbody>
+          </table>
+        </div>
+        <div class="legend" style="margin-top:8px">
+          <span>原班级关系在 <span class="mono">edu_student_class</span> 里追加结束日期，不做物理删除；
+            新关系按目标班级写入，因此历史花名册仍然可查（<span class="mono">BR-PROMO-007</span>）。</span>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+          <button class="btn" data-role="action" data-action-id="ACT-CLS-063" data-component="el-button"
+                  data-nav="PAGE-CLS-LIST">取消</button>
+          <button class="btn primary" data-role="action" data-action-id="ACT-CLS-062" data-component="el-button.primary"
+                  data-role-visible="academic_director,grade_leader,super_admin"
+                  data-permission="org.class:update" data-api="transferClass" data-validate-on-submit
+                  data-after-success="stay"
+                  data-demo-message="已迁移 2 名学生到高一 (3) 班，并写入审计；原关系保留历史。">执行迁移</button>
+        </div>
+        <div class="alert success state-hidden" id="move-done" style="margin-top:12px">
+          <span>迁移结果</span>
+          <span id="move-done-text"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 状态面板 -->
+    <div class="state-hidden" data-demo-state-panel="loading">
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:140px"></div><div class="skeleton-bar" style="width:110px"></div><div class="skeleton-bar" style="width:180px"></div></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:140px"></div><div class="skeleton-bar" style="width:110px"></div><div class="skeleton-bar" style="width:180px"></div></div>
+      <div class="legend" style="margin-top:10px"><span>花名册与影响预览加载中：表格内 loading，不遮罩整页</span></div>
+    </div>
+    <div class="state-hidden" data-demo-state-panel="error">
+      <div class="state-block error">
+        <div class="icon">⚠️</div>
+        <div class="title">影响预览计算失败</div>
+        <div class="desc">取源班级花名册时超时，已重试 1 次仍失败（<span class="mono">DS-DENY-07</span>）。</div>
+        <div class="req-id">请求编号 <span class="mono">REQ-20260930-000733</span> · 错误码 DS-5002</div>
+        <button class="btn primary" data-role="action" data-action-id="ACT-CLS-061" data-component="el-button"
+                data-api="listClassRoster" data-demo-message="已重新发起查询（第 2 次重试）。">重试</button>
+      </div>
+    </div>
+    <div class="state-hidden" data-demo-state-panel="forbidden">
+      <div class="state-block">
+        <div class="icon">🔒</div>
+        <div class="title">当前账号不能迁移学生</div>
+        <div class="desc">批量迁学生只对教务主任与年级主任开放；校领导、班主任、任课教师与平台运营只读
+          （<span class="mono">DP-01</span> / <span class="mono">REQ-CLS-006</span>）。</div>
+        <button class="btn" data-demo-toast="已返回班级列表。" data-demo-toast-type="info">返回班级列表</button>
+      </div>
+    </div>
+    <div class="state-hidden" data-demo-state-panel="submitting">
+      <div class="alert warning" style="margin:0">
+        <span>提交中</span><span>「执行迁移」已置 loading 并禁用；逐条校验期间不要刷新页面。</span>
+      </div>
+    </div>
+    <div class="state-hidden" data-demo-state-panel="partial">
+      <div class="card" style="margin:0">
+        <div class="card-header"><h3>形态样例 · 部分失败</h3><span class="el-tag warning">partial_failed</span></div>
+        <div class="card-body">
+          <table class="el-table">
+            <thead><tr><th>任务编号</th><th>对象</th><th class="num">总数</th><th class="num">成功</th><th class="num">失败</th><th>失败原因</th></tr></thead>
+            <tbody><tr>
+              <td class="mono">TASK-20260930-000741</td><td>批量迁学生（高一 (1) 班 → 高一 (3) 班）</td>
+              <td class="num">2</td><td class="num">1</td><td class="num">1</td>
+              <td>第 2 条：该生在提交瞬间已被别的班编入，唯一行政班校验失败（<span class="mono">BR-STU-003</span>）</td>
+            </tr></tbody>
+          </table>
+          <div class="legend" style="margin-top:8px"><span>逐条校验、列出失败清单、不做整体回滚（<span class="mono">DS-DENY-06</span>）。</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend" style="margin-top:8px">
+    <span><b>与「升班」的区别</b>：升班是跨学年学期地新增下一学年的班级与学生关系（一年一次，按学年追加）；
+      批量迁学生只在同一个学年学期内调整行政班归属，不改年级、不产生新学年数据。</span>
+  </div>
+</div>
+
+<!-- ============================================================== 批次 2-3d 演示脚本（批量迁学生）
+     覆盖：源班级在读成员勾选（休学成员不可选）、目标班级选择与停用 / 跨年级校验、
+           影响预览实时重算、执行迁移、七类页面状态。
+     数据来源：content-samples.json 的 classes / class_edge_cases（班级名与在读人数）、
+              students 与 student_class_relations（高一 (1) 班两名在读学生）。 -->
+<script>
+(function () {
+  'use strict';
+
+  /* 目标班级候选：本校 2026-2027 学年 第一学期的行政班（已停用班级标记 stopped） */
+  var TARGETS = {
+    '20260102': { name: '高一 (2) 班', grade: '2026 级 高一', stopped: false },
+    '20260103': { name: '高一 (3) 班', grade: '2026 级 高一', stopped: false },
+    '20250102': { name: '高二 (2) 班', grade: '2025 级 高二', stopped: false },
+    '20240101': { name: '高三 (1) 班', grade: '2024 级 高三', stopped: false },
+    '20240102': { name: '高三 (2) 班', grade: '2024 级 高三', stopped: true }
+  };
+  var CLASS_GRADE = {
+    '高一 (1) 班': '2026 级 高一',
+    '高一 (2) 班': '2026 级 高一',
+    '高一 (3) 班': '2026 级 高一',
+    '高二 (1) 班': '2025 级 高二',
+    '高二 (2) 班': '2025 级 高二',
+    '高三 (1) 班': '2024 级 高三'
+  };
+  /* 班级名 → class_id（与 content-samples 的 classes / class_edge_cases 一致） */
+  var CLASS_ID = {
+    '高一 (1) 班': '20260101',
+    '高一 (2) 班': '20260102',
+    '高一 (3) 班': '20260103',
+    '高二 (1) 班': '20250101',
+    '高二 (2) 班': '20250102',
+    '高三 (1) 班': '20240101',
+    '高三 (2) 班': '20240102'
+  };
+
+  var sourceName = '高一 (1) 班';
+  var sourceId = CLASS_ID[sourceName];
+  var picked = [];
+
+  function q(sel, root) { return (root || document).querySelector(sel); }
+  function qa(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined && text !== null) n.textContent = text;
+    return n;
+  }
+  function sourceRows() { return qa('#source-rows tr'); }
+  function rowsOfSource() {
+    return sourceRows().filter(function (r) { return r.getAttribute('data-class-id') === sourceId; });
+  }
+  function movableRows() {
+    return rowsOfSource().filter(function (r) { return r.getAttribute('data-movable') === 'true'; });
+  }
+  /* 源班级在本页有没有样例成员：高一 (1)(2)(3) 班、高二 (1) 班、高三 (1) 班 有；
+     高二 (2) 班（空班）与高三 (2) 班（已停用）没有。 */
+  function hasSampleRoster() { return rowsOfSource().length > 0; }
+
+  /* ---------------- 1. 源班级摘要与勾选 ---------------- */
+
+  function renderSource() {
+    sourceRows().forEach(function (row) {
+      var mine = row.getAttribute('data-class-id') === sourceId;
+      row.classList.toggle('state-hidden', !mine);
+      var cell = row.querySelector('[data-cell="class"]');
+      if (!cell) return;
+      cell.innerHTML = '';
+      var movable = row.getAttribute('data-movable') === 'true';
+      cell.appendChild(el('span', 'el-tag ' + (movable ? 'primary' : 'warning'),
+        sourceName + (movable ? '' : '（保留关系，不参与迁移）')));
+    });
+    q('#source-class-tag').textContent = sourceName;
+    q('#source-summary').textContent = '在读 ' + movableRows().length + ' 人 · 已选 ' + picked.length + ' 人';
+    // 没有样例成员时给空态，而不是留一张空表
+    var emptyPanel = q('[data-demo-state-panel="empty"]');
+    if (emptyPanel) emptyPanel.classList.toggle('state-hidden', hasSampleRoster());
+    q('#source-table').classList.toggle('state-hidden', !hasSampleRoster());
+  }
+
+  function syncPicked() {
+    picked = [];
+    movableRows().forEach(function (row) {
+      var box = row.querySelector('input[type="checkbox"]');
+      if (box && box.checked) picked.push(row.getAttribute('data-no'));
+    });
+  }
+
+  /* ---------------- 2. 影响预览 ---------------- */
+
+  function currentTarget() {
+    var value = q('#f-target').value;
+    return value ? TARGETS[value] : null;
+  }
+
+  function renderPreview() {
+    var body = q('#preview-rows');
+    var target = currentTarget();
+    var sourceGrade = CLASS_GRADE[sourceName];
+    body.innerHTML = '';
+    q('#target-stopped').classList.add('state-hidden');
+    q('#cross-grade-warning').classList.add('state-hidden');
+    if (target && target.stopped) {
+      q('#target-stopped').classList.remove('state-hidden');
+    }
+    if (target && !target.stopped && sourceGrade && target.grade !== sourceGrade) {
+      q('#cross-grade-text').textContent = '目标班级属于「' + target.grade + '」，源班级属于「' + sourceGrade
+        + '」：迁移会同时改变学生的年级归属，请确认这符合你们的教务口径'
+        + '（同一学年学期内允许，BR-CLASS-008）。';
+      q('#cross-grade-warning').classList.remove('state-hidden');
+    }
+    if (!picked.length) {
+      var tr0 = el('tr');
+      var td0 = el('td', 'cell-empty', '请先在「1 · 选择要迁移的学生」里勾选在读成员。');
+      td0.setAttribute('colspan', '5');
+      td0.style.textAlign = 'center';
+      tr0.appendChild(td0);
+      body.appendChild(tr0);
+      q('#preview-summary').textContent = '未选择学生';
+      return;
+    }
+    picked.forEach(function (no) {
+      var row = sourceRows().filter(function (r) { return r.getAttribute('data-no') === no; })[0];
+      if (!row) return;
+      var tr = el('tr');
+      tr.appendChild(el('td', 'mono', no));
+      tr.appendChild(el('td', null, row.getAttribute('data-name')));
+      tr.appendChild(el('td')).appendChild(el('span', 'el-tag primary', sourceName));
+      var targetCell = el('td');
+      if (!target) {
+        targetCell.appendChild(el('span', 'cell-secondary', '待选择目标班级'));
+      } else if (target.stopped) {
+        targetCell.appendChild(el('span', 'el-tag danger', target.name + '（已停用）'));
+      } else {
+        targetCell.appendChild(el('span', 'el-tag success', target.name));
+      }
+      tr.appendChild(targetCell);
+      var checkCell = el('td');
+      var check = !target
+        ? { cls: 'info', text: '待选择目标班级' }
+        : target.stopped
+          ? { cls: 'danger', text: '目标班级已停用，不可迁入' }
+          : { cls: 'success', text: '校验通过：可迁移' };
+      checkCell.appendChild(el('span', 'el-tag ' + check.cls, check.text));
+      tr.appendChild(checkCell);
+      body.appendChild(tr);
+    });
+    q('#preview-summary').textContent = target && !target.stopped
+      ? '将迁移 ' + picked.length + ' 名学生到 ' + target.name
+      : '将迁移 ' + picked.length + ' 名学生（目标班级待定）';
+  }
+
+  /* ---------------- 3. 事件 ---------------- */
+
+  document.addEventListener('click', function (event) {
+    var node = event.target;
+
+    if (node.closest('[data-action-id="ACT-CLS-059"]')) {
+      var label = node.textContent.trim();
+      if (label === '全选在读成员' || label === '清空选择') {
+        movableRows().forEach(function (row) {
+          var box = row.querySelector('input[type="checkbox"]');
+          if (box) box.checked = label === '全选在读成员';
+        });
+      }
+      syncPicked();
+      renderSource();
+      renderPreview();
+      return;
+    }
+
+    if (node.closest('[data-action-id="ACT-CLS-061"]')) {
+      syncPicked();
+      renderSource();
+      renderPreview();
+      return;
+    }
+
+    if (node.closest('[data-action-id="ACT-CLS-062"]')) {
+      var target = currentTarget();
+      if (!picked.length) {
+        event.stopImmediatePropagation();
+        window.PrototypeShell.toast('请先勾选要迁移的在读学生。', 'warning');
+        return;
+      }
+      if (!target) {
+        event.stopImmediatePropagation();
+        var wrap = q('#f-target').closest('.field');
+        wrap.classList.add('has-error');
+        wrap.querySelector('.error-text').textContent = '请选择目标班级';
+        window.PrototypeShell.toast('请先选择目标班级。', 'warning');
+        return;
+      }
+      if (target.stopped) {
+        event.stopImmediatePropagation();
+        q('#target-stopped').classList.remove('state-hidden');
+        window.PrototypeShell.toast('目标班级已停用，不能迁入；已停用班级不再接受批量迁学生（REQ-CLS-044）。', 'error');
+        return;
+      }
+      var count = picked.length;
+      var targetName = target.name;
+      window.setTimeout(function () { revealMoved(count, targetName); }, 1200);
+      return;
+    }
+  });
+
+  function revealMoved(count, targetName) {
+    q('#move-done-text').textContent = '已迁移 ' + count + ' 名学生：' + sourceName + ' → ' + targetName
+      + '；原关系保留历史，新关系按目标班级写入，审计已记录（REQ-CLS-062 / BR-PROMO-007）。';
+    q('#move-done').classList.remove('state-hidden');
+    var moved = picked.slice();
+    sourceRows().forEach(function (row) {
+      if (moved.indexOf(row.getAttribute('data-no')) !== -1) row.classList.add('state-hidden');
+    });
+    syncPicked();
+    renderPreview();
+  }
+
+  /* ---------------- 4. 深链接参数 ---------------- */
+
+  function applyPageParams(params) {
+    if (!params) return;
+    if (params.class && CLASS_GRADE[params.class]) {
+      sourceName = params.class;
+      sourceId = CLASS_ID[sourceName] || sourceId;
+      document.body.setAttribute('data-tab', '批量迁学生 · ' + sourceName);
+      document.title = '批量迁学生 · ' + sourceName + ' — 业务原型 v1（批次 2-3d）';
+    }
+    if (params.to && TARGETS[params.to]) q('#f-target').value = params.to;
+    if (params.remark) q('#f-remark').value = params.remark;
+    if (params.term && params.term !== '202601') {
+      q('#history-readonly').classList.remove('state-hidden');
+      qa('[data-role="action"]').forEach(function (b) {
+        if (b.getAttribute('data-action-id') === 'ACT-CLS-062') b.classList.add('role-hidden');
+      });
+      qa('#source-rows input[type="checkbox"]').forEach(function (b) { b.disabled = true; });
+      q('#target-term-tag').textContent = '2025-2026 学年 第一学期（已归档）';
+    }
+    if (params.pick === 'none') {
+      qa('#source-rows input[type="checkbox"]').forEach(function (b) { b.checked = false; });
+    }
+    syncPicked();
+    renderSource();
+    renderPreview();
+  }
+  document.addEventListener('prototype:params', function (event) { applyPageParams(event.detail); });
+
+  document.addEventListener('change', function (event) {
+    var node = event.target;
+    if (!node) return;
+    if (node.type === 'checkbox' && node.getAttribute('data-pick')) {
+      syncPicked();
+      renderSource();
+      renderPreview();
+      return;
+    }
+    if (node.id === 'f-target') {
+      q('#f-target').closest('.field').classList.remove('has-error');
+      q('#move-done').classList.add('state-hidden');
+      syncPicked();
+      renderSource();
+      renderPreview();
+    }
+  });
+
+  syncPicked();
+  renderSource();
+  renderPreview();
+})();
+</script>
+<!-- demo script end -->
+</body>
+</html>

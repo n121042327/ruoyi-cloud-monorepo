@@ -173,6 +173,19 @@
 | `evidence/stage2-prototype/class-leader_1440x900.png` | 指定 / 变更班主任弹窗截图（变更态，含当前班主任与任职历史） | `review` |
 | `evidence/stage2-prototype/class-leader_none_1440x900.png` | 指定班主任弹窗截图（未指定班主任的空态） | `review` |
 | `evidence/stage2-prototype/class-dialogs_verify-results.png` | 班级四个弹窗 harness 结果清单（CDL-01 ~ CDL-36 全部通过） | `review` |
+| `prototypes/functional/v1/pages/class-roster-add.html` | 编班（添加学生）独立页（批次 2-3d：左学生池 + 右待加入清单、冲突整体拒绝并给调班入口） | `review` |
+| `prototypes/functional/v1/pages/class-move-students.html` | 批量迁学生独立页（批次 2-3d：选学生 → 选目标班 → 影响预览 → 执行） | `review` |
+| `prototypes/functional/v1/page-specs/class-roster-add.md` | 编班页页面规格（字段裁剪、勾选可用性、冲突与整体拒绝、调班入口） | `review` |
+| `prototypes/functional/v1/page-specs/class-move-students.md` | 批量迁学生页页面规格（可迁移范围、跨年级与停用班级校验、影响预览） | `review` |
+| `prototypes/functional/v1/page-specs/class-transfer.md` | 调班弹窗与移出确认片段的页面规格（两块都随班级详情交付） | `review` |
+| `evidence/stage2-prototype/verify-class-roster.html` | 编班 / 批量迁学生 / 移出与调班交互验证 harness（三个 iframe，34 条断言，RA-01 ~ RA-13、MV-01 ~ MV-10、TR-01 ~ TR-11） | `review` |
+| `evidence/stage2-prototype/class-roster-add_1440x900.png` | 编班页截图（默认态：15 行学生池 + 空待加入清单） | `review` |
+| `evidence/stage2-prototype/class-roster-add_conflict_1440x900.png` | 编班页截图（冲突态：待加入清单标红 + 冲突清单整体拒绝 + 调班入口） | `review` |
+| `evidence/stage2-prototype/class-move-students_1440x900.png` | 批量迁学生页截图（默认态：源班级 2 名在读全选 + 影响预览） | `review` |
+| `evidence/stage2-prototype/class-move-students_stopped_1440x900.png` | 批量迁学生页截图（目标班级已停用时的拦截形态） | `review` |
+| `evidence/stage2-prototype/class-detail_dialog-remove_1440x900.png` | 移出确认片段截图（带入 2 名成员） | `review` |
+| `evidence/stage2-prototype/class-detail_dialog-transfer_1440x900.png` | 调班弹窗截图（从编班页冲突行深链接带入该生与源 / 目标班级） | `review` |
+| `evidence/stage2-prototype/class-roster_verify-results.png` | 编班 / 批量迁学生 / 移出与调班 harness 结果清单（RA/MV/TR 共 34 条全部通过） | `review` |
 | `evidence/stage2-prototype/interaction-verification.md` | 原型交互可点性验证报告（含批次 2-2b-2b 的 GL-01 ~ GL-38、D-060 的 RD-01 ~ RD-06 实测结果） | `review` |
 | `prototypes/functional/v1/pages/class-list.html` | 班级管理列表 | `planned` |
 | `prototypes/functional/v1/pages/class-detail.html` | 班级详情与花名册 | `planned` |

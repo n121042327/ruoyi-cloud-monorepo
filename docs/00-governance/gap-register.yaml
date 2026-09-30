@@ -1477,6 +1477,43 @@ gaps:
     owner: Codex
     status: closed
 
+  - id: GAP-051
+    title: 「出国留学（保留学籍）」是否计入班级在读人数，样例数据与口径不一致
+    discovered_at: 2026-09-30
+    discovered_by: 批次 2-3d 交付 PAGE-CLS-MOVE 时按学籍状态推导「在读」人数
+    evidence: |
+      prototypes/functional/v1/content-samples.json 的 classes 里，高二 (1) 班（class_id 20250101）
+      写的是 student_count: 2，class-list.html 的该行也写 data-enrolled="2"。
+      但同一个文件的学生样例里，该班只有两名学生：
+        徐昊然 2025000001 enrollment_status: studying_abroad（note：出国留学，保留学籍）
+        孙悠然 2025000002 enrollment_status: enrolled（在读）
+      也就是说：只有把「出国留学」也算成在读，班级的「在读 2」才成立。
+      而 04-business-rules 的 BR-STU-012 只规定了「休学学生保留行政班关系但不计入在读名单」，
+      没有写出国留学、保留学籍这类状态是否计入。
+      同一批数据里 高一 (1) 班（20260101）的 student_count: 2 是「2 名在读 + 1 名休学」的口径
+      （D-065 已按 BR-STU-012 把该班在读由 3 修正为 2），说明两类状态的处理并不一致。
+    expected: 「在读」口径覆盖所有保留关系的非在读状态（休学 / 出国留学 / 保留学籍），班级统计与样例数据一致
+    actual: 休学明确不计入在读，出国留学没有口径；高二 (1) 班的样例数据只有把出国留学算作在读才对得上
+    impact: |
+      原型：班级列表的「在读」列、批量迁学生与编班的「可迁移成员」、年级详情的在读学生统计，
+      这三处都会因为口径不同给出不同数字。
+      阶段 5 / 6：统计 SQL 与前端标签映射都要依赖这个口径。
+      阶段 8：升班（BR-PROMO-005）按在读学生推进，口径错了会漏人或多人。
+      本批次按保守读法实现：批量迁学生只列「学籍状态 = 在读」的成员可迁移，保留学籍类状态显示但不可迁。
+    options:
+      - A 出国留学 / 保留学籍与休学同口径：保留行政班关系，但**不计入在读**；需要同步修正高二 (1) 班的 student_count 2 → 1（推荐）
+      - B 出国留学计入在读但不可迁移：班级「在读」含出国学生，需在 BR-STU-012 里补写这条例外
+      - C 由学校配置哪些状态计入在读：新增状态字典配置项，实现成本最高
+    recommended: |
+      选项 A。理由：BR-STU-012 已经确立了「保留关系但不计入在读」的原则，出国留学与休学在这点上没有本质差别；
+      按 A 实现时「在读」= 学籍状态为在读，统计与可迁移成员天然一致，不需要给每个页面单独解释例外。
+      代价是要把高二 (1) 班的 student_count 由 2 改成 1（class-list.html 的 data-enrolled 同步），
+      这属于样例数据修正，不改任何业务规则。
+    blocking: false
+    blocks_stages: []
+    owner: Codex
+    status: open
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"
@@ -1528,3 +1565,6 @@ open_questions_for_user:
   - "新增 evidence/stage2-prototype/verify-class-dialogs.html（CDL-01 ~ CDL-36 全通过，含第二个 iframe 验证班级详情 → 列表页的跨页带入）；现有 5 个 harness 回归：verify-class-list 39/39、verify-class-detail 20/20、verify-detail-entry 6/6、verify-carrier-change 14/14、verify-grade-list 38/38。"
   - "GAP-050 已关闭（Codex 自有）：verify-grade-list 的 GL-15 断言在 D-064 之后过期，导致「班级数」的真实跳转让 harness 静默失效；本批按当前形态修正断言并补 load 启动守卫，回归 38/38。该文件本身未在 2-3a / 2-3b 期间改动，属上批遗留。"
   - "GAP-048、GAP-049 已关闭（用户 2026-09-30 答复「1a2a」，两项均取推荐方案 A）：新建班级弹窗只建行政班（教学班创建留在批次 2-7）、复制班级复用 addClass 不新增 copyClass。两项都已按选项 A 实现，无需改动，见 D-066。"
+  - "阶段 2 批次 2-3d 已产出待验收：新增独立页 pages/class-roster-add.html（编班：左学生池 + 右待加入，冲突整体拒绝并给调班入口）与 pages/class-move-students.html（批量迁学生：选学生 → 选目标班 → 影响预览 → 执行）；班级详情页新增移出确认片段 DIALOG-CLS-ROSTER-REMOVE 与调班弹窗 PAGE-CLS-TRANSFER（含花名册勾选列）。page-actions.yaml 新增 class_roster_add（ACT-CLS-053 ~ 058）与 class_move_students（ACT-CLS-059 ~ 063），class_detail 补 048 ~ 052、064。"
+  - "批次 2-3d 为编班页新增两条学生样本（2026000013 潘思彤、2026000014 蒋知远，在读但 class_id 为空）：原来的 15 条学生样本里没有任何一个「在读且可编班」的学生，编班页只能演示冲突、演示不了成功路径。content-samples.json 的 notes 已同步说明。"
+  - "新增 GAP-051（待你拍板，非阻塞）：content-samples 里高二 (1) 班的 student_count=2 与「1 名在读 + 1 名出国留学（保留学籍）」并存，说明「出国留学是否计入在读」缺口径（BR-STU-012 只写了休学）。推荐选项 A：与休学同口径不计入在读，并把该班样例数由 2 改为 1。本批次按「只有学籍状态=在读的成员可迁移」实现。"
