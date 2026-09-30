@@ -70,4 +70,21 @@
 | 批次 | 范围 | 清单结论 | 说明 |
 |---|---|---|---|
 | 3-0 | `design-tokens.json` + `component-spec.md` + `component-mapping.yaml` + `visual-checklist.md` +（人类可读摘要）`visual-spec.yaml` | 通过 | 视觉规范的机器可读与人类可读两份都在；组件映射覆盖样板批全部可交互元素（4 个页面 / 32 个元素） |
-| 3-1 | 学生管理列表 + 详情抽屉 + 新增 / 编辑弹窗（样板） | 通过 | 32 条自查全部通过；等用户验收后冻结视觉标准 |
+| 3-1 | 学生管理列表（视觉基准 `reference/student-list-visual-reference.html`）+ 高保真外壳 | 通过 | 32 条自查全部通过；等用户验收后冻结视觉标准 |
+| 3-2 | 教师 / 年级（`teacher-list` / `teacher-assign` / `teacher-import` / `grade-list`） | 通过（覆盖度层） | 派生保证结构与状态一致；三档截图见 `evidence/stage3-highfidelity/pages/` |
+| 3-3 | 班级 / 班级详情 / 升班向导（11 页） | 通过（覆盖度层） | 同上 |
+| 3-4 | 导入向导 / 登录 / 异常页（4 页） | 通过（覆盖度层） | 独立页不套外壳，只换视觉层（登录 / 403 / 404 / 500） |
+| 3-5 ~ 3-9 | 学生模块剩余 / 学校与配置 / 选科与教学班 / 审计 / 异步任务（22 页） | 通过（覆盖度层） | 同上 |
+
+## 8. 全量覆盖度（新增门禁，2026-10-01）
+
+| # | 检查项 | 判据 | 结论 |
+|---|---|---|---|
+| 33 | 页面数量与阶段 2 一致 | `verify-hifi-coverage.html` 的 `CV-COVERAGE-1` | 通过（45 / 45） |
+| 34 | 逐页加载后视觉层 / 外壳 / 状态片段 / 载体口径全部生效 | 同 harness 的 `CV-01` ~ `CV-45` | 通过（45 条全绿） |
+| 35 | 页面编号集合与阶段 2 相等（含 PAGE-* / DIALOG-* / DRAWER-*） | `tools/make_hifi_coverage.py` 退出码 0；harness 的 `CV-COVERAGE-2` 做 DOM 越界检查 | 通过（95 个，无丢失、无越界） |
+| 36 | 动作编号集合与阶段 2 相等 | 同上；`CV-COVERAGE-3` 做 DOM 越界检查 | 通过（403 个，无丢失、无越界） |
+| 37 | 状态片段逐页不丢 | `make_hifi_coverage.py` 的 `state_panels_lost` 为空 | 通过（229 个，差异 0） |
+| 38 | 逐页 1440×900 截图 | `evidence/stage3-highfidelity/pages/*_1440x900.png` | 通过（45 张） |
+| 39 | 代表页三档截图（1366 / 1440 / 1920） | `pages/{teacher-list,grade-list,class-list,stream-stat}_*.png` | 通过（4 页 × 2 档 + 45 页 1440 档） |
+| 40 | 派生可复现 | `python tools/make_hifi_pages.py` 幂等重跑后 `git status` 无差异 | 通过 |

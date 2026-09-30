@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 阶段 3 高保真页面：由 prototypes/functional/v1/pages/audit-ops-access.html 派生（工具：tools/make_hifi_pages.py）。
+     只替换视觉层与外壳，信息架构 / 字段 / 动作 / 状态片段与阶段 2 一致；视觉差异见 assets/hifi.css 与 design-tokens.json。 -->
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>运营访问记录 — 业务原型 v1（批次 2-8） · 高保真</title>
+<link rel="stylesheet" href="../../functional/v1/assets/prototype-shell.css" />
+<script src="../assets/hifi-shell.js"></script>
+<style>#ops-table td.actions { white-space: nowrap; }</style>
+  <link rel="stylesheet" href="../assets/hifi.css" />
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-AUDIT-OPS-ACCESS"
+  data-menu-page="PAGE-AUDIT-LOG-LIST"
+  data-breadcrumb="平台与运维 / 审计日志 / 运营访问记录"
+  data-tab="运营访问记录"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-AUDIT-OPS-ACCESS" data-role="page">
+
+  <div data-normal-view>
+
+  <div class="page-head">
+    <h1>运营访问记录</h1>
+    <span class="scope-hint" data-role="scope-hint">数据范围：本租户（DS-02）· 只读</span>
+    <span class="el-tag primary">无需向平台发工单</span>
+    <span class="el-tag info">保留期 ≥ 3 年</span>
+  </div>
+
+  <div class="alert info">
+    <span>这是租户的知情权</span>
+    <span>平台运营对你们数据的任何访问都会归属到<b>被访问的租户</b>（<span class="mono">REQ-AUD-013</span>）；
+      本页不需要向平台发工单即可自助查询（<span class="mono">REQ-AUD-015</span>），
+      导出内容只含本租户数据（<span class="mono">REQ-AUD-016</span>），保留期与审计日志一致不少于 3 年（<span class="mono">REQ-AUD-017</span>）。</span>
+  </div>
+
+  <section class="card" data-block="toolbar" data-role="toolbar" data-component="el-card.hover">
+    <div class="card-header">
+      <div class="toolbar" data-demo-state-target="toolbar">
+        <select class="select" data-role="filter" data-action-id="ACT-AUD-030" data-field="operator" data-default="">
+          <option value="">全部运营账号</option>
+          <option value="ops">运维账号 A</option>
+          <option value="ops2">运维账号 B</option>
+        </select>
+        <select class="select" data-role="filter" data-action-id="ACT-AUD-031" data-field="action" data-default="">
+          <option value="">全部访问动作</option>
+          <option value="view">查看</option>
+          <option value="export">导出</option>
+        </select>
+        <input class="input" type="date" value="2026-09-01" data-role="filter" data-action-id="ACT-AUD-032" data-field="begin_time" title="开始时间" />
+        <span class="cell-secondary">—</span>
+        <input class="input" type="date" value="2026-10-01" data-role="filter" data-action-id="ACT-AUD-033" data-field="end_time" title="结束时间" />
+      </div>
+      <div class="header-right">
+        <button class="btn" data-role="action" data-action-id="ACT-AUD-034" data-component="el-button"
+                data-permission="audit.log:export" data-api="exportOperatorAccess"
+                data-demo-message="已导出运营访问记录（只含本租户数据）；导出行为本身写入审计。">导出记录</button>
+        <button class="btn" data-role="action" data-action-id="ACT-AUD-035" data-component="el-button"
+                data-permission="audit.log:read" data-api="listOperatorAccess" data-demo-message="已刷新运营访问记录。">刷新</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" data-block="list" data-role="section" data-component="el-card.hover">
+    <div class="card-header"><h2>运营访问明细</h2><span class="el-tag info">listOperatorAccess</span></div>
+    <div class="card-body">
+      <div class="table-scroll">
+        <table class="el-table" id="ops-table" data-role="table" data-component="el-table" data-api="listOperatorAccess"
+               style="min-width:1040px;table-layout:fixed">
+          <thead>
+            <tr>
+              <th data-role="column" data-field="operate_time" style="width:150px">访问时间</th>
+              <th data-role="column" data-field="operator" style="width:120px">运营账号</th>
+              <th data-role="column" data-field="object_type" style="width:110px">对象类型</th>
+              <th data-role="column" data-field="object_id" style="width:190px">对象标识</th>
+              <th data-role="column" data-field="action" style="width:100px">访问动作</th>
+              <th data-role="column" data-field="purpose" style="width:230px">用途说明</th>
+              <th data-role="column" data-field="source_ip" style="width:140px">来源 IP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-role="row"><td class="mono">2026-09-30 15:48:57</td><td>运维账号 A</td><td>学生</td><td>2026 级高一学生清单</td>
+              <td><span class="el-tag">导出</span></td><td>协助排查「导入后学号对照表缺失」问题</td><td class="mono">172.16.4.9</td></tr>
+            <tr data-role="row"><td class="mono">2026-09-30 15:12:03</td><td>运维账号 A</td><td>学生</td><td>王梓萱 · 2026000001</td>
+              <td><span class="el-tag info">查看</span></td><td>协助排查「导入后学号对照表缺失」问题</td><td class="mono">172.16.4.9</td></tr>
+            <tr data-role="row"><td class="mono">2026-09-28 10:02:18</td><td>运维账号 B</td><td>导入批次</td><td>IMP-20260928-0001</td>
+              <td><span class="el-tag info">查看</span></td><td>核对失败明细（行 17 证件号重复）</td><td class="mono">172.16.4.11</td></tr>
+            <tr data-role="row"><td class="mono">2026-09-26 09:41:52</td><td>运维账号 A</td><td>租户</td><td>云溪实验学校 · SCH-201</td>
+              <td><span class="el-tag info">查看</span></td><td>开通初始化结果核对（学校 / 年级 / 学年学期）</td><td class="mono">172.16.4.9</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination"><span class="total">共 17 条运营访问记录 · 当前第 1 页 · 每页 20 条（本页显示 4 行样例）</span></div>
+      <div class="legend" style="margin-top:8px"><span>记录里没有平台侧的“用途说明”就无法说明访问正当性，因此本页把用途说明设为必展示列（<span class="mono">REQ-AUD-014</span>）。</span></div>
+    </div>
+  </section>
+
+  </div>
+
+  <div class="state-hidden" data-demo-state-panel="loading">
+    <section class="card"><div class="card-body">
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:150px"></div><div class="skeleton-bar" style="width:190px"></div></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:150px"></div><div class="skeleton-bar" style="width:230px"></div></div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="empty">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">📭</div>
+        <div class="title">这段时间没有运营访问记录</div>
+        <div class="desc">没有记录不代表没有访问权限——平台运营的读取权限与「是否被记录」是两件事，记录只反映实际发生的访问。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="error">
+    <section class="card"><div class="card-body">
+      <div class="state-block error">
+        <div class="icon">⚠️</div>
+        <div class="title">运营访问记录读取失败</div>
+        <div class="desc">重试不会改变数据范围（只含本租户）。</div>
+        <div class="req-id">请求编号 REQ-20261001-002310 · 错误码 EDU-AUD-5002</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-AUD-035" data-component="el-button.primary.plain" data-api="listOperatorAccess">重试</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="forbidden">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">🔒</div>
+        <div class="title">你没有查看运营访问记录的权限</div>
+        <div class="desc">租户侧只有<b>租户管理员与校领导</b>可查（PRD 6.1）；教务主任与年级主任看本校 / 本年级的操作日志，不看运营访问记录。无权限时不进入空白页（<span class="mono">DS-DENY-03</span>）。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="submitting">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⏳</div>
+        <div class="title">正在导出</div>
+        <div class="desc">按钮已置 loading 并禁用；导出只含本租户数据。</div>
+      </div>
+    </div></section>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  // 审计 PRD 6.1：运营访问记录 = 租户管理员、校领导（租户侧自助查询）；超管全放行；平台运营看全平台（DS-01）。
+  var READ_ROLES = ['super_admin', 'tenant_admin', 'school_leader', 'platform_ops'];
+  function q(sel) { return document.querySelector(sel); }
+  function currentRole() { return window.PrototypeShell.currentRole(); }
+  var lastRole = '';
+  function applyRoleState(role) {
+    if (role === lastRole) return;
+    lastRole = role;
+    if (READ_ROLES.indexOf(role) === -1) window.PrototypeShell.applyState('forbidden');
+    else if (window.PrototypeShell.currentState() === 'forbidden') window.PrototypeShell.applyState('normal');
+    var hint = q('[data-role="scope-hint"]');
+    if (role === 'tenant_admin') hint.textContent = '数据范围：本租户（DS-02）· 只读（租户侧自助查询，REQ-AUD-015）';
+    else if (role === 'school_leader') hint.textContent = '数据范围：本校（DS-04）· 只读（租户侧自助查询）';
+    else if (role === 'platform_ops') hint.textContent = '数据范围：全平台（DS-01）· 只读；运营自身的查询与导出同样写日志（REQ-AUD-039）';
+    else if (role === 'super_admin') hint.textContent = '数据范围：全平台 · 不受限制（BR-ORG-014）';
+    else hint.textContent = '数据范围：本校（DS-04）· 无运营访问记录权限';
+  }
+  // 外壳 init 会在 applyRole 之后调用 applyState('normal')；若页面默认角色本来就无权限，
+  // 那次复位会把 forbidden 形态冲掉。这里在 prototype:params（init 的最后一步）之后再对齐一次。
+  document.addEventListener('prototype:params', function () { lastRole = ''; applyRoleState(currentRole()); });
+  new MutationObserver(function () { applyRoleState(currentRole()); })
+    .observe(document.body, { attributes: true, attributeFilter: ['data-current-role'] });
+  applyRoleState(currentRole());
+})();
+</script>
+</body>
+</html>

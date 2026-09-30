@@ -37,6 +37,21 @@ prototypes/high-fidelity/v1/
    `data-normal-view` / `data-role-visible` / `data-role-editable` / `data-nav` / `data-overlay` 与阶段 2 同名同义，
    阶段 6 可以用同一份 `markup-contract.md` 映射表把两套原型一起替换成 Element Plus 组件。
 
+### 3.1 交付页的生成方式（派生，可复现）
+
+`pages/` 下的 45 个交付页由阶段 2 的对应页面**派生**，工具是 `tools/make_hifi_pages.py`，只做两件事：
+
+1. **视觉层替换**：保留阶段 2 的 `prototype-shell.css`（+ 向导页的 `wizard.css`）作为**组件基类**（相对路径改为跨目录），
+   在其后追加覆盖层 `assets/hifi.css`。基类提供全部组件类，覆盖层只换视觉 token（配色 / 阴影 / 圆角 / 密度）。
+2. **外壳替换**：把 `prototype-shell.js` 换成 `assets/hifi-shell.js`（8 角色 + 8 状态 + 高保真外壳）。
+   独立页（登录 / 403 / 404 / 500）不套外壳，只换视觉层。
+
+为什么派生而不是逐页手抄：stage-inputs 的门禁要求「覆盖业务原型全部页面与状态，无功能删减」。
+派生让列 / 字段 / 动作 / 状态片段与阶段 2 **逐字节一致**，这条门禁可以被脚本证明（见第 6 节）；
+视觉差异全部由覆盖层表达，改一次 token 就全量生效。
+需要超出覆盖层的手工精修时，该页从派生清单里排除并单独手写 ——
+`reference/student-list-visual-reference.html` 就是手工精修的**视觉基准**（不在 `pages/` 交付清单内）。
+
 ## 4. 视觉规范摘要（完整见 `visual-spec.yaml`）
 
 | 项 | 值 |
@@ -65,16 +80,23 @@ prototypes/high-fidelity/v1/
 ## 6. 交付口径
 
 阶段 3 按批推进，每批 ≤ 3 个页面并暂停验收。批次编号沿用 `docs/00-governance/stage-inputs.yaml` 的登记
-（**3-0 先出规范，3-1 出样板**，与最初的计划一致，未自造批次编号）：
+（**3-0 先出规范，3-1 出样板**，未自造批次编号）：
 
 | 批次 | 内容 | 状态 |
 |---|---|---|
 | 3-0 | `design-tokens.json` + `component-spec.md` + `component-mapping.yaml` + `visual-checklist.md`（+ 人类可读摘要 `visual-spec.yaml`） | 已产出待验收 |
-| 3-1 | 学生管理列表 + 详情抽屉 + 新增 / 编辑弹窗（样板）+ 高保真外壳 | 已产出待验收 |
-| 3-2 | 教师 / 年级 | 待开始 |
-| 3-3 | 班级 / 班级详情 / 升班向导 | 待开始 |
-| 3-4 | 导入向导 / 登录 / 异常页 | 待开始 |
-| 3-5 ~ 3-9 | 学生模块剩余 / 学校与配置 / 选科与教学班 / 审计 / 异步任务（与阶段 2 的 2-5 ~ 2-9 对齐） | 待开始 |
+| 3-1 | 学生管理列表（视觉基准 `reference/`）+ 高保真外壳 | 已产出待验收 |
+| 3-2 | 教师 / 年级（`teacher-list` / `teacher-assign` / `teacher-import` / `grade-list`） | 已覆盖（派生） |
+| 3-3 | 班级 / 班级详情 / 升班向导（`class-*` / `promotion-*` 共 11 页） | 已覆盖（派生） |
+| 3-4 | 导入向导 / 登录 / 异常页（4 页） | 已覆盖（派生） |
+| 3-5 ~ 3-9 | 学生模块剩余 / 学校与配置 / 选科与教学班 / 审计 / 异步任务（22 页） | 已覆盖（派生） |
+
+**当前交付总量**：`pages/` 45 页 + `reference/` 1 页手工基准；覆盖 **95 个页面编号 / 403 个 data-action-id / 229 个状态片段**。
+逐页清单见 `page-manifest.yaml`；`python tools/make_hifi_coverage.py` 退出码 0 表示与阶段 2 的编号集合一致（无功能删减）。
+
+阶段 3 的 9 个批次现在都已覆盖；3-2 ~ 3-9 的差别只是**审核粒度**：
+派生保证了结构与状态的一致性，但每个批次仍需人工按 `visual-checklist.md` 过一遍该批页面在
+1366 / 1440 / 1920 三档下的观感（截图已按页归档在 `evidence/stage3-highfidelity/pages/`）。
 
 验收依据：`evidence/stage3-highfidelity/verify-hifi-student.html`（18 条断言）与同目录截图。
 样板通过后再按同一标准铺开其余批次。

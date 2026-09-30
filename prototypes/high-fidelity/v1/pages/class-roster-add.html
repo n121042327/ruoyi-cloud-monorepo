@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 阶段 3 高保真页面：由 prototypes/functional/v1/pages/class-roster-add.html 派生（工具：tools/make_hifi_pages.py）。
+     只替换视觉层与外壳，信息架构 / 字段 / 动作 / 状态片段与阶段 2 一致；视觉差异见 assets/hifi.css 与 design-tokens.json。 -->
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>编班（添加学生） — 业务原型 v1（批次 2-3d） · 高保真</title>
+<link rel="stylesheet" href="../../functional/v1/assets/prototype-shell.css" />
+<script src="../assets/hifi-shell.js"></script>
+<style>
+  /* 编班页是「左学生池 + 右待加入」双栏（class PRD 6.1 与 CR-009 的载体决策）：
+     状态面板横跨两栏，避免某个状态只遮住一半页面 */
+  /* 右栏「待加入清单」内容不长，给固定 360px，把宽度让给左栏学生池表格：
+     1440 下左栏可用宽度 ≈ 784px，表格 min-width 780 刚好不出现表格内滚动 */
+  .roster-add-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: start; }
+  @media (max-width: 1240px) { .roster-add-grid { grid-template-columns: minmax(0, 1fr); } }
+  .roster-add-grid > .state-span { grid-column: 1 / -1; }
+  #pool-rows .ellipsis { max-width: 100%; }
+  #pool-rows input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; }
+  #pool-rows input[type="checkbox"][disabled] { cursor: not-allowed; }
+  #pool-rows tr.row-disabled td { color: var(--app-text-secondary); background: #fafbfc; }
+  #pool-rows tr.row-conflict td:last-child { color: var(--app-danger); }
+  #pool-rows tr.row-picked { background: #eef5ff; }
+  .list { display: flex; flex-direction: column; gap: 8px; }
+  .list-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--app-border-light);
+    border-radius: var(--app-radius-small);
+    background: #fafbfc;
+  }
+  .list-row .grow { flex: 1; min-width: 0; }
+  .list-row.conflict { border-color: #fbc4c4; background: #fef0f0; }
+  .list-empty {
+    padding: 14px;
+    text-align: center;
+    color: var(--app-text-secondary);
+    border: 1px dashed var(--app-border);
+    border-radius: var(--app-radius-small);
+  }
+  .picked-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .picked-head .spacer { margin-left: auto; }
+  .cell-secondary { color: var(--app-text-secondary); font-size: 12px; }
+  /* 右栏只有 360px：冲突清单里的说明与每一行都改成纵向排布，
+     否则外壳的 .alert 两栏布局会把中文挤成一列一个字 */
+  #conflict-box { display: block; }
+  #conflict-box > span { display: block; margin-bottom: 4px; }
+  #conflict-rows .list-row { flex-wrap: wrap; row-gap: 4px; }
+  #conflict-rows .grow { flex: 1 1 100%; }
+</style>
+  <link rel="stylesheet" href="../assets/hifi.css" />
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-CLS-ROSTER-ADD"
+  data-menu-page="PAGE-CLS-LIST"
+  data-breadcrumb="教育管理 / 班级管理 / 编班（添加学生）"
+  data-tab="编班 · 高一 (1) 班"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-CLS-ROSTER-ADD" data-role="page">
+
+  <!-- ============================================================ 页头 -->
+  <div class="page-head">
+    <button class="btn" data-role="action" data-action-id="ACT-CLS-058" data-component="el-button"
+            data-nav="PAGE-CLS-DETAIL">← 返回班级详情</button>
+    <h1>编班 · <span id="target-class-name">高一 (1) 班</span></h1>
+    <span class="el-tag primary" id="target-class-type">行政班</span>
+    <span class="el-tag info" id="target-class-term">2026-2027 学年 第一学期</span>
+    <span class="el-tag info" id="target-class-capacity">容量 45 · 只提示不强制</span>
+    <span class="scope-hint" data-role="scope-hint">数据范围：本校（DS-04）· 教务主任与年级主任可编班</span>
+  </div>
+
+  <div class="alert info">
+    <span>编班规则</span>
+    <span>一名学生同一学年学期<b>只能属于一个行政班</b>（<span class="mono">BR-STU-003</span>）。加入时逐条校验，
+      任一条冲突则<b>整体拒绝并列出冲突清单</b>（<span class="mono">REQ-CLS-029</span> / <span class="mono">DS-DENY-06</span>）；
+      原关系保留历史，不覆盖（<span class="mono">BR-PROMO-007</span>）。编班不限制容量，超出只提示（<span class="mono">BR-CLASS-005</span>）。</span>
+  </div>
+
+  <div class="alert warning state-hidden" id="history-readonly">
+    <span>历史学年学期只读</span>
+    <span>该班级属于已归档学年学期，花名册只读，不提供任何编班入口（<span class="mono">REQ-CLS-032</span>）。</span>
+  </div>
+
+  <!-- ============================================================ 双栏 -->
+  <div class="roster-add-grid">
+
+    <!-- 左：本校学生池 -->
+    <section class="card" data-block="filter" data-role="filter" data-component="el-card.hover">
+      <div class="card-header">
+        <h3>本校学生池</h3>
+        <span class="el-tag info" id="pool-total">共 137 名学生 · 本页显示 15 行样例</span>
+      </div>
+      <div class="card-body">
+        <div class="form-inline" style="margin-bottom:10px">
+          <div class="form-item">
+            <label for="f-pool-keyword">姓名 / 学号</label>
+            <input class="input" id="f-pool-keyword" style="min-width:190px" placeholder="如：潘思彤 / 2026000013"
+                   data-role="field" data-field="keyword" data-component="el-input" />
+          </div>
+          <span class="chip-group" data-role="field" data-field="pool_view" data-component="el-radio-group">
+            <button class="chip on" data-pool-view="all" data-action-id="ACT-CLS-053">全部学生</button>
+            <button class="chip" data-pool-view="joinable" data-action-id="ACT-CLS-053">只看可加入</button>
+          </span>
+          <button class="btn primary" data-role="action" data-action-id="ACT-CLS-053" data-component="el-button.primary"
+                  data-permission="person.student:read">搜索</button>
+          <button class="btn" data-role="action" data-action-id="ACT-CLS-053" data-component="el-button"
+                  data-permission="person.student:read">重置</button>
+        </div>
+
+        <div data-normal-view>
+          <div class="table-scroll">
+            <table class="el-table" id="pool-table" data-role="table" data-component="el-table" data-api="listStudent"
+                   style="min-width:780px;table-layout:fixed">
+              <thead>
+                <tr>
+                  <th style="width:40px"></th>
+                  <th data-role="column" data-field="student_no" style="width:120px">学号</th>
+                  <th data-role="column" data-field="student_name" style="width:120px">姓名</th>
+                  <th data-role="column" data-field="gender" style="width:56px">性别</th>
+                  <th data-role="column" data-field="enrollment_status" style="width:120px">学籍状态</th>
+                  <th data-role="column" data-field="student_class_id" style="width:136px">当前行政班</th>
+                  <th data-role="column" data-field="join_check" style="width:188px">加入校验</th>
+                </tr>
+              </thead>
+              <tbody id="pool-rows">
+                <tr data-role="row" data-no="2026000001" data-name="王梓萱" data-gender="女" data-status="在读"
+                    data-status-code="enrolled" data-class-id="20260101" data-class-name="高一 (1) 班"
+                    data-keyword="2026000001 王梓萱">
+                  <td><input type="checkbox" data-action-id="ACT-CLS-054" data-pick="2026000001" /></td>
+                  <td class="mono">2026000001</td>
+                  <td>王梓萱</td>
+                  <td>女</td>
+                  <td><span class="el-tag success">在读</span></td>
+                  <td data-cell="class"></td>
+                  <td data-cell="check"></td>
+                </tr>
+                <tr data-role="row" data-no="2026000002" data-name="李俊逸" data-gender="男" data-status="在读"
+                    data-status-code="enrolled" data-class-id="20260101" data-class-name="高一 (1) 班"
+                    data-keyword="2026000002 李俊逸">
+                  <td><input type="checkbox" data-action-id="ACT-CLS-054" data-pick="2026000002" /></td>
+                  <td class="mono">2026000002</td>
+                  <td>李俊逸</td>
+                  <td>男</td>
+                  <td><span class="el-tag success">在读</span></td>
+                  <td data-cell="class"></td>
+                  <td data-cell="check"></td>
+                </tr>
+                <tr data-role="row" data-no="2026000003" data-name="陈思远" data-gender="男" data-status="休学（保留关系）"
+                    data-status-code="suspended" data-class-id="20260101" data-class-name="高一 (1) 班"
+                    data-keyword="2026000003 陈思远">
+                  <td><input type="checkbox" data-action-id="ACT-CLS-054" data-pick="2026000003" /></td>
+                  <td class="mono">2026000003</td>
+                  <td>陈思远</td>
+                  <td>男</td>
+                  <td><span class="el-tag warning">休学（保留关系）</span></td>
+                  <td data-cell="class"></td>
+                  <td data-cell="check"></td>
+                </tr>
+                <tr data-role="row" data-no="2026000011" data-name="欧阳慕容芷若" data-gender="女" data-status="在读"
+                    data-status-code="enrolled" data-class-id="20260101" data-class-name="高一 (1) 班"
+                    data-keyword="2026000011 欧阳慕容芷若">
+                  <td><input type="checkbox" data-action-id="ACT-CLS-054" data-pick="2026000011" /></td>
+                  <td class="mono">2026000011</td>
+                  <td><span class="ellipsis" title="欧阳慕容芷若">欧阳慕容芷若</span></td>
+                  <td>女</td>
+                  <td><span class="el-tag success">在读</span></td>
+                  <td data-cell="class"></td>
+                  <td data-cell="check"></td>
+                </tr>
+                <tr data-role="row" data-no="2026000004" data-name="赵一诺" data-gender="女" data-status="在读"
+                    data-status-code="enrolled" data-class-id="20260102" data-class-name="高一 (2) 班"
+                    data-keyword="2026000004 赵一诺">
+                  <td><input type="checkbox" data-action-id="ACT-CLS-054" data-pick="2026000004" /></td>
+                  <td class="mono">2026000004</td>
+                  <td>赵一诺</td>
+                  <td>女</td>
+                  <td><span class="el-tag success">在读</span></td>
+                  <td data-cell="class"></td>
+                  <td data-cell="check"></td>
+                </tr>
+                <tr data-role="row" data-no="2026000006" data-name="吴雨桐" data-gender="女" data-status="在读"
+                    data-status-code="enrolled" data-class-id="20260103" data-class-name="高一 (3) 班"
+                    data-keyword="2026000006 吴雨桐">
+                  <td><input type="checkbox" data-action-id="ACT-CLS-054" data-pick="2026000006" /></td>
+                  <td class="mono">2026000006</td>
+                  <td>吴雨桐</td>
+                  <td>女</td>
+                  <td><span class="el-tag success">在读</span></td>
+                  <td data-cell="class"></td>
+                  <td data-cell="check"></td>
+                </tr>
+                <tr data-role="row" data-no="2026000012" data-name="阿依古丽·买买提" data-gender="女" data-status="在读"
+                    data-status-code="enrolled" data-class-id="20260102" data-class-name="高一 (2) 班"
+                    data-keyword="2026000012 阿依古丽·买买提">
+                  <td><input type="checkbox" data-action-id="ACT-CLS-054" data-pick="2026000012" /></td>
+                  <td class="mono">2026000012</td>
+                  <td><span class="ellipsis" title="阿依古丽·买买提">阿依古丽·买买提</span></td>
+                  <td>女</td>
+                  <td><span class="el-tag success">在读</span></td>
+                  <td data-cell="class"></td>
+                  <td data-cell="check"></td>
+                </tr>
+                <tr data-role="row" data-no="2025000001" data-name="徐昊然" data-gender="男" data-status="出国留学（保留学籍）"
+                    data-status-code="studying_abroad" data-class-id="20250101" data-class-name="高二 (1) 班"
+                    data-keyword="2025000001 徐昊然">
+                  <td><input type="checkbox" data-action-id="ACT-CLS-054" data-pick="2025000001" /></td>
+                  <td class="mono">2025000001</td>
+                  <td>徐昊然</td>
+                  <td>男</td>
+                  <td><span class="el-tag info">出国留学（保留学籍）</span></td>
+                  <td data-cell="class"></td>
+                  <td data-cell="check"></td>
+                </tr>
+                <tr data-role="row" data-no="2025000002" data-name="孙悠然" data-gender="女" data-status="在读"
+                    data-status-code="enrolled" data-class-id="20250101" data-class-name="高二 (1) 班"
+                    data-keyword="2025000002 孙悠然">
+                  <td><input type="checkbox" data-action-id="ACT-CLS-054" data-pick="2025000002" /></td>
+                  <td class="mono">2025000002</td>
+                  <td>孙悠然</td>
+                  <td>女</td>
+                  <td><span class="el-tag success">在读</span></td>
+                  <td data-cell="class"></td>
+                  <td data-cell="check"></td>
+                </tr>
+                <tr data-role="row" data-no="2024000001" data-name="马嘉懿" data-gender="男" data-status="在读"
+                    data-status-code="enrolled" data-class-id="20240101" data-class-name="高三 (1) 班"
+                    data-keyword="2024000001 马嘉懿">
+                  <td><input type="checkbox" data-action-id="ACT-CLS-054" data-pick="2024000001" /></td>
+                  <td class="mono">2024000001</td>
+                  <td>马嘉懿</td>
+                  <td>男</td>
+                  <td><span class="el-tag success">在读</span></td>
+                  <td data-cell="class"></td>
+                  <td data-cell="check"></td>
+                </tr>
+                <tr data-role="row" data-no="2026000005" data-name="周子涵" data-gender="男" data-status="转入未报到"
+                    data-status-code="pending_enroll" data-class-id="" data-class-name=""
+                    data-keyword="2026000005 周子涵">
+                  <td><input type="checkbox" data-action-id="ACT-CLS-054" data-pick="2026000005" /></td>
+                  <td class="mono">2026000005</td>
+                  <td>周子涵</td>
+                  <td>男</td>
+                  <td><span class="el-tag warning">转入未报到</span></td>
+                  <td data-cell="class"></td>
+                  <td data-cell="check"></td>
+                </tr>
+                <tr data-role="row" data-no="2026000013" data-name="潘思彤" data-gender="女" data-status="在读"
+                    data-status-code="enrolled" data-class-id="" data-class-name=""
+                    data-keyword="2026000013 潘思彤">
+                  <td><input type="checkbox" data-action-id="ACT-CLS-054" data-pick="2026000013" /></td>
+                  <td class="mono">2026000013</td>
+                  <td>潘思彤</td>
+                  <td>女</td>
+                  <td><span class="el-tag success">在读</span></td>
+                  <td data-cell="class"></td>
+                  <td data-cell="check"></td>
+                </tr>
+                <tr data-role="row" data-no="2026000014" data-name="蒋知远" data-gender="男" data-status="在读"
+                    data-status-code="enrolled" data-class-id="" data-class-name=""
+                    data-keyword="2026000014 蒋知远">
+                  <td><input type="checkbox" data-action-id="ACT-CLS-054" data-pick="2026000014" /></td>
+                  <td class="mono">2026000014</td>
+                  <td>蒋知远</td>
+                  <td>男</td>
+                  <td><span class="el-tag success">在读</span></td>
+                  <td data-cell="class"></td>
+                  <td data-cell="check"></td>
+                </tr>
+                <tr data-role="row" data-no="2024000009" data-name="罗一鸣" data-gender="男" data-status="已转出"
+                    data-status-code="transferred_out" data-class-id="20240101" data-class-name="高三 (1) 班"
+                    data-keyword="2024000009 罗一鸣">
+                  <td><input type="checkbox" data-action-id="ACT-CLS-054" data-pick="2024000009" disabled /></td>
+                  <td class="mono">2024000009</td>
+                  <td>罗一鸣</td>
+                  <td>男</td>
+                  <td><span class="el-tag info">已转出</span></td>
+                  <td data-cell="class"></td>
+                  <td data-cell="check"></td>
+                </tr>
+                <tr data-role="row" data-no="2024000010" data-name="韦清和" data-gender="男" data-status="退学"
+                    data-status-code="withdrawn" data-class-id="20240101" data-class-name="高三 (1) 班"
+                    data-keyword="2024000010 韦清和">
+                  <td><input type="checkbox" data-action-id="ACT-CLS-054" data-pick="2024000010" disabled /></td>
+                  <td class="mono">2024000010</td>
+                  <td>韦清和</td>
+                  <td>男</td>
+                  <td><span class="el-tag info">退学</span></td>
+                  <td data-cell="class"></td>
+                  <td data-cell="check"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" data-role="pagination" data-component="pagination">
+            <span class="total" id="pool-pager">共 137 条 · 当前第 1 页 · 每页 20 条（本页显示 15 行样例）</span>
+            <button class="pg" disabled>‹</button><button class="pg active">1</button><button class="pg" disabled>›</button>
+          </div>
+          <div class="legend" style="margin-top:8px">
+            <span><b>本班在读</b>：王梓萱、李俊逸；陈思远为休学（保留行政班关系，不计入在读名单，<span class="mono">BR-STU-012</span>）。</span>
+          </div>
+        </div>
+
+        <div class="state-hidden" data-demo-state-panel="empty">
+          <div class="state-block">
+            <div class="icon">🗂️</div>
+            <div class="title" id="pool-empty-title">当前筛选条件下没有学生</div>
+            <div class="desc" id="pool-empty-desc">本校学生池里没有匹配的学生：可以清空筛选条件，或改用其他检索词。</div>
+            <button class="btn primary" id="pool-empty-action">清空筛选条件</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 右：待加入清单 -->
+    <section class="card" data-block="toolbar" data-role="toolbar" data-component="el-card.hover">
+      <div class="card-header">
+        <h3>待加入清单</h3>
+        <span class="el-tag primary" id="picked-count">已选 0 人</span>
+      </div>
+      <div class="card-body">
+        <div class="picked-head">
+          <span class="cell-secondary">加入前逐条校验唯一行政班</span>
+          <span class="spacer"></span>
+          <button class="btn" data-role="action" data-action-id="ACT-CLS-053" data-component="el-button"
+                  data-permission="person.student:read">清空清单</button>
+        </div>
+
+        <div class="list" id="picked-list"></div>
+
+        <div class="alert danger state-hidden" id="conflict-box" style="margin-top:12px">
+          <span>冲突清单 · 整体拒绝</span>
+          <span id="conflict-text">下面这些学生在本学年学期已有行政班，本次加入被整体拒绝；请先用「调班」把他们调入本班（REQ-CLS-028 / 029）。</span>
+          <span id="conflict-rows" class="list" style="margin-top:8px"></span>
+        </div>
+
+        <div class="alert success state-hidden" id="partial-box" style="margin-top:12px">
+          <span>加入结果</span>
+          <span id="partial-text"></span>
+        </div>
+
+        <div class="alert info" style="margin-top:12px">
+          <span>加入后会发生什么</span>
+          <span>在 <span class="mono">edu_student_class</span> 追加一条行政班关系（学年学期 = 本班所属学期），
+            写审计（学生、原班级、新班级、操作人）；本班在读人数 +N，容量只提示不拦截。</span>
+        </div>
+
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+          <button class="btn" data-role="action" data-action-id="ACT-CLS-058" data-component="el-button"
+                  data-nav="PAGE-CLS-DETAIL">取消</button>
+          <button class="btn primary" data-role="action" data-action-id="ACT-CLS-057" data-component="el-button.primary"
+                  data-permission="org.class:update" data-api="addClassRoster"
+                  data-demo-message="已加入 2 名学生（本班在读 2 → 4），并写入审计；原关系保留历史。">加入班级</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 状态面板横跨两栏 -->
+    <div class="state-span state-hidden" data-demo-state-panel="loading">
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:120px"></div><div class="skeleton-bar" style="width:90px"></div><div class="skeleton-bar" style="width:160px"></div></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:120px"></div><div class="skeleton-bar" style="width:90px"></div><div class="skeleton-bar" style="width:160px"></div></div>
+      <div class="legend" style="margin-top:10px"><span>学生池加载中：只覆盖左栏表格区域，不遮罩整个页面</span></div>
+    </div>
+    <div class="state-span state-hidden" data-demo-state-panel="error">
+      <div class="state-block error">
+        <div class="icon">⚠️</div>
+        <div class="title">学生池加载失败</div>
+        <div class="desc">按姓名 / 学号检索本校学生池时超时，已重试 1 次仍失败（<span class="mono">DS-DENY-07</span>）。</div>
+        <div class="req-id">请求编号 <span class="mono">REQ-20260930-000722</span> · 错误码 DS-5002</div>
+        <button class="btn primary" data-role="action" data-action-id="ACT-COM-005" data-component="el-button"
+                data-api="listStudent" data-demo-message="已重新发起查询（第 2 次重试）。">重试</button>
+      </div>
+    </div>
+    <div class="state-span state-hidden" data-demo-state-panel="forbidden">
+      <div class="state-block">
+        <div class="icon">🔒</div>
+        <div class="title">当前账号不能编班</div>
+        <div class="desc">校领导、班主任、任课教师、租户管理员与平台运营都不提供编班入口（<span class="mono">DP-01</span> /
+          <span class="mono">REQ-CLS-006</span>）；编班只对教务主任与年级主任开放。</div>
+        <button class="btn" data-demo-toast="已返回班级详情。" data-demo-toast-type="info">返回班级详情</button>
+      </div>
+    </div>
+    <div class="state-span state-hidden" data-demo-state-panel="submitting">
+      <div class="alert warning" style="margin:0">
+        <span>提交中</span><span>「加入班级」按钮已置 loading 并禁用，禁止重复提交（逐条校验期间不要刷新页面）。</span>
+      </div>
+    </div>
+    <div class="state-span state-hidden" data-demo-state-panel="partial">
+      <div class="alert warning" style="margin:0">
+        <span>形态样例 · 批量加入部分失败</span>
+        <span>接口逐条校验时第 3 条被并发占用（提交瞬间该生已被别的班编入），返回 failed 清单；
+          原型按 <span class="mono">DS-DENY-06</span> 的做法列出失败原因，不做整体回滚，可修正后重试。</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><b>字段裁剪</b>：编班只需要识别学生身份，因此只取学号 / 姓名 / 性别 / 学籍状态 / 当前行政班；
+      监护人、联系电话与证件号不进入本页（与花名册的字段级裁剪同一口径，<span class="mono">REQ-CLS-012</span>）。</span>
+  </div>
+  <div class="legend" style="margin-top:4px">
+    <span><b>终态学生不可编班</b>：已转出、退学等终态不在可编班范围内，行内复选框禁用。</span>
+  </div>
+</div>
+
+<!-- ============================================================== 批次 2-3d 演示脚本（编班页）
+     覆盖：学生池检索与「只看可加入」、勾选与待加入清单、冲突清单整体拒绝、
+           成功加入、终态学生不可选、七类页面状态。
+     数据来源：content-samples.json 的 students（12 条）与 students_edge_cases（4 条），
+              外加 classes 与 class_edge_cases 的「班级名 → class_id」映射。 -->
+<script>
+(function () {
+  'use strict';
+
+  /* 目标班级：默认高一 (1) 班；深链接 #class=<班级名称> 可切换（编班入口都带这个参数）。 */
+  var CLASS_ID = {
+    '高一 (1) 班': '20260101',
+    '高一 (2) 班': '20260102',
+    '高一 (3) 班': '20260103',
+    '高二 (1) 班': '20250101',
+    '高二 (2) 班': '20250102',
+    '高三 (1) 班': '20240101',
+    '高三 (2) 班': '20240102',
+    '初中一年级 (1) 班': '20262201',
+    '初中三年级 (1) 班': '20242301'
+  };
+  /* 终态学籍状态：不能编班 */
+  var TERMINAL = ['transferred_out', 'withdrawn'];
+
+  var targetName = '高一 (1) 班';
+  var targetId = CLASS_ID[targetName];
+  var poolView = 'all';
+  var picked = [];
+
+  function q(sel, root) { return (root || document).querySelector(sel); }
+  function qa(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined && text !== null) n.textContent = text;
+    return n;
+  }
+  function rows() { return qa('#pool-rows tr'); }
+  function rowByNo(no) {
+    return rows().filter(function (r) { return r.getAttribute('data-no') === no; })[0];
+  }
+
+  /* ---------------- 1. 逐行判定校验结果（REQ-CLS-028 / BR-STU-003） ---------------- */
+
+  function verdictOf(row) {
+    var statusCode = row.getAttribute('data-status-code');
+    var classId = row.getAttribute('data-class-id');
+    var className = row.getAttribute('data-class-name');
+    if (TERMINAL.indexOf(statusCode) !== -1) {
+      return { level: 'disabled', text: row.getAttribute('data-status') + '：终态不能编班' };
+    }
+    if (classId === targetId) {
+      return { level: 'in-class', text: '已在本班（无需重复加入）' };
+    }
+    if (classId) {
+      return { level: 'conflict', text: '已有行政班：' + className };
+    }
+    if (statusCode === 'pending_enroll') {
+      return { level: 'conflict', text: '转入未报到：报到后才可编班（BR-STU-023）' };
+    }
+    return { level: 'joinable', text: '可加入' };
+  }
+
+  function rowInfo(row) {
+    return {
+      no: row.getAttribute('data-no'),
+      name: row.getAttribute('data-name'),
+      className: row.getAttribute('data-class-name'),
+      verdict: verdictOf(row)
+    };
+  }
+
+  function tagClass(level) {
+    if (level === 'joinable') return 'success';
+    if (level === 'in-class') return 'primary';
+    if (level === 'conflict') return 'danger';
+    return 'info';
+  }
+
+  function renderPool() {
+    var keyword = (q('#f-pool-keyword').value || '').trim();
+    var visible = 0;
+    rows().forEach(function (row) {
+      var info = rowInfo(row);
+      var joinable = info.verdict.level === 'joinable';
+      var box = row.querySelector('input[type="checkbox"]');
+      box.disabled = info.verdict.level === 'disabled' || info.verdict.level === 'in-class';
+      if (box.disabled && box.checked) { box.checked = false; }
+      var classCell = row.querySelector('[data-cell="class"]');
+      var checkCell = row.querySelector('[data-cell="check"]');
+      classCell.innerHTML = '';
+      if (info.className) {
+        var isSelf = row.getAttribute('data-class-id') === targetId;
+        classCell.appendChild(el('span', 'el-tag ' + (isSelf ? 'primary' : 'info'), info.className));
+      } else {
+        classCell.appendChild(el('span', 'cell-secondary', '—'));
+      }
+      checkCell.innerHTML = '';
+      checkCell.appendChild(el('span', 'el-tag ' + tagClass(info.verdict.level), info.verdict.text));
+      row.className = row.className.replace(/\s*row-(disabled|conflict|picked)/g, '');
+      if (info.verdict.level === 'disabled' || info.verdict.level === 'in-class') row.className += ' row-disabled';
+      if (info.verdict.level === 'conflict') row.className += ' row-conflict';
+      if (picked.indexOf(info.no) !== -1) row.className += ' row-picked';
+      var matchKeyword = !keyword || (row.getAttribute('data-keyword') || '').indexOf(keyword) !== -1;
+      var matchView = poolView === 'all' || joinable;
+      var ok = matchKeyword && matchView;
+      row.classList.toggle('state-hidden', !ok);
+      if (ok) visible += 1;
+    });
+    q('#pool-pager').textContent = '共 137 条 · 当前第 1 页 · 每页 20 条（本页显示 ' + visible + ' 行样例）';
+    var emptyTitle = q('#pool-empty-title');
+    if (emptyTitle) {
+      emptyTitle.textContent = poolView === 'joinable' ? '「只看可加入」下没有学生' : '当前筛选条件下没有学生';
+    }
+  }
+
+  /* ---------------- 2. 待加入清单与冲突清单 ---------------- */
+
+  function conflictRows() {
+    return picked.map(rowByNo).filter(function (row) {
+      return row && rowInfo(row).verdict.level === 'conflict';
+    });
+  }
+
+  function transferButton(row) {
+    var info = rowInfo(row);
+    var jump = el('button', 'btn link', '调班');
+    jump.setAttribute('data-role', 'action');
+    jump.setAttribute('data-action-id', 'ACT-CLS-056');
+    jump.setAttribute('data-component', 'el-button.link.primary');
+    jump.setAttribute('data-permission', 'org.class:update');
+    jump.setAttribute('data-transfer-no', info.no);
+    jump.setAttribute('data-transfer-from', info.className || '未编班');
+    return jump;
+  }
+
+  function renderPicked() {
+    var box = q('#picked-list');
+    box.innerHTML = '';
+    q('#picked-count').textContent = '已选 ' + picked.length + ' 人';
+    if (!picked.length) {
+      box.appendChild(el('div', 'list-empty', '还没有选择学生：从左侧学生池勾选后进入待加入清单，加入前会逐条校验唯一行政班。'));
+      q('#conflict-box').classList.add('state-hidden');
+      return;
+    }
+    picked.forEach(function (no) {
+      var row = rowByNo(no);
+      if (!row) return;
+      var info = rowInfo(row);
+      var conflict = info.verdict.level === 'conflict';
+      var line = el('div', 'list-row' + (conflict ? ' conflict' : ''));
+      var grow = el('div', 'grow');
+      grow.appendChild(el('div', null, info.name + ' · ' + no));
+      grow.appendChild(el('div', 'cell-secondary', conflict ? info.verdict.text : '校验通过：可加入本班'));
+      line.appendChild(grow);
+      line.appendChild(el('span', 'el-tag ' + tagClass(info.verdict.level), conflict ? '冲突' : '可加入'));
+      if (conflict) line.appendChild(transferButton(row));
+      var remove = el('button', 'btn link', '移除');
+      remove.setAttribute('data-role', 'action');
+      remove.setAttribute('data-action-id', 'ACT-CLS-055');
+      remove.setAttribute('data-component', 'el-button.link.primary');
+      remove.setAttribute('data-remove-no', no);
+      line.appendChild(remove);
+      box.appendChild(line);
+    });
+  }
+
+  function renderConflictBox() {
+    var box = q('#conflict-box');
+    var list = q('#conflict-rows');
+    var bad = conflictRows();
+    list.innerHTML = '';
+    if (!bad.length) { box.classList.add('state-hidden'); return; }
+    bad.forEach(function (row) {
+      var info = rowInfo(row);
+      var line = el('div', 'list-row conflict');
+      line.appendChild(el('span', 'grow', info.name + ' · ' + info.no + ' —— ' + info.verdict.text));
+      line.appendChild(transferButton(row));
+      list.appendChild(line);
+    });
+    box.classList.remove('state-hidden');
+  }
+
+  /* ---------------- 3. 事件 ---------------- */
+
+  document.addEventListener('click', function (event) {
+    var node = event.target;
+
+    var viewChip = node.closest('[data-pool-view]');
+    if (viewChip) {
+      poolView = viewChip.getAttribute('data-pool-view');
+      qa('[data-pool-view]').forEach(function (b) { b.classList.toggle('on', b === viewChip); });
+      renderPool();
+      return;
+    }
+    if (node.closest('[data-action-id="ACT-CLS-053"]')) {
+      var label = node.textContent.trim();
+      if (label === '重置') {
+        q('#f-pool-keyword').value = '';
+        poolView = 'all';
+        qa('[data-pool-view]').forEach(function (b) {
+          b.classList.toggle('on', b.getAttribute('data-pool-view') === 'all');
+        });
+      }
+      if (label === '清空清单') {
+        picked = [];
+        qa('#pool-rows input[type="checkbox"]').forEach(function (b) { b.checked = false; });
+        renderPicked();
+        renderConflictBox();
+        renderPool();
+        window.PrototypeShell.toast('已清空待加入清单，未产生任何写入。', 'info');
+        return;
+      }
+      renderPool();
+      return;
+    }
+    if (node.closest('#pool-empty-action')) {
+      q('#f-pool-keyword').value = '';
+      poolView = 'all';
+      qa('[data-pool-view]').forEach(function (b) {
+        b.classList.toggle('on', b.getAttribute('data-pool-view') === 'all');
+      });
+      window.PrototypeShell.applyState('normal');
+      renderPool();
+      window.PrototypeShell.toast('已清空筛选条件，返回本校学生池全部样例。', 'success');
+      return;
+    }
+
+    var removeBtn = node.closest('[data-remove-no]');
+    if (removeBtn) {
+      var no = removeBtn.getAttribute('data-remove-no');
+      picked = picked.filter(function (x) { return x !== no; });
+      var box = qa('#pool-rows input[type="checkbox"]').filter(function (b) {
+        return b.getAttribute('data-pick') === no;
+      })[0];
+      if (box) box.checked = false;
+      renderPicked();
+      renderConflictBox();
+      renderPool();
+      return;
+    }
+
+    /* 冲突行的「调班」入口：直接进入调班弹窗，预填源班级与目标班级（class PRD 6.3） */
+    var jumpBtn = node.closest('[data-transfer-no]');
+    if (jumpBtn) {
+      event.stopImmediatePropagation();
+      var tNo = jumpBtn.getAttribute('data-transfer-no');
+      var tRow = rowByNo(tNo);
+      window.location.href = 'class-detail.html#panel=PAGE-CLS-TRANSFER&student=' + encodeURIComponent(tNo)
+        + '&name=' + encodeURIComponent(tRow ? rowInfo(tRow).name : tNo)
+        + '&from=' + encodeURIComponent(jumpBtn.getAttribute('data-transfer-from'))
+        + '&to=' + encodeURIComponent(targetName);
+      return;
+    }
+
+    /* 加入班级：逐条校验，任一条冲突则整体拒绝并列出冲突清单（REQ-CLS-029） */
+    if (node.closest('[data-action-id="ACT-CLS-057"]')) {
+      if (!picked.length) {
+        event.stopImmediatePropagation();
+        window.PrototypeShell.toast('请先从左侧学生池勾选学生，再点「加入班级」。', 'warning');
+        return;
+      }
+      var conflictCount = conflictRows().length;
+      if (conflictCount) {
+        event.stopImmediatePropagation();
+        renderConflictBox();
+        window.PrototypeShell.toast('本次加入被整体拒绝：' + conflictCount
+          + ' 名学生已有行政班或尚未报到，请先处理冲突清单（REQ-CLS-029 / DS-DENY-06）。', 'error');
+        return;
+      }
+      var joinCount = picked.length;
+      window.setTimeout(function () { revealJoined(joinCount); }, 1200);
+      return;
+    }
+  });
+
+  function revealJoined(count) {
+    q('#partial-text').textContent = '已加入 ' + count + ' 名学生（本班在读 2 → ' + (2 + count)
+      + '），并写审计；原关系保留历史，容量超出只提示（BR-CLASS-005）。';
+    q('#partial-box').classList.remove('state-hidden');
+    picked = [];
+    qa('#pool-rows input[type="checkbox"]').forEach(function (b) { b.checked = false; });
+    renderPicked();
+    renderConflictBox();
+    renderPool();
+  }
+
+  /* 勾选 / 取消勾选：只维护待加入清单，不写库 */
+  document.addEventListener('change', function (event) {
+    var box = event.target;
+    if (!box || box.type !== 'checkbox' || !box.getAttribute('data-pick')) return;
+    var no = box.getAttribute('data-pick');
+    var row = rowByNo(no);
+    if (box.checked) {
+      if (picked.indexOf(no) === -1) picked.push(no);
+      if (row && rowInfo(row).verdict.level === 'conflict') {
+        window.PrototypeShell.toast('该生已有行政班或尚未报到：可以继续勾选，但提交时会被整体拒绝（REQ-CLS-028）。', 'warning');
+      }
+    } else {
+      picked = picked.filter(function (x) { return x !== no; });
+    }
+    renderPicked();
+    renderConflictBox();
+    renderPool();
+  });
+
+  /* ---------------- 4. 深链接参数 ---------------- */
+
+  function applyPageParams(params) {
+    if (!params) return;
+    if (params.class && CLASS_ID[params.class]) {
+      targetName = params.class;
+      targetId = CLASS_ID[targetName];
+      q('#target-class-name').textContent = targetName;
+      document.body.setAttribute('data-tab', '编班 · ' + targetName);
+      document.title = '编班（添加学生） · ' + targetName + ' — 业务原型 v1（批次 2-3d）';
+    }
+    if (params.term && params.term !== '202601') {
+      q('#history-readonly').classList.remove('state-hidden');
+      q('#target-class-term').textContent = '2025-2026 学年 第一学期（已归档）';
+      qa('[data-role="action"]').forEach(function (b) {
+        if (b.getAttribute('data-action-id') === 'ACT-CLS-057') b.classList.add('role-hidden');
+      });
+      qa('#pool-rows input[type="checkbox"]').forEach(function (b) { b.disabled = true; });
+    }
+    if (params.keyword) q('#f-pool-keyword').value = params.keyword;
+    if (params.view) {
+      poolView = params.view === 'joinable' ? 'joinable' : 'all';
+      qa('[data-pool-view]').forEach(function (b) {
+        b.classList.toggle('on', b.getAttribute('data-pool-view') === poolView);
+      });
+    }
+    if (params.pick) {
+      params.pick.split(',').forEach(function (no) {
+        var box = qa('#pool-rows input[type="checkbox"]').filter(function (b) {
+          return b.getAttribute('data-pick') === no;
+        })[0];
+        if (box && !box.disabled) {
+          box.checked = true;
+          if (picked.indexOf(no) === -1) picked.push(no);
+        }
+      });
+    }
+    renderPool();
+    renderPicked();
+    renderConflictBox();
+  }
+  document.addEventListener('prototype:params', function (event) { applyPageParams(event.detail); });
+
+  renderPool();
+  renderPicked();
+})();
+</script>
+<!-- demo script end -->
+</body>
+</html>

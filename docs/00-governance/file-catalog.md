@@ -236,7 +236,13 @@
 | `prototypes/high-fidelity/v1/component-mapping.yaml` | 阶段 3 组件映射表（4 个页面 32 个可交互元素 → Element Plus 组件） | `review` |
 | `prototypes/high-fidelity/v1/visual-checklist.md` | 阶段 3 交批自查清单（32 条，含三档分辨率与可访问性） | `review` |
 | `prototypes/high-fidelity/v1/assets/hifi.css`、`prototypes/high-fidelity/v1/assets/hifi-shell.js` | 阶段 3 高保真样式与外壳 | `review` |
-| `prototypes/high-fidelity/v1/pages/student-list.html` | 阶段 3 样板页（学生管理列表 + 详情抽屉 + 新增 / 编辑弹窗 + 五类状态） | `review` |
+| `prototypes/high-fidelity/v1/pages/*.html`（45 页） | 阶段 3 全量交付页（由阶段 2 派生：视觉层 + 外壳替换），覆盖 95 个页面编号 / 403 个动作编号 / 229 个状态片段 | `review` |
+| `prototypes/high-fidelity/v1/reference/student-list-visual-reference.html` | 阶段 3 手工精修的视觉基准（不在交付清单内） | `review` |
+| `prototypes/high-fidelity/v1/page-manifest.yaml` | 阶段 3 逐页清单（来源 / 页面编号 / 动作编号 / 状态片段 / 元素计数） | `review` |
+| `tools/make_hifi_pages.py`、`tools/make_hifi_coverage.py` | 阶段 3 派生工具与覆盖度工具（幂等；集合差异为 0 才退出 0） | `review` |
+| `evidence/stage3-highfidelity/verify-hifi-coverage.html` | 阶段 3 覆盖度 harness（CV-01 ~ CV-45 + 3 条集合级检查，48 / 48 通过） | `review` |
+| `evidence/stage3-highfidelity/pages/*.png`（53 张） | 阶段 3 交付页截图：45 页 1440×900 + 4 个代表页 1366 / 1920 | `review` |
+| `evidence/stage3-highfidelity/hifi-coverage_verify-results.png` | 阶段 3 覆盖度 harness 结果清单 | `review` |
 | `prototypes/high-fidelity/v1/index.html`、`prototypes/high-fidelity/v1/README.md` | 阶段 3 入口与交付说明（3-0 ~ 3-9 批次表） | `review` |
 | `evidence/stage3-highfidelity/verify-hifi-student.html` | 阶段 3 样板批交互验证 harness（HF-01 ~ HF-18 共 18 条断言全部通过） | `review` |
 | `evidence/stage3-highfidelity/student-list_*.png`、`evidence/stage3-highfidelity/hifi-student_verify-results.png` | 阶段 3 样板批截图（10 张：三档分辨率 + 抽屉 / 弹窗 + 3 种角色 + 空态 / 无权限 + harness 结果） | `review` |

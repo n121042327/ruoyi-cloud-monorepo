@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 阶段 3 高保真页面：由 prototypes/functional/v1/pages/404.html 派生（工具：tools/make_hifi_pages.py）。
+     只替换视觉层与外壳，信息架构 / 字段 / 动作 / 状态片段与阶段 2 一致；视觉差异见 assets/hifi.css 与 design-tokens.json。 -->
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>页面不存在或已被移除 — 业务原型 v1（批次 2-4） · 高保真</title>
+<link rel="stylesheet" href="../../functional/v1/assets/prototype-shell.css" />
+<style>
+  body { margin: 0; background: #f5f7fb; }
+  .err-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .err-card {
+    width: 520px; background: #fff; border: 1px solid var(--app-border-light);
+    border-radius: var(--app-radius-base); box-shadow: var(--app-shadow-md); padding: 32px 32px 26px; text-align: center;
+  }
+  .err-code { font-size: 46px; font-weight: 700; color: var(--app-primary); line-height: 1; }
+  .err-title { font-size: 18px; font-weight: 600; color: var(--app-text-primary); margin: 12px 0 8px; }
+  .err-desc { font-size: 13px; color: var(--app-text-secondary); line-height: 1.8; text-align: left; }
+  .err-actions { display: flex; gap: 8px; justify-content: center; margin-top: 20px; }
+  .err-meta { margin-top: 16px; font-size: 12px; color: var(--app-text-secondary); text-align: left; }
+</style>
+  <link rel="stylesheet" href="../assets/hifi.css" />
+</head>
+<body>
+<div id="page-root" data-page="PAGE-404" data-role="page" data-state="normal">
+  <div class="err-wrap">
+    <div class="err-card">
+      <div class="err-code">404</div>
+      <div class="err-title">页面不存在或已被移除</div>
+      <div class="err-desc">你访问的地址不在当前原型 / 系统的页面注册表里。本原型的页面总数、类型与批次以 <span class="mono">navigation.yaml</span> 的页面注册表为准：看不到的入口，原型里也不允许出现。</div>
+      <div class="err-actions">
+        <button class="btn primary" data-role="action" data-action-id="ACT-ERR-003" data-component="el-button.primary"
+                data-demo-toast="已返回上一页（原型演示）。" data-demo-toast-type="info">返回上一页</button>
+        <button class="btn" data-role="action" data-action-id="ACT-ERR-001" data-component="el-button"
+                data-demo-toast="已返回工作台首页（原型演示）。" data-demo-toast-type="info">返回工作台</button>
+      </div>
+      <div class="err-meta">如果这个地址来自系统内的跳转，请把来源页面与操作路径反馈给原型维护者。</div>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  'use strict';
+  var host = document.createElement('div');
+  host.className = 'toast-host';
+  document.body.appendChild(host);
+  function toast(message, type) {
+    var node = document.createElement('div');
+    node.className = 'toast ' + (type || 'info');
+    node.textContent = message;
+    host.appendChild(node);
+    window.setTimeout(function () { node.remove(); }, 3600);
+  }
+  document.addEventListener('click', function (event) {
+    var btn = event.target.closest('[data-demo-toast]');
+    if (!btn) return;
+    event.preventDefault();
+    toast(btn.getAttribute('data-demo-toast'), btn.getAttribute('data-demo-toast-type') || 'info');
+  });
+})();
+</script>
+</body>
+</html>

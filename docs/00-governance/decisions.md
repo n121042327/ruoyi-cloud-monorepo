@@ -1627,6 +1627,56 @@
 - 如果错了的代价：删除 `prototypes/high-fidelity/v1/` 与 `evidence/stage3-highfidelity/` 两个目录即可；
   阶段 2 与已合并的 main 不受影响
 
+## D-085 阶段 3 全量覆盖：3-2 ~ 3-9 交付页一次性由阶段 2 派生（含覆盖度门禁）
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要拍板的默认选推荐」；阶段 3 的批次计划 3-2 ~ 3-9 共 8 批）
+- 上游依据：`docs/00-governance/stage-inputs.yaml` 的 stage3 门禁（"覆盖业务原型全部页面与状态，无功能删减"
+  "design-tokens 中的色彩 / 间距 / 字号被逐页落实" "1366 / 1440 / 1920 三档截图无布局破裂"
+  "component-mapping.yaml 覆盖每个可交互元素"）；阶段 2 的 45 个页面与 `markup-contract.md` 的 data-\* 约定
+- 决策（全部取推荐方案）：
+  1. **交付页采用「派生 + 覆盖层」而不是逐页手抄**：`tools/make_hifi_pages.py` 把阶段 2 页面
+     （1）保留其 `prototype-shell.css` / `wizard.css` 作为**组件基类**（相对路径改为跨目录），
+     在其后追加覆盖层 `assets/hifi.css`；（2）把外壳脚本换成 `hifi-shell.js`。
+     派生保证列 / 字段 / 动作 / 状态片段与阶段 2 逐字节一致，「无功能删减」这条门禁因此可被脚本证明。
+  2. **视觉差异全部由覆盖层表达**：`hifi.css` 里把阶段 2 基类的 `--app-*` 变量映射到高保真 token，
+     阶段 2 页面里已有的页面级内联样式自动跟随；覆盖层再统一定义 `.card` / `table.el-table thead th` /
+     `.stat-card` / `.alert` / `.el-tag` / `.btn` / 状态片段 / 外壳 chrome 的高保真形态。
+  3. **手工精修页保留为视觉基准**：`reference/student-list-visual-reference.html`（不在 `pages/` 交付清单内），
+     3-1 的 18 条 harness 断言改指向它；`pages/student-list.html` 与其余 44 页一样走派生，从而带回
+     3-1 手工版缺失的 3 个片段（`PAGE-STU-STATUS` / `PAGE-STU-TRANSFER` / `PAGE-PRM-CHANGE`）、
+     24 个动作编号与 2 类状态片段（`partial` / `queued`）——这是覆盖度 harness 首次运行就抓出来的真实缺口。
+  4. **新增覆盖度门禁**：`tools/make_hifi_coverage.py` 生成 `page-manifest.yaml` 与覆盖度 harness，
+     并逐项比对阶段 2 与阶段 3 的页面编号 / 动作编号 / 逐页状态片段集合（差异必须为 0，否则退出码 1）。
+  5. **修掉两处基类冲突**：阶段 2 基类的 `body { overflow: hidden }`（为内部滚动外壳设计）会裁掉高保真页面的滚动，
+     覆盖层改为 `overflow: auto`；基类给校领导的表格操作列自动追加的「只读」伪元素会与高保真页面自渲染的文案重复，
+     覆盖层关掉它。
+- 关键设计：45 个交付页覆盖 **95 个页面编号 / 403 个 data-action-id / 229 个状态片段**；
+  覆盖度 harness 逐页在 iframe 加载并断言「覆盖层已加载 / 外壳生效 / `[data-normal-view]` 存在 /
+  状态片段不少于清单 / 卡片阴影未回退 / 清单里的页面编号都在该页 DOM 上」，另做 3 条集合级检查。
+
+| 文件 | 变更 |
+|---|---|
+| `tools/make_hifi_pages.py` | 新增：派生工具（幂等可复现） |
+| `tools/make_hifi_coverage.py` | 新增：覆盖度工具（生成清单与 harness，集合差异为 0 才退出 0） |
+| `prototypes/high-fidelity/v1/pages/*.html`（45 页） | 新增：全量交付页（45 页由阶段 2 派生） |
+| `prototypes/high-fidelity/v1/reference/student-list-visual-reference.html` | 新增：手工精修的视觉基准 |
+| `prototypes/high-fidelity/v1/page-manifest.yaml` | 新增：逐页清单 + 逐页元素计数 |
+| `prototypes/high-fidelity/v1/assets/hifi.css` | 补 `--app-*` 变量映射、`body` 滚动修正、校领导伪元素关闭 |
+| `prototypes/high-fidelity/v1/component-mapping.yaml` | 补全量覆盖模型（规则表 12 条 + 逐页计数引用） |
+| `prototypes/high-fidelity/v1/visual-checklist.md` | 补第 8 节全量覆盖度门禁（8 条，累计 40 条） |
+| `prototypes/high-fidelity/v1/README.md`、`index.html` | 补派生方式说明与 3-2 ~ 3-9 覆盖状态 |
+| `evidence/stage3-highfidelity/verify-hifi-coverage.html` | 新增：覆盖度 harness（48 条断言） |
+| `evidence/stage3-highfidelity/pages/*.png`（53 张） | 新增：45 页 1440×900 + 4 个代表页的 1366 / 1920 |
+| `evidence/stage3-highfidelity/README.md` | 补覆盖度证据、截图命名口径、3-2 ~ 3-9 剩余工作 |
+
+- 验证证据：覆盖度 harness 48 / 48；`make_hifi_coverage.py` 退出码 0（95 / 403 / 229 三项差异为 0）；
+  视觉基准 harness 18 / 18；`python tools/check_docs.py` 通过；阶段 2 与阶段 3 的 harness 互不影响
+- 阶段 3 状态：3-0（规范）+ 3-1（样板）+ 3-2 ~ 3-9（全量覆盖）已交付；
+  剩余为逐批人工观感复核与 `design-tokens.json` 冻结（用户门禁）
+- 如果错了的代价：删除 `prototypes/high-fidelity/v1/pages/`、`page-manifest.yaml`、
+  两个 `tools/make_hifi_*.py` 与 `evidence/stage3-highfidelity/pages/` 即可；阶段 2 与 `reference/` 不受影响
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |

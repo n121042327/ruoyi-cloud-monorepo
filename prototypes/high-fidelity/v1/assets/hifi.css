@@ -7,6 +7,29 @@
    =========================================================================== */
 
 :root {
+  /* 与阶段 2 组件基类变量的对齐（基类在 hifi.css 之前加载，这里把它的 --app-* 映射到高保真 token，
+     使阶段 2 页面里已有的页面级内联样式自动跟随高保真配色，无需逐页改写） */
+  --app-primary: #2f6bff;
+  --app-primary-hover: #1f5bf0;
+  --app-success: #0f9d58;
+  --app-warning: #e6a23c;
+  --app-danger: #d93026;
+  --app-info: #6b7280;
+  --app-text-primary: #1f2937;
+  --app-text-regular: #4b5563;
+  --app-text-secondary: #8a94a6;
+  --app-text-disabled: #b6bdc9;
+  --app-border: #dcdfe6;
+  --app-border-light: #ebeef5;
+  --app-page-bg: #f3f5f9;
+  --app-table-header-bg: #f7f9fc;
+  --app-table-header-text: #4b5563;
+  --app-radius-base: 8px;
+  --app-radius-small: 4px;
+  --app-radius-round: 999px;
+  --app-shadow-sm: 0 1px 2px rgba(31, 41, 55, .04), 0 4px 12px rgba(31, 41, 55, .06);
+  --app-shadow-md: 0 12px 32px rgba(31, 41, 55, .18);
+
   --hi-primary: #2f6bff;
   --hi-primary-hover: #1f5bf0;
   --hi-primary-active: #1a4fd6;
@@ -56,8 +79,11 @@ html, body { height: 100%; }
 body {
   margin: 0; background: var(--hi-page-bg); color: var(--hi-text-regular);
   font-family: var(--hi-font); font-size: 14px; line-height: 1.6;
+  overflow: auto;               /* 覆盖阶段 2 基类的 body { overflow: hidden }（那是给内部滚动外壳用的） */
   -webkit-font-smoothing: antialiased;
 }
+/* 阶段 2 基类会给校领导的表格操作列自动追加一个「只读」伪元素；高保真页面自己渲染该文案，这里关掉避免重复 */
+body[data-current-role="school_leader"] table.el-table td.actions::after { content: none; }
 a { color: var(--hi-primary); text-decoration: none; }
 a:hover { color: var(--hi-primary-hover); }
 :focus-visible { outline: 2px solid var(--hi-primary); outline-offset: 2px; }

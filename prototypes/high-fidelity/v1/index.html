@@ -13,7 +13,7 @@
     <h1>K12 教育 ToB 平台 · 高保真原型 v1</h1>
     <span class="el-tag primary">阶段 3</span>
     <span class="el-tag info">纯静态 HTML · 不连后端</span>
-    <span class="el-tag success">3-0 规范 + 3-1 样板 已产出待验收</span>
+    <span class="el-tag success">3-0 规范 + 3-1 样板 + 全量 45 页覆盖</span>
   </div>
 
   <div class="alert info">
@@ -104,14 +104,17 @@
         <thead><tr><th style="width:110px">批次</th><th>内容</th><th style="width:180px">状态</th></tr></thead>
         <tbody>
           <tr><td>3-0</td><td>视觉规范四件套：design-tokens / component-spec / component-mapping / visual-checklist</td><td><span class="el-tag warning">已产出待验收</span></td></tr>
-          <tr><td>3-1</td><td>样板批：学生管理列表（含详情抽屉与新增 / 编辑弹窗）+ 高保真外壳</td><td><span class="el-tag warning">已产出待验收</span></td></tr>
-          <tr><td>3-2</td><td>教师 / 年级</td><td><span class="el-tag info">待开始</span></td></tr>
-          <tr><td>3-3</td><td>班级 / 班级详情 / 升班向导</td><td><span class="el-tag info">待开始</span></td></tr>
-          <tr><td>3-4</td><td>导入向导 / 登录 / 异常页</td><td><span class="el-tag info">待开始</span></td></tr>
-          <tr><td>3-5 ~ 3-9</td><td>学生模块剩余 / 学校与配置 / 选科与教学班 / 审计 / 异步任务（与阶段 2 的 2-5 ~ 2-9 对齐）</td><td><span class="el-tag info">待开始</span></td></tr>
+          <tr><td>3-1</td><td>学生管理列表（视觉基准 <span class="mono">reference/</span>）+ 高保真外壳</td><td><span class="el-tag warning">已产出待验收</span></td></tr>
+          <tr><td>3-2</td><td>教师 / 年级（4 页）</td><td><span class="el-tag success">已覆盖</span></td></tr>
+          <tr><td>3-3</td><td>班级 / 班级详情 / 升班向导（11 页）</td><td><span class="el-tag success">已覆盖</span></td></tr>
+          <tr><td>3-4</td><td>导入向导 / 登录 / 异常页（4 页）</td><td><span class="el-tag success">已覆盖</span></td></tr>
+          <tr><td>3-5 ~ 3-9</td><td>学生模块剩余 / 学校与配置 / 选科与教学班 / 审计 / 异步任务（22 页）</td><td><span class="el-tag success">已覆盖</span></td></tr>
         </tbody>
       </table>
-      <div class="legend" style="margin-top:12px"><span>批次划分与阶段 2 的 2-1 ~ 2-9 一一对应，便于按同一份 PRD 与页面规格逐批验收。</span></div>
+      <div class="legend" style="margin-top:12px">
+        <span>批次划分与阶段 2 的 2-1 ~ 2-9 一一对应。<b>3-2 ~ 3-9 已由派生一次性覆盖</b>（<span class="mono">tools/make_hifi_pages.py</span>），
+          覆盖度由 <span class="mono">verify-hifi-coverage.html</span> 逐页验证（48 / 48 通过）；逐页清单见 <span class="mono">page-manifest.yaml</span>。</span>
+      </div>
     </div>
   </section>
 

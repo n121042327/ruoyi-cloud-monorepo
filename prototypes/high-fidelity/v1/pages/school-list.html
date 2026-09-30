@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 阶段 3 高保真页面：由 prototypes/functional/v1/pages/school-list.html 派生（工具：tools/make_hifi_pages.py）。
+     只替换视觉层与外壳，信息架构 / 字段 / 动作 / 状态片段与阶段 2 一致；视觉差异见 assets/hifi.css 与 design-tokens.json。 -->
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>学校管理 — 业务原型 v1（批次 2-6） · 高保真</title>
+<link rel="stylesheet" href="../../functional/v1/assets/prototype-shell.css" />
+<script src="../assets/hifi-shell.js"></script>
+<style>
+  #sch-table td.actions { white-space: nowrap; }
+</style>
+  <link rel="stylesheet" href="../assets/hifi.css" />
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-SCH-LIST"
+  data-menu-page="PAGE-SCH-LIST"
+  data-breadcrumb="组织与配置 / 学校管理 / 学校列表"
+  data-tab="学校管理"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-SCH-LIST" data-role="page">
+
+  <div class="page-head">
+    <h1>学校管理</h1>
+    <span class="scope-hint" data-role="scope-hint">数据范围：本租户（DS-04）· 可写</span>
+    <span class="el-tag primary">共 4 所学校</span>
+    <span class="el-tag info">教学数据落在学校租户上（BR-ORG-001）</span>
+  </div>
+
+  <section class="card" data-block="filter" data-role="filter" data-component="el-card.hover">
+    <div class="card-body">
+      <div class="form-inline">
+        <div class="form-item">
+          <label for="sch-name">学校名称</label>
+          <input class="input" id="sch-name" style="min-width:180px" placeholder="如：云溪" data-role="field" data-field="school_name" data-component="el-input" />
+        </div>
+        <div class="form-item">
+          <label for="sch-stage">学段</label>
+          <select class="select" id="sch-stage" style="min-width:150px" data-role="field" data-field="stage_code" data-component="el-select">
+            <option value="">全部学段</option>
+            <option value="primary">小学</option>
+            <option value="junior">初中</option>
+            <option value="senior">高中</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label for="sch-status">状态</label>
+          <select class="select" id="sch-status" style="min-width:150px" data-role="field" data-field="school_status" data-component="el-select">
+            <option value="">全部状态</option>
+            <option value="active">启用中</option>
+            <option value="disabled">已停用</option>
+          </select>
+        </div>
+        <div class="form-item" style="margin-left:auto;min-width:auto">
+          <button class="btn primary" data-role="action" data-action-id="ACT-COM-001" data-component="el-button.primary" data-permission="org.school:read">搜索</button>
+          <button class="btn" data-role="action" data-action-id="ACT-COM-002" data-component="el-button" data-permission="org.school:read">重置</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" data-block="toolbar" data-role="toolbar" data-component="el-card.hover">
+    <div class="card-header">
+      <div class="toolbar" data-demo-state-target="toolbar">
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-SCH-001" data-component="el-button.primary.plain"
+                data-permission="org.school:create" data-nav="PAGE-SCH-CREATE" data-overlay="dialog"
+                data-role-visible="tenant_admin,super_admin">新建学校</button>
+        <button class="btn" data-role="action" data-action-id="ACT-SCH-002" data-component="el-button"
+                data-permission="org.school:create" data-nav="PAGE-SCH-INIT" data-role-visible="tenant_admin,super_admin"
+                title="开通初始化向导：学校基本信息 → 学段与年级 → 学年学期 → 执行">开通初始化</button>
+        <button class="btn" data-role="action" data-action-id="ACT-SCH-003" data-component="el-button"
+                data-permission="data.export:export" data-api="exportSchool"
+                data-demo-message="已按当前筛选导出学校台账；集团与运营方导出需逐次授权并留痕（IMP-Q-04 同口径）。">导出</button>
+      </div>
+      <div class="header-right">
+        <button class="btn" data-role="action" data-action-id="ACT-COM-003" data-component="el-button">隐藏搜索</button>
+        <button class="btn" data-role="action" data-action-id="ACT-COM-005" data-component="el-button" data-api="listSchool"
+                data-demo-message="已按当前条件刷新，未重置页码。">刷新</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div data-normal-view>
+        <div class="table-scroll">
+          <table class="el-table" id="sch-table" data-role="table" data-component="el-table" data-api="listSchool"
+                 style="min-width:1140px;table-layout:fixed">
+            <thead>
+              <tr>
+                <th data-role="column" data-field="school_name" style="width:200px">学校名称</th>
+                <th data-role="column" data-field="school_code" style="width:120px">学校编码</th>
+                <th data-role="column" data-field="stage_code" style="width:170px">开设学段</th>
+                <th data-role="column" data-field="campus_count" style="width:90px">校区数</th>
+                <th data-role="column" data-field="class_count" style="width:90px">班级数</th>
+                <th data-role="column" data-field="student_count" style="width:110px">在读学生</th>
+                <th data-role="column" data-field="school_status" style="width:96px">状态</th>
+                <th data-role="column" data-field="tenant_id" style="width:140px">所属租户</th>
+                <th class="actions" style="width:124px">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-role="row" data-nav="PAGE-SCH-DETAIL" data-status="active">
+                <td>云溪实验学校<span class="cell-secondary">（本校）</span></td><td class="mono">SCH-201</td>
+                <td>小学 · 初中 · 高中</td>
+                <td><button class="btn link" data-role="action" data-action-id="ACT-SCH-004" data-component="el-button.link.primary"
+                            data-permission="org.school:read" data-nav="PAGE-SCH-CAMPUS">3</button></td>
+                <td class="num">34</td><td class="num">137</td>
+                <td><span class="el-tag success">启用中</span></td><td>云溪教育集团</td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-SCH-DETAIL" data-status="active">
+                <td>云溪外国语学校</td><td class="mono">SCH-202</td>
+                <td>小学 · 初中</td>
+                <td><button class="btn link" data-role="action" data-action-id="ACT-SCH-004" data-component="el-button.link.primary"
+                            data-permission="org.school:read" data-nav="PAGE-SCH-CAMPUS">2</button></td>
+                <td class="num">18</td><td class="num">96</td>
+                <td><span class="el-tag success">启用中</span></td><td>云溪教育集团</td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-SCH-DETAIL" data-status="active">
+                <td>云溪第二实验学校</td><td class="mono">SCH-203</td>
+                <td>初中</td>
+                <td><button class="btn link" data-role="action" data-action-id="ACT-SCH-004" data-component="el-button.link.primary"
+                            data-permission="org.school:read" data-nav="PAGE-SCH-CAMPUS">1</button></td>
+                <td class="num">6</td><td class="num">28</td>
+                <td><span class="el-tag success">启用中</span></td><td>云溪教育集团</td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-SCH-DETAIL" data-status="disabled">
+                <td>云溪第三实验学校<span class="cell-secondary">（已停用）</span></td><td class="mono">SCH-204</td>
+                <td>小学</td>
+                <td><span class="cell-empty">—</span></td>
+                <td class="num">0</td><td class="num">0</td>
+                <td><span class="el-tag info">已停用</span></td><td>云溪教育集团</td>
+                <td class="actions"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination"><span class="total">共 4 所学校 · 当前第 1 页 · 每页 20 条</span></div>
+      </div>
+      <div class="legend" style="margin:8px 0 0">
+        <span>学校是<b>教学数据的最小归属单位</b>：年级 / 班级 / 学生 / 教师都落在学校租户上；集团不看下属学校的教学数据（<span class="mono">BR-ORG-001</span>）。
+          校区数可点，复用学校详情下的校区管理页（<span class="mono">GAP-046</span> 选项 A，不新增页面）。</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- 学校详情抽屉（PAGE-SCH-DETAIL） -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-SCH-DETAIL" data-overlay-kind="drawer">
+  <div class="drawer" data-role="drawer" data-component="el-drawer" data-size="lg" data-page="PAGE-SCH-DETAIL" data-block="detail">
+    <div class="drawer-header">
+      <h2>学校详情 · <span id="sch-detail-name">云溪实验学校</span></h2>
+      <span class="el-tag success" id="sch-detail-status">启用中</span>
+      <button class="close-x" data-close-panel="PAGE-SCH-DETAIL" title="关闭">✕</button>
+    </div>
+    <div class="drawer-body">
+      <div class="alert info">
+        <span>只读详情</span>
+        <span>学校信息由租户管理员维护；学段配置与校区各有独立入口（学段配置弹窗、<span class="mono">PAGE-SCH-CAMPUS</span>）。</span>
+      </div>
+      <section class="card" data-block="basic" data-role="section">
+        <div class="card-header"><h3>基本信息</h3><span class="el-tag info">getSchool</span></div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="field" data-field="school_name"><label>学校名称</label><div class="readonly-value">云溪实验学校</div></div>
+            <div class="field" data-field="school_code"><label>学校编码</label><div class="readonly-value mono">SCH-201</div></div>
+            <div class="field" data-field="tenant_id"><label>所属租户</label><div class="readonly-value">云溪教育集团</div></div>
+            <div class="field" data-field="school_type"><label>学校类型</label><div class="readonly-value">公办</div></div>
+            <div class="field" data-field="stage_code"><label>开设学段</label><div class="readonly-value">小学 · 初中 · 高中</div></div>
+            <div class="field" data-field="campus_count"><label>校区数</label><div class="readonly-value">3（本部 / 东校区 / 西校区）</div></div>
+          </div>
+        </div>
+      </section>
+      <section class="card" data-block="summary" data-role="section">
+        <div class="card-header"><h3>规模概览</h3><span class="el-tag info">getSchoolSummary</span></div>
+        <div class="card-body">
+          <div class="stat-row">
+            <div class="stat-card"><div class="label">年级数</div><div class="value">14</div></div>
+            <div class="stat-card"><div class="label">班级数</div><div class="value">34</div></div>
+            <div class="stat-card"><div class="label">在读学生</div><div class="value">137<span class="unit">人</span></div></div>
+            <div class="stat-card"><div class="label">教师数</div><div class="value">46<span class="unit">人</span></div></div>
+          </div>
+          <div class="legend" style="margin:8px 0 0"><span>统计口径与各模块列表一致（在读只计入 <span class="mono">enrolled</span>，<span class="mono">BR-STU-012</span>）。</span></div>
+        </div>
+      </section>
+      <section class="card" data-block="stage" data-role="section">
+        <div class="card-header"><h3>学段配置</h3>
+          <div class="header-right">
+            <button class="btn" data-role="action" data-action-id="ACT-SCH-005" data-component="el-button"
+                    data-permission="org.school:update" data-nav="PAGE-SCH-STAGE" data-overlay="dialog"
+                    data-role-visible="tenant_admin,super_admin">配置学段</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="list-rows">
+            <div class="list-row"><div class="grow">小学 · 一年级 — 六年级（学段序号 1–6）</div><div><span class="el-tag success">已启用</span></div></div>
+            <div class="list-row"><div class="grow">初中 · 初一 — 初三（学段序号 1–3）</div><div><span class="el-tag success">已启用</span></div></div>
+            <div class="list-row"><div class="grow">高中 · 高一 — 高三（学段序号 1–3）</div><div><span class="el-tag success">已启用</span></div></div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div class="drawer-footer">
+      <button class="btn primary-plain" data-role="action" data-action-id="ACT-SCH-006" data-component="el-button.primary.plain"
+              data-permission="org.school:update" data-nav="PAGE-SCH-EDIT" data-overlay="dialog"
+              data-role-visible="tenant_admin,super_admin">编辑学校</button>
+      <button class="btn" data-role="action" data-action-id="ACT-SCH-007" data-component="el-button"
+              data-permission="org.school:read" data-nav="PAGE-SCH-CAMPUS">校区管理</button>
+      <button class="btn" data-role="action" data-action-id="ACT-SCH-008" data-component="el-button"
+              data-permission="org.school:update" data-nav="PAGE-SCH-STAGE" data-overlay="dialog"
+              data-role-visible="tenant_admin,super_admin">学段配置</button>
+      <div class="grow"></div>
+      <button class="btn danger-plain" data-role="action" data-action-id="ACT-SCH-009" data-component="el-button.danger.plain"
+              data-permission="org.school:update" data-nav="PAGE-SCH-DISABLE" data-overlay="dialog"
+              data-role-visible="tenant_admin,super_admin">停用学校</button>
+      <button class="btn" data-close-panel="PAGE-SCH-DETAIL">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新建学校（PAGE-SCH-CREATE） -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-SCH-CREATE" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="md" data-page="PAGE-SCH-CREATE" data-block="form">
+    <div class="dialog-header"><h2>新建学校</h2><button class="close-x" data-close-panel="PAGE-SCH-CREATE" title="关闭">✕</button></div>
+    <div class="dialog-body">
+      <div class="form-grid">
+        <div class="field" data-field="school_name">
+          <label>学校名称<span class="required">*</span></label>
+          <input class="input" style="min-width:100%" data-component="el-input" data-required data-required-message="请填写学校名称" value="云溪第二实验学校" />
+          <div class="error-text"></div>
+          <div class="hint">名称在同一集团下不可重复；学校编码由系统生成，变更需单独申请（<span class="mono">updateSchoolCode</span>）。</div>
+        </div>
+        <div class="field" data-field="tenant_id">
+          <label>所属租户<span class="required">*</span></label>
+          <select class="select" style="min-width:100%" data-component="el-select" data-required data-required-message="请选择所属租户">
+            <option value="100" selected>云溪教育集团（集团租户）</option>
+            <option value="1">平台运营方（超级租户）</option>
+          </select>
+          <div class="error-text"></div>
+        </div>
+        <div class="field span-2" data-field="stage_code">
+          <label>开设学段<span class="required">*</span></label>
+          <div class="radio-row">
+            <label><input type="checkbox" checked /> 小学（1–6）</label>
+            <label><input type="checkbox" checked /> 初中（1–3）</label>
+            <label><input type="checkbox" /> 高中（1–3）</label>
+          </div>
+          <div class="hint">学段决定可创建的年级与升学路径（<span class="mono">BR-GRADE-006</span>）；学段序号固定映射（小学 1–6、初中 / 高中 1–3）。</div>
+        </div>
+        <div class="field" data-field="school_type">
+          <label>学校类型</label>
+          <select class="select" style="min-width:100%" data-component="el-select">
+            <option value="public" selected>公办</option>
+            <option value="private">民办</option>
+          </select>
+        </div>
+      </div>
+      <div class="alert danger state-hidden" data-validate-summary>表单校验未通过：请修正下方标红的字段后重试。</div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-SCH-010" data-component="el-button" data-close-panel="PAGE-SCH-CREATE">取消</button>
+      <button class="btn primary" data-role="action" data-action-id="ACT-SCH-011" data-component="el-button.primary"
+              data-permission="org.school:create" data-api="addSchool" data-validate-on-submit data-after-success="close-panel"
+              data-demo-message="已创建学校：编码由系统生成、默认启用；可在详情里配置学段与校区。">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑学校（PAGE-SCH-EDIT） -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-SCH-EDIT" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="md" data-page="PAGE-SCH-EDIT" data-block="form">
+    <div class="dialog-header"><h2>编辑学校 · <span id="sch-edit-name">云溪实验学校</span></h2><button class="close-x" data-close-panel="PAGE-SCH-EDIT" title="关闭">✕</button></div>
+    <div class="dialog-body">
+      <div class="form-grid">
+        <div class="field" data-field="school_name">
+          <label>学校名称<span class="required">*</span></label>
+          <input class="input" style="min-width:100%" data-component="el-input" data-required data-required-message="请填写学校名称" value="云溪实验学校" />
+          <div class="error-text"></div>
+        </div>
+        <div class="field" data-field="school_code">
+          <label>学校编码</label>
+          <div class="readonly-value mono">SCH-201</div>
+          <div class="hint">编码变更需单独申请（<span class="mono">updateSchoolCode</span>）并写审计；编码是导入 / 导出对照表的键。</div>
+        </div>
+        <div class="field" data-field="tenant_id">
+          <label>所属租户</label>
+          <div class="readonly-value">云溪教育集团</div>
+          <div class="hint">学校不能跨租户迁移；需要换集团时新建学校并迁移数据。</div>
+        </div>
+        <div class="field" data-field="school_type">
+          <label>学校类型</label>
+          <select class="select" style="min-width:100%" data-component="el-select">
+            <option value="public" selected>公办</option>
+            <option value="private">民办</option>
+          </select>
+        </div>
+      </div>
+      <div class="alert danger state-hidden" data-validate-summary>表单校验未通过：请修正下方标红的字段后重试。</div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-SCH-012" data-component="el-button" data-close-panel="PAGE-SCH-EDIT">取消</button>
+      <button class="btn primary" data-role="action" data-action-id="ACT-SCH-013" data-component="el-button.primary"
+              data-permission="org.school:update" data-api="updateSchool" data-validate-on-submit data-after-success="close-panel"
+              data-demo-message="已保存学校信息；编码变更需单独申请并写审计。">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 学段配置（PAGE-SCH-STAGE） -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-SCH-STAGE" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="sm" data-page="PAGE-SCH-STAGE" data-block="form">
+    <div class="dialog-header"><h2>学段配置</h2><button class="close-x" data-close-panel="PAGE-SCH-STAGE" title="关闭">✕</button></div>
+    <div class="dialog-body">
+      <div class="form-grid">
+        <div class="field" data-field="stage_code">
+          <label>学段<span class="required">*</span></label>
+          <select class="select" style="min-width:100%" data-component="el-select" data-required data-required-message="请选择学段">
+            <option value="primary" selected>小学（一年级 — 六年级）</option>
+            <option value="junior">初中（初一 — 初三）</option>
+            <option value="senior">高中（高一 — 高三）</option>
+          </select>
+          <div class="error-text"></div>
+        </div>
+        <div class="field" data-field="grade_range">
+          <label>学段内年级范围</label>
+          <div class="readonly-value">1 — 6（学段序号固定映射，RV-GRD-03）</div>
+          <div class="hint">小学 1–6、初中 1–3、高中 1–3；新增学段后可创建对应年级。</div>
+        </div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-SCH-014" data-component="el-button" data-close-panel="PAGE-SCH-STAGE">取消</button>
+      <button class="btn primary" data-role="action" data-action-id="ACT-SCH-015" data-component="el-button.primary"
+              data-permission="org.school:update" data-api="saveSchoolStage" data-after-success="close-panel"
+              data-demo-message="已保存学段配置：学段序号固定映射，配置后可创建对应年级（BR-GRADE-006）。">保存配置</button>
+    </div>
+  </div>
+</div>
+
+<!-- 停用学校（PAGE-SCH-DISABLE） -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-SCH-DISABLE" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="sm" data-page="PAGE-SCH-DISABLE" data-block="form">
+    <div class="dialog-header"><h2>停用学校 · <span id="sch-disable-name">云溪实验学校</span></h2><span class="el-tag danger">危险动作</span><button class="close-x" data-close-panel="PAGE-SCH-DISABLE" title="关闭">✕</button></div>
+    <div class="dialog-body">
+      <div class="alert warning">
+        <span>影响范围</span>
+        <span>停用后：该学校不再出现在业务选择项（新建年级 / 班级 / 导入等），历史数据与花名册保留；
+          本校用户登录后进入只读提示；操作写审计（<span class="mono">NFR-AUDIT-01</span>）。</span>
+      </div>
+      <div class="field" data-field="remark">
+        <label>停用原因<span class="required">*</span></label>
+        <textarea class="input" rows="2" style="width:100%;min-width:100%" data-component="el-input.textarea" data-required
+                  data-required-message="请填写停用原因（至少 5 个字）" placeholder="如：学校并入云溪外国语学校"></textarea>
+        <div class="error-text"></div>
+        <div class="hint">原因必填，写入审计且不可删除。</div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-SCH-016" data-component="el-button" data-close-panel="PAGE-SCH-DISABLE">取消</button>
+      <button class="btn danger-plain" data-role="action" data-action-id="ACT-SCH-017" data-component="el-button.danger"
+              data-permission="org.school:update" data-api="disableSchool" data-validate-on-submit data-after-success="close-panel"
+              data-demo-message="已停用该学校：不再出现在业务选择项中，历史数据保留；操作写审计。">确认停用</button>
+    </div>
+  </div>
+</div>
+
+  <div class="state-hidden" data-demo-state-panel="loading">
+    <section class="card"><div class="card-body">
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:120px"></div><div class="skeleton-bar" style="width:200px"></div><div class="skeleton-bar" style="width:90px"></div></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:120px"></div><div class="skeleton-bar" style="width:200px"></div><div class="skeleton-bar" style="width:90px"></div></div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="empty">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">📭</div>
+        <div class="title">还没有任何学校</div>
+        <div class="desc">当前租户下还没有学校；新建学校后可在详情里配置学段、校区与学年学期。</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-SCH-001" data-component="el-button.primary.plain"
+                data-permission="org.school:create" data-nav="PAGE-SCH-CREATE" data-overlay="dialog">新建学校</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="error">
+    <section class="card"><div class="card-body">
+      <div class="state-block error">
+        <div class="icon">⚠️</div>
+        <div class="title">查询失败</div>
+        <div class="desc">重试不会放宽数据范围（仍按当前角色的 DS-* 过滤）。</div>
+        <div class="req-id">请求编号 REQ-20261001-001010 · 错误码 EDU-ORG-5001</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-COM-005" data-component="el-button.primary.plain" data-api="listSchool" data-demo-message="已按当前条件重试查询。">重试</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="forbidden">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">🔒</div>
+        <div class="title">你没有该页面的权限</div>
+        <div class="desc">缺少功能权限或数据范围为空集时，页面不降级为全量可见（<span class="mono">DS-DENY-03</span> / <span class="mono">NFR-SEC-05</span>）。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="submitting">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⏳</div>
+        <div class="title">正在提交</div>
+        <div class="desc">按钮已置 loading 并禁用，禁止重复提交。</div>
+      </div>
+    </div></section>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+  var READ_ROLES = ['super_admin', 'tenant_admin', 'academic_director', 'school_leader', 'platform_ops'];
+  var WRITE_ROLES = ['super_admin', 'tenant_admin'];
+  function q(sel) { return document.querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function currentRole() { return window.PrototypeShell.currentRole(); }
+  function isWriter() { return WRITE_ROLES.indexOf(currentRole()) !== -1; }
+
+  function rowActions() {
+    qa('#sch-table tbody tr').forEach(function (row) {
+      var box = row.querySelector('td.actions');
+      if (!box) return;
+      box.innerHTML = '';
+      box.style.color = '';
+      box.style.fontSize = '';
+      var detail = document.createElement('button');
+      detail.className = 'btn link';
+      detail.textContent = '详情';
+      detail.setAttribute('data-role', 'row-action');
+      detail.setAttribute('data-action-id', 'ACT-SCH-018');
+      detail.setAttribute('data-component', 'el-button.link.primary');
+      detail.setAttribute('data-permission', 'org.school:read');
+      detail.setAttribute('data-nav', 'PAGE-SCH-DETAIL');
+      detail.setAttribute('data-overlay', 'drawer');
+      box.appendChild(detail);
+      // 只读角色：保留「详情」入口，不渲染「编辑」（只读不等于没有入口）
+      if (!isWriter() || row.getAttribute('data-status') === 'disabled') return;
+      var edit = document.createElement('button');
+      edit.className = 'btn link';
+      edit.textContent = '编辑';
+      edit.setAttribute('data-role', 'row-action');
+      edit.setAttribute('data-action-id', 'ACT-SCH-006');
+      edit.setAttribute('data-component', 'el-button.link.primary');
+      edit.setAttribute('data-permission', 'org.school:update');
+      edit.setAttribute('data-nav', 'PAGE-SCH-EDIT');
+      edit.setAttribute('data-overlay', 'dialog');
+      box.appendChild(edit);
+    });
+  }
+
+  function fillDrawer(row) {
+    var name = row.children[0].textContent.replace(/（.*?）/, '').trim();
+    q('#sch-detail-name').textContent = name;
+    q('#sch-edit-name').textContent = name;
+    q('#sch-disable-name').textContent = name;
+    var disabled = row.getAttribute('data-status') === 'disabled';
+    var tag = q('#sch-detail-status');
+    tag.textContent = disabled ? '已停用' : '启用中';
+    tag.className = disabled ? 'el-tag info' : 'el-tag success';
+  }
+
+  document.addEventListener('click', function (event) {
+    var node = event.target;
+    if (node.closest('input, select, textarea, label')) return;
+    var row = node.closest('#sch-table tbody tr');
+    if (!row) return;
+    var isRowAction = node.closest('[data-action-id="ACT-SCH-018"], [data-action-id="ACT-SCH-006"]');
+    if (node.closest('td') === row.children[0] || isRowAction) fillDrawer(row);
+  });
+
+  function updateScopeHint() {
+    var hint = q('[data-role="scope-hint"]');
+    if (!hint) return;
+    var role = currentRole();
+    if (role === 'super_admin') { hint.textContent = '数据范围：全平台 · 不受组织与数据范围限制（BR-ORG-014）'; return; }
+    if (role === 'platform_ops') { hint.textContent = '数据范围：平台运营协助视图 · 只读并留痕（DS-01）'; return; }
+    if (role === 'tenant_admin') { hint.textContent = '数据范围：本租户（DS-04）· 可写'; return; }
+    if (role === 'academic_director') { hint.textContent = '数据范围：本校（DS-04）· 可写'; return; }
+    hint.textContent = '数据范围：无——当前角色没有 org.school:read';
+  }
+
+  var lastRole = '';
+  function applyRoleState(role) {
+    if (role === lastRole) return;
+    lastRole = role;
+    rowActions();
+    if (READ_ROLES.indexOf(role) === -1) window.PrototypeShell.applyState('forbidden');
+    else if (window.PrototypeShell.currentState() === 'forbidden') window.PrototypeShell.applyState('normal');
+    updateScopeHint();
+  }
+
+  document.addEventListener('prototype:params', function () { updateScopeHint(); });
+  rowActions();
+  updateScopeHint();
+  new MutationObserver(function () { applyRoleState(currentRole()); })
+    .observe(document.body, { attributes: true, attributeFilter: ['data-current-role'] });
+})();
+</script>
+</body>
+</html>
