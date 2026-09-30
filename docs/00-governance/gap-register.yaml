@@ -1521,6 +1521,81 @@ gaps:
     owner: Codex
     status: closed
 
+  - id: GAP-052
+    title: 升班任务的「预览 / 执行 / 重试 / 取消」在权限矩阵里没有对应动作
+    discovered_at: 2026-09-30
+    discovered_by: 批次 2-3e 开工前的公共前置反查（PAGE-PRM-LIST 的按钮权限）
+    evidence: |
+      docs/10-prd/modules/promotion/PRD.md 第 168 行 REQ-PRM-006 要求
+      「"新建任务""预览""执行""重试""取消"按钮按功能权限与任务状态动态显示」，
+      第 164 行 REQ-PRM-001 的权限列写的是「各角色 promotion.batch 的 read」。
+      但用 PyYAML 读取 docs/10-prd/05-permission-matrix.yaml 后，
+      promotion.batch 只有三条授权：
+        super_admin      : read / create / update / delete / export / approve / import
+        school_leader    : read / approve
+        academic_director: read / create
+      矩阵的 actions 集合里没有 execute / retry / cancel 这类动作，
+      而「预览」「执行」「重试」「取消」都是会改变任务状态与数据的写操作（不是 read）。
+      也就是说：按矩阵实现时，教务主任能建任务但**不能预览与执行**，
+      校领导有 approve 却没有审批流的落点（升班没有审批环节，见 D-041 / PRD 1.2）。
+    expected: 五个按钮各自能对应到矩阵里的具体动作，且与任务状态机（8 个状态）不冲突
+    actual: 只有「新建任务」能对应到 create；其余四个动作没有权限点
+    impact: |
+      原型：PAGE-PRM-LIST 与向导四步页的按钮显隐、`data-permission` 无据可依。
+      阶段 4：接口清单要给出每个 operationId 对应的权限点（validatePromotionTask / executePromotionTask /
+      retryPromotionTask / cancelPromotionTask 四个接口都没有权限点）。
+      阶段 6：`v-hasPermi` 会照抄错误的一方；阶段 8：越权用例会出现两种答案。
+      本批次因此**暂停 PAGE-PRM-LIST 的按钮实现**，等裁决后一次做对（页面骨架与状态机不受影响）。
+    options:
+      - A 用矩阵现有的 update 承载「预览 / 执行 / 重试 / 取消」，给 academic_director 补
+        promotion.batch 的 update，并在 PRD 里写明这四个动作都属于 update；同时把 school_leader 的
+        approve 收回（升班没有审批流），保留只读
+      - B 在矩阵的 actions 里新增 execute（或 promotion.execute）这一类动作，把预览 / 执行 / 重试 / 取消
+        都归到它下面，与 update 区分开（更精确，但会改动公共前置的 actions 集合与全部角色条目）
+      - C 保持矩阵不动，「预览」按 read 放行（只生成预览不落库？），执行 / 重试 / 取消首轮不开放给教务主任
+        （等于升班首轮不可执行，不推荐）
+    recommended: |
+      选项 A。理由：矩阵已把 write 类动作统一成 update，升班的四个动作都属于「改本任务的状态与明细」，
+      语义上就是 update；不动 actions 集合、不新增权限点，改动面最小。
+      选项 B 更精确（未来若要单独授权「执行」而不给「取消」会更灵活），代价是公共前置的 actions 与
+      全部角色的条目都要过一遍，收益与成本不成比例，建议留到阶段 4 若确有细分需求再立 CR。
+    blocking: true
+    blocks_stages: [stage2, stage4, stage6]
+    owner: Codex
+    status: open
+
+  - id: GAP-053
+    title: 年级主任在升班预览 / 调整页被列为主要角色，但矩阵里没有 promotion.batch 的任何权限
+    discovered_at: 2026-09-30
+    discovered_by: 批次 2-3e 开工前的公共前置反查（PAGE-PRM-PREVIEW / ADJUST 的角色）
+    evidence: |
+      docs/10-prd/modules/promotion/PRD.md 第 331、332 行把 PAGE-PRM-PREVIEW（升班预览与调整）与
+      PAGE-PRM-ADJUST（调整学生去向）的主要角色写成「教务主任、年级主任」。
+      但 docs/10-prd/05-permission-matrix.yaml 里 grade_leader 没有 promotion.batch 条目
+      （按 PyYAML 读取：只有 super_admin / school_leader / academic_director 三个角色有），
+      即按矩阵实现时年级主任连任务列表都读不到，更打不开预览页。
+      同类问题在年级模块（GAP-035）与班级模块（GAP-043）都出现过，两次裁决都是「按 PRD 补权限」。
+    expected: 年级主任能读到本人负责年级的升班任务与预览，且调整范围限本人负责年级
+    actual: 矩阵里没有 promotion.batch 的任何授权
+    impact: |
+      原型：PAGE-PRM-PREVIEW 的「年级主任」形态做不出来；左侧菜单「升班与学籍」对年级主任是否出现无法确定。
+      阶段 4 / 6：路由与菜单权限点无法确定；阶段 8：年级主任能否调整去向的用例有两种答案。
+      本批次因此只实现任务的列表与状态机，角色形态等裁决后补。
+    options:
+      - A 与 GAP-035 / GAP-043 同口径：给 grade_leader 补 promotion.batch 的 read（范围 DS-05，只读本人负责年级），
+        调整动作仍只归教务主任（update）
+      - B 除 read 外再给 grade_leader 一个「调整本人负责年级学生去向」的写权限（需要新增动作或在 update 上做行级限制）
+      - C 按矩阵口径：年级主任不参与升班，PRD 6.1 把年级主任从预览 / 调整页的主要角色里去掉
+    recommended: |
+      选项 A。理由：升班的执行主体是教务主任（PRD 5.1 与 REQ-PRM-006 都是教务主任的动作），
+      年级主任的价值在于**核对自己年级的去向**；给 read + DS-05 范围既能满足 PRD 6.1 的角色登记，
+      又不会把写权限摊到两个角色上（`DP-01` 的同一原则）。
+      若确实需要年级主任调整去向，再用选项 C 之外的方式另立需求，不要在首轮顺手打开。
+    blocking: true
+    blocks_stages: [stage2, stage4, stage6]
+    owner: Codex
+    status: open
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"
@@ -1574,4 +1649,5 @@ open_questions_for_user:
   - "GAP-048、GAP-049 已关闭（用户 2026-09-30 答复「1a2a」，两项均取推荐方案 A）：新建班级弹窗只建行政班（教学班创建留在批次 2-7）、复制班级复用 addClass 不新增 copyClass。两项都已按选项 A 实现，无需改动，见 D-066。"
   - "阶段 2 批次 2-3d 已产出待验收：新增独立页 pages/class-roster-add.html（编班：左学生池 + 右待加入，冲突整体拒绝并给调班入口）与 pages/class-move-students.html（批量迁学生：选学生 → 选目标班 → 影响预览 → 执行）；班级详情页新增移出确认片段 DIALOG-CLS-ROSTER-REMOVE 与调班弹窗 PAGE-CLS-TRANSFER（含花名册勾选列）。page-actions.yaml 新增 class_roster_add（ACT-CLS-053 ~ 058）与 class_move_students（ACT-CLS-059 ~ 063），class_detail 补 048 ~ 052、064。"
   - "批次 2-3d 为编班页新增两条学生样本（2026000013 潘思彤、2026000014 蒋知远，在读但 class_id 为空）：原来的 15 条学生样本里没有任何一个「在读且可编班」的学生，编班页只能演示冲突、演示不了成功路径。content-samples.json 的 notes 已同步说明。"
-  - "GAP-051 已关闭（用户 2026-09-30 对「推荐 A」答复「同意」），经 CR-011 落地：BR-STU-012 扩写为「只有在读（enrolled）计入在读名单」，字段字典补 counts_as_enrolled、学生 PRD 与验收补 AC-STU-408、高二 (1) 班样例数 2 → 1，20 张 class-list 截图重拍，见 D-068。"
+  - "GAP-051 已关闭（用户 2026-09-30 对「推荐 A」答复「同意」），经 CR-011 落地：BR-STU-012 扩写为「只有在读（enrolled）计入在读名单」，字段字典补 counts_as_enrolled、学生 PRD 与验收补 AC-STU-408、高二 (1) 班样例数 2 → 1，21 张 class-list 截图重拍，见 D-068。"
+  - "批次 2-3e（升班四步向导与结果页）开工前的公共前置反查暴露 2 个**阻塞**缺项，等用户拍板：GAP-052（「预览 / 执行 / 重试 / 取消」在权限矩阵里没有对应动作，推荐用现有 update 承载并给 academic_director 补 update、收回 school_leader 的 approve）、GAP-053（年级主任被 PRD 6.1 列为预览 / 调整页主要角色，但矩阵里没有 promotion.batch 的任何授权，推荐补 read + DS-05 范围）。两项都只影响按钮与角色形态，不影响任务列表的状态机与字段设计。"
