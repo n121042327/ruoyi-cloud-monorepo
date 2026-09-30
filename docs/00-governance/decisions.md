@@ -1001,6 +1001,35 @@
   与预览中的「调整学生去向」弹窗（`ACT` / `PAGE-PRM-ADJUST`）
 - 如果错了的代价：三块都是原型页；`GAP-051` 若切选项 B，只需改批量迁学生页的可迁移判定与样例统计
 
+## D-068 「在读名单」口径收敛为「只有在读状态计入」（GAP-051 选项 A / CR-011）
+
+- 日期：2026-09-30
+- 触发：批次 2-3d 交付批量迁学生页时，按学籍状态推导「在读」人数，发现样例数据与本平台口径不一致
+- 上游依据：用户对「推荐 A」答复「同意」
+- 决策：**只有在读（`enrolled`）计入在读名单**；休学（`suspended`）、转入未报到（`pending_enroll`）、
+  出国（`studying_abroad`，保留学籍）等非在读状态保留行政班关系，但都不计入在读名单；
+  复学 / 回国 / 报到后回到在读
+- 落地内容（`CR-011`）：
+
+| 文件 | 变更 |
+|---|---|
+| `docs/10-prd/04-business-rules.md` | `BR-STU-012` 由「休学不计入在读」扩写为在读口径总原则 + 状态清单 |
+| `docs/10-prd/06-field-dictionary.yaml` | `enrollment_status` 12 个枚举项各补 `counts_as_enrolled`（只有 `enrolled` 为 true），枚举 note 写明这条口径是统计与前端标签的唯一依据 |
+| `docs/10-prd/modules/student/PRD.md` | 第 153 行维度说明与 `REQ-STU-037` 扩写；学籍状态表上方补口径说明；验收矩阵引用 `AC-STU-408` |
+| `docs/10-prd/modules/student/acceptance.md` | 新增 `AC-STU-408`（出国后班级关系仍在、在读名单与在读人数都不含该生、批量迁学生时不可选） |
+| `prototypes/functional/v1/content-samples.json` | 高二 (1) 班 `student_count` 2 → 1，并补 notes 说明口径 |
+| `prototypes/functional/v1/pages/class-list.html` | 高二 (1) 班行的 `data-enrolled` 与「在读」单元格同步改为 1 |
+| `evidence/stage2-prototype/class-list_*.png` | 20 张截图重拍（页头汇总「在读 149 人」→ 148 人、高二 (1) 班在读 2 → 1） |
+
+- 为什么必须回改 PRD 而不是只改样例：同一口径会出现在班级列表的「在读」列、班级详情的在读成员、
+  年级详情的在读统计、以及升班（`BR-PROMO-005` 按在读学生推进）四处；
+  只改样例不写规则，实现者会各自理解，同一个学生可能一处算在读、一处不算
+- 验证证据：`python tools/check_docs.py` 通过；7 个原型 harness 全部重跑通过
+  （class-list 39/39、class-detail 20/20、class-roster 34/34、class-dialogs 36/36、
+  grade-list 38/38、detail-entry 6/6、carrier-change 14/14）
+- 如果错了的代价：把 `BR-STU-012` 的扩写回退为原句、删掉 `counts_as_enrolled`、
+  高二 (1) 班样例数改回 2 并重拍同一批截图即可；不涉及代码与表结构
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |
@@ -1034,4 +1063,4 @@
 | R-027 | ~~「按学校检索校区」是否补入口，以及学校 → 校区 → 年级 → 班级 → 学生 的级联联动规则~~ → 已定：选项 A，统一级联规则 + 校区检索入口复用校区管理页（D-064） | GAP-046 | 已关闭 |
 | R-028 | ~~新建班级弹窗里「班级类型」的可选范围~~ → 已定：选项 A，只建行政班，教学班创建留在批次 2-7（D-066） | GAP-048 | 已关闭 |
 | R-029 | ~~复制班级是否新增独立 operationId~~ → 已定：选项 A，复用 `addClass`，不新增 `copyClass`（D-066） | GAP-049 | 已关闭 |
-| R-030 | 出国留学（保留学籍）是否计入班级在读人数 → 推荐 A（不计入，与休学同口径，并把高二 (1) 班样例数 2 → 1） | GAP-051 | **待你答复** |
+| R-030 | ~~出国留学（保留学籍）是否计入班级在读人数~~ → 已定：选项 A，与休学同口径不计入，并把高二 (1) 班样例数 2 → 1（D-068 / CR-011） | GAP-051 | 已关闭 |

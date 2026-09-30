@@ -147,6 +147,7 @@
 | `prototypes/functional/v1/page-specs/class-list.md` | 班级管理列表页面规格（字段 / 动作 / 状态 / 权限 / 样例数据 / 自查） | `review` |
 | `docs/00-governance/change-requests/CR-009.md` | 变更申请：班级模块载体按 D-059 修正 + 补登记 5 个 PRD 要求的页面（已批准并执行，关联 GAP-040 / GAP-041 / D-061） | `review` |
 | `docs/00-governance/change-requests/CR-010.md` | 变更申请：补齐班级模块三项公共前置（任课教师班级读权限 / 班级状态枚举 / 校区与教室字段）（已批准并执行，关联 GAP-043 ~ 045 / D-063） | `review` |
+| `docs/00-governance/change-requests/CR-011.md` | 变更申请：把「在读名单」口径收敛为「只有在读状态计入」，并修正高二 (1) 班样例数（已批准并执行，关联 GAP-051 / D-068） | `review` |
 | `evidence/stage2-prototype/verify-class-list.html` | 班级列表交互验证 harness（同源 iframe + 真实事件派发，39 条断言，CL-01 ~ CL-39；CL-34 已覆盖批次 2-3c 新增的 ACT-CLS-030 ~ 047） | `review` |
 | `prototypes/functional/v1/pages/class-detail.html` | 班级详情独立页（批次 2-3b：基本信息卡 + 花名册 / 任课教师 / 班主任任职历史 / 变更记录） | `review` |
 | `prototypes/functional/v1/page-specs/class-detail.md` | 班级详情页面规格（字段 / 动作 / 状态 / 权限 / 样例数据 / 自查） | `review` |
@@ -186,6 +187,7 @@
 | `evidence/stage2-prototype/class-detail_dialog-remove_1440x900.png` | 移出确认片段截图（带入 2 名成员） | `review` |
 | `evidence/stage2-prototype/class-detail_dialog-transfer_1440x900.png` | 调班弹窗截图（从编班页冲突行深链接带入该生与源 / 目标班级） | `review` |
 | `evidence/stage2-prototype/class-roster_verify-results.png` | 编班 / 批量迁学生 / 移出与调班 harness 结果清单（RA/MV/TR 共 34 条全部通过） | `review` |
+| `evidence/stage2-prototype/class-list_*.png`（21 张，见 README 第 1 节） | `CR-011` 后按新口径重拍：页头汇总「在读 148 人」、高二 (1) 班在读 1；含 verify-results | `review` |
 | `evidence/stage2-prototype/interaction-verification.md` | 原型交互可点性验证报告（含批次 2-2b-2b 的 GL-01 ~ GL-38、D-060 的 RD-01 ~ RD-06 实测结果） | `review` |
 | `prototypes/functional/v1/pages/class-list.html` | 班级管理列表 | `planned` |
 | `prototypes/functional/v1/pages/class-detail.html` | 班级详情与花名册 | `planned` |

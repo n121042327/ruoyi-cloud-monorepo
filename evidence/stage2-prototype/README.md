@@ -445,3 +445,18 @@ $ python tools/check_docs.py
 
 下一批建议：2-3e 升班四步向导与结果页（`PAGE-PRM-LIST` / `CREATE` / `PREVIEW` / `VALIDATE` / `EXECUTE` / `RESULT`）
 与预览里的「调整学生去向」弹窗（`PAGE-PRM-ADJUST`）。
+
+### 5.8 `CR-011`：「在读名单」口径收敛与截图重拍
+
+用户对 `GAP-051` 的「推荐 A」答复同意后，按 `CR-011` 落地：
+
+- `BR-STU-012` 扩写为「**只有在读（`enrolled`）计入在读名单**」；休学、转入未报到、出国（保留学籍）都不计入；
+  `06-field-dictionary.yaml` 的 `enrollment_status` 12 个枚举项各补 `counts_as_enrolled`（只有 `enrolled` 为 true）。
+- 学生 PRD 的维度说明、`REQ-STU-037`、学籍状态表同步；学生验收新增 `AC-STU-408`。
+- 样例修正：高二 (1) 班 `student_count` 2 → 1（该班只有孙悠然在读，徐昊然是出国保留学籍）。
+- 受影响截图重拍 **21 张**：`class-list_1366x768` / `class-list_1440x900` / `class-list_1920x1080`、
+  7 张角色形态、`class-list_more-menu`、2 张二次确认、7 张状态、`class-list_verify-results`。
+  变化点是页头「在读 149 人」→「在读 148 人」与高二 (1) 班在读 2 → 1。
+
+重拍命令与本文件第 3.1 节的 `class-list_*.png` 那一组完全一致（`#more=高二` 等深链接参数不变），
+7 个 harness 重跑结果见 `interaction-verification.md` 第 11.2 节。

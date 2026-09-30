@@ -317,6 +317,14 @@ harness 用**第二个 iframe** 加载 `pages/class-detail.html`，验证「详�
 | `verify-carrier-change.html` | 14 / 14 通过 |
 | `python tools/check_docs.py` | 通过：未发现问题 |
 
+### 11.3 `CR-011`（在读口径收敛）后的重跑
+
+高二 (1) 班样例数由 2 改为 1（`GAP-051` 取选项 A）后，7 个 harness 全部重跑，结果与上表一致：
+class-list 39/39、class-detail 20/20、class-roster 34/34、class-dialogs 36/36、
+grade-list 38/38、detail-entry 6/6、carrier-change 14/14；`check_docs.py` 通过。
+没有任何断言依赖高二 (1) 班的具体在读人数（`verify-class-list` 只用 `data-enrolled` 判超容量），
+因此这次口径收敛不需要改断言；受影响的只有 21 张 `class-list_*.png` 截图，已重拍。
+
 复核命令（本机 PowerShell，任选一个 harness 替换文件名即可）：
 
 ```powershell

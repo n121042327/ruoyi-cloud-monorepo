@@ -64,18 +64,18 @@ enums:
   - name: enrollment_status
     name_cn: 学籍状态（描述一条在校记录的状态，不是学生主体）
     entries:
-      - { code: pending_enroll, label: 转入未报到, terminal: false }
-      - { code: enrolled, label: 在读, terminal: false }
-      - { code: suspended, label: 休学, terminal: false }
-      - { code: studying_abroad, label: 出国, terminal: false }
-      - { code: missing, label: 失踪, terminal: false }
-      - { code: transferred_out, label: 已转出, terminal: true }
-      - { code: graduated, label: 毕业, terminal: true }
-      - { code: course_completed, label: 结业, terminal: true }
-      - { code: course_incomplete, label: 肄业, terminal: true }
-      - { code: expelled, label: 开除, terminal: true }
-      - { code: withdrawn, label: 退学, terminal: true }
-      - { code: deceased, label: 死亡, terminal: true }
+      - { code: pending_enroll, label: 转入未报到, terminal: false, counts_as_enrolled: false }
+      - { code: enrolled, label: 在读, terminal: false, counts_as_enrolled: true }
+      - { code: suspended, label: 休学, terminal: false, counts_as_enrolled: false }
+      - { code: studying_abroad, label: 出国, terminal: false, counts_as_enrolled: false }
+      - { code: missing, label: 失踪, terminal: false, counts_as_enrolled: false }
+      - { code: transferred_out, label: 已转出, terminal: true, counts_as_enrolled: false }
+      - { code: graduated, label: 毕业, terminal: true, counts_as_enrolled: false }
+      - { code: course_completed, label: 结业, terminal: true, counts_as_enrolled: false }
+      - { code: course_incomplete, label: 肄业, terminal: true, counts_as_enrolled: false }
+      - { code: expelled, label: 开除, terminal: true, counts_as_enrolled: false }
+      - { code: withdrawn, label: 退学, terminal: true, counts_as_enrolled: false }
+      - { code: deceased, label: 死亡, terminal: true, counts_as_enrolled: false }
     note: |
       跨校转入不在原学校记录上变更状态，而是在目标学校新建一条在校记录：
       转入校接收时初始状态为 pending_enroll（转入未报到），学生实际报到后转为 enrolled。
@@ -83,6 +83,10 @@ enums:
       共 12 个状态，其中 7 个为终态：已转出、毕业、结业、肄业、开除、退学、死亡。终态互不可转（BR-PROMO-010）。
       学段限制：义务教育阶段（小学、初中）不得开除，也不适用结业与肄业，见 BR-STU-024 与 BR-STU-027。
       死亡状态涉及隐私，见 BR-STU-028。
+      counts_as_enrolled 是「是否计入在读名单」的机器可读口径（BR-STU-012，CR-011）：
+      只有 enrolled 为 true，其余 11 个状态都保留或终结班级关系但不计入在读名单。
+      班级的「在读人数」、班级详情的「在读成员」、年级详情的在读统计与升班的学生范围都用这一个条件，
+      不要按状态标签逐个硬编码。
     transitions:
       - { from: "（转入接收）", to: pending_enroll, action: transfer_in_accept }
       - { from: pending_enroll, to: enrolled, action: check_in }
