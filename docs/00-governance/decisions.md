@@ -1268,6 +1268,47 @@
 - 如果错了的代价：删除 8 个页面与 6 份规格、回滚 `page-actions.yaml` 的三个动作组、`navigation.yaml` 的 note 与批次文本、
   `prototype-shell.js` 的 `MENUS` / `EXTRA_PAGES` 改动、`content-samples.json` 的 `import_wizard_notes` 即可；不涉及已验收的 2-1 ~ 2-3 批次
 
+## D-076 交付批次 2-5：学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 异动历史）
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要拍板的默认选推荐」）
+- 上游依据：学生 PRD 详情与学籍异动章节、升班 PRD `REQ-PRM-037` ~ `057`、`BR-STU-016` / `020` / `023`、`BR-PROMO-008` ~ `012`、`DP-01` / `DP-06`、`05-permission-matrix.yaml` 的 `sensitive_fields`
+- 决策（全部取推荐方案）：
+  1. **学生详情做成学生列表页内的抽屉片段**（`PAGE-STU-DETAIL` + `PAGE-STU-HISTORY` 区块），三个写入口（`PAGE-STU-STATUS` / `PAGE-STU-TRANSFER` / `PAGE-PRM-CHANGE`）也都放在同一个 `student-list.html` 里：
+     它们注册的 `parent` 都是 `PAGE-STU-DETAIL`，且详情是只读视图，写入口放在同一文件可保证「同一批数据、同一套角色形态」；
+     与班级 / 年级详情（独立页）不同，学生详情在 PRD 里明确要求用抽屉（`CR-008` / `D-059`）。
+  2. **`PAGE-PRM-CHANGE` 与 `PAGE-STU-STATUS` 共用字段集与接口**（`changeEnrollmentStatus`）：两者是同一功能的两个模块入口，
+     前者额外强制阶段限制与审批要求。这样既满足两个页面编号的登记，又不产生两套写入规则（`DP-01`）。
+  3. **跨校转学做成两侧各一个四步向导**（转出校 `PAGE-STU-CROSS-TRANSFER` / 转入校 `PAGE-PRM-TRANSFER`）：
+     `navigation.yaml` 给两者都注册了独立 `route`，且两侧的数据范围、可用动作（`create` vs `approve` / `check-in`）与状态机位置都不同。
+  4. **异动历史只做查询与导出**：登记入口唯一（跳 `pages/student-list.html` 并用 `data-panel-hash=PAGE-PRM-CHANGE` 打开登记弹窗），
+     避免「历史页也能直接改状态」这种第二写入入口。
+  5. **敏感字段按 `read_sensitive` / `read_contact` 分开控制**：证件号仅教务主任 / 超级管理员可看全量，联系电话含班主任；两者都写访问日志。
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/functional/v1/pages/student-list.html` | 新增：`PAGE-STU-DETAIL` 抽屉（含 `PAGE-STU-HISTORY`）与三个弹窗 `PAGE-STU-STATUS` / `PAGE-STU-TRANSFER` / `PAGE-PRM-CHANGE`；新增演示脚本（行 → 抽屉 / 弹窗带入学生、异动类型 → 审批提示） |
+| `prototypes/functional/v1/pages/student-cross-transfer.html` | 新增：转出校跨校转学四步向导 |
+| `prototypes/functional/v1/pages/promotion-transfer.html` | 新增：转入校接收与报到四步向导（含「办理报到」按钮） |
+| `prototypes/functional/v1/pages/promotion-history.html` | 新增：异动历史列表（筛选 + 追加式记录 + 跨页登记入口） |
+| `prototypes/functional/v1/page-specs/{student-detail,student-status,student-transfer,promotion-change,cross-school-transfer,promotion-history}.md` | 新增：6 份页面规格（覆盖 8 个页面编号） |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `student_detail` / `student_status` / `student_transfer` / `promotion_change` / `student_cross_transfer` / `promotion_transfer` / `promotion_history` 七个动作组 |
+| `prototypes/functional/v1/navigation.yaml` | 8 个页面补 note；批次 2-5 状态改为「已全部产出待验收」 |
+| `prototypes/functional/v1/content-samples.json` | 新增 `student_module_notes`（复用 students / classes / guardians 与两条待接收转学单样例） |
+| `prototypes/functional/v1/assets/prototype-shell.js` | `EXTRA_PAGES` 增加三个新页面（跨校转学两侧 + 异动历史） |
+| `evidence/stage2-prototype/verify-student-module.html` | 新增：28 条断言（4 个 iframe） |
+| `evidence/stage2-prototype/verify-detail-entry.html` | `RD-06` 按「学生详情已在 2-5 交付」更新：点行开抽屉并带入该行学生（6 / 6 通过） |
+| `evidence/stage2-prototype/{student-detail,student-cross-transfer,promotion-transfer,promotion-history}_*.png` + `student-module_verify-results.png` | 15 张截图 |
+
+- 关键设计：
+  1. **三处「同一功能两个页面编号」的处理方式写进决策**：`PAGE-PRM-CHANGE` 与 `PAGE-STU-STATUS` 同字段同接口；跨校转学按两侧视角拆两个向导——都保留两个编号，但不产生两套规则
+  2. **状态机与阶段规则写在弹窗里**：异动类型下拉把「开除」置为不可用项并说明义务教育阶段禁止；选「退学」时提示条切换为「需校级管理员审批」
+  3. **敏感字段的角色差异用 `data-role-visible`**：`SM-05` 断言证件号按钮只对教务主任 / 超管可见，联系电话按钮含班主任
+- 验证证据：`verify-student-module.html` 28 / 28；`verify-detail-entry.html` 更新后 6 / 6；其余 9 个 harness 回归全绿；`python tools/check_docs.py` 通过
+- 如果错了的代价：删除三个新页面与 6 份规格、回滚 `student-list.html` 的新增片段与脚本、`page-actions.yaml` 的七个动作组、
+  `navigation.yaml` 的 note 与批次文本、`prototype-shell.js` 的 `EXTRA_PAGES` 三行、`content-samples.json` 的 `student_module_notes`、
+  并把 `verify-detail-entry.html` 的 `RD-06` 恢复为「未交付」形态即可
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |

@@ -1800,3 +1800,5 @@ open_questions_for_user:
   - "阶段 2 批次 2-4 已产出待验收：导入向导（含 TEMPLATE / VALIDATE / EXECUTE 三个区块）、学生 / 教师 / 编班表三个模块导入向导、登录页与 403 / 404 / 500 三个异常页；harness verify-import-login 30 / 30；动作组 import_common（ACT-IMP-001 ~ 010、ACT-IO-001 ~ 002）、auth、error_page 已登记，见 D-075。"
   - "新增 GAP-056（非阻塞，待裁决）：编班表导入模板的列清单未在班级 PRD 枚举，本批按推荐 4 列（学号 / 姓名 / 目标班级 / 班级类型）实现；建议按选项 A 立 CR 写进班级 PRD 4.6 节，与学生 / 教师模板列同口径。"
   - "下一步：2-5（学生模块剩余：详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录）→ 2-6（学校 / 学年学期 / 学科与配置）→ 2-7（选科与教学班）→ 2-8（审计）→ 2-9（异步任务中心）；全部完成后合并 main，再进阶段 3 高保真。"
+  - "阶段 2 批次 2-5 已产出待验收：学生详情抽屉（含 PAGE-STU-HISTORY 变更记录区块）与三个同页弹窗（PAGE-STU-STATUS 学籍异动 / PAGE-STU-TRANSFER 调班 / PAGE-PRM-CHANGE 升班口径异动登记，后者与前者同字段同接口）、跨校转学两侧向导（PAGE-STU-CROSS-TRANSFER 转出校 / PAGE-PRM-TRANSFER 转入校）、PAGE-PRM-HISTORY 异动历史；harness verify-student-module 28 / 28，verify-detail-entry 的 RD-06 已按「详情已交付」更新为 6 / 6，见 D-076。"
+  - "下一步：2-6（学校管理 / 学年学期 / 学科与配置，19 个页面与片段）→ 2-7（选科与教学班，9）→ 2-8（审计，7）→ 2-9（异步任务中心，4）；阶段 2 全部完成且无问题后合并本地 main，再进阶段 3 高保真。"

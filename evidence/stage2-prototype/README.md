@@ -657,6 +657,34 @@ $b = "file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/
   "$b/import-wizard.html#step=3"
 ```
 
+### 6.6 批次 2-5（学生模块剩余：详情 / 学籍异动 / 调班 / 跨校转学 / 异动历史）的交付说明
+
+| 页面 | 文件 | 规格 | 说明 |
+|---|---|---|---|
+| `PAGE-STU-DETAIL` + `PAGE-STU-HISTORY` | `pages/student-list.html`（抽屉 + 区块） | `page-specs/student-detail.md` | 只读详情抽屉：基本信息（敏感字段默认掩码）/ 监护人（上限 3、编辑与解绑）/ 变更记录时间线（「查看全部」跳审计）；四个动作分别开三个弹窗与跨校转学 |
+| `PAGE-STU-STATUS` | 同上（弹窗） | `page-specs/student-status.md` | 学籍异动：类型由当前状态决定、开除在义务教育阶段不可用、退学 / 开除 / 死亡需校级管理员审批、原因必填 |
+| `PAGE-STU-TRANSFER` | 同上（弹窗） | `page-specs/student-transfer.md` | 调班：目标班级必填、已停用班级不可选、只改班级关系 |
+| `PAGE-PRM-CHANGE` | 同上（弹窗） | `page-specs/promotion-change.md` | 升班口径的异动登记：**与 `PAGE-STU-STATUS` 同字段集、同接口**，额外强制阶段与审批约束（`DP-01`） |
+| `PAGE-STU-CROSS-TRANSFER` / `PAGE-PRM-TRANSFER` | `pages/student-cross-transfer.html` / `pages/promotion-transfer.html` | `page-specs/cross-school-transfer.md` | 跨校转学两侧向导（转出校发起 → 转入校接收 → 报到）：只暴露必要字段、学号不变、接收前不计入在读、未报到前可撤销接收 |
+| `PAGE-PRM-HISTORY` | `pages/promotion-history.html` | `page-specs/promotion-history.md` | 异动历史列表：筛选 + 追加式记录表 + 行内「查看学生」+「异动登记」入口唯一（跨页 `data-panel-hash`） |
+
+harness：`verify-student-module.html`（4 个 iframe，`SM` / `CT` / `PT` / `PH` 共 28 条断言，28 / 28 通过）。
+动作组：`page-actions.yaml` 的 `student_detail`（`ACT-STU-023` ~ `029`、`034`）、`student_status`（`030` / `031`）、
+`student_transfer`（`032` / `033`）、`promotion_change`（`ACT-PRM-044` / `045`）、
+`student_cross_transfer`（`ACT-STU-040` ~ `043`）、`promotion_transfer`（`ACT-PRM-050` ~ `054`）、`promotion_history`（`ACT-PRM-046` ~ `048`）。
+
+| 截图 | 分辨率 | 场景 | 用于验证 |
+|---|---|---|---|
+| `student-detail_1440x900.png` / `student-detail_1366x768.png` | 1440×900 / 1366×768 | 学生详情抽屉（王梓萱） | 三个分区、监护人上限 3、变更记录时间线；最小分辨率无横向滚动 |
+| `student-detail_dialog-status_1440x900.png` | 1440×900 | 深链接 `#panel=PAGE-STU-STATUS` | 异动类型（含不可用的「开除」）、生效日期、原因必填、审批提示 |
+| `student-detail_dialog-transfer_1440x900.png` | 1440×900 | 深链接 `#panel=PAGE-STU-TRANSFER` | 目标班级（含已停用不可选项）、只改班级关系口径 |
+| `student-detail_dialog-promotion-change_1440x900.png` | 1440×900 | 深链接 `#panel=PAGE-PRM-CHANGE` | 与学籍异动同字段集 / 同接口的升班口径登记 |
+| `student-detail_role-subject-teacher_1440x900.png` | 1440×900 | 角色 = 任课教师 | 敏感字段按钮对任课教师不可见（`role-hidden`） |
+| `student-cross-transfer_step-1 / step-3 / step-4_1440x900.png` | 1440×900 | 转出校向导三步 | 可发起条件、必要字段口径、提交与撤销申请 |
+| `promotion-transfer_step-1 / step-4_1440x900.png` | 1440×900 | 转入校向导 | 待接收清单（含转出校）、接收 / 报到 / 撤销接收 |
+| `promotion-history_1440x900.png` / `promotion-history_role-platform-ops_1440x900.png` / `promotion-history_state-empty_1440x900.png` | 1440×900 | 异动历史默认 / 平台运营只读 / 空态 | 8 列记录表、只读范围提示、两档空态 |
+| `student-module_verify-results.png` | 1500×1400 | harness 结果清单 | `合计 28 / 28 条，通过 28 条，不通过 0 条 —— 全部通过` |
+
 | harness | 结果 |
 |---|---|
 | `verify-promotion-create.html` | 22 / 22 通过 |

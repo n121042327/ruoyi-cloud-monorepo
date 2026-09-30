@@ -919,6 +919,305 @@
 </div>
 
 <!-- ============================================================== 页面级演示脚本 -->
+<!-- ============================================================== 抽屉：学生详情（批次 2-5）
+     含 PAGE-STU-HISTORY（变更记录区块）；三个写入口：PAGE-STU-STATUS（学籍异动）、PAGE-STU-TRANSFER（调班）、
+     PAGE-PRM-CHANGE（升班与学籍异动模块口径的异动登记，同一字段集 / 同一接口）。 -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-STU-DETAIL" data-overlay-kind="drawer">
+  <div class="drawer" data-role="drawer" data-component="el-drawer" data-size="lg" data-page="PAGE-STU-DETAIL" data-block="detail">
+    <div class="drawer-header">
+      <h2>学生详情 · <span id="sd-name">王梓萱</span></h2>
+      <span class="el-tag success" id="sd-status-tag">在读</span>
+      <span class="mono cell-secondary" id="sd-no">2026000001</span>
+      <button class="close-x" data-close-panel="PAGE-STU-DETAIL" title="关闭">✕</button>
+    </div>
+    <div class="drawer-body">
+      <div class="alert info">
+        <span>只读边界</span>
+        <span>学生详情是<b>只读视图</b>：学籍状态只有「学籍异动」一个写入入口（<span class="mono">DP-01</span>），
+          班级归属只有「调班 / 班级管理」一个写入入口；监护人信息由班主任在本抽屉内编辑（唯一写入口）。</span>
+      </div>
+      <div class="alert warning" id="sd-sensitive-alert">
+        <span>敏感字段</span>
+        <span>证件号与联系电话默认掩码展示；查看全量需要 <span class="mono">person.student:read_sensitive</span> 并写访问日志
+          （<span class="mono">05-permission-matrix.yaml</span> 的 <span class="mono">sensitive_fields</span>）。</span>
+      </div>
+
+      <section class="card" data-block="basic" data-role="section">
+        <div class="card-header"><h3>基本信息</h3><span class="el-tag info">数据截止 2026-09-30 11:40</span></div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="field" data-field="student_name"><label>姓名</label><div class="readonly-value" id="sd-f-name">王梓萱</div></div>
+            <div class="field" data-field="gender"><label>性别</label><div class="readonly-value" id="sd-f-gender">女</div></div>
+            <div class="field" data-field="student_no"><label>学号</label><div class="readonly-value mono" id="sd-f-no">2026000001</div>
+              <div class="hint">学号全平台唯一、系统统一发号；修改学号会同步变更登录名并写审计（<span class="mono">BR-STU-001</span>）。</div></div>
+            <div class="field" data-field="national_student_no"><label>全国学籍号</label>
+              <div class="readonly-value mono" id="sd-f-nation" data-mask="mask">G330102**********01</div></div>
+            <div class="field" data-field="id_card_no"><label>证件号码</label>
+              <div class="readonly-value"><span class="mono" id="sd-f-idcard" data-mask="mask">330102********1234</span>
+                <button class="btn link" data-role="action" data-action-id="ACT-STU-023" data-role-visible="academic_director,super_admin" data-component="el-button.link.primary"
+                        data-permission="person.student:read_sensitive"
+                        data-api="-"
+                        data-demo-message="已展示完整证件号；本次查看写入敏感数据访问日志，租户侧可见（DS-DENY-09 / NFR-AUDIT-03）。">查看完整</button></div>
+              <div class="hint">默认掩码；查看全量需要 <span class="mono">read_sensitive</span> 且留痕。</div></div>
+            <div class="field" data-field="student_phone"><label>联系电话</label>
+              <div class="readonly-value"><span class="mono" id="sd-f-phone" data-mask="mask">136****7781</span>
+                <button class="btn link" data-role="action" data-action-id="ACT-STU-023" data-role-visible="academic_director,grade_leader,homeroom,super_admin" data-component="el-button.link.primary"
+                        data-permission="person.student_contact:read_contact"
+                        data-api="-"
+                        data-demo-message="已展示完整联系电话；本次查看写入敏感数据访问日志（NFR-AUDIT-03）。">查看完整</button></div></div>
+            <div class="field" data-field="enroll_year"><label>入学年份 / 学段</label><div class="readonly-value">2026 · 高中</div></div>
+            <div class="field" data-field="grade_id"><label>年级 / 班级</label><div class="readonly-value" id="sd-f-class">2026 级 高一 · 高一 (1) 班</div></div>
+            <div class="field" data-field="enrollment_status"><label>学籍状态</label>
+              <div class="readonly-value"><span class="el-tag success" id="sd-f-status">在读</span>
+                <span class="cell-secondary">计入在读名单（<span class="mono">counts_as_enrolled = true</span>）</span></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" data-block="guardian" data-role="section">
+        <div class="card-header"><h3>监护人（上限 3）</h3>
+          <span class="el-tag info">班主任可编辑</span>
+          <div class="header-right">
+            <button class="btn" data-role="action" data-action-id="ACT-STU-024" data-component="el-button"
+                    data-permission="person.student_guardian:update"
+                    data-role-visible="academic_director,homeroom"
+                    data-api="saveStudentGuardian"
+                    data-demo-message="已保存监护人信息（班主任为唯一写入口）；一个家长可关联多个孩子，绑定上限 3（GAP-015）。">编辑监护人信息</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="list-rows">
+            <div class="list-row"><div class="grow"><b>王建国</b> · 父亲 · <span class="mono">138****2210</span> · 默认联系人</div>
+              <div class="op"><span class="el-tag success">已绑定</span></div></div>
+            <div class="list-row"><div class="grow"><b>李慧</b> · 母亲 · <span class="mono">139****5566</span></div>
+              <div class="op">
+                <button class="btn link" data-role="row-action" data-action-id="ACT-STU-034" data-component="el-button.link.primary"
+                        data-permission="person.student_guardian:update" data-api="unbindStudentGuardian"
+                        data-role-visible="academic_director,homeroom"
+                        data-demo-message="已提交解绑申请：解绑需班主任确认，未通过可重提；同一字段同时只允许一条待审核（GAP-018）。">解绑</button>
+              </div></div>
+          </div>
+          <div class="hint">监护人手机号不单独作为登录名；一个家长可关联多个孩子（含同班 / 同年级 / 同校 / 跨校），绑定上限 3（<span class="mono">GAP-015</span>）。</div>
+        </div>
+      </section>
+
+      <section class="card" data-block="history" data-page="PAGE-STU-HISTORY" data-role="section">
+        <div class="card-header"><h3>变更记录</h3><span class="el-tag info">追加式，不可删除</span>
+          <div class="header-right">
+            <button class="btn" data-role="action" data-action-id="ACT-STU-029" data-component="el-button"
+                    data-permission="audit.log:read" data-nav="PAGE-AUDIT-LOG-LIST">查看全部</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <ul class="timeline">
+            <li><div class="tl-head"><b>班级变更</b><span class="el-tag primary">调班</span><span class="cell-secondary">2026-09-24 10:12</span></div>
+              <div>高一 (2) 班 → 高一 (1) 班 · 操作人 郑雅琴（教务主任）· 原因：随班调整</div></li>
+            <li><div class="tl-head"><b>学籍状态</b><span class="el-tag info">在读 → 在读</span><span class="cell-secondary">2026-09-01</span></div>
+              <div>2026-2027 学年 第一学期 报到入学 · 由系统按导入批次 <span class="mono">IMP-20260920-0002</span> 写入</div></li>
+            <li><div class="tl-head"><b>监护人变更</b><span class="el-tag primary">修改</span><span class="cell-secondary">2026-09-02 14:05</span></div>
+              <div>联系电话 135****0011 → 138****2210 · 操作人 邓丽娟（班主任）</div></li>
+          </ul>
+          <div class="legend" style="margin:8px 0 0"><span>变更记录来自审计模块（<span class="mono">audit.log</span>），只读且不可删除（<span class="mono">BR-AUDIT-003</span>）。</span></div>
+        </div>
+      </section>
+    </div>
+    <div class="drawer-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-STU-005" data-component="el-button"
+              data-permission="person.student:update" data-nav="PAGE-STU-EDIT" data-overlay="dialog"
+              data-role-visible="academic_director,grade_leader,homeroom">编辑</button>
+      <button class="btn primary-plain" data-role="action" data-action-id="ACT-STU-025" data-component="el-button.primary.plain"
+              data-permission="enrollment.status:update" data-nav="PAGE-STU-STATUS" data-overlay="dialog"
+              data-role-visible="academic_director,grade_leader,homeroom">学籍异动</button>
+      <button class="btn" data-role="action" data-action-id="ACT-STU-026" data-component="el-button"
+              data-permission="org.class:update" data-nav="PAGE-STU-TRANSFER" data-overlay="dialog"
+              data-role-visible="academic_director,grade_leader">调班</button>
+      <button class="btn" data-role="action" data-action-id="ACT-STU-027" data-component="el-button"
+              data-permission="enrollment.transfer:create" data-nav="PAGE-STU-CROSS-TRANSFER"
+              data-role-visible="academic_director">跨校转学</button>
+      <button class="btn" data-role="action" data-action-id="ACT-STU-028" data-component="el-button"
+              data-permission="enrollment.transfer:create" data-nav="PAGE-PRM-CHANGE" data-overlay="dialog"
+              data-role-visible="academic_director,grade_leader,homeroom">异动登记（升班口径）</button>
+      <div class="grow"></div>
+      <button class="btn" data-close-panel="PAGE-STU-DETAIL">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================== 弹窗：学籍异动（PAGE-STU-STATUS，批次 2-5） -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-STU-STATUS" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="md" data-page="PAGE-STU-STATUS" data-block="form">
+    <div class="dialog-header">
+      <h2>学籍异动 · <span id="ss-name">王梓萱</span></h2>
+      <span class="el-tag success" id="ss-current">当前状态：在读</span>
+      <button class="close-x" data-close-panel="PAGE-STU-STATUS" title="关闭">✕</button>
+    </div>
+    <div class="dialog-body">
+      <div class="alert info">
+        <span>状态机</span>
+        <span>可执行的异动由当前状态决定（<span class="mono">listEnrollmentStatusOption</span>）；非法流转直接拒绝并说明原因
+          （<span class="mono">FD-enrollment_status.transitions</span> / <span class="mono">BR-PROMO-010</span>）。
+          终态（已转出 / 毕业 / 结业 / 肄业 / 开除 / 退学 / 死亡）没有任何异动出口。</span>
+      </div>
+      <div class="form-grid">
+        <div class="field" data-field="change_type">
+          <label>异动类型<span class="required">*</span></label>
+          <select class="select" style="min-width:100%" id="ss-type" data-component="el-select" data-required
+                  data-required-message="请选择异动类型">
+            <option value="">请选择异动类型</option>
+            <option value="suspend">休学（在读 → 休学）</option>
+            <option value="abroad">出国（在读 → 出国，保留学籍）</option>
+            <option value="missing">登记失踪（在读 → 失踪）</option>
+            <option value="transfer_out">转出（在读 → 已转出）</option>
+            <option value="withdraw">退学（需校级管理员审批）</option>
+            <option value="expel" disabled>开除（义务教育阶段不可用；高中阶段需校级管理员审批）</option>
+          </select>
+          <div class="error-text"></div>
+          <div class="hint">选项随当前状态变化；「开除」在本样例（高中）可用但需审批，义务教育阶段入口不可用且后端拒绝（<span class="mono">REQ-PRM-043</span>）。</div>
+        </div>
+        <div class="field" data-field="effective_date">
+          <label>生效日期<span class="required">*</span></label>
+          <input class="input" style="min-width:100%" type="date" id="ss-date" value="2026-10-08" data-component="el-date-picker"
+                 data-required data-required-message="请选择生效日期" />
+          <div class="error-text"></div>
+          <div class="hint">生效后立即更新相关学生与新班级的权限缓存（<span class="mono">DP-06</span>）。</div>
+        </div>
+        <div class="field" data-field="class_id">
+          <label>复学 / 报到后的班级</label>
+          <select class="select" style="min-width:100%" id="ss-class" data-component="el-select">
+            <option value="">不需要（休学 / 出国 / 转出等）</option>
+            <option value="20260101">2026 级 高一 (1) 班</option>
+            <option value="20260102">2026 级 高一 (2) 班</option>
+          </select>
+          <div class="hint">复学 / 报到 / 寻回必须指定班级（<span class="mono">REQ-PRM-041</span>）。</div>
+        </div>
+        <div class="field" data-field="reason">
+          <label>原因<span class="required">*</span></label>
+          <textarea class="input" id="ss-reason" rows="2" style="width:100%;min-width:100%" data-component="el-input.textarea"
+                    data-required data-required-message="请填写异动原因（至少 5 个字）"
+                    placeholder="如：家长申请休学一学期，附医院证明"></textarea>
+          <div class="error-text"></div>
+          <div class="hint">原状态、新状态、生效日期、原因、操作人全部写审计且不可删除（<span class="mono">BR-PROMO-012</span>）。</div>
+        </div>
+        <div class="alert warning span-2" id="ss-approve-alert">
+          <span>需要审批</span>
+          <span id="ss-approve-text">「退学」需要校级管理员审批；义务教育阶段禁止开除；死亡登记需校级管理员权限与证明材料（<span class="mono">REQ-PRM-043</span> / <span class="mono">044</span>）。</span>
+        </div>
+        <div class="alert danger state-hidden span-2" data-validate-summary>表单校验未通过：请修正下方标红的字段后重试。</div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-STU-031" data-component="el-button"
+              data-close-panel="PAGE-STU-STATUS">取消</button>
+      <button class="btn primary" data-role="action" data-action-id="ACT-STU-030" data-component="el-button.primary"
+              data-permission="enrollment.status:update" data-api="changeEnrollmentStatus" data-validate-on-submit
+              data-after-success="close-panel"
+              data-demo-message="已提交学籍异动：状态按状态机流转并写审计（BR-PROMO-012）；生效后立即更新数据范围缓存（DP-06）。">提交异动</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================== 弹窗：调班（PAGE-STU-TRANSFER，批次 2-5） -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-STU-TRANSFER" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="sm" data-page="PAGE-STU-TRANSFER" data-block="form">
+    <div class="dialog-header">
+      <h2>调班 · <span id="st-name">王梓萱</span></h2>
+      <span class="el-tag primary" id="st-from">高一 (1) 班</span>
+      <button class="close-x" data-close-panel="PAGE-STU-TRANSFER" title="关闭">✕</button>
+    </div>
+    <div class="dialog-body">
+      <div class="alert info">
+        <span>只改班级关系</span>
+        <span>调班不改学籍状态，也不改学号；同一学年学期同一学生只允许一条行政班关系（<span class="mono">BR-STU-016</span>）。</span>
+      </div>
+      <div class="field" data-field="class_id">
+        <label>目标班级<span class="required">*</span></label>
+        <select class="select" style="min-width:100%" id="st-target" data-component="el-select" data-required
+                data-required-message="请选择目标班级">
+          <option value="">请选择目标班级</option>
+          <option value="20260102">2026 级 高一 (2) 班（在读 2 / 容量 45）</option>
+          <option value="20260103">2026 级 高一 (3) 班（在读 1 / 容量 45）</option>
+          <option value="20260104" disabled>2026 级 高一 (4) 班（已停用，不可选）</option>
+        </select>
+        <div class="error-text"></div>
+        <div class="hint">已停用的班级不可选；容量超限只提示不阻塞（<span class="mono">BR-CLASS-005</span>）。</div>
+      </div>
+      <div class="field" data-field="reason">
+        <label>调班原因</label>
+        <textarea class="input" id="st-reason" rows="2" style="width:100%;min-width:100%" data-component="el-input.textarea"
+                  placeholder="如：随班调整 / 家长申请"></textarea>
+      </div>
+      <div class="alert danger state-hidden" data-validate-summary>表单校验未通过：请先选择目标班级。</div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-STU-033" data-component="el-button"
+              data-close-panel="PAGE-STU-TRANSFER">取消</button>
+      <button class="btn primary" data-role="action" data-action-id="ACT-STU-032" data-component="el-button.primary"
+              data-permission="org.class:update" data-api="transferStudentClass" data-validate-on-submit
+              data-after-success="close-panel"
+              data-demo-message="已提交调班：学生班级关系更新并写审计；学号与学籍状态不变（BR-STU-016）。">确认调班</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================== 弹窗：异动登记（PAGE-PRM-CHANGE，升班与学籍异动模块口径，批次 2-5） -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-PRM-CHANGE" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="md" data-page="PAGE-PRM-CHANGE" data-block="form">
+    <div class="dialog-header">
+      <h2>学籍异动登记 · <span id="pc-name">王梓萱</span></h2>
+      <span class="el-tag warning">升班与学籍异动口径</span>
+      <button class="close-x" data-close-panel="PAGE-PRM-CHANGE" title="关闭">✕</button>
+    </div>
+    <div class="dialog-body">
+      <div class="alert info">
+        <span>与「学籍异动」同一写入口</span>
+        <span>本弹窗与 <span class="mono">PAGE-STU-STATUS</span> 是同一份字段与同一个接口（<span class="mono">changeEnrollmentStatus</span>），
+          差别只在额外强制升班与学籍模块的约束：阶段限制（义务教育不得开除）、审批要求（退学 / 开除 / 死亡）、
+          生效后更新数据范围缓存（<span class="mono">DP-06</span>）。字段只有一个写入口，不产生两套规则（<span class="mono">DP-01</span>）。</span>
+      </div>
+      <div class="form-grid">
+        <div class="field" data-field="change_type">
+          <label>异动类型<span class="required">*</span></label>
+          <select class="select" style="min-width:100%" id="pc-type" data-component="el-select" data-required
+                  data-required-message="请选择异动类型">
+            <option value="">请选择异动类型</option>
+            <option value="suspend">休学</option>
+            <option value="resume">复学</option>
+            <option value="abroad">出国（保留学籍）</option>
+            <option value="missing">登记失踪</option>
+            <option value="transfer_out">转出（含跨校转学）</option>
+            <option value="withdraw">退学（校级管理员审批）</option>
+            <option value="deceased">死亡登记（校级管理员 + 证明材料）</option>
+          </select>
+          <div class="error-text"></div>
+        </div>
+        <div class="field" data-field="effective_date">
+          <label>生效日期<span class="required">*</span></label>
+          <input class="input" style="min-width:100%" type="date" id="pc-date" value="2026-10-08" data-component="el-date-picker"
+                 data-required data-required-message="请选择生效日期" />
+          <div class="error-text"></div>
+        </div>
+        <div class="field span-2" data-field="reason">
+          <label>原因<span class="required">*</span></label>
+          <textarea class="input" id="pc-reason" rows="2" style="width:100%;min-width:100%" data-component="el-input.textarea"
+                    data-required data-required-message="请填写异动原因（至少 5 个字）"></textarea>
+          <div class="error-text"></div>
+          <div class="hint">异动历史在学生在校记录上可查且不可删除（<span class="mono">REQ-PRM-048</span>）。</div>
+        </div>
+      </div>
+      <div class="alert danger state-hidden" data-validate-summary>表单校验未通过：请修正下方标红的字段后重试。</div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-PRM-045" data-component="el-button"
+              data-close-panel="PAGE-PRM-CHANGE">取消</button>
+      <button class="btn primary" data-role="action" data-action-id="ACT-PRM-044" data-component="el-button.primary"
+              data-permission="enrollment.status:update" data-api="changeEnrollmentStatus" data-validate-on-submit
+              data-after-success="close-panel"
+              data-demo-message="已提交异动登记：状态按状态机流转、写审计，并按模块约束校验阶段与审批（REQ-PRM-043 / 044）。">提交登记</button>
+    </div>
+  </div>
+</div>
+
+
 <script>
 (function () {
   'use strict';
@@ -1132,5 +1431,78 @@
 </script>
 <!-- demo script end -->
 
+<script>
+/* 批次 2-5：学生详情抽屉与三个写入口的演示逻辑。只做「把当前行填进浮层」与「按异动类型给审批提示」，不访问后端。 */
+(function () {
+  'use strict';
+  var TERMINAL = ['已转出', '毕业', '结业', '肄业', '开除', '退学', '死亡'];
+  var APPROVE_TEXT = {
+    suspend: '休学不需要审批；休学期间保留行政班关系，但不计入在读名单（BR-STU-012）。',
+    abroad: '出国登记为「保留学籍」的非终态，回国后办理复学（REQ-PRM-045）。',
+    missing: '失踪为非终态，寻回后复学；按口径也可转退学或死亡（REQ-PRM-046）。',
+    transfer_out: '转出为终态；跨校转学请走「跨校转学」向导，学号保持不变（BR-STU-020）。',
+    withdraw: '「退学」需要校级管理员审批（REQ-PRM-043）；审批通过后为终态，无任何异动出口。',
+    expel: '「开除」仅高中阶段可用且需校级管理员审批；义务教育阶段入口不可用、后端同样拒绝（REQ-PRM-043）。',
+    deceased: '死亡登记需校级管理员权限与证明材料，登记后从常规在读数与名单中排除（REQ-PRM-044）。',
+    resume: '复学需校验当前状态为休学，并指定复学后的班级（REQ-PRM-041）。'
+  };
+  function q(sel) { return document.querySelector(sel); }
+  function cell(tr, i) { return tr.children[i] ? tr.children[i].textContent.replace(/\s+/g, ' ').trim() : ''; }
+  var current = { no: '2026000001', name: '王梓萱', status: '在读', klass: '高一 (1) 班', grade: '2026 级 高一' };
+  function readRow(tr) {
+    return { no: cell(tr, 1), name: cell(tr, 2), gender: cell(tr, 3), stage: cell(tr, 4),
+             grade: cell(tr, 5), klass: cell(tr, 6), status: cell(tr, 7) };
+  }
+  function tagClass(status) {
+    if (TERMINAL.indexOf(status) !== -1) return 'el-tag info';
+    return status === '在读' ? 'el-tag success' : 'el-tag warning';
+  }
+  function fillDetail(row) {
+    current = row;
+    q('#sd-name').textContent = row.name;
+    q('#sd-no').textContent = row.no;
+    q('#sd-f-name').textContent = row.name;
+    q('#sd-f-gender').textContent = row.gender;
+    q('#sd-f-no').textContent = row.no;
+    q('#sd-f-class').textContent = row.grade + ' · ' + row.klass;
+    var tag = q('#sd-f-status');
+    tag.textContent = row.status;
+    tag.className = tagClass(row.status);
+    var head = q('#sd-status-tag');
+    head.textContent = row.status;
+    head.className = tagClass(row.status);
+    q('#ss-name').textContent = row.name;
+    q('#ss-current').textContent = '当前状态：' + row.status;
+    q('#st-name').textContent = row.name;
+    q('#st-from').textContent = row.klass;
+    q('#pc-name').textContent = row.name;
+  }
+  function syncApprove() {
+    var type = q('#ss-type').value;
+    q('#ss-approve-text').textContent = APPROVE_TEXT[type] ||
+      '「退学」需要校级管理员审批；义务教育阶段禁止开除；死亡登记需校级管理员权限与证明材料（REQ-PRM-043 / 044）。';
+    q('#ss-approve-alert').classList.toggle('state-hidden', !type);
+  }
+  document.addEventListener('click', function (event) {
+    var node = event.target;
+    if (node.closest('input, select, textarea, label')) return;
+    var statusBtn = node.closest('[data-action-id="ACT-STU-006"], [data-action-id="ACT-STU-025"]');
+    var transferBtn = node.closest('[data-action-id="ACT-STU-007"], [data-action-id="ACT-STU-026"]');
+    var changeBtn = node.closest('[data-action-id="ACT-STU-028"]');
+    var rowNode = node.closest('#student-rows tr[data-nav="PAGE-STU-DETAIL"]');
+    if (statusBtn || transferBtn || changeBtn) {
+      var tr = node.closest('tr');
+      if (tr && tr.hasAttribute('data-nav')) fillDetail(readRow(tr));
+      if (statusBtn) syncApprove();
+      return;
+    }
+    if (rowNode) fillDetail(readRow(rowNode));
+  });
+  document.addEventListener('change', function (event) {
+    if (event.target.id === 'ss-type') syncApprove();
+  });
+  syncApprove();
+})();
+</script>
 </body>
 </html>

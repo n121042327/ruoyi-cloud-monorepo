@@ -200,6 +200,17 @@
 | `prototypes/functional/v1/page-specs/promotion-list.md` | 升班任务列表页面规格（状态驱动的行内动作、权限与数据范围、样例数据、自查） | `review` |
 | `prototypes/functional/v1/pages/promotion-create.html` | 升班向导第一步：选择源 / 目标学年学期 + 目标年级班级齐备性 + 未结束任务冲突 + 在读规模与耗时预估（批次 2-3e-s2） | `review` |
 | `prototypes/functional/v1/page-specs/promotion-create.md` | 升班向导第一步页面规格（四档校验样例、三类前置校验、权限与数据范围、自查） | `review` |
+| `prototypes/functional/v1/pages/student-cross-transfer.html` | 跨校转学（转出校视角）四步向导（批次 2-5） | `review` |
+| `prototypes/functional/v1/pages/promotion-transfer.html` | 跨校转学（转入校视角）四步向导：待接收 → 接收 → 报到（批次 2-5） | `review` |
+| `prototypes/functional/v1/pages/promotion-history.html` | 异动历史列表（追加式记录 + 跨页登记入口，批次 2-5） | `review` |
+| `prototypes/functional/v1/page-specs/student-detail.md` | 学生详情抽屉与变更记录区块的规格 | `review` |
+| `prototypes/functional/v1/page-specs/student-status.md` | 学籍异动弹窗的规格（状态机、阶段与审批约束） | `review` |
+| `prototypes/functional/v1/page-specs/student-transfer.md` | 调班弹窗的规格 | `review` |
+| `prototypes/functional/v1/page-specs/promotion-change.md` | 升班口径异动登记的规格（同字段同接口） | `review` |
+| `prototypes/functional/v1/page-specs/cross-school-transfer.md` | 跨校转学两侧向导的规格 | `review` |
+| `prototypes/functional/v1/page-specs/promotion-history.md` | 异动历史的规格 | `review` |
+| `evidence/stage2-prototype/verify-student-module.html` | 批次 2-5 交互验证 harness（SM / CT / PT / PH 共 28 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/student-detail_*.png`、`evidence/stage2-prototype/student-cross-transfer_*.png`、`evidence/stage2-prototype/promotion-transfer_*.png`、`evidence/stage2-prototype/promotion-history_*.png`、`evidence/stage2-prototype/student-module_verify-results.png` | 批次 2-5 截图（见 README 第 6.6 节） | `review` |
 | `evidence/stage2-prototype/verify-promotion-create.html` | 升班向导第一步交互验证 harness（PC-01 ~ PC-22，22 条断言全部通过） | `review` |
 | `evidence/stage2-prototype/promotion-create_*.png`（11 张，见 README 第 6.2 节） | 升班向导第一步截图：3 个分辨率 + 3 档校验样例 + 无权限形态 + 3 类状态 + harness 结果 | `review` |
 | `prototypes/functional/v1/pages/promotion-preview.html` | 升班向导第二步（预览与调整：双栏源班级 + 逐学生明细，含 PAGE-PRM-ADJUST 片段） | `review` |

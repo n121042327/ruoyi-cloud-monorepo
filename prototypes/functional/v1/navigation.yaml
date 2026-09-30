@@ -64,11 +64,11 @@ pages:
   - { id: PAGE-STU-LIST, name: 学生管理列表, module: student, type: page, route: /edu/student/list, template: TPL-LIST, batch: "2-1" }
   - { id: PAGE-STU-CREATE, name: 新增学生, module: student, type: dialog, size: md, parent: PAGE-STU-LIST, batch: "2-1", note: "CR-008 / D-059：表单类浮层统一用弹窗（与 apps/plus-ui 一致），三步仍在一个弹窗内" }
   - { id: PAGE-STU-EDIT, name: 编辑学生, module: student, type: dialog, size: md, parent: PAGE-STU-LIST, batch: "2-1", note: "CR-008 / D-059：表单类浮层统一用弹窗" }
-  - { id: PAGE-STU-DETAIL, name: 学生详情, module: student, type: detail, container: drawer, size: lg, route: /edu/student/detail, parent: PAGE-STU-LIST, batch: "2-5", note: "CR-008 / D-059：详情类保留抽屉" }
-  - { id: PAGE-STU-STATUS, name: 学籍异动, module: student, type: dialog, size: md, parent: PAGE-STU-DETAIL, batch: "2-5" }
-  - { id: PAGE-STU-TRANSFER, name: 调班, module: student, type: dialog, size: sm, parent: PAGE-STU-DETAIL, batch: "2-5" }
-  - { id: PAGE-STU-HISTORY, name: 变更记录, module: student, type: block, parent: PAGE-STU-DETAIL, batch: "2-5" }
-  - { id: PAGE-STU-CROSS-TRANSFER, name: 跨校转学, module: student, type: wizard, route: /edu/student/cross-transfer, batch: "2-5" }
+  - { id: PAGE-STU-DETAIL, name: 学生详情, module: student, type: detail, container: drawer, size: lg, route: /edu/student/detail, parent: PAGE-STU-LIST, batch: "2-5", note: "2-5 已交付：抽屉三个分区（基本信息 / 监护人 / 变更记录）+ 操作条；敏感字段默认掩码，证件号需 read_sensitive、联系电话需 read_contact 并留痕；详情是只读视图（DP-01）" }
+  - { id: PAGE-STU-STATUS, name: 学籍异动, module: student, type: dialog, size: md, parent: PAGE-STU-DETAIL, batch: "2-5", note: "2-5 已交付：异动类型由当前状态决定（listEnrollmentStatusOption）、生效日期与原因必填、开除在义务教育阶段不可用且后端拒绝（REQ-PRM-043）、提交流转合法性与审计（BR-PROMO-012）" }
+  - { id: PAGE-STU-TRANSFER, name: 调班, module: student, type: dialog, size: sm, parent: PAGE-STU-DETAIL, batch: "2-5", note: "2-5 已交付：目标班级必填、已停用班级不可选、只改班级关系（学号与学籍状态不变，BR-STU-016）" }
+  - { id: PAGE-STU-HISTORY, name: 变更记录, module: student, type: block, parent: PAGE-STU-DETAIL, batch: "2-5", note: "2-5 已交付：时间线（班级变更 / 学籍状态 / 监护人变更）+「查看全部」跳审计日志；追加式不可删除（BR-AUDIT-003）" }
+  - { id: PAGE-STU-CROSS-TRANSFER, name: 跨校转学, module: student, type: wizard, route: /edu/student/cross-transfer, batch: "2-5", note: "2-5 已交付：转出校视角四步（选择学生 → 转入校与目标班级 → 确认提交 → 结果）；只暴露必要字段（REQ-PRM-055）、学号不变（BR-STU-020）、未完成转学单不允许再次发起（REQ-PRM-057）" }
   - { id: PAGE-STU-IMPORT, name: 批量导入向导, module: student, type: wizard, route: /edu/student/import, batch: "2-4", note: "2-4 已交付：学生管理列表工具条「导入」的模块快捷入口；14 列模板（REQ-STU-052，不含学号列 BR-STU-019）、两阶段校验、导入后不给行政班（REQ-STU-062）、学号对照表（REQ-IMP-021 ~ 023）" }
 
   # ---- 教师管理 ----
@@ -112,9 +112,9 @@ pages:
   - { id: PAGE-PRM-VALIDATE, name: 升班校验结果, module: promotion, type: wizard, route: /edu/promotion/validate, batch: "2-3", note: "2-3e-s4 已交付：通过 / 警告 / 错误三分类统计（REQ-PRM-023）+ 按维度下钻（REQ-PRM-026）+ 错误项「标记跳过」放行（REQ-PRM-025）+ 存在错误时确认执行被拦；容量超限只警告（REQ-PRM-024）" }
   - { id: PAGE-PRM-EXECUTE, name: 执行与进度, module: promotion, type: wizard, route: /edu/promotion/execute, batch: "2-3", note: "2-3e-s4 已交付：进度条（已处理 / 总数 REQ-PRM-031）+ 成功 / 失败 / 留级 / 毕业计数 + 最近处理记录时间线 + 「可离开页面」口径 + 排队中形态；取消入口指向任务列表的行内取消" }
   - { id: PAGE-PRM-RESULT, name: 执行结果与重试, module: promotion, type: page, route: /edu/promotion/result, batch: "2-3", note: "2-3e-s4 已交付：四类清单切换（成功 / 失败 / 留级 / 毕业 REQ-PRM-034）+ 失败原因逐条（REQ-PRM-032）+ 只重试失败项 / 继续执行剩余项 + 结果导出（DS-DENY-04 重新解析范围）" }
-  - { id: PAGE-PRM-CHANGE, name: 学籍异动登记, module: promotion, type: dialog, size: md, parent: PAGE-STU-DETAIL, batch: "2-5" }
-  - { id: PAGE-PRM-TRANSFER, name: 跨校转学, module: promotion, type: wizard, route: /edu/promotion/transfer, batch: "2-5" }
-  - { id: PAGE-PRM-HISTORY, name: 异动历史, module: promotion, type: page, route: /edu/promotion/history, template: TPL-LIST, batch: "2-5" }
+  - { id: PAGE-PRM-CHANGE, name: 学籍异动登记, module: promotion, type: dialog, size: md, parent: PAGE-STU-DETAIL, batch: "2-5", note: "2-5 已交付：与 PAGE-STU-STATUS 同字段集、同接口 changeEnrollmentStatus（字段只有一个写入口，DP-01）；额外强制阶段限制（义务教育不得开除）与审批要求（退学 / 开除 / 死亡需校级管理员审批）" }
+  - { id: PAGE-PRM-TRANSFER, name: 跨校转学, module: promotion, type: wizard, route: /edu/promotion/transfer, batch: "2-5", note: "2-5 已交付：转入校视角四步（待接收清单 → 核对与接收 → 接收确认 → 报到）；接收动作本身即审批（已确认 3）、接收前不计入在读数（REQ-PRM-053）、未报到前可撤销接收（REQ-PRM-054）" }
+  - { id: PAGE-PRM-HISTORY, name: 异动历史, module: promotion, type: page, route: /edu/promotion/history, template: TPL-LIST, batch: "2-5", note: "2-5 已交付：筛选（类型 / 学年学期 / 年级 / 生效日期）+ 追加式记录表（类型·生效日期·原状态·新状态·操作人·原因）+ 行内「查看学生」+「异动登记」入口唯一（跳学生列表并由 data-panel-hash 打开 PAGE-PRM-CHANGE）" }
 
   # ---- 学校管理 ----
   - { id: PAGE-SCH-LIST, name: 学校管理列表, module: school, type: page, route: /edu/school/list, template: TPL-LIST, batch: "2-6" }
@@ -185,7 +185,7 @@ delivery_batches:
   - { batch: "2-2", content: "教师管理 + 年级管理（执行时拆为 2-2a 教师列表 1 页 / 2-2b-1 教师详情与新增编辑 3 项 / 2-2b-2 角色与任教 2 项 / 2-2b-2b 年级 6 页）", pages: 13, status: "2-2a、2-2b-1、2-2b-2 已产出待验收；2-2b-2b 的年级 6 页全部产出待验收（含删除确认浮层片段 DIALOG-GRD-DELETE 与 ACT-GRD-001 ~ 029）" }
   - { batch: "2-3", content: 班级管理 + 班级详情 + 升班向导, pages: 17, status: "已全部产出待验收：2-3a 班级列表、2-3b 班级详情（含花名册）、2-3c 四个弹窗、2-3d 编班 / 批量迁学生 / 移出与调班、2-3e 升班 6 页（PAGE-PRM-LIST / CREATE / PREVIEW / VALIDATE / EXECUTE / RESULT）+ 2 个同页片段（DIALOG-PRM-CANCEL、PAGE-PRM-ADJUST）；动作 ACT-CLS-001 ~ 064、ACT-PRM-001 ~ 043 已登记" }
   - { batch: "2-4", content: 导入向导 + 登录 + 异常页, pages: 11, status: "已全部产出待验收：PAGE-IMP-WIZARD（含 TEMPLATE / VALIDATE / EXECUTE 三个区块）、PAGE-STU-IMPORT / PAGE-TCH-IMPORT / PAGE-CLS-ROSTER-IMPORT（模块快捷入口）、PAGE-LOGIN / PAGE-403 / PAGE-404 / PAGE-500（不套管理外壳）；动作 ACT-IMP-001 ~ 010、ACT-IO-001 ~ 002、ACT-AUTH-001 ~ 003、ACT-ERR-001 ~ 005 已登记" }
-  - { batch: "2-5", content: 学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录）, pages: 8, status: 已确认（D-050），待开始 }
+  - { batch: "2-5", content: 学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录）, pages: 8, status: "已全部产出待验收：PAGE-STU-DETAIL（抽屉，含 PAGE-STU-HISTORY 区块）与三个同页弹窗（PAGE-STU-STATUS / PAGE-STU-TRANSFER / PAGE-PRM-CHANGE）、PAGE-STU-CROSS-TRANSFER / PAGE-PRM-TRANSFER（转出校 / 转入校两侧向导）、PAGE-PRM-HISTORY（异动历史列表）；动作 ACT-STU-023 ~ 034、ACT-STU-040 ~ 043、ACT-PRM-044 ~ 048、ACT-PRM-050 ~ 054 已登记" }
   - { batch: "2-6", content: 学校管理 + 学年学期 + 学科与配置, pages: 19, status: 已确认（D-050），待开始 }
   - { batch: "2-7", content: 选科与教学班, pages: 9, status: 已确认（D-050），待开始 }
   - { batch: "2-8", content: 审计与操作日志, pages: 7, status: 已确认（D-050），待开始 }

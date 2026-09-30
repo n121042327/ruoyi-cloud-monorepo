@@ -87,7 +87,10 @@
     'PAGE-LOGIN': { path: 'pages/login.html', name: '登录', batch: '2-4' },
     'PAGE-403': { path: 'pages/403.html', name: '无权限', batch: '2-4' },
     'PAGE-404': { path: 'pages/404.html', name: '页面不存在', batch: '2-4' },
-    'PAGE-500': { path: 'pages/500.html', name: '服务异常', batch: '2-4' }
+    'PAGE-500': { path: 'pages/500.html', name: '服务异常', batch: '2-4' },
+    'PAGE-STU-CROSS-TRANSFER': { path: 'pages/student-cross-transfer.html', name: '跨校转学（转出校）', batch: '2-5' },
+    'PAGE-PRM-TRANSFER': { path: 'pages/promotion-transfer.html', name: '跨校转学（转入校）', batch: '2-5' },
+    'PAGE-PRM-HISTORY': { path: 'pages/promotion-history.html', name: '异动历史', batch: '2-5' }
   };
   Object.keys(EXTRA_PAGES).forEach(function (id) {
     PAGE_NAME[id] = EXTRA_PAGES[id].name;

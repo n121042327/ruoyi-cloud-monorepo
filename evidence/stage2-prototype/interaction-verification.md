@@ -319,6 +319,43 @@ harness 用**第二个 iframe** 加载 `pages/class-detail.html`，验证「详�
 
 ---
 
+## 16. 批次 2-5：学生详情 / 学籍异动 / 调班 / 跨校转学 / 异动历史
+
+新增 harness `evidence/stage2-prototype/verify-student-module.html`：4 个同源 iframe
+（`student-list` / `student-cross-transfer` / `promotion-transfer` / `promotion-history`），
+真实派发点行、点行内动作、改下拉、深链接，跑 `SM` / `CT` / `PT` / `PH` 共 28 条断言。
+
+| 分组 | 覆盖 |
+|---|---|
+| 学生详情（`SM-01` ~ `SM-06`、`SM-14`） | 点行打开 `PAGE-STU-DETAIL` 且标题 / 学号跟随该行；三个分区 + `PAGE-STU-HISTORY` 区块（时间线 3 条、「查看全部」→ 审计）；监护人上限 3 与 `saveStudentGuardian` / `unbindStudentGuardian`；敏感字段掩码与 `read_sensitive`（仅教务主任/超管）/`read_contact`（含班主任）的角色差异；切到第二行同一抽屉复用；学生列表原有五类状态未被破坏 |
+| 三个弹窗（`SM-07` ~ `SM-13`） | 行内「调班」带入学生与当前班级、已停用班级不可选、未选目标班级被字段级拦截（`transferStudentClass`）；行内「异动」带入当前状态；异动类型含不可用的「开除」、选「退学」提示变为需校级管理员审批、未选类型被拦截（`changeEnrollmentStatus`）；详情「异动登记（升班口径）」打开 `PAGE-PRM-CHANGE` 且与学籍异动同接口；三个弹窗内都不放表格 |
+| 转出校向导（`CT-01` ~ `CT-04`） | 默认第 1 步只列可发起转学的学生（4 行，含休学 / 转入未报到的不可发起说明）；第 2 步只暴露必要字段（不含证件号与监护人）；第 3 步学号不变 + 未完成转学单不允许再次发起 + `addTransfer`；第 4 步转学单号与 `cancelTransfer` |
+| 转入校向导（`PT-01` ~ `PT-04`） | 待接收清单 2 条（含转出校）；「接收」走 `acceptTransfer` + `enrollment.transfer:approve`（接收即审批）；「办理报到」走 `checkInTransfer`；撤销接收走 `cancelTransfer`，空态写明「没有待接收的转学单」 |
+| 异动历史（`PH-01` ~ `PH-06`） | 4 行样例 + 共 34 条 + 追加式不可删除；按类型筛选（休学 1 行）与重置；行内「查看学生」；「异动登记」入口唯一（`data-nav=PAGE-STU-LIST` + `data-panel-hash=PAGE-PRM-CHANGE`）；平台运营只读且无登记入口；五类状态齐全 |
+
+| harness | 结果 |
+|---|---|
+| `verify-student-module.html` | 28 / 28 通过 |
+| `verify-detail-entry.html` | 6 / 6 通过（`RD-06` 已按「学生详情在 2-5 交付」更新：点行开抽屉并带入该行学生） |
+
+本批回归（修改了 `student-list.html`、`prototype-shell.js` 的 `EXTRA_PAGES` 与 `verify-detail-entry.html`）：
+
+| harness | 结果 |
+|---|---|
+| `verify-import-login.html` | 30 / 30 通过 |
+| `verify-promotion-wizard.html` | 39 / 39 通过 |
+| `verify-promotion-create.html` | 22 / 22 通过 |
+| `verify-promotion-list.html` | 36 / 36 通过 |
+| `verify-class-list.html` | 39 / 39 通过 |
+| `verify-class-detail.html` | 20 / 20 通过 |
+| `verify-class-roster.html` | 34 / 34 通过 |
+| `verify-class-dialogs.html` | 36 / 36 通过 |
+| `verify-grade-list.html` | 38 / 38 通过 |
+| `verify-carrier-change.html` | 14 / 14 通过 |
+| `python tools/check_docs.py` | 通过：未发现问题 |
+
+---
+
 ## 13. 批次 2-3e-s2：升班向导第一步（`pages/promotion-create.html`）
 
 新增 harness `evidence/stage2-prototype/verify-promotion-create.html`（`PC-01` ~ `PC-22`，真实事件派发：

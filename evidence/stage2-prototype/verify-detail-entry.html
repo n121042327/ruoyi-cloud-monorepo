@@ -129,17 +129,19 @@
         }, 200);
       }, 140);
     },
-    // ---------------- 学生：详情未交付，点行仍走提示，不开空抽屉 ----------------
+    // ---------------- 学生：详情已在批次 2-5 交付，点行打开抽屉并带入该行学生 ----------------
     function (next) {
       clearToasts('frame-student');
       var row = qa('frame-student', '#student-rows tr[data-role="row"]')[0];
+      var name = row.children[2].textContent.trim();
       row.querySelector('td').click();
       window.setTimeout(function () {
         var open = openOverlays('frame-student');
         var t = toastText('frame-student');
-        rec('RD-06', '学生列表：详情属批次 2-5，点行只给"批次交付"提示，不打开空抽屉',
-          open.length === 0 && t.indexOf('交付') !== -1 && t.indexOf('学生详情') !== -1,
-          '已打开：' + (open.join(',') || '无') + ' / 提示=' + (t ? t.slice(0, 34) : '（无）'));
+        var title = (q('frame-student', '[data-demo-panel="PAGE-STU-DETAIL"] .drawer-header h2') || {}).textContent || '';
+        rec('RD-06', '学生列表：详情已在批次 2-5 交付，点行打开学生详情抽屉并带入该行学生',
+          open.indexOf('PAGE-STU-DETAIL') !== -1 && title.indexOf(name) !== -1 && t.indexOf('交付') === -1,
+          '已打开：' + (open.join(',') || '无') + ' / 标题=' + title.replace(/\s+/g, ' '));
         next();
       }, 200);
     }

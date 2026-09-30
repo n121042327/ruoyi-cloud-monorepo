@@ -2223,6 +2223,287 @@ error_page:
       audit: 否
       batch: "2-4"
 
+# ---------------------------------------------------------------------------
+# 学生详情抽屉与变更记录区块（PAGE-STU-DETAIL / PAGE-STU-HISTORY）——批次 2-5
+# ---------------------------------------------------------------------------
+student_detail:
+  page: "PAGE-STU-DETAIL / PAGE-STU-HISTORY"
+  actions:
+    - id: ACT-STU-023
+      element: 查看完整（证件号 / 联系电话）
+      trigger: 点击
+      condition: 证件号需要 person.student:read_sensitive；联系电话需要 person.student_contact:read_contact
+      permission: "person.student:read_sensitive / person.student_contact:read_contact"
+      api: "-"
+      result: 展示完整值并写入敏感数据访问日志（访问人、对象、字段、时间、用途）；租户侧可见（NFR-AUDIT-03 / DS-DENY-09）
+      audit: 是
+      batch: "2-5"
+    - id: ACT-STU-024
+      element: 编辑监护人信息
+      trigger: 点击
+      condition: 有 person.student_guardian:update 权限（教务主任 / 班主任；年级主任只读）
+      permission: "person.student_guardian / update"
+      api: saveStudentGuardian
+      result: 保存监护人信息（班主任为唯一写入口）；一个家长可关联多个孩子，绑定上限 3（GAP-015）
+      audit: 是
+      batch: "2-5"
+    - id: ACT-STU-034
+      element: 监护人「解绑」
+      trigger: 点击行内按钮
+      condition: 有 person.student_guardian:update 权限
+      permission: "person.student_guardian / update"
+      api: unbindStudentGuardian
+      result: 提交解绑申请（需班主任确认）；未通过可重提，同一字段同时只允许一条待审核（GAP-018）
+      audit: 是
+      batch: "2-5"
+    - id: ACT-STU-025
+      element: 详情「学籍异动」
+      trigger: 点击
+      condition: 有 enrollment.status:update 权限；学生不是终态
+      permission: "enrollment.status / update"
+      api: "-"
+      result: 打开 PAGE-STU-STATUS，带入该学生与当前状态；可执行异动由 listEnrollmentStatusOption 计算
+      audit: 否
+      batch: "2-5"
+    - id: ACT-STU-026
+      element: 详情「调班」
+      trigger: 点击
+      condition: 有 org.class:update 权限；学生有行政班关系
+      permission: "org.class / update"
+      api: "-"
+      result: 打开 PAGE-STU-TRANSFER，带入该学生与当前班级（源班级不可选）
+      audit: 否
+      batch: "2-5"
+    - id: ACT-STU-027
+      element: 详情「跨校转学」
+      trigger: 点击
+      condition: 有 enrollment.transfer:create 权限（教务主任）
+      permission: "enrollment.transfer / create"
+      api: "-"
+      result: 进入 PAGE-STU-CROSS-TRANSFER 跨校转学向导（转出校发起）
+      audit: 否
+      batch: "2-5"
+    - id: ACT-STU-028
+      element: 详情「异动登记（升班口径）」
+      trigger: 点击
+      condition: 有 enrollment.status:update 权限
+      permission: "enrollment.status / update"
+      api: "-"
+      result: 打开 PAGE-PRM-CHANGE（与 PAGE-STU-STATUS 同字段、同接口，额外强制阶段与审批约束）
+      audit: 否
+      batch: "2-5"
+    - id: ACT-STU-029
+      element: 变更记录「查看全部」
+      trigger: 点击
+      condition: 有 audit.log:read 权限
+      permission: "audit.log / read"
+      api: "-"
+      result: 跳转 PAGE-AUDIT-LOG-LIST，按对象筛选该学生的全部变更（该页在批次 2-8 交付）
+      audit: 否
+      batch: "2-5"
+
+# ---------------------------------------------------------------------------
+# 学籍异动（PAGE-STU-STATUS）与调班（PAGE-STU-TRANSFER）——批次 2-5
+# ---------------------------------------------------------------------------
+student_status:
+  page: PAGE-STU-STATUS
+  actions:
+    - id: ACT-STU-030
+      element: 提交异动
+      trigger: 点击
+      condition: 异动类型与生效日期、原因均已填；流转合法（FD-enrollment_status.transitions）
+      permission: "enrollment.status / update"
+      api: changeEnrollmentStatus
+      confirm: 需要，文案写清「原状态 → 新状态、生效日期、是否保留班级关系与在读口径」
+      result: 按状态机流转并写审计（BR-PROMO-012）；生效后立即更新数据范围缓存（DP-06）；非法流转直接拒绝
+      audit: 是
+      batch: "2-5"
+    - id: ACT-STU-031
+      element: 取消（异动弹窗）
+      trigger: 点击取消或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭 PAGE-STU-STATUS，不写入
+      audit: 否
+      batch: "2-5"
+
+student_transfer:
+  page: PAGE-STU-TRANSFER
+  actions:
+    - id: ACT-STU-032
+      element: 确认调班
+      trigger: 点击
+      condition: 已选目标班级；目标班级未停用且与源班级不同
+      permission: "org.class / update"
+      api: transferStudentClass
+      result: 更新学生的行政班关系并写审计；学号与学籍状态不变（BR-STU-016）；同一学年学期只保留一条行政班关系
+      audit: 是
+      batch: "2-5"
+    - id: ACT-STU-033
+      element: 取消（调班弹窗）
+      trigger: 点击取消或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭 PAGE-STU-TRANSFER，不写入
+      audit: 否
+      batch: "2-5"
+
+# ---------------------------------------------------------------------------
+# 异动登记（PAGE-PRM-CHANGE，升班与学籍异动模块口径）——批次 2-5
+# ---------------------------------------------------------------------------
+promotion_change:
+  page: PAGE-PRM-CHANGE
+  actions:
+    - id: ACT-PRM-044
+      element: 提交登记
+      trigger: 点击
+      condition: 异动类型、生效日期、原因均已填；阶段与审批约束满足（义务教育不得开除；退学 / 开除 / 死亡需校级管理员审批）
+      permission: "enrollment.status / update"
+      api: changeEnrollmentStatus
+      confirm: 需要，文案写清「需要审批的异动在审批通过前不生效」
+      result: 与 PAGE-STU-STATUS 同一接口与同一字段集；额外校验阶段限制与审批要求（REQ-PRM-043 / 044），并更新数据范围缓存（DP-06）
+      audit: 是
+      batch: "2-5"
+    - id: ACT-PRM-045
+      element: 取消（异动登记弹窗）
+      trigger: 点击取消或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭 PAGE-PRM-CHANGE，不写入
+      audit: 否
+      batch: "2-5"
+
+# ---------------------------------------------------------------------------
+# 跨校转学：转出校向导（PAGE-STU-CROSS-TRANSFER）与转入校向导（PAGE-PRM-TRANSFER）——批次 2-5
+# ---------------------------------------------------------------------------
+student_cross_transfer:
+  page: PAGE-STU-CROSS-TRANSFER
+  actions:
+    - id: ACT-STU-040
+      element: 下一步
+      trigger: 点击
+      condition: 当前步骤必填项已完成
+      permission: "enrollment.transfer / create"
+      api: "-"
+      result: 进入下一步（选择学生 → 转入校与目标班级 → 确认提交 → 结果）
+      audit: 否
+      batch: "2-5"
+    - id: ACT-STU-041
+      element: 上一步
+      trigger: 点击
+      condition: 有 enrollment.transfer:create 权限
+      permission: "enrollment.transfer / create"
+      api: "-"
+      result: 回到上一步；已填内容保留
+      audit: 否
+      batch: "2-5"
+    - id: ACT-STU-042
+      element: 提交转学申请
+      trigger: 点击
+      condition: 学生无未完成转学单（REQ-PRM-057）；已选转入校与目标年级班级
+      permission: "enrollment.transfer / create"
+      api: addTransfer
+      confirm: 需要，文案写清「提交后学生在本校置为已转出、转入校收到待报到记录；学号保持不变」
+      result: 生成转学单（status=待接收），原在校记录置为已转出，转入校新建「转入未报到」记录；两侧都写审计（REQ-PRM-051 / 056）
+      audit: 是
+      batch: "2-5"
+    - id: ACT-STU-043
+      element: 撤销转学申请
+      trigger: 点击（结果步骤）
+      condition: 转入校尚未接收
+      permission: "enrollment.transfer / create"
+      api: cancelTransfer
+      result: 撤销转学单（记录逻辑删除并留痕），不产生转出记录（REQ-PRM-054）
+      audit: 是
+      batch: "2-5"
+
+promotion_transfer:
+  page: PAGE-PRM-TRANSFER
+  actions:
+    - id: ACT-PRM-050
+      element: 接收
+      trigger: 点击待接收转学单
+      condition: 有 enrollment.transfer 的 approve 权限（转入校教务主任）
+      permission: "enrollment.transfer / approve"
+      api: acceptTransfer
+      confirm: 需要，文案写清「接收后学生在转入校建立待报到记录，接收前不计入转入校任何在读数与花名册」
+      result: 接收动作本身即审批（REQ-PRM-051 / 已确认 3）；转入校可撤销接收（REQ-PRM-054）
+      audit: 是
+      batch: "2-5"
+    - id: ACT-PRM-051
+      element: 报到
+      trigger: 点击
+      condition: 转学单已接收且学生到校
+      permission: "enrollment.status / update"
+      api: checkInTransfer
+      result: 学生状态由「转入未报到」转为「在读」，进入转入校在读名单与花名册（REQ-PRM-051 / BR-STU-023）
+      audit: 是
+      batch: "2-5"
+    - id: ACT-PRM-052
+      element: 下一步
+      trigger: 点击
+      condition: 当前步骤已选转学单
+      permission: "enrollment.transfer / read"
+      api: "-"
+      result: 进入下一步（待接收清单 → 核对信息 → 接收 / 撤销 → 报到）
+      audit: 否
+      batch: "2-5"
+    - id: ACT-PRM-053
+      element: 上一步
+      trigger: 点击
+      condition: 有 enrollment.transfer:read 权限
+      permission: "enrollment.transfer / read"
+      api: "-"
+      result: 回到上一步
+      audit: 否
+      batch: "2-5"
+    - id: ACT-PRM-054
+      element: 撤销接收
+      trigger: 点击
+      condition: 转学单已接收但学生未报到
+      permission: "enrollment.transfer / approve"
+      api: cancelTransfer
+      result: 撤销接收：转入记录逻辑删除并留痕，此时不产生转出记录（REQ-PRM-054）
+      audit: 是
+      batch: "2-5"
+
+# ---------------------------------------------------------------------------
+# 异动历史（PAGE-PRM-HISTORY）——批次 2-5
+# ---------------------------------------------------------------------------
+promotion_history:
+  page: PAGE-PRM-HISTORY
+  actions:
+    - id: ACT-PRM-046
+      element: 异动登记
+      trigger: 点击
+      condition: 有 enrollment.status:update 权限
+      permission: "enrollment.status / update"
+      api: "-"
+      result: 跳转 pages/student-list.html 并打开 PAGE-PRM-CHANGE 异动登记弹窗（登记入口唯一，避免两套规则）
+      audit: 否
+      batch: "2-5"
+    - id: ACT-PRM-047
+      element: 行内「查看学生」
+      trigger: 点击行内按钮
+      condition: 有 person.student:read 权限
+      permission: "person.student / read"
+      api: "-"
+      result: 跳转 PAGE-STU-LIST 并定位该学生（用于核对学籍状态与班级关系）
+      audit: 否
+      batch: "2-5"
+    - id: ACT-PRM-048
+      element: 导出异动历史
+      trigger: 点击
+      condition: 有 data.export:export 权限
+      permission: "data.export:export"
+      api: exportData
+      result: 按当前筛选导出异动历史（≤2000 行直接下载，否则转异步）；下载前重新解析数据范围（DS-DENY-04）
+      audit: 是
+      batch: "2-5"
+
 batches_pending:
   - { batch: "2-2", pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-CREATE, PAGE-TCH-EDIT, PAGE-TCH-LEAVE, PAGE-TCH-ROLE, PAGE-TCH-ASSIGN], status: "2-2a、2-2b-1 与 2-2b-2 教师部分已产出待验收（ACT-TCH-001 ~ 039 已登记）" }
   - { batch: "2-2b-2b", pages: [PAGE-GRD-LIST, PAGE-GRD-DETAIL, PAGE-GRD-CREATE, PAGE-GRD-BATCH, PAGE-GRD-LEADER, PAGE-GRD-ARCHIVE], status: "PAGE-GRD-LIST 样板页已产出待验收（ACT-GRD-001 ~ 011 已登记）；其余 5 页待样板验收后铺开" }

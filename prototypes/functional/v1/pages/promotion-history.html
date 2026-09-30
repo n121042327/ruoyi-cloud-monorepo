@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>异动历史 — 业务原型 v1（批次 2-5）</title>
+<link rel="stylesheet" href="../assets/prototype-shell.css" />
+<script src="../assets/prototype-shell.js"></script>
+<style>
+  #ph-table td.actions { white-space: nowrap; }
+  #ph-table td.reason { white-space: normal; }
+</style>
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-PRM-HISTORY"
+  data-menu-page="PAGE-PRM-LIST"
+  data-breadcrumb="教育管理 / 升班与学籍 / 异动历史"
+  data-tab="异动历史"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-PRM-HISTORY" data-role="page">
+
+  <div class="page-head">
+    <h1>异动历史</h1>
+    <span class="scope-hint" data-role="scope-hint">数据范围：本校 · 2026-2027 学年 第一学期</span>
+    <span class="el-tag primary" id="ph-total">共 34 条异动记录</span>
+    <span class="el-tag info">追加式 · 不可删除（BR-PROMO-012）</span>
+  </div>
+
+  <section class="card" data-block="filter" data-role="filter" data-component="el-card.hover">
+    <div class="card-body">
+      <div class="form-inline">
+        <div class="form-item">
+          <label for="ph-type">异动类型</label>
+          <select class="select" id="ph-type" style="min-width:170px" data-role="field" data-field="change_type"
+                  data-component="el-select" data-filter="type">
+            <option value="">全部类型</option>
+            <option value="suspend">休学</option>
+            <option value="resume">复学</option>
+            <option value="abroad">出国</option>
+            <option value="missing">登记失踪</option>
+            <option value="transfer_out">转出</option>
+            <option value="withdraw">退学</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label for="ph-term">学年学期</label>
+          <select class="select" id="ph-term" style="min-width:200px" data-role="field" data-field="term_id"
+                  data-component="el-select" data-filter="term">
+            <option value="202601" selected>2026-2027 学年 第一学期</option>
+            <option value="202502">2025-2026 学年 第二学期</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label for="ph-grade">年级</label>
+          <select class="select" id="ph-grade" style="min-width:150px" data-role="field" data-field="grade_id"
+                  data-component="el-select" data-filter="grade">
+            <option value="">全部年级</option>
+            <option value="202601">2026 级 高一</option>
+            <option value="202501">2025 级 高二</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label for="ph-date">生效日期</label>
+          <input class="input" id="ph-date" type="date" style="min-width:150px" data-role="field" data-field="effective_date"
+                 data-component="el-date-picker" data-filter="date" />
+        </div>
+        <div class="form-item" style="margin-left:auto;min-width:auto">
+          <button class="btn primary" data-role="action" data-action-id="ACT-COM-001" data-component="el-button.primary"
+                  data-permission="enrollment.status:read">搜索</button>
+          <button class="btn" data-role="action" data-action-id="ACT-COM-002" data-component="el-button"
+                  data-permission="enrollment.status:read">重置</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" data-block="toolbar" data-role="toolbar" data-component="el-card.hover">
+    <div class="card-header">
+      <div class="toolbar" data-demo-state-target="toolbar">
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-PRM-046" data-component="el-button.primary.plain"
+                data-permission="enrollment.status:update" data-nav="PAGE-STU-LIST"
+                data-panel-hash="PAGE-PRM-CHANGE" data-role-visible="academic_director,grade_leader,homeroom"
+                title="登记入口唯一：在学生详情抽屉内的异动登记弹窗">异动登记</button>
+        <button class="btn" data-role="action" data-action-id="ACT-PRM-048" data-component="el-button"
+                data-permission="data.export:export" data-api="exportData"
+                data-demo-message="已按当前筛选导异动历史；超过 2000 行转异步任务（导出前重新解析数据范围，DS-DENY-04）。">导出</button>
+      </div>
+      <div class="header-right">
+        <button class="btn" data-role="action" data-action-id="ACT-COM-003" data-component="el-button">隐藏搜索</button>
+        <button class="btn" data-role="action" data-action-id="ACT-COM-005" data-component="el-button"
+                data-api="listEnrollmentChange" data-demo-message="已按当前条件刷新，未重置页码。">刷新</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="alert warning state-hidden" data-role-visible="grade_leader">
+        <span>年级主任视图 · 本年级范围</span>
+        <span>只显示本人负责年级（2026 级 高一）的异动记录；导出同样限本年级（<span class="mono">DS-05</span>）。</span>
+      </div>
+      <div class="alert info state-hidden" data-role-visible="homeroom">
+        <span>班主任视图 · 本班范围</span>
+        <span>只显示本人担任班主任的班级成员异动；可发起休学 / 复学等异动登记，退学与开除仍需校级管理员审批
+          （<span class="mono">DS-06</span> / <span class="mono">REQ-PRM-043</span>）。</span>
+      </div>
+      <div data-normal-view>
+        <div class="table-scroll">
+          <table class="el-table" id="ph-table" data-role="table" data-component="el-table" data-api="listEnrollmentChange"
+                 style="min-width:1200px;table-layout:fixed">
+            <thead>
+              <tr>
+                <th data-role="column" data-field="student_no" style="width:120px">学号</th>
+                <th data-role="column" data-field="student_name" style="width:90px">姓名</th>
+                <th data-role="column" data-field="change_type" style="width:96px">异动类型</th>
+                <th data-role="column" data-field="effective_date" style="width:110px">生效日期</th>
+                <th data-role="column" data-field="before_status" style="width:120px">原状态</th>
+                <th data-role="column" data-field="after_status" style="width:120px">新状态</th>
+                <th data-role="column" data-field="operator" style="width:110px">操作人</th>
+                <th data-role="column" data-field="reason" class="reason" style="width:270px">原因</th>
+                <th class="actions" style="width:120px">操作</th>
+              </tr>
+            </thead>
+            <tbody id="ph-rows">
+              <tr data-role="row" data-student="2026000003" data-type="suspend" data-grade="202601"
+                  data-keyword="陈思远 休学 2026-09-10">
+                <td class="mono">2026000003</td><td>陈思远</td>
+                <td><span class="el-tag warning">休学</span></td><td>2026-09-10</td>
+                <td><span class="el-tag success">在读</span></td><td><span class="el-tag warning">休学</span></td>
+                <td>邓丽娟<span class="cell-secondary">班主任</span></td>
+                <td>医院证明：休学一学期；保留行政班关系但不计入在读名单（BR-STU-012）</td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-student="2025000001" data-type="abroad" data-grade="202501"
+                  data-keyword="徐昊然 出国 2026-09-15">
+                <td class="mono">2025000001</td><td>徐昊然</td>
+                <td><span class="el-tag info">出国</span></td><td>2026-09-15</td>
+                <td><span class="el-tag success">在读</span></td><td><span class="el-tag info">出国</span></td>
+                <td>郑雅琴<span class="cell-secondary">教务主任</span></td>
+                <td>随家长出国，登记为「保留学籍」的非终态，回国后办理复学（REQ-PRM-045）</td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-student="2026000005" data-type="resume" data-grade="202601"
+                  data-keyword="周子涵 报到 2026-09-01">
+                <td class="mono">2026000005</td><td>周子涵</td>
+                <td><span class="el-tag primary">报到</span></td><td>2026-09-01</td>
+                <td><span class="el-tag warning">转入未报到</span></td><td><span class="el-tag success">在读</span></td>
+                <td>郑雅琴<span class="cell-secondary">教务主任</span></td>
+                <td>到校报到，指定 2026 级 高一 (2) 班；报到后计入在读名单（REQ-PRM-041）</td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-student="2026000001" data-type="enroll" data-grade="202601"
+                  data-keyword="王梓萱 报到入学 2026-09-01">
+                <td class="mono">2026000001</td><td>王梓萱</td>
+                <td><span class="el-tag primary">报到入学</span></td><td>2026-09-01</td>
+                <td><span class="cell-empty">—</span></td><td><span class="el-tag success">在读</span></td>
+                <td>系统<span class="cell-secondary">导入批次 IMP-20260920-0002</span></td>
+                <td>2026 级新生导入后报到入学；学号由系统统一发号（BR-STU-001）</td>
+                <td class="actions"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <span class="total" id="ph-page-total">共 34 条 · 当前第 1 页 · 每页 20 条（本页显示 4 行样例）</span>
+          <button class="pg" data-role="action" data-action-id="ACT-COM-006" data-component="pagination">1</button>
+          <button class="pg" data-role="action" data-action-id="ACT-COM-006" data-component="pagination">2</button>
+        </div>
+      </div>
+      <div class="legend" style="margin:8px 0 0">
+        <span>异动记录是<b>追加式</b>的：记录类型、生效日期、原因、操作人、原状态与新状态，不更新不删除
+          （<span class="mono">BR-PROMO-012</span> / <span class="mono">REQ-PRM-048</span>）；
+          登记入口唯一（学生详情抽屉内的异动登记弹窗），本页只做查询与导出。</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="state-hidden" data-demo-state-panel="loading">
+    <section class="card"><div class="card-body">
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:120px"></div><div class="skeleton-bar" style="width:200px"></div><div class="skeleton-bar" style="width:90px"></div></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:120px"></div><div class="skeleton-bar" style="width:200px"></div><div class="skeleton-bar" style="width:90px"></div></div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="empty">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">📭</div>
+        <div class="title">当前筛选条件下没有异动记录</div>
+        <div class="desc">筛选条件：异动类型 = 退学；学年学期 = 2026-2027 学年 第一学期（无匹配）。
+          另有一档空态是「本校还没有任何异动记录」，此时给「异动登记」入口。</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-COM-002" data-component="el-button.primary.plain">清空筛选条件</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="error">
+    <section class="card"><div class="card-body">
+      <div class="state-block error">
+        <div class="icon">⚠️</div>
+        <div class="title">查询失败</div>
+        <div class="desc">无法读取异动记录；重试不会放宽数据范围（仍按 DS-04 / 05 / 06 过滤）。</div>
+        <div class="req-id">请求编号 REQ-20261001-000901 · 错误码 EDU-TRF-5002 · 数据截止 2026-10-01 11:20</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-COM-005" data-component="el-button.primary.plain"
+                data-api="listEnrollmentChange" data-demo-message="已按当前条件重试查询。">重试</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="forbidden">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">🔒</div>
+        <div class="title">你没有查看异动历史的权限</div>
+        <div class="desc">异动历史需要 <span class="mono">enrollment.status:read</span>；无权限时不降级为全量（<span class="mono">DS-DENY-03</span>）。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="submitting">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⏳</div>
+        <div class="title">正在提交</div>
+        <div class="desc">导出等动作按钮已置 loading 并禁用；导出超 2000 行转异步任务。</div>
+      </div>
+    </div></section>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var READ_ROLES = ['super_admin', 'academic_director', 'school_leader', 'grade_leader', 'homeroom', 'platform_ops'];
+  function q(sel) { return document.querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function currentRole() { return window.PrototypeShell.currentRole(); }
+  function rows() { return qa('#ph-rows tr').filter(function (r) { return !r.classList.contains('role-hidden'); }); }
+
+  // 行内「查看学生」：异动记录本身不可编辑，只能跳去学生维度核对
+  function renderRowActions() {
+    qa('#ph-rows tr').forEach(function (row) {
+      var box = row.querySelector('td.actions');
+      box.innerHTML = '';
+      var btn = document.createElement('button');
+      btn.className = 'btn link';
+      btn.textContent = '查看学生';
+      btn.setAttribute('data-role', 'row-action');
+      btn.setAttribute('data-action-id', 'ACT-PRM-047');
+      btn.setAttribute('data-component', 'el-button.link.primary');
+      btn.setAttribute('data-permission', 'person.student:read');
+      btn.setAttribute('data-nav', 'PAGE-STU-LIST');
+      btn.setAttribute('data-role-visible', 'academic_director,school_leader,grade_leader,homeroom,platform_ops,super_admin');
+      box.appendChild(btn);
+    });
+  }
+
+  function applyFilter() {
+    var type = q('#ph-type').value;
+    var grade = q('#ph-grade').value;
+    var visible = 0;
+    qa('#ph-rows tr').forEach(function (row) {
+      var ok = true;
+      if (type && row.getAttribute('data-type') !== type) ok = false;
+      if (grade && row.getAttribute('data-grade') !== grade) ok = false;
+      row.classList.toggle('state-hidden', !ok);
+      if (ok && !row.classList.contains('role-hidden')) visible += 1;
+    });
+    q('#ph-page-total').textContent = '共 34 条 · 当前第 1 页 · 每页 20 条（本页显示 ' + visible + ' 行样例）';
+    q('#ph-total').textContent = '共 34 条异动记录';
+  }
+
+  function updateScopeHint() {
+    var hint = q('[data-role="scope-hint"]');
+    var role = currentRole();
+    if (role === 'grade_leader') { hint.textContent = '数据范围：本人负责年级（2026 级 高一 · DS-05）· 只读'; return; }
+    if (role === 'homeroom') { hint.textContent = '数据范围：本人担任班主任的班级（DS-06）'; return; }
+    if (role === 'platform_ops') { hint.textContent = '数据范围：平台运营协助视图 · 只读并留痕（DS-01）'; return; }
+    if (role === 'super_admin') { hint.textContent = '数据范围：全平台 · 不受限制 · 操作强制留痕（BR-ORG-014）'; return; }
+    if (role === 'school_leader') { hint.textContent = '数据范围：本校（DS-04）· 只读'; return; }
+    hint.textContent = '数据范围：本校 · 2026-2027 学年 第一学期（DS-04）';
+  }
+
+  document.addEventListener('click', function (event) {
+    if (event.target.closest('[data-action-id="ACT-COM-002"]')) {
+      q('#ph-type').value = ''; q('#ph-grade').value = ''; q('#ph-date').value = '';
+      applyFilter();
+      return;
+    }
+    if (event.target.closest('[data-action-id="ACT-COM-001"]')) { applyFilter(); return; }
+    var entry = event.target.closest('[data-action-id="ACT-PRM-046"]');
+    if (entry) {
+      // 登记入口唯一：跳到学生列表并直接打开异动登记弹窗（PAGE-PRM-CHANGE 是学生详情抽屉里的片段）
+      event.stopPropagation();
+      window.location.href = 'student-list.html#panel=' + entry.getAttribute('data-panel-hash');
+      return;
+    }
+  });
+  document.addEventListener('change', function (event) {
+    if (event.target.closest('[data-role="filter"]')) applyFilter();
+  });
+
+  var lastRole = '';
+  function applyRoleState(role) {
+    if (role === lastRole) return;
+    lastRole = role;
+    renderRowActions();
+    applyFilter();
+    if (READ_ROLES.indexOf(role) === -1) window.PrototypeShell.applyState('forbidden');
+    else if (window.PrototypeShell.currentState() === 'forbidden') window.PrototypeShell.applyState('normal');
+    updateScopeHint();
+  }
+
+  document.addEventListener('prototype:params', function (event) {
+    if (event.detail && event.detail.type !== undefined) { q('#ph-type').value = event.detail.type; applyFilter(); }
+  });
+
+  renderRowActions();
+  applyFilter();
+  updateScopeHint();
+  new MutationObserver(function () { applyRoleState(currentRole()); })
+    .observe(document.body, { attributes: true, attributeFilter: ['data-current-role'] });
+})();
+</script>
+</body>
+</html>
