@@ -21,11 +21,14 @@ prototypes/high-fidelity/v1/
   design-tokens.json     # 视觉 token（机器可读，权威值；阶段 6 搬进 apps/plus-ui）
   component-spec.md      # 组件规格（变体 / 尺寸 / 状态 / Element Plus 映射）
   component-mapping.yaml # 组件映射表（每个可交互元素 → Element Plus 组件与属性）
+  business-components.yaml # 业务组件清单（学生选择器、班级选择器… 与阶段 6 落点）
   visual-checklist.md    # 交批自查清单（32 条，含三档分辨率与可访问性）
   visual-spec.yaml       # 视觉规范的人类可读摘要（与 design-tokens.json 同源）
+  interaction-notes.md   # 交互说明：状态切换、加载、空态、错误、危险动作确认
   assets/hifi.css        # 高保真样式（token 落地；组件命名与阶段 2 一致）
   assets/hifi-shell.js   # 高保真外壳（侧边菜单 / 顶部导航 / 页签 / 演示面板 / 状态与角色引擎）
   pages/*.html           # 页面
+  screenshots/1366|1440|1920/*.png # 三档截图（45 页 × 3 档，headless Chrome 生成）
 ```
 
 ## 3. 与阶段 2 的关系（三条硬约束）

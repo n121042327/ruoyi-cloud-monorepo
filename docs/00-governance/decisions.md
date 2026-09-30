@@ -1777,6 +1777,35 @@
   `tools/gen_stage5_docs.py`，回滚 `schema.yaml` 的 4 处修订与 `file-catalog.md` 的阶段 5 状态行即可；
   阶段 1 / 2 / 3 / 4 与已合并的 main 不受影响（`schema.yaml` 未被上游引用）
 
+## D-089 收尾阶段 2 / 阶段 3 的目录清单缺口（业务组件清单、交互说明、三档截图）
+
+- 决策日期：2026-10-01
+- 起因：用户要求「一次性把剩下原型阶段的文件全部生成出来」。核对 `file-catalog.md` 阶段 2 / 阶段 3 后发现
+  13 行状态停留在 `planned`，逐项核实后分为「状态行过时」与「真实缺口」两类。
+- 核实结果：
+  - 状态行过时（文件已交付，只是没登记）：阶段 2 的 `page-specs/*.md`（45 个 + 模板）、
+    `pages/class-list.html`、`pages/class-detail.html`；阶段 3 的 `index.html`、`README.md`、
+    `design-tokens.json`、`component-spec.md`、`component-mapping.yaml`、`visual-checklist.md`、`pages/*.html`。
+    其中阶段 3 的行原本只写了裸文件名（`index.html`），`check_docs.py` 按仓库根解析会判定文件不存在，
+    一并改成相对仓库根的完整路径。
+  - 真实缺口 3 项：`business-components.yaml`、`interaction-notes.md`、`screenshots/` 三档截图。
+- 补齐动作：
+  - 新增 `prototypes/high-fidelity/v1/business-components.yaml`：15 个业务组件
+    （学生 / 班级 / 教师 / 学科 / 学期选择器、数据范围提示条、导入向导、任务进度、变更时间线、
+    危险动作确认等），每个给出 Element Plus 底层组件、属性、状态与阶段 6 落点；
+    `BC-DEMO-PANEL` 明确标注**不进入生产**。
+  - 新增 `prototypes/high-fidelity/v1/interaction-notes.md`：状态片段替换机制、角色与可编辑性、
+    加载 / 空态 / 错误（含错误码与请求编号）、危险动作二次确认、跨页跳转、三档分辨率、阶段 6 映射。
+  - 新增 `tools/capture_hifi_screenshots.ps1`（headless Chrome）并生成 45 页 × 3 档 = 135 张截图，
+    共约 12.8 MB；脚本保持纯 ASCII，避免 Windows PowerShell 5.1 按 ANSI 解析中文时语法报错。
+  - 同步更新 `prototypes/high-fidelity/v1/index.html` 与 `README.md`，让新增文件在入口可见。
+- 验证：`tools/capture_hifi_screenshots.ps1` 输出 `DONE captured=135 total=135`；
+  抽查 1366 与 1920 档截图，页面渲染完整（非空白、无布局错位）；`python tools/check_docs.py` 通过。
+- 未处理项：阶段 0 的 `.agents/skills/edu-*/SKILL.md` 仍为 `planned` ——
+  用户已明确「教育模块专用 Codex 技能不处理」，保持原状，不计入本阶段缺口。
+- 如果错了的代价：删除新增的 2 个文件、1 个脚本与 `screenshots/` 目录即可；
+  `screenshots/` 是纯验收证据，不影响原型页面与阶段 5 的任何产物。
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |
