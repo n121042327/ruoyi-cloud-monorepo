@@ -108,8 +108,8 @@
 | `class-list_state-submitting_1440x900.png` | 1440×900 | 状态 = 提交中 | 写操作按钮置 loading 并禁用 |
 | `class-list_state-partial_1440x900.png` | 1440×900 | 状态 = 部分失败 | 批量生成班级的部分冲突：6 条中 5 成功 1 冲突 |
 | `class-list_state-queued_1440x900.png` | 1440×900 | 状态 = 排队中 | 任务编号、队列位置、并发配额（`BR-IMP-015`） |
-| `class-list_verify-results.png` | 1500×1600 | 班级列表交互验证结果 | CL-01 ~ CL-37 共 37 条用例**全部通过** |
-| `verify-class-list.html` | — | 班级列表交互验证 harness | 同源 iframe + 真实事件派发跑 37 条断言（数据范围、行内入口、二次确认、七类状态），可重复执行 |
+| `class-list_verify-results.png` | 1500×1700 | 班级列表交互验证结果 | CL-01 ~ CL-39 共 39 条用例**全部通过**（含 GAP-046 的筛选级联 CL-38 / CL-39） |
+| `verify-class-list.html` | — | 班级列表交互验证 harness | 同源 iframe + 真实事件派发跑 39 条断言（数据范围、筛选级联、行内入口、二次确认、七类状态），可重复执行 |
 
 ## 2. 截图里的关键事实（验收时可直接核对）
 
@@ -138,6 +138,7 @@
 | 班级列表数据 | 12 行（`classes` 7 条 + `class_edge_cases` 5 条），分页显示「共 34 条」（取自 `list_totals.class_list_total`） |
 | 班级列表边界样本 | 空班 1（高二 (2) 班）、已停用 1（高三 (2) 班）、超容量 1（48 / 45）、超长班级名称 1、未指定班主任 2、教学班 1、毕业年级 2、他校 1 |
 | 班级列表角色形态 | 8 种（教务主任 / 年级主任 / 班主任 / 任课教师 / 校领导 / 租户管理员 / 平台运营 / 超级管理员），差异落在可见行数与行内入口上 |
+| 班级列表筛选级联 | 学校为第 1 级，校区 / 年级 / 班主任为第 2 级：本校 5 个年级 / 2 个校区 / 8 名班主任，他校 1 / 1 / 1（`GAP-046` 选项 A，规则见 `layout-spec.yaml` 的 `filter_cascade`） |
 | 班级列表数据范围实测 | 教务主任 11 行、年级主任 4 行（`DS-05`）、班主任 1 行（`DS-06`）、任课教师 3 行（`DS-07`）、校领导 11 行只读（`DS-04`）、租户管理员 11 行只读（`DS-02`）、平台运营他校 1 行（`DS-01`） |
 
 > 密度说明：`layout-spec.yaml` 原定"1440×900 可见 12 行"，批次 2-1 按三档实测修正为 8 行，
@@ -236,7 +237,7 @@ Start-Process $chrome -Wait -WindowStyle Hidden -ArgumentList @(
   "file:///D:/work/person_work/ruoyi-cloud-monorepo/evidence/stage2-prototype/verify-class-list.html")
 ```
 
-结果解读：最后一行为 `合计 37 / 37 条，通过 37 条，不通过 0 条 —— 全部通过`（CL-01 ~ CL-37）。
+结果解读：最后一行为 `合计 39 / 39 条，通过 39 条，不通过 0 条 —— 全部通过`（CL-01 ~ CL-39）。
 只取结论时可用 `--dump-dom` 代替截图：`& $chrome --headless=new ... --dump-dom <harness 路径> | Select-String 'class="sum'`。
 
 批次 2-3a 的截图命令（18 张，含 3 档分辨率、8 个角色形态、7 类状态与 2 个二次确认）：
@@ -332,7 +333,7 @@ $ python tools/check_docs.py
 | 动作清单 | `prototypes/functional/v1/page-actions.yaml` 的 `class_list` 组（`ACT-CLS-001` ~ `ACT-CLS-016`） |
 | 样例数据 | `prototypes/functional/v1/content-samples.json` 的 `classes`（补 `campus_id` / `campus_name`）、新增 `class_edge_cases`（5 条）、`list_totals.class_list_total` |
 | 变更单 | `docs/00-governance/change-requests/CR-009.md`（载体修正 + 5 项页面登记） |
-| 验证 harness | `evidence/stage2-prototype/verify-class-list.html`（37 条断言） |
+| 验证 harness | `evidence/stage2-prototype/verify-class-list.html`（39 条断言，含筛选级联 `CL-38` / `CL-39`） |
 
 ### 5.2 本批的工程决策（待确认，若不认可可回退）
 
@@ -356,3 +357,14 @@ $ python tools/check_docs.py
 | `GAP-045` | `campus_id` 与 `classroom` 未登记进字段字典（PRD 7.1 已列出） | 不补：`data-field` 无法回溯到字段字典，check 清单第 5 条不满足 |
 
 建议：走一次 `CR-010` 把 `GAP-043` ~ `GAP-045` 一起补完（与 `GAP-037` → `CR-005` 的做法一致），避免后续小批重复返工。
+
+### 5.4 `GAP-046`（筛选级联与校区检索入口）的落地（D-064）
+
+用户 2026-09-30 对「就按 A 改」答复「同意」，按选项 A 执行：
+
+| 事项 | 落地 |
+|---|---|
+| 统一级联规则 | 写进 `prototypes/functional/v1/layout-spec.yaml` 的 `filter_cascade`（链路、四条规则、入口清单）与 `page-actions.yaml` 的 `state_rules` |
+| 参考实现 | `pages/class-list.html`：学校为第 1 级，校区 / 年级 / 班主任为第 2 级；切学校后第 2 级只列该校选项、失效值清空；页头「共 N 个班级」与分页总数同步（`CL-38` 他校 2/2/2 项 + 共 6 个班级、`CL-39` 本校 6/3/10 项） |
+| 校区检索入口 | `navigation.yaml` 的 `jump_map` 新增 `PAGE-SCH-LIST` 行内「校区数」→ `PAGE-SCH-CAMPUS`，复用批次 2-6 的校区管理页，不新增页面 |
+| 待对齐 | 已交付的学生列表、年级列表、教师列表的筛选级联在各自下一批对齐（`GAP-047`，Codex 自有非阻塞项） |

@@ -277,6 +277,34 @@
       });
     },
     function (next) {
+      setRole('platform_ops', function () {
+        setFilter('f-school', '202');
+        win().setTimeout(function () {
+          var g = doc().getElementById('f-grade');
+          var c = doc().getElementById('f-campus');
+          var h = doc().getElementById('f-head');
+          var gradeText = g.options.length > 1 ? g.options[1].textContent.trim() : '';
+          var headTotal = doc().getElementById('head-total').textContent.trim();
+          rec('CL-38', '筛选级联（GAP-046 选项 A）：平台运营切到他校后，年级 / 校区 / 班主任下拉只剩该校数据，页头总数同步',
+            g.options.length === 2 && c.options.length === 2 && h.options.length === 2
+            && gradeText.indexOf('2026 级 初一') !== -1 && headTotal.indexOf('共 6 个班级') !== -1,
+            '年级 ' + g.options.length + ' 项（' + gradeText + '） / 校区 ' + c.options.length + ' 项 / 班主任 '
+            + h.options.length + ' 项 / ' + headTotal);
+          setFilter('f-school', '201');
+          win().setTimeout(function () {
+            rec('CL-39', '回到本校后下拉恢复为本校范围（年级 5 项 + 全部、校区 2 项 + 全部、班主任 8 人 + 未指定 + 全部）',
+              doc().getElementById('f-grade').options.length === 6
+              && doc().getElementById('f-campus').options.length === 3
+              && doc().getElementById('f-head').options.length === 10,
+              '年级 ' + doc().getElementById('f-grade').options.length + ' / 校区 '
+              + doc().getElementById('f-campus').options.length + ' / 班主任 '
+              + doc().getElementById('f-head').options.length);
+            next();
+          }, 120);
+        }, 140);
+      });
+    },
+    function (next) {
       switchRole('超级管理员', function () {
         var btns = toolButtons();
         var ids = actionsOf(rowOf('高一 (1) 班'));
@@ -526,7 +554,7 @@
     }
   ];
 
-  var EXPECTED = 37;
+  var EXPECTED = 39;
 
   function render() {
     var ol = document.getElementById('results');

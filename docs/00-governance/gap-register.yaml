@@ -1345,6 +1345,32 @@ gaps:
     blocking: false
     blocks_stages: [stage3, stage6]
     owner: 用户
+    resolution: "裁决 A（2026-09-30 用户对「就按 A 改」答复「同意」）：统一级联规则 + 校区补检索入口。经落地：layout-spec.yaml 新增 filter_cascade（链路 school → campus/grade/class → student、四条规则、入口清单），page-actions.yaml 的 state_rules 同步；班级列表页作为参考实现（学校为第 1 级，校区/年级/班主任为第 2 级，失效值清空为「全部」，页头总数与分页同步），verify-class-list 的 CL-38 / CL-39 实测通过；navigation.yaml 的 jump_map 新增 PAGE-SCH-LIST 行内「校区数」→ PAGE-SCH-CAMPUS（复用批次 2-6 的校区管理页，不新增页面）。已交付的学生 / 年级 / 教师列表的级联对齐登记为 GAP-047。"
+    resolved_at: "2026-09-30"
+    status: closed
+
+  - id: GAP-047
+    title: 已交付的学生 / 年级 / 教师列表尚未按 GAP-046 的级联规则收窄筛选选项
+    discovered_at: 2026-09-30
+    discovered_by: GAP-046 选项 A 的执行
+    evidence: |
+      layout-spec.yaml 的 filter_cascade 已定：上级（学校）变化后，下级下拉只列该上级范围内的数据。
+      参考实现是批次 2-3a 的班级列表页（CL-38 / CL-39 实测）。
+      批次 2-1 的学生列表、2-2a / 2-2b 的教师列表、2-2b-2b 的年级列表在交付时没有级联：
+      平台运营切到他校时，这些页面的学段 / 年级 / 班级 / 学年学期下拉仍是全量选项。
+    impact: |
+      平台运营在年级 / 教师 / 学生列表切到他校后，下拉里会出现本校选项，选错会得到空结果，
+      与班级列表的形态不一致。学校用户不受影响（学校下拉禁用，只有一个学校）。
+    options:
+      - A 在各自模块的下一批对齐（学生列表随 2-5、年级列表随下一次修改、教师列表随下一次修改）（推荐）
+      - B 立刻回改三个已验收页面，并把三个 harness 一起重跑
+    recommended: |
+      选项 A。理由：这三个页面已验收交付，回改需要同时重跑 3 个 harness（GL-01 ~ GL-38、学生列表与教师列表的断言），
+      而它们的功能不因级联缺失而错误（只是下拉选项偏多）；按批次对齐可以把改动与验收成本压到一个批次里。
+      选项 B 的代价是本次改动面扩大到 3 个已验收页面 + 3 份证据重拍。
+    blocking: false
+    blocks_stages: []
+    owner: Codex
     status: open
 
 open_questions_for_user:
@@ -1390,3 +1416,5 @@ open_questions_for_user:
   - "顺手修正：grade-list.html 的 5 处与 teacher-assign.html 的 1 处弹窗内样式钩子由 drawer-header 改回 dialog-header（CR-008 已定「弹窗内用 dialog-*」，这两处是遗漏）。"
   - "GAP-043、GAP-044、GAP-045 已关闭（用户 2026-09-30 答复「1a2a3a」，三项均取推荐方案 A），经 CR-010 执行完毕：任课教师补 org.class 读权限、登记 class_status 枚举（在读 / 已停用）与 class_status / campus_id / classroom 三个字段、班级 PRD 升 1.0.4-draft，见 D-063。"
   - "新增 GAP-046（用户提问「可以根据学校来检索校区、年级、班级、学生吗」触发）：年级 / 班级 / 学生三层已能按学校检索（REQ-GRD-002 / REQ-CLS-002 / REQ-STU-002），校区没有跨校清单入口（只能从学校详情进），且「选学校后下级下拉是否收窄」的级联规则未定义。推荐选项 A：统一级联规则 + 学校管理列表的「校区数」做成可点入口（复用 PAGE-SCH-CAMPUS，不新增页面）。"
+  - "GAP-046 已关闭（用户 2026-09-30 对「就按 A 改」答复「同意」）：layout-spec.yaml 新增 filter_cascade 规则、班级列表页作为参考实现（CL-38 / CL-39 实测通过）、学校管理列表的「校区数」登记为校区检索入口（PAGE-SCH-LIST → PAGE-SCH-CAMPUS，复用批次 2-6 的页面，不新增），见 D-064。"
+  - "新增 GAP-047（Codex 自有非阻塞项）：已交付的学生 / 年级 / 教师列表尚未按 filter_cascade 收窄筛选选项，按各自模块的下一批对齐；不阻塞批次 2-3。"

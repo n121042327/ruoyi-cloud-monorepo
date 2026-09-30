@@ -65,7 +65,7 @@
   <div class="page-head">
     <h1>班级管理</h1>
     <span class="scope-hint" data-role="scope-hint">数据范围：本校 · 2026-2027 学年 第一学期全部班级</span>
-    <span class="el-tag primary">共 34 个班级</span>
+    <span class="el-tag primary" id="head-total">共 34 个班级</span>
     <span class="el-tag info" id="head-summary">本页样例 12 行 · 在读 187 人 · 超容量 1 个</span>
     <span class="el-tag info">列表数据截止 2026-09-30 10:20</span>
   </div>
@@ -604,6 +604,53 @@
   function cellText(row, index) { return row.children[index].textContent.replace(/\s+/g, ' ').trim(); }
   function currentRole() { return window.PrototypeShell.currentRole(); }
 
+  /* ---------------- 4.1 筛选级联（GAP-046 选项 A）
+     规则：上级选中后，下级下拉只列该上级范围内的数据；上级值失效时下级回到「全部」。
+     本校用户只有一个学校（下拉禁用），级联只在能切学校的角色（平台运营 / 超级管理员）下可见。
+     参考实现：本页；其余列表页（学生 / 年级 / 教师）在各自下一批对齐。 */
+
+  function option(value, text) {
+    var o = el('option', null, text);
+    o.value = value;
+    return o;
+  }
+
+  function fillSelect(sel, pairs, allLabel, current) {
+    var node = q(sel);
+    var values = Object.keys(pairs);
+    node.innerHTML = '';
+    node.appendChild(option('', allLabel));
+    values.forEach(function (v) { node.appendChild(option(v, pairs[v])); });
+    node.value = values.indexOf(current) !== -1 ? current : '';
+  }
+
+  function rebuildFilterOptions() {
+    var school = q('#f-school').value;
+    var grades = {};
+    var campuses = {};
+    var heads = {};
+    var hasNone = false;
+    qa('#class-rows tr').forEach(function (row) {
+      if (row.getAttribute('data-school') !== school) return;
+      var g = row.getAttribute('data-grade');
+      if (g && !grades[g]) grades[g] = row.children[1].textContent.trim();
+      var c = row.getAttribute('data-campus');
+      if (c && !campuses[c]) campuses[c] = row.children[6].textContent.trim();
+      var h = row.getAttribute('data-head');
+      if (h === '__none') hasNone = true;
+      else if (h && h !== '__teach_none' && !heads[h]) heads[h] = row.children[3].textContent.trim();
+    });
+    fillSelect('#f-grade', grades, '全部年级', q('#f-grade').value);
+    fillSelect('#f-campus', campuses, '全部校区', q('#f-campus').value);
+    var headSel = q('#f-head');
+    var currentHead = headSel.value;
+    headSel.innerHTML = '';
+    headSel.appendChild(option('', '全部'));
+    if (hasNone) headSel.appendChild(option('__none', '未指定班主任'));
+    Object.keys(heads).sort().forEach(function (name) { headSel.appendChild(option(name, name)); });
+    headSel.value = (currentHead === '__none' && hasNone) || heads[currentHead] ? currentHead : '';
+  }
+
   /* ---------------- 1. 行内操作列：按角色与班级状态渲染 ---------------- */
 
   function renderRowActions(row, role) {
@@ -756,6 +803,7 @@
 
   function applyFilter() {
     var school = q('#f-school').value;
+    rebuildFilterOptions();
     var term = q('#f-term').value;
     var grade = q('#f-grade').value;
     var type = q('#f-type').value;
@@ -794,6 +842,8 @@
       }
     });
 
+    document.getElementById('head-total').textContent =
+      '共 ' + (school === '201' ? 34 : 6) + ' 个班级';
     document.getElementById('pg-total').textContent =
       '共 ' + (school === '201' ? 34 : 6) + ' 条 · 当前第 1 页 · 每页 20 条（本页显示 ' + visible + ' 行样例）';
     document.getElementById('head-summary').textContent =
