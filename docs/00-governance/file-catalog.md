@@ -41,6 +41,9 @@
 | `docs/00-governance/change-requests/CR-001.md` | 变更申请：修正已冻结模块的范围划分章节引用（已批准并执行） | `review` |
 | `docs/00-governance/change-requests/CR-002.md` | 变更申请：把数据共享授权的对象限定为教学资源（题库习题、试卷），同步改写 2 条验收用例 | `review` |
 | `docs/00-governance/change-requests/CR-003.md` | 变更申请：补齐敏感字段权限点归属、学生照片、批量导出与批量调班、字段字典补登记、学号修改口径（用户已批准） | `review` |
+| `docs/00-governance/change-requests/CR-004.md` | 变更申请：补齐教师模块字段字典并统一「校领导」对教师主体只读口径（已批准并执行） | `review` |
+| `docs/00-governance/change-requests/CR-005.md` | 变更申请：补齐年级模块的权限口径与字段字典（待批准，关联 GAP-034 ~ GAP-037） | `review` |
+| `docs/00-governance/change-requests/CR-006.md` | 变更申请：新增系统超级管理员角色 `super_admin`（已批准并执行，关联 D-057 / BR-ORG-014） | `review` |
 | `docs/00-governance/traceability.yaml` | 追踪矩阵骨架 | `review` |
 | `docs/00-governance/task-packet.md` | 任务包模板 | `review` |
 | `docs/00-governance/baseline-manifest.schema.json` | 冻结清单 Schema | `review` |
@@ -128,8 +131,18 @@
 | `prototypes/functional/v1/page-specs/teacher-assign.md` | 任教关系设置独立页页面规格（双栏：班级视角 / 教师视角） | `review` |
 | `prototypes/functional/v1/pages/teacher-assign.html` | 任教关系设置（独立页，批次 2-2b-2） | `review` |
 | ~~`prototypes/functional/v1/pages/student-form.html`~~ | 已由 `pages/student-list.html` 内的 `data-demo-panel="PAGE-STU-CREATE" / "PAGE-STU-EDIT"` 浮层片段取代，不再单独出文件 | `waived` |
-| `prototypes/functional/v1/pages/teacher-assign.html` | 任教关系设置（独立页，双栏教师视角 / 班级视角，批次 2-2b-2） | `planned` |
-| `prototypes/functional/v1/pages/grade-list.html` | 年级管理列表 | `planned` |
+| `prototypes/functional/v1/pages/grade-list.html` | 年级管理列表（批次 2-2b-2b 样板页）+ 删除年级二次确认浮层片段 `DIALOG-GRD-DELETE` | `review` |
+| `prototypes/functional/v1/page-specs/grade-list.md` | 年级管理列表页面规格（字段 / 动作 / 状态 / 权限 / 样例数据 / 自查） | `review` |
+| `prototypes/functional/v1/page-specs/grade-detail.md` | 年级详情抽屉页面规格（5 分区、两种样本） | `review` |
+| `prototypes/functional/v1/page-specs/grade-create.md` | 新建 / 编辑年级弹窗页面规格（一窗两态、字段级只读） | `review` |
+| `prototypes/functional/v1/page-specs/grade-batch.md` | 按学段批量生成弹窗页面规格（预览与冲突跳过） | `review` |
+| `prototypes/functional/v1/page-specs/grade-leader.md` | 指定年级主任弹窗页面规格（任职清单、四条保存前检查） | `review` |
+| `prototypes/functional/v1/page-specs/grade-archive.md` | 归档确认弹窗页面规格（引用情况、原因必填） | `review` |
+| `docs/00-governance/change-requests/CR-007.md` | 变更申请：统一浮层载体为弹窗，与 apps/plus-ui 一致（已批准并执行，关联 D-058） | `review` |
+| `docs/00-governance/change-requests/CR-008.md` | 变更申请：表单类改弹窗、详情类保留抽屉、含表格改独立页（已批准并执行，关联 GAP-039 / D-059） | `review` |
+| `evidence/stage2-prototype/verify-carrier-change.html` | 载体变更回归 harness（14 条断言：表单是弹窗、详情仍是抽屉、弹窗内无 drawer-* 钩子） | `review` |
+| `evidence/stage2-prototype/verify-grade-list.html` | 年级列表交互验证 harness（同源 iframe + 真实事件派发，22 条断言） | `review` |
+| `evidence/stage2-prototype/interaction-verification.md` | 原型交互可点性验证报告（含批次 2-2b-2b 的 GL-01 ~ GL-22 实测结果） | `review` |
 | `prototypes/functional/v1/pages/class-list.html` | 班级管理列表 | `planned` |
 | `prototypes/functional/v1/pages/class-detail.html` | 班级详情与花名册 | `planned` |
 | `prototypes/functional/v1/pages/promotion-wizard.html` | 升班向导 | `planned` |

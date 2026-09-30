@@ -6,6 +6,15 @@ purpose: |
   两者都必须通过才允许执行。数据范围模型详见 08-data-scope-model.md。
 
 roles:
+  - code: super_admin
+    name: 系统超级管理员
+    home: system
+    default_data_scope: platform
+    note: |
+      系统内置账号，不属于任何业务租户，由平台在部署时创建并按需授予（BR-ORG-014）。
+      不受租户隔离、数据范围与功能权限限制，可执行全部功能；因此禁止用于日常业务操作。
+      所有访问与写操作仍强制写审计（BR-AUDIT-001），审计不可关闭。
+
   - code: platform_ops
     name: 平台运营
     home: platform
@@ -143,6 +152,37 @@ resources:
 actions: [read, create, update, delete, export, approve, import]
 
 matrix:
+  # 系统超级管理员
+  - role: super_admin
+    entries:
+      - { resource: org.tenant, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: org.school, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: org.term, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: org.subject, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: org.grade, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: org.class, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: org.teaching_class, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: person.student, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: person.student_guardian, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: person.student_contact, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: person.teacher, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: person.teaching_assignment, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: enrollment.status, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: enrollment.transfer, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: promotion.batch, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: stream.selection, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: stream.change_request, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: stream.config, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: data.import, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: data.export, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: data.async_task, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: audit.log, actions: [read, create, update, delete, export, approve, import] }
+    data_scope: platform
+    note: |
+      全部资源、全部操作、全平台数据范围；数据范围解析直接放行（DP-07），不按 DS-01 ~ DS-07 收窄。
+      仍然写审计：访问留痕 + 写操作变更前后值，见 BR-AUDIT-001 与 BR-AUDIT-002。
+      与运营方租户的运营人员（platform_ops）是两类主体：platform_ops 仍按查看 / 修改 / 导出分别授权。
+
   # 平台运营
   - role: platform_ops
     entries:
@@ -171,7 +211,7 @@ matrix:
       - { resource: org.school, actions: [read, create, update] }
       - { resource: org.term, actions: [read, create, update] }
       - { resource: org.subject, actions: [read, create, update] }
-      - { resource: org.grade, actions: [read, create, update] }
+      - { resource: org.grade, actions: [read, create, update, delete], condition: delete 仅在年级下无班级且无学生关系时可用 }
       - { resource: org.class, actions: [read] }
       - { resource: person.teacher, actions: [read, create, update] }
       - { resource: person.teaching_assignment, actions: [read, create, update] }
@@ -188,7 +228,7 @@ matrix:
     entries:
       - { resource: org.term, actions: [read] }
       - { resource: org.subject, actions: [read] }
-      - { resource: org.grade, actions: [read, create, update] }
+      - { resource: org.grade, actions: [read], condition: 校领导对本模块只读，年级主任任职的变更走审批（GAP-034 裁决 B，CR-005） }
       - { resource: org.class, actions: [read] }
       - { resource: org.teaching_class, actions: [read] }
       - { resource: person.student, actions: [read] }
@@ -206,7 +246,7 @@ matrix:
   # 教务主任
   - role: academic_director
     entries:
-      - { resource: org.grade, actions: [read, create, update] }
+      - { resource: org.grade, actions: [read, create, update, delete], condition: delete 仅在年级下无班级且无学生关系时可用 }
       - { resource: org.class, actions: [read, create, update, delete] }
       - { resource: org.teaching_class, actions: [read, create, update, delete] }
       - { resource: person.student, actions: [read, create, update] }
@@ -228,6 +268,7 @@ matrix:
   # 年级主任
   - role: grade_leader
     entries:
+      - { resource: org.grade, actions: [read], condition: 仅本人负责的年级（DS-05） }
       - { resource: org.class, actions: [read, create, update] }
       - { resource: person.student, actions: [read, create, update] }
       - { resource: person.student_contact, actions: [read, update] }
@@ -246,6 +287,7 @@ matrix:
   # 班主任
   - role: homeroom
     entries:
+      - { resource: org.grade, actions: [read], condition: 仅本班所属年级（DS-06） }
       - { resource: org.class, actions: [read] }
       - { resource: person.student, actions: [read] }
       - { resource: person.student_guardian, actions: [read, update] }
@@ -270,6 +312,7 @@ matrix:
   # 任课教师
   - role: subject_teacher
     entries:
+      - { resource: org.grade, actions: [read], condition: 仅任教班级所属年级的年级摘要（DS-07） }
       - { resource: person.student, actions: [read], condition: 仅任教班级的必要基本资料 }
       - { resource: org.teaching_class, actions: [read] }
       - { resource: person.student_contact, actions: [] }
@@ -395,6 +438,12 @@ resolved_questions:
     question: 家长账号是否在首轮建立？
     answer: 数据模型与表在首轮建立，端不实现；表进入首轮迁移脚本
     applied_to: guardian 的 status 与 D-033、GAP-017
+    resolved_at: 2026-09-30
+  - id: PM-Q-008
+    question: 系统是否需要能力不受限的超级管理员？
+    answer: 需要。新增系统内置角色 super_admin（超级管理员），拥有全部资源与全部操作与全平台数据范围；数据范围解析直接放行（DP-07），但仍强制写审计
+    applied_to: roles.super_admin / matrix.super_admin / BR-ORG-014 / DP-07
+    source: CR-006（2026-09-30 用户指示「增加超级管理员用户，可以做任意事、所有权限、所有功能、所有角色」）
     resolved_at: 2026-09-30
 
 open_questions: []

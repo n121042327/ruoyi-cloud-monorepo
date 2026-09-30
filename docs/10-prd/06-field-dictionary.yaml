@@ -243,6 +243,13 @@ enums:
       - { code: transferred_out, label: 调离 }
     note: 教师在职状态。离职与调离必须填写生效日期与原因，且不再出现在任教关系选择项中（BR-TEACHER-006）
 
+  - name: grade_status
+    name_cn: 年级状态
+    entries:
+      - { code: studying, label: 在读 }
+      - { code: archived, label: 已归档 }
+    note: 年级状态。归档后不在新建班级的可选列表中，历史数据与统计仍可查（BR-GRADE-005、REQ-GRD-029）
+
 fields:
   - { name: student_no, cn: 学号, type: varchar(32), required: true, unique_scope: platform, br: BR-STU-001, format: "入学年份(4) + 全局序号(6)", note: 系统统一发号；永不回收；导入时忽略源学号；修改需校级管理员且留审计 }
   - { name: national_student_no, cn: 全国学籍号, type: varchar(64), required: false, unique_scope: platform, br: BR-STU-022, note: 官方 G / L 开头号码，允许为空，非空时全平台唯一 }
@@ -325,6 +332,14 @@ fields:
   - { name: class_school_id, cn: 任教所在学校, type: bigint, required: false, br: BR-TEACHER-002, note: 跨校任教时与 school_id 不同；两校各自只看到本校范围内的任教明细 }
   - { name: weekly_hours, cn: 周课时, type: decimal(4,1), required: false, note: 任教工作量；用于任课班级数与课时统计 }
   - { name: teaching_assignment_id, cn: 任教关系 ID, type: bigint, required: false, br: BR-TEACHER-003, note: edu_teaching_assignment 主键；失效后保留历史，不做物理删除 }
+
+  # ---- 年级模块（CR-005 / GAP-037 补登记，2026-09-30） ----
+  - { name: grade_status, cn: 年级状态, type: varchar(16), required: true, enum_ref: grade_status, br: BR-GRADE-005, note: 归档后为已归档；年级禁止物理删除（REQ-GRD-030） }
+  - { name: class_count, cn: 班级数, type: int, required: false, note: 统计值，受数据范围约束（REQ-GRD-006、DS-DENY-08） }
+  - { name: student_count, cn: 在读学生数, type: int, required: false, note: 统计值，口径与班级模块的在读人数一致（REQ-GRD-009） }
+  - { name: leader_user_id, cn: 年级主任用户 ID, type: bigint, required: false, br: BR-GRADE-004, note: edu_grade_leader.user_id；同一学年学期同一年级同一人只允许一条任职 }
+  - { name: leader_status, cn: 年级主任任职状态, type: varchar(16), required: false, note: 生效中 / 已解除；解除后保留历史记录，不做物理删除 }
+  - { name: expire_date, cn: 任职失效日期, type: date, required: false, note: 学年切换时写入；与 effective_date 组成任职区间（REQ-GRD-027） }
 
 unique_keys:
   - { table: edu_student, columns: [student_no], br: BR-STU-001, note: 学号全平台唯一，由系统统一发号，序号按年重置 }

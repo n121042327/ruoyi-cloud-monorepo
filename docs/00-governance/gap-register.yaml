@@ -876,7 +876,7 @@ gaps:
     blocking: false
     blocks_stages: [stage2, stage6]
     owner: 用户
-    resolution: "裁决 A（2026-09-30 用户同意推荐）：一次补全教师模块字段。经 CR-004 执行：06-field-dictionary.yaml 新增 employment_status 枚举与 13 个字段（teacher_id、school_id、teacher_phone、email、hire_date、employment_status、grade_id、term_id、subject_id、class_id、class_school_id、weekly_hours、teaching_assignment_id）；teacher_phone 标 sensitive 并写入权限矩阵的 sensitive_fields；原型新增 / 编辑抽屉的 data-field 由 status 改为 employment_status，四份教师页面规格的自查项转为满足。"
+    resolution: "裁决 A（2026-09-30 用户同意推荐）：以 05-permission-matrix.yaml 为准，校领导对教师主体只读。经 CR-004 执行：教师 PRD 4.4 的字段级可编辑性矩阵改为校领导全列只读；REQ-TCH-022 的「校级管理员」映射为 tenant_admin；权限矩阵新增 field_level_permissions.write_field_admin（granted_roles: [tenant_admin]，applies_to: person.teacher.teacher_no 与 person.teacher.hire_date）。原型按此实现：列表行内「编辑」、详情页「编辑」、角色分配入口都不对校领导渲染。"
     resolved_at: "2026-09-30"
     status: closed
 
@@ -903,9 +903,205 @@ gaps:
     blocking: false
     blocks_stages: [stage2, stage5, stage6]
     owner: 用户
-    resolution: ""
-    resolved_at: ""
-    status: open
+    resolution: "裁决 A（2026-09-30 用户同意推荐）：一次补全教师模块字段。经 CR-004 执行：06-field-dictionary.yaml 新增 employment_status 枚举与 13 个字段（teacher_id、school_id、teacher_phone、email、hire_date、employment_status、grade_id、term_id、subject_id、class_id、class_school_id、weekly_hours、teaching_assignment_id）；teacher_phone 标为敏感字段并写入权限矩阵的 sensitive_fields；原型新增 / 编辑抽屉的 data-field 由 status 改为 employment_status，四份教师页面规格的自查项转为满足。"
+    resolved_at: "2026-09-30"
+    status: closed
+
+  - id: GAP-034
+    title: 校领导对 org.grade 的写权限冲突（年级 PRD 写只读，权限矩阵写可写）
+    discovered_at: 2026-09-30
+    discovered_by: 批次 2-2b-2b 编写 PAGE-GRD-LIST 页面规格前的公共前置反查
+    evidence: |
+      docs/10-prd/modules/grade/PRD.md 第 2.1 节（第 91 行）把校领导写为「只读全部，审批年级主任变更」；
+      同文件第 2.3 节场景覆盖矩阵（第 107 行起）的 SCN-GRADE-01 一行，校领导一列为「审批」；
+      第 5.2 节数据范围表（第 253 行）把「校领导 / 教务主任」并列，落地方式同为本校全部年级（DS-04）。
+      但 docs/10-prd/05-permission-matrix.yaml 第 191 行，school_leader 的 org.grade 为 [read, create, update]，
+      即校领导可以新增、编辑、批量生成年级。
+      两份都是已冻结的文档，互相不一致。
+    impact: |
+      原型：PAGE-GRD-LIST 工具条的「新增」「按学段批量生成」与行内「编辑」「归档」是否对校领导渲染，
+      以及 PAGE-GRD-CREATE / PAGE-GRD-BATCH / PAGE-GRD-LEADER / PAGE-GRD-ARCHIVE 四个浮层对校领导是否可见，都无法确定。
+      阶段 6：生产前端的 v-hasPermi 与浮层入口会照抄错误的一方。
+      阶段 5：不影响表结构。
+      阶段 8：AC-GRD-005（年级主任看不到新增与归档、教务主任可见）之外，校领导一行会出现两个答案。
+    options:
+      - A 以权限矩阵为准，校领导可维护年级，用一次 CR 把年级 PRD 第 2.1 节的「只读全部」改为「可维护年级，并审批年级主任变更」
+      - B 以年级 PRD 为准，校领导对 org.grade 只读，用一次 CR 把权限矩阵 school_leader 的 org.grade 收为 [read]
+      - C 折中，校领导可改年级名称等非结构性字段，学段与学段内序号与入学年份仍只读，需要把字段级权限正式纳入权限模型，成本最高
+    recommended: |
+      选项 B。理由是与 GAP-032 已裁决的口径一致（校领导审核而非录入，见 CR-004 第 3 节），
+      也与 D-042「每个字段只有一个写入入口」一致；只需改一行矩阵，不动 PRD 的业务语义。
+      若选 A，年级模块会成为全平台唯一由校领导直接录入组织数据的模块，与其他模块口径不一致。
+    blocking: true
+    blocks_stages: [stage2, stage6, stage8]
+    owner: 用户
+    resolution: "裁决 B（2026-09-30 用户答复「同意」）：以年级 PRD 为准，校领导对 org.grade 只读，年级主任任职的变更走审批。经 CR-005 执行：05-permission-matrix.yaml 的 school_leader 对 org.grade 由 [read, create, update] 收为 [read] 并加条件说明；年级 PRD 2.1 补口径说明；AC-GRD-005 的期望结果补入校领导只读。原型按此实现：校领导在本页只有导出入口，操作列显示只读。"
+    resolved_at: "2026-09-30"
+    status: closed
+
+  - id: GAP-035
+    title: 年级主任与班主任与任课教师对 org.grade 的读权限未在权限矩阵定义
+    discovered_at: 2026-09-30
+    discovered_by: 批次 2-2b-2b 编写 PAGE-GRD-LIST 页面规格前的公共前置反查
+    evidence: |
+      docs/10-prd/05-permission-matrix.yaml 中，grade_leader（第 230 行起）、homeroom（第 248 行起）、
+      subject_teacher（第 272 行起）三个角色的 entries 里都没有 org.grade 条目，即按矩阵它们对年级没有任何功能权限。
+      但 docs/10-prd/modules/grade/PRD.md 第 2.1 节（第 93 行）写「年级主任 只读本人负责的年级信息」，
+      第 5.2 节（第 254、255 行）写「年级主任 DS-05 通过 edu_grade_leader 解析负责年级」「班主任 / 任课教师 DS-06 / DS-07 只读年级摘要」，
+      docs/10-prd/08-data-scope-model.md 第 23 至 25 行同样定义了 DS-05 / DS-06 / DS-07 三层范围。
+      modules/grade/acceptance.md 的 AC-GRD-005、AC-GRD-105、AC-GRD-106、AC-GRD-107 也都在验证「年级主任与班主任能按范围读到年级、越界返回空」。
+      两份都是已冻结的文档，互相不一致。
+    impact: |
+      原型：左侧菜单「年级管理」对年级主任 / 班主任 / 任课教师是否出现；PAGE-GRD-LIST 对这三个角色渲染还是不渲染；
+      「至少两种角色形态」的对照角色能不能选年级主任。
+      阶段 6：路由与菜单的权限点、v-hasPermi 无法确定。
+      阶段 8：AC-GRD-105 / 106 / 107 三条数据范围用例无法判定通过与否。
+    options:
+      - A 给 grade_leader 与 homeroom 与 subject_teacher 各补 org.grade 的 read，数据范围分别按 DS-05 / DS-06 / DS-07 收窄，用一次 CR 改权限矩阵
+      - B 维持矩阵现状，年级列表只对平台运营与租户管理员与校领导与教务主任开放，用一次 CR 改年级 PRD 第 2.1 与 2.3 节并同步删改 acceptance 的 AC-GRD-005 / 105 / 106 / 107
+      - C 只给年级主任补 org.grade 的 read，班主任与任课教师不出现年级菜单，年级信息只从班级与学生模块间接看
+    recommended: |
+      选项 A。理由是 PRD 与验收用例已经是这个口径，且年级本身就是数据范围的第四层（DS-05），
+      若年级主任读不到自己负责的年级，DS-05 这条范围在原型与生产端都没有落点；
+      三个角色的读范围由数据权限层收窄即可，不需要额外的功能权限设计。
+    blocking: true
+    blocks_stages: [stage2, stage6, stage8]
+    owner: 用户
+    resolution: "裁决 A（2026-09-30 用户答复「同意」）：三个角色各补 org.grade 的 read，范围按 DS-05 / DS-06 / DS-07 收窄。经 CR-005 执行：05-permission-matrix.yaml 的 grade_leader / homeroom / subject_teacher 各新增一条带 condition 的 org.grade read；年级 PRD 5.2 与原型页头的数据范围提示按同一口径渲染（GL-05 / GL-06 实测通过）。"
+    resolved_at: "2026-09-30"
+    status: closed
+
+  - id: GAP-036
+    title: 年级的删除入口缺少权限点与页面登记（PRD 要求可删空年级，权限矩阵与页面清单都没有）
+    discovered_at: 2026-09-30
+    discovered_by: 批次 2-2b-2b 编写 PAGE-GRD-LIST 页面规格前的公共前置反查
+    evidence: |
+      docs/10-prd/modules/grade/PRD.md 第 4.6 节把能力命名为「归档与删除」，
+      REQ-GRD-028（第 213 行）要求「年级下存在班级或学生关系时不允许删除，只允许归档」，
+      REQ-GRD-031（第 216 行）要求「删除与归档必须二次确认并填写原因」，
+      第 8 节接口清单（第 345 行）给出 removeGrade 的 DELETE /edu/grade/{id}「逻辑删除」。
+      modules/grade/acceptance.md 的 AC-GRD-028 期望「对空年级执行删除成功」。
+      但 docs/10-prd/05-permission-matrix.yaml 的 org.grade 授权里没有任何角色持有 delete；
+      modules/grade/PRD.md 第 6.1 节页面清单（第 275 至 280 行）也没有删除入口；
+      prototypes/functional/v1/navigation.yaml 第 90 行只注册了 PAGE-GRD-ARCHIVE（归档确认）。
+    impact: |
+      原型：PAGE-GRD-LIST 行内是否有「删除」按钮，以及空年级行是否需要不同的按钮组合。
+      业务：年级的唯一键是「学校 + 学段 + 入学年份 + 学段内序号」（BR-GRADE-003），
+      若不提供删除，建错的年级会永久占用该组合，导致同一学年无法重建正确的年级，只能靠人工改库。
+      阶段 6 与阶段 8：AC-GRD-028 没有可验证的入口。
+    options:
+      - A 首轮不提供删除入口，空年级也走归档，用一次 CR 把 REQ-GRD-028 与 REQ-GRD-031 与 removeGrade 从接口清单移除或改写
+      - B 首轮提供删除，给教务主任与租户管理员补 org.grade 的 delete，限定无班级无学生时才可执行，逻辑删除加二次确认加必填原因，新增 DIALOG-GRD-DELETE
+      - C 只有租户管理员可删除空年级，教务主任只能归档
+    recommended: |
+      选项 B。理由是选项 A 会把「建错年级无法回收唯一键」的问题推到阶段 8 才暴露，
+      而年级建错是开学季最常见的操作；选项 B 的删除受「无班级无学生」约束、写审计、二次确认并填原因，
+      风险可控，且与 REQ-GRD-030「禁止物理删除」不冲突（逻辑删除）。
+      字段与表结构不受影响，只是补一个权限点与一个确认弹窗。
+    blocking: true
+    blocks_stages: [stage2, stage6, stage8]
+    owner: 用户
+    resolution: "裁决 B（2026-09-30 用户答复「同意」）：教务主任与租户管理员可删「无班级且无学生关系」的年级。经 CR-005 执行：两个角色在 org.grade 上补 delete 并加条件；年级 PRD 4.6 补权限与前置条件、6.1 新增 DIALOG-GRD-DELETE（浮层片段）、6.3 新增删除交互行；原型在空年级行（2021 级 小学六年级）渲染唯一一处删除入口，二次确认含必填原因（GL-03 / GL-17 ~ GL-20 实测通过）。"
+    resolved_at: "2026-09-30"
+    status: closed
+
+  - id: GAP-037
+    title: 年级模块业务字段未登记进字段字典（年级状态 / 班级数 / 在读学生数 / 年级主任任职字段）
+    discovered_at: 2026-09-30
+    discovered_by: 批次 2-2b-2b 编写 PAGE-GRD-LIST 页面规格时的字段回查
+    evidence: |
+      用 PyYAML 读取 docs/10-prd/06-field-dictionary.yaml，fields 共 71 个：
+      已有 grade_name、grade_level、enroll_year、grade_id、school_id、term_id、is_primary，
+      枚举里已有 stage_code。
+      但 docs/10-prd/modules/grade/PRD.md 第 7.1 节（第 313、314 行）还要求：
+      年级的 status（列表「状态」列与归档后的状态）、年级主任任职的 user_id 与 status 与生效日期；
+      第 4.1 节 REQ-GRD-003 的默认列还包含班级数与在读学生数。
+      这些字段在 fields 与 enums 中都没有定义。
+      批次 2-2a 交付教师模块时出现过同类问题（GAP-033），当时的裁决是先补登记再继续。
+    impact: |
+      阶段 5：建表列名缺少权威口径，年级状态可能出现 grade_status 与 status 两个列名。
+      阶段 6：TS 类型、列表列与筛选下拉、字段级权限都要靠猜。
+      原型：PAGE-GRD-LIST 的 data-field 无法全部回查到字段字典，页面规格自查清单第 5 条无法打勾。
+    options:
+      - A 立一次 CR 补登记年级模块字段，拟新增 grade_status 枚举与 grade_status、class_count、student_count、leader_user_id、leader_status、effective_date、expire_date 等字段
+      - B 只补原型本页用到的 grade_status 与 class_count 与 student_count，其余留到年级详情与教师模块相应批次
+      - C 保持现状，把原型自查清单该条降级为阶段 4 概要设计时统一补
+    recommended: |
+      选项 A。理由与 GAP-033 的裁决一致（用户 2026-09-30 已同意「一次补完，避免每个批次重复返工」），
+      且年级详情与年级主任任职两个浮层会立刻用到这些字段，分两次补要重复走两遍 CR。
+    blocking: true
+    blocks_stages: [stage2, stage5, stage6]
+    owner: 用户
+    resolution: "裁决 A（2026-09-30 用户答复「同意」）：一次补全年级模块字段。经 CR-005 执行：06-field-dictionary.yaml 新增 grade_status 枚举（在读 / 已归档）与 6 个字段（grade_status、class_count、student_count、leader_user_id、leader_status、expire_date）；原型 PAGE-GRD-LIST 的 data-field 全部可回查，页面规格自查项转为满足。"
+    resolved_at: "2026-09-30"
+    status: closed
+
+  - id: GAP-038
+    title: 年级表单的承载方式与「编辑年级」的页面登记（年级 PRD 6.1 写弹窗、navigation.yaml 写抽屉、编辑无独立页面）
+    discovered_at: 2026-09-30
+    discovered_by: 批次 2-2b-2b 交付 PAGE-GRD-LIST 样板页时的载体反查
+    evidence: |
+      docs/10-prd/modules/grade/PRD.md 第 6.1 节（第 278 行）把「新建年级」写为**弹窗**；
+      但 prototypes/functional/v1/navigation.yaml 第 87 行把 PAGE-GRD-CREATE 注册为 type: drawer, size: sm。
+      同一节（第 276 至 282 行）只登记了六个页面，没有「编辑年级」的页面；
+      而 PRD 第 4.4 节有 REQ-GRD-017 ~ REQ-GRD-020 四条编辑需求，第 4.1 节 REQ-GRD-005 也明确列出「编辑」按钮。
+      另外 prototypes/functional/v1/prototype-quality-spec.md 第 5 节的组件选择决策表规定：
+      「新增 / 编辑 3 个以上字段 → 必须使用抽屉」，而新建年级至少有学校、学段、入学年份、学段内序号、年级名称 5 个字段。
+    impact: |
+      原型：PAGE-GRD-LIST 的行内「编辑」当前复用 PAGE-GRD-CREATE 的编辑态（data-nav 指向新建页）。
+      若裁决为独立页面，只需改这一处 data-nav 与一条动作登记。
+      下一批（2-2b-2c）的 PAGE-GRD-CREATE / PAGE-GRD-BATCH 用抽屉还是弹窗，取决于这个裁决。
+      阶段 6：前端组件选型与路由表会照抄错误的一方。
+    options:
+      - A 新建与编辑共用抽屉（type: drawer），编辑态由行内「编辑」进入；用一次 CR 把 PRD 6.1 的「弹窗」改为「抽屉」并补一句编辑复用说明，不改 navigation.yaml
+      - B 新建用弹窗（按 PRD 6.1），编辑另立 PAGE-GRD-EDIT 页面并改 navigation.yaml 的页面计数（13 → 14）与 PRD 6.1
+      - C 新建与编辑都用弹窗（同时改 navigation.yaml 与组件决策表的适用例外）
+    recommended: |
+      选项 A。理由是字段数与组件决策表都指向抽屉，且 navigation.yaml 已经是 drawer，改 PRD 一行即可；
+      编辑复用同一表单的编辑态可以避免两份几乎相同的表单漂移，也符合教师模块「新增 / 编辑同结构」的做法。
+      选项 B 会额外增加一个页面并改变批次计数，收益只是「语义更直白」。
+    blocking: true
+    blocks_stages: [stage2, stage6]
+    owner: 用户
+    resolution: "裁决 A（2026-09-30 用户答复「选 A」，并追加「plus-ui 中的页面是 dialog 还是 drawer，跟保持一致」）：新建与编辑共用同一表单、编辑复用编辑态，不另立页面；载体按 apps/plus-ui 现状取**弹窗**（全库 40 处 el-dialog、0 处 el-drawer）。经 CR-007 执行：navigation.yaml 的 PAGE-GRD-CREATE / PAGE-GRD-BATCH / PAGE-GRD-LEADER 由 drawer 改为 dialog；layout-spec.yaml 新增 dialog.carrier_rule 与落地宽度映射；prototype-quality-spec.md 第 5 节补例外说明；PAGE-GRD-DETAIL 按 PRD 6.1 保留抽屉。"
+    resolved_at: "2026-09-30"
+    status: closed
+
+  - id: GAP-039
+    title: 已交付的学生与教师表单用抽屉，与 apps/plus-ui 的 dialog 习惯不一致
+    discovered_at: 2026-09-30
+    discovered_by: 按 CR-007 核查 apps/plus-ui 的浮层载体习惯时的顺带发现
+    evidence: |
+      用脚本扫描 apps/plus-ui/src/views 与 apps/plus-ui/src/components 下所有 .vue：
+      <el-dialog> 40 处、<el-drawer> **0 处**（含操作日志详情 oper-info-dialog.vue 也用 dialog）。
+      但以下已冻结 PRD 与已交付原型用的是抽屉：
+        - docs/10-prd/modules/student/PRD.md 第 582、583 行：新增学生（抽屉 · 分步）、编辑学生（抽屉）；
+          第 581 行：学生详情（可抽屉）。
+        - docs/10-prd/modules/teacher/PRD.md 第 432 ~ 434 行：教师详情（抽屉）、新增教师（抽屉 · 分步）、编辑教师（抽屉）。
+        - docs/10-prd/modules/school/PRD.md 第 301、302 行：编辑学校、校区管理（抽屉内含表格）。
+        - docs/10-prd/modules/term/PRD.md 第 266、267 行：新建学年、学期管理（抽屉内含表格）。
+        - docs/10-prd/modules/subject/PRD.md 第 281、282 行：新建 / 编辑学科（抽屉）。
+        - docs/10-prd/modules/audit/PRD.md 第 315 行、import-export PRD 第 323 行：日志详情 / 任务详情（详情抽屉）。
+      prototypes/functional/v1/pages/student-list.html 与 teacher-list.html 已按 PRD 用抽屉交付并验收。
+    impact: |
+      阶段 6：生产前端要么新引入一套抽屉写法（与 plus-ui 现有习惯不同），要么回头改已冻结 PRD 与已验收原型。
+      阶段 3 高保真原型：如果现在不定，视觉规范会按抽屉做一版、按弹窗做一版。
+      年级模块不受影响（CR-007 已按弹窗执行）。
+    options:
+      - A 全部统一为弹窗（彻底与 plus-ui 一致）：改 5 份冻结 PRD + 学生 / 教师已交付页面的浮层载体 + 重拍相关截图；返工最大，但阶段 6 零额外组件
+      - B 只把「表单类」统一为弹窗，「详情类」保留抽屉（教师 / 学生 / 日志 / 任务详情）：改 4 份 PRD 的表单行，详情页与截图不受影响
+      - C 维持现状（PRD 写什么用什么）：不返工，但阶段 6 需要为抽屉写一套与 plus-ui 不同的容器用法
+    recommended: |
+      选项 B。理由是：CR-007 已确认 plus-ui 没有抽屉习惯，表单是落地时最常复用的一段代码，
+      统一成弹窗的收益最高；而详情页（教师 6 分区、任务详情含失败明细）用抽屉是为了承载长内容，
+      已经是经过验收的形态，改成弹窗只会带来返工与新的视觉风险。
+      若你更看重前后端习惯的绝对一致，选 A；若这一轮先不返工，选 C 并把它记入阶段 6 的技术债清单。
+    blocking: true
+    blocks_stages: [stage3, stage6]
+    owner: 用户
+    resolution: "裁决 B（2026-09-30 用户答复「同意」）：表单类浮层统一为弹窗，详情类保留抽屉，含表格或分页的内容用独立页。经 CR-008 执行：学生 / 教师的新增与编辑四个浮层由 aside.drawer 改为 div.dialog（弹窗内 drawer-* 样式钩子统一改名 dialog-*）；student / teacher / school / term / subject 五份 PRD 的 6.1 页面清单同步（校区管理与学期管理因含表格改为独立页）；navigation.yaml 同步；prototype-shell.css 补 .dialog-header 与 .dialog-body 的 flex 修复（原先长表单在弹窗内会被裁切且无法滚动）。回归验证 harness 14/14 通过。"
+    resolved_at: "2026-09-30"
+    status: closed
 
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
@@ -935,3 +1131,7 @@ open_questions_for_user:
   - "prototype-shell.css 补 el-timeline 仿真样式（.timeline / .tl-head / .tl-body / .tl-meta）；prototype-shell.js 的 validateForm 补 code32 规则（工号长度 2–32 位字母、数字或连字符）。"
   - "navigation.yaml 按教师 PRD 6.1 修正两处类型：PAGE-TCH-DETAIL 加 container: drawer + size: lg（PRD 写明详情页以抽屉承载）；PAGE-TCH-ASSIGN 由 drawer 改为 page 并补 route（PRD 写明为独立页，双栏教师视角 / 班级视角）。两处都属于「原型规范与上游 PRD 不一致」，按上游优先原则修正。"
   - "GAP-032、GAP-033 已按用户裁决关闭（2026-09-30 两项均同意推荐方案 A），经 CR-004 执行完毕，见 decisions.md 的 D-054。"
+  - "年级模块（批次 2-2b-2b）的公共前置反查暴露 4 个缺项，全部待用户拍板：GAP-034（校领导对 org.grade 的写权限冲突）、GAP-035（年级主任与班主任与任课教师对 org.grade 的读权限未在矩阵定义）、GAP-036（年级的删除入口缺权限点与页面登记）、GAP-037（年级模块业务字段未登记进字段字典）。建议走一次 CR-005 一起补完。"
+  - "GAP-034 ~ GAP-037 已按用户 2026-09-30 的四项「同意」全部关闭并落地（CR-005，见 D-056）。"
+  - "CR-006 已执行：新增系统超级管理员 super_admin（BR-ORG-014 / DP-07），不受数据范围与功能权限限制但仍强制写审计，见 D-057。"
+  - "GAP-038 待拍板：年级表单的承载方式（PRD 6.1 写「弹窗」、navigation.yaml 写 drawer）与「编辑年级」的页面登记；建议选项 A（新建与编辑共用抽屉，编辑复用同一表单的编辑态）。这是下一批 2-2b-2c 开工前的阻塞项。"

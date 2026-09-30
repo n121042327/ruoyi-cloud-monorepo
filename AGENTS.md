@@ -130,6 +130,7 @@ ruoyi-cloud-monorepo/
 - 数据权限：校领导看本校全部；年级主任看负责年级；班主任看负责班级；任课教师看本人任教班级的必要资料与本人所授学科数据
 - 集团身份不自动获得学校教学数据的读取权；集团只能看集团自有数据
 - 平台运营方全平台可见，但"查看 / 修改 / 导出"分别授权、分别审计
+- 系统内置超级管理员（`super_admin`）是唯一不受数据范围与功能权限限制的账号，可执行全部功能、可视同任意角色；它的操作**强制留痕且不可关闭**，并禁止用于日常业务操作。它是「运营方三项独立授权」的唯一例外（`BR-ORG-014`）
 - 教育数据权限**不得被现有租户管理员的放行逻辑绕过**；缺少租户、学校或执行人上下文时必须拒绝执行
 - 列表、详情、批量操作、导出、文件访问、缓存、异步任务必须执行同一套权限规则
 - 升班新增下一学年的班级与学生关系，**按学年追加、不覆盖历史**；升班的执行只在升班模块，年级管理只提供只读视图
@@ -176,22 +177,39 @@ commit message 使用 Conventional Commits，scope 与描述用中文。
 
 ## 11. 常用命令
 
-前端（`apps/plus-ui`）：
+前端（**在仓库根执行**，pnpm workspace + Turbo 编排；`pnpm-workspace.yaml` 覆盖 `apps/*` 与 `packages/*`）：
 
 ```bash
-cd apps/plus-ui
-pnpm install
-pnpm dev
-pnpm lint:eslint
-pnpm build:prod
+pnpm install            # 只在根目录执行；lockfile 也只有根目录一份
+pnpm dev                # = turbo run dev        → apps/plus-ui 的 vite serve
+pnpm build              # = turbo run build:prod
+pnpm lint               # = turbo run lint:eslint
+pnpm typecheck          # = turbo run typecheck
+pnpm test               # = turbo run test（只覆盖前端，不等于后端测试通过）
 ```
 
-后端（`services/RuoYi-Cloud-Plus`）：
+只跑前端单个包（以后新增 Pad / 小程序端同样适用）：
+
+```bash
+pnpm --filter @edu/plus-ui dev
+pnpm --filter @edu/plus-ui typecheck
+pnpm --filter @edu/plus-ui preview      # turbo.json 未登记 preview 任务，只能用 --filter 形式
+pnpm turbo run build:prod --filter=@edu/plus-ui
+pnpm turbo run build:prod --dry=json    # 看缓存命中与任务图
+```
+
+后端（`services/**` 不在 pnpm workspace 内，Turbo 不参与编排，Java 侧一律走 Maven）：
 
 ```bash
 cd services/RuoYi-Cloud-Plus
-mvn -q -DskipTests=false -pl ruoyi-modules/ruoyi-edu -am test
+# 现状可用：ruoyi-modules/ruoyi-edu 尚未创建，先拿已有模块验证
+mvn -q -DskipTests=false -pl ruoyi-modules/ruoyi-system -am test
+# 阶段 7 建出 edu 服务后改用：
+# mvn -q -DskipTests=false -pl ruoyi-modules/ruoyi-edu -am test
 ```
+
+`services/RuoYi-Cloud-Plus/pom.xml` 默认 `<skipTests>true</skipTests>`，`mvn package` 不能作为测试通过的证据；
+必须显式加 `-DskipTests=false` 并核对实际执行的用例数量。
 
 ## 12. 文件地图
 

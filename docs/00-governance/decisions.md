@@ -709,6 +709,86 @@
 - 证据：`evidence/stage2-prototype/` 新增 9 张截图，`interaction-verification.md` 追加 ROLE-01 ~ 07、AS-01 ~ 08 共 15 条用例实测结果
 - 如果错了的代价：独立页若最终要并入教师详情，改路由与入口即可；`EXTRA_PAGES` 与 `.split` 都是外壳级增量约定，不影响已交付页面
 
+## D-056 阶段 2 批次 2-2b-2b：年级模块开工前的四项权限与字段裁决
+
+- 日期：2026-09-30
+- 背景：年级管理 6 页开工前做公共前置反查，发现 4 处上游文档之间对不上（`GAP-034` ~ `GAP-037`），
+  其中 3 处直接决定原型上的按钮、菜单与字段名。登记缺项并请用户裁决，四项均答复「同意」
+- 决策：
+
+| 事项 | 裁决 | 落地 |
+|---|---|---|
+| `GAP-034` 校领导对年级的写权限 | 选项 B：以年级 PRD 为准，校领导对 `org.grade` **只读**；年级主任任职的变更走审批 | `05-permission-matrix.yaml` 的 `school_leader` 收为 `[read]` + 条件说明；年级 PRD 2.1 补口径说明 |
+| `GAP-035` 三个角色对年级的读权限 | 选项 A：`grade_leader` / `homeroom` / `subject_teacher` 各补 `org.grade` 的 `read`，范围按 `DS-05` / `DS-06` / `DS-07` 收窄 | `05-permission-matrix.yaml` 三个角色各加一行；`AC-GRD-005` 期望结果补入校领导只读 |
+| `GAP-036` 建错的空年级能否删 | 选项 B：教务主任与租户管理员可删**无班级且无学生关系**的年级；逻辑删除 + 二次确认 + 必填原因 | 两个角色补 `org.grade` 的 `delete` + 条件；年级 PRD 4.6 补权限与前置、6.1 加 `DIALOG-GRD-DELETE`、6.3 加删除交互 |
+| `GAP-037` 年级模块字段 | 选项 A：一次补全 | `06-field-dictionary.yaml` 新增 `grade_status` 枚举与 6 个字段（`grade_status`、`class_count`、`student_count`、`leader_user_id`、`leader_status`、`expire_date`） |
+
+- 附带修正：`navigation.yaml` 的 `PAGE-GRD-DETAIL` 补 `container: drawer` 与 `size: lg`（年级 PRD 6.1 写明详情以抽屉承载）
+- 执行：`docs/00-governance/change-requests/CR-005.md`（已批准并执行）
+- 如果错了的代价：`GAP-034` / `GAP-035` 各改一行矩阵并同步验收用例；`GAP-036` 收回删除权限点即可（软删数据无需回滚）；`GAP-037` 此时尚未建表，改字段字典一行加一处 `data-field` 即可
+
+## D-057 新增系统超级管理员角色（`super_admin`）
+
+- 日期：2026-09-30
+- 背景：用户指示「补充进 PRD 中系统增加超级管理员用户，可以做任意事。所有权限。所有功能。所有角色」
+- 决策：新增系统内置角色 `super_admin`（系统超级管理员），并按 `BR-ORG-014` 收口边界
+
+| 事项 | 裁决 | 落地 |
+|---|---|---|
+| 能力边界 | 全部资源、全部操作、全平台数据范围；可视同任意角色 | `05-permission-matrix.yaml` 新增 `super_admin` 角色与 22 条资源授权（不写通配符，逐条列出便于评审与实现） |
+| 数据范围 | 数据范围解析直接放行，是唯一例外 | `10-data-permission-schema.md` 新增 `DP-07`，范围解析流程新增第 0 步 |
+| 留痕 | **强制写审计且不可关闭**（访问留痕 + 写操作变更前后值） | `BR-ORG-014`；矩阵 note 与 `PM-Q-008` 记录同一口径 |
+| 与平台运营的关系 | 两类主体：`super_admin` 是系统账号，`platform_ops` 是运营方租户的运营人员，后者仍按查看 / 修改 / 导出分别授权 | `BR-ORG-014` 明确它是 `BR-ORG-005` 的唯一例外 |
+| 使用限制 | 禁止用于日常业务操作，定位是部署初始化、应急处理、跨租户排障 | `BR-ORG-014`；`02-personas-and-scenarios.md` 新增 `SCN-ORG-04` 并在覆盖矩阵处说明它不占业务角色列 |
+
+- 执行：`docs/00-governance/change-requests/CR-006.md`
+- 待确认（不阻塞当前批次）：审计是「强制留痕」还是「连审计也可关闭」；当前按**强制留痕**实现，
+  因为审计是不可关闭的底线而不是权限。若要连审计也跳过，改动只在日志层，不影响原型与表结构
+- 如果错了的代价：收回 `super_admin` 的授权行即可；审计记录已经产生，属于不可撤销的正常代价
+
+## D-058 浮层载体统一：表单与二次确认用弹窗（与 apps/plus-ui 一致）
+
+- 日期：2026-09-30
+- 背景：`GAP-038`（年级表单的承载方式与「编辑年级」的页面登记）用户裁决「选 A」，并追加口径
+  「plus-ui 中的页面是 dialog 还是 drawer，跟保持一致」
+- 核查证据：扫描 `apps/plus-ui/src/views` 与 `apps/plus-ui/src/components` 下全部 `.vue`，
+  `<el-dialog>` **40 处**、`<el-drawer>` **0 处**；dialog 宽度以 500px（13 次）为主
+- 决策：
+
+| 事项 | 裁决 | 落地 |
+|---|---|---|
+| 结构 | 新建与编辑共用同一表单，编辑复用编辑态，不另立 `PAGE-GRD-EDIT` | `navigation.yaml` 的 `PAGE-GRD-CREATE` 改名为「新建 / 编辑年级」 |
+| 载体 | 按 plus-ui 现状取**弹窗**：`PAGE-GRD-CREATE` / `PAGE-GRD-BATCH` / `PAGE-GRD-LEADER` 由 `drawer` 改为 `dialog` | `navigation.yaml`；`layout-spec.yaml` 新增 `dialog.carrier_rule` 与宽度映射 sm→500px / md→600px / lg→800px |
+| 详情例外 | 抽屉只用于上游 PRD 显式写明的详情页（年级 / 教师 / 学生 / 日志 / 任务详情） | `PAGE-GRD-DETAIL` 保持 `detail + container: drawer` |
+| 弹窗内不放表格 | 批量生成的预览与年级主任任职清单改用列表渲染 | 年级 PRD 6.1 已写明这两个浮层是弹窗，`layout-spec` 禁止弹窗内放表格 |
+
+- 执行：`docs/00-governance/change-requests/CR-007.md`
+- 遗留：`GAP-039` —— 已交付的学生 / 教师表单用的是抽屉，与 plus-ui 的 dialog 习惯不一致；
+  推荐选项 B（表单类改弹窗、详情类保留抽屉）。该缺口不阻塞年级批次，但阻塞阶段 3 与阶段 6
+- 如果错了的代价：年级表单改回抽屉只需改 `navigation.yaml` 三行与原型三个 `data-overlay`，此时尚未进入阶段 6
+
+## D-059 统一浮层载体：表单→弹窗、详情→抽屉、含表格→独立页
+
+- 日期：2026-09-30
+- 背景：`GAP-039`（已交付的学生 / 教师表单用抽屉，与 `apps/plus-ui` 的 dialog 习惯不一致）用户裁决「同意」，
+  即选项 B「表单类改弹窗、详情类保留抽屉」
+- 证据：`apps/plus-ui` 全库 `<el-dialog>` 40 处、`<el-drawer>` 0 处（统计命令见 `evidence/stage2-prototype/README.md` 第 4 节）
+- 决策：
+
+| 事项 | 裁决 | 落地 |
+|---|---|---|
+| 表单类浮层 | 统一用**弹窗**（`el-dialog`） | 学生新增 / 编辑、教师新增 / 编辑四个已交付浮层由抽屉改弹窗；学校编辑、学年新建、学科新建 / 编辑在 PRD 层同步 |
+| 详情类 | 保留**抽屉**（`el-drawer`） | 教师详情（6 分区）、学生详情（批次 2-5）、日志详情、任务详情 |
+| 含表格或分页的内容 | 用**独立页** | 校区管理、学期管理由「抽屉内含表格」改为独立页（PRD 与 `navigation.yaml` 同步） |
+| 弹窗内长内容 | 必须能内部滚动、footer 固定 | `prototype-shell.css` 新增 `.dialog-header`；`.dialog-body` 改 `flex:1 1 auto; min-height:0`（原实现会把三步表单裁掉且无法滚动） |
+| 样式钩子 | 与容器类型一致 | 弹窗内的 `drawer-header` / `drawer-body` / `drawer-footer` 统一改名 `dialog-*`；抽屉保留原名 |
+
+- 执行：`docs/00-governance/change-requests/CR-008.md`
+- 回归证据：`evidence/stage2-prototype/verify-carrier-change.html`（14 条断言全部通过），截图 `carrier-change_verify-results.png`
+- 旧截图处理：`student-list_drawer-create` / `student-list_drawer-edit-homeroom` 两张保留在目录中并标注"已失效（载体已由抽屉改为弹窗）"，
+  新增 `student-list_dialog-create` / `student-list_dialog-edit-homeroom` 两张；教师相关截图直接重拍覆盖
+- 如果错了的代价：把四个浮层与五份 PRD 的对应行改回 `drawer` 即可，此时尚未进入阶段 3 / 6
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |
@@ -727,3 +807,10 @@
 | R-012 | ~~`CR-003`：GAP-026 ~ GAP-030 五项裁决~~ → 已定：用户"按推荐来"，已批准并执行（D-052） | GAP-026 ~ 030 | 已关闭 |
 | R-013 | ~~校领导对教师主体是否可写~~ → 已定：选项 A，校领导只读，改教师 PRD 4.4（D-054 / CR-004） | GAP-032 | 已关闭 |
 | R-014 | ~~是否立 CR 把教师模块业务字段补进 `06-field-dictionary.yaml`~~ → 已定：选项 A，一次补全 13 个字段 + `employment_status` 枚举（D-054 / CR-004） | GAP-033 | 已关闭 |
+| R-015 | ~~校领导对年级是否可写~~ → 已定：选项 B，校领导对 `org.grade` 只读（D-056 / CR-005） | GAP-034 | 已关闭 |
+| R-016 | ~~年级主任 / 班主任 / 任课教师是否有年级读权限~~ → 已定：选项 A，三者各补 `org.grade` 的 `read`，范围按 `DS-05` / `DS-06` / `DS-07` 收窄（D-056 / CR-005） | GAP-035 | 已关闭 |
+| R-017 | ~~建错的空年级能否删除~~ → 已定：选项 B，教务主任与租户管理员可删无班级无学生关系的年级（D-056 / CR-005） | GAP-036 | 已关闭 |
+| R-018 | ~~年级模块业务字段是否补进字段字典~~ → 已定：选项 A，一次补全 `grade_status` 枚举与 6 个字段（D-056 / CR-005） | GAP-037 | 已关闭 |
+| R-019 | ~~是否新增不受数据范围限制的超级管理员~~ → 已定：新增 `super_admin`，强制留痕且禁止日常业务操作（D-057 / CR-006） | — | 已关闭 |
+| R-020 | ~~年级表单用抽屉还是弹窗、编辑是否独立页面~~ → 已定：选项 A + 载体按 plus-ui 取弹窗（D-058 / CR-007） | GAP-038 | 已关闭 |
+| R-021 | ~~已交付的学生 / 教师表单用抽屉、plus-ui 全用 dialog，是否统一~~ → 已定：选项 B，表单改弹窗、详情保留抽屉（D-059 / CR-008） | GAP-039 | 已关闭 |
