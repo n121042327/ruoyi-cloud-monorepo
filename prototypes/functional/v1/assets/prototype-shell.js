@@ -68,6 +68,16 @@
     });
   });
 
+  // 不在左侧菜单里的已交付页面（详情页 / 独立业务页）。
+  // menu 之外的页面无法从 MENUS 推导交付状态与名称，必须在这里显式登记，否则点击只会得到"后续批次交付"提示。
+  var EXTRA_PAGES = {
+    'PAGE-TCH-ASSIGN': { path: 'pages/teacher-assign.html', name: '任教关系设置', batch: '2-2' }
+  };
+  Object.keys(EXTRA_PAGES).forEach(function (id) {
+    PAGE_NAME[id] = EXTRA_PAGES[id].name;
+    PAGE_BATCH[id] = EXTRA_PAGES[id].batch;
+  });
+
   var state = { role: 'academic_director', state: 'normal', panels: [] };
   var base = '.';
 
@@ -495,9 +505,12 @@
         return;
       }
       var delivered = null;
-      MENUS.forEach(function (g) {
-        g.items.forEach(function (it) { if (it.id === pageId && it.delivered) delivered = it.delivered; });
-      });
+      if (EXTRA_PAGES[pageId]) delivered = EXTRA_PAGES[pageId].path;
+      if (!delivered) {
+        MENUS.forEach(function (g) {
+          g.items.forEach(function (it) { if (it.id === pageId && it.delivered) delivered = it.delivered; });
+        });
+      }
       if (delivered) {
         window.location.href = base + '/' + delivered;
       } else {
@@ -522,7 +535,8 @@
   function init() {
     var body = document.body;
     base = body.getAttribute('data-base') || '.';
-    var activePage = body.getAttribute('data-page-id') || '';
+    // 页面自身的编号用于 `data-page` 回查；左菜单高亮允许单独指定（如独立的任教关系页高亮"教师管理"）
+    var activePage = body.getAttribute('data-menu-page') || body.getAttribute('data-page-id') || '';
     var meta = {
       breadcrumb: body.getAttribute('data-breadcrumb') || '',
       tab: body.getAttribute('data-tab') || '',

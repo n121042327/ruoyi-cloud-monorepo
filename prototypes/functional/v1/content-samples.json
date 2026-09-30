@@ -1660,5 +1660,108 @@
     "hire_date": "2026-09-01",
     "edu_roles": ["subject_teacher"],
     "initial_credential": "一次性初始凭据由学校分发，教师首次登录强制修改密码"
+  },
+  "teacher_role_samples": {
+    "note": "教育角色分配弹窗（PAGE-TCH-ROLE）的分区样例。教育角色决定数据范围，系统角色决定功能权限，两者不可混用。",
+    "school_level_roles": [
+      {
+        "edu_role": "academic_director",
+        "role_label": "教务主任",
+        "school_id": 202,
+        "school_name": "云溪外国语学校",
+        "scope": "学校级",
+        "period": "2024-09-01 ~ 长期",
+        "data_scope": "DS-04 本校全部教师与教学数据",
+        "assigned": true
+      },
+      {
+        "edu_role": "school_leader",
+        "role_label": "校领导",
+        "school_id": 202,
+        "school_name": "云溪外国语学校",
+        "scope": "学校级",
+        "period": null,
+        "data_scope": "DS-04 本校全部，只读查看",
+        "assigned": false,
+        "edge": "未分配：用来验证「只勾选已分配项」的渲染，以及校领导对教师主体只读（CR-004 / GAP-032）"
+      }
+    ],
+    "grade_leader_assignments": [
+      {
+        "term_id": 202601,
+        "term_name": "2026-2027 学年 第一学期",
+        "grade_id": 202401,
+        "grade_name": "2024 级 高三",
+        "is_primary": true,
+        "status": "生效中"
+      },
+      {
+        "term_id": 202501,
+        "term_name": "2025-2026 学年 第一学期",
+        "grade_id": 202501,
+        "grade_name": "2025 级 高二",
+        "is_primary": false,
+        "status": "已失效",
+        "edge": "历史学期只读：用来验证「历史任职记录保留、不可修改」的渲染"
+      }
+    ],
+    "constraints": [
+      "年级主任必须绑定学年学期与年级，同一年级同一学期只允许一名主管（REQ-TCH-027 / BR-GRADE-004）",
+      "同一教师在同一任职范围内不允许重复分配同一角色（REQ-TCH-030）",
+      "角色变更后立即失效该用户的数据范围缓存（REQ-TCH-031）",
+      "角色分配与解除写入审计，记录原角色、新角色、生效日期（REQ-TCH-032）"
+    ]
+  },
+  "teaching_assignment_board": {
+    "note": "任教关系设置（PAGE-TCH-ASSIGN）的双栏样例：左栏是主体选择器（班级视角 / 教师视角），右栏是该主体的任教关系。",
+    "view_modes": [
+      { "code": "class", "label": "班级视角", "picker_total": "8 个班级" },
+      { "code": "teacher", "label": "教师视角", "picker_total": "11 名教师" }
+    ],
+    "class_picker": [
+      { "class_id": 20260101, "class_name": "高一 (1) 班", "class_type": "administrative", "grade_name": "2026 级 高一", "head_teacher": "邓丽娟", "assignment_count": 7, "selected": true },
+      { "class_id": 20260102, "class_name": "高一 (2) 班", "class_type": "administrative", "grade_name": "2026 级 高一", "head_teacher": "冯振国", "assignment_count": 3 },
+      { "class_id": 20260103, "class_name": "高一 (3) 班", "class_type": "administrative", "grade_name": "2026 级 高一", "head_teacher": null, "assignment_count": 1, "edge": "空：班主任未指定，验证空值与「仍需指定班主任」的提示" },
+      { "class_id": 20250101, "class_name": "高二 (1) 班", "class_type": "administrative", "grade_name": "2025 级 高二", "head_teacher": "卢佳音", "assignment_count": 4 },
+      { "class_id": 20240101, "class_name": "高三 (1) 班", "class_type": "administrative", "grade_name": "2024 级 高三", "head_teacher": "何文博", "assignment_count": 2 },
+      { "class_id": 20260111, "class_name": "高一 物理 A 层", "class_type": "teaching", "grade_name": "2026 级 高一", "head_teacher": null, "assignment_count": 1, "edge": "教学班：不设班主任，成员来自选科结果" },
+      { "class_id": 20260201, "class_name": "初一 (1) 班", "class_type": "administrative", "grade_name": "2026 级 初一", "head_teacher": "郑雅琴", "assignment_count": 2, "edge": "跨校：云溪外国语学校的班级，只有平台运营协助视图可见" },
+      { "class_id": 20250302, "class_name": "初三 (2) 班", "class_type": "administrative", "grade_name": "2025 级 初三", "head_teacher": null, "assignment_count": 0, "edge": "空：尚未排课，用来验证「该班级没有任教关系」的空态" }
+    ],
+    "teacher_picker": [
+      { "teacher_id": 1003, "teacher_name": "邓丽娟", "edu_role_label": "班主任 · 语文", "assignment_count": 2 },
+      { "teacher_id": 1007, "teacher_name": "苏睿", "edu_role_label": "教务主任 · 外语", "assignment_count": 2, "edge": "跨校任教：归属外国语学校，在实验学校授课" },
+      { "teacher_id": 1010, "teacher_name": "韦志远", "edu_role_label": "任课教师 · 数学", "assignment_count": 2 },
+      { "teacher_id": 1005, "teacher_name": "谢明轩", "edu_role_label": "年级主任 · 物理", "assignment_count": 1 },
+      { "teacher_id": 1012, "teacher_name": "阿依努尔·艾山", "edu_role_label": "任课教师 · 生物", "assignment_count": 1, "edge": "特殊：姓名含间隔号，列表与详情都不截断" },
+      { "teacher_id": 1006, "teacher_name": "卢佳音", "edu_role_label": "班主任 · 外语", "assignment_count": 1 },
+      { "teacher_id": 1001, "teacher_name": "郑雅琴", "edu_role_label": "教务主任 · 语文", "assignment_count": 1 },
+      { "teacher_id": 1002, "teacher_name": "何文博", "edu_role_label": "年级主任 · 无任教", "assignment_count": 0, "edge": "空：纯管理角色可以没有任教关系" },
+      { "teacher_id": 1004, "teacher_name": "冯振国", "edu_role_label": "班主任 · 无任教", "assignment_count": 0 },
+      { "teacher_id": 1011, "teacher_name": "高洪波", "edu_role_label": "任课教师 · 化学", "assignment_count": 0, "edge": "终态：离职，不再出现在新增任教关系的教师选项里" },
+      { "teacher_id": 1013, "teacher_name": "苗雨欣", "edu_role_label": "任课教师 · 地理", "assignment_count": 0, "edge": "终态：调离，原校只读保留历史任教关系" }
+    ],
+    "assignments_of_class_20260101": [
+      { "subject_code": "chinese", "subject_name": "语文", "teacher_id": 1003, "teacher_name": "邓丽娟", "class_id": 20260101, "class_name": "高一 (1) 班", "class_type": "administrative", "weekly_hours": 6, "status": "生效中" },
+      { "subject_code": "english", "subject_name": "外语", "teacher_id": 1007, "teacher_name": "苏睿", "class_id": 20260101, "class_name": "高一 (1) 班", "class_type": "administrative", "weekly_hours": 5, "status": "生效中", "cross_school": true },
+      { "subject_code": "math", "subject_name": "数学", "teacher_id": 1010, "teacher_name": "韦志远", "class_id": 20260101, "class_name": "高一 (1) 班", "class_type": "administrative", "weekly_hours": 5, "status": "生效中" },
+      { "subject_code": "physics", "subject_name": "物理", "teacher_id": 1005, "teacher_name": "谢明轩", "class_id": 20260111, "class_name": "高一 物理 A 层", "class_type": "teaching", "weekly_hours": 4, "status": "生效中" },
+      { "subject_code": "biology", "subject_name": "生物", "teacher_id": 1012, "teacher_name": "阿依努尔·艾山", "class_id": 20260101, "class_name": "高一 (1) 班", "class_type": "administrative", "weekly_hours": 3, "status": "生效中" },
+      { "subject_code": "chemistry", "subject_name": "化学", "teacher_id": 1011, "teacher_name": "高洪波", "class_id": 20260101, "class_name": "高一 (1) 班", "class_type": "administrative", "weekly_hours": 4, "status": "已失效", "edge": "终态：教师离职后任教关系失效，但记录保留可查" },
+      { "subject_code": "geography", "subject_name": "地理", "teacher_id": 1013, "teacher_name": "苗雨欣", "class_id": 20260101, "class_name": "高一 (1) 班", "class_type": "administrative", "weekly_hours": 4, "status": "已失效", "edge": "终态：教师调离后任教关系失效" },
+      { "subject_code": "politics", "subject_name": "思想政治", "teacher_id": null, "teacher_name": null, "class_id": 20260101, "class_name": "高一 (1) 班", "class_type": "administrative", "weekly_hours": null, "status": "待补充", "edge": "待办中：学科已开但尚未指定教师" }
+    ],
+    "copy_preview": {
+      "source_term_name": "2025-2026 学年 第一学期",
+      "target_term_name": "2026-2027 学年 第一学期",
+      "will_copy": 126,
+      "will_skip": 2,
+      "needs_attention": 1,
+      "rows": [
+        { "action": "复制", "object": "语文 · 邓丽娟 · 高一 (1) 班", "reason": "目标学期不存在有效关系" },
+        { "action": "跳过", "object": "外语 · 苏睿 · 高一 (1) 班", "reason": "目标学期已存在同一 教师 + 学科 + 班级类型 + 班级" },
+        { "action": "待处理", "object": "化学 · 高洪波 · 高一 (1) 班", "reason": "教师已离职，不允许复制到目标学期" }
+      ]
+    }
   }
 }

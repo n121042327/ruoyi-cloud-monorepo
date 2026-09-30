@@ -124,6 +124,9 @@
 | `prototypes/functional/v1/page-specs/teacher-detail.md` | 教师详情页面规格（六分区、跨校任教与空角色两种形态） | `review` |
 | `prototypes/functional/v1/page-specs/teacher-create.md` | 新增教师三步抽屉页面规格 | `review` |
 | `prototypes/functional/v1/page-specs/teacher-edit.md` | 编辑教师抽屉页面规格（字段级可编辑性矩阵） | `review` |
+| `prototypes/functional/v1/page-specs/teacher-role.md` | 教育角色分配弹窗页面规格（学校级角色 + 年级主任任职） | `review` |
+| `prototypes/functional/v1/page-specs/teacher-assign.md` | 任教关系设置独立页页面规格（双栏：班级视角 / 教师视角） | `review` |
+| `prototypes/functional/v1/pages/teacher-assign.html` | 任教关系设置（独立页，批次 2-2b-2） | `review` |
 | ~~`prototypes/functional/v1/pages/student-form.html`~~ | 已由 `pages/student-list.html` 内的 `data-demo-panel="PAGE-STU-CREATE" / "PAGE-STU-EDIT"` 浮层片段取代，不再单独出文件 | `waived` |
 | `prototypes/functional/v1/pages/teacher-assign.html` | 任教关系设置（独立页，双栏教师视角 / 班级视角，批次 2-2b-2） | `planned` |
 | `prototypes/functional/v1/pages/grade-list.html` | 年级管理列表 | `planned` |

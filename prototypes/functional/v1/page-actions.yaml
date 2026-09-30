@@ -326,9 +326,10 @@ teacher_list:
       condition: 有 person.teacher:update 权限
       permission: "academic_director / tenant_admin / person.teacher / update"
       api: "-"
-      result: 打开 PAGE-TCH-ROLE 弹窗；选年级主任时必须选学年学期与年级（批次 2-2b）
+      result: 打开 PAGE-TCH-ROLE 弹窗；选年级主任时必须选学年学期与年级
       audit: 是
       batch: "2-2"
+      pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-ROLE]
       pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL]
     - id: ACT-TCH-008
       element: 行内任教
@@ -336,9 +337,10 @@ teacher_list:
       condition: 有 person.teaching_assignment 的 read 权限
       permission: "person.teaching_assignment:read"
       api: "-"
-      result: 打开 PAGE-TCH-ASSIGN 任教关系页，默认按当前学年学期加载（批次 2-2b）
+      result: 打开 PAGE-TCH-ASSIGN 任教关系页，默认按当前学年学期加载
       audit: 否
       batch: "2-2"
+      pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-ASSIGN]
       pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL]
     - id: ACT-TCH-009
       element: 行内离职 / 调离
@@ -388,6 +390,7 @@ teacher_detail:
       result: 角色解除并写审计；随后刷新详情与列表的"教育角色"列
       audit: 是
       batch: "2-2"
+      pages: [PAGE-TCH-DETAIL, PAGE-TCH-ROLE]
     - id: ACT-TCH-013
       element: 停用 / 启用账号
       trigger: 点击
@@ -417,7 +420,8 @@ teacher_detail:
       api: copyTeachingAssignment
       result: 展示源与目标学年学期、冲突清单预览；确认后异步执行并返回任务编号（REQ-TCH-070）
       audit: 是
-      batch: "2-2b-2"
+      batch: "2-2"
+      pages: [PAGE-TCH-DETAIL, PAGE-TCH-ASSIGN]
     - id: ACT-TCH-016
       element: 前往班级详情
       trigger: 点击班主任任职分组内的链接
@@ -427,6 +431,7 @@ teacher_detail:
       result: 跳转 PAGE-CLS-DETAIL（批次 2-3）；班主任关系只读，修改入口在班级模块
       audit: 否
       batch: "2-3"
+      pages: [PAGE-TCH-DETAIL, PAGE-TCH-ASSIGN]
     - id: ACT-TCH-017
       element: 展开 / 收起学年学期分组
       trigger: 点击分组标题右侧链接
@@ -436,6 +441,7 @@ teacher_detail:
       result: 折叠或展开该学年学期的任教关系；当前学年学期默认展开，折叠状态写入用户偏好
       audit: 否
       batch: "2-2"
+      pages: [PAGE-TCH-DETAIL, PAGE-TCH-ASSIGN]
     - id: ACT-TCH-018
       element: 关闭详情
       trigger: 点击
@@ -500,6 +506,7 @@ teacher_form:
       result: 打开放弃确认弹窗；确认后关闭抽屉且不保存任何数据
       audit: 否
       batch: "2-2"
+      pages: [PAGE-TCH-CREATE, PAGE-TCH-EDIT, PAGE-TCH-ROLE]
     - id: ACT-TCH-023
       element: 修改工号
       trigger: 编辑抽屉内修改工号并保存
@@ -558,13 +565,121 @@ teacher_form:
       batch: "2-2"
 
 # ---------------------------------------------------------------------------
+# 3.4 教育角色分配（PAGE-TCH-ROLE）——批次 2-2b-2
+# ---------------------------------------------------------------------------
+teacher_role:
+  page: PAGE-TCH-ROLE
+  actions:
+    - id: ACT-TCH-030
+      element: 新增年级主任任职 / 收起
+      trigger: 点击
+      condition: 有 person.teacher:update 权限
+      permission: "academic_director / tenant_admin / person.teacher / update"
+      api: "-"
+      result: 展开或收起「年级主任任职」录入表单；年级主任必须绑定学年学期与年级（REQ-TCH-027）
+      audit: 否
+      batch: "2-2"
+    - id: ACT-TCH-031
+      element: 加入待保存
+      trigger: 点击
+      condition: 学年学期与年级已选、有 person.teacher:update 权限
+      permission: "academic_director / tenant_admin / person.teacher / update"
+      api: "-"
+      result: 把该条年级主任任职加入待保存列表；点「保存」后统一提交，唯一性由服务端判定（REQ-TCH-030）
+      audit: 否
+      batch: "2-2"
+    - id: ACT-TCH-032
+      element: 保存
+      trigger: 点击
+      condition: 有 person.teacher:update 权限，且任职范围在操作人管理范围内
+      permission: "academic_director / tenant_admin / person.teacher / update"
+      confirm: 需要，提示"角色变更后立即失效该用户的数据范围缓存，并写入审计（原角色、新角色、生效日期）"
+      api: saveTeacherEduRole
+      result: 保存学校级角色与年级主任任职；随后刷新详情页的教育角色分区与列表的教育角色列
+      audit: 是
+      batch: "2-2"
+
+# ---------------------------------------------------------------------------
+# 3.5 任教关系设置（PAGE-TCH-ASSIGN，独立页）——批次 2-2b-2
+# ---------------------------------------------------------------------------
+teacher_assign:
+  page: PAGE-TCH-ASSIGN
+  actions:
+    - id: ACT-TCH-033
+      element: 切换视角（班级视角 / 教师视角）
+      trigger: 点击
+      condition: 有 person.teaching_assignment:read 权限
+      permission: "person.teaching_assignment:read"
+      api: "-"
+      result: 切换左侧选择器与右侧主体的组织方式；学年学期与筛选条件保留（REQ-TCH-044）
+      audit: 否
+      batch: "2-2"
+    - id: ACT-TCH-034
+      element: 选择主体
+      trigger: 点击左侧列表中的班级或教师
+      condition: 该主体在当前数据范围内
+      permission: "person.teaching_assignment:read"
+      api: listTeachingAssignment
+      result: 右侧加载该班级 / 教师的任教关系，页头显示主体、类型与班主任或教育角色
+      audit: 否
+      batch: "2-2"
+    - id: ACT-TCH-035
+      element: 打开「新增任教关系」表单
+      trigger: 点击工具条、空态或"待补充"行的"指定教师"
+      condition: 有 person.teaching_assignment:create 权限且当前不是历史学年学期
+      permission: "academic_director / grade_leader / person.teaching_assignment / create"
+      api: "-"
+      result: 定位到新增任教关系表单；历史学年学期只读，不提供该入口（REQ-TCH-043）
+      audit: 否
+      batch: "2-2"
+    - id: ACT-TCH-036
+      element: 失效任教关系
+      trigger: 点击行内"失效"
+      condition: 有 person.teaching_assignment:update 权限且该行在数据范围内、状态为生效中
+      permission: "academic_director / grade_leader / person.teaching_assignment / update"
+      confirm: 需要，提示"失效后保留历史记录，不再参与教学数据统计；相关教师与学生的数据范围缓存立即失效"
+      api: disableTeachingAssignment
+      result: 该条任教关系置为失效并写审计；列表刷新（REQ-TCH-040 / REQ-TCH-041）
+      audit: 是
+      batch: "2-2"
+    - id: ACT-TCH-037
+      element: 导出任教关系
+      trigger: 点击
+      condition: 有 data.export:export 权限
+      permission: "data.export:export"
+      confirm: 需要，提示"导出范围按当前视角与数据范围解析；年级主任限本年级，任课教师与班主任禁止导出"
+      api: exportTeachingAssignment
+      result: 直接下载或转异步任务；写入导出审计（REQ-TCH-056 ~ REQ-TCH-058）
+      audit: 是
+      batch: "2-2"
+    - id: ACT-TCH-038
+      element: 确认复制任教关系
+      trigger: 点击复制弹窗内"确认复制"
+      condition: 有 person.teaching_assignment:create 权限且已完成冲突预览
+      permission: "academic_director / person.teaching_assignment / create"
+      confirm: 需要，提示"目标学期已存在的有效关系跳过；待处理项不会写入"
+      api: copyTeachingAssignment
+      result: 异步执行并返回任务编号；重复提交不产生重复记录（REQ-TCH-070 / NFR-MQ-01）
+      audit: 是
+      batch: "2-2"
+    - id: ACT-TCH-039
+      element: 保存任教关系
+      trigger: 点击
+      condition: 学年学期、学科、任教教师、班级均合法且在数据范围内
+      permission: "academic_director / grade_leader / person.teaching_assignment / create"
+      api: saveTeachingAssignment
+      result: 按"教师 + 学科 + 班级"逐条写入；已存在的有效关系跳过；任一条越权则整体拒绝（DS-DENY-06）
+      audit: 是
+      batch: "2-2"
+
+# ---------------------------------------------------------------------------
 # 4. 其余页面
 #     规则：每个批次开始时，把该批页面的动作追加到下面，并按本文件的字段定义登记。
 #     批次 2-0 只定词汇与样板页；后续批次逐批补齐，未登记的动作不得出现在原型中。
 # ---------------------------------------------------------------------------
 batches_pending:
-  - { batch: "2-2", pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-CREATE, PAGE-TCH-EDIT, PAGE-TCH-LEAVE], status: "2-2a 与 2-2b-1 已产出待验收（ACT-TCH-001 ~ 029 已登记）" }
-  - { batch: "2-2b-2", pages: [PAGE-TCH-ROLE, PAGE-TCH-ASSIGN, PAGE-GRD-LIST, PAGE-GRD-DETAIL, PAGE-GRD-CREATE, PAGE-GRD-BATCH, PAGE-GRD-LEADER, PAGE-GRD-ARCHIVE], status: 待开始 }
+  - { batch: "2-2", pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-CREATE, PAGE-TCH-EDIT, PAGE-TCH-LEAVE, PAGE-TCH-ROLE, PAGE-TCH-ASSIGN], status: "2-2a、2-2b-1 与 2-2b-2 教师部分已产出待验收（ACT-TCH-001 ~ 039 已登记）" }
+  - { batch: "2-2b-2b", pages: [PAGE-GRD-LIST, PAGE-GRD-DETAIL, PAGE-GRD-CREATE, PAGE-GRD-BATCH, PAGE-GRD-LEADER, PAGE-GRD-ARCHIVE], status: 待开始 }
   - { batch: "2-3", pages: [PAGE-CLS-LIST, PAGE-CLS-DETAIL, PAGE-CLS-CREATE, PAGE-CLS-BATCH, PAGE-CLS-ROSTER-ADD, PAGE-CLS-TRANSFER, PAGE-PRM-LIST, PAGE-PRM-CREATE, PAGE-PRM-PREVIEW, PAGE-PRM-VALIDATE, PAGE-PRM-EXECUTE, PAGE-PRM-RESULT], status: 待开始 }
   - { batch: "2-4", pages: [PAGE-IMP-WIZARD, PAGE-IMP-TEMPLATE, PAGE-IMP-VALIDATE, PAGE-IMP-EXECUTE, PAGE-STU-IMPORT, PAGE-TCH-IMPORT, PAGE-CLS-ROSTER-IMPORT, PAGE-LOGIN, PAGE-403, PAGE-404, PAGE-500], status: 待开始 }
 

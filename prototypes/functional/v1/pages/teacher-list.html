@@ -412,6 +412,156 @@
   </section>
 </div>
 
+<!-- ============================================================== 弹窗：教育角色分配 -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-TCH-ROLE" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="md" data-page="PAGE-TCH-ROLE" data-block="form">
+    <div class="drawer-header">
+      <h2>教育角色分配 · <span data-role-target="teacher_name">苏睿</span></h2>
+      <span class="el-tag primary" data-role-target="teacher_no">YXWY2017001</span>
+      <span class="el-tag info">教育角色 ≠ 系统角色</span>
+      <button class="close-x" data-close-panel="PAGE-TCH-ROLE" title="关闭">✕</button>
+    </div>
+    <div class="dialog-body">
+      <div class="alert info">
+        <span>先分清两个概念</span>
+        <span>教育角色决定<b>数据范围</b>（能看哪些年级、班级、学生），系统角色决定<b>功能权限</b>（能不能进入某个模块）。
+          一个教师可同时具备多个教育角色，数据范围取并集（<span class="mono">REQ-TCH-028</span> / <span class="mono">REQ-TCH-034</span>）。</span>
+      </div>
+
+      <div class="field" data-role-editable="academic_director,tenant_admin">
+        <label>学校级角色</label>
+        <div class="table-scroll">
+          <table class="el-table" data-role="table" data-component="el-table" style="min-width:520px">
+            <thead>
+              <tr>
+                <th class="center" style="width:44px">选择</th>
+                <th style="width:110px">角色</th>
+                <th style="width:170px">任职范围</th>
+                <th style="width:150px">任职期间</th>
+                <th>数据范围</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="center"><input type="checkbox" checked data-keep-enabled /></td>
+                <td><span class="el-tag primary">教务主任</span></td>
+                <td>云溪外国语学校（学校级）</td>
+                <td class="mono">2024-09-01 ~ 长期</td>
+                <td><span class="mono">DS-04</span> 本校全部教师与教学数据</td>
+              </tr>
+              <tr>
+                <td class="center"><input type="checkbox" data-keep-enabled /></td>
+                <td><span class="el-tag primary">校领导</span></td>
+                <td>云溪外国语学校（学校级）</td>
+                <td class="mono">—</td>
+                <td><span class="mono">DS-04</span> 本校全部，只读查看</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="hint">校领导与教务主任属于学校级角色，任职范围固定为教师归属校；跨校任教的教师需要在任教校单独分配教学类角色。</div>
+      </div>
+
+      <div class="field" data-role-editable="academic_director,tenant_admin">
+        <label>年级主任任职<span class="required">*</span></label>
+        <div class="table-scroll">
+          <table class="el-table" data-role="table" data-component="el-table" id="role-grade-table" style="min-width:520px">
+            <thead>
+              <tr>
+                <th style="width:170px">学年学期</th>
+                <th style="width:140px">年级</th>
+                <th style="width:90px">是否主管</th>
+                <th style="width:100px">状态</th>
+                <th class="actions" style="width:80px">操作</th>
+              </tr>
+            </thead>
+            <tbody id="role-grade-rows">
+              <tr>
+                <td>2026-2027 学年 第一学期</td>
+                <td>2024 级 高三</td>
+                <td>是</td>
+                <td><span class="el-tag success">生效中</span></td>
+                <td class="actions">
+                  <button class="btn link danger" data-role="action" data-action-id="ACT-TCH-012" data-component="el-button.link.danger"
+                          data-permission="person.teacher:update" data-demo-toast="解除年级主任任职后，该教师不再具备该年级的数据范围；历史任职记录保留并写审计。"
+                          data-demo-toast-type="warning">解除</button>
+                </td>
+              </tr>
+              <tr>
+                <td>2025-2026 学年 第一学期</td>
+                <td>2025 级 高二</td>
+                <td>否</td>
+                <td><span class="el-tag info">已失效</span></td>
+                <td class="actions"><span class="cell-empty">历史只读</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="legend" style="margin-top:8px">
+          <span>年级主任必须绑定<b>学年学期 + 年级</b>，同一年级同一学期只允许一名主管（<span class="mono">REQ-TCH-027</span> / <span class="mono">BR-GRADE-004</span>）</span>
+        </div>
+        <div class="state-hidden" id="role-grade-form" style="margin-top:12px">
+          <div class="form-grid">
+            <div class="field">
+              <label>学年学期<span class="required">*</span></label>
+              <select class="select" data-field="term_id" data-component="el-select" data-required data-required-message="请选择学年学期">
+                <option value="">请选择</option>
+                <option value="202601" selected>2026-2027 学年 第一学期</option>
+                <option value="202602">2026-2027 学年 第二学期</option>
+              </select>
+              <div class="error-text">请选择学年学期</div>
+            </div>
+            <div class="field">
+              <label>年级<span class="required">*</span></label>
+              <select class="select" data-field="grade_id" data-component="el-select" data-required data-required-message="请选择年级">
+                <option value="">请选择</option>
+                <option value="202601">2026 级 高一</option>
+                <option value="202501">2025 级 高二</option>
+                <option value="202401" selected>2024 级 高三</option>
+              </select>
+              <div class="error-text">请选择年级</div>
+            </div>
+            <div class="field">
+              <label>是否主管</label>
+              <div><label style="font-weight:400"><input type="radio" name="role-primary-new" checked data-keep-enabled /> 是（同一年级只允许一名）</label></div>
+              <div class="hint">选择"是"时，若该学期该年级已有主管，保存会被拒绝并提示现任主管。</div>
+            </div>
+            <div class="field">
+              <label>任职期间</label>
+              <input class="input" data-field="start_date" data-component="el-date-picker" value="2026-09-01" style="min-width:130px" />
+              <div class="hint">留空表示长期有效（<span class="mono">REQ-TCH-029</span>）</div>
+            </div>
+          </div>
+          <div class="toolbar">
+            <button class="btn primary-plain" data-role="action" data-action-id="ACT-TCH-031" data-component="el-button.primary.plain"
+                    data-permission="person.teacher:update"
+                    data-demo-toast="已加入待保存列表：2026-2027 第一学期 · 2024 级 高三（主管）。点「保存」后统一提交并写审计。"
+                    data-demo-toast-type="info">加入待保存</button>
+            <button class="btn" data-role="action" data-action-id="ACT-TCH-030" data-component="el-button"
+                    data-demo-toast="已收起年级主任任职表单，未加入的内容不保存。" data-demo-toast-type="info">收起</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert warning" style="margin:0">
+        <span>保存前会检查</span>
+        <span>① 同一教师在同一任职范围内不允许重复分配同一角色（<span class="mono">REQ-TCH-030</span>）；
+          ② 年级主任必须选学年学期与年级；③ 角色变更后立即失效该用户的数据范围缓存（<span class="mono">REQ-TCH-031</span>）；
+          ④ 写入审计，记录原角色、新角色与生效日期（<span class="mono">REQ-TCH-032</span>）。</span>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-TCH-022" data-component="el-button"
+              data-nav="DIALOG-TCH-DISCARD" data-overlay="dialog">取消</button>
+      <button class="btn" data-role="action" data-action-id="ACT-TCH-030" data-component="el-button"
+              data-permission="person.teacher:update" data-role-visible="academic_director,tenant_admin">新增年级主任任职</button>
+      <button class="btn primary" data-role="action" data-action-id="ACT-TCH-032" data-component="el-button.primary"
+              data-api="saveTeacherEduRole" data-permission="person.teacher:update"
+              data-demo-message="已保存教育角色：生效角色 教务主任（云溪外国语学校）、年级主任（2026-2027 第一学期 · 2024 级 高三）。数据范围缓存已失效，审计已写入。">保存</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============================================================== 抽屉：教师详情 -->
 <div class="overlay" data-demo="panel" data-demo-panel="PAGE-TCH-DETAIL" data-overlay-kind="drawer">
   <aside class="drawer" data-role="drawer" data-component="el-drawer" data-size="lg" data-page="PAGE-TCH-DETAIL" data-block="detail">
@@ -478,8 +628,7 @@
           <div class="header-right">
             <button class="btn primary-plain" data-role="action" data-action-id="ACT-TCH-007" data-component="el-button.primary.plain"
                     data-permission="person.teacher:update" data-role-visible="academic_director,tenant_admin"
-                    data-demo-toast="「教育角色分配」（PAGE-TCH-ROLE）在批次 2-2b-2 交付：分配学校级角色与年级主任任职，年级主任必须绑定学年学期与年级。"
-                    data-demo-toast-type="warning">分配角色</button>
+                    data-nav="PAGE-TCH-ROLE" data-overlay="dialog">分配角色</button>
           </div>
         </div>
         <div class="card-body">
@@ -529,8 +678,7 @@
                     data-demo-toast-type="warning">复制上一学年</button>
             <button class="btn primary-plain" data-role="action" data-action-id="ACT-TCH-008" data-component="el-button.primary.plain"
                     data-permission="person.teaching_assignment:read" data-role-visible="academic_director,tenant_admin,grade_leader"
-                    data-demo-toast="「任教关系设置」（PAGE-TCH-ASSIGN，独立页，双栏教师视角 / 班级视角）在批次 2-2b-2 交付。"
-                    data-demo-toast-type="warning">设置任教</button>
+                    data-nav="PAGE-TCH-ASSIGN">设置任教</button>
           </div>
         </div>
         <div class="card-body">
@@ -724,8 +872,7 @@
           <button class="btn" data-role="action" data-action-id="ACT-TCH-025" data-component="el-button"
                   data-demo-toast="真实系统中跳转到刚创建的教师详情；原型演示中不再打开第二个浮层。" data-demo-toast-type="info">查看详情</button>
           <button class="btn primary" data-role="action" data-action-id="ACT-TCH-026" data-component="el-button.primary"
-                  data-permission="person.teaching_assignment:create"
-                  data-demo-toast="「任教关系设置」（PAGE-TCH-ASSIGN）在批次 2-2b-2 交付；任教关系绑定学年学期、学科与班级。" data-demo-toast-type="warning">立即设置任教</button>
+                  data-permission="person.teaching_assignment:create" data-nav="PAGE-TCH-ASSIGN">立即设置任教</button>
         </div>
       </div>
 
@@ -1047,7 +1194,11 @@
       btn.setAttribute('data-action-id', actionId);
       btn.setAttribute('data-component', 'el-button.link.primary');
       btn.setAttribute('data-permission', permission);
-      if (nav) { btn.setAttribute('data-nav', nav); btn.setAttribute('data-overlay', overlay || 'drawer'); }
+      // overlay 为 undefined 时不写 data-overlay：外壳据此判定"跳到独立页"而不是"打开同页浮层"
+      if (nav) {
+        btn.setAttribute('data-nav', nav);
+        if (overlay) btn.setAttribute('data-overlay', overlay);
+      }
       if (roles) btn.setAttribute('data-role-visible', roles);
       if (extra) extra(btn);
       // 不再 stopPropagation：外壳的事件委托挂在 document 上，阻止冒泡会让行内按钮全部失效。
@@ -1057,14 +1208,9 @@
     }
 
     link('编辑', 'ACT-TCH-006', 'person.teacher:update', 'PAGE-TCH-EDIT', 'academic_director,tenant_admin', 'drawer');
-    link('角色', 'ACT-TCH-007', 'person.teacher:update', null, 'academic_director,tenant_admin', null, function (btn) {
-      btn.setAttribute('data-demo-toast', '「教育角色分配」（PAGE-TCH-ROLE）在批次 2-2b-2 交付：分配学校级角色与年级主任任职，年级主任必须绑定学年学期与年级。');
-      btn.setAttribute('data-demo-toast-type', 'warning');
-    });
-    link('任教', 'ACT-TCH-008', 'person.teaching_assignment:read', null, 'academic_director,tenant_admin,grade_leader', null, function (btn) {
-      btn.setAttribute('data-demo-toast', '「任教关系设置」（PAGE-TCH-ASSIGN，独立页，双栏教师视角 / 班级视角）在批次 2-2b-2 交付。');
-      btn.setAttribute('data-demo-toast-type', 'warning');
-    });
+    link('角色', 'ACT-TCH-007', 'person.teacher:update', 'PAGE-TCH-ROLE', 'academic_director,tenant_admin', 'dialog');
+    link('任教', 'ACT-TCH-008', 'person.teaching_assignment:read', 'PAGE-TCH-ASSIGN',
+         'academic_director,tenant_admin,grade_leader');
     if (onJob) {
       link('离职', 'ACT-TCH-009', 'person.teacher:update', 'DIALOG-TCH-LEAVE', 'academic_director,tenant_admin', 'dialog',
            function (btn) { btn.classList.add('danger'); });
@@ -1469,6 +1615,25 @@
       });
     });
 
+    // 教育角色分配弹窗：头部跟随点击行；「新增年级主任任职」展开 / 收起表单
+    function fillRoleDialog(row) {
+      var host = document.querySelector('[data-demo-panel="PAGE-TCH-ROLE"]');
+      if (!host) return;
+      var name = row === null ? '苏睿' : row.children[2].textContent.trim();
+      var no = row === null ? 'YXWY2017001' : row.children[1].textContent.trim();
+      Array.prototype.forEach.call(host.querySelectorAll('[data-role-target="teacher_name"]'), function (n) { n.textContent = name; });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-role-target="teacher_no"]'), function (n) { n.textContent = no; });
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('#teacher-rows tr'), function (row) {
+      row.addEventListener('click', function () { fillRoleDialog(row); });
+    });
+    document.addEventListener('click', function (event) {
+      var toggle = event.target.closest('[data-action-id="ACT-TCH-030"]');
+      if (!toggle) return;
+      var form = document.getElementById('role-grade-form');
+      if (form) form.classList.toggle('state-hidden');
+    });
+
     document.addEventListener('click', function (event) {
       var save = event.target.closest('[data-after-success-reveal]');
       if (!save) return;
@@ -1502,6 +1667,11 @@
     }
     if (params.step && window.PrototypeShell && window.PrototypeShell.step) {
       window.PrototypeShell.step('PAGE-TCH-CREATE', Number(params.step));
+    }
+    // gradeform=1 直接展开教育角色分配弹窗里的「新增年级主任任职」子表单（截图与评审用）
+    if (params.gradeform === '1') {
+      var gradeForm = document.getElementById('role-grade-form');
+      if (gradeForm) gradeForm.classList.remove('state-hidden');
     }
   }
 

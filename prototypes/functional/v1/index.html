@@ -83,6 +83,20 @@
             <td><a href="pages/teacher-list.html#panel=PAGE-TCH-CREATE">新增 / 编辑抽屉内「取消」</a></td>
             <td>写清"对谁、做什么、影响范围"；确认后同时关闭表单浮层且不保存</td>
           </tr>
+          <tr>
+            <td class="mono">PAGE-TCH-ROLE</td>
+            <td>教育角色分配（批次 2-2b-2）</td>
+            <td>弹窗（TPL-OVERLAY · md）</td>
+            <td><a href="pages/teacher-list.html#panel=PAGE-TCH-ROLE">列表页内行内「角色」</a></td>
+            <td>学校级角色 + 年级主任任职；年级主任必须绑定学年学期与年级；唯一性、缓存失效与审计四条保存前检查</td>
+          </tr>
+          <tr>
+            <td class="mono">PAGE-TCH-ASSIGN</td>
+            <td>任教关系设置（批次 2-2b-2 · 独立页）</td>
+            <td>独立页（双栏：班级视角 / 教师视角）</td>
+            <td><a href="pages/teacher-assign.html">pages/teacher-assign.html</a></td>
+            <td>左栏 8 个班级 / 11 名教师可选；右栏 8 条任教关系（含已失效与待补充）；复制上一学年带冲突预览；六类状态</td>
+          </tr>
         </tbody>
       </table>
       <div class="legend" style="margin-top:10px">
@@ -103,6 +117,8 @@
         <li>打开 <a href="pages/teacher-list.html">教师管理列表</a>，点任意数据行打开教师详情抽屉：左上角切换「跨校任教（苏睿）」与「班主任 + 任课（邓丽娟）」两种形态，看跨校说明、教育角色空态与变更记录时间线。</li>
         <li>在教师列表点「新增」打开三步抽屉：只填姓名直接点「下一步」看字段级校验；走到第三步点「保存」看成功结果条与「继续新增 / 查看详情 / 立即设置任教」三个后续动作。</li>
         <li>点「取消」看放弃确认弹窗：写清影响范围，确认后同时关闭两个浮层。</li>
+        <li>在教师列表点行内「角色」打开教育角色分配：看学校级角色勾选、年级主任任职（学年学期 + 年级必填）与保存前四条检查；点「新增年级主任任职」展开子表单。</li>
+        <li>在教师列表点行内「任教」进入 <a href="pages/teacher-assign.html">任教关系设置</a>：左栏切「班级视角 / 教师视角」，点不同班级或教师看右栏变化；点「复制上一学年」看冲突预览（复制 / 跳过 / 待处理）。</li>
         <li>学生列表点任意数据行：学生详情在批次 2-5 交付，本批只给占位提示，用于验证入口与权限显隐。</li>
       </ol>
     </div>
@@ -136,7 +152,8 @@
           <tr><td>2-1</td><td>学生管理列表 + 新增/编辑抽屉（样板）</td><td class="num">3</td><td><span class="el-tag warning">待验收</span></td></tr>
           <tr><td>2-2a</td><td>教师管理列表（标准校验页）</td><td class="num">1</td><td><span class="el-tag warning">待验收</span></td></tr>
           <tr><td>2-2b-1</td><td>教师详情 + 新增教师 + 编辑教师（含放弃确认弹窗）</td><td class="num">3</td><td><span class="el-tag warning">待验收</span></td></tr>
-          <tr><td>2-2b-2</td><td>教育角色分配 + 任教关系设置（独立页）+ 年级管理 6 页</td><td class="num">8</td><td><span class="el-tag info">待开始</span></td></tr>
+          <tr><td>2-2b-2</td><td>教育角色分配 + 任教关系设置（独立页）</td><td class="num">2</td><td><span class="el-tag warning">待验收</span></td></tr>
+          <tr><td>2-2b-2b</td><td>年级管理 6 页</td><td class="num">6</td><td><span class="el-tag info">待开始</span></td></tr>
           <tr><td>2-3</td><td>班级管理 + 班级详情 + 升班向导</td><td class="num">12</td><td><span class="el-tag info">待开始</span></td></tr>
           <tr><td>2-4</td><td>导入向导 + 登录 + 异常页</td><td class="num">11</td><td><span class="el-tag info">待开始</span></td></tr>
           <tr><td>2-5</td><td>学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录）</td><td class="num">8</td><td><span class="el-tag info">待开始</span></td></tr>

@@ -34,6 +34,9 @@
 | `page-specs/teacher-detail.md` | 教师详情页面规格（6 个分区、两种形态） | 批次 2-2b-1 |
 | `page-specs/teacher-create.md` | 新增教师三步抽屉页面规格 | 批次 2-2b-1 |
 | `page-specs/teacher-edit.md` | 编辑教师抽屉页面规格（字段级可编辑性） | 批次 2-2b-1 |
+| `page-specs/teacher-role.md` | 教育角色分配弹窗页面规格 | 批次 2-2b-2 |
+| `page-specs/teacher-assign.md` | 任教关系设置独立页页面规格（双栏视角） | 批次 2-2b-2 |
+| `pages/teacher-assign.html` | 任教关系设置（独立页，双栏：班级视角 / 教师视角） | 批次 2-2b-2 |
 
 ## 3. 怎么打开
 
@@ -52,7 +55,7 @@
 |---|---|---|
 | `role` | `academic_director` / `homeroom` / `grade_leader` / `subject_teacher` / `school_leader` / `platform_ops` | `student-list.html#role=homeroom` |
 | `state` | `normal` / `loading` / `empty` / `error` / `forbidden` / `submitting` / `partial` / `queued` | `student-list.html#state=error` |
-| `panel` | `PAGE-STU-CREATE` / `PAGE-STU-EDIT` / `PAGE-TCH-DETAIL` / `PAGE-TCH-CREATE` / `PAGE-TCH-EDIT` / `DIALOG-TCH-LEAVE` / `DIALOG-TCH-DISCARD` | `teacher-list.html#panel=PAGE-TCH-DETAIL`；`#panel=PAGE-TCH-CREATE` 直接打开新增抽屉 |
+| `panel` | `PAGE-STU-CREATE` / `PAGE-STU-EDIT` / `PAGE-TCH-DETAIL` / `PAGE-TCH-CREATE` / `PAGE-TCH-EDIT` / `PAGE-TCH-ROLE` / `DIALOG-TCH-LEAVE` / `DIALOG-TCH-DISCARD` / `DIALOG-TCH-COPY` | `teacher-list.html#panel=PAGE-TCH-DETAIL`；`#panel=PAGE-TCH-ROLE` 直接打开角色分配弹窗 |
 | `school` | `201` / `202` | `student-list.html?school=202#role=platform_ops`（平台运营切换他校的协助视图；学校用户看不到他校数据） |
 | `sample` | 教师详情样例：`1007`（跨校任教）/ `1003`（班主任 + 任课） | `teacher-list.html#panel=PAGE-TCH-DETAIL&sample=1003` |
 | `step` | 向导类浮层的步骤序号，如 `3` | `teacher-list.html#panel=PAGE-TCH-CREATE&step=3` |
@@ -84,7 +87,7 @@
 |---|---|---|
 | 2-0 | 原型规范（已产出，待验收） | 0 |
 | 2-1 | 学生管理列表 + 新增/编辑抽屉（**样板**，已产出，待验收） | 3 |
-| 2-2 | 教师管理 + 年级管理（拆为 2-2a 教师列表 1 页 / 2-2b-1 教师详情与新增编辑 3 项 / 2-2b-2 角色、任教与年级 6 页） | 13 |
+| 2-2 | 教师管理 + 年级管理（拆为 2-2a 教师列表 1 页 / 2-2b-1 教师详情与新增编辑 3 项 / 2-2b-2 角色与任教 2 项 / 2-2b-2b 年级 6 页） | 13 |
 | 2-3 | 班级管理 + 班级详情 + 升班向导 | 12 |
 | 2-4 | 导入向导 + 登录 + 异常页 | 11 |
 | 2-5 | 学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录） | 8 |
@@ -137,3 +140,15 @@
 | 时间线样式 | 在 `assets/prototype-shell.css` 新增 `el-timeline` 仿真样式（`.timeline` / `.tl-head` / `.tl-body` / `.tl-meta`） | `markup-contract.md` 的组件映射表已约定 `<ul class="timeline">` → `el-timeline`，但外壳此前没有对应样式 |
 | 工号格式校验 | 在 `prototype-shell.js` 的 `validateForm` 增加 `code32` 规则（2–32 位字母、数字或连字符） | 教师 PRD 4.3 校验规则汇总里工号有长度约束；唯一性属于服务端校验，原型用演示面板的"唯一性冲突"样本演示 |
 | 勾选与开启详情 | 行内复选框 `stopPropagation`，勾选不再触发"点击行"打开详情 | 2-2a 遗留缺陷：外壳的事件委托挂在 `document` 上，复选框点击会冒泡到行 |
+
+## 10. 批次 2-2b-2 的工程决策（待确认，若不认可可回退）
+
+| 事项 | 做法 | 理由 |
+|---|---|---|
+| 任教关系设置的承载 | 新增独立页 `pages/teacher-assign.html`，双栏（左栏主体选择器 320px + 右栏主体与任教关系） | 教师 PRD 6.1 写明为独立页；"需要对照列表数据填写 + 含表格与批量选择"按 `prototype-quality-spec.md` 第 5 节必须用独立页 |
+| 非菜单页的交付登记 | 外壳新增 `EXTRA_PAGES` 映射（页面编号 → 相对路径 + 名称 + 批次），并在跳转分支优先查它 | 详情页 / 独立业务页不在左侧菜单里，无法从 `MENUS` 推导交付状态；不登记就只会得到"后续批次交付"的提示 |
+| 行内按钮的浮层语义 | `data-overlay` 为 `drawer` / `dialog` 时打开同页浮层；**不写** `data-overlay` 时跳转到登记过的独立页 | 此前 helper 默认写 `drawer`，导致"任教"按钮被当成浮层而打不开独立页 |
+| 双栏布局的样式 | 外壳样式表新增 `.split` / `.split-aside` / `.split-main` 与移动端折叠规则 | 布局规范只给了 Element 24 栅格；原型需要一份可复用的双栏工作台样式，避免每个页面各写内联 flex |
+| 弹窗高度 | `.dialog` 增加 `max-height: 84vh` 与内部滚动（``.dialog-body`` 滚动、footer 固定） | 教育角色分配弹窗内容较长，原先会溢出视口且看不到底部按钮 |
+| 菜单高亮 | 页面可用 `data-menu-page` 指定要高亮的菜单项（任教关系设置高亮"教师管理"） | 独立业务页不属于菜单树，但仍应让评审者看出自己在哪个模块里 |
+| 视角切换 | 左栏用 `班级视角 / 教师视角` 两个 chip 切换，右栏主体与表格结构复用 | `REQ-TCH-044` 要求支持班级视角与教师视角切换；复用一套表格列避免两套渲染逻辑 |

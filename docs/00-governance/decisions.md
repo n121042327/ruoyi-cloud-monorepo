@@ -692,6 +692,23 @@
 - 执行：`docs/00-governance/change-requests/CR-004.md`（已批准并执行）
 - 如果错了的代价：校领导若日后需要写权限，改回一行矩阵并补验收用例即可；字段名若需调整，此时尚未建表，改一行字典 + 一处 `data-field` 即可
 
+## D-055 阶段 2 批次 2-2b-2：教师模块收口（教育角色分配 + 任教关系设置）与外壳约定补充
+
+- 日期：2026-09-30
+- 背景：用户对上一条汇报中的 2-2b-2 回复"执行"。本批交付教师模块最后两项：`PAGE-TCH-ROLE` 教育角色分配弹窗、`PAGE-TCH-ASSIGN` 任教关系设置独立页；年级 6 页顺延为 2-2b-2b
+- 决策：
+
+| 事项 | 裁决 | 落地 |
+|---|---|---|
+| 任教关系设置的承载 | 按教师 PRD 6.1：**独立页**，双栏（班级视角 / 教师视角） | 新增 `pages/teacher-assign.html`（`data-page-id="PAGE-TCH-ASSIGN"`，`data-menu-page="PAGE-TCH-LIST"`） |
+| 非菜单页的交付登记 | 外壳新增 `EXTRA_PAGES`（页面编号 → 路径 + 名称 + 批次），跳转分支优先查它 | `assets/prototype-shell.js`；未登记的页面仍给"后续批次交付"提示 |
+| 行内按钮的浮层与跳页语义 | 写了 `data-overlay` 打开同页浮层；不写则跳独立页 | 教师列表行内按钮：编辑 `drawer`、角色 `dialog`、任教（无）、离职 `dialog`；`link()` helper 同步收口 |
+| 双栏与弹窗高度 | 外壳样式表新增 `.split` 系列；`.dialog` 增加 `max-height: 84vh` 与内部滚动 | `assets/prototype-shell.css` |
+
+- 执行：`prototypes/functional/v1/` 下 `pages/teacher-assign.html`（新增）、`pages/teacher-list.html`、`page-actions.yaml`（`ACT-TCH-030` ~ `039`）、`navigation.yaml`、`content-samples.json`（`teacher_role_samples`、`teaching_assignment_board`）、`page-specs/teacher-role.md`、`page-specs/teacher-assign.md`
+- 证据：`evidence/stage2-prototype/` 新增 9 张截图，`interaction-verification.md` 追加 ROLE-01 ~ 07、AS-01 ~ 08 共 15 条用例实测结果
+- 如果错了的代价：独立页若最终要并入教师详情，改路由与入口即可；`EXTRA_PAGES` 与 `.split` 都是外壳级增量约定，不影响已交付页面
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |

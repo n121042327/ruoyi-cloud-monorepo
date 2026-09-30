@@ -66,3 +66,35 @@
 - 行内按钮、行点击、复选框、步骤条、校验汇总五类交互在教师与学生两个列表页均可用。
 - 该缺陷属于外壳级问题，后续批次的新页面不需要再各自加 `stopPropagation` 之类的补丁。
 - 本文件与 `teacher-*.png` 截图一起构成本批的可点性与形态证据。
+
+## 5. 批次 2-2b-2 的补充验证
+
+新增两名角色与任教关系设置页后，追加以下用例（方式同上）：
+
+### 5.1 教育角色分配弹窗（`PAGE-TCH-ROLE`，挂在 `pages/teacher-list.html`）
+
+| 用例 | 操作 | 期望 | 实测 |
+|---|---|---|---|
+| ROLE-01 | 点行内「角色」 | 弹窗打开 | `ROLE01_open=true` |
+| ROLE-02 | — | 头部跟随点击行 | `ROLE02_header=郑雅琴/YX2019001` |
+| ROLE-03 | — | 年级主任任职表单默认收起 | `ROLE03_formHidden=true` |
+| ROLE-04 | 点「新增年级主任任职」 | 表单展开 | `ROLE04_formShown=true` |
+| ROLE-05 | 点「收起」 | 表单收起 | `ROLE05_formHiddenAgain=true` |
+| ROLE-06 | 点角色行内「解除」 | 给出影响说明提示 | `ROLE06_unbind_toast=2` |
+| ROLE-07 | 点「保存」 | 按钮置 loading 并禁用 | `ROLE07_save_loading=true` |
+
+### 5.2 任教关系设置（`pages/teacher-assign.html`，独立页）
+
+| 用例 | 操作 | 期望 | 实测 |
+|---|---|---|---|
+| AS-01 | 打开页面 | 默认班级视角 | `AS01_classVisible=true`，主体 `高一 (1) 班` |
+| AS-02 | 点「教师视角」 | 左栏切换为 11 名教师 | `AS03_teacherView=true, count=11 名教师` |
+| AS-03 | 点左栏某位教师 | 右侧主体切换 | `AS04_afterPick=邓丽娟/任课教师` |
+| AS-04 | — | 失效行无写入口、终态行给出只读说明 | `AS05_rowActions=5, readonlyRows=4` |
+| AS-05 | 表单未填学科直接保存 | 顶部汇总出现且不发请求 | `AS06_summaryShown=true` |
+| AS-06 | 补齐学科与教师后保存 | 汇总收起、按钮置 loading | `AS10_summaryHidden=true, AS11_save_loading=true` |
+| AS-07 | 点「复制上一学年」 | 冲突预览弹窗打开，可确认 | `AS08_copy_open=true` |
+| AS-08 | 教师列表点行内「任教」 | 跳转到独立页并渲染选择器 | `phase1_page=PAGE-TCH-LIST → phase2_page=PAGE-TCH-ASSIGN, phase2_picker=ok` |
+
+> 行内按钮的 `data-overlay` 语义补充：`编辑=drawer`、`角色=dialog`、`任教=无（跳独立页）`、`离职=dialog`。
+> 外壳按 `data-overlay` 是否存在决定"打开同页浮层"还是"跳独立页"，`pages/teacher-list.html` 的 `link()` helper 已按此约定收口。

@@ -187,6 +187,19 @@ body { overflow: hidden; }
 
 .shell-content { flex: 1; min-height: 0; overflow: auto; padding: 8px; }
 
+/* ------------------------------------------------------------------ 双栏工作台（左侧选择器 + 右侧主体） */
+.split { display: flex; align-items: flex-start; gap: 10px; }
+.split > .split-aside { flex: 0 0 320px; }
+.split > .split-main { flex: 1; min-width: 0; }
+.split .picker-row { cursor: pointer; }
+.split .picker-row.on td { background: #ecf5ff; }
+.split .picker-row.on td:first-child { box-shadow: inset 3px 0 0 var(--app-primary); }
+
+@media (max-width: 992px) {
+  .split { display: block; }
+  .split > .split-aside { flex: none; width: 100%; margin-bottom: 10px; }
+}
+
 /* ------------------------------------------------------------------ 卡片与区块 */
 .card {
   background: #fff;
@@ -460,14 +473,17 @@ table.el-table .mono { font-size: 13px; }
   transform: translateX(-50%);
   width: 600px;
   max-width: calc(100% - 32px);
+  max-height: 84vh;
   background: #fff;
   border-radius: var(--app-radius-base);
   box-shadow: var(--app-shadow-md);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 .dialog[data-size="sm"] { width: 480px; }
-.dialog-body { padding: 20px; font-size: 14px; color: var(--app-text-regular); }
-.dialog-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px 16px; border-top: 1px solid var(--app-border-light); }
+.dialog-body { padding: 20px; font-size: 14px; color: var(--app-text-regular); overflow-y: auto; }
+.dialog-footer { flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px 16px; border-top: 1px solid var(--app-border-light); }
 
 /* ------------------------------------------------------------------ 步骤条 */
 .steps { display: flex; align-items: center; gap: 0; margin-bottom: 20px; }
