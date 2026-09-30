@@ -139,13 +139,34 @@
             <td><a href="pages/grade-list.html#panel=PAGE-GRD-LEADER">列表行内「指定年级主任」</a></td>
             <td>必须绑定学年学期（历史学期只读）；可指定多名并标记一名主要负责人；重复任职被拒绝；保存前四条检查</td>
           </tr>
-          <tr>
-            <td class="mono">PAGE-GRD-ARCHIVE</td>
-            <td>归档确认（弹窗）</td>
-            <td>弹窗（TPL-OVERLAY · sm）</td>
-            <td><a href="pages/grade-list.html#panel=PAGE-GRD-ARCHIVE">列表行内「归档」</a></td>
-            <td>影响范围 + 引用情况（班级 / 在读 / 主任）+ 原因必填写审计；与"删除"的区别写在同一行文案里</td>
-          </tr>
+<tr>
+<td class="mono">PAGE-GRD-ARCHIVE</td>
+<td>归档确认（弹窗）</td>
+<td>弹窗（TPL-OVERLAY · sm）</td>
+<td><a href="pages/grade-list.html#panel=PAGE-GRD-ARCHIVE">列表行内「归档」</a></td>
+<td>影响范围 + 引用情况（班级 / 在读 / 主任）+ 原因必填写审计；与"删除"的区别写在同一行文案里</td>
+</tr>
+<tr>
+<td class="mono">PAGE-CLS-LIST</td>
+<td>班级管理列表（批次 2-3a 样板）</td>
+<td>列表页（TPL-LIST）</td>
+<td><a href="pages/class-list.html">pages/class-list.html</a></td>
+<td>筛选项 6 个 + 关键字、列 10 个、行内高频 3 个 + 「更多 ▾」下拉、12 行样例、在读 / 容量各自独立；数据范围按 DS-04 ~ 07 真实收窄（11 / 4 / 1 / 3 行）；7 类状态、8 种角色</td>
+</tr>
+<tr>
+<td class="mono">DIALOG-CLS-DISABLE</td>
+<td>停用班级（二次确认）</td>
+<td>弹窗（TPL-OVERLAY · sm）</td>
+<td><a href="pages/class-list.html#panel=DIALOG-CLS-DISABLE">班级列表行内「更多 ▾」→「停用」</a></td>
+<td>写清"仅停用不删除"与历史花名册仍可查；原因必填并写审计；未填原因时校验拦截、不关闭</td>
+</tr>
+<tr>
+<td class="mono">DIALOG-CLS-DELETE</td>
+<td>删除班级（二次确认）</td>
+<td>弹窗（TPL-OVERLAY · sm）</td>
+<td><a href="pages/class-list.html#panel=DIALOG-CLS-DELETE">班级列表空班行内「更多 ▾」→「删除」</a></td>
+<td>只对在读人数为 0 的班级可用；原因必填；逻辑删除、不做物理删除（REQ-CLS-046）</td>
+</tr>
         </tbody>
       </table>
       <div class="legend" style="margin-top:10px">
@@ -169,7 +190,8 @@
         <li>在教师列表点行内「角色」打开教育角色分配：看学校级角色勾选、年级主任任职（学年学期 + 年级必填）与保存前四条检查；点「新增年级主任任职」展开子表单。</li>
         <li>在教师列表点行内「任教」进入 <a href="pages/teacher-assign.html">任教关系设置</a>：左栏切「班级视角 / 教师视角」，点不同班级或教师看右栏变化；点「复制上一学年」看冲突预览（复制 / 跳过 / 待处理）。</li>
         <li>学生列表点任意数据行：学生详情在批次 2-5 交付，本批只给占位提示，用于验证入口与权限显隐。</li>
-        <li>打开 <a href="pages/grade-list.html">年级管理列表</a>，点工具条「导出」上方的空年级行（也可直接用 <a href="pages/grade-list.html#enroll=2021">#enroll=2021</a> 只筛出它）：它是唯一带「删除」入口的行，点「删除」看二次确认，不填原因直接确认可看到字段级校验。</li>
+<li>打开 <a href="pages/grade-list.html">年级管理列表</a>，点工具条「导出」上方的空年级行（也可直接用 <a href="pages/grade-list.html#enroll=2021">#enroll=2021</a> 只筛出它）：它是唯一带「删除」入口的行，点「删除」看二次确认，不填原因直接确认可看到字段级校验。</li>
+<li>打开 <a href="pages/class-list.html">班级管理列表</a>，先看默认形态：在读 / 容量是两列，「初中一年级 (1) 班」行有「超容量」提示但写操作仍然可用（只提示不拦截）。再切演示面板的角色：<code>班主任</code> 只剩 1 行、<code>任课教师</code> 只剩 3 行且禁止导出花名册、<code>年级主任</code> 4 行且菜单里没有「删除」。最后点任一行的「更多 ▾」：有在读学生的班没有「删除」，空班（高二 (2) 班）才有，点它看删除二次确认与字段级校验。</li>
         <li>在年级列表把角色切到「校领导」与「年级主任」：两者都看不到新增 / 批量生成，操作列显示「只读」；再切到「超级管理员」，页头出现全平台与强制留痕提示，且全部按钮与行内操作都可见。</li>
       </ol>
     </div>
@@ -194,7 +216,7 @@
   </section>
 
   <section class="card">
-    <div class="card-header"><h3>批次进度（86 个页面）</h3></div>
+<div class="card-header"><h3>批次进度（90 个页面）</h3></div>
     <div class="card-body">
       <table class="el-table">
         <thead><tr><th style="width:90px">批次</th><th>内容</th><th style="width:90px">页面数</th><th style="width:120px">状态</th></tr></thead>
@@ -205,7 +227,7 @@
           <tr><td>2-2b-1</td><td>教师详情 + 新增教师 + 编辑教师（含放弃确认弹窗）</td><td class="num">3</td><td><span class="el-tag warning">待验收</span></td></tr>
           <tr><td>2-2b-2</td><td>教育角色分配 + 任教关系设置（独立页）</td><td class="num">2</td><td><span class="el-tag warning">待验收</span></td></tr>
           <tr><td>2-2b-2b</td><td>年级管理 6 页（列表 + 详情 + 新建/编辑 + 批量生成 + 指定主任 + 归档确认）</td><td class="num">6</td><td><span class="el-tag warning">待验收</span></td></tr>
-          <tr><td>2-3</td><td>班级管理 + 班级详情 + 升班向导</td><td class="num">12</td><td><span class="el-tag info">待开始</span></td></tr>
+<tr><td>2-3</td><td>班级管理 + 班级详情 + 升班向导（2-3a 班级列表样板已产出；2-3b ~ 2-3e 待铺开）</td><td class="num">16</td><td><span class="el-tag warning">2-3a 待验收</span></td></tr>
           <tr><td>2-4</td><td>导入向导 + 登录 + 异常页</td><td class="num">11</td><td><span class="el-tag info">待开始</span></td></tr>
           <tr><td>2-5</td><td>学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录）</td><td class="num">8</td><td><span class="el-tag info">待开始</span></td></tr>
           <tr><td>2-6</td><td>学校管理 + 学年学期 + 学科与配置</td><td class="num">19</td><td><span class="el-tag info">待开始</span></td></tr>

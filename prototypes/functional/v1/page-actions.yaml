@@ -973,10 +973,161 @@ grade_archive:
         audit: 是
         batch: "2-2"
 
+class_list:
+  page: PAGE-CLS-LIST
+  actions:
+    - id: ACT-CLS-001
+      element: 新建
+      trigger: 点击
+      condition: 有 org.class:create 权限
+      permission: "academic_director / grade_leader / org.class / create"
+      api: "-"
+      result: 打开 PAGE-CLS-CREATE 弹窗；学年学期默认当前，班级名称在同校同学年学期同学段下唯一
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-002
+      element: 批量生成
+      trigger: 点击
+      condition: 有 org.class:create 权限
+      permission: "academic_director / org.class / create"
+      api: "-"
+      result: 打开 PAGE-CLS-BATCH 弹窗，按年级与班级序号区间一次生成多个班级；已存在的名称列出冲突并跳过
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-003
+      element: 导出
+      trigger: 点击
+      condition: 有 data.export:export 权限
+      permission: "data.export:export"
+      confirm: 需要，提示"将按当前筛选条件导出台账；年级主任导出限本人负责年级"
+      api: exportClass
+      result: 行数 ≤ 2000 直接下载，否则转异步任务；写入导出审计（REQ-CLS-054）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-CLS-004
+      element: 行内「详情」
+      trigger: 点击行内按钮或班级名称
+      condition: 有 org.class:read 权限且该班级在本次数据范围内
+      permission: "org.class:read"
+      api: getClass
+      result: 进入 PAGE-CLS-DETAIL 独立页；返回列表时保留筛选与页码
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-005
+      element: 行内「编辑」
+      trigger: 点击行内按钮
+      condition: 有 org.class:update 权限，且该班级不是已停用
+      permission: "academic_director / grade_leader / org.class / update"
+      api: "-"
+      result: 打开班级表单的编辑态（复用 PAGE-CLS-CREATE 弹窗）；学年学期与年级只读（REQ-CLS-022），有花名册后班级类型只读（REQ-CLS-023）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-006
+      element: 行内「指定班主任」
+      trigger: 点击行内按钮
+      condition: 有 org.class:update 权限，且该班级不是已停用与教学班
+      permission: "academic_director / grade_leader / org.class / update"
+      api: "-"
+      result: 打开 PAGE-CLS-LEADER 弹窗，选择教师与生效日期；变更后原班主任立即失去本班范围（REQ-CLS-025 / 051）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-007
+      element: 行内「编班」
+      trigger: 点击行内按钮
+      condition: 有 org.class:update 权限且班级所属学年学期不是已归档学年
+      permission: "academic_director / grade_leader / org.class / update"
+      api: "-"
+      result: 进入 PAGE-CLS-ROSTER-ADD 独立页，从本校学生池检索并批量加入；逐条校验唯一行政班（REQ-CLS-027 / 029）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-008
+      element: 行内「复制班级」
+      trigger: 点击行内按钮
+      condition: 有 org.class:create 权限
+      permission: "academic_director / org.class / create"
+      api: "-"
+      result: 打开 PAGE-CLS-COPY 弹窗，选择目标学年学期与年级；复制类型、容量、校区、教室，不复制花名册与班主任（REQ-CLS-061）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-009
+      element: 行内「批量迁学生」
+      trigger: 点击行内按钮
+      condition: 有 org.class:update 权限，且该班在读人数大于 0
+      permission: "academic_director / grade_leader / org.class / update"
+      api: "-"
+      result: 进入 PAGE-CLS-MOVE 独立页，选目标班级并展示影响预览；原关系保留历史（REQ-CLS-062）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-010
+      element: 行内「停用」
+      trigger: 点击行内按钮
+      condition: 有 org.class:update 权限，且该班级不是已停用
+      permission: "academic_director / grade_leader / org.class / update"
+      confirm: 需要，打开 DIALOG-CLS-DISABLE；文案写清班级、在读人数与"仅停用不删除"
+      api: "-"
+      result: 打开停用二次确认片段，原因必填；停用后不在新建学生的可选班级中，历史花名册仍可查（REQ-CLS-044）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-011
+      element: 确认停用
+      trigger: 点击确认
+      condition: 已填写停用原因（至少 5 个字）
+      permission: "academic_director / grade_leader / org.class / update"
+      api: disableClass
+      result: 班级状态置为已停用并写审计；列表行内写操作收敛为「详情」
+      audit: 是
+      batch: "2-3"
+    - id: ACT-CLS-012
+      element: 取消停用
+      trigger: 点击取消或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭确认片段，不产生任何写入
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-013
+      element: 行内「删除」
+      trigger: 点击行内按钮
+      condition: 有 org.class:delete 权限；仅当在读人数为 0 时该入口才渲染，接口同样二次校验
+      permission: "academic_director / org.class / delete"
+      confirm: 需要，打开 DIALOG-CLS-DELETE；文案写清"有在读学生时不可删除，只能停用"
+      api: "-"
+      result: 打开删除二次确认片段，原因必填；有在读学生时接口拒绝并提示改用停用（REQ-CLS-043 / BR-CLASS-006）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-014
+      element: 确认删除
+      trigger: 点击确认删除
+      condition: 已填写删除原因（至少 5 个字）
+      permission: "academic_director / org.class / delete"
+      api: removeClass
+      result: 逻辑删除该班级并写审计；数据库层不开放物理删除（REQ-CLS-046）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-CLS-015
+      element: 取消删除
+      trigger: 点击取消或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭确认片段，不产生任何写入
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-016
+      element: 行内「更多」
+      trigger: 点击
+      condition: 该行至少有一个可用的低频行内操作
+      permission: "-"
+      api: "-"
+      result: 展开行内操作下拉（编班 / 复制班级 / 批量迁学生 / 停用 / 删除）；下拉项按各自权限与条件显隐
+      audit: 否
+      batch: "2-3"
+
 batches_pending:
   - { batch: "2-2", pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-CREATE, PAGE-TCH-EDIT, PAGE-TCH-LEAVE, PAGE-TCH-ROLE, PAGE-TCH-ASSIGN], status: "2-2a、2-2b-1 与 2-2b-2 教师部分已产出待验收（ACT-TCH-001 ~ 039 已登记）" }
   - { batch: "2-2b-2b", pages: [PAGE-GRD-LIST, PAGE-GRD-DETAIL, PAGE-GRD-CREATE, PAGE-GRD-BATCH, PAGE-GRD-LEADER, PAGE-GRD-ARCHIVE], status: "PAGE-GRD-LIST 样板页已产出待验收（ACT-GRD-001 ~ 011 已登记）；其余 5 页待样板验收后铺开" }
-  - { batch: "2-3", pages: [PAGE-CLS-LIST, PAGE-CLS-DETAIL, PAGE-CLS-CREATE, PAGE-CLS-BATCH, PAGE-CLS-ROSTER-ADD, PAGE-CLS-TRANSFER, PAGE-PRM-LIST, PAGE-PRM-CREATE, PAGE-PRM-PREVIEW, PAGE-PRM-VALIDATE, PAGE-PRM-EXECUTE, PAGE-PRM-RESULT], status: 待开始 }
+  - { batch: "2-3", pages: [PAGE-CLS-LIST, PAGE-CLS-DETAIL, PAGE-CLS-CREATE, PAGE-CLS-BATCH, PAGE-CLS-ROSTER-ADD, PAGE-CLS-TRANSFER, PAGE-CLS-LEADER, PAGE-CLS-COPY, PAGE-CLS-MOVE, PAGE-PRM-LIST, PAGE-PRM-CREATE, PAGE-PRM-PREVIEW, PAGE-PRM-ADJUST, PAGE-PRM-VALIDATE, PAGE-PRM-EXECUTE, PAGE-PRM-RESULT], status: "小批 2-3a（PAGE-CLS-LIST 样板页）已产出待验收（ACT-CLS-001 ~ 016 已登记）；2-3b ~ 2-3e 待样板验收后铺开" }
   - { batch: "2-4", pages: [PAGE-IMP-WIZARD, PAGE-IMP-TEMPLATE, PAGE-IMP-VALIDATE, PAGE-IMP-EXECUTE, PAGE-STU-IMPORT, PAGE-TCH-IMPORT, PAGE-CLS-ROSTER-IMPORT, PAGE-LOGIN, PAGE-403, PAGE-404, PAGE-500], status: 待开始 }
 
 # ---------------------------------------------------------------------------

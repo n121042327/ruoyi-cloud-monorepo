@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>班级管理列表 — 业务原型 v1（批次 2-3a 样板）</title>
+<link rel="stylesheet" href="../assets/prototype-shell.css" />
+<script src="../assets/prototype-shell.js"></script>
+<style>
+  /* 只读角色（校领导 / 班主任 / 任课教师 / 租户管理员 / 平台运营）在操作列给「只读」说明，
+     避免空列看起来像加载失败。有行内写操作的角色不适用。 */
+  body[data-current-role="school_leader"] #class-rows td.actions::after,
+  body[data-current-role="homeroom"] #class-rows td.actions::after,
+  body[data-current-role="subject_teacher"] #class-rows td.actions::after,
+  body[data-current-role="tenant_admin"] #class-rows td.actions::after,
+  body[data-current-role="platform_ops"] #class-rows td.actions::after {
+    content: "只读";
+    font-size: 12px;
+    color: var(--app-text-secondary);
+  }
+  /* 班级名称可点开详情（ACT-CLS-004） */
+  #class-rows tr[data-role="row"] td:first-child { color: var(--app-primary); }
+  /* 外壳的 .ellipsis 是 180px 固定上限，窄列（年级 / 班主任）会溢出到相邻列；
+     按单元格宽度收口，超长文本用 title 悬浮显示完整值。 */
+  #class-rows .ellipsis { max-width: 100%; }
+  /* 行内「更多」下拉：挂到 body 上做 fixed 定位，避免被 .table-scroll 的 overflow 裁掉 */
+  .row-more-menu {
+    position: fixed;
+    z-index: 3000;
+    min-width: 148px;
+    padding: 4px 0;
+    background: #fff;
+    border: 1px solid var(--app-border-light);
+    border-radius: var(--app-radius-small);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  }
+  .row-more-menu button {
+    display: block;
+    width: 100%;
+    padding: 6px 12px;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    font-size: 13px;
+    color: var(--app-text-regular);
+    cursor: pointer;
+  }
+  .row-more-menu button:hover { background: #f5f7fa; color: var(--app-primary); }
+  .row-more-menu button.danger { color: var(--app-danger); }
+  .row-more-menu .sep { height: 1px; margin: 4px 0; background: var(--app-border-light); }
+</style>
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-CLS-LIST"
+  data-breadcrumb="教育管理 / 班级管理 / 班级列表"
+  data-tab="班级管理列表"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-CLS-LIST" data-role="page">
+
+  <!-- ============================================================ 页头 -->
+  <div class="page-head">
+    <h1>班级管理</h1>
+    <span class="scope-hint" data-role="scope-hint">数据范围：本校 · 2026-2027 学年 第一学期全部班级</span>
+    <span class="el-tag primary">共 34 个班级</span>
+    <span class="el-tag info" id="head-summary">本页样例 12 行 · 在读 187 人 · 超容量 1 个</span>
+    <span class="el-tag info">列表数据截止 2026-09-30 10:20</span>
+  </div>
+
+  <!-- ============================================================ 筛选区 -->
+  <section class="card" data-block="filter" data-role="filter" data-component="el-card.hover">
+    <div class="card-body">
+      <div class="form-inline">
+        <div class="form-item">
+          <label for="f-school">学校</label>
+          <select class="select" id="f-school" style="min-width:170px" data-role="field" data-field="school_id"
+                  data-component="el-select" data-filter="school" data-role-enabled="platform_ops"
+                  title="只有平台运营与超级管理员可以切换学校；班级数据不跨校共享（BR-DATA-018）">
+            <option value="201" selected>云溪实验学校（本校）</option>
+            <option value="202">云溪外国语学校（平台运营视图）</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label for="f-term">学年学期</label>
+          <select class="select" id="f-term" style="min-width:190px" data-role="field" data-field="term_id"
+                  data-component="el-select" data-filter="term"
+                  title="默认加载当前学年学期；历史学年可切换查询，但历史花名册只读（REQ-CLS-032）">
+            <option value="202601" selected>2026-2027 学年 第一学期（当前）</option>
+            <option value="202602">2026-2027 学年 第二学期</option>
+            <option value="202501">2025-2026 学年 第一学期（已归档）</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label for="f-grade">年级</label>
+          <select class="select" id="f-grade" style="min-width:160px" data-role="field" data-field="grade_id"
+                  data-component="el-select" data-filter="grade">
+            <option value="">全部年级</option>
+            <option value="202601">2026 级 高一</option>
+            <option value="202501">2025 级 高二</option>
+            <option value="202401">2024 级 高三</option>
+            <option value="202621">2026 级 初中一年级</option>
+            <option value="202423">2024 级 初中三年级</option>
+            <option value="202602">2026 级 初一（他校）</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label for="f-type">班级类型</label>
+          <select class="select" id="f-type" style="min-width:130px" data-role="field" data-field="class_type"
+                  data-component="el-select" data-filter="type">
+            <option value="">全部类型</option>
+            <option value="administrative">行政班</option>
+            <option value="teaching">教学班</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label for="f-head">班主任</label>
+          <select class="select" id="f-head" style="min-width:150px" data-role="field" data-field="head_teacher_id"
+                  data-component="el-select" data-filter="head">
+            <option value="">全部</option>
+            <option value="__none">未指定班主任</option>
+            <option value="邓丽娟">邓丽娟</option>
+            <option value="冯振国">冯振国</option>
+            <option value="卢佳音">卢佳音</option>
+            <option value="何文博">何文博</option>
+            <option value="韦志远">韦志远</option>
+            <option value="阿依努尔·艾山">阿依努尔·艾山</option>
+            <option value="苗雨欣">苗雨欣</option>
+            <option value="高洪波">高洪波</option>
+            <option value="郑雅琴">郑雅琴</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label for="f-campus">校区</label>
+          <select class="select" id="f-campus" style="min-width:130px" data-role="field" data-field="campus_id"
+                  data-component="el-select" data-filter="campus">
+            <option value="">全部校区</option>
+            <option value="2011">本部校区</option>
+            <option value="2012">北苑校区</option>
+            <option value="2021">主校区（他校）</option>
+          </select>
+        </div>
+        <div class="form-item wide">
+          <label for="f-keyword">关键字</label>
+          <input class="input" id="f-keyword" style="min-width:200px" placeholder="班级名称 / 班主任姓名"
+                 data-role="field" data-field="keyword" data-component="el-input" data-filter="keyword" />
+        </div>
+        <div class="form-item" style="margin-left:auto;min-width:auto">
+          <button class="btn primary" data-role="action" data-action-id="ACT-COM-001" data-component="el-button.primary" data-permission="org.class:read">搜索</button>
+          <button class="btn" data-role="action" data-action-id="ACT-COM-002" data-component="el-button" data-permission="org.class:read">重置</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ 工具条 + 表格 -->
+  <section class="card" data-block="toolbar" data-role="toolbar" data-component="el-card.hover">
+    <div class="card-header">
+      <div class="toolbar" data-demo-state-target="toolbar">
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-CLS-001" data-component="el-button.primary.plain"
+                data-permission="org.class:create" data-nav="PAGE-CLS-CREATE" data-overlay="dialog"
+                data-role-visible="academic_director,grade_leader,super_admin">新建</button>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-CLS-002" data-component="el-button.primary.plain"
+                data-permission="org.class:create" data-nav="PAGE-CLS-BATCH" data-overlay="dialog"
+                data-role-visible="academic_director,super_admin">批量生成</button>
+        <button class="btn plain" data-role="action" data-action-id="ACT-CLS-003" data-component="el-button"
+                data-permission="data.export:export" data-api="exportClass"
+                data-demo-message="已生成 34 行（本校 2026-2027 学年 第一学期班级台账），开始下载。班主任导出限本班，年级主任导出限本人负责年级。"
+                data-role-visible="academic_director,grade_leader,school_leader,homeroom,super_admin">导出</button>
+        <button class="btn plain" data-role="action" data-action-id="ACT-COM-007" data-component="el-button"
+                data-permission="data.export:export" data-role-visible="platform_ops"
+                data-demo-toast="平台运营导出需要逐次授权：授权后本次导出写入审计，并同步给被访问学校（PM-Q-004）。"
+                data-demo-toast-type="warning">导出（需授权）</button>
+      </div>
+      <div class="header-right">
+        <button class="btn" data-role="action" data-action-id="ACT-COM-003" data-component="el-button">隐藏搜索</button>
+        <button class="btn" data-role="action" data-action-id="ACT-COM-004" data-component="el-button" title="可选列：创建人、更新时间">列配置</button>
+        <button class="btn" data-role="action" data-action-id="ACT-COM-005" data-component="el-button" data-api="listClass"
+                data-demo-message="已按当前条件刷新，未重置页码。">刷新</button>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="alert warning state-hidden" id="ops-scope-alert" data-role-visible="platform_ops">
+        <span>平台运营协助视图 · 只读</span>
+        <span>当前查看的是云溪外国语学校的班级数据；本次访问写入访问日志并同步给被访问学校。班级数据不跨校共享。</span>
+      </div>
+      <div class="alert warning state-hidden" data-role-visible="super_admin">
+        <span>超级管理员 · 全平台不受限</span>
+        <span>本页面全部按钮与字段对该账号可见；本次访问与任何写操作都会写入审计且不可关闭（BR-ORG-014）。请勿用于日常业务操作。</span>
+      </div>
+      <div class="alert info state-hidden" data-role-visible="subject_teacher">
+        <span>任课教师视图 · 只读</span>
+        <span>只显示本人任教班级的必要资料；花名册字段裁剪为学号 / 姓名 / 性别，且禁止导出花名册（REQ-CLS-012 / REQ-CLS-034）。</span>
+      </div>
+      <div class="alert info state-hidden" data-role-visible="homeroom">
+        <span>班主任视图 · 只读</span>
+        <span>只能看到本人担任班主任的班级；编班与班主任变更不在本模块对班主任开放（DP-01）。</span>
+      </div>
+      <div class="alert warning state-hidden" data-demo-state-panel="submitting">
+        <span>提交中</span><span>写操作按钮已置 loading 并禁用，禁止重复提交。</span>
+      </div>
+
+      <div data-normal-view>
+        <div class="table-scroll">
+          <table class="el-table" id="class-table" data-role="table" data-component="el-table" data-api="listClass"
+                 style="min-width:1116px;table-layout:fixed">
+            <thead>
+              <tr>
+                <th data-role="column" data-field="class_name" style="width:160px">班级名称</th>
+                <th data-role="column" data-field="grade_id" style="width:124px">年级</th>
+                <th data-role="column" data-field="class_type" style="width:72px">类型</th>
+                <th data-role="column" data-field="head_teacher_id" style="width:92px">班主任</th>
+                <th data-role="column" data-field="student_count" class="num" style="width:116px">在读</th>
+                <th data-role="column" data-field="class_capacity" class="num" style="width:52px" title="容量上限只作参考，超出时仅提示（BR-CLASS-005）">容量</th>
+                <th data-role="column" data-field="campus_id" style="width:84px">校区</th>
+                <th data-role="column" data-field="classroom" style="width:104px">教室</th>
+                <th data-role="column" data-field="class_status" style="width:80px">状态</th>
+                <th class="actions" style="width:232px">操作</th>
+              </tr>
+            </thead>
+            <tbody id="class-rows">
+              <tr data-role="row" data-nav="PAGE-CLS-DETAIL" data-school="201" data-term="202601" data-grade="202601"
+                  data-type="administrative" data-head="邓丽娟" data-campus="2011" data-status="在读" data-capacity="45"
+                  data-enrolled="3" data-roles="grade_leader,homeroom,subject_teacher"
+                  data-keyword="高一 (1) 班 邓丽娟">
+                <td><span class="ellipsis" title="高一 (1) 班">高一 (1) 班</span></td>
+                <td><span class="ellipsis" title="2026 级 高一">2026 级 高一</span></td>
+                <td>行政班</td>
+                <td>邓丽娟</td>
+                <td class="num">3</td>
+                <td class="num">45</td>
+                <td>本部校区</td>
+                <td><span class="ellipsis" title="本部教学楼 A203">本部教学楼 A203</span></td>
+                <td><span class="el-tag success">在读</span></td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-CLS-DETAIL" data-school="201" data-term="202601" data-grade="202601"
+                  data-type="administrative" data-head="冯振国" data-campus="2011" data-status="在读" data-capacity="45"
+                  data-enrolled="2" data-roles="grade_leader"
+                  data-keyword="高一 (2) 班 冯振国">
+                <td><span class="ellipsis" title="高一 (2) 班">高一 (2) 班</span></td>
+                <td><span class="ellipsis" title="2026 级 高一">2026 级 高一</span></td>
+                <td>行政班</td>
+                <td>冯振国</td>
+                <td class="num">2</td>
+                <td class="num">45</td>
+                <td>本部校区</td>
+                <td><span class="ellipsis" title="本部教学楼 A205">本部教学楼 A205</span></td>
+                <td><span class="el-tag success">在读</span></td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-CLS-DETAIL" data-school="201" data-term="202601" data-grade="202601"
+                  data-type="administrative" data-head="__none" data-campus="2011" data-status="在读" data-capacity="45"
+                  data-enrolled="1" data-roles="grade_leader"
+                  data-keyword="高一 (3) 班 未指定班主任">
+                <td><span class="ellipsis" title="高一 (3) 班">高一 (3) 班</span></td>
+                <td><span class="ellipsis" title="2026 级 高一">2026 级 高一</span></td>
+                <td>行政班</td>
+                <td><span class="el-tag warning">未指定</span></td>
+                <td class="num">1</td>
+                <td class="num">45</td>
+                <td>本部校区</td>
+                <td><span class="ellipsis" title="本部教学楼 A207">本部教学楼 A207</span></td>
+                <td><span class="el-tag success">在读</span></td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-CLS-DETAIL" data-school="201" data-term="202601" data-grade="202601"
+                  data-type="teaching" data-head="__teach_none" data-campus="" data-status="在读" data-capacity=""
+                  data-enrolled="3" data-roles="grade_leader,subject_teacher"
+                  data-keyword="高一 物理 A 层 教学班">
+                <td><span class="ellipsis" title="高一 物理 A 层">高一 物理 A 层</span> <span class="el-tag primary">教学班</span></td>
+                <td><span class="ellipsis" title="2026 级 高一">2026 级 高一</span></td>
+                <td>教学班</td>
+                <td><span class="cell-secondary">教学班不设</span></td>
+                <td class="num">3</td>
+                <td class="num"><span class="cell-empty">—</span></td>
+                <td><span class="cell-empty">—</span></td>
+                <td><span class="cell-empty">—</span></td>
+                <td><span class="el-tag success">在读</span></td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-CLS-DETAIL" data-school="201" data-term="202601" data-grade="202501"
+                  data-type="administrative" data-head="卢佳音" data-campus="2012" data-status="在读" data-capacity="45"
+                  data-enrolled="2" data-roles="subject_teacher"
+                  data-keyword="高二 (1) 班 卢佳音">
+                <td><span class="ellipsis" title="高二 (1) 班">高二 (1) 班</span></td>
+                <td><span class="ellipsis" title="2025 级 高二">2025 级 高二</span></td>
+                <td>行政班</td>
+                <td>卢佳音</td>
+                <td class="num">2</td>
+                <td class="num">45</td>
+                <td>北苑校区</td>
+                <td><span class="ellipsis" title="北苑教学楼 B301">北苑教学楼 B301</span></td>
+                <td><span class="el-tag success">在读</span></td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-CLS-DETAIL" data-school="201" data-term="202601" data-grade="202501"
+                  data-type="administrative" data-head="__none" data-campus="2012" data-status="在读" data-capacity="45"
+                  data-enrolled="0" data-roles=""
+                  data-keyword="高二 (2) 班 空班 未编班">
+                <td><span class="ellipsis" title="高二 (2) 班">高二 (2) 班</span> <span class="el-tag info">空班</span></td>
+                <td><span class="ellipsis" title="2025 级 高二">2025 级 高二</span></td>
+                <td>行政班</td>
+                <td><span class="el-tag warning">未指定</span></td>
+                <td class="num">0</td>
+                <td class="num">45</td>
+                <td>北苑校区</td>
+                <td><span class="ellipsis" title="北苑教学楼 B303">北苑教学楼 B303</span></td>
+                <td><span class="el-tag success">在读</span></td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-CLS-DETAIL" data-school="201" data-term="202601" data-grade="202401"
+                  data-type="administrative" data-head="何文博" data-campus="2012" data-status="在读" data-capacity="45"
+                  data-enrolled="1" data-roles=""
+                  data-keyword="高三 (1) 班 何文博 毕业年级">
+                <td><span class="ellipsis" title="高三 (1) 班">高三 (1) 班</span> <span class="el-tag warning">毕业年级</span></td>
+                <td><span class="ellipsis" title="2024 级 高三">2024 级 高三</span></td>
+                <td>行政班</td>
+                <td>何文博</td>
+                <td class="num">1</td>
+                <td class="num">45</td>
+                <td>北苑校区</td>
+                <td><span class="ellipsis" title="北苑教学楼 B501">北苑教学楼 B501</span></td>
+                <td><span class="el-tag success">在读</span></td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-CLS-DETAIL" data-school="201" data-term="202601" data-grade="202401"
+                  data-type="administrative" data-head="韦志远" data-campus="2012" data-status="已停用" data-capacity="45"
+                  data-enrolled="0" data-roles=""
+                  data-keyword="高三 (2) 班 已停用 班级撤销">
+                <td><span class="ellipsis" title="高三 (2) 班">高三 (2) 班</span></td>
+                <td><span class="ellipsis" title="2024 级 高三">2024 级 高三</span></td>
+                <td>行政班</td>
+                <td>韦志远</td>
+                <td class="num">0</td>
+                <td class="num">45</td>
+                <td>北苑校区</td>
+                <td><span class="ellipsis" title="北苑教学楼 B503">北苑教学楼 B503</span></td>
+                <td><span class="el-tag info">已停用</span></td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-CLS-DETAIL" data-school="201" data-term="202601" data-grade="202621"
+                  data-type="administrative" data-head="阿依努尔·艾山" data-campus="2011" data-status="在读" data-capacity="45"
+                  data-enrolled="48" data-roles=""
+                  data-keyword="初中一年级 (1) 班 阿依努尔·艾山 超容量">
+                <td><span class="ellipsis" title="初中一年级 (1) 班">初中一年级 (1) 班</span></td>
+                <td><span class="ellipsis" title="2026 级 初中一年级">2026 级 初中一年级</span></td>
+                <td>行政班</td>
+                <td><span class="ellipsis" title="阿依努尔·艾山">阿依努尔·艾山</span></td>
+                <td class="num">48 <span class="el-tag danger" title="在读人数超过容量：仅提示，不阻止任何操作（REQ-CLS-007）">超容量</span></td>
+                <td class="num">45</td>
+                <td>本部校区</td>
+                <td><span class="ellipsis" title="2 号教学楼 301">2 号教学楼 301</span></td>
+                <td><span class="el-tag success">在读</span></td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-CLS-DETAIL" data-school="201" data-term="202601" data-grade="202621"
+                  data-type="administrative" data-head="苗雨欣" data-campus="2011" data-status="在读" data-capacity="48"
+                  data-enrolled="48" data-roles=""
+                  data-keyword="钱学森实验班 苗雨欣 初中一年级 (2) 班">
+                <td><span class="ellipsis" title="2026 级 初中一年级 (2) 班（钱学森实验班）">2026 级 初中一年级 (2) 班（钱学森实验班）</span></td>
+                <td><span class="ellipsis" title="2026 级 初中一年级">2026 级 初中一年级</span></td>
+                <td>行政班</td>
+                <td>苗雨欣</td>
+                <td class="num">48</td>
+                <td class="num">48</td>
+                <td>本部校区</td>
+                <td><span class="ellipsis" title="2 号教学楼 302">2 号教学楼 302</span></td>
+                <td><span class="el-tag success">在读</span></td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-CLS-DETAIL" data-school="201" data-term="202601" data-grade="202423"
+                  data-type="administrative" data-head="高洪波" data-campus="2012" data-status="在读" data-capacity="45"
+                  data-enrolled="42" data-roles=""
+                  data-keyword="初中三年级 (1) 班 高洪波 毕业年级">
+                <td><span class="ellipsis" title="初中三年级 (1) 班">初中三年级 (1) 班</span> <span class="el-tag warning">毕业年级</span></td>
+                <td><span class="ellipsis" title="2024 级 初中三年级">2024 级 初中三年级</span></td>
+                <td>行政班</td>
+                <td>高洪波</td>
+                <td class="num">42</td>
+                <td class="num">45</td>
+                <td>北苑校区</td>
+                <td><span class="ellipsis" title="北苑教学楼 B203">北苑教学楼 B203</span></td>
+                <td><span class="el-tag success">在读</span></td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-CLS-DETAIL" data-school="202" data-term="202601" data-grade="202602"
+                  data-type="administrative" data-head="郑雅琴" data-campus="2021" data-status="在读" data-capacity="40"
+                  data-enrolled="2" data-roles=""
+                  data-keyword="初一 (1) 班 郑雅琴 云溪外国语学校">
+                <td><span class="ellipsis" title="初一 (1) 班">初一 (1) 班</span> <span class="el-tag warning">他校数据</span></td>
+                <td><span class="ellipsis" title="2026 级 初一">2026 级 初一</span></td>
+                <td>行政班</td>
+                <td>郑雅琴</td>
+                <td class="num">2</td>
+                <td class="num">40</td>
+                <td>主校区</td>
+                <td><span class="ellipsis" title="主教学楼 102">主教学楼 102</span></td>
+                <td><span class="el-tag success">在读</span></td>
+                <td class="actions"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination" data-role="pagination" data-component="pagination">
+          <span class="total" id="pg-total">共 34 条 · 当前第 1 页 · 每页 20 条</span>
+          <button class="pg" disabled>‹</button>
+          <button class="pg active">1</button>
+          <button class="pg" data-role="action" data-action-id="ACT-COM-006" data-component="pagination">2</button>
+          <button class="pg">›</button>
+        </div>
+
+        <div class="legend" style="margin-top:8px">
+          <span><b>列口径</b>：在读人数只统计「在读」成员——休学学生保留班级关系但不计入（<span class="mono">BR-STU-012</span>）；容量上限只提示不拦截（<span class="mono">BR-CLASS-005</span>）；统计值同样受数据范围约束（<span class="mono">DS-DENY-08</span>）。</span>
+        </div>
+        <div class="legend" style="margin-top:4px">
+          <span><b>行政班 vs 教学班</b>：一名学生同一学年学期只能属于一个行政班，但可同时属于多个教学班；教学班不设班主任，也不参与班主任的数据范围解析（<span class="mono">BR-CLASS-001</span> / <span class="mono">BR-CLASS-007</span>）。</span>
+        </div>
+        <div class="legend" style="margin-top:4px">
+          <span><b>边界样本</b>：空班 1 条（高二 (2) 班，已建班未编班）、已停用 1 条（高三 (2) 班，行内只留「详情」）、超容量 1 条（初中一年级 (1) 班 48 / 45）、超长班级名称 1 条（钱学森实验班）、未指定班主任 2 条、教学班 1 条、毕业年级 2 条（高三 / 初三）、他校数据 1 条（云溪外国语学校）</span>
+        </div>
+        <div class="legend" style="margin-top:4px">
+          <span><b>删除前置条件</b>：有在读学生的班级不允许删除，只允许停用；班级禁止物理删除（<span class="mono">BR-CLASS-006</span> / <span class="mono">REQ-CLS-046</span>）。因此「删除」只在在读人数为 0 的行上渲染。</span>
+        </div>
+      </div>
+
+      <!-- 加载中 -->
+      <div class="state-hidden" data-demo-state-panel="loading">
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:172px"></div><div class="skeleton-bar" style="width:104px"></div><div class="skeleton-bar" style="width:72px"></div><div class="skeleton-bar" style="width:100px"></div><div class="skeleton-bar" style="width:120px"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:172px"></div><div class="skeleton-bar" style="width:104px"></div><div class="skeleton-bar" style="width:72px"></div><div class="skeleton-bar" style="width:100px"></div><div class="skeleton-bar" style="width:120px"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:172px"></div><div class="skeleton-bar" style="width:104px"></div><div class="skeleton-bar" style="width:72px"></div><div class="skeleton-bar" style="width:100px"></div><div class="skeleton-bar" style="width:120px"></div></div>
+        <div class="legend" style="margin-top:10px"><span>表格区域加载中：使用表格内 loading，不使用全屏遮罩</span></div>
+      </div>
+
+      <!-- 空数据 -->
+      <div class="state-hidden" data-demo-state-panel="empty">
+        <div class="state-block">
+          <div class="icon">🗂️</div>
+          <div class="title" id="empty-title">当前筛选条件下没有班级</div>
+          <div class="desc" id="empty-desc">筛选条件：学年学期 = 2026-2027 学年 第二学期；校区 = 北苑校区（无匹配）</div>
+          <div class="chip-group" style="justify-content:center;margin-bottom:14px">
+            <button class="chip on" id="empty-v1">筛选无结果</button>
+            <button class="chip" id="empty-v2">本校还没有建班级</button>
+          </div>
+          <button class="btn primary" id="empty-action">清空筛选条件</button>
+        </div>
+      </div>
+
+      <!-- 查询失败 -->
+      <div class="state-hidden" data-demo-state-panel="error">
+        <div class="state-block error">
+          <div class="icon">⚠️</div>
+          <div class="title">班级列表加载失败</div>
+          <div class="desc">查询超时（等待 5 秒未返回），已自动重试 1 次仍失败。</div>
+          <div class="req-id">请求编号 <span class="mono">REQ-20260930-000412</span> · 错误码 DS-5001</div>
+          <button class="btn primary" data-role="action" data-action-id="ACT-COM-005" data-component="el-button"
+                  data-api="listClass" data-demo-message="已重新发起查询（第 2 次重试）。">重试</button>
+        </div>
+      </div>
+
+      <!-- 无权限 -->
+      <div class="state-hidden" data-demo-state-panel="forbidden">
+        <div class="state-block">
+          <div class="icon">🔒</div>
+          <div class="title">当前账号没有可查看的班级数据</div>
+          <div class="desc">你的数据范围为空集（未配置教育角色、未担任班主任、没有任教关系）。<br />
+            系统不会因为范围为空而返回全量班级（<span class="mono">DS-DENY-03</span>）。</div>
+          <button class="btn" data-demo-toast="已返回原型入口。" data-demo-toast-type="info">返回入口</button>
+        </div>
+      </div>
+
+      <!-- 部分失败 -->
+      <div class="state-hidden" data-demo-state-panel="partial">
+        <div class="card" style="margin:0">
+          <div class="card-header"><h3>形态样例 · 批量生成班级部分冲突</h3><span class="el-tag warning">partial_failed</span></div>
+          <div class="card-body">
+            <table class="el-table">
+              <thead><tr><th>任务编号</th><th>对象</th><th class="num">总数</th><th class="num">成功</th><th class="num">失败</th><th>失败原因</th></tr></thead>
+              <tbody><tr>
+                <td class="mono">TASK-20260930-000611</td><td>批量生成班级（2026 级 高一 1–6 班）</td>
+                <td class="num">6</td><td class="num">5</td><td class="num">1</td>
+                <td>第 4 条：高一 (4) 班 与已有班级冲突（同校 + 同学年学期 + 同学段 + 同班级名称，<span class="mono">BR-CLASS-003</span>）</td>
+              </tr></tbody>
+            </table>
+            <div class="legend" style="margin-top:8px"><span>已存在的班级跳过并在结果里列出；不覆盖、不改名（<span class="mono">AC-CLS-020</span>）。</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 排队中 -->
+      <div class="state-hidden" data-demo-state-panel="queued">
+        <div class="state-block">
+          <div class="icon">⏳</div>
+          <div class="title">已受理，排队中</div>
+          <div class="desc">任务编号 <span class="mono">TASK-20260930-000618</span> · 队列位置 1 · 配额：同一用户 1 个、同一学校 3 个（<span class="mono">BR-IMP-015</span>）</div>
+          <button class="btn" data-demo-toast="已打开异步任务中心（批次 2-9 交付）。" data-demo-toast-type="info">查看任务中心</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================== 二次确认：停用班级（浮层片段，随列表页交付） -->
+<div class="overlay" data-demo="panel" data-demo-panel="DIALOG-CLS-DISABLE" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="sm" data-block="form">
+    <div class="dialog-header">
+      <h2>停用班级 · <span id="disable-target">高三 (2) 班</span></h2>
+      <span class="el-tag info">仅停用，不删除</span>
+    </div>
+    <div class="dialog-body">
+      <div class="alert warning" style="margin-bottom:12px">
+        <span>影响范围</span>
+        <span>停用后该班级不再出现在新建学生与编班的可选班级中，<b>历史花名册仍可查询</b>；
+          已停用的班级不再接受编班、班主任变更与批量迁学生（<span class="mono">REQ-CLS-044</span>）。
+          有在读学生时只能停用、不能删除（<span class="mono">BR-CLASS-006</span>）。</span>
+      </div>
+      <div class="field" data-field="remark">
+        <label>停用原因<span class="required">*</span></label>
+        <textarea class="input" rows="3" style="width:100%;min-width:100%" data-required
+                  data-required-message="请填写停用原因（至少 5 个字）" data-component="el-input.textarea"
+                  placeholder="如：班级撤销后学生已并入高三 (1) 班"></textarea>
+        <div class="error-text"></div>
+        <div class="hint">原因会写入审计，并与操作人、时间、来源 IP 一并保留。</div>
+      </div>
+      <div class="alert warning" style="margin:0">
+        <span>该班级当前状态</span>
+        <span id="disable-impact">在读 0 人 · 容量 45 · 班主任 韦志远 · 当前状态 已停用（重复停用会被接口拒绝）。</span>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-CLS-012" data-component="el-button"
+              data-close-panel="DIALOG-CLS-DISABLE">取消</button>
+      <button class="btn primary" data-role="action" data-action-id="ACT-CLS-011" data-component="el-button.primary"
+              data-permission="org.class:update" data-api="disableClass" data-validate-on-submit
+              data-after-success="close-panel"
+              data-demo-message="已停用该班级，并写入审计。该班不再出现在新建学生与编班的可选班级中，历史花名册仍可查。">确认停用</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================== 二次确认：删除班级（浮层片段，随列表页交付） -->
+<div class="overlay" data-demo="panel" data-demo-panel="DIALOG-CLS-DELETE" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="sm" data-block="form">
+    <div class="dialog-header">
+      <h2>删除班级 · <span id="delete-target">高二 (2) 班</span></h2>
+      <span class="el-tag danger">逻辑删除</span>
+    </div>
+    <div class="dialog-body">
+      <div class="alert danger" style="margin-bottom:12px">
+        <span>影响范围</span>
+        <span>删除只对<b>在读人数为 0</b>的班级可用。删除后该班级不再出现在任何选择项中，
+          「学校 + 学年学期 + 学段 + 班级名称」组合被释放，可以重新创建；记录本身逻辑删除保留，不做物理删除
+          （<span class="mono">REQ-CLS-043</span> / <span class="mono">REQ-CLS-046</span>）。</span>
+      </div>
+      <div class="field" data-field="remark">
+        <label>删除原因<span class="required">*</span></label>
+        <textarea class="input" rows="3" style="width:100%;min-width:100%" data-required
+                  data-required-message="请填写删除原因（至少 5 个字）" data-component="el-input.textarea"
+                  placeholder="如：建班时班级名称写错，实际应为高二 (3) 班"></textarea>
+        <div class="error-text"></div>
+        <div class="hint">原因会写入审计，并与操作人、时间、来源 IP 一并保留。</div>
+      </div>
+      <div class="alert warning" style="margin:0">
+        <span>该班级当前状态</span>
+        <span id="delete-impact">在读 0 人 · 无花名册成员 · 无班主任任职历史；满足删除前置条件。</span>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-CLS-015" data-component="el-button"
+              data-close-panel="DIALOG-CLS-DELETE">取消</button>
+      <button class="btn danger-plain" data-role="action" data-action-id="ACT-CLS-014" data-component="el-button.danger.plain"
+              data-permission="org.class:delete" data-api="removeClass" data-validate-on-submit
+              data-after-success="close-panel"
+              data-demo-message="已删除该班级（逻辑删除），「学校 + 学年学期 + 学段 + 班级名称」组合已释放，可以重新创建。">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================== 批次 2-3a 演示脚本
+     覆盖：筛选与关键字检索、按角色收窄数据范围、行内写操作入口与「更多」下拉、
+          停用 / 删除两个二次确认片段、七类页面状态。
+     数据来源：content-samples.json 的 classes（7 条）与 class_edge_cases（5 条）。 -->
+<!-- demo script start -->
+<script>
+(function () {
+  'use strict';
+
+  var WRITE_ROLES = ['academic_director', 'grade_leader', 'super_admin'];
+  var MORE_ROLES = ['academic_director', 'grade_leader', 'super_admin'];
+  var DELETE_ROLES = ['academic_director', 'super_admin'];
+
+  function q(sel, root) { return (root || document).querySelector(sel); }
+  function qa(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined && text !== null) n.textContent = text;
+    return n;
+  }
+  function cellText(row, index) { return row.children[index].textContent.replace(/\s+/g, ' ').trim(); }
+  function currentRole() { return window.PrototypeShell.currentRole(); }
+
+  /* ---------------- 1. 行内操作列：按角色与班级状态渲染 ---------------- */
+
+  function renderRowActions(row, role) {
+    var box = q('td.actions', row);
+    if (!box) return;
+    box.innerHTML = '';
+
+    var status = row.getAttribute('data-status');
+    var type = row.getAttribute('data-type');
+    var stopped = status === '已停用';
+
+    // 详情：所有能读到该行的角色都有唯一入口
+    var detail = el('button', 'btn link', '详情');
+    detail.setAttribute('data-role', 'row-action');
+    detail.setAttribute('data-action-id', 'ACT-CLS-004');
+    detail.setAttribute('data-component', 'el-button.link.primary');
+    detail.setAttribute('data-permission', 'org.class:read');
+    box.appendChild(detail);
+
+    if (WRITE_ROLES.indexOf(role) === -1) return;
+
+    if (!stopped) {
+      var edit = el('button', 'btn link', '编辑');
+      edit.setAttribute('data-role', 'row-action');
+      edit.setAttribute('data-action-id', 'ACT-CLS-005');
+      edit.setAttribute('data-component', 'el-button.link.primary');
+      edit.setAttribute('data-permission', 'org.class:update');
+      box.appendChild(edit);
+
+      if (type !== 'teaching') {
+        var leader = el('button', 'btn link', '指定班主任');
+        leader.setAttribute('data-role', 'row-action');
+        leader.setAttribute('data-action-id', 'ACT-CLS-006');
+        leader.setAttribute('data-component', 'el-button.link.primary');
+        leader.setAttribute('data-permission', 'org.class:update');
+        box.appendChild(leader);
+      }
+
+      var more = el('button', 'btn link', '更多 ▾');
+      more.setAttribute('data-role', 'row-action');
+      more.setAttribute('data-action-id', 'ACT-CLS-016');
+      more.setAttribute('data-component', 'el-dropdown');
+      more.setAttribute('data-more-trigger', 'true');
+      box.appendChild(more);
+    }
+  }
+
+  /* ---------------- 2. 「更多」下拉：挂到 body 上做 fixed 定位，避免被表格滚动区裁切 ---------------- */
+
+  function closeMoreMenu() {
+    var old = q('#row-more-menu');
+    if (old) old.remove();
+  }
+
+  // 深链接 #more=<班级名称片段> 打开的下拉：截图与评审期间需要保持展开，
+  // 因此窗口 resize（截图工具会改窗口尺寸）后重新展开一次；用户自己点击别处时清除。
+  var stickyMore = '';
+
+  function openMoreFor(fragment) {
+    var target = qa('#class-rows tr').filter(function (row) {
+      return !row.classList.contains('state-hidden') && row.children[0].textContent.indexOf(fragment) !== -1;
+    })[0];
+    var trigger = target ? target.querySelector('[data-more-trigger]') : null;
+    if (trigger) trigger.click();
+  }
+
+  function openMoreMenu(trigger, row) {
+    closeMoreMenu();
+    var role = currentRole();
+    var type = row.getAttribute('data-type');
+    var enrolled = Number(row.getAttribute('data-enrolled') || 0);
+    var defs = [
+      { id: 'ACT-CLS-007', text: '编班（添加学生）', pending: '「添加学生」在批次 2-3d 交付（PAGE-CLS-ROSTER-ADD），本批只验证入口与权限显隐。' },
+      { id: 'ACT-CLS-008', text: '复制班级', pending: '「复制班级」在批次 2-3c 交付（PAGE-CLS-COPY），本批只验证入口与权限显隐。' },
+      { id: 'ACT-CLS-009', text: '批量迁学生', need: enrolled > 0, pending: '「批量迁学生」在批次 2-3d 交付（PAGE-CLS-MOVE），本批只验证入口与权限显隐。' },
+      { sep: true },
+      { id: 'ACT-CLS-010', text: '停用', panel: 'DIALOG-CLS-DISABLE' },
+      { id: 'ACT-CLS-013', text: '删除', danger: true, need: enrolled === 0 && DELETE_ROLES.indexOf(role) !== -1, panel: 'DIALOG-CLS-DELETE' }
+    ];
+    var menu = el('div', 'row-more-menu');
+    menu.id = 'row-more-menu';
+    var shown = 0;
+    defs.forEach(function (def) {
+      if (def.sep) { menu.appendChild(el('div', 'sep')); return; }
+      if (def.need === false) return;
+      var b = el('button', def.danger ? 'danger' : null, def.text);
+      b.setAttribute('data-role', 'action');
+      b.setAttribute('data-action-id', def.id);
+      b.setAttribute('data-component', def.panel ? 'el-button.link' : 'el-button.link.primary');
+      b.addEventListener('click', function () {
+        stickyMore = '';
+        closeMoreMenu();
+        if (def.panel) {
+          bindConfirmPanel(def.panel, row);
+          window.PrototypeShell.openPanel(def.panel);
+          return;
+        }
+        if (def.id === 'ACT-CLS-008' && type === 'teaching') {
+          window.PrototypeShell.toast('教学班的成员来自选科结果，复制班级只支持行政班。', 'warning');
+          return;
+        }
+        window.PrototypeShell.toast(def.pending, 'warning');
+      });
+      menu.appendChild(b);
+      shown += 1;
+    });
+    document.body.appendChild(menu);
+    var rect = trigger.getBoundingClientRect();
+    var top = rect.bottom + 4;
+    if (top + menu.offsetHeight > window.innerHeight - 8) top = Math.max(8, rect.top - menu.offsetHeight - 4);
+    // 右对齐到触发按钮的右边界（企业级下拉的常见做法），并保证不出视口
+    var left = Math.min(rect.right - menu.offsetWidth, window.innerWidth - menu.offsetWidth - 8);
+    menu.style.top = top + 'px';
+    menu.style.left = Math.max(8, left) + 'px';
+    return shown;
+  }
+
+  /* ---------------- 3. 二次确认片段：绑定当前行 ---------------- */
+
+  function bindConfirmPanel(panelId, row) {
+    var name = cellText(row, 0).replace(/\s*(空班|毕业年级|他校数据|教学班)$/, '').trim();
+    var enrolled = row.getAttribute('data-enrolled');
+    var capacity = row.getAttribute('data-capacity') || '—';
+    var head = cellText(row, 3);
+    if (panelId === 'DIALOG-CLS-DISABLE') {
+      var t1 = q('#disable-target');
+      if (t1) t1.textContent = name;
+      var i1 = q('#disable-impact');
+      if (i1) i1.textContent = '在读 ' + enrolled + ' 人 · 容量 ' + capacity + ' · 班主任 ' + head
+        + ' · 当前状态 ' + row.getAttribute('data-status') + '（重复停用会被接口拒绝）。';
+    }
+    if (panelId === 'DIALOG-CLS-DELETE') {
+      var t2 = q('#delete-target');
+      if (t2) t2.textContent = name;
+      var i2 = q('#delete-impact');
+      if (i2) i2.textContent = '在读 ' + enrolled + ' 人 · 班主任 ' + head
+        + ' · 前置条件由接口二次校验（有在读学生时改用停用）。';
+    }
+  }
+
+  /* ---------------- 4. 筛选、数据范围与页头汇总 ---------------- */
+
+  function rowInScope(row, role, school) {
+    if (row.getAttribute('data-school') !== school) return false;
+    if (role === 'super_admin' || role === 'platform_ops') return true;
+    if (role === 'academic_director' || role === 'school_leader' || role === 'tenant_admin') return true;
+    var roles = (row.getAttribute('data-roles') || '').split(',').filter(function (s) { return s; });
+    return roles.indexOf(role) !== -1;
+  }
+
+  function applyFilter() {
+    var school = q('#f-school').value;
+    var term = q('#f-term').value;
+    var grade = q('#f-grade').value;
+    var type = q('#f-type').value;
+    var head = q('#f-head').value;
+    var campus = q('#f-campus').value;
+    var keyword = (q('#f-keyword').value || '').trim();
+    var role = currentRole();
+    var visible = 0;
+    var enrolledSum = 0;
+    var overCount = 0;
+    var stoppedCount = 0;
+
+    qa('#class-rows tr').forEach(function (row) {
+      var ok = rowInScope(row, role, school);
+      if (ok && term && row.getAttribute('data-term') !== term) ok = false;
+      if (ok && grade && row.getAttribute('data-grade') !== grade) ok = false;
+      if (ok && type && row.getAttribute('data-type') !== type) ok = false;
+      if (ok && campus && row.getAttribute('data-campus') !== campus) ok = false;
+      if (ok && head) {
+        var rowHead = row.getAttribute('data-head');
+        if (head === '__none') {
+          if (rowHead !== '__none') ok = false;
+        } else if (rowHead !== head) {
+          ok = false;
+        }
+      }
+      if (ok && keyword && (row.getAttribute('data-keyword') || '').indexOf(keyword) === -1) ok = false;
+      row.classList.toggle('state-hidden', !ok);
+      renderRowActions(row, role);
+      if (ok) {
+        visible += 1;
+        enrolledSum += Number(row.getAttribute('data-enrolled') || 0);
+        if (row.getAttribute('data-capacity')
+            && Number(row.getAttribute('data-enrolled')) > Number(row.getAttribute('data-capacity'))) overCount += 1;
+        if (row.getAttribute('data-status') === '已停用') stoppedCount += 1;
+      }
+    });
+
+    document.getElementById('pg-total').textContent =
+      '共 ' + (school === '201' ? 34 : 6) + ' 条 · 当前第 1 页 · 每页 20 条（本页显示 ' + visible + ' 行样例）';
+    document.getElementById('head-summary').textContent =
+      '本页样例 ' + visible + ' 行 · 在读 ' + enrolledSum + ' 人 · 超容量 ' + overCount + ' 个'
+      + (stoppedCount ? ' · 已停用 ' + stoppedCount + ' 个' : '');
+    document.getElementById('ops-scope-alert').classList.toggle('state-hidden', school === '201');
+    updateScopeHint(school);
+  }
+
+  function updateScopeHint(school) {
+    var role = currentRole();
+    var hint = q('[data-role="scope-hint"]');
+    if (!hint) return;
+    if (role === 'super_admin') {
+      hint.textContent = '数据范围：全平台 · 不受组织与班级限制 · 操作强制留痕（BR-ORG-014）';
+      return;
+    }
+    if (school === '202') {
+      hint.textContent = '数据范围：平台运营协助视图 · 云溪外国语学校 · 只读并留痕（班级数据不跨校共享）';
+      return;
+    }
+    if (role === 'grade_leader') {
+      hint.textContent = '数据范围：本人负责年级的班级（DS-05）· 可建班与编班，无删除权限';
+    } else if (role === 'homeroom') {
+      hint.textContent = '数据范围：本人担任班主任的班级（DS-06）· 只读';
+    } else if (role === 'subject_teacher') {
+      hint.textContent = '数据范围：本人任教班级的必要资料（DS-07）· 只读且禁止导出花名册';
+    } else if (role === 'school_leader') {
+      hint.textContent = '数据范围：本校全部班级（DS-04）· 只读';
+    } else if (role === 'tenant_admin') {
+      hint.textContent = '数据范围：本租户组织配置（DS-02）· 无班级教学数据写权限，只读';
+    } else if (role === 'platform_ops') {
+      hint.textContent = '数据范围：全平台 · 默认只读，导出需逐次授权并留痕';
+    } else {
+      hint.textContent = '数据范围：本校 · 2026-2027 学年 第一学期全部班级';
+    }
+  }
+
+  /* ---------------- 5. 事件 ---------------- */
+
+  document.addEventListener('click', function (event) {
+    var node = event.target;
+
+    // 「更多」下拉
+    var more = node.closest('[data-more-trigger]');
+    if (more) {
+      event.stopImmediatePropagation();
+      var shown = openMoreMenu(more, more.closest('tr'));
+      if (shown <= 1) {
+        closeMoreMenu();
+        window.PrototypeShell.toast('该班级当前没有可用的低频操作（已停用的班级只保留「详情」）。', 'info');
+      }
+      return;
+    }
+    if (node.closest('#row-more-menu')) return;
+    stickyMore = '';
+    closeMoreMenu();
+
+    // 行内「停用」「删除」：绑定当前行后打开确认片段
+    var stopBtn = node.closest('[data-action-id="ACT-CLS-010"]');
+    if (stopBtn) {
+      var srow = stopBtn.closest('tr');
+      closeMoreMenu();
+      if (srow) bindConfirmPanel('DIALOG-CLS-DISABLE', srow);
+      return;
+    }
+    var delBtn = node.closest('[data-action-id="ACT-CLS-013"]');
+    if (delBtn) {
+      var drow = delBtn.closest('tr');
+      closeMoreMenu();
+      if (drow) bindConfirmPanel('DIALOG-CLS-DELETE', drow);
+      return;
+    }
+
+    // 本批未交付的页面：给出明确批次提示，只验证入口与权限显隐
+    var pendingMap = [
+      ['ACT-CLS-004', '班级详情在批次 2-3b 交付（PAGE-CLS-DETAIL），本批只验证入口与权限显隐。'],
+      ['ACT-CLS-005', '班级表单（新建 / 编辑）在批次 2-3c 交付（PAGE-CLS-CREATE），本批只验证入口与权限显隐。'],
+      ['ACT-CLS-006', '指定班主任在批次 2-3c 交付（PAGE-CLS-LEADER），本批只验证入口与权限显隐。'],
+      ['ACT-CLS-001', '新建班级在批次 2-3c 交付（PAGE-CLS-CREATE），本批只验证入口与权限显隐。'],
+      ['ACT-CLS-002', '批量生成班级在批次 2-3c 交付（PAGE-CLS-BATCH），本批只验证入口与权限显隐。']
+    ];
+    for (var i = 0; i < pendingMap.length; i += 1) {
+      if (node.closest('[data-action-id="' + pendingMap[i][0] + '"]')) {
+        // 详情按钮挂在带 data-nav 的数据行内，外壳会再给一次「批次 2-3 交付」的提示；
+        // 本页的提示更具体（2-3b），因此阻止外壳那一条，避免一次点击弹两条。
+        if (pendingMap[i][0] === 'ACT-CLS-004') event.stopImmediatePropagation();
+        window.PrototypeShell.toast(pendingMap[i][1], 'warning');
+        return;
+      }
+    }
+
+    // 搜索 / 重置
+    if (node.closest('[data-action-id="ACT-COM-001"]') || node.closest('[data-action-id="ACT-COM-002"]')) {
+      if (node.closest('[data-action-id="ACT-COM-002"]')) resetFilters();
+      applyFilter();
+      return;
+    }
+
+    // 空态的两种原因与主动作
+    if (node.closest('#empty-action')) {
+      resetFilters();
+      applyFilter();
+      window.PrototypeShell.applyState('normal');
+      window.PrototypeShell.toast('已清空筛选条件，并按 PRD 默认返回当前学年学期的全部班级。', 'success');
+      return;
+    }
+    if (node.closest('#empty-v1')) {
+      q('#empty-title').textContent = '当前筛选条件下没有班级';
+      q('#empty-desc').textContent = '筛选条件：学年学期 = 2026-2027 学年 第二学期；校区 = 北苑校区（无匹配）';
+      q('#empty-v1').classList.add('on');
+      q('#empty-v2').classList.remove('on');
+      q('#empty-action').textContent = '清空筛选条件';
+      return;
+    }
+    if (node.closest('#empty-v2')) {
+      q('#empty-title').textContent = '本校还没有建立任何班级';
+      q('#empty-desc').textContent = '班级是学生数据权限（DS-06 班主任范围）的权威来源：没有班级，班主任与任课教师的数据范围都解析不出来。可先新建班级，或按年级批量生成。';
+      q('#empty-v2').classList.add('on');
+      q('#empty-v1').classList.remove('on');
+      q('#empty-action').textContent = '新建第一个班级';
+      return;
+    }
+
+    // 折叠筛选区
+    if (node.closest('[data-action-id="ACT-COM-003"]')) {
+      var body = q('[data-block="filter"] .card-body');
+      var hidden = body.classList.toggle('state-hidden');
+      node.closest('[data-action-id="ACT-COM-003"]').textContent = hidden ? '显示搜索' : '隐藏搜索';
+      return;
+    }
+  });
+
+  function resetFilters() {
+    q('#f-school').value = '201';
+    q('#f-term').value = '202601';
+    q('#f-grade').value = '';
+    q('#f-type').value = '';
+    q('#f-head').value = '';
+    q('#f-campus').value = '';
+    q('#f-keyword').value = '';
+  }
+
+  // 角色切换后重算可见行与操作列（外壳的 applyRole 已完成显隐，这里是数据范围与行内入口）
+  document.addEventListener('click', function (event) {
+    if (event.target.closest('[data-demo="role-switcher"] .pbtn')) {
+      window.setTimeout(function () { applyFilter(); }, 0);
+    }
+  });
+  document.addEventListener('change', function (event) {
+    if (event.target.id === 'f-school') applyFilter();
+  });
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter' && event.target && event.target.id === 'f-keyword') applyFilter();
+  });
+  window.addEventListener('scroll', function () { if (!stickyMore) closeMoreMenu(); }, true);
+  window.addEventListener('resize', function () {
+    if (stickyMore) { openMoreFor(stickyMore); return; }
+    closeMoreMenu();
+  });
+
+  /* ---------------- 6. 深链接参数：整页加载与「在已打开的页面上改 hash」两条路径都生效 ---------------- */
+
+  function applyPageParams(params) {
+    if (!params) return;
+    if (params.school) q('#f-school').value = params.school;
+    if (params.term) q('#f-term').value = params.term;
+    if (params.grade) q('#f-grade').value = params.grade;
+    if (params.type) q('#f-type').value = params.type;
+    if (params.head) q('#f-head').value = params.head;
+    if (params.campus) q('#f-campus').value = params.campus;
+    if (params.keyword) q('#f-keyword').value = params.keyword;
+    if (params.state) window.PrototypeShell.applyState(params.state);
+    applyFilter();
+    // 截图与评审辅助：直接把某一行的「更多」下拉展开（下拉本身需要一次点击才能出现）
+    if (params.more) {
+      stickyMore = params.more;
+      openMoreFor(params.more);
+    }
+  }
+  document.addEventListener('prototype:params', function (event) { applyPageParams(event.detail); });
+
+  applyFilter();
+})();
+</script>
+<!-- demo script end -->
+</body>
+</html>

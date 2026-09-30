@@ -1,4 +1,4 @@
-# 阶段 2 业务原型 · 验收证据（批次 2-1、2-2a、2-2b-1、2-2b-2、2-2b-2b）
+# 阶段 2 业务原型 · 验收证据（批次 2-1、2-2a、2-2b-1、2-2b-2、2-2b-2b、2-3a）
 
 本目录保存批次 2-1（学生管理列表 + 新增/编辑抽屉样板页）、2-2a（教师管理列表样板页）、
 2-2b-1（教师详情 + 新增教师 + 编辑教师，含放弃确认弹窗）、2-2b-2（教育角色分配 + 任教关系设置独立页）、
@@ -88,6 +88,28 @@
 | `grade-list_platform-ops-school-switch_1440x900.png` | 1440×900 | 平台运营切到云溪外国语学校（年级） | 协助视图 · 只读提示条；工具栏只剩「导出（需授权）」；他校行只给「详情」可读，无任何写入口 |
 | `verify-detail-entry.html` | — | 详情浮层入口验证 harness | 三个同源 iframe（年级 / 教师 / 学生）真实派发点击，跑 6 条断言：点行与操作列「详情」都能开抽屉、显式 dialog 不被覆盖、未交付的详情不开空抽屉 |
 | `detail-entry_verify-results.png` | 1500×1150 | 详情浮层入口验证结果 | `合计 6 / 6 条，通过 6 条，不通过 0 条 —— 全部通过`（RD-01 ~ RD-06） |
+| `class-list_1366x768.png` | 1366×768 | 班级管理列表（默认） | 批次 2-3a 样板：最小分辨率无整页横向滚动、无文字截断；表格列宽之和 1116px ≤ 可用 1118px |
+| `class-list_1440x900.png` | 1440×900 | 班级管理列表（默认） | 6 个筛选项、10 列（在读与容量各自独立）、固定操作列 232px；行内 详情 / 编辑 / 指定班主任 / 更多▾ |
+| `class-list_1920x1080.png` | 1920×1080 | 班级管理列表（宽屏） | 主内容区不无限拉伸，12 行样例与分页器同屏 |
+| `class-list_grade_leader_1440x900.png` | 1440×900 | 角色 = 年级主任 | 数据范围收窄到本人负责年级（4 行，含教学班）；无「批量生成」，菜单里没有「删除」（矩阵只给 read / create / update） |
+| `class-list_homeroom_1440x900.png` | 1440×900 | 角色 = 班主任 | 只看到本人担任班主任的 1 个班级；操作列只剩「详情」并显示「只读」（`DS-06`） |
+| `class-list_subject_teacher_1440x900.png` | 1440×900 | 角色 = 任课教师 | 只看到任教班级 3 行（含教学班）；顶部给出字段裁剪与禁止导出花名册的提示（`REQ-CLS-012` / `034`） |
+| `class-list_school_leader_1440x900.png` | 1440×900 | 角色 = 校领导 | 本校 11 行只读；工具栏只有「导出」 |
+| `class-list_platform_ops-school-switch_1440x900.png` | 1440×900 | 平台运营切到云溪外国语学校 | 协助视图 · 只读提示条；工具栏只剩「导出（需授权）」；他校行只给「详情」，无任何写入口 |
+| `class-list_super_admin_1440x900.png` | 1440×900 | 角色 = 超级管理员 | 全部按钮与行内操作可见；页头提示 `BR-ORG-014` 强制留痕 |
+| `class-list_tenant_admin_1440x900.png` | 1440×900 | 角色 = 租户管理员 | 只读且无导出（矩阵显式禁止 `org.class.update`），行内只剩「详情」 |
+| `class-list_more-menu_1440x900.png` | 1440×900 | 行内「更多 ▾」展开 | 低频操作下拉（编班 / 复制班级 / 批量迁学生 / 停用 / 删除），按可用条件过滤；右对齐并保持不出视口 |
+| `class-list_dialog-disable_1440x900.png` | 1440×900 | 停用班级二次确认 | 写清对象与影响范围（历史花名册仍可查、有在读学生只能停用）；原因必填且写审计 |
+| `class-list_dialog-delete_1440x900.png` | 1440×900 | 删除班级二次确认 | 只对在读人数为 0 的班级可用；原因必填；逻辑删除、不做物理删除（`REQ-CLS-046`） |
+| `class-list_state-loading_1440x900.png` | 1440×900 | 状态 = 加载中 | 表格内骨架行，不用全屏遮罩 |
+| `class-list_state-empty_1440x900.png` | 1440×900 | 状态 = 空数据 | 两种空态（筛选无结果 / 本校还没建班级）与各自主动作 |
+| `class-list_state-error_1440x900.png` | 1440×900 | 状态 = 查询失败 | 错误说明 + 请求编号 + 错误码 + 重试 |
+| `class-list_state-forbidden_1440x900.png` | 1440×900 | 状态 = 无权限 | 说明数据范围为空集且不降级为全量（`DS-DENY-03`） |
+| `class-list_state-submitting_1440x900.png` | 1440×900 | 状态 = 提交中 | 写操作按钮置 loading 并禁用 |
+| `class-list_state-partial_1440x900.png` | 1440×900 | 状态 = 部分失败 | 批量生成班级的部分冲突：6 条中 5 成功 1 冲突 |
+| `class-list_state-queued_1440x900.png` | 1440×900 | 状态 = 排队中 | 任务编号、队列位置、并发配额（`BR-IMP-015`） |
+| `class-list_verify-results.png` | 1500×1600 | 班级列表交互验证结果 | CL-01 ~ CL-37 共 37 条用例**全部通过** |
+| `verify-class-list.html` | — | 班级列表交互验证 harness | 同源 iframe + 真实事件派发跑 37 条断言（数据范围、行内入口、二次确认、七类状态），可重复执行 |
 
 ## 2. 截图里的关键事实（验收时可直接核对）
 
@@ -110,6 +132,13 @@
 | 年级列表数据 | 14 行（`grades`），分页显示"共 18 条"（取自 `list_totals.grade_list_total`） |
 | 年级列表可见行数 | 1366×768 → 7 行；1440×900 → 11 行；1920×1080 → 14 行 |
 | 年级列表边界样本 | 空年级 1、已归档 1、未指定年级主任 5、毕业年级 2、他校 1、间隔号姓名 1 |
+| 班级列表筛选项 | 6 个（学校 / 学年学期 / 年级 / 班级类型 / 班主任 / 校区）+ 关键字，与 `REQ-CLS-002` / `REQ-CLS-003` 对应 |
+| 班级列表列 | 10 列（班级名称 / 年级 / 类型 / 班主任 / 在读 / 容量 / 校区 / 教室 / 状态）+ 固定右侧操作列 232px |
+| 班级列表行内入口 | 高频 3 个（详情 / 编辑 / 指定班主任）+「更多 ▾」下拉（编班 / 复制班级 / 批量迁学生 / 停用 / 删除），下拉项按权限与可用条件过滤 |
+| 班级列表数据 | 12 行（`classes` 7 条 + `class_edge_cases` 5 条），分页显示「共 34 条」（取自 `list_totals.class_list_total`） |
+| 班级列表边界样本 | 空班 1（高二 (2) 班）、已停用 1（高三 (2) 班）、超容量 1（48 / 45）、超长班级名称 1、未指定班主任 2、教学班 1、毕业年级 2、他校 1 |
+| 班级列表角色形态 | 8 种（教务主任 / 年级主任 / 班主任 / 任课教师 / 校领导 / 租户管理员 / 平台运营 / 超级管理员），差异落在可见行数与行内入口上 |
+| 班级列表数据范围实测 | 教务主任 11 行、年级主任 4 行（`DS-05`）、班主任 1 行（`DS-06`）、任课教师 3 行（`DS-07`）、校领导 11 行只读（`DS-04`）、租户管理员 11 行只读（`DS-02`）、平台运营他校 1 行（`DS-01`） |
 
 > 密度说明：`layout-spec.yaml` 原定"1440×900 可见 12 行"，批次 2-1 按三档实测修正为 8 行，
 > 理由与计算过程写在 `prototypes/functional/v1/layout-spec.yaml` 的 `density.rules` 中。
@@ -145,13 +174,20 @@ $url4 = "$url?school=202#role=platform_ops"
 |---|---|---|
 | `role` | `academic_director` / `homeroom` / `grade_leader` / `subject_teacher` / `school_leader` / `platform_ops` | 切换角色形态 |
 | `state` | `normal` / `loading` / `empty` / `error` / `forbidden` / `submitting` / `partial` / `queued` | 切换页面状态 |
-| `panel` | `PAGE-STU-CREATE` / `PAGE-STU-EDIT` / `PAGE-TCH-DETAIL` / `PAGE-TCH-CREATE` / `PAGE-TCH-EDIT` / `DIALOG-TCH-LEAVE` / `DIALOG-TCH-DISCARD` | 直接打开抽屉或弹窗 |
+| `panel` | `PAGE-STU-CREATE` / `PAGE-STU-EDIT` / `PAGE-TCH-DETAIL` / `PAGE-TCH-CREATE` / `PAGE-TCH-EDIT` / `DIALOG-TCH-LEAVE` / `DIALOG-TCH-DISCARD` / `DIALOG-GRD-DELETE` / `PAGE-GRD-DETAIL` / `PAGE-GRD-CREATE` / `PAGE-GRD-BATCH` / `PAGE-GRD-LEADER` / `PAGE-GRD-ARCHIVE` / `DIALOG-CLS-DISABLE` / `DIALOG-CLS-DELETE` | 直接打开抽屉、弹窗或同页确认片段 |
 | `school` | `201` / `202` | 切换学校；只有平台运营可切换，202 为他校的协助视图（只读 + 留痕） |
 | `sample` | `1007`（跨校任教）/ `1003`（班主任 + 任课） | 教师详情抽屉的两种形态，只对 `teacher-list.html` 有效 |
 | `step` | `1` / `2` / `3` | 向导类浮层的步骤序号，例：`teacher-list.html#panel=PAGE-TCH-CREATE&step=3` |
 | `enroll` | `2021` / `2024` / `2026` … | 年级列表的入学年份筛选，例：`grade-list.html#enroll=2021` 只看空年级 |
 | `leader` | 教师姓名 / `__none` | 年级列表的年级主任筛选，`__none` 表示"未指定年级主任" |
 | `stage` | `primary` / `junior` / `senior`，逗号分隔 | 年级列表的学段筛选，例：`grade-list.html#stage=junior,senior` |
+| `term` | `202601` / `202602` / `202501` | 班级列表的学年学期筛选，例：`class-list.html#term=202501` 看已归档学年（样例集为空） |
+| `grade` | `202601` / `202501` / `202401` / `202621` / `202423` / `202602` | 班级列表的年级筛选 |
+| `type` | `administrative` / `teaching` | 班级列表的类型筛选，例：`class-list.html#type=teaching` 只看教学班 |
+| `head` | 教师姓名 / `__none` | 班级列表的班主任筛选，`__none` 表示"未指定班主任" |
+| `campus` | `2011` / `2012` / `2021` | 班级列表的校区筛选 |
+| `keyword` | 班级名称或班主任姓名片段 | 班级列表的关键字检索 |
+| `more` | 班级名称片段 | 直接展开某一行内「更多 ▾」下拉，例：`class-list.html#more=高二`（截图与评审用） |
 
 ### 3.2 交互验证 harness（批次 2-2b-2b 起）
 
@@ -188,6 +224,55 @@ Start-Process $chrome -Wait -WindowStyle Hidden -ArgumentList @(
 ```
 
 结果解读：最后一行为 `合计 6 / 6 条，通过 6 条，不通过 0 条 —— 全部通过`。
+
+批次 2-3a 的班级列表 harness（命令同上，换 URL 与输出文件名）：
+
+```powershell
+Start-Process $chrome -Wait -WindowStyle Hidden -ArgumentList @(
+  "--headless=new","--disable-gpu","--no-first-run","--hide-scrollbars",
+  "--allow-file-access-from-files",
+  "--user-data-dir=$prof","--virtual-time-budget=45000",
+  "--window-size=1500,1600","--screenshot=$out\class-list_verify-results.png",
+  "file:///D:/work/person_work/ruoyi-cloud-monorepo/evidence/stage2-prototype/verify-class-list.html")
+```
+
+结果解读：最后一行为 `合计 37 / 37 条，通过 37 条，不通过 0 条 —— 全部通过`（CL-01 ~ CL-37）。
+只取结论时可用 `--dump-dom` 代替截图：`& $chrome --headless=new ... --dump-dom <harness 路径> | Select-String 'class="sum'`。
+
+批次 2-3a 的截图命令（18 张，含 3 档分辨率、8 个角色形态、7 类状态与 2 个二次确认）：
+
+```powershell
+$url = "file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/class-list.html"
+$shots = @(
+  @("class-list_1440x900.png",                          "1440,900", ""),
+  @("class-list_1366x768.png",                          "1366,768", ""),
+  @("class-list_1920x1080.png",                         "1920,1080",""),
+  @("class-list_grade_leader_1440x900.png",             "1440,900", "#role=grade_leader"),
+  @("class-list_homeroom_1440x900.png",                 "1440,900", "#role=homeroom"),
+  @("class-list_subject_teacher_1440x900.png",          "1440,900", "#role=subject_teacher"),
+  @("class-list_school_leader_1440x900.png",            "1440,900", "#role=school_leader"),
+  @("class-list_super_admin_1440x900.png",              "1440,900", "#role=super_admin"),
+  @("class-list_tenant_admin_1440x900.png",             "1440,900", "#role=tenant_admin"),
+  @("class-list_platform_ops-school-switch_1440x900.png","1440,900","#role=platform_ops&school=202"),
+  @("class-list_more-menu_1440x900.png",                "1440,900", "#more=高二"),
+  @("class-list_dialog-disable_1440x900.png",           "1440,900", "#panel=DIALOG-CLS-DISABLE"),
+  @("class-list_dialog-delete_1440x900.png",            "1440,900", "#panel=DIALOG-CLS-DELETE"),
+  @("class-list_state-loading_1440x900.png",            "1440,900", "#state=loading"),
+  @("class-list_state-empty_1440x900.png",              "1440,900", "#state=empty"),
+  @("class-list_state-error_1440x900.png",              "1440,900", "#state=error"),
+  @("class-list_state-forbidden_1440x900.png",          "1440,900", "#state=forbidden"),
+  @("class-list_state-submitting_1440x900.png",         "1440,900", "#state=submitting"),
+  @("class-list_state-partial_1440x900.png",            "1440,900", "#state=partial"),
+  @("class-list_state-queued_1440x900.png",             "1440,900", "#state=queued")
+)
+foreach ($s in $shots) {
+  Start-Process $chrome -Wait -WindowStyle Hidden -ArgumentList @(
+    "--headless=new","--disable-gpu","--no-first-run","--hide-scrollbars",
+    "--allow-file-access-from-files",
+    "--user-data-dir=$prof","--virtual-time-budget=20000",
+    "--window-size=$($s[1])","--screenshot=$out\$($s[0])","$url$($s[2])")
+}
+```
 
 ## 4. 载体决策的核查命令（CR-007 / D-058 用）
 
@@ -235,3 +320,39 @@ $ python tools/check_docs.py
 核查范围包含：`prototypes/**` 的 YAML / JSON 可解析、页面注册表编号唯一与批次计数一致、
 跳转端点存在、占位词黑名单（`张三` / `李四` / `测试学校` / `xxx` 等）、HTML 中的
 `data-page` 与 `data-action-id` 能回查到规范文件。
+
+## 5. 批次 2-3a（班级管理列表样板页）的交付说明
+
+### 5.1 本批产物
+
+| 产物 | 路径 |
+|---|---|
+| 原型页面 | `prototypes/functional/v1/pages/class-list.html`（1 页 + 2 个二次确认浮层片段） |
+| 页面规格 | `prototypes/functional/v1/page-specs/class-list.md` |
+| 动作清单 | `prototypes/functional/v1/page-actions.yaml` 的 `class_list` 组（`ACT-CLS-001` ~ `ACT-CLS-016`） |
+| 样例数据 | `prototypes/functional/v1/content-samples.json` 的 `classes`（补 `campus_id` / `campus_name`）、新增 `class_edge_cases`（5 条）、`list_totals.class_list_total` |
+| 变更单 | `docs/00-governance/change-requests/CR-009.md`（载体修正 + 5 项页面登记） |
+| 验证 harness | `evidence/stage2-prototype/verify-class-list.html`（37 条断言） |
+
+### 5.2 本批的工程决策（待确认，若不认可可回退）
+
+| 事项 | 做法 | 理由 |
+|---|---|---|
+| 先出样板页 | 本批只交付 `PAGE-CLS-LIST` 一页，其余 15 页（详情 / 新建 / 批量生成 / 添加学生 / 调班 / 指定班主任 / 复制班级 / 批量迁学生 / 升班 6 页）按同一标准在 2-3b ~ 2-3e 铺开 | 用户要求"先生成一个页面，觉得好看了，用同样的标准生成其他剩下的一批页面"；也是 `AGENTS.md` 第 5 节的硬要求 |
+| 行内操作超过 3 个的写法 | 高频 3 个（详情 / 编辑 / 指定班主任）直接渲染，其余进「更多 ▾」下拉；下拉挂到 `body` 做 fixed 定位并右对齐 | 表格 `.table-scroll` 是 `overflow-x:auto`，下拉放在单元格里会被裁切；`markup-contract.md` 已补 `el-dropdown` 映射与写法约定 |
+| 班级表单的承载 | 编辑复用 `PAGE-CLS-CREATE` 的编辑态（与年级模块 `D-058` 的裁决一致），不另立编辑页 | 班级 PRD 6.1 只登记了"新建班级"；`GAP-038` 已就同一问题裁决过"新建与编辑共用同一表单" |
+| 班级状态的取值 | 只使用**能从已冻结 PRD 文本推出**的两个值：`在读`（`REQ-CLS-004` / `007` 的"在读人数"）与 `已停用`（`REQ-CLS-043` / `044`） | PRD 7.1 的 `status` 没有给取值，`06-field-dictionary.yaml` 也没有 `class_status` 枚举；多造状态值属于补造业务规则，已登记 `GAP-044` 待你裁决 |
+| 数量与边界的多样性来源 | 不用"多造状态"制造差异，改用：空班、已停用、超容量、超长名称、未指定班主任、教学班、毕业年级、他校数据 | 每一类都有 PRD 条款支撑（`BR-CLASS-005` / `006`、`BR-CLASS-001`、`BR-PROMO-005` 等） |
+| 任课教师的读权限 | 页面按班级 PRD 2.1 与 `DS-07` 实现"只读、限任教班级、字段裁剪、禁止导出花名册"；但 `05-permission-matrix.yaml` 没有给 `subject_teacher` 授 `org.class:read` | 与 `GAP-035`（年级模块同类问题）一致的处理方式：先按上游 PRD 实现，权限缺口登记 `GAP-043` 待裁决 |
+| 数据范围的实现位置 | 列表行按 `DS-04` / `05` / `06` / `07` / `02` / `01` 在原型里真实收窄（教务主任 11 行 / 年级主任 4 行 / 班主任 1 行 / 任课教师 3 行） | 班级是数据权限的权威来源，只画按钮显隐看不出越权风险；harness 的 CL-12 ~ CL-18 用实测行数留档 |
+| 教室列的截断 | 教室列 104px，"本部教学楼 A203"这类值按 `layout-spec` 的长文本规则省略并给 `title` 悬浮全量 | 与年级 / 教师列表的既有做法一致；1366×768 下优先保证整页无横向滚动 |
+
+### 5.3 本批暴露的缺口（待你裁决，见 `docs/00-governance/gap-register.yaml`）
+
+| 缺口 | 内容 | 影响 |
+|---|---|---|
+| `GAP-043` | `subject_teacher` 对 `org.class` 的读权限未在权限矩阵定义 | 不补：任课教师打开班级列表只能看到"无权限"，与班级 PRD 2.1 的 `DS-07` 不一致 |
+| `GAP-044` | `class_status` 字段与状态枚举未登记进字段字典；PRD 7.1 的 `status` 没有取值 | 不补：阶段 6 的 `el-tag` 映射与阶段 5 的建表缺少枚举依据；本轮原型只用"在读 / 已停用"两值 |
+| `GAP-045` | `campus_id` 与 `classroom` 未登记进字段字典（PRD 7.1 已列出） | 不补：`data-field` 无法回溯到字段字典，check 清单第 5 条不满足 |
+
+建议：走一次 `CR-010` 把 `GAP-043` ~ `GAP-045` 一起补完（与 `GAP-037` → `CR-005` 的做法一致），避免后续小批重复返工。

@@ -55,7 +55,7 @@ menu_rules:
   - 需要多校切换的角色（集团管理员 / 平台运营）在顶部导航切换学校，不在菜单里重复
 
 # ---------------------------------------------------------------------------
-# 3. 页面注册表（86 项，含页面 / 详情 / 抽屉 / 弹窗 / 向导 / 页面内区块）
+# 3. 页面注册表（91 项，含页面 / 详情 / 抽屉 / 弹窗 / 向导 / 页面内区块）
 #    type: page 独立页 | detail 详情 | drawer 抽屉 | dialog 弹窗 | wizard 向导 | block 页面内区块 | standalone 独立于菜单
 #    batch: 见第 4 节 delivery_batches；deferred 表示本轮不做
 # ---------------------------------------------------------------------------
@@ -91,11 +91,14 @@ pages:
 
   # ---- 班级管理 ----
   - { id: PAGE-CLS-LIST, name: 班级管理列表, module: class, type: page, route: /edu/class/list, template: TPL-LIST, batch: "2-3" }
-  - { id: PAGE-CLS-DETAIL, name: 班级详情, module: class, type: detail, route: /edu/class/detail, parent: PAGE-CLS-LIST, batch: "2-3" }
-  - { id: PAGE-CLS-CREATE, name: 新建班级, module: class, type: drawer, size: md, parent: PAGE-CLS-LIST, batch: "2-3" }
-  - { id: PAGE-CLS-BATCH, name: 批量生成班级, module: class, type: drawer, size: md, parent: PAGE-CLS-LIST, batch: "2-3" }
-  - { id: PAGE-CLS-ROSTER-ADD, name: 添加学生, module: class, type: drawer, size: lg, parent: PAGE-CLS-DETAIL, batch: "2-3" }
+  - { id: PAGE-CLS-DETAIL, name: 班级详情, module: class, type: detail, route: /edu/class/detail, parent: PAGE-CLS-LIST, batch: "2-3", note: "PRD 6.1 写明为详情页（独立页），含基本信息 / 花名册 / 任课教师 / 班主任历史 / 变更记录 5 个页签" }
+  - { id: PAGE-CLS-CREATE, name: 新建班级, module: class, type: dialog, size: md, parent: PAGE-CLS-LIST, batch: "2-3", note: "CR-009 / D-059：表单类浮层用弹窗（原登记为 drawer，与 D-059 冲突）" }
+  - { id: PAGE-CLS-BATCH, name: 批量生成班级, module: class, type: dialog, size: md, parent: PAGE-CLS-LIST, batch: "2-3", note: "CR-009：PRD 6.1 写明为弹窗，原登记的 drawer 与 PRD 不一致，按上游优先修正" }
+  - { id: PAGE-CLS-ROSTER-ADD, name: 添加学生, module: class, type: page, route: /edu/class/roster/add, parent: PAGE-CLS-DETAIL, batch: "2-3", note: "CR-009 / D-059：含检索列表（等价含表格）用独立页，原登记为 drawer" }
   - { id: PAGE-CLS-TRANSFER, name: 调班, module: class, type: dialog, size: sm, parent: PAGE-CLS-DETAIL, batch: "2-3" }
+  - { id: PAGE-CLS-LEADER, name: 指定 / 变更班主任, module: class, type: dialog, size: md, parent: PAGE-CLS-LIST, batch: "2-3", note: "CR-009 补登记：REQ-CLS-006 / 048 / 050 要求，班主任的唯一写入入口（DP-01）" }
+  - { id: PAGE-CLS-COPY, name: 复制班级, module: class, type: dialog, size: md, parent: PAGE-CLS-LIST, batch: "2-3", note: "CR-009 补登记：REQ-CLS-061，不复制花名册与班主任" }
+  - { id: PAGE-CLS-MOVE, name: 批量迁学生, module: class, type: page, route: /edu/class/move-students, parent: PAGE-CLS-LIST, batch: "2-3", note: "CR-009 补登记：REQ-CLS-062，含影响预览表格，按 D-059 用独立页" }
   - { id: PAGE-CLS-ROSTER-IMPORT, name: 编班表导入向导, module: class, type: wizard, route: /edu/class/import-roster, batch: "2-4" }
   - { id: PAGE-CLS-TEACHING, name: 教学班管理, module: class, type: page, route: /edu/class/teaching, template: TPL-LIST, batch: "2-7" }
   - { id: PAGE-CLS-MERGE, name: 班级合并, module: class, type: wizard, route: /edu/class/merge, batch: deferred, note: "PRD 已标明延后，本轮不做" }
@@ -104,6 +107,7 @@ pages:
   - { id: PAGE-PRM-LIST, name: 升班任务列表, module: promotion, type: page, route: /edu/promotion/list, template: TPL-LIST, batch: "2-3" }
   - { id: PAGE-PRM-CREATE, name: 新建升班任务, module: promotion, type: wizard, route: /edu/promotion/create, batch: "2-3" }
   - { id: PAGE-PRM-PREVIEW, name: 升班预览与调整, module: promotion, type: wizard, route: /edu/promotion/preview, batch: "2-3" }
+  - { id: PAGE-PRM-ADJUST, name: 调整学生去向, module: promotion, type: dialog, size: md, parent: PAGE-PRM-PREVIEW, batch: "2-3", note: "CR-009 补登记：promotion PRD 6.3 与 REQ-PRM-017 / 018 要求；留级 / 转班 / 毕业 / 跳过" }
   - { id: PAGE-PRM-VALIDATE, name: 升班校验结果, module: promotion, type: wizard, route: /edu/promotion/validate, batch: "2-3" }
   - { id: PAGE-PRM-EXECUTE, name: 执行与进度, module: promotion, type: wizard, route: /edu/promotion/execute, batch: "2-3" }
   - { id: PAGE-PRM-RESULT, name: 执行结果与重试, module: promotion, type: page, route: /edu/promotion/result, batch: "2-3" }
@@ -178,7 +182,7 @@ delivery_batches:
   - { batch: "2-0", content: 原型规范（layout-spec / navigation / page-actions / markup-contract / 样例数据）, pages: 0, status: 本批 }
   - { batch: "2-1", content: 学生管理列表 + 新增/编辑抽屉（样板）, pages: 3, status: 待验收 }
   - { batch: "2-2", content: "教师管理 + 年级管理（执行时拆为 2-2a 教师列表 1 页 / 2-2b-1 教师详情与新增编辑 3 项 / 2-2b-2 角色与任教 2 项 / 2-2b-2b 年级 6 页）", pages: 13, status: "2-2a、2-2b-1、2-2b-2 已产出待验收；2-2b-2b 的年级 6 页全部产出待验收（含删除确认浮层片段 DIALOG-GRD-DELETE 与 ACT-GRD-001 ~ 029）" }
-  - { batch: "2-3", content: 班级管理 + 班级详情 + 升班向导, pages: 12, status: 待开始 }
+  - { batch: "2-3", content: 班级管理 + 班级详情 + 升班向导, pages: 16, status: "小批 2-3a（PAGE-CLS-LIST 样板页）已产出待验收；2-3b 班级详情与花名册 → 2-3c 新建 / 批量生成 / 复制 / 指定班主任 → 2-3d 添加学生与调班 / 批量迁学生 → 2-3e 升班四步向导与结果页，待样板验收后铺开" }
   - { batch: "2-4", content: 导入向导 + 登录 + 异常页, pages: 11, status: 待开始 }
   - { batch: "2-5", content: 学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录）, pages: 8, status: 已确认（D-050），待开始 }
   - { batch: "2-6", content: 学校管理 + 学年学期 + 学科与配置, pages: 19, status: 已确认（D-050），待开始 }
@@ -214,10 +218,17 @@ jump_map:
   - { from: PAGE-STU-DETAIL, trigger: 锚点"变更记录", to: PAGE-STU-HISTORY, overlay: block }
   - { from: PAGE-STU-DETAIL, trigger: 顶部"跨校转学", to: PAGE-STU-CROSS-TRANSFER, overlay: page }
   - { from: PAGE-CLS-LIST, trigger: 点击行, to: PAGE-CLS-DETAIL, keep_filters: true }
-  - { from: PAGE-CLS-DETAIL, trigger: "添加学生", to: PAGE-CLS-ROSTER-ADD, overlay: drawer }
+  - { from: PAGE-CLS-LIST, trigger: 行内"指定班主任", to: PAGE-CLS-LEADER, overlay: dialog }
+  - { from: PAGE-CLS-LIST, trigger: 行内"复制班级", to: PAGE-CLS-COPY, overlay: dialog }
+  - { from: PAGE-CLS-LIST, trigger: 行内"批量迁学生", to: PAGE-CLS-MOVE, overlay: page }
+  - { from: PAGE-CLS-DETAIL, trigger: "添加学生", to: PAGE-CLS-ROSTER-ADD, overlay: page }
   - { from: PAGE-CLS-DETAIL, trigger: 行内"调班", to: PAGE-CLS-TRANSFER, overlay: dialog }
+  - { from: PAGE-CLS-DETAIL, trigger: "指定班主任", to: PAGE-CLS-LEADER, overlay: dialog }
+  - { from: PAGE-CLS-DETAIL, trigger: "复制班级", to: PAGE-CLS-COPY, overlay: dialog }
+  - { from: PAGE-CLS-DETAIL, trigger: "批量迁学生", to: PAGE-CLS-MOVE, overlay: page }
   - { from: PAGE-PRM-LIST, trigger: "新建升班任务", to: PAGE-PRM-CREATE, overlay: page }
   - { from: PAGE-PRM-CREATE, trigger: 下一步, to: PAGE-PRM-PREVIEW, overlay: page }
+  - { from: PAGE-PRM-PREVIEW, trigger: 点击某学生, to: PAGE-PRM-ADJUST, overlay: dialog }
   - { from: PAGE-PRM-PREVIEW, trigger: 下一步, to: PAGE-PRM-VALIDATE, overlay: page }
   - { from: PAGE-PRM-VALIDATE, trigger: 确认执行, to: PAGE-PRM-EXECUTE, overlay: page }
   - { from: PAGE-PRM-EXECUTE, trigger: 执行完成, to: PAGE-PRM-RESULT, overlay: page }

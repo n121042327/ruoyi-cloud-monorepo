@@ -78,6 +78,11 @@
 | `<ol class="steps">` | `el-steps` | `<el-steps :active="active" finish-status="success">` |
 | `<ul class="timeline">` | `el-timeline` | `<el-timeline><el-timeline-item ... /></el-timeline>` |
 | `<div class="empty">` | `el-empty` | `<el-empty description="...">` + 主动作按钮 |
+| `<button class="btn link">更多 ▾</button>` + 行内菜单 | `el-dropdown` | `<el-dropdown><el-button link type="primary">更多<el-icon><ArrowDown /></el-icon></el-button><template #dropdown><el-dropdown-menu><el-dropdown-item command="...">…</el-dropdown-item></el-dropdown-menu></template></el-dropdown>`；`el-dropdown` 用 `teleported`（默认 true），菜单挂到 body，不被表格滚动区裁切 |
+
+> **行内操作超过 3 个时的写法**（批次 2-3a 起）：前 3 个高频操作直接渲染成 `link` 按钮，
+> 其余放进 `data-component="el-dropdown"` 的「更多 ▾」里。下拉项各自带 `data-action-id`，
+> 与独立按钮一样受权限与可用条件约束（不允许把整组操作写成无语义的一行文字）。
 
 ### 4.1 状态标签的颜色映射（与 PRD 枚举对齐）
 

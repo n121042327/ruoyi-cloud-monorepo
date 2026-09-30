@@ -143,6 +143,17 @@
 | `evidence/stage2-prototype/verify-carrier-change.html` | 载体变更回归 harness（14 条断言：表单是弹窗、详情仍是抽屉、弹窗内无 drawer-* 钩子） | `review` |
 | `evidence/stage2-prototype/verify-grade-list.html` | 年级列表交互验证 harness（同源 iframe + 真实事件派发，38 条断言） | `review` |
 | `evidence/stage2-prototype/verify-detail-entry.html` | 详情浮层入口验证 harness（年级 / 教师 / 学生三个列表页，6 条断言，关联 D-060） | `review` |
+| `prototypes/functional/v1/pages/class-list.html` | 班级管理列表（批次 2-3a 样板页）+ 停用 / 删除二次确认浮层片段 `DIALOG-CLS-DISABLE` / `DIALOG-CLS-DELETE` | `review` |
+| `prototypes/functional/v1/page-specs/class-list.md` | 班级管理列表页面规格（字段 / 动作 / 状态 / 权限 / 样例数据 / 自查） | `review` |
+| `docs/00-governance/change-requests/CR-009.md` | 变更申请：班级模块载体按 D-059 修正 + 补登记 5 个 PRD 要求的页面（已批准并执行，关联 GAP-040 / GAP-041 / D-061） | `review` |
+| `evidence/stage2-prototype/verify-class-list.html` | 班级列表交互验证 harness（同源 iframe + 真实事件派发，37 条断言，CL-01 ~ CL-37） | `review` |
+| `evidence/stage2-prototype/class-list_1440x900.png` | 班级列表截图（设计基准分辨率，默认态） | `review` |
+| `evidence/stage2-prototype/class-list_role-*.png`（8 张，实际命名见 README 第 1 节） | 班级列表的 8 个角色形态截图 | `review` |
+| `evidence/stage2-prototype/class-list_dialog-disable_1440x900.png` | 停用班级二次确认截图 | `review` |
+| `evidence/stage2-prototype/class-list_dialog-delete_1440x900.png` | 删除班级二次确认截图 | `review` |
+| `evidence/stage2-prototype/class-list_more-menu_1440x900.png` | 行内「更多 ▾」下拉截图 | `review` |
+| `evidence/stage2-prototype/class-list_state-*.png`（7 张，实际命名见 README 第 1 节） | 班级列表的七类页面状态截图 | `review` |
+| `evidence/stage2-prototype/class-list_verify-results.png` | 班级列表 harness 结果清单（CL-01 ~ CL-37 全部通过） | `review` |
 | `evidence/stage2-prototype/interaction-verification.md` | 原型交互可点性验证报告（含批次 2-2b-2b 的 GL-01 ~ GL-38、D-060 的 RD-01 ~ RD-06 实测结果） | `review` |
 | `prototypes/functional/v1/pages/class-list.html` | 班级管理列表 | `planned` |
 | `prototypes/functional/v1/pages/class-detail.html` | 班级详情与花名册 | `planned` |

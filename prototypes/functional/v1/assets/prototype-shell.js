@@ -36,7 +36,7 @@
       items: [
         { id: 'PAGE-STU-LIST', name: '学生管理', batch: '2-1', delivered: 'pages/student-list.html' },
         { id: 'PAGE-TCH-LIST', name: '教师管理', batch: '2-2', delivered: 'pages/teacher-list.html' },
-        { id: 'PAGE-CLS-LIST', name: '班级管理', batch: '2-3' },
+        { id: 'PAGE-CLS-LIST', name: '班级管理', batch: '2-3', delivered: 'pages/class-list.html' },
         { id: 'PAGE-GRD-LIST', name: '年级管理', batch: '2-2', delivered: 'pages/grade-list.html' },
         { id: 'PAGE-PRM-LIST', name: '升班与学籍', batch: '2-3' },
         { id: 'PAGE-STR-LIST', name: '选科与教学班', batch: '2-7' }
@@ -97,7 +97,17 @@
     'PAGE-TCH-DETAIL': { name: '教师详情', batch: '2-2' },
     'PAGE-TCH-CREATE': { name: '新增教师', batch: '2-2' },
     'PAGE-TCH-EDIT': { name: '编辑教师', batch: '2-2' },
-    'PAGE-TCH-ROLE': { name: '教育角色分配', batch: '2-2' }
+    'PAGE-TCH-ROLE': { name: '教育角色分配', batch: '2-2' },
+    // 班级与升班模块（批次 2-3，小批 2-3b ~ 2-3e 交付）
+    'PAGE-CLS-DETAIL': { name: '班级详情', batch: '2-3' },
+    'PAGE-CLS-CREATE': { name: '新建 / 编辑班级', batch: '2-3' },
+    'PAGE-CLS-BATCH': { name: '批量生成班级', batch: '2-3' },
+    'PAGE-CLS-ROSTER-ADD': { name: '添加学生', batch: '2-3' },
+    'PAGE-CLS-TRANSFER': { name: '调班', batch: '2-3' },
+    'PAGE-CLS-LEADER': { name: '指定 / 变更班主任', batch: '2-3' },
+    'PAGE-CLS-COPY': { name: '复制班级', batch: '2-3' },
+    'PAGE-CLS-MOVE': { name: '批量迁学生', batch: '2-3' },
+    'PAGE-PRM-ADJUST': { name: '调整学生去向', batch: '2-3' }
   };
   Object.keys(PENDING_PAGES).forEach(function (id) {
     if (!PAGE_NAME[id]) PAGE_NAME[id] = PENDING_PAGES[id].name;
