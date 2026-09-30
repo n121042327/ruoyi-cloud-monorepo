@@ -148,6 +148,12 @@
 | `docs/00-governance/change-requests/CR-009.md` | 变更申请：班级模块载体按 D-059 修正 + 补登记 5 个 PRD 要求的页面（已批准并执行，关联 GAP-040 / GAP-041 / D-061） | `review` |
 | `docs/00-governance/change-requests/CR-010.md` | 变更申请：补齐班级模块三项公共前置（任课教师班级读权限 / 班级状态枚举 / 校区与教室字段）（已批准并执行，关联 GAP-043 ~ 045 / D-063） | `review` |
 | `evidence/stage2-prototype/verify-class-list.html` | 班级列表交互验证 harness（同源 iframe + 真实事件派发，37 条断言，CL-01 ~ CL-37） | `review` |
+| `prototypes/functional/v1/pages/class-detail.html` | 班级详情独立页（批次 2-3b：基本信息卡 + 花名册 / 任课教师 / 班主任任职历史 / 变更记录） | `review` |
+| `prototypes/functional/v1/page-specs/class-detail.md` | 班级详情页面规格（字段 / 动作 / 状态 / 权限 / 样例数据 / 自查） | `review` |
+| `evidence/stage2-prototype/verify-class-detail.html` | 班级详情交互验证 harness（同源 iframe + 真实事件派发，20 条断言，CD-01 ~ CD-20） | `review` |
+| `evidence/stage2-prototype/class-detail_1440x900.png` | 班级详情截图（设计基准分辨率，花名册页签） | `review` |
+| `evidence/stage2-prototype/class-detail_tab-*.png`（3 张，实际命名见 README 第 1 节） | 任课教师 / 班主任任职历史 / 变更记录三个页签截图 | `review` |
+| `evidence/stage2-prototype/class-detail_verify-results.png` | 班级详情 harness 结果清单（CD-01 ~ CD-20 全部通过） | `review` |
 | `evidence/stage2-prototype/class-list_1440x900.png` | 班级列表截图（设计基准分辨率，默认态） | `review` |
 | `evidence/stage2-prototype/class-list_role-*.png`（8 张，实际命名见 README 第 1 节） | 班级列表的 8 个角色形态截图 | `review` |
 | `evidence/stage2-prototype/class-list_dialog-disable_1440x900.png` | 停用班级二次确认截图 | `review` |

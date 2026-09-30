@@ -502,7 +502,7 @@
       "class_name": "高一 (1) 班",
       "head_teacher": "邓丽娟",
       "class_capacity": 45,
-      "student_count": 3,
+      "student_count": 2,
       "classroom": "本部教学楼 A203",
       "campus_id": 2011,
       "campus_name": "本部校区",
@@ -1607,12 +1607,12 @@
       "school": "云溪实验学校",
       "class_type_note": "行政班 3 个；教学班不在此列表内（教学班属教学关系，见班级模块）",
       "classes": [
-        { "class_id": 20260101, "class_name": "高一 (1) 班", "head_teacher": "邓丽娟", "class_capacity": 45, "student_count": 3, "classroom": "本部教学楼 A203", "status": "在读" },
+        { "class_id": 20260101, "class_name": "高一 (1) 班", "head_teacher": "邓丽娟", "class_capacity": 45, "student_count": 2, "classroom": "本部教学楼 A203", "status": "在读" },
         { "class_id": 20260102, "class_name": "高一 (2) 班", "head_teacher": "冯振国", "class_capacity": 45, "student_count": 2, "classroom": "本部教学楼 A205", "status": "在读" },
         { "class_id": 20260103, "class_name": "高一 (3) 班", "head_teacher": null, "class_capacity": 45, "student_count": 1, "classroom": "本部教学楼 A207", "status": "在读" }
       ],
       "student_stats": [
-        { "class_name": "高一 (1) 班", "enrolled": 3, "suspended": 0, "transferred_out": 0, "pending_enroll": 0 },
+        { "class_name": "高一 (1) 班", "enrolled": 2, "suspended": 1, "transferred_out": 0, "pending_enroll": 0 },
         { "class_name": "高一 (2) 班", "enrolled": 2, "suspended": 0, "transferred_out": 0, "pending_enroll": 0 },
         { "class_name": "高一 (3) 班", "enrolled": 1, "suspended": 0, "transferred_out": 0, "pending_enroll": 0 }
       ],

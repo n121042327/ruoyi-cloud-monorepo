@@ -1124,6 +1124,128 @@ class_list:
       audit: 否
       batch: "2-3"
 
+class_detail:
+  page: PAGE-CLS-DETAIL
+  actions:
+    - id: ACT-CLS-017
+      element: 返回列表
+      trigger: 点击
+      condition: 始终可用
+      permission: "org.class:read"
+      api: "-"
+      result: 回到 PAGE-CLS-LIST，保留进入前的筛选条件与页码
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-018
+      element: 页签（花名册 / 任课教师 / 班主任任职历史 / 变更记录）
+      trigger: 点击
+      condition: 始终可用
+      permission: "org.class:read"
+      api: "-"
+      result: 切换详情内的四个区域，不跳页；花名册默认选中
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-019
+      element: 编辑班级
+      trigger: 点击
+      condition: 有 org.class:update 权限，且不是历史学年学期
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: "-"
+      result: 打开班级表单的编辑态（批次 2-3c，PAGE-CLS-CREATE 编辑态）；学年学期与年级只读（REQ-CLS-022）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-020
+      element: 指定班主任
+      trigger: 点击
+      condition: 有 org.class:update 权限，且不是历史学年学期、不是教学班
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: "-"
+      result: 打开 PAGE-CLS-LEADER 弹窗（批次 2-3c）；变更后写审计并失效数据范围缓存（REQ-CLS-025）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-021
+      element: 编班（添加学生）
+      trigger: 点击
+      condition: 有 org.class:update 权限，且不是历史学年学期
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: "-"
+      result: 进入 PAGE-CLS-ROSTER-ADD 独立页（批次 2-3d）；加入前校验唯一行政班（REQ-CLS-028）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-022
+      element: 复制班级
+      trigger: 点击
+      condition: 有 org.class:create 权限
+      permission: "academic_director / super_admin / org.class / create"
+      api: "-"
+      result: 打开 PAGE-CLS-COPY 弹窗（批次 2-3c）；不复制花名册与班主任（REQ-CLS-061）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-023
+      element: 批量迁学生
+      trigger: 点击
+      condition: 有 org.class:update 权限，且不是历史学年学期、在读人数大于 0
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: "-"
+      result: 进入 PAGE-CLS-MOVE 独立页（批次 2-3d），先展示影响预览（REQ-CLS-062）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-024
+      element: 导出花名册
+      trigger: 点击
+      condition: 有 data.export:export 权限；任课教师禁止导出（REQ-CLS-034）
+      permission: "academic_director / grade_leader / school_leader / homeroom / super_admin / data.export / export"
+      confirm: 需要，提示"按当前成员范围与筛选条件导出，行数与条件写入审计"
+      api: exportClassRoster
+      result: 行数 ≤ 2000 直接下载，否则转异步任务；写入导出审计（REQ-CLS-033 / 054）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-CLS-025
+      element: 成员范围切换（在读成员 / 全部成员）
+      trigger: 点击
+      condition: 始终可用
+      permission: "org.class:read"
+      api: listClassRoster
+      result: 在读成员只含在读学生；全部成员含休学等保留关系的成员（BR-STU-012）；默认在读成员（REQ-CLS-010）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-026
+      element: 移出（批量移出所选 / 行内移出）
+      trigger: 点击
+      condition: 有 org.class:update 权限，且不是历史学年学期
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      confirm: 需要，写清"移出后保留原关系历史，不删除学生主体"
+      api: removeClassRoster
+      result: 移出学生在读关系并写审计；批量时逐条校验，任一条失败列出失败清单（DS-DENY-06）；原关系保留历史（REQ-CLS-030）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-CLS-027
+      element: 查看全部变更记录
+      trigger: 点击
+      condition: 有 audit.log:read 权限
+      permission: "audit.log:read"
+      api: "-"
+      result: 跳转操作日志页并按本班对象过滤（批次 2-8，PAGE-AUDIT-LOG-LIST）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-028
+      element: 花名册行内「详情」
+      trigger: 点击行内按钮或学生行
+      condition: 有 person.student:read 权限且该学生在数据范围内
+      permission: "person.student:read"
+      result: 打开学生详情（学生模块，批次 2-5，PAGE-STU-DETAIL）；返回时保留班级上下文
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-029
+      element: 花名册行内「调班」
+      trigger: 点击行内按钮
+      condition: 有 org.class:update 权限，且不是历史学年学期
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: "-"
+      result: 打开调班弹窗（批次 2-3d，PAGE-CLS-TRANSFER），预填目标班级；原关系保留历史（REQ-CLS-031）
+      audit: 否
+      batch: "2-3"
+
 batches_pending:
   - { batch: "2-2", pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-CREATE, PAGE-TCH-EDIT, PAGE-TCH-LEAVE, PAGE-TCH-ROLE, PAGE-TCH-ASSIGN], status: "2-2a、2-2b-1 与 2-2b-2 教师部分已产出待验收（ACT-TCH-001 ~ 039 已登记）" }
   - { batch: "2-2b-2b", pages: [PAGE-GRD-LIST, PAGE-GRD-DETAIL, PAGE-GRD-CREATE, PAGE-GRD-BATCH, PAGE-GRD-LEADER, PAGE-GRD-ARCHIVE], status: "PAGE-GRD-LIST 样板页已产出待验收（ACT-GRD-001 ~ 011 已登记）；其余 5 页待样板验收后铺开" }

@@ -1190,8 +1190,8 @@ gaps:
       data-action-id，且能在 page-actions.yaml 查到（tools/check_docs.py 会自动核查）。
       进度（2026-09-30）：`class_list` 已登记 ACT-CLS-001 ~ 016（列表页全部可点元素，
       verify-class-list 的 CL-34 实测页面用到 18 个编号且全部落在已登记集合内）；
-      其余页面（详情 / 表单 / 批量生成 / 添加学生 / 调班 / 指定班主任 / 复制 / 批量迁学生 / 升班 6 页）
-      的动作按小批 2-3b ~ 2-3e 随页面同步登记。
+      其余页面的动作按小批随页面同步登记：2-3b 已登记 `class_detail` 组（ACT-CLS-017 ~ 029，共 13 条），
+      剩余 2-3c（表单 / 批量生成 / 复制 / 指定班主任）、2-3d（添加学生 / 调班 / 批量迁学生）、2-3e（升班 6 页）待登记。
     impact: |
       没有动作清单就无法定义"点了会发生什么"：权限点、前置条件、确认与否、调用的接口、审计要求、
       结果反馈都无处登记；先写页面再补清单会导致 check_docs.py 直接报错，或页面里出现未登记动作。
@@ -1417,4 +1417,6 @@ open_questions_for_user:
   - "GAP-043、GAP-044、GAP-045 已关闭（用户 2026-09-30 答复「1a2a3a」，三项均取推荐方案 A），经 CR-010 执行完毕：任课教师补 org.class 读权限、登记 class_status 枚举（在读 / 已停用）与 class_status / campus_id / classroom 三个字段、班级 PRD 升 1.0.4-draft，见 D-063。"
   - "新增 GAP-046（用户提问「可以根据学校来检索校区、年级、班级、学生吗」触发）：年级 / 班级 / 学生三层已能按学校检索（REQ-GRD-002 / REQ-CLS-002 / REQ-STU-002），校区没有跨校清单入口（只能从学校详情进），且「选学校后下级下拉是否收窄」的级联规则未定义。推荐选项 A：统一级联规则 + 学校管理列表的「校区数」做成可点入口（复用 PAGE-SCH-CAMPUS，不新增页面）。"
   - "GAP-046 已关闭（用户 2026-09-30 对「就按 A 改」答复「同意」）：layout-spec.yaml 新增 filter_cascade 规则、班级列表页作为参考实现（CL-38 / CL-39 实测通过）、学校管理列表的「校区数」登记为校区检索入口（PAGE-SCH-LIST → PAGE-SCH-CAMPUS，复用批次 2-6 的页面，不新增），见 D-064。"
+  - "阶段 2 批次 2-3b 已产出待验收：pages/class-detail.html（基本信息卡 + 花名册 / 任课教师 / 班主任任职历史 / 变更记录）、page-specs/class-detail.md、page-actions.yaml 的 ACT-CLS-017 ~ 029、外壳 EXTRA_PAGES 登记（班级列表「详情」改为真实跳转）；verify-class-detail 20/20、verify-class-list 39/39 通过，见 D-065。"
+  - "样例口径修正（D-065）：高一 (1) 班「在读」3 → 2（陈思远休学，BR-STU-012），班级列表 / 年级详情样本 / content-samples.json 三处同步，受影响截图已重拍。"
   - "新增 GAP-047（Codex 自有非阻塞项）：已交付的学生 / 年级 / 教师列表尚未按 filter_cascade 收窄筛选选项，按各自模块的下一批对齐；不阻塞批次 2-3。"

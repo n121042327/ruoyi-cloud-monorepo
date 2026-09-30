@@ -72,7 +72,8 @@
   // 不在左侧菜单里的已交付页面（详情页 / 独立业务页）。
   // menu 之外的页面无法从 MENUS 推导交付状态与名称，必须在这里显式登记，否则点击只会得到"后续批次交付"提示。
   var EXTRA_PAGES = {
-    'PAGE-TCH-ASSIGN': { path: 'pages/teacher-assign.html', name: '任教关系设置', batch: '2-2' }
+    'PAGE-TCH-ASSIGN': { path: 'pages/teacher-assign.html', name: '任教关系设置', batch: '2-2' },
+    'PAGE-CLS-DETAIL': { path: 'pages/class-detail.html', name: '班级详情', batch: '2-3' }
   };
   Object.keys(EXTRA_PAGES).forEach(function (id) {
     PAGE_NAME[id] = EXTRA_PAGES[id].name;
@@ -99,7 +100,6 @@
     'PAGE-TCH-EDIT': { name: '编辑教师', batch: '2-2' },
     'PAGE-TCH-ROLE': { name: '教育角色分配', batch: '2-2' },
     // 班级与升班模块（批次 2-3，小批 2-3b ~ 2-3e 交付）
-    'PAGE-CLS-DETAIL': { name: '班级详情', batch: '2-3' },
     'PAGE-CLS-CREATE': { name: '新建 / 编辑班级', batch: '2-3' },
     'PAGE-CLS-BATCH': { name: '批量生成班级', batch: '2-3' },
     'PAGE-CLS-ROSTER-ADD': { name: '添加学生', batch: '2-3' },

@@ -531,15 +531,26 @@
       clearToasts();
       closeMore();
       rowOf('高一 (1) 班').querySelector('[data-action-id="ACT-CLS-004"]').click();
-      win().setTimeout(function () {
-        var opened = Array.prototype.some.call(doc().querySelectorAll('.overlay'), function (o) {
-          return o.classList.contains('open');
-        });
-        var t = toastText();
-        rec('CL-36', '未交付入口不打开空浮层：点「详情」给出 2-3b 批次提示',
-          !opened && t.indexOf('2-3b') !== -1, '浮层打开=' + opened + ' / 提示=' + t.slice(0, 30));
+      window.setTimeout(function () {
+        // 不读 location（file:// 下跨文档读 location 可能抛 SecurityError），改看新文档的页面编号与标题
+        var pageId = '';
+        var title = '';
+        try {
+          var root = doc().querySelector('#page-root');
+          pageId = root ? root.getAttribute('data-page') : '';
+          var h1 = doc().querySelector('.page-head h1');
+          title = h1 ? h1.textContent.trim() : '';
+        } catch (err) { /* 读不到就按失败记录 */ }
+        rec('CL-36', '批次 2-3b 起：行内「详情」不再只弹提示，真实跳转到班级详情独立页',
+          pageId === 'PAGE-CLS-DETAIL' && title.indexOf('高一 (1) 班') !== -1,
+          '页面编号=' + (pageId || '（读不到）') + ' / 标题=' + (title || '（读不到）'));
         next();
-      }, 220);
+      }, 600);
+    },
+    function (next) {
+      // 回到列表页再验证列宽（上一步已跳到详情页）
+      frame.src = 'file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/class-list.html';
+      window.setTimeout(function () { next(); }, 900);
     },
     function (next) {
       var widths = Array.prototype.map.call(doc().querySelectorAll('#class-table thead th'), function (th) {
@@ -590,7 +601,11 @@
     }
   }
 
+  var started = false;
   frame.addEventListener('load', function () {
+    // 只在首次加载时启动；CL-36 之后会重新加载 iframe 回到列表页验证列宽
+    if (started) return;
+    started = true;
     window.setTimeout(function () { run(0); }, 400);
   });
 })();

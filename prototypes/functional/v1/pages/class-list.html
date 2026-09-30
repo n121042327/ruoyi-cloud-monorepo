@@ -224,13 +224,13 @@
             <tbody id="class-rows">
               <tr data-role="row" data-nav="PAGE-CLS-DETAIL" data-school="201" data-term="202601" data-grade="202601"
                   data-type="administrative" data-head="邓丽娟" data-campus="2011" data-status="在读" data-capacity="45"
-                  data-enrolled="3" data-roles="grade_leader,homeroom,subject_teacher"
+                  data-enrolled="2" data-roles="grade_leader,homeroom,subject_teacher"
                   data-keyword="高一 (1) 班 邓丽娟">
                 <td><span class="ellipsis" title="高一 (1) 班">高一 (1) 班</span></td>
                 <td><span class="ellipsis" title="2026 级 高一">2026 级 高一</span></td>
                 <td>行政班</td>
                 <td>邓丽娟</td>
-                <td class="num">3</td>
+                <td class="num">2</td>
                 <td class="num">45</td>
                 <td>本部校区</td>
                 <td><span class="ellipsis" title="本部教学楼 A203">本部教学楼 A203</span></td>
@@ -920,7 +920,6 @@
 
     // 本批未交付的页面：给出明确批次提示，只验证入口与权限显隐
     var pendingMap = [
-      ['ACT-CLS-004', '班级详情在批次 2-3b 交付（PAGE-CLS-DETAIL），本批只验证入口与权限显隐。'],
       ['ACT-CLS-005', '班级表单（新建 / 编辑）在批次 2-3c 交付（PAGE-CLS-CREATE），本批只验证入口与权限显隐。'],
       ['ACT-CLS-006', '指定班主任在批次 2-3c 交付（PAGE-CLS-LEADER），本批只验证入口与权限显隐。'],
       ['ACT-CLS-001', '新建班级在批次 2-3c 交付（PAGE-CLS-CREATE），本批只验证入口与权限显隐。'],
@@ -928,9 +927,6 @@
     ];
     for (var i = 0; i < pendingMap.length; i += 1) {
       if (node.closest('[data-action-id="' + pendingMap[i][0] + '"]')) {
-        // 详情按钮挂在带 data-nav 的数据行内，外壳会再给一次「批次 2-3 交付」的提示；
-        // 本页的提示更具体（2-3b），因此阻止外壳那一条，避免一次点击弹两条。
-        if (pendingMap[i][0] === 'ACT-CLS-004') event.stopImmediatePropagation();
         window.PrototypeShell.toast(pendingMap[i][1], 'warning');
         return;
       }
