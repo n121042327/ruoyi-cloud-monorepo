@@ -367,3 +367,37 @@ $chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 | `verify-detail-entry.html` | 6 / 6 通过 |
 | `verify-carrier-change.html` | 14 / 14 通过 |
 | `python tools/check_docs.py` | 通过：未发现问题 |
+
+---
+
+## 12. 批次 2-3e-s1：升班任务列表（`pages/promotion-list.html`）
+
+新增 harness `evidence/stage2-prototype/verify-promotion-list.html`（`PRM-01` ~ `PRM-36`，真实事件派发：
+在 iframe 里点按钮 / 改下拉 / 改 hash，不靠人工目视）。
+
+| 分组 | 覆盖 |
+|---|---|
+| 结构 | 10 列与 `REQ-PRM-001` 一致；`FD-promotion_task_status` 的 8 个状态各至少 1 条样例；列宽之和 = 表格 `min-width` = 1108（≤ 1118，1366×768 下不出现表格内横向滚动） |
+| 状态驱动的按钮集合 | 草稿 / 已预览待确认 / 校验中 / 执行中 / 已完成 / 部分失败 / 失败 / 已取消 八套行内动作逐条断言（`REQ-PRM-006`） |
+| 角色形态 | 教务主任（11 行 + 写入口）、校领导（11 行只读）、年级主任（6 行只读 + 计数 512 → 128）、平台运营（只读 + 授权导出 + 切他校 1 行）、班主任与租户管理员（无权限面板 + 表体 0 行） |
+| 筛选与深链接 | 状态 / 源学年学期 / 任务编号三类筛选、重置、`#status=running` 在已打开的页面上立即生效（`hashchange`） |
+| 取消确认片段 | 行内「取消」绑定当前行任务编号 → 原因必填被拦且弹窗不关 → 确认走 `cancelPromotionTask` 且权限点为 `promotion.batch:update`（`CR-012`） |
+| 数据口径 | 草稿的三个计数列显示「—」；跨学段 / 超阈值标注；无权限态写明不降级为全量（`DS-DENY-03`） |
+| 动作登记 | 页面 17 个 `data-action-id` 全部落在 `common_actions` 与 `promotion_list` 已登记集合内 |
+
+| harness | 结果 |
+|---|---|
+| `verify-promotion-list.html` | 36 / 36 通过 |
+
+同一轮回归（本批没有改动已交付页面，7 个 harness 重跑作为证据）：
+
+| harness | 结果 |
+|---|---|
+| `verify-class-list.html` | 39 / 39 通过 |
+| `verify-class-detail.html` | 20 / 20 通过 |
+| `verify-class-roster.html` | 34 / 34 通过 |
+| `verify-class-dialogs.html` | 36 / 36 通过 |
+| `verify-grade-list.html` | 38 / 38 通过 |
+| `verify-detail-entry.html` | 6 / 6 通过 |
+| `verify-carrier-change.html` | 14 / 14 通过 |
+| `python tools/check_docs.py` | 通过：未发现问题 |

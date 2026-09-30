@@ -38,7 +38,7 @@
         { id: 'PAGE-TCH-LIST', name: '教师管理', batch: '2-2', delivered: 'pages/teacher-list.html' },
         { id: 'PAGE-CLS-LIST', name: '班级管理', batch: '2-3', delivered: 'pages/class-list.html' },
         { id: 'PAGE-GRD-LIST', name: '年级管理', batch: '2-2', delivered: 'pages/grade-list.html' },
-        { id: 'PAGE-PRM-LIST', name: '升班与学籍', batch: '2-3' },
+        { id: 'PAGE-PRM-LIST', name: '升班与学籍', batch: '2-3', delivered: 'pages/promotion-list.html' },
         { id: 'PAGE-STR-LIST', name: '选科与教学班', batch: '2-7' }
       ]
     },
@@ -109,7 +109,14 @@
     'PAGE-CLS-LEADER': { name: '指定 / 变更班主任', batch: '2-3' },
     'PAGE-CLS-COPY': { name: '复制班级', batch: '2-3' },
     'PAGE-CLS-MOVE': { name: '批量迁学生', batch: '2-3' },
-    'PAGE-PRM-ADJUST': { name: '调整学生去向', batch: '2-3' }
+    'PAGE-PRM-CREATE': { name: '新建升班任务', batch: '2-3' },
+    'PAGE-PRM-PREVIEW': { name: '升班预览与调整', batch: '2-3' },
+    'PAGE-PRM-ADJUST': { name: '调整学生去向', batch: '2-3' },
+    'PAGE-PRM-VALIDATE': { name: '升班校验结果', batch: '2-3' },
+    'PAGE-PRM-EXECUTE': { name: '执行与进度', batch: '2-3' },
+    'PAGE-PRM-RESULT': { name: '执行结果与重试', batch: '2-3' },
+    'PAGE-PRM-CHANGE': { name: '学籍异动登记', batch: '2-5' },
+    'PAGE-PRM-TRANSFER': { name: '跨校转学', batch: '2-5' }
   };
   Object.keys(PENDING_PAGES).forEach(function (id) {
     if (!PAGE_NAME[id]) PAGE_NAME[id] = PENDING_PAGES[id].name;

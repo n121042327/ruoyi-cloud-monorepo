@@ -460,3 +460,43 @@ $ python tools/check_docs.py
 
 重拍命令与本文件第 3.1 节的 `class-list_*.png` 那一组完全一致（`#more=高二` 等深链接参数不变），
 7 个 harness 重跑结果见 `interaction-verification.md` 第 11.2 节。
+
+## 6. 批次 2-3e-s1（升班任务列表样板页）的交付说明
+
+页面：`prototypes/functional/v1/pages/promotion-list.html`（`PAGE-PRM-LIST`，含同页确认片段 `DIALOG-PRM-CANCEL`）。
+规格：`prototypes/functional/v1/page-specs/promotion-list.md`。harness：`verify-promotion-list.html`（36 / 36 通过）。
+
+| 截图 | 分辨率 | 场景 | 用于验证 |
+|---|---|---|---|
+| `promotion-list_1440x900.png` | 1440×900 | 默认（教务主任，正常态） | 设计基准分辨率；10 列、8 个状态样例、状态驱动的行内动作 |
+| `promotion-list_1366x768.png` | 1366×768 | 默认（教务主任） | 最小分辨率无整页横向滚动、无文字截断（列宽之和 = 表格 `min-width` = 1108） |
+| `promotion-list_1920x1080.png` | 1920×1080 | 默认（教务主任） | 宽屏下主内容区不无限拉伸；全年份列表与口径说明可见 |
+| `promotion-list_role-grade-leader.png` | 1440×900 | 角色 = 年级主任 | DS-05 只读：只剩本年级有学生的 6 行、计数按范围收窄（512 → 128）、无任何写入口（`CR-012`） |
+| `promotion-list_role-school-leader.png` | 1440×900 | 角色 = 校领导 | 本校 11 行只读；工具栏只有导出（升班无审批环节） |
+| `promotion-list_role-platform-ops.png` | 1440×900 | 角色 = 平台运营 | 只读 + 「导出（需授权）」入口；行内无写入口 |
+| `promotion-list_role-homeroom-forbidden.png` | 1440×900 | 角色 = 班主任 | 无 `promotion.batch:read` → 无权限面板；写明不降级为全量（`DS-DENY-03`） |
+| `promotion-list_filter-status-partial-failed.png` | 1440×900 | 状态筛选 = 部分失败 | 2 行样例；失败数为红色（保留失败原因 `title`） |
+| `promotion-list_filter-draft.png` | 1440×900 | 状态筛选 = 草稿 | 草稿没有升班明细，三个计数列显示「—」（`REQ-PRM-011`） |
+| `promotion-list_panel-cancel.png` | 1440×900 | 取消二次确认片段 | 原因必填 + 「保留已完成部分、不做整批回滚」的口径说明（已确认 4） |
+| `promotion-list_state-partial.png` | 1440×900 | 状态 = 部分失败 | 两条任务的失败原因清单与重试口径（只重试失败项） |
+| `promotion-list_state-error.png` | 1440×900 | 状态 = 查询失败 | 错误说明 + 请求编号 + 重试 |
+| `promotion-list_state-empty.png` | 1440×900 | 状态 = 空数据 | 两档空态（筛选无结果 / 本校还没有任务） |
+| `promotion-list_state-queued.png` | 1440×900 | 状态 = 排队中 | 任务编号、队列位置、异步执行依据（`REQ-PRM-027`） |
+
+复现命令（本机 PowerShell，改文件名即可换场景；`#role=` / `#state=` / `#status=` / `#panel=` 四个深链接参数都可用）：
+
+```powershell
+$chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+& $chrome --headless=new --disable-gpu --no-first-run --allow-file-access-from-files `
+  --user-data-dir="$env:TEMP\codex-chrome-prm" --window-size=1440,900 --virtual-time-budget=6000 `
+  --screenshot="D:\work\person_work\ruoyi-cloud-monorepo\evidence\stage2-prototype\promotion-list_1440x900.png" `
+  "file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/promotion-list.html"
+```
+
+### 6.1 本批的两个已知缺口（见 `gap-register.yaml` 的 `GAP-054`）
+
+1. 升班任务的 5 个业务字段（`source_term_id` / `target_term_id` / `total_count` / `success_count` / `failed_count`）
+   只在 PRD 7.1 有定义，`06-field-dictionary.yaml` 还没登记 → 原型自查里已标注未满足。
+2. 取消确认片段 `DIALOG-PRM-CANCEL` 还没写进升班 PRD 6.1（班级模块的同类片段由 `CR-009` 补过）。
+
+两项都不阻塞本批验收，建议按 `GAP-054` 的选项 A 立一次 CR 一起补。

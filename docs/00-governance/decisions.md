@@ -1056,6 +1056,39 @@
 - 如果错了的代价：把矩阵两行改回 `read/approve` 与 `read/create`、删掉 `grade_leader` 的 `promotion.batch` 条目，
   并把 PRD 的 2.1 / 2.3 / `REQ-PRM-006` / 5.1 / 6.1 / 6.3 回滚即可，不涉及表结构与已交付原型
 
+## D-070 批次 2-3e 首件样板：升班任务列表（`PAGE-PRM-LIST`）
+
+- 日期：2026-10-01
+- 触发：`GAP-052` / `GAP-053` 按选项 A 关闭并执行 `CR-012` 后，批次 2-3e 开工
+- 范围：按"先生成一个页面、验收通过后再铺开"的约定，本小批（`2-3e-s1`）只交付 **1 页 + 1 个同页确认片段**，
+  四步向导（`PAGE-PRM-CREATE` / `PREVIEW` / `VALIDATE` / `EXECUTE`）、`PAGE-PRM-RESULT`、`PAGE-PRM-ADJUST` 等样板确认后铺开
+- 产物：
+
+| 文件 | 内容 |
+|---|---|
+| `prototypes/functional/v1/pages/promotion-list.html` | 升班任务列表：12 行样例覆盖 8 个状态 + 跨学段 + 超阈值 + 他校；含同页确认片段 `DIALOG-PRM-CANCEL` |
+| `prototypes/functional/v1/page-specs/promotion-list.md` | 页面规格：状态驱动的行内动作、字段 / 动作 / 状态 / 跳转 / 权限 / 样例数据 / 自查 |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `promotion_list` 动作组（`ACT-PRM-001` ~ `ACT-PRM-010`） |
+| `prototypes/functional/v1/content-samples.json` | 新增 `promotion_tasks`（12 条）与 `promotion_tasks_notes`（4 条），`list_totals` 补 `promotion_list_total = 17` |
+| `prototypes/functional/v1/navigation.yaml` / `assets/prototype-shell.js` | `PAGE-PRM-LIST` 登记为已交付；补齐升班其余页面的中文名（`PENDING_PAGES`） |
+| `evidence/stage2-prototype/verify-promotion-list.html` | 交互 harness：`PRM-01` ~ `PRM-36` 全部通过 |
+| `evidence/stage2-prototype/promotion-list_*.png` | 14 张截图：3 个分辨率 + 4 种角色形态 + 2 类筛选 + 取消确认 + 4 类状态 |
+
+- 关键设计：
+  1. **状态驱动的行内动作**：8 个状态各一套按钮集合（草稿 = 预览 / 取消 … 已取消 = 继续执行剩余项 / 查看结果），
+     只读角色（校领导 / 年级主任 / 平台运营）不渲染任何写入口，班主任与租户管理员直接进入无权限面板
+  2. **年级主任按 `DS-05` 收窄**：每行带 `data-g-*` 子集计数，只读角色看到的是本年级口径（512 → 128），
+     本年级为 0 的任务不出现；依据 `DS-DENY-08`
+  3. **草稿行没有明细**：三个计数列显示「—」而不是 0（`REQ-PRM-011` / `REQ-PRM-020`）
+  4. **取消的口径写进确认片段**：保留已完成部分、可继续执行剩余项、可逐条回滚，不做整批回滚（已确认 4）
+- 验证证据：`verify-promotion-list.html` 36 / 36 通过；7 个已交付 harness 回归全绿
+  （class-list 39、class-detail 20、class-roster 34、class-dialogs 36、grade-list 38、detail-entry 6、carrier-change 14）；
+  `python tools/check_docs.py` 通过；14 张截图归档在 `evidence/stage2-prototype/`
+- 遗留：`GAP-054`（升班任务 5 个业务字段未进字段字典、`DIALOG-PRM-CANCEL` 未进 PRD 6.1），不阻塞本批，建议按选项 A 立一次 CR
+- 如果错了的代价：删除 `pages/promotion-list.html` 与 `page-specs/promotion-list.md`，
+  回滚 `page-actions.yaml` 的 `promotion_list` 动作组与 `navigation.yaml` / `prototype-shell.js` 的登记即可；
+  不触碰已交付的班级 4 个小批，也不涉及表结构与接口实现
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |
@@ -1092,3 +1125,4 @@
 | R-030 | ~~出国留学（保留学籍）是否计入班级在读人数~~ → 已定：选项 A，与休学同口径不计入，并把高二 (1) 班样例数 2 → 1（D-068 / CR-011） | GAP-051 | 已关闭 |
 | R-031 | ~~升班任务的「预览 / 执行 / 重试 / 取消」用哪个权限动作承载~~ → 已定：选项 A，用现有 `update`（D-069 / CR-012） | GAP-052 | 已关闭 |
 | R-032 | ~~年级主任是否参与升班~~ → 已定：选项 A，补 `promotion.batch: read` + `DS-05` 范围，只读（D-069 / CR-012） | GAP-053 | 已关闭 |
+| R-033 | 升班任务的两个公共前置缺项（5 个字段未进字段字典、取消确认片段未进 PRD 6.1）→ 推荐 A（立一次 CR 一起补，与 CR-004 / 005 / 010 同口径） | GAP-054 | **待你答复** |

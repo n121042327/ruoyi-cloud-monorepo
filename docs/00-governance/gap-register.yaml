@@ -1610,6 +1610,41 @@ gaps:
     owner: Codex
     status: closed
 
+  - id: GAP-054
+    title: 升班任务的两个公共前置缺项（任务字段未进字段字典、取消确认片段未进 PRD 6.1）
+    discovered_at: 2026-10-01
+    discovered_by: 批次 2-3e-s1 交付 PAGE-PRM-LIST 时按 prototype-quality-spec 的自查
+    evidence: |
+      docs/10-prd/06-field-dictionary.yaml 只登记了 promotion_task_status 枚举
+      （8 个状态）与通用的 task_no 字段，没有登记升班任务的业务字段：
+      source_term_id / target_term_id / total_count / success_count / failed_count
+      （docs/10-prd/modules/promotion/PRD.md 7.1 已给出这 5 个字段名与含义）。
+      docs/10-prd/modules/promotion/PRD.md 6.1 只登记了 10 个页面，没有登记
+      取消二次确认片段 DIALOG-PRM-CANCEL；同类片段在班级模块由 CR-009 补进了
+      PRD 6.1（DIALOG-CLS-DISABLE / DIALOG-CLS-DELETE）。
+      navigation.yaml 的 jump_map 校验要求 to 必须在 pages 里定义，因此取消入口只写在
+      PAGE-PRM-LIST 的 note 与 page-actions.yaml 的 promotion_list 动作组里，没有登记成跳转。
+    expected: 字段字典覆盖升班任务的业务字段；取消确认片段在升班 PRD 6.1 有登记
+    actual: 两项都缺
+    impact: |
+      阶段 5：设计 edu_promotion_task 的表结构时没有字段字典可对照，字段类型 / 是否必填 /
+      唯一性只能从 PRD 7.1 的表格反推。
+      阶段 6：PAGE-PRM-LIST 的 data-field 无法在字段字典里查到（原型自查已标注未满足）。
+      阶段 4 / 6：确认片段的页面登记不完整，跳转关系只能靠页面约定与动作组。
+      本批次不阻塞：原型用 PRD 7.1 的字段名、以及班级模块同口径的确认片段先行实现。
+    options:
+      - A 立一次 CR 一起补：把 5 个字段登记进 06-field-dictionary.yaml，并把 DIALOG-PRM-CANCEL 写进升班 PRD 6.1（与 CR-009 同口径）
+      - B 只在阶段 5 详细设计时补字段类型，PRD 6.1 的片段登记留到下一次页面批次
+      - C 保持现状，阶段 4 再决定
+    recommended: |
+      选项 A。理由：两项都属于"PRD 已要求、公共前置缺失"，与 CR-004（教师字段）、
+      CR-005（年级字段与权限）、CR-010（班级字段）完全同类；一次 CR 补齐可以让阶段 5 的建表
+      与阶段 6 的组件映射直接引用，不必在详细设计阶段回头改冻结文档。
+    blocking: false
+    blocks_stages: []
+    owner: Codex
+    status: open
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"
@@ -1667,3 +1702,5 @@ open_questions_for_user:
   - "批次 2-3e（升班四步向导与结果页）开工前的公共前置反查暴露 2 个**阻塞**缺项，等用户拍板：GAP-052（「预览 / 执行 / 重试 / 取消」在权限矩阵里没有对应动作，推荐用现有 update 承载并给 academic_director 补 update、收回 school_leader 的 approve）、GAP-053（年级主任被 PRD 6.1 列为预览 / 调整页主要角色，但矩阵里没有 promotion.batch 的任何授权，推荐补 read + DS-05 范围）。两项都只影响按钮与角色形态，不影响任务列表的状态机与字段设计。"
   - "GAP-052、GAP-053 已关闭（用户 2026-09-30 答复「1.a 2.a」，两项均取推荐方案 A），经 CR-012 落地：promotion.batch 的预览 / 执行 / 重试 / 取消统一映射到 update、教务主任补 update、校领导收回 approve 保留 read、年级主任补 read + DS-05 只读；升班 PRD 升 1.0.2-draft（2.1 / 2.3 / REQ-PRM-006 / 5.1 / 6.1 / 6.3 同步收敛），见 D-069。"
   - "下一步：阶段 2 批次 2-3e 首件样板 PAGE-PRM-LIST（升班任务列表）：含 8 状态任务的样例行、按角色（教务主任 / 校领导只读 / 年级主任只读 / 超管）的按钮形态，以及 5 个按钮与 read / create / update 的动作映射；样板人工验收通过后再铺向导四步页。"
+  - "阶段 2 批次 2-3e-s1 已产出待验收：prototypes/functional/v1/pages/promotion-list.html（升班任务列表，12 行样例覆盖 8 个状态 + 跨学段 + 超阈值 + 他校；含同页确认片段 DIALOG-PRM-CANCEL）、page-specs/promotion-list.md、page-actions.yaml 的 promotion_list（ACT-PRM-001 ~ 010）、content-samples.json 的 promotion_tasks（12 条）与 promotion_tasks_notes、evidence/stage2-prototype/verify-promotion-list.html；navigation.yaml 与 prototype-shell.js 已登记 PAGE-PRM-LIST 为已交付，见 D-070。"
+  - "新增 GAP-054（Codex 自有非阻塞项）：升班任务的 5 个业务字段（source_term_id / target_term_id / total_count / success_count / failed_count）没进 06-field-dictionary.yaml，取消确认片段 DIALOG-PRM-CANCEL 没进升班 PRD 6.1。两项都属于「PRD 已要求、公共前置缺失」，建议按选项 A 立一次 CR 一起补（与 CR-004 / 005 / 010 同口径）；不阻塞 2-3e 继续铺开向导页。"

@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>升班任务列表 — 业务原型 v1（批次 2-3e 样板）</title>
+<link rel="stylesheet" href="../assets/prototype-shell.css" />
+<script src="../assets/prototype-shell.js"></script>
+<style>
+  /* 无 promotion.batch:read 的角色（班主任 / 租户管理员）在操作列给「无权限」说明，
+     避免空列看起来像加载失败。 */
+  body[data-current-role="homeroom"] #prm-rows td.actions::after,
+  body[data-current-role="tenant_admin"] #prm-rows td.actions::after {
+    content: "无权限";
+    font-size: 12px;
+    color: var(--app-text-secondary);
+  }
+  /* 只读角色（校领导 / 年级主任 / 平台运营）本轮不给任何写入口 */
+  body[data-current-role="school_leader"] #prm-rows td.actions::after,
+  body[data-current-role="platform_ops"] #prm-rows td.actions::after {
+    content: "只读";
+    font-size: 12px;
+    color: var(--app-text-secondary);
+  }
+  #prm-rows .ellipsis { max-width: 100%; }
+  #prm-rows tr[data-role="row"] td:first-child { color: var(--app-primary); }
+  /* 学年学期与创建时间在窄列里换行显示，而不是截断成「2025-2026 学年 …」 */
+  #prm-rows td:nth-child(2) .ellipsis,
+  #prm-rows td:nth-child(3) .ellipsis,
+  #prm-rows td:nth-child(9) .ellipsis { white-space: normal; overflow: visible; text-overflow: clip; }
+  /* 「2025-2026 学年 / 第二学期」两行展示，避免在「学」与「年」之间折行 */
+  .term { display: flex; flex-direction: column; line-height: 1.35; }
+  .danger-text { color: var(--app-danger); font-weight: 600; }
+  /* 执行中的进度条（行内） */
+  .bar {
+    display: inline-block;
+    width: 54px;
+    height: 6px;
+    margin-left: 6px;
+    border-radius: 3px;
+    background: #e4e7ed;
+    vertical-align: middle;
+    overflow: hidden;
+  }
+  .bar > i { display: block; height: 100%; background: var(--app-primary); }
+  .dialog .list { display: flex; flex-direction: column; gap: 8px; }
+  .dialog .list-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--app-border-light);
+    border-radius: var(--app-radius-small);
+    background: #fafbfc;
+  }
+  .dialog .list-row .grow { flex: 1; min-width: 0; }
+</style>
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-PRM-LIST"
+  data-breadcrumb="教育管理 / 升班与学籍 / 升班任务"
+  data-tab="升班任务列表"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-PRM-LIST" data-role="page">
+
+  <!-- ============================================================ 页头 -->
+  <div class="page-head">
+    <h1>升班与学籍异动</h1>
+    <span class="scope-hint" data-role="scope-hint">数据范围：本校 · 2026-2027 学年 第一学期</span>
+    <span class="el-tag primary" id="head-total">共 17 个升班任务</span>
+    <span class="el-tag info" id="head-summary">本页样例 0 行</span>
+    <span class="el-tag info">列表数据截止 2026-09-30 11:40</span>
+  </div>
+
+  <!-- ============================================================ 筛选区 -->
+  <section class="card" data-block="filter" data-role="filter" data-component="el-card.hover">
+    <div class="card-body">
+      <div class="form-inline">
+        <div class="form-item">
+          <label for="f-school">学校</label>
+          <select class="select" id="f-school" style="min-width:170px" data-role="field" data-field="school_id"
+                  data-component="el-select" data-filter="school" data-role-enabled="platform_ops"
+                  title="只有平台运营与超级管理员可以切换学校；升班任务不跨校共享（BR-DATA-018）">
+            <option value="201" selected>云溪实验学校（本校）</option>
+            <option value="202">云溪外国语学校（平台运营视图）</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label for="f-src">源学年学期</label>
+          <select class="select" id="f-src" style="min-width:200px" data-role="field" data-field="source_term_id"
+                  data-component="el-select" data-filter="src">
+            <option value="">全部源学期</option>
+            <option value="202502">2025-2026 学年 第二学期（已归档）</option>
+            <option value="202601">2026-2027 学年 第一学期（当前）</option>
+            <option value="202602">2026-2027 学年 第二学期</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label for="f-tgt">目标学年学期</label>
+          <select class="select" id="f-tgt" style="min-width:180px" data-role="field" data-field="target_term_id"
+                  data-component="el-select" data-filter="tgt">
+            <option value="">全部目标学期</option>
+            <option value="202601">2026-2027 学年 第一学期</option>
+            <option value="202701">2027-2028 学年 第一学期（目标）</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label for="f-status">状态</label>
+          <select class="select" id="f-status" style="min-width:150px" data-role="field" data-field="status"
+                  data-component="el-select" data-filter="status">
+            <option value="">全部状态</option>
+            <option value="draft">草稿</option>
+            <option value="previewed">已预览待确认</option>
+            <option value="validating">校验中</option>
+            <option value="running">执行中</option>
+            <option value="succeeded">已完成</option>
+            <option value="partial_failed">部分失败</option>
+            <option value="failed">失败</option>
+            <option value="cancelled">已取消</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label for="f-creator">创建人</label>
+          <select class="select" id="f-creator" style="min-width:130px" data-role="field" data-field="create_by"
+                  data-component="el-select" data-filter="creator">
+            <option value="">全部</option>
+            <option value="郑雅琴">郑雅琴（教务主任）</option>
+            <option value="何文博">何文博（年级主任）</option>
+            <option value="陆承志">陆承志（校领导）</option>
+          </select>
+        </div>
+        <div class="form-item wide">
+          <label for="f-keyword">任务编号</label>
+          <input class="input" id="f-keyword" style="min-width:190px" placeholder="PRM-20260930-0012"
+                 data-role="field" data-field="task_no" data-component="el-input" data-filter="keyword" />
+        </div>
+        <div class="form-item" style="margin-left:auto;min-width:auto">
+          <button class="btn primary" data-role="action" data-action-id="ACT-COM-001" data-component="el-button.primary" data-permission="promotion.batch:read">搜索</button>
+          <button class="btn" data-role="action" data-action-id="ACT-COM-002" data-component="el-button" data-permission="promotion.batch:read">重置</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ 工具条 + 表格 -->
+  <section class="card" data-block="toolbar" data-role="toolbar" data-component="el-card.hover">
+    <div class="card-header">
+      <div class="toolbar" data-demo-state-target="toolbar">
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-PRM-001" data-component="el-button.primary.plain"
+                data-permission="promotion.batch:create" data-nav="PAGE-PRM-CREATE"
+                data-role-visible="academic_director,super_admin">新建任务</button>
+        <button class="btn plain" data-role="action" data-action-id="ACT-PRM-007" data-component="el-button"
+                data-permission="data.export:export" data-api="exportPromotionTask"
+                data-demo-message="已生成升班任务台账（本校 2026-2027 学年 第一学期，共 17 个任务），开始下载。年级主任导出限本人负责年级。"
+                data-role-visible="academic_director,grade_leader,school_leader,super_admin">导出</button>
+        <button class="btn plain" data-role="action" data-action-id="ACT-COM-007" data-component="el-button"
+                data-permission="data.export:export" data-role-visible="platform_ops"
+                data-demo-toast="平台运营导出需要逐次授权：授权后本次导出写入审计，并同步给被访问学校（PM-Q-004）。"
+                data-demo-toast-type="warning">导出（需授权）</button>
+      </div>
+      <div class="header-right">
+        <button class="btn" data-role="action" data-action-id="ACT-COM-003" data-component="el-button">隐藏搜索</button>
+        <button class="btn" data-role="action" data-action-id="ACT-COM-004" data-component="el-button" title="可选列：任务说明、最近一次操作人">列配置</button>
+        <button class="btn" data-role="action" data-action-id="ACT-COM-005" data-component="el-button" data-api="listPromotionTask"
+                data-demo-message="已按当前条件刷新，未重置页码。">刷新</button>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="alert warning state-hidden" id="ops-scope-alert" data-role-visible="platform_ops">
+        <span>平台运营协助视图 · 只读</span>
+        <span>当前查看的是云溪外国语学校的升班任务；本次访问写入访问日志并同步给被访问学校。升班任务与学生数据都不跨校共享。</span>
+      </div>
+      <div class="alert warning state-hidden" data-role-visible="super_admin">
+        <span>超级管理员 · 全平台不受限</span>
+        <span>本页面全部按钮与字段对该账号可见；本次访问与任何写操作都会写入审计且不可关闭（BR-ORG-014）。升班仍按学年追加，不改写历史（BR-PROMO-001）。</span>
+      </div>
+      <div class="alert info state-hidden" id="grade-scope-alert" data-role-visible="grade_leader">
+        <span>年级主任视图 · 只读</span>
+        <span>你只能核对本人负责年级（2026 级 高一）的去向，不能新建、预览、执行、重试或取消任务（<span class="mono">CR-012</span> / <span class="mono">GAP-053</span>）；
+          列表只显示本年级有学生的任务，计数按 <span class="mono">DS-05</span> 收窄（<span class="mono">DS-DENY-08</span>）。</span>
+      </div>
+      <div class="alert info state-hidden" data-role-visible="school_leader">
+        <span>校领导视图 · 只读</span>
+        <span>升班没有审批环节：校领导对升班任务只读（<span class="mono">CR-012</span>）；学籍异动的审批不在此页面。</span>
+      </div>
+      <div class="alert warning state-hidden" data-demo-state-panel="submitting">
+        <span>提交中</span><span>写操作按钮已置 loading 并禁用，禁止重复提交。</span>
+      </div>
+
+      <div data-normal-view>
+        <div class="table-scroll">
+          <table class="el-table" id="prm-table" data-role="table" data-component="el-table" data-api="listPromotionTask"
+                 style="min-width:1108px;table-layout:fixed">
+            <thead>
+              <tr>
+                <th data-role="column" data-field="task_no" style="width:150px">任务编号</th>
+                <th data-role="column" data-field="source_term_id" style="width:132px">源学年学期</th>
+                <th data-role="column" data-field="target_term_id" style="width:132px">目标学年学期</th>
+                <th data-role="column" data-field="status" style="width:96px">状态</th>
+                <th data-role="column" data-field="total_count" class="num" style="width:74px">学生总数</th>
+                <th data-role="column" data-field="success_count" class="num" style="width:60px">成功</th>
+                <th data-role="column" data-field="failed_count" class="num" style="width:60px">失败</th>
+                <th data-role="column" data-field="create_by" style="width:76px">创建人</th>
+                <th data-role="column" data-field="create_time" style="width:108px">创建时间</th>
+                <th class="actions" style="width:220px">操作</th>
+              </tr>
+            </thead>
+            <tbody id="prm-rows">
+              <tr data-role="row" data-school="201" data-task="PRM-20260620-0001" data-src="202502" data-tgt="202601"
+                  data-status="succeeded" data-creator="郑雅琴" data-total="486" data-success="486" data-failed="0"
+                  data-g-total="0" data-g-success="0" data-g-failed="0" data-cross-stage="false" data-large="false"
+                  data-keyword="PRM-20260620-0001 郑雅琴 2025-2026 学年 第二学期 2026-2027 学年 第一学期 已完成 学年升级">
+                <td><span class="ellipsis mono" title="PRM-20260620-0001">PRM-20260620-0001</span></td>
+                <td><span class="ellipsis" title="2025-2026 学年 第二学期">2025-2026 学年 第二学期</span></td>
+                <td><span class="ellipsis" title="2026-2027 学年 第一学期">2026-2027 学年 第一学期</span></td>
+                <td><span class="el-tag success">已完成</span></td>
+                <td class="num c-total">486</td>
+                <td class="num c-success">486</td>
+                <td class="num c-failed">0</td>
+                <td><span class="ellipsis" title="郑雅琴">郑雅琴</span></td>
+                <td><span class="ellipsis" title="2026-06-20 09:10">2026-06-20 09:10</span></td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-school="201" data-task="PRM-20260628-0002" data-src="202502" data-tgt="202601"
+                  data-status="partial_failed" data-creator="郑雅琴" data-total="486" data-success="483" data-failed="3"
+                  data-g-total="0" data-g-success="0" data-g-failed="0" data-cross-stage="false" data-large="false"
+                  data-fail-reason="3 名学生目标班级不存在（高二 (3) 班未建）"
+                  data-keyword="PRM-20260628-0002 郑雅琴 2025-2026 学年 第二学期 2026-2027 学年 第一学期 部分失败 学年升级">
+                <td><span class="ellipsis mono" title="PRM-20260628-0002">PRM-20260628-0002</span></td>
+                <td><span class="ellipsis" title="2025-2026 学年 第二学期">2025-2026 学年 第二学期</span></td>
+                <td><span class="ellipsis" title="2026-2027 学年 第一学期">2026-2027 学年 第一学期</span></td>
+                <td><span class="el-tag warning">部分失败</span></td>
+                <td class="num c-total">486</td>
+                <td class="num c-success">483</td>
+                <td class="num c-failed danger-text" title="3 名学生目标班级不存在（高二 (3) 班未建）">3</td>
+                <td><span class="ellipsis" title="郑雅琴">郑雅琴</span></td>
+                <td><span class="ellipsis" title="2026-06-28 14:05">2026-06-28 14:05</span></td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-school="201" data-task="PRM-20260926-0003" data-src="202502" data-tgt="202601"
+                  data-status="failed" data-creator="郑雅琴" data-total="120" data-success="0" data-failed="120"
+                  data-g-total="0" data-g-success="0" data-g-failed="0" data-cross-stage="false" data-large="false"
+                  data-fail-reason="目标学年学期尚未创建对应年级（2026-2027 学年 第一学期 缺 高二）"
+                  data-keyword="PRM-20260926-0003 郑雅琴 2025-2026 学年 第二学期 2026-2027 学年 第一学期 失败 学年升级">
+                <td><span class="ellipsis mono" title="PRM-20260926-0003">PRM-20260926-0003</span></td>
+                <td><span class="ellipsis" title="2025-2026 学年 第二学期">2025-2026 学年 第二学期</span></td>
+                <td><span class="ellipsis" title="2026-2027 学年 第一学期">2026-2027 学年 第一学期</span></td>
+                <td><span class="el-tag danger">失败</span></td>
+                <td class="num c-total">120</td>
+                <td class="num c-success">0</td>
+                <td class="num c-failed danger-text" title="目标学年学期尚未创建对应年级">120</td>
+                <td><span class="ellipsis" title="郑雅琴">郑雅琴</span></td>
+                <td><span class="ellipsis" title="2026-09-26 09:10">2026-09-26 09:10</span></td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-school="201" data-task="PRM-20260930-0011" data-src="202601" data-tgt="202701"
+                  data-status="draft" data-creator="郑雅琴" data-total="0" data-success="0" data-failed="0"
+                  data-g-total="0" data-g-success="0" data-g-failed="0" data-cross-stage="false" data-large="false"
+                  data-keyword="PRM-20260930-0011 郑雅琴 2026-2027 学年 第一学期 2027-2028 学年 第一学期 草稿 学年升级">
+                <td><span class="ellipsis mono" title="PRM-20260930-0011">PRM-20260930-0011</span></td>
+                <td><span class="ellipsis" title="2026-2027 学年 第一学期">2026-2027 学年 第一学期</span></td>
+                <td><span class="ellipsis" title="2027-2028 学年 第一学期">2027-2028 学年 第一学期</span></td>
+                <td><span class="el-tag info">草稿</span></td>
+                <td class="num c-total"><span class="cell-empty" title="尚未生成预览，没有任何升班明细（REQ-PRM-020）">—</span></td>
+                <td class="num c-success">—</td>
+                <td class="num c-failed">—</td>
+                <td><span class="ellipsis" title="郑雅琴">郑雅琴</span></td>
+                <td><span class="ellipsis" title="2026-09-30 10:20">2026-09-30 10:20</span></td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-school="201" data-task="PRM-20260930-0012" data-src="202601" data-tgt="202701"
+                  data-status="previewed" data-creator="郑雅琴" data-total="512" data-success="0" data-failed="0"
+                  data-g-total="128" data-g-success="0" data-g-failed="0" data-cross-stage="false" data-large="false"
+                  data-keyword="PRM-20260930-0012 郑雅琴 2026-2027 学年 第一学期 2027-2028 学年 第一学期 已预览待确认 学年升级">
+                <td><span class="ellipsis mono" title="PRM-20260930-0012">PRM-20260930-0012</span></td>
+                <td><span class="ellipsis" title="2026-2027 学年 第一学期">2026-2027 学年 第一学期</span></td>
+                <td><span class="ellipsis" title="2027-2028 学年 第一学期">2027-2028 学年 第一学期</span></td>
+                <td><span class="el-tag primary">已预览待确认</span></td>
+                <td class="num c-total">512</td>
+                <td class="num c-success">0</td>
+                <td class="num c-failed">0</td>
+                <td><span class="ellipsis" title="郑雅琴">郑雅琴</span></td>
+                <td><span class="ellipsis" title="2026-09-30 11:02">2026-09-30 11:02</span></td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-school="201" data-task="PRM-20260930-0013" data-src="202601" data-tgt="202701"
+                  data-status="validating" data-creator="郑雅琴" data-total="512" data-success="0" data-failed="0"
+                  data-g-total="128" data-g-success="0" data-g-failed="0" data-cross-stage="false" data-large="false"
+                  data-keyword="PRM-20260930-0013 郑雅琴 2026-2027 学年 第一学期 2027-2028 学年 第一学期 校验中 学年升级">
+                <td><span class="ellipsis mono" title="PRM-20260930-0013">PRM-20260930-0013</span></td>
+                <td><span class="ellipsis" title="2026-2027 学年 第一学期">2026-2027 学年 第一学期</span></td>
+                <td><span class="ellipsis" title="2027-2028 学年 第一学期">2027-2028 学年 第一学期</span></td>
+                <td><span class="el-tag primary">校验中</span></td>
+                <td class="num c-total">512</td>
+                <td class="num c-success">0</td>
+                <td class="num c-failed">0</td>
+                <td><span class="ellipsis" title="郑雅琴">郑雅琴</span></td>
+                <td><span class="ellipsis" title="2026-09-30 11:20">2026-09-30 11:20</span></td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-school="201" data-task="PRM-20260930-0014" data-src="202601" data-tgt="202701"
+                  data-status="running" data-creator="郑雅琴" data-total="512" data-success="388" data-failed="0"
+                  data-g-total="128" data-g-success="97" data-g-failed="0" data-cross-stage="false" data-large="false"
+                  data-progress="76"
+                  data-keyword="PRM-20260930-0014 郑雅琴 2026-2027 学年 第一学期 2027-2028 学年 第一学期 执行中 学年升级">
+                <td><span class="ellipsis mono" title="PRM-20260930-0014">PRM-20260930-0014</span></td>
+                <td><span class="ellipsis" title="2026-2027 学年 第一学期">2026-2027 学年 第一学期</span></td>
+                <td><span class="ellipsis" title="2027-2028 学年 第一学期">2027-2028 学年 第一学期</span></td>
+                <td><span class="el-tag primary">执行中<i class="bar"><i style="width:76%"></i></i></span></td>
+                <td class="num c-total">512</td>
+                <td class="num c-success">388</td>
+                <td class="num c-failed">0</td>
+                <td><span class="ellipsis" title="郑雅琴">郑雅琴</span></td>
+                <td><span class="ellipsis" title="2026-09-30 11:35">2026-09-30 11:35</span></td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-school="201" data-task="PRM-20260930-0015" data-src="202601" data-tgt="202701"
+                  data-status="cancelled" data-creator="郑雅琴" data-total="512" data-success="200" data-failed="0"
+                  data-g-total="128" data-g-success="52" data-g-failed="0" data-cross-stage="false" data-large="false"
+                  data-keyword="PRM-20260930-0015 郑雅琴 2026-2027 学年 第一学期 2027-2028 学年 第一学期 已取消 学年升级">
+                <td><span class="ellipsis mono" title="PRM-20260930-0015">PRM-20260930-0015</span></td>
+                <td><span class="ellipsis" title="2026-2027 学年 第一学期">2026-2027 学年 第一学期</span></td>
+                <td><span class="ellipsis" title="2027-2028 学年 第一学期">2027-2028 学年 第一学期</span></td>
+                <td><span class="el-tag info">已取消</span></td>
+                <td class="num c-total">512</td>
+                <td class="num c-success">200</td>
+                <td class="num c-failed">0</td>
+                <td><span class="ellipsis" title="郑雅琴">郑雅琴</span></td>
+                <td><span class="ellipsis" title="2026-09-30 12:10">2026-09-30 12:10</span></td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-school="201" data-task="PRM-20260930-0016" data-src="202601" data-tgt="202701"
+                  data-status="succeeded" data-creator="何文博" data-total="96" data-success="96" data-failed="0"
+                  data-g-total="0" data-g-success="0" data-g-failed="0" data-cross-stage="true" data-large="false"
+                  data-keyword="PRM-20260930-0016 何文博 2026-2027 学年 第一学期 2027-2028 学年 第一学期 已完成 跨学段 小学六年级 初中一年级">
+                <td><span class="ellipsis mono" title="PRM-20260930-0016">PRM-20260930-0016</span>
+                    <span class="el-tag warning" title="九年一贯制：小学六年级 → 初中一年级（BR-GRADE-006）">跨学段</span></td>
+                <td><span class="ellipsis" title="2026-2027 学年 第一学期">2026-2027 学年 第一学期</span></td>
+                <td><span class="ellipsis" title="2027-2028 学年 第一学期">2027-2028 学年 第一学期</span></td>
+                <td><span class="el-tag success">已完成</span></td>
+                <td class="num c-total">96</td>
+                <td class="num c-success">96</td>
+                <td class="num c-failed">0</td>
+                <td><span class="ellipsis" title="何文博">何文博</span></td>
+                <td><span class="ellipsis" title="2026-09-30 13:40">2026-09-30 13:40</span></td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-school="201" data-task="PRM-20260930-0017" data-src="202601" data-tgt="202701"
+                  data-status="previewed" data-creator="郑雅琴" data-total="10240" data-success="0" data-failed="0"
+                  data-g-total="2048" data-g-success="0" data-g-failed="0" data-cross-stage="false" data-large="true"
+                  data-keyword="PRM-20260930-0017 郑雅琴 2026-2027 学年 第一学期 2027-2028 学年 第一学期 已预览待确认 超阈值">
+                <td><span class="ellipsis mono" title="PRM-20260930-0017">PRM-20260930-0017</span>
+                    <span class="el-tag warning" title="超过阈值 10000：预览与执行前给出耗时预估（REQ-PRM-010）">超阈值</span></td>
+                <td><span class="ellipsis" title="2026-2027 学年 第一学期">2026-2027 学年 第一学期</span></td>
+                <td><span class="ellipsis" title="2027-2028 学年 第一学期">2027-2028 学年 第一学期</span></td>
+                <td><span class="el-tag primary">已预览待确认</span></td>
+                <td class="num c-total">10240</td>
+                <td class="num c-success">0</td>
+                <td class="num c-failed">0</td>
+                <td><span class="ellipsis" title="郑雅琴">郑雅琴</span></td>
+                <td><span class="ellipsis" title="2026-09-30 14:00">2026-09-30 14:00</span></td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-school="201" data-task="PRM-20260930-0019" data-src="202601" data-tgt="202701"
+                  data-status="partial_failed" data-creator="何文博" data-total="96" data-success="93" data-failed="3"
+                  data-g-total="96" data-g-success="93" data-g-failed="3" data-cross-stage="false" data-large="false"
+                  data-fail-reason="3 名学生目标班级（高一 (3) 班）已停用"
+                  data-keyword="PRM-20260930-0019 何文博 2026-2027 学年 第一学期 2027-2028 学年 第一学期 部分失败 学年升级">
+                <td><span class="ellipsis mono" title="PRM-20260930-0019">PRM-20260930-0019</span></td>
+                <td><span class="ellipsis" title="2026-2027 学年 第一学期">2026-2027 学年 第一学期</span></td>
+                <td><span class="ellipsis" title="2027-2028 学年 第一学期">2027-2028 学年 第一学期</span></td>
+                <td><span class="el-tag warning">部分失败</span></td>
+                <td class="num c-total">96</td>
+                <td class="num c-success">93</td>
+                <td class="num c-failed danger-text" title="3 名学生目标班级（高一 (3) 班）已停用">3</td>
+                <td><span class="ellipsis" title="何文博">何文博</span></td>
+                <td><span class="ellipsis" title="2026-09-30 16:20">2026-09-30 16:20</span></td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-school="202" data-task="PRM-20260930-0018" data-src="202601" data-tgt="202701"
+                  data-status="succeeded" data-creator="王丽君" data-total="210" data-success="210" data-failed="0"
+                  data-g-total="0" data-g-success="0" data-g-failed="0" data-cross-stage="false" data-large="false"
+                  data-keyword="PRM-20260930-0018 王丽君 他校 云溪外国语学校 已完成 学年升级">
+                <td><span class="ellipsis mono" title="PRM-20260930-0018">PRM-20260930-0018</span></td>
+                <td><span class="ellipsis" title="2026-2027 学年 第一学期">2026-2027 学年 第一学期</span></td>
+                <td><span class="ellipsis" title="2027-2028 学年 第一学期">2027-2028 学年 第一学期</span></td>
+                <td><span class="el-tag success">已完成</span></td>
+                <td class="num c-total">210</td>
+                <td class="num c-success">210</td>
+                <td class="num c-failed">0</td>
+                <td><span class="ellipsis" title="王丽君">王丽君</span></td>
+                <td><span class="ellipsis" title="2026-09-30 15:10">2026-09-30 15:10</span></td>
+                <td class="actions"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination" data-role="pagination" data-component="pagination">
+          <span class="total" id="pg-total">共 17 条 · 当前第 1 页 · 每页 20 条（本页显示 11 行样例）</span>
+          <button class="pg" disabled>‹</button>
+          <button class="pg active">1</button>
+          <button class="pg" data-role="action" data-action-id="ACT-COM-006" data-component="pagination">2</button>
+          <button class="pg">›</button>
+        </div>
+
+        <div class="legend" style="margin-top:8px">
+          <span><b>状态口径</b>：8 个状态取自 <span class="mono">FD-promotion_task_status</span>——草稿 / 已预览待确认 / 校验中 / 执行中 / 已完成 / 部分失败 / 失败 / 已取消。草稿没有升班明细，因此「学生总数 / 成功 / 失败」显示为「—」（<span class="mono">REQ-PRM-003</span> / <span class="mono">REQ-PRM-011</span>）。</span>
+        </div>
+        <div class="legend" style="margin-top:4px">
+          <span><b>追加与幂等</b>：升班只按学年追加新关系，不改写源学年任何记录；重复提交同一任务不产生重复班级关系，幂等键为「任务编号 + 学生 + 目标学年学期」（<span class="mono">BR-PROMO-001</span> / <span class="mono">BR-PROMO-003</span>）。同一源学年学期到同一目标学年学期，同一时间只允许一个未结束的任务（<span class="mono">REQ-PRM-005</span>）。</span>
+        </div>
+        <div class="legend" style="margin-top:4px">
+          <span><b>按钮与权限（CR-012）</b>：新建任务 = <span class="mono">promotion.batch:create</span>；预览 / 执行 / 重试 / 取消 = <span class="mono">promotion.batch:update</span>；<span class="mono">read</span> 决定列表可见性。升班没有审批环节，校领导与年级主任只读。</span>
+        </div>
+        <div class="legend" style="margin-top:4px">
+          <span><b>数据范围</b>：校领导 / 教务主任为全校（<span class="mono">DS-04</span>）；年级主任只看本人负责年级且计数按 <span class="mono">DS-05</span> 收窄（<span class="mono">DS-DENY-08</span>）；平台运营全平台只读（<span class="mono">DS-01</span>）。班主任与租户管理员没有 <span class="mono">promotion.batch:read</span>。</span>
+        </div>
+        <div class="legend" style="margin-top:4px">
+          <span><b>边界样本</b>：8 个状态各 1 条、同一状态两条（已预览待确认 2 条）、跨学段 1 条（小学六年级 → 初中一年级）、超阈值 1 条（10240 &gt; 10000）、他校数据 1 条（云溪外国语学校）；失败原因 2 条（目标班级不存在 / 目标班级已停用）。</span>
+        </div>
+      </div>
+
+      <!-- 加载中 -->
+      <div class="state-hidden" data-demo-state-panel="loading">
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:138px"></div><div class="skeleton-bar" style="width:140px"></div><div class="skeleton-bar" style="width:140px"></div><div class="skeleton-bar" style="width:92px"></div><div class="skeleton-bar" style="width:70px"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:138px"></div><div class="skeleton-bar" style="width:140px"></div><div class="skeleton-bar" style="width:140px"></div><div class="skeleton-bar" style="width:92px"></div><div class="skeleton-bar" style="width:70px"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:138px"></div><div class="skeleton-bar" style="width:140px"></div><div class="skeleton-bar" style="width:140px"></div><div class="skeleton-bar" style="width:92px"></div><div class="skeleton-bar" style="width:70px"></div></div>
+        <div class="legend" style="margin-top:10px"><span>表格区域加载中：使用表格内 loading，不使用全屏遮罩</span></div>
+      </div>
+
+      <!-- 空数据 -->
+      <div class="state-hidden" data-demo-state-panel="empty">
+        <div class="state-block">
+          <div class="icon">🗂️</div>
+          <div class="title" id="empty-title">当前筛选条件下没有升班任务</div>
+          <div class="desc" id="empty-desc">筛选条件：状态 = 失败；源学年学期 = 2026-2027 学年 第二学期（无匹配）</div>
+          <div class="chip-group" style="justify-content:center;margin-bottom:14px">
+            <button class="chip on" id="empty-v1">筛选无结果</button>
+            <button class="chip" id="empty-v2">本校还没有升班任务</button>
+          </div>
+          <button class="btn primary" id="empty-action">清空筛选条件</button>
+        </div>
+      </div>
+
+      <!-- 查询失败 -->
+      <div class="state-hidden" data-demo-state-panel="error">
+        <div class="state-block error">
+          <div class="icon">⚠️</div>
+          <div class="title">升班任务列表加载失败</div>
+          <div class="desc">查询超时（等待 5 秒未返回），已自动重试 1 次仍失败。</div>
+          <div class="req-id">请求编号 <span class="mono">REQ-20260930-000518</span> · 错误码 DS-5001</div>
+          <button class="btn primary" data-role="action" data-action-id="ACT-COM-005" data-component="el-button"
+                  data-api="listPromotionTask" data-demo-message="已重新发起查询（第 2 次重试）。">重试</button>
+        </div>
+      </div>
+
+      <!-- 无权限 -->
+      <div class="state-hidden" data-demo-state-panel="forbidden">
+        <div class="state-block">
+          <div class="icon">🔒</div>
+          <div class="title">当前账号没有升班任务的查看权限</div>
+          <div class="desc">升班任务需要 <span class="mono">promotion.batch:read</span>；班主任与租户管理员在权限矩阵里没有这一项。<br />
+            系统不会因为范围为空而返回全量任务（<span class="mono">DS-DENY-03</span>）。班主任发起休学 / 复学 / 转出等异动走学生详情页的异动入口。</div>
+          <button class="btn" data-demo-toast="班主任的异动入口在学生详情页（批次 2-5 交付）。" data-demo-toast-type="info">去学生详情</button>
+        </div>
+      </div>
+
+      <!-- 部分失败 -->
+      <div class="state-hidden" data-demo-state-panel="partial">
+        <div class="card" style="margin:0">
+          <div class="card-header"><h3>形态样例 · 升班任务部分失败</h3><span class="el-tag warning">partial_failed</span></div>
+          <div class="card-body">
+            <div class="list">
+              <div class="list-row"><div class="grow"><b class="mono">PRM-20260628-0002</b> · 3 名学生未升班</div><div class="op"><span class="el-tag danger">失败原因</span></div></div>
+              <div class="legend" style="margin:0"><span>目标班级不存在（高二 (3) 班未建）。处理方式：在班级管理里补齐目标班级后点「重试失败项」，只重新处理这 3 条，已成功的 483 条不重复执行（<span class="mono">REQ-PRM-032</span> / <span class="mono">BR-PROMO-003</span>）。</span></div>
+              <div class="list-row"><div class="grow"><b class="mono">PRM-20260930-0019</b> · 3 名学生未升班</div><div class="op"><span class="el-tag danger">失败原因</span></div></div>
+              <div class="legend" style="margin:0"><span>目标班级已停用（高一 (3) 班）。已停用班级不再接受编班与迁入（<span class="mono">REQ-CLS-044</span>）。</span></div>
+            </div>
+            <div class="legend" style="margin-top:8px"><span>失败逐条记录原因，重试只处理失败项（<span class="mono">REQ-PRM-032</span>）。</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 排队中 -->
+      <div class="state-hidden" data-demo-state-panel="queued">
+        <div class="state-block">
+          <div class="icon">⏳</div>
+          <div class="title">已受理，排队中</div>
+          <div class="desc">任务编号 <span class="mono">PRM-20260930-0021</span> · 队列位置 1 · 执行必须异步，界面不阻塞（<span class="mono">REQ-PRM-027</span>）</div>
+          <button class="btn" data-demo-toast="已打开异步任务中心（批次 2-9 交付）。" data-demo-toast-type="info">查看任务中心</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================== 二次确认：取消升班任务（浮层片段，随列表页交付） -->
+<div class="overlay" data-demo="panel" data-demo-panel="DIALOG-PRM-CANCEL" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="sm" data-block="form">
+    <div class="dialog-header">
+      <h2>取消升班任务 · <span id="cancel-target" class="mono">PRM-20260930-0014</span></h2>
+      <span class="el-tag warning">保留已完成部分</span>
+    </div>
+    <div class="dialog-body">
+      <div class="alert warning" style="margin-bottom:12px">
+        <span>影响范围</span>
+        <span>取消后<b>已完成的学生保留升班结果</b>，不做整批回滚；可在结果页「继续执行剩余项」，
+          也可对已完成项<b>逐条回滚</b>（<span class="mono">REQ-PRM-036</span> / 已确认 4）。取消写入审计且不可删除（<span class="mono">REQ-PRM-058</span>）。</span>
+      </div>
+      <div class="field" data-field="remark">
+        <label>取消原因<span class="required">*</span></label>
+        <textarea class="input" rows="3" style="width:100%;min-width:100%" data-required
+                  data-required-message="请填写取消原因（至少 5 个字）" data-component="el-input.textarea"
+                  placeholder="如：目标班级名单还在调整，本批先取消，下周重新执行"></textarea>
+        <div class="error-text"></div>
+        <div class="hint">原因会写入审计，并与操作人、时间、来源 IP 一并保留。</div>
+      </div>
+      <div class="alert warning" style="margin:0">
+        <span id="cancel-impact-title">该任务当前进度</span>
+        <span id="cancel-impact">源 2026-2027 学年 第一学期 → 目标 2027-2028 学年 第一学期 · 已处理 388 / 512 人 · 当前状态 执行中。</span>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-PRM-009" data-component="el-button"
+              data-close-panel="DIALOG-PRM-CANCEL">返回</button>
+      <button class="btn warning-plain" data-role="action" data-action-id="ACT-PRM-010" data-component="el-button.warning.plain"
+              data-permission="promotion.batch:update" data-api="cancelPromotionTask" data-validate-on-submit
+              data-after-success="close-panel"
+              data-demo-message="已提交取消：任务状态将变为「已取消」。已完成的学生保留，可在结果页继续执行剩余项或逐条回滚（REQ-PRM-036）。">确认取消任务</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // 与 05-permission-matrix.yaml 的 promotion.batch 授权一致（CR-012）
+  var READ_ROLES = ['super_admin', 'academic_director', 'school_leader', 'grade_leader', 'platform_ops'];
+  var WRITE_ROLES = ['super_admin', 'academic_director'];
+  var CREATE_ROLES = ['super_admin', 'academic_director'];
+  // 年级主任负责的年级（DS-05）：2026 级 高一（与 class-list 的 CL-12 同口径）
+  var GRADE_SCOPE_LABEL = '2026 级 高一';
+
+  function q(sel, root) { return (root || document).querySelector(sel); }
+  function qa(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined && text !== null) n.textContent = text;
+    return n;
+  }
+  function currentRole() { return window.PrototypeShell.currentRole(); }
+  function scoped(row, role, key) {
+    var attr = role === 'grade_leader' ? 'data-g-' + key : 'data-' + key;
+    return Number(row.getAttribute(attr) || 0);
+  }
+  function num(row, role, key) {
+    var v = scoped(row, role, key);
+    return v === 0 && key !== 'failed' && row.getAttribute('data-status') === 'draft' ? '—' : String(v);
+  }
+
+  /* ---------------- 1. 行内操作列：按状态与角色渲染（REQ-PRM-006） ---------------- */
+
+  function actionsFor(status) {
+    // 只有读权限的角色不渲染任何写入口；这里的定义是"有写权限时该状态允许哪些动作"
+    var map = {
+      draft: [
+        { id: 'ACT-PRM-002', text: '预览', nav: 'PAGE-PRM-PREVIEW', primary: true, title: '生成升班预览：不写入任何学生数据（REQ-PRM-020）' },
+        { id: 'ACT-PRM-005', text: '取消', danger: true }
+      ],
+      previewed: [
+        { id: 'ACT-PRM-003', text: '执行', nav: 'PAGE-PRM-VALIDATE', primary: true, title: '先校验再执行；执行异步进行（REQ-PRM-027）' },
+        { id: 'ACT-PRM-002', text: '重新预览', title: '重新生成预览会覆盖旧明细（REQ-PRM-021）' },
+        { id: 'ACT-PRM-005', text: '取消', danger: true }
+      ],
+      validating: [
+        { id: 'ACT-PRM-003', text: '查看校验', nav: 'PAGE-PRM-VALIDATE', primary: true },
+        { id: 'ACT-PRM-005', text: '取消', danger: true }
+      ],
+      running: [
+        { id: 'ACT-PRM-006', text: '查看进度', nav: 'PAGE-PRM-RESULT', primary: true },
+        { id: 'ACT-PRM-005', text: '取消', danger: true, title: '取消后保留已完成部分（已确认 4）' }
+      ],
+      succeeded: [
+        { id: 'ACT-PRM-006', text: '查看结果', nav: 'PAGE-PRM-RESULT', primary: true },
+        { id: 'ACT-PRM-008', text: '结果导出', api: 'exportPromotionResult', message: '已生成结果报告（成功清单 / 失败清单 / 留级清单 / 毕业清单），开始下载（REQ-PRM-034）。' }
+      ],
+      partial_failed: [
+        { id: 'ACT-PRM-004', text: '重试失败项', api: 'retryPromotionTask', primary: true, message: '已提交重试：只重新处理失败的 3 条，已成功的记录不重复执行（REQ-PRM-032 / BR-PROMO-003）。' },
+        { id: 'ACT-PRM-006', text: '查看结果', nav: 'PAGE-PRM-RESULT' }
+      ],
+      failed: [
+        { id: 'ACT-PRM-004', text: '重试', api: 'retryPromotionTask', primary: true, message: '已提交重试：重新处理失败的 120 条（REQ-PRM-032）。' },
+        { id: 'ACT-PRM-006', text: '查看结果', nav: 'PAGE-PRM-RESULT' }
+      ],
+      cancelled: [
+        { id: 'ACT-PRM-004', text: '继续执行剩余项', api: 'retryPromotionTask', primary: true, message: '已提交「继续执行剩余项」：已完成的学生保留，只处理剩余未升班的学生（已确认 4）。' },
+        { id: 'ACT-PRM-006', text: '查看结果', nav: 'PAGE-PRM-RESULT' }
+      ]
+    };
+    return map[status] || [];
+  }
+
+  function renderRowActions(row, role) {
+    var box = q('td.actions', row);
+    if (!box) return;
+    box.innerHTML = '';
+    if (WRITE_ROLES.indexOf(role) === -1) return;
+    actionsFor(row.getAttribute('data-status')).forEach(function (def) {
+      var b = el('button', 'btn link' + (def.danger ? ' danger' : ''), def.text);
+      b.setAttribute('data-role', 'row-action');
+      b.setAttribute('data-action-id', def.id);
+      b.setAttribute('data-component', def.danger ? 'el-button.link.danger' : 'el-button.link.primary');
+      b.setAttribute('data-permission', def.id === 'ACT-PRM-002' || def.id === 'ACT-PRM-003' || def.id === 'ACT-PRM-004' || def.id === 'ACT-PRM-005' || def.id === 'ACT-PRM-006'
+        ? 'promotion.batch:update' : 'data.export:export');
+      if (def.title) b.setAttribute('title', def.title);
+      if (def.nav) b.setAttribute('data-nav', def.nav);
+      if (def.api) {
+        b.setAttribute('data-api', def.api);
+        b.setAttribute('data-demo-message', def.message);
+      }
+      box.appendChild(b);
+    });
+  }
+
+  /* ---------------- 2. 计数按范围渲染（DS-DENY-08） ---------------- */
+
+  // 只替换单元格里的第一个文本节点，保留「超阈值 / 失败 / 跨学段」这类标签（否则会被 textContent 抹掉）
+  function setCellCount(cell, text) {
+    var first = cell.firstChild;
+    if (first && first.nodeType === 3) { first.nodeValue = text; return; }
+    cell.insertBefore(document.createTextNode(text), cell.firstChild);
+  }
+
+  function renderRowCounts(row, role) {
+    var draft = row.getAttribute('data-status') === 'draft';
+    var totalCell = q('.c-total', row);
+    var successCell = q('.c-success', row);
+    var failedCell = q('.c-failed', row);
+    if (draft) {
+      totalCell.innerHTML = '—';
+      totalCell.setAttribute('title', '草稿没有升班明细：学生总数 / 成功 / 失败都显示为「—」（REQ-PRM-011）');
+      successCell.textContent = '—';
+      failedCell.textContent = '—';
+      return;
+    }
+    totalCell.removeAttribute('title');
+    setCellCount(totalCell, String(scoped(row, role, 'total')));
+    setCellCount(successCell, String(scoped(row, role, 'success')));
+    setCellCount(failedCell, String(scoped(row, role, 'failed')));
+  }
+
+  function rowInScope(row, role, school) {
+    if (row.getAttribute('data-school') !== school) return false;
+    if (READ_ROLES.indexOf(role) === -1) return false;
+    if (role === 'grade_leader') return Number(row.getAttribute('data-g-total') || 0) > 0;
+    if (role !== 'platform_ops' && role !== 'super_admin' && school !== '201') return false;
+    return true;
+  }
+
+  /* ---------------- 3. 取消二次确认：绑定当前行 ---------------- */
+
+  function bindCancelPanel(row) {
+    var task = row.getAttribute('data-task');
+    var role = currentRole();
+    var total = scoped(row, role, 'total');
+    var success = scoped(row, role, 'success');
+    q('#cancel-target').textContent = task;
+    q('#cancel-impact').textContent = '源 ' + cellText(row, 1) + ' → 目标 ' + cellText(row, 2)
+      + ' · 已处理 ' + success + ' / ' + total + ' 人 · 当前状态 ' + cellText(row, 3).replace(/\s+/g, ' ') + '。';
+    var ta = q('[data-demo-panel="DIALOG-PRM-CANCEL"] textarea');
+    ta.value = '';
+    var field = ta.closest('.field');
+    field.classList.remove('has-error');
+    q('[data-demo-panel="DIALOG-PRM-CANCEL"] .error-text').textContent = '';
+  }
+
+  function cellText(row, index) { return row.children[index].textContent.replace(/\s+/g, ' ').trim(); }
+
+  /* ---------------- 0. 单元格展示格式：学年学期与创建时间分两行 ---------------- */
+
+  function formatListCells() {
+    qa('#prm-rows tr').forEach(function (row) {
+      [1, 2].forEach(function (i) {
+        var span = row.children[i].querySelector('.ellipsis');
+        if (!span) return;
+        var parts = span.textContent.trim().split(' ');
+        if (parts.length < 3) return;
+        span.classList.add('term');
+        span.innerHTML = '';
+        span.appendChild(el('span', null, parts[0] + ' ' + parts[1]));
+        span.appendChild(el('span', 'cell-secondary', parts.slice(2).join(' ')));
+      });
+      var timeSpan = row.children[8].querySelector('.ellipsis');
+      if (timeSpan) {
+        var tp = timeSpan.textContent.trim().split(' ');
+        if (tp.length === 2) {
+          timeSpan.classList.add('term');
+          timeSpan.innerHTML = '';
+          timeSpan.appendChild(el('span', null, tp[0]));
+          timeSpan.appendChild(el('span', 'cell-secondary', tp[1]));
+        }
+      }
+    });
+  }
+
+  /* ---------------- 4. 筛选与汇总 ---------------- */
+
+  var lastRole = '';
+
+  function applyFilter() {
+    var school = q('#f-school').value;
+    var src = q('#f-src').value;
+    var tgt = q('#f-tgt').value;
+    var status = q('#f-status').value;
+    var creator = q('#f-creator').value;
+    var keyword = (q('#f-keyword').value || '').trim();
+    var role = currentRole();
+    var visible = 0;
+    var running = 0;
+    var failedTasks = 0;
+    var pendingConfirm = 0;
+
+    qa('#prm-rows tr').forEach(function (row) {
+      var ok = rowInScope(row, role, school);
+      if (ok && src && row.getAttribute('data-src') !== src) ok = false;
+      if (ok && tgt && row.getAttribute('data-tgt') !== tgt) ok = false;
+      if (ok && status && row.getAttribute('data-status') !== status) ok = false;
+      if (ok && creator && row.getAttribute('data-creator') !== creator) ok = false;
+      if (ok && keyword && (row.getAttribute('data-keyword') || '').indexOf(keyword) === -1) ok = false;
+      row.classList.toggle('state-hidden', !ok);
+      renderRowCounts(row, role);
+      renderRowActions(row, role);
+      if (ok) {
+        visible += 1;
+        if (row.getAttribute('data-status') === 'running') running += 1;
+        if (row.getAttribute('data-status') === 'partial_failed' || row.getAttribute('data-status') === 'failed') failedTasks += 1;
+        if (row.getAttribute('data-status') === 'previewed') pendingConfirm += 1;
+      }
+    });
+
+    var total = school === '201' ? 17 : 4;
+    q('#head-total').textContent = '共 ' + total + ' 个升班任务';
+    q('#pg-total').textContent = '共 ' + total + ' 条 · 当前第 1 页 · 每页 20 条（本页显示 ' + visible + ' 行样例）';
+    q('#head-summary').textContent = '本页样例 ' + visible + ' 行'
+      + (running ? ' · 执行中 ' + running : '')
+      + (failedTasks ? ' · 失败 / 部分失败 ' + failedTasks : '')
+      + (pendingConfirm ? ' · 待确认 ' + pendingConfirm : '');
+    q('#ops-scope-alert').classList.toggle('state-hidden', school === '201' || role !== 'platform_ops');
+    updateScopeHint(school, role);
+    applyRoleState(role);
+  }
+
+  // 无 read 权限的角色直接用「无权限」面板，不靠空表表达（DS-DENY-03）
+  function applyRoleState(role) {
+    if (role === lastRole) return;
+    lastRole = role;
+    if (READ_ROLES.indexOf(role) === -1) window.PrototypeShell.applyState('forbidden');
+    else if (window.PrototypeShell.currentState() === 'forbidden') window.PrototypeShell.applyState('normal');
+  }
+
+  function updateScopeHint(school, role) {
+    var hint = q('[data-role="scope-hint"]');
+    if (!hint) return;
+    if (role === 'super_admin') { hint.textContent = '数据范围：全平台 · 不受组织与数据范围限制 · 操作强制留痕（BR-ORG-014）'; return; }
+    if (role === 'platform_ops') { hint.textContent = '数据范围：平台运营协助视图 · ' + (school === '201' ? '本校（只读）' : '云溪外国语学校') + ' · 只读并留痕（DS-01）'; return; }
+    if (role === 'grade_leader') { hint.textContent = '数据范围：本人负责年级（' + GRADE_SCOPE_LABEL + '· DS-05）· 只读，计数按范围收窄'; return; }
+    if (role === 'school_leader') { hint.textContent = '数据范围：本校（DS-04）· 升班任务只读（升班无审批环节）'; return; }
+    if (role === 'homeroom' || role === 'tenant_admin') { hint.textContent = '数据范围：无——当前角色没有 promotion.batch:read'; return; }
+    hint.textContent = '数据范围：本校 · 2026-2027 学年 第一学期（DS-04）';
+  }
+
+  function resetFilters() {
+    q('#f-school').value = '201';
+    q('#f-src').value = '';
+    q('#f-tgt').value = '';
+    q('#f-status').value = '';
+    q('#f-creator').value = '';
+    q('#f-keyword').value = '';
+  }
+
+  /* ---------------- 5. 交互委托 ---------------- */
+
+  document.addEventListener('click', function (event) {
+    var node = event.target;
+
+    // 「取消」没有 data-api / data-nav（外壳不会处理），由本页打开二次确认并绑定当前行
+    var cancelBtn = node.closest('[data-action-id="ACT-PRM-005"]');
+    if (cancelBtn && cancelBtn.tagName === 'BUTTON' && !cancelBtn.closest('[data-demo-panel]')) {
+      var row = cancelBtn.closest('tr');
+      if (row) {
+        bindCancelPanel(row);
+        window.PrototypeShell.openPanel('DIALOG-PRM-CANCEL');
+      }
+      return;
+    }
+
+    if (node.closest('#empty-v2')) {
+      q('#empty-title').textContent = '本校还没有创建任何升班任务';
+      q('#empty-desc').textContent = '学年切换前需要先建好目标学年学期的年级与班级，再创建升班任务（REQ-PRM-009）。';
+      q('#empty-v2').classList.add('on');
+      q('#empty-v1').classList.remove('on');
+      q('#empty-action').textContent = '新建第一个升班任务';
+      return;
+    }
+    if (node.closest('#empty-v1')) {
+      q('#empty-title').textContent = '当前筛选条件下没有升班任务';
+      q('#empty-desc').textContent = '筛选条件：状态 = 失败；源学年学期 = 2026-2027 学年 第二学期（无匹配）';
+      q('#empty-v1').classList.add('on');
+      q('#empty-v2').classList.remove('on');
+      q('#empty-action').textContent = '清空筛选条件';
+      return;
+    }
+    if (node.closest('#empty-action')) {
+      resetFilters();
+      applyFilter();
+      return;
+    }
+
+    if (node.closest('[data-action-id="ACT-COM-002"]')) { resetFilters(); applyFilter(); return; }
+    if (node.closest('[data-action-id="ACT-COM-001"]')) { applyFilter(); return; }
+    if (node.closest('[data-action-id="ACT-COM-003"]')) {
+      var body = q('[data-block="filter"] .card-body');
+      var hidden = body.classList.toggle('state-hidden');
+      node.closest('[data-action-id="ACT-COM-003"]').textContent = hidden ? '显示搜索' : '隐藏搜索';
+      return;
+    }
+    // 角色切换后重算可见行、计数与操作列（外壳的 applyRole 已完成显隐）
+    if (node.closest('[data-demo="role-switcher"] .pbtn')) {
+      window.setTimeout(function () { applyFilter(); }, 0);
+    }
+  });
+
+  document.addEventListener('change', function (event) {
+    if (event.target.closest('[data-role="filter"]')) applyFilter();
+  });
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter' && event.target && event.target.id === 'f-keyword') applyFilter();
+  });
+
+  /* ---------------- 6. 深链接参数：整页加载与「在已打开的页面上改 hash」两条路径都生效 ---------------- */
+
+  function applyPageParams(params) {
+    if (!params) return;
+    // 注意：空字符串也是有效取值（#status= 表示清空该筛选），因此只判断 key 是否存在，不判断真值
+    if (params.school !== undefined) q('#f-school').value = params.school;
+    if (params.src !== undefined) q('#f-src').value = params.src;
+    if (params.tgt !== undefined) q('#f-tgt').value = params.tgt;
+    if (params.status !== undefined) q('#f-status').value = params.status;
+    if (params.creator !== undefined) q('#f-creator').value = params.creator;
+    if (params.keyword !== undefined) q('#f-keyword').value = params.keyword;
+    if (params.state) window.PrototypeShell.applyState(params.state);
+    applyFilter();
+  }
+  document.addEventListener('prototype:params', function (event) { applyPageParams(event.detail); });
+
+  formatListCells();
+  applyFilter();
+})();
+</script>
+</body>
+</html>

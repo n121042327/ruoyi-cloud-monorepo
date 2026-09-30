@@ -189,10 +189,14 @@
 | `evidence/stage2-prototype/class-detail_dialog-transfer_1440x900.png` | 调班弹窗截图（从编班页冲突行深链接带入该生与源 / 目标班级） | `review` |
 | `evidence/stage2-prototype/class-roster_verify-results.png` | 编班 / 批量迁学生 / 移出与调班 harness 结果清单（RA/MV/TR 共 34 条全部通过） | `review` |
 | `evidence/stage2-prototype/class-list_*.png`（21 张，见 README 第 1 节） | `CR-011` 后按新口径重拍：页头汇总「在读 148 人」、高二 (1) 班在读 1；含 verify-results | `review` |
-| `evidence/stage2-prototype/interaction-verification.md` | 原型交互可点性验证报告（含批次 2-2b-2b 的 GL-01 ~ GL-38、D-060 的 RD-01 ~ RD-06 实测结果） | `review` |
+| `evidence/stage2-prototype/verify-promotion-list.html` | 升班任务列表交互验证 harness（PRM-01 ~ PRM-36，36 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/promotion-list_*.png`（14 张，见 README 第 6 节） | 升班任务列表截图：3 个分辨率 + 4 种角色形态 + 2 类筛选 + 取消确认片段 + 4 类状态 | `review` |
+| `evidence/stage2-prototype/interaction-verification.md` | 原型交互可点性验证报告（批次 2-2b-2b 的 GL-01 ~ GL-38、D-060 的 RD-01 ~ RD-06、批次 2-3e-s1 的 PRM-01 ~ PRM-36 实测结果） | `review` |
 | `prototypes/functional/v1/pages/class-list.html` | 班级管理列表 | `planned` |
 | `prototypes/functional/v1/pages/class-detail.html` | 班级详情与花名册 | `planned` |
-| `prototypes/functional/v1/pages/promotion-wizard.html` | 升班向导 | `planned` |
+| `prototypes/functional/v1/pages/promotion-list.html` | 升班任务列表（批次 2-3e-s1 首件样板：12 行样例覆盖 8 个状态 + 同页确认片段 DIALOG-PRM-CANCEL） | `review` |
+| `prototypes/functional/v1/page-specs/promotion-list.md` | 升班任务列表页面规格（状态驱动的行内动作、权限与数据范围、样例数据、自查） | `review` |
+| `prototypes/functional/v1/pages/promotion-wizard.html` | 升班向导（四步向导与结果页，批次 2-3e 剩余 6 页） | `planned` |
 | `prototypes/functional/v1/pages/import-wizard.html` | 批量导入向导 | `planned` |
 | `prototypes/functional/v1/pages/login.html` | 登录 | `planned` |
 | `prototypes/functional/v1/pages/403.html` | 无权限页 | `planned` |
