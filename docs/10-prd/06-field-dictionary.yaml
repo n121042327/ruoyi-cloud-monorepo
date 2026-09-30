@@ -362,6 +362,14 @@ fields:
   - { name: leader_status, cn: 年级主任任职状态, type: varchar(16), required: false, note: 生效中 / 已解除；解除后保留历史记录，不做物理删除 }
   - { name: expire_date, cn: 任职失效日期, type: date, required: false, note: 学年切换时写入；与 effective_date 组成任职区间（REQ-GRD-027） }
 
+  # ---- 升班与学籍异动模块（CR-013 / GAP-054 补登记，2026-10-01） ----
+  - { name: source_term_id, cn: 源学年学期, type: bigint, required: true, br: BR-PROMO-001, note: 引用 edu_term；从该学年学期取在读学生，升班只按学年追加，不改写源学年任何记录 }
+  - { name: target_term_id, cn: 目标学年学期, type: bigint, required: true, br: BR-PROMO-001, note: 引用 edu_term；目标学期必须晚于源学期（REQ-PRM-008），且创建前校验目标年级与班级齐备（REQ-PRM-009） }
+  - { name: promotion_task_status, cn: 升班任务状态, type: varchar(20), required: true, enum_ref: promotion_task_status, br: BR-PROMO-002, note: edu_promotion_task.status；草稿 / 已预览待确认 / 校验中 / 执行中 / 已完成 / 部分失败 / 失败 / 已取消（REQ-PRM-003）；草稿没有升班明细（REQ-PRM-011） }
+  - { name: total_count, cn: 学生总数, type: int, required: false, note: 统计值，受数据范围约束（DS-DENY-08）；草稿为 0 且前端显示「—」（REQ-PRM-011） }
+  - { name: success_count, cn: 成功数, type: int, required: false, note: 统计值，受数据范围约束（DS-DENY-08）；重试只增加成功数，不重复处理已完成项（BR-PROMO-003） }
+  - { name: failed_count, cn: 失败数, type: int, required: false, note: 统计值，受数据范围约束；与逐条失败原因成对出现（REQ-PRM-032） }
+
 unique_keys:
   - { table: edu_student, columns: [student_no], br: BR-STU-001, note: 学号全平台唯一，由系统统一发号，序号按年重置 }
   - { table: edu_student, columns: [id_card_no], br: BR-STU-008, note: 允许为空，非空时全平台唯一 }
@@ -375,6 +383,7 @@ unique_keys:
   - { table: edu_class, columns: [school_id, term_id, stage_code, class_name], br: BR-CLASS-003 }
   - { table: edu_student_class, columns: [term_id, student_id, class_type], note: 仅对行政班生效，见 BR-STU-003 }
   - { table: edu_student_stream, columns: [term_id, student_id], br: BR-STREAM-007 }
+  - { table: edu_promotion_task, columns: [school_id, source_term_id, target_term_id], br: BR-PROMO-003, note: 部分唯一：只对未结束任务生效（REQ-PRM-005）；落地方式（业务唯一 + 应用层校验或带条件的唯一索引）在详细设计阶段确定，不按普通唯一索引直接建 }
 
 index_conventions:
   - rule: 所有教育表的主查询条件第一列必须带 tenant_id 或 school_id 作为前缀索引

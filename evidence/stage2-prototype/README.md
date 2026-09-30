@@ -493,10 +493,13 @@ $chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
   "file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/promotion-list.html"
 ```
 
-### 6.1 本批的两个已知缺口（见 `gap-register.yaml` 的 `GAP-054`）
+### 6.1 本批暴露的两个缺口已在 `CR-013` 关闭
 
-1. 升班任务的 5 个业务字段（`source_term_id` / `target_term_id` / `total_count` / `success_count` / `failed_count`）
-   只在 PRD 7.1 有定义，`06-field-dictionary.yaml` 还没登记 → 原型自查里已标注未满足。
-2. 取消确认片段 `DIALOG-PRM-CANCEL` 还没写进升班 PRD 6.1（班级模块的同类片段由 `CR-009` 补过）。
+1. 升班任务的 6 个字段（`source_term_id` / `target_term_id` / `promotion_task_status` /
+   `total_count` / `success_count` / `failed_count`）已登记进 `06-field-dictionary.yaml`
+   （外加 `edu_promotion_task` 的一条部分唯一说明，对应 `REQ-PRM-005`）。
+2. 取消确认片段 `DIALOG-PRM-CANCEL` 已写进升班 PRD 6.1 / 6.3，并在 `navigation.yaml` 登记为
+   `type: dialog`、`parent: PAGE-PRM-LIST` 的同页浮层片段，取消跳转也补齐（批次 2-3 声明页数 16 → 17）。
 
-两项都不阻塞本批验收，建议按 `GAP-054` 的选项 A 立一次 CR 一起补。
+原型的 `data-field="status"` 同步改为 `promotion_task_status`；`data-field` 不参与渲染，
+因此本目录的 14 张截图无需重拍，`verify-promotion-list.html` 重跑仍为 36 / 36。

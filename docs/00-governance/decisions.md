@@ -1089,6 +1089,29 @@
   回滚 `page-actions.yaml` 的 `promotion_list` 动作组与 `navigation.yaml` / `prototype-shell.js` 的登记即可；
   不触碰已交付的班级 4 个小批，也不涉及表结构与接口实现
 
+## D-071 补齐升班模块的两项公共前置（GAP-054 选项 A / CR-013）
+
+- 日期：2026-10-01
+- 触发：批次 2-3e-s1 交付 `PAGE-PRM-LIST` 时按 `prototype-quality-spec` 的自查，发现字段字典缺 6 条、取消确认片段没进 PRD 6.1
+- 上游依据：用户对 `GAP-054` 的「推荐 A」答复「选 a」
+- 决策：**一次 CR 补齐两项**，与 `CR-004`（教师字段）/ `CR-005`（年级字段与权限）/ `CR-010`（班级字段）同口径
+- 落地内容（`CR-013`）：
+
+| 文件 | 变更 |
+|---|---|
+| `docs/10-prd/06-field-dictionary.yaml` | 新增 `source_term_id` / `target_term_id` / `promotion_task_status`（`enum_ref: promotion_task_status`）/ `total_count` / `success_count` / `failed_count`；`unique_keys` 补 `edu_promotion_task` 的部分唯一说明（只对未结束任务生效，`REQ-PRM-005`） |
+| `docs/10-prd/modules/promotion/PRD.md` | 6.1 补登记同页浮层片段 `DIALOG-PRM-CANCEL` + 载体口径说明；6.3 补「列表行内点击取消」一行；版本升 `1.0.3-draft` |
+| `prototypes/functional/v1/navigation.yaml` | 登记 `DIALOG-PRM-CANCEL`（`type: dialog` / `parent: PAGE-PRM-LIST`）+ 取消跳转；批次 2-3 声明页数 16 → 17 |
+| `prototypes/functional/v1/pages/promotion-list.html` | `data-field="status"` → `data-field="promotion_task_status"`（两处），与字典条目对齐 |
+| `prototypes/functional/v1/page-specs/promotion-list.md` | 字段清单同步改名；自查「每个 `data-field` 已在字段字典登记」由未满足改为已满足 |
+
+- 为什么必须回改冻结文档：字段字典的 `purpose` 要求所有字段都可查（阶段 5 建表 / 阶段 6 映射都以它为准）；
+  取消属于危险动作，其「保留已完成部分、不做整批回滚」的口径（已确认 4）必须落在 PRD，否则实现者可能按「取消 = 回滚」实现
+- 验证证据：`python tools/check_docs.py` 通过；PyYAML 复核字段字典可解析；
+  `verify-promotion-list.html` 重跑 36 / 36 通过（`data-field` 改名不影响断言，截图无需重拍）
+- 如果错了的代价：删掉新增的 6 个字段与 1 条部分唯一说明、把升班 PRD 的 6.1 / 6.3 两行与版本回滚、
+  撤掉 `navigation.yaml` 的片段条目并把页数改回 16 即可，不涉及表结构、接口与已交付页面
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |
@@ -1125,4 +1148,4 @@
 | R-030 | ~~出国留学（保留学籍）是否计入班级在读人数~~ → 已定：选项 A，与休学同口径不计入，并把高二 (1) 班样例数 2 → 1（D-068 / CR-011） | GAP-051 | 已关闭 |
 | R-031 | ~~升班任务的「预览 / 执行 / 重试 / 取消」用哪个权限动作承载~~ → 已定：选项 A，用现有 `update`（D-069 / CR-012） | GAP-052 | 已关闭 |
 | R-032 | ~~年级主任是否参与升班~~ → 已定：选项 A，补 `promotion.batch: read` + `DS-05` 范围，只读（D-069 / CR-012） | GAP-053 | 已关闭 |
-| R-033 | 升班任务的两个公共前置缺项（5 个字段未进字段字典、取消确认片段未进 PRD 6.1）→ 推荐 A（立一次 CR 一起补，与 CR-004 / 005 / 010 同口径） | GAP-054 | **待你答复** |
+| R-033 | ~~升班任务的两个公共前置缺项（字段未进字段字典、取消确认片段未进 PRD 6.1）~~ → 已定：选项 A，立一次 CR 一起补（D-071 / CR-013） | GAP-054 | 已关闭 |

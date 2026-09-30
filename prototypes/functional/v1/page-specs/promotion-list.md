@@ -52,7 +52,7 @@
 | `school_id` | 学校 | `el-select` | 是 | 平台运营 / 超级管理员 | 201（本校） | — | 非多校角色下拉禁用；升班任务不跨校共享 |
 | `source_term_id` | 源学年学期 | `el-select` | 否 | — | 全部 | — | 筛选条件 |
 | `target_term_id` | 目标学年学期 | `el-select` | 否 | — | 全部 | — | 筛选条件 |
-| `status` | 状态 | `el-select` | 否 | — | 全部 | 取值来自 `FD-promotion_task_status` | 8 个状态 |
+| `promotion_task_status` | 状态 | `el-select` | 否 | — | 全部 | 取值来自 `promotion_task_status` 枚举 | 8 个状态；字段字典条目见 `CR-013` |
 | `create_by` | 创建人 | `el-select` | 否 | — | 全部 | — | 筛选条件 |
 | `task_no` | 任务编号 | `el-input` | 否 | — | 空 | — | 关键字检索，`varchar(32)`，全局唯一 |
 | `total_count` | 学生总数 | 只读单元格 | — | — | — | — | 受数据范围约束（`DS-DENY-08`） |
@@ -133,7 +133,7 @@
 - [x] 页面骨架属于四种模板之一（`TPL-LIST`）
 - [x] 每个可交互元素带 `data-page` / `data-role` / `data-action-id`（跳转类带 `data-nav`）
 - [x] 每个 `data-action-id` 已在 `page-actions.yaml` 登记（`ACT-PRM-001` ~ `010` + `ACT-COM-001` ~ `007`）
-- [ ] 每个 `data-field` 已在 `06-field-dictionary.yaml` 登记 —— **未满足**：`source_term_id` / `target_term_id` / `total_count` / `success_count` / `failed_count` 只在 PRD 7.1 有定义，字段字典尚未登记，见 `GAP-054`
+- [x] 每个 `data-field` 已在 `06-field-dictionary.yaml` 登记（`CR-013` 补齐 `source_term_id` / `target_term_id` / `promotion_task_status` / `total_count` / `success_count` / `failed_count` 六个字段，`GAP-054` 已关闭）
 - [x] 五类状态齐全（另加部分失败与排队中）
 - [x] 1366×768 与 1920×1080 下未出现整页横向滚动（列宽之和 = 表格 `min-width` = 1108px；学年学期与创建时间两行展示）
 - [x] 样例数据取自 `content-samples.json`，未出现占位人名

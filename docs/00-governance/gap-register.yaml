@@ -1640,10 +1640,18 @@ gaps:
       选项 A。理由：两项都属于"PRD 已要求、公共前置缺失"，与 CR-004（教师字段）、
       CR-005（年级字段与权限）、CR-010（班级字段）完全同类；一次 CR 补齐可以让阶段 5 的建表
       与阶段 6 的组件映射直接引用，不必在详细设计阶段回头改冻结文档。
+    resolution: |
+      2026-10-01 用户答复「选 a」，GAP-054 取选项 A，经 CR-013 落地（见 D-071）：
+      06-field-dictionary.yaml 新增 6 个字段（source_term_id / target_term_id /
+      promotion_task_status / total_count / success_count / failed_count），
+      unique_keys 补 1 条部分唯一说明（edu_promotion_task 的同一源 / 目标学期未结束任务唯一，REQ-PRM-005）；
+      升班 PRD 6.1 补登记同页浮层片段 DIALOG-PRM-CANCEL、6.3 补「列表行内点击取消」一行，版本升 1.0.3-draft；
+      navigation.yaml 登记 DIALOG-PRM-CANCEL 并补跳转（批次 2-3 声明页数 16 → 17）。
+      原型的 data-field="status" 同步改为 promotion_task_status，页面规格自查由「未满足」改为「已满足」。
     blocking: false
     blocks_stages: []
     owner: Codex
-    status: open
+    status: closed
 
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
@@ -1704,3 +1712,5 @@ open_questions_for_user:
   - "下一步：阶段 2 批次 2-3e 首件样板 PAGE-PRM-LIST（升班任务列表）：含 8 状态任务的样例行、按角色（教务主任 / 校领导只读 / 年级主任只读 / 超管）的按钮形态，以及 5 个按钮与 read / create / update 的动作映射；样板人工验收通过后再铺向导四步页。"
   - "阶段 2 批次 2-3e-s1 已产出待验收：prototypes/functional/v1/pages/promotion-list.html（升班任务列表，12 行样例覆盖 8 个状态 + 跨学段 + 超阈值 + 他校；含同页确认片段 DIALOG-PRM-CANCEL）、page-specs/promotion-list.md、page-actions.yaml 的 promotion_list（ACT-PRM-001 ~ 010）、content-samples.json 的 promotion_tasks（12 条）与 promotion_tasks_notes、evidence/stage2-prototype/verify-promotion-list.html；navigation.yaml 与 prototype-shell.js 已登记 PAGE-PRM-LIST 为已交付，见 D-070。"
   - "新增 GAP-054（Codex 自有非阻塞项）：升班任务的 5 个业务字段（source_term_id / target_term_id / total_count / success_count / failed_count）没进 06-field-dictionary.yaml，取消确认片段 DIALOG-PRM-CANCEL 没进升班 PRD 6.1。两项都属于「PRD 已要求、公共前置缺失」，建议按选项 A 立一次 CR 一起补（与 CR-004 / 005 / 010 同口径）；不阻塞 2-3e 继续铺开向导页。"
+  - "GAP-054 已关闭（用户 2026-10-01 答复「选 a」，取选项 A），经 CR-013 落地：字段字典补 6 个字段 + 1 条部分唯一说明；升班 PRD 补登记 DIALOG-PRM-CANCEL（6.1 / 6.3）并升 1.0.3-draft；navigation.yaml 登记该片段与跳转、批次 2-3 声明页数改 17；原型 data-field 由 status 改为 promotion_task_status，见 D-071。"
+  - "下一步：阶段 2 批次 2-3e 剩余 6 页（PAGE-PRM-CREATE / PREVIEW / ADJUST / VALIDATE / EXECUTE / RESULT）待样板页验收通过后铺开；建议再拆两小批：先 CREATE + PREVIEW + ADJUST，再 VALIDATE + EXECUTE + RESULT。"
