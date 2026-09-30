@@ -1246,10 +1246,188 @@ class_detail:
       audit: 否
       batch: "2-3"
 
+class_create:
+  page: PAGE-CLS-CREATE
+  actions:
+    - id: ACT-CLS-030
+      element: 班级类型
+      trigger: 选择
+      condition: 新建态始终可选；编辑态有花名册后只读（REQ-CLS-023）
+      permission: "-"
+      api: "-"
+      result: 本弹窗只建行政班（接口 addClass）；「教学班」选项列出但不可选，指向批次 2-7 的教学班管理页（接口 addTeachingClass，BR-CLASS-007 / REQ-CLS-038 / D-043）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-031
+      element: 按规则生成班级名称
+      trigger: 点击
+      condition: 已选年级
+      permission: "-"
+      api: "-"
+      result: 按「年级短名 + 该年级本学年学期已有序号 + 1」重算班级名称，仍可人工微调；重名时前端先拦一次（BR-CLASS-003）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-032
+      element: 取消 / 右上角关闭
+      trigger: 点击或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，本次填写内容不保存；表单字段多于 5 个但没有草稿，故不做「放弃编辑」二次确认
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-033
+      element: 保存
+      trigger: 点击
+      condition: 必填齐全（学年学期 / 年级 / 班级类型 / 班级名称）且名称在同校同学年学期同学段下不冲突
+      permission: "academic_director / grade_leader / super_admin / org.class / create"
+      api: addClass
+      result: 写入班级主体并写审计（REQ-CLS-019）；学年学期与年级只读口径见 REQ-CLS-022；成功后弹窗内出现三个后续动作
+      audit: 是
+      batch: "2-3"
+    - id: ACT-CLS-034
+      element: 保存后「继续新增」
+      trigger: 点击
+      condition: 上一次保存已成功
+      permission: "org.class:create"
+      api: "-"
+      result: 在同一个弹窗内清空名称与班主任，保留学年学期 / 年级 / 类型 / 容量 / 校区，便于连续建班（REQ-CLS-018）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-035
+      element: 保存后「进入班级详情」
+      trigger: 点击
+      condition: 上一次保存已成功
+      permission: "org.class:read"
+      api: getClass
+      result: 关闭弹窗并进入 PAGE-CLS-DETAIL 独立页（REQ-CLS-018）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-036
+      element: 保存后「立即编班」
+      trigger: 点击
+      condition: 上一次保存已成功，且类型为行政班
+      permission: "org.class:update"
+      api: "-"
+      result: 关闭弹窗并进入 PAGE-CLS-ROSTER-ADD 独立页（批次 2-3d，REQ-CLS-018 / 027）
+      audit: 否
+      batch: "2-3"
+
+class_batch:
+  page: PAGE-CLS-BATCH
+  actions:
+    - id: ACT-CLS-037
+      element: 选择年级 / 序号区间 / 容量 / 校区
+      trigger: 选择或输入
+      condition: 有 org.class:create 权限
+      permission: "academic_director / super_admin / org.class / create"
+      api: "-"
+      result: 实时重算生成预览；已存在的班级名称标记为「已存在，跳过」，不覆盖也不改名（REQ-CLS-020）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-038
+      element: 取消 / 右上角关闭
+      trigger: 点击或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不生成任何班级
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-039
+      element: 确认生成
+      trigger: 点击
+      condition: 学年学期与年级已选，且起始序号 ≤ 结束序号（无冲突项时仍可提交，全部冲突则按钮置灰语义）
+      permission: "academic_director / super_admin / org.class / create"
+      api: batchAddClass
+      result: 一次生成区间内的全部班级并写审计；冲突项跳过并在结果里列出（REQ-CLS-020）；接口若返回异步任务编号，弹窗内给出任务中心入口
+      audit: 是
+      batch: "2-3"
+
+class_copy:
+  page: PAGE-CLS-COPY
+  actions:
+    - id: ACT-CLS-040
+      element: 选择目标学年学期 / 目标年级
+      trigger: 选择
+      condition: 有 org.class:create 权限
+      permission: "academic_director / super_admin / org.class / create"
+      api: "-"
+      result: 重算新班级名称与冲突提示；目标年级默认取源班级的年级，目标学期默认当前学年学期
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-041
+      element: 按规则生成班级名称
+      trigger: 点击
+      condition: 已选目标年级
+      permission: "-"
+      api: "-"
+      result: 按目标年级重算名称；仍可人工微调（BR-CLASS-003 同口径）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-042
+      element: 取消 / 右上角关闭
+      trigger: 点击或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不创建新班级
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-043
+      element: 确认复制
+      trigger: 点击
+      condition: 目标学年学期、目标年级、新名称齐全且名称不冲突
+      permission: "academic_director / super_admin / org.class / create"
+      api: addClass
+      result: 以源班级为模板生成新班级，复制班级类型 / 容量 / 校区 / 教室，**不复制花名册与班主任**（REQ-CLS-061）；提交复用 addClass（PRD 第 8 节未列 copyClass），是否新增独立 operationId 由阶段 4 接口清单定稿（GAP-049）
+      audit: 是
+      batch: "2-3"
+
+class_leader:
+  page: PAGE-CLS-LEADER
+  actions:
+    - id: ACT-CLS-044
+      element: 选择学年学期 / 新任班主任 / 生效日期
+      trigger: 选择或输入
+      condition: 有 org.class:update 权限；已停用班级与教学班无本入口（REQ-CLS-044 / REQ-CLS-039）
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: "-"
+      result: 切换任职历史清单并校验候选人资格；历史学年学期只读，不提供保存（REQ-CLS-050）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-045
+      element: 取消 / 右上角关闭
+      trigger: 点击或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，班主任不变更
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-046
+      element: 保存
+      trigger: 点击
+      condition: 学年学期、新任班主任、生效日期齐全，且该教师在本校在职、非离职 / 调离
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: assignHeadTeacher
+      result: 原班主任自动产生结束日期（同一时间只允许一名在任，REQ-CLS-049），历史保留（REQ-CLS-024 / 050）；立即失效原与新班主任的数据范围缓存（REQ-CLS-025 / 051）；写审计
+      audit: 是
+      batch: "2-3"
+    - id: ACT-CLS-047
+      element: 查看全部任职历史
+      trigger: 点击
+      condition: 有 org.class:read 权限
+      permission: "org.class:read"
+      api: getClass
+      result: 关闭弹窗并跳到 PAGE-CLS-DETAIL 的「班主任任职历史」页签（批次 2-3b 已交付），保留班级上下文
+      audit: 否
+      batch: "2-3"
+
 batches_pending:
   - { batch: "2-2", pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-CREATE, PAGE-TCH-EDIT, PAGE-TCH-LEAVE, PAGE-TCH-ROLE, PAGE-TCH-ASSIGN], status: "2-2a、2-2b-1 与 2-2b-2 教师部分已产出待验收（ACT-TCH-001 ~ 039 已登记）" }
   - { batch: "2-2b-2b", pages: [PAGE-GRD-LIST, PAGE-GRD-DETAIL, PAGE-GRD-CREATE, PAGE-GRD-BATCH, PAGE-GRD-LEADER, PAGE-GRD-ARCHIVE], status: "PAGE-GRD-LIST 样板页已产出待验收（ACT-GRD-001 ~ 011 已登记）；其余 5 页待样板验收后铺开" }
-  - { batch: "2-3", pages: [PAGE-CLS-LIST, PAGE-CLS-DETAIL, PAGE-CLS-CREATE, PAGE-CLS-BATCH, PAGE-CLS-ROSTER-ADD, PAGE-CLS-TRANSFER, PAGE-CLS-LEADER, PAGE-CLS-COPY, PAGE-CLS-MOVE, PAGE-PRM-LIST, PAGE-PRM-CREATE, PAGE-PRM-PREVIEW, PAGE-PRM-ADJUST, PAGE-PRM-VALIDATE, PAGE-PRM-EXECUTE, PAGE-PRM-RESULT], status: "小批 2-3a（PAGE-CLS-LIST 样板页）已产出待验收（ACT-CLS-001 ~ 016 已登记）；2-3b ~ 2-3e 待样板验收后铺开" }
+  - { batch: "2-3", pages: [PAGE-CLS-LIST, PAGE-CLS-DETAIL, PAGE-CLS-CREATE, PAGE-CLS-BATCH, PAGE-CLS-ROSTER-ADD, PAGE-CLS-TRANSFER, PAGE-CLS-LEADER, PAGE-CLS-COPY, PAGE-CLS-MOVE, PAGE-PRM-LIST, PAGE-PRM-CREATE, PAGE-PRM-PREVIEW, PAGE-PRM-ADJUST, PAGE-PRM-VALIDATE, PAGE-PRM-EXECUTE, PAGE-PRM-RESULT], status: "2-3a（class_list，ACT-CLS-001 ~ 016）、2-3b（class_detail，ACT-CLS-017 ~ 029）、2-3c（class_create / class_batch / class_copy / class_leader，ACT-CLS-030 ~ 047）已产出待验收；2-3d ~ 2-3e 待铺开" }
   - { batch: "2-4", pages: [PAGE-IMP-WIZARD, PAGE-IMP-TEMPLATE, PAGE-IMP-VALIDATE, PAGE-IMP-EXECUTE, PAGE-STU-IMPORT, PAGE-TCH-IMPORT, PAGE-CLS-ROSTER-IMPORT, PAGE-LOGIN, PAGE-403, PAGE-404, PAGE-500], status: 待开始 }
 
 # ---------------------------------------------------------------------------

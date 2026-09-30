@@ -23,6 +23,8 @@
   'use strict';
   var RESULTS = [];
   var frame = document.getElementById('frame');
+  var FRAME_SRC = frame.getAttribute('src');
+  var started = false;
 
   function rec(id, name, pass, detail) {
     RESULTS.push({ id: id, name: name, pass: Boolean(pass), detail: detail || '' });
@@ -219,13 +221,40 @@
     },
     function (next) {
       clearToasts();
+      // D-064 之后「班级数」是真实跨页跳转（data-nav="PAGE-CLS-LIST"），不再是「后续批次交付」提示。
+      // 本步验证跳转真的发生，然后把 iframe 还原回年级列表页，后续断言继续在年级页上跑。
+      var stepDone = false;
+      var restored = false;
+      function onLoad() {
+        var d = null;
+        try { d = frame.contentDocument; } catch (err) { d = null; }
+        if (!restored) {
+          if (!d || !d.querySelector('#class-rows')) return; // 可能是首帧 load，忽略
+          restored = true;
+          rec('GL-15', '点「班级数」真实跳转到班级列表页（data-nav=PAGE-CLS-LIST，D-064 的跳转登记）',
+            true, '已落在班级列表页（' + (d.title || '') + '）');
+          frame.src = FRAME_SRC;
+          return;
+        }
+        if (d && d.querySelector('#grade-rows')) {
+          frame.removeEventListener('load', onLoad);
+          if (!stepDone) { stepDone = true; next(); }
+        }
+      }
+      frame.addEventListener('load', onLoad);
       rowOf('2026 级 高一').querySelector('[data-action-id="ACT-GRD-008"]').click();
+      // 兜底：跳转与还原都失败时给出失败结论并结束本步，避免整条链卡死
       window.setTimeout(function () {
-        var t = toastText();
-        rec('GL-15', '点「班级数」提示在批次 2-3 交付（带入年级筛选）',
-          t.indexOf('班级管理') !== -1 && t.indexOf('2-3') !== -1, t.slice(0, 60));
+        if (stepDone) return;
+        stepDone = true;
+        frame.removeEventListener('load', onLoad);
+        if (!restored) {
+          rec('GL-15', '点「班级数」真实跳转到班级列表页（data-nav=PAGE-CLS-LIST）', false, '4 秒内没有发生跳转');
+        } else {
+          rec('GL-15-RESTORE', '跳转后 iframe 还原回年级列表页', false, '4 秒内没有还原成功');
+        }
         next();
-      }, 80);
+      }, 4000);
     },
     function (next) {
       clearToasts();
@@ -562,6 +591,9 @@
   }
 
   frame.addEventListener('load', function () {
+    // 只在首次加载时启动：GL-15 会真实跳转并还原 iframe，还原时不能重新起一条链
+    if (started) return;
+    started = true;
     window.setTimeout(function () { run(0); }, 300);
   });
 })();

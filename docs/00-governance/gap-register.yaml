@@ -1191,7 +1191,8 @@ gaps:
       进度（2026-09-30）：`class_list` 已登记 ACT-CLS-001 ~ 016（列表页全部可点元素，
       verify-class-list 的 CL-34 实测页面用到 18 个编号且全部落在已登记集合内）；
       其余页面的动作按小批随页面同步登记：2-3b 已登记 `class_detail` 组（ACT-CLS-017 ~ 029，共 13 条），
-      剩余 2-3c（表单 / 批量生成 / 复制 / 指定班主任）、2-3d（添加学生 / 调班 / 批量迁学生）、2-3e（升班 6 页）待登记。
+      2-3c 已登记 `class_create` / `class_batch` / `class_copy` / `class_leader` 四组（ACT-CLS-030 ~ 047，共 18 条），
+      剩余 2-3d（添加学生 / 调班 / 批量迁学生）、2-3e（升班 6 页）待登记。
     impact: |
       没有动作清单就无法定义"点了会发生什么"：权限点、前置条件、确认与否、调用的接口、审计要求、
       结果反馈都无处登记；先写页面再补清单会导致 check_docs.py 直接报错，或页面里出现未登记动作。
@@ -1373,6 +1374,109 @@ gaps:
     owner: Codex
     status: open
 
+  - id: GAP-048
+    title: 新建班级弹窗里「班级类型」的可选范围（REQ-CLS-014 要求必填，但教学班有独立的创建接口与页面）
+    discovered_at: 2026-09-30
+    discovered_by: 批次 2-3c 交付 PAGE-CLS-CREATE 时的公共前置反查
+    evidence: |
+      docs/10-prd/modules/class/PRD.md 第 165 行 REQ-CLS-014 把「班级类型」列为**新建班级的必填字段**；
+      同文件第 205 行 REQ-CLS-038 又写「支持创建教学班：学年学期 + 年级 + 学科（或选科组合）+ 名称」；
+      第 8 节接口清单（第 438、454 行）把「新建」与「新建教学班」拆成两个 operationId：
+      addClass（POST /edu/class）与 addTeachingClass（POST /edu/teaching-class）。
+      prototypes/functional/v1/navigation.yaml 把 PAGE-CLS-TEACHING（教学班管理）排在批次 2-7，
+      docs/00-governance/decisions.md 的 D-043 明确教学班「属于首轮实现（表 + 界面 + 接口）」，交付顺序先选科后教学班。
+      因此「新建班级」弹窗与「教学班管理」页谁负责建教学班，文档没有直接写。
+    expected: 新建班级弹窗的班级类型要么固定为行政班（教学班在 2-7 创建），要么在弹窗内可切换并改调 addTeachingClass
+    actual: 两种读法都能自圆其说；差别体现在弹窗字段集与提交接口上
+    impact: |
+      原型：PAGE-CLS-CREATE 里「班级类型」下拉是可选两项还是只有行政班可选项；选到教学班时字段集是否切换
+      （学科必填、班主任与容量隐藏）。
+      阶段 4：接口清单定稿时 addClass 是否承载两类，还是界面与接口一对一。
+      阶段 6：表单组件与校验规则的分支数量。
+      本批次按保守读法实现：行政班唯一可选，教学班选项列出但置灰并指向批次 2-7 的教学班管理页。
+    options:
+      - A 保持本批次实现（新建班级 = 行政班，教学班在 PAGE-CLS-TEACHING 创建，接口 addTeachingClass）；REQ-CLS-014 的「班级类型」在弹窗内只读展示为行政班
+      - B 弹窗内可选两类：选行政班走 addClass，选教学班走 addTeachingClass 并切换字段集（学科必填、班主任与容量隐藏）；教学班管理页只做维护
+    recommended: |
+      选项 A。理由：接口清单已经把两类拆成两个 operationId，D-043 又把教学班管理排进批次 2-7；
+      按 A 实现时一个界面只对应一个接口，权限点与校验规则都不需要分叉，也不需要在本批提前引入选科相关字段。
+      选项 B 的代价是把批次 2-7 的创建入口提前到本批，并让一个弹窗绑定两个 operationId。
+    resolution: |
+      2026-09-30 用户答复「1a2a」，GAP-048 取选项 A：新建班级弹窗只建行政班（addClass），
+      「教学班」选项列出但置灰并指向批次 2-7 的教学班管理页（addTeachingClass）。
+      本批次已按此实现，无需改动；见 D-066。
+    blocking: false
+    blocks_stages: []
+    owner: Codex
+    status: closed
+
+  - id: GAP-049
+    title: 复制班级（REQ-CLS-061）在班级 PRD 第 8 节接口清单里没有对应 operationId
+    discovered_at: 2026-09-30
+    discovered_by: 批次 2-3c 交付 PAGE-CLS-COPY 时的接口回查
+    evidence: |
+      docs/10-prd/modules/class/PRD.md 第 213 行 REQ-CLS-061 要求提供「复制班级」：
+      以某班级为模板，在指定的学年学期与年级下生成新班级，复制班级类型、容量、校区、教室，不复制花名册与班主任。
+      同一份 PRD 第 8 节接口清单（第 436 ~ 454 行共 19 个 operationId）里没有 copyClass 之类的条目，
+      最接近的是 addClass（新建）与 batchAddClass（批量生成）。
+    expected: 复制班级在接口清单里有明确归属（新增 operationId，或写明复用 addClass）
+    actual: 需求登记了复制能力，接口清单未登记对应入口
+    impact: |
+      原型：PAGE-CLS-COPY 的 data-api 写哪个 operationId。
+      阶段 4：接口清单定稿时是否新增路径（会影响网关路由与权限点数量）。
+      阶段 6 / 8：前端 api 层函数名与接口测试用例的对应关系。
+      本批次按保守读法实现：data-api="addClass"（复制即「以源班级预填 + 新建」），并在页面规格里写明。
+    options:
+      - A 保持本批次实现：复制 = 预填 + addClass，不新增 operationId（REQ-CLS-061 原文就是「以某班级为模板……生成新班级」）
+      - B 走一次 CR 在 PRD 第 8 节补 copyClass POST /edu/class/{id}/copy，把「复制」做成服务端原子操作（可校验源班级是否在同一数据范围）
+    recommended: |
+      选项 A。理由：REQ-CLS-061 的语义就是「以源班级为模板生成新班级」，复用 addClass 不需要新增权限点与路由；
+      源班级的读取权限已在 getClass 上校验过，前端预填后提交仍会走 addClass 的完整校验（名称唯一、数据范围、学年学期状态）。
+      选项 B 的价值在于把「读源班级」与「建新班级」合成一次服务端校验，代价是多一个接口与一轮 CR；
+      若阶段 4 认为复制需要服务端保证原子性，再切 B。
+    resolution: |
+      2026-09-30 用户答复「1a2a」，GAP-049 取选项 A：复制班级复用 addClass，不新增 copyClass。
+      本批次已按此实现（PAGE-CLS-COPY 的 data-api="addClass"），无需改动；见 D-066。
+      阶段 4 接口清单定稿时若认为需要服务端原子校验，走 CR 在班级 PRD 第 8 节补 copyClass。
+    blocking: false
+    blocks_stages: []
+    owner: Codex
+    status: closed
+
+  - id: GAP-050
+    title: verify-grade-list harness 的 GL-15 断言已过期（「班级数」已由提示改为真实跨页跳转），harness 整条链卡死
+    discovered_at: 2026-09-30
+    discovered_by: 批次 2-3c 结束时对已交付 harness 做全量回归
+    evidence: |
+      evidence/stage2-prototype/verify-grade-list.html 的 GL-15 断言写的是
+      「点「班级数」提示在批次 2-3 交付（带入年级筛选）」，即期望只弹 toast。
+      但 prototypes/functional/v1/pages/grade-list.html 的「班级数」按钮已经带
+      data-nav="PAGE-CLS-LIST"，外壳按 markup-contract 第 10 节做真实跳转（D-064 之后交付的形态），
+      因此点击后 iframe 直接离开年级列表页。
+      又因为该 harness 的 frame.load 监听没有「只启动一次」的守卫，
+      跳转触发的第二个 load 会重新启动一条断言链，第二条链在 GL-04（读取已归档年级行）抛
+      TypeError: Cannot read properties of undefined (reading 'querySelectorAll')，
+      于是渲染函数从未执行，页面长期停在「运行中…」（实测：`--dump-dom` 只有 1 个 li）。
+      该文件在批次 2-3a / 2-3b 期间未被修改，属上批遗留的过期断言，不是本批引入。
+    expected: harness 的断言与页面当前形态一致，并且 iframe 被导航后仍能把链跑完
+    actual: 断言过期 + 缺少 load 守卫，导致 harness 静默失效（页面只剩「运行中…」）
+    impact: |
+      evidence 里「GL 38/38 通过」的结论在 D-064 之后无法复现；年级模块的回归保护实际处于失效状态。
+      若不修，后续任何批次跑全量回归都会看到「年级 harness 不通过」而无法判断是否被自己改坏。
+    options:
+      - A 按当前形态修正 GL-15：断言「班级数」真实跳转到班级列表页，然后还原 iframe 并继续后续断言；同时补上 load 启动守卫（本批已按此修复）
+      - B 回退 grade-list.html 的「班级数」为只弹提示（会把 D-064 登记的跳转关系撤销，不推荐）
+    recommended: 选项 A（已执行）。理由：D-064 的跳转是用户确认过的形态，应改断言而不是改页面。
+    resolution: |
+      2026-09-30 批次 2-3c 修复：verify-grade-list.html 的 GL-15 改为
+      「点击 → 断言落在班级列表页 → 还原 iframe 回年级列表页 → 继续后续断言」，
+      新增 FRAME_SRC 常量与 load 启动守卫，并补 4 秒兜底避免链条卡死。
+      回归结果：GL-01 ~ GL-38 全部通过（38/38）。
+    blocking: false
+    blocks_stages: []
+    owner: Codex
+    status: closed
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"
@@ -1420,3 +1524,7 @@ open_questions_for_user:
   - "阶段 2 批次 2-3b 已产出待验收：pages/class-detail.html（基本信息卡 + 花名册 / 任课教师 / 班主任任职历史 / 变更记录）、page-specs/class-detail.md、page-actions.yaml 的 ACT-CLS-017 ~ 029、外壳 EXTRA_PAGES 登记（班级列表「详情」改为真实跳转）；verify-class-detail 20/20、verify-class-list 39/39 通过，见 D-065。"
   - "样例口径修正（D-065）：高一 (1) 班「在读」3 → 2（陈思远休学，BR-STU-012），班级列表 / 年级详情样本 / content-samples.json 三处同步，受影响截图已重拍。"
   - "新增 GAP-047（Codex 自有非阻塞项）：已交付的学生 / 年级 / 教师列表尚未按 filter_cascade 收窄筛选选项，按各自模块的下一批对齐；不阻塞批次 2-3。"
+  - "阶段 2 批次 2-3c 已产出待验收：pages/class-list.html 的四个弹窗（PAGE-CLS-CREATE 一窗两态 / PAGE-CLS-BATCH / PAGE-CLS-COPY / PAGE-CLS-LEADER）、page-specs 的 4 份规格、page-actions.yaml 的 class_create / class_batch / class_copy / class_leader（ACT-CLS-030 ~ 047，共 18 条）；pages/class-detail.html 的「编辑班级 / 指定班主任 / 复制班级」改为跨页深链接到列表页对应弹窗并带入班级。"
+  - "新增 evidence/stage2-prototype/verify-class-dialogs.html（CDL-01 ~ CDL-36 全通过，含第二个 iframe 验证班级详情 → 列表页的跨页带入）；现有 5 个 harness 回归：verify-class-list 39/39、verify-class-detail 20/20、verify-detail-entry 6/6、verify-carrier-change 14/14、verify-grade-list 38/38。"
+  - "GAP-050 已关闭（Codex 自有）：verify-grade-list 的 GL-15 断言在 D-064 之后过期，导致「班级数」的真实跳转让 harness 静默失效；本批按当前形态修正断言并补 load 启动守卫，回归 38/38。该文件本身未在 2-3a / 2-3b 期间改动，属上批遗留。"
+  - "GAP-048、GAP-049 已关闭（用户 2026-09-30 答复「1a2a」，两项均取推荐方案 A）：新建班级弹窗只建行政班（教学班创建留在批次 2-7）、复制班级复用 addClass 不新增 copyClass。两项都已按选项 A 实现，无需改动，见 D-066。"

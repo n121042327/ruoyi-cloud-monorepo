@@ -509,13 +509,15 @@
     },
     function (next) {
       var allowed = ['ACT-COM-001', 'ACT-COM-002', 'ACT-COM-003', 'ACT-COM-004', 'ACT-COM-005', 'ACT-COM-006', 'ACT-COM-007'];
-      for (var i = 1; i <= 16; i += 1) { allowed.push('ACT-CLS-' + String(i).padStart(3, '0')); }
+      // 本页同时承载批次 2-3c 的四个弹窗（class_create / class_batch / class_copy / class_leader），
+      // 因此 001 ~ 047 都属于本页可出现的已登记集合（017 ~ 029 属班级详情页，本页未用）。
+      for (var i = 1; i <= 47; i += 1) { allowed.push('ACT-CLS-' + String(i).padStart(3, '0')); }
       var used = {};
       Array.prototype.forEach.call(doc().querySelectorAll('[data-action-id]'), function (n) {
         used[n.getAttribute('data-action-id')] = true;
       });
       var unknown = Object.keys(used).filter(function (id) { return allowed.indexOf(id) === -1; });
-      rec('CL-34', '页面用到的动作编号全部落在 common_actions 与 class_list 已登记集合内',
+      rec('CL-34', '页面用到的动作编号全部落在 common_actions 与 class_* 各动作组已登记集合内',
         unknown.length === 0, unknown.length ? '未登记 ' + unknown.join(',') : Object.keys(used).length + ' 个编号');
       next();
     },

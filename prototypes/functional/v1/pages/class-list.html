@@ -48,6 +48,27 @@
   .row-more-menu button:hover { background: #f5f7fa; color: var(--app-primary); }
   .row-more-menu button.danger { color: var(--app-danger); }
   .row-more-menu .sep { height: 1px; margin: 4px 0; background: var(--app-border-light); }
+  /* 弹窗内不放表格（layout-spec 规则）：复制清单、批量预览、任职历史与当前班主任都用列表渲染 */
+  .list { display: flex; flex-direction: column; gap: 8px; }
+  .list-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--app-border-light);
+    border-radius: var(--app-radius-small);
+    background: #fafbfc;
+  }
+  .list-row .grow { flex: 1; min-width: 0; }
+  .list-row .op { margin-left: auto; }
+  .list-row.conflict { border-color: #fbc4c4; background: #fef0f0; }
+  .list-empty {
+    padding: 14px;
+    text-align: center;
+    color: var(--app-text-secondary);
+    border: 1px dashed var(--app-border);
+    border-radius: var(--app-radius-small);
+  }
+  /* 「已保存」结果块里的三个后续动作（REQ-CLS-018）横排，窄屏下换行 */
+  .alert-actions { display: inline-flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 </style>
 </head>
 <body
@@ -580,6 +601,351 @@
   </div>
 </div>
 
+<!-- ============================================================== 弹窗:新建 / 编辑班级（批次 2-3c，一窗两态）
+     D-059：表单类浮层统一用 el-dialog。字段与规则见 page-specs/class-create.md。 -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-CLS-CREATE" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="md" data-page="PAGE-CLS-CREATE" data-block="form">
+    <div class="dialog-header">
+      <h2><span id="class-form-title">新建班级</span> · <span id="class-form-target">2026 级 高一</span></h2>
+      <span class="el-tag primary" id="class-form-mode">新建</span>
+      <button class="close-x" data-close-panel="PAGE-CLS-CREATE" title="关闭">✕</button>
+    </div>
+    <div class="dialog-body">
+      <div class="alert info">
+        <span>命名与唯一性</span>
+        <span>班级名称在同一学校、同一学年学期、同一学段下不允许重复（<span class="mono">BR-CLASS-003</span>）；
+          默认按班级命名规则生成，仍可人工微调。</span>
+      </div>
+      <div class="form-grid">
+      <div class="field" data-field="term_id" data-role-editable="academic_director,grade_leader">
+        <label>学年学期<span class="required">*</span></label>
+        <select class="select" style="min-width:100%" id="class-form-term" data-component="el-select" data-required
+                data-required-message="请选择学年学期">
+          <option value="202601" selected>2026-2027 学年 第一学期（当前）</option>
+          <option value="202602">2026-2027 学年 第二学期</option>
+        </select>
+        <div class="error-text"></div>
+        <div class="readonly-hint">学年学期一经创建不可修改，需要变更时新建班级并迁移学生（<span class="mono">REQ-CLS-022</span>）。</div>
+        <div class="hint">已归档的学年学期不在新建班级的可选列表中（<span class="mono">REQ-TERM-030</span>）。</div>
+      </div>
+      <div class="field" data-field="grade_id" data-role-editable="academic_director,grade_leader">
+        <label>年级<span class="required">*</span></label>
+        <select class="select" style="min-width:100%" id="class-form-grade" data-component="el-select" data-required
+                data-required-message="请选择年级"></select>
+        <div class="error-text"></div>
+        <div class="readonly-hint">只列出本校该学年学期下未归档的年级；年级一经创建不可修改（<span class="mono">REQ-CLS-022</span>）。</div>
+      </div>
+      <div class="field" data-field="class_type" data-role-editable="academic_director,grade_leader">
+        <label>班级类型<span class="required">*</span></label>
+        <select class="select" style="min-width:100%" id="class-form-type" data-component="el-select" data-required
+                data-required-message="请选择班级类型">
+          <option value="administrative" selected>行政班</option>
+          <option value="teaching" disabled>教学班（在「教学班管理」创建）</option>
+        </select>
+        <div class="error-text"></div>
+        <div class="hint">本弹窗只建行政班（接口 <span class="mono">addClass</span>）；教学班的创建入口在批次 2-7 的教学班管理页
+          （接口 <span class="mono">addTeachingClass</span>，<span class="mono">BR-CLASS-007</span> / <span class="mono">REQ-CLS-038</span> / <span class="mono">D-043</span>）。</div>
+      </div>
+      <div class="field" data-field="class_name" data-role-editable="academic_director,grade_leader">
+        <label>班级名称<span class="required">*</span></label>
+        <input class="input" style="min-width:100%" id="class-form-name" data-component="el-input" data-required
+               data-required-message="请填写班级名称" value="高一 (4) 班" />
+        <div class="error-text"></div>
+        <div class="hint">
+          同一学校、同一学年学期、同一学段下不可重名；改名后原组合才会释放（<span class="mono">BR-CLASS-003</span>）。
+          <button class="btn link" data-role="action" data-action-id="ACT-CLS-031" data-component="el-button.link.primary">按规则生成</button>
+        </div>
+      </div>
+      <div class="alert danger state-hidden span-2" id="class-form-conflict">
+        <span>唯一性冲突</span>
+        <span id="class-form-conflict-text">该名称在本校、本学年学期、本学段下已存在，请改名后重试（<span class="mono">BR-CLASS-003</span>）。</span>
+      </div>
+      <div class="field" data-field="head_teacher_id" data-role-editable="academic_director,grade_leader">
+        <label>班主任</label>
+        <select class="select" style="min-width:100%" id="class-form-head" data-component="el-select"></select>
+        <div class="hint state-hidden" id="class-form-head-locked">变更班主任请用列表行内「指定班主任」入口：需要填写生效日期并保留任职历史
+          （<span class="mono">REQ-CLS-024</span> / <span class="mono">REQ-CLS-050</span>）。</div>
+        <div class="hint">可留空，建班后在列表行内「指定班主任」补录；班主任的唯一写入入口在班级模块
+          （<span class="mono">DP-01</span>），一个班级同一时间只有一名在任班主任（<span class="mono">REQ-CLS-049</span>）。</div>
+      </div>
+      <div class="field" data-field="class_capacity" data-role-editable="academic_director,grade_leader">
+        <label>容量</label>
+        <input class="input" style="max-width:140px" id="class-form-capacity" data-component="el-input-number" value="45" />
+        <div class="hint">容量上限只作参考，超出时仅提示、不阻止任何操作（<span class="mono">BR-CLASS-005</span>）。</div>
+      </div>
+      <div class="field" data-field="campus_id" data-role-editable="academic_director,grade_leader">
+        <label>校区</label>
+        <select class="select" style="min-width:100%" id="class-form-campus" data-component="el-select"></select>
+        <div class="hint">校区不参与权限判定（<span class="mono">BR-ORG-009</span>），只用于组织与统计。</div>
+      </div>
+      <div class="field" data-field="classroom" data-role-editable="academic_director,grade_leader">
+        <label>教室</label>
+        <input class="input" style="min-width:100%" id="class-form-classroom" data-component="el-input"
+               placeholder="如：本部教学楼 A209" />
+        <div class="hint">教室可留空；容量与教室都不参与任何校验拦截。</div>
+      </div>
+      <div class="alert danger state-hidden span-2" data-validate-summary>
+        <span>请先修正下面这些问题</span>
+        <span>带红色提示的字段为必填或取值不合法；修正后再保存。</span>
+      </div>
+      <div class="alert success state-hidden span-2" id="class-form-done">
+        <span>已保存</span>
+        <span id="class-form-done-text">已新建「高一 (4) 班」，并写入审计（操作人、对象、时间、来源 IP）。</span>
+        <span class="alert-actions">
+          <button class="btn link" data-role="action" data-action-id="ACT-CLS-034" data-component="el-button.link.primary">继续新增</button>
+          <button class="btn link" data-role="action" data-action-id="ACT-CLS-035" data-component="el-button.link.primary">进入班级详情</button>
+          <button class="btn link" data-role="action" data-action-id="ACT-CLS-036" data-component="el-button.link.primary">立即编班</button>
+        </span>
+      </div>
+      </div>
+      <div class="alert warning" style="margin:0">
+        <span>保存后会发生什么</span>
+        <span>写入班级主体并写审计；名称若与同校同学年学期同学段下的已有班级重名，接口直接拒绝并提示冲突
+          （<span class="mono">BR-CLASS-003</span> / <span class="mono">REQ-CLS-019</span>）。</span>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-CLS-032" data-component="el-button"
+              data-close-panel="PAGE-CLS-CREATE">取消</button>
+      <button class="btn primary" data-role="action" data-action-id="ACT-CLS-033" data-component="el-button.primary"
+              data-role-visible="academic_director,grade_leader,super_admin"
+              data-permission="org.class:create" data-api="addClass" data-validate-on-submit data-after-success="stay"
+              data-demo-message="已保存。可继续新增、进入班级详情，或立即编班。">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================== 弹窗:批量生成班级（批次 2-3c）
+     弹窗内不放表格（layout-spec 规则），生成预览用列表渲染。 -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-CLS-BATCH" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="md" data-page="PAGE-CLS-BATCH" data-block="form">
+    <div class="dialog-header">
+      <h2>批量生成班级 · <span id="class-batch-school">云溪实验学校</span></h2>
+      <span class="el-tag primary">按年级一次生成多个班级</span>
+      <button class="close-x" data-close-panel="PAGE-CLS-BATCH" title="关闭">✕</button>
+    </div>
+    <div class="dialog-body">
+      <div class="alert info">
+        <span>生成规则</span>
+        <span>按「班级短名 + (序号) 班」生成区间内的全部班级，逐个校验名称唯一
+          （<span class="mono">REQ-CLS-020</span> / <span class="mono">BR-CLASS-003</span>）；已存在的名称跳过，不覆盖、不改名。</span>
+      </div>
+      <div class="form-grid">
+      <div class="field" data-field="term_id" data-role-editable="academic_director">
+        <label>学年学期<span class="required">*</span></label>
+        <select class="select" style="min-width:100%" id="class-batch-term" data-component="el-select" data-required
+                data-required-message="请选择学年学期">
+          <option value="202601" selected>2026-2027 学年 第一学期（当前）</option>
+          <option value="202602">2026-2027 学年 第二学期</option>
+        </select>
+        <div class="error-text"></div>
+        <div class="hint">学年升级后为新学年批量建班，是升班向导执行的前置（<span class="mono">SCN-PROMO-01</span>）。</div>
+      </div>
+      <div class="field" data-field="grade_id" data-role-editable="academic_director">
+        <label>年级<span class="required">*</span></label>
+        <select class="select" style="min-width:100%" id="class-batch-grade" data-component="el-select" data-required
+                data-required-message="请选择年级"></select>
+        <div class="error-text"></div>
+        <div class="readonly-hint">只列出本校该学年学期下未归档的年级；已归档年级不能建班（<span class="mono">REQ-TERM-030</span>）。</div>
+      </div>
+      <div class="field span-2" data-field="class_seq_range" data-role-editable="academic_director">
+        <label>序号区间<span class="required">*</span></label>
+        <div class="form-inline">
+          <input class="input" id="class-batch-from" data-component="el-input-number" value="1" style="width:88px"
+                 data-required data-required-message="请填写起始序号" />
+          <span>~</span>
+          <input class="input" id="class-batch-to" data-component="el-input-number" value="6" style="width:88px"
+                 data-required data-required-message="请填写结束序号" />
+          <span class="el-tag info" id="class-batch-count">将处理 6 个</span>
+        </div>
+        <div class="error-text"></div>
+        <div class="hint">起始序号必须 ≤ 结束序号；序号只用于生成名称，不代表班级排序。</div>
+      </div>
+      <div class="field" data-field="class_capacity" data-role-editable="academic_director">
+        <label>容量</label>
+        <input class="input" style="max-width:140px" id="class-batch-capacity" data-component="el-input-number" value="45" />
+        <div class="hint">按统一容量预填，建班后可逐班调整；容量不强制校验（<span class="mono">BR-CLASS-005</span>）。</div>
+      </div>
+      <div class="field" data-field="campus_id" data-role-editable="academic_director">
+        <label>校区</label>
+        <select class="select" style="min-width:100%" id="class-batch-campus" data-component="el-select"></select>
+        <div class="hint">教室不批量生成，建班后在班级详情或编辑态逐班设置。</div>
+      </div>
+      <div class="field span-2">
+        <label>生成预览</label>
+        <div class="list" id="class-batch-preview"></div>
+      </div>
+      <div class="alert warning state-hidden span-2" id="class-batch-conflict">
+        <span>已存在，将跳过</span>
+        <span id="class-batch-conflict-text">下面标记的班级名称已存在，本次不会覆盖也不会改名。</span>
+      </div>
+      <div class="alert danger state-hidden span-2" data-validate-summary>
+        <span>请先修正下面这些问题</span>
+        <span>学年学期、年级、序号区间都必须填写；修正后再生成。</span>
+      </div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-CLS-038" data-component="el-button"
+              data-close-panel="PAGE-CLS-BATCH">取消</button>
+      <button class="btn primary" data-role="action" data-action-id="ACT-CLS-039" data-component="el-button.primary"
+              data-role-visible="academic_director,super_admin"
+              data-permission="org.class:create" data-api="batchAddClass" data-validate-on-submit data-after-success="close-panel"
+              data-demo-message="已生成 5 个班级，1 个因名称已存在被跳过（TASK-20260930-000702）。可在异步任务中查看结果。">确认生成</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================== 弹窗:复制班级（批次 2-3c）
+     REQ-CLS-061：以某班级为模板生成新班级，不复制花名册与班主任。 -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-CLS-COPY" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="md" data-page="PAGE-CLS-COPY" data-block="form">
+    <div class="dialog-header">
+      <h2>复制班级 · <span id="class-copy-source">高一 (1) 班</span></h2>
+      <span class="el-tag primary">不复制花名册与班主任</span>
+      <button class="close-x" data-close-panel="PAGE-CLS-COPY" title="关闭">✕</button>
+    </div>
+    <div class="dialog-body">
+      <div class="alert info">
+        <span>复制口径</span>
+        <span>只复制班级的配置项，学生与班主任属于关系数据，必须在新班级里重新建立
+          （<span class="mono">REQ-CLS-061</span>）。</span>
+      </div>
+      <div class="field">
+        <label>源班级（只读）</label>
+        <div class="list" id="class-copy-summary"></div>
+      </div>
+      <div class="form-grid">
+      <div class="field" data-field="term_id" data-role-editable="academic_director">
+        <label>目标学年学期<span class="required">*</span></label>
+        <select class="select" style="min-width:100%" id="class-copy-term" data-component="el-select" data-required
+                data-required-message="请选择目标学年学期">
+          <option value="202601" selected>2026-2027 学年 第一学期（当前）</option>
+          <option value="202602">2026-2027 学年 第二学期</option>
+        </select>
+        <div class="error-text"></div>
+      </div>
+      <div class="field" data-field="grade_id" data-role-editable="academic_director">
+        <label>目标年级<span class="required">*</span></label>
+        <select class="select" style="min-width:100%" id="class-copy-grade" data-component="el-select" data-required
+                data-required-message="请选择目标年级"></select>
+        <div class="error-text"></div>
+        <div class="hint">默认取源班级的年级；跨年级复制通常用于「同年级新建平行班」。</div>
+      </div>
+      <div class="field span-2" data-field="class_name" data-role-editable="academic_director">
+        <label>新班级名称<span class="required">*</span></label>
+        <input class="input" style="min-width:100%" id="class-copy-name" data-component="el-input" data-required
+               data-required-message="请填写新班级名称" />
+        <div class="error-text"></div>
+        <div class="hint">
+          名称必须在目标学年学期与目标年级所属学段下唯一（<span class="mono">BR-CLASS-003</span>）。
+          <button class="btn link" data-role="action" data-action-id="ACT-CLS-041" data-component="el-button.link.primary">按规则生成</button>
+        </div>
+      </div>
+      <div class="alert danger state-hidden span-2" id="class-copy-conflict">
+        <span>唯一性冲突</span>
+        <span id="class-copy-conflict-text">该名称在目标学年学期与学段下已存在，请改名后重试（<span class="mono">BR-CLASS-003</span>）。</span>
+      </div>
+      <div class="alert danger state-hidden span-2" data-validate-summary>
+        <span>请先修正下面这些问题</span>
+        <span>目标学年学期、目标年级与新名称都必须填写；修正后再复制。</span>
+      </div>
+      </div>
+      <div class="alert warning" style="margin:0">
+        <span>复制后会发生什么</span>
+        <span>新班级的班级类型、容量、校区、教室与源班级一致，<b>花名册、班主任、班主任任职历史都不复制</b>；
+          复制本身写审计，源班级不做任何改动。</span>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-CLS-042" data-component="el-button"
+              data-close-panel="PAGE-CLS-COPY">取消</button>
+      <button class="btn primary" data-role="action" data-action-id="ACT-CLS-043" data-component="el-button.primary"
+              data-role-visible="academic_director,super_admin"
+              data-permission="org.class:create" data-api="addClass" data-validate-on-submit data-after-success="close-panel"
+              data-demo-message="已按源班级配置复制出新班级；花名册与班主任需要在新班级里重新建立（REQ-CLS-061）。">确认复制</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================== 弹窗:指定 / 变更班主任（批次 2-3c）
+     REQ-CLS-048：班主任的唯一写入入口（DP-01）。 -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-CLS-LEADER" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="md" data-page="PAGE-CLS-LEADER" data-block="form">
+    <div class="dialog-header">
+      <h2><span id="class-leader-title">指定班主任</span> · <span id="class-leader-target">高一 (1) 班</span></h2>
+      <span class="el-tag primary">必须绑定学年学期</span>
+      <button class="close-x" data-close-panel="PAGE-CLS-LEADER" title="关闭">✕</button>
+    </div>
+    <div class="dialog-body">
+      <div class="field">
+        <label>当前班主任</label>
+        <div class="list" id="class-leader-current"></div>
+      </div>
+      <div class="form-grid">
+      <div class="field" data-field="term_id" data-role-editable="academic_director,grade_leader">
+        <label>学年学期<span class="required">*</span></label>
+        <select class="select" style="min-width:100%" id="class-leader-term" data-component="el-select" data-required
+                data-required-message="请选择学年学期">
+          <option value="202601" selected>2026-2027 学年 第一学期（当前）</option>
+          <option value="202602">2026-2027 学年 第二学期</option>
+          <option value="202501">2025-2026 学年 第一学期（历史，只读）</option>
+        </select>
+        <div class="error-text"></div>
+        <div class="hint">班主任必须绑定学年学期，学年切换时需要在新学期重新指定；历史任职只读
+          （<span class="mono">REQ-CLS-024</span> / <span class="mono">REQ-CLS-050</span>）。</div>
+      </div>
+      <div class="field" data-field="head_teacher_id" data-role-editable="academic_director,grade_leader">
+        <label>新任班主任<span class="required">*</span></label>
+        <select class="select" style="min-width:100%" id="class-leader-teacher" data-component="el-select" data-required
+                data-required-message="请选择新任班主任"></select>
+        <div class="error-text"></div>
+        <div class="hint">只列出本校在职教师；离职、调离与非本校教师会列出但不可选，避免指定后数据范围解析不出来。</div>
+      </div>
+      <div class="field" data-field="effective_date" data-role-editable="academic_director,grade_leader">
+        <label>生效日期<span class="required">*</span></label>
+        <input class="input" style="min-width:100%" id="class-leader-effective" data-component="el-date-picker"
+               data-required data-required-message="请选择生效日期" value="2026-09-01" />
+        <div class="error-text"></div>
+        <div class="hint">默认当前学年学期开始日；原班主任的任职结束日自动取生效日期的前一天。</div>
+      </div>
+      <div class="field" data-field="remark" data-role-editable="academic_director,grade_leader">
+        <label>变更原因</label>
+        <textarea class="input" rows="2" style="width:100%;min-width:100%" data-component="el-input.textarea"
+                  id="class-leader-remark" placeholder="选填，如：原班主任调岗，由年级主任接任"></textarea>
+        <div class="hint">填写后作为备注写入审计；变更本身无论是否填写原因都会写审计（<span class="mono">REQ-CLS-052</span>）。</div>
+      </div>
+      <div class="alert warning span-2">
+        <span>保存前检查</span>
+        <span>① 学年学期已选且不是历史学期；② 新班主任在本校在职；③ 同一班级同一时间只允许一名在任班主任
+          （<span class="mono">REQ-CLS-049</span>）；④ 保存后立即失效原班主任与新班主任的数据范围缓存
+          （<span class="mono">REQ-CLS-025</span> / <span class="mono">REQ-CLS-051</span>），并写审计（原任职人 / 新任职人 / 起止日期）。</span>
+      </div>
+      <div class="alert danger state-hidden span-2" data-validate-summary>
+        <span>请先修正下面这些问题</span>
+        <span>学年学期、新任班主任与生效日期都是必填项；修正后再保存。</span>
+      </div>
+      </div>
+      <div class="field">
+        <label>班主任任职历史</label>
+        <div class="list" id="class-leader-history"></div>
+        <div class="hint">
+          任职历史只在班级详情维护，本弹窗只读。
+          <button class="btn link" data-role="action" data-action-id="ACT-CLS-047" data-component="el-button.link.primary">查看全部任职历史</button>
+        </div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-CLS-045" data-component="el-button"
+              data-close-panel="PAGE-CLS-LEADER">取消</button>
+      <button class="btn primary" data-role="action" data-action-id="ACT-CLS-046" data-component="el-button.primary"
+              data-role-visible="academic_director,grade_leader,super_admin"
+              data-permission="org.class:update" data-api="assignHeadTeacher" data-validate-on-submit data-after-success="close-panel"
+              data-demo-message="已保存班主任变更。原班主任的任职已结束，相关用户的数据范围缓存立即失效，列表与详情将刷新。">保存</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============================================================== 批次 2-3a 演示脚本
      覆盖：筛选与关键字检索、按角色收窄数据范围、行内写操作入口与「更多」下拉、
           停用 / 删除两个二次确认片段、七类页面状态。
@@ -678,6 +1044,8 @@
       edit.setAttribute('data-action-id', 'ACT-CLS-005');
       edit.setAttribute('data-component', 'el-button.link.primary');
       edit.setAttribute('data-permission', 'org.class:update');
+      edit.setAttribute('data-nav', 'PAGE-CLS-CREATE');
+      edit.setAttribute('data-overlay', 'dialog');
       box.appendChild(edit);
 
       if (type !== 'teaching') {
@@ -686,6 +1054,8 @@
         leader.setAttribute('data-action-id', 'ACT-CLS-006');
         leader.setAttribute('data-component', 'el-button.link.primary');
         leader.setAttribute('data-permission', 'org.class:update');
+        leader.setAttribute('data-nav', 'PAGE-CLS-LEADER');
+        leader.setAttribute('data-overlay', 'dialog');
         box.appendChild(leader);
       }
 
@@ -724,7 +1094,7 @@
     var enrolled = Number(row.getAttribute('data-enrolled') || 0);
     var defs = [
       { id: 'ACT-CLS-007', text: '编班（添加学生）', pending: '「添加学生」在批次 2-3d 交付（PAGE-CLS-ROSTER-ADD），本批只验证入口与权限显隐。' },
-      { id: 'ACT-CLS-008', text: '复制班级', pending: '「复制班级」在批次 2-3c 交付（PAGE-CLS-COPY），本批只验证入口与权限显隐。' },
+      { id: 'ACT-CLS-008', text: '复制班级', need: COPY_ROLES.indexOf(role) !== -1, panel: 'PAGE-CLS-COPY' },
       { id: 'ACT-CLS-009', text: '批量迁学生', need: enrolled > 0, pending: '「批量迁学生」在批次 2-3d 交付（PAGE-CLS-MOVE），本批只验证入口与权限显隐。' },
       { sep: true },
       { id: 'ACT-CLS-010', text: '停用', panel: 'DIALOG-CLS-DISABLE' },
@@ -743,13 +1113,14 @@
       b.addEventListener('click', function () {
         stickyMore = '';
         closeMoreMenu();
-        if (def.panel) {
-          bindConfirmPanel(def.panel, row);
-          window.PrototypeShell.openPanel(def.panel);
+        if (def.id === 'ACT-CLS-008' && type === 'teaching') {
+          window.PrototypeShell.toast('教学班的成员来自选科结果，复制班级只支持行政班；教学班的维护入口在批次 2-7 的教学班管理页（PAGE-CLS-TEACHING）。', 'warning');
           return;
         }
-        if (def.id === 'ACT-CLS-008' && type === 'teaching') {
-          window.PrototypeShell.toast('教学班的成员来自选科结果，复制班级只支持行政班。', 'warning');
+        if (def.panel) {
+          if (def.panel === 'PAGE-CLS-COPY') fillCopyDialog(row);
+          else bindConfirmPanel(def.panel, row);
+          window.PrototypeShell.openPanel(def.panel);
           return;
         }
         window.PrototypeShell.toast(def.pending, 'warning');
@@ -789,6 +1160,464 @@
       if (i2) i2.textContent = '在读 ' + enrolled + ' 人 · 班主任 ' + head
         + ' · 前置条件由接口二次校验（有在读学生时改用停用）。';
     }
+  }
+
+  /* ---------------- 3.5 批次 2-3c：四个弹窗（新建 / 编辑、批量生成、复制、指定班主任）
+     样例来源：content-samples.json 的 grades（14 条）、teachers + teachers_edge_cases（12 人）、
+     org.campuses（3 个）。弹窗内不编造业务数据；学生与班主任关系一律标记为「不复制 / 需重建」。 */
+
+  var COPY_ROLES = ['academic_director', 'super_admin'];
+  var SCHOOL_NAME = { '201': '云溪实验学校', '202': '云溪外国语学校' };
+  var TERM_LABEL = {
+    '202601': '2026-2027 学年 第一学期',
+    '202602': '2026-2027 学年 第二学期',
+    '202501': '2025-2026 学年 第一学期（已归档）'
+  };
+  var HISTORICAL_TERM = '202501';
+
+  var GRADE_INFO = {
+    '202601': { name: '2026 级 高一', short: '高一', stage: 'senior', school: '201', archived: false },
+    '202501': { name: '2025 级 高二', short: '高二', stage: 'senior', school: '201', archived: false },
+    '202401': { name: '2024 级 高三', short: '高三', stage: 'senior', school: '201', archived: false },
+    '202611': { name: '2026 级 小学一年级', short: '小学一年级', stage: 'primary', school: '201', archived: false },
+    '202512': { name: '2025 级 小学二年级', short: '小学二年级', stage: 'primary', school: '201', archived: false },
+    '202413': { name: '2024 级 小学三年级', short: '小学三年级', stage: 'primary', school: '201', archived: false },
+    '202314': { name: '2023 级 小学四年级', short: '小学四年级', stage: 'primary', school: '201', archived: false },
+    '202215': { name: '2022 级 小学五年级', short: '小学五年级', stage: 'primary', school: '201', archived: false },
+    '202116': { name: '2021 级 小学六年级', short: '小学六年级', stage: 'primary', school: '201', archived: false },
+    '202621': { name: '2026 级 初中一年级', short: '初中一年级', stage: 'junior', school: '201', archived: false },
+    '202522': { name: '2025 级 初中二年级', short: '初中二年级', stage: 'junior', school: '201', archived: false },
+    '202423': { name: '2024 级 初中三年级', short: '初中三年级', stage: 'junior', school: '201', archived: false },
+    '202223': { name: '2022 级 初中三年级', short: '初中三年级', stage: 'junior', school: '201', archived: true },
+    '202602': { name: '2026 级 初一', short: '初一', stage: 'junior', school: '202', archived: false }
+  };
+
+  /* 年级下拉的展示顺序必须显式声明：GRADE_INFO 的键是数字型字符串，
+     直接遍历 Object.keys 会按数值升序（202116 排在最前）而不是按学段顺序。 */
+  var GRADE_IDS = [
+    '202601', '202501', '202401',
+    '202621', '202522', '202423', '202223',
+    '202611', '202512', '202413', '202314', '202215', '202116',
+    '202602'
+  ];
+
+  var CAMPUS_INFO = {
+    '201': [['2011', '本部校区'], ['2012', '北苑校区']],
+    '202': [['2021', '主校区']]
+  };
+
+  var TEACHER_INFO = [
+    { id: '1001', name: '郑雅琴', school: '201', status: '在职', label: '教务主任' },
+    { id: '1002', name: '何文博', school: '201', status: '在职', label: '年级主任' },
+    { id: '1003', name: '邓丽娟', school: '201', status: '在职', label: '班主任 · 任课' },
+    { id: '1004', name: '冯振国', school: '201', status: '在职', label: '班主任' },
+    { id: '1005', name: '谢明轩', school: '201', status: '在职', label: '年级主任 · 任课' },
+    { id: '1006', name: '卢佳音', school: '201', status: '在职', label: '班主任 · 任课' },
+    { id: '1007', name: '苏睿', school: '202', status: '在职', label: '教务主任 · 非本校' },
+    { id: '1008', name: '陆承志', school: '201', status: '在职', label: '校领导' },
+    { id: '1009', name: '韦志远', school: '201', status: '在职', label: '任课' },
+    { id: '1010', name: '阿依努尔·艾山', school: '201', status: '在职', label: '任课' },
+    { id: '1011', name: '高洪波', school: '201', status: '离职', label: '任课' },
+    { id: '1012', name: '苗雨欣', school: '201', status: '调离', label: '任课' }
+  ];
+
+  function currentSchool() { return q('#f-school').value || '201'; }
+  function schoolName(code) { return SCHOOL_NAME[code] || code; }
+  function termLabel(code) { return TERM_LABEL[code] || code; }
+
+  /* 列表行里的「班级名称」单元格带有状态标签（空班 / 毕业年级 / 他校数据 / 教学班），
+     统计与冲突校验都要用去掉标签后的规范名。 */
+  function classNameOf(row) {
+    return cellText(row, 0).replace(/\s*(空班|毕业年级|他校数据|教学班)$/, '').trim();
+  }
+
+  function findRowByName(name) {
+    var wanted = (name || '').trim();
+    return qa('#class-rows tr').filter(function (row) {
+      return classNameOf(row) === wanted;
+    })[0];
+  }
+
+  /* 复制弹窗的源班级：以弹窗标题里显示的班级名回查列表行，用于取数据范围与冲突校验口径。 */
+  function copySourceRow() {
+    return findRowByName(q('#class-copy-source').textContent) || qa('#class-rows tr')[0];
+  }
+
+  /* 同校 + 同学年学期 + 同学段下已占用的班级名称（BR-CLASS-003 的唯一性口径）。 */
+  function classNameIndex(school, term, gradeId) {
+    var stage = GRADE_INFO[gradeId] ? GRADE_INFO[gradeId].stage : null;
+    var index = {};
+    qa('#class-rows tr').forEach(function (row) {
+      if (row.getAttribute('data-school') !== school) return;
+      if (term && row.getAttribute('data-term') !== term) return;
+      var rowStage = GRADE_INFO[row.getAttribute('data-grade')];
+      if (stage && (!rowStage || rowStage.stage !== stage)) return;
+      index[classNameOf(row)] = true;
+    });
+    return index;
+  }
+
+  function suggestClassName(school, term, gradeId) {
+    var info = GRADE_INFO[gradeId];
+    if (!info) return '';
+    var index = classNameIndex(school, term, gradeId);
+    var n = 1;
+    while (Object.prototype.hasOwnProperty.call(index, info.short + ' (' + n + ') 班')) n += 1;
+    return info.short + ' (' + n + ') 班';
+  }
+
+  function gradeOptions(sel, school, term, includeArchived, selected) {
+    var node = q(sel);
+    if (!node) return;
+    var current = selected || node.value;
+    node.innerHTML = '';
+    var opt = el('option', null, '请选择年级');
+    opt.value = '';
+    node.appendChild(opt);
+    GRADE_IDS.forEach(function (id) {
+      var info = GRADE_INFO[id];
+      if (!info) return;
+      if (info.school !== school) return;
+      if (!includeArchived && info.archived) return;
+      var o = el('option', null, info.name + (info.archived ? '（已归档）' : ''));
+      o.value = id;
+      if (info.archived) o.disabled = true;
+      node.appendChild(o);
+    });
+    node.value = GRADE_INFO[current] && GRADE_INFO[current].school === school ? current : '';
+    if (!node.value) {
+      var first = node.querySelector('option[value]:not([value=""]):not([disabled])');
+      if (first) node.value = first.value;
+    }
+  }
+
+  function campusOptions(sel, school) {
+    var node = q(sel);
+    if (!node) return;
+    var current = node.value;
+    node.innerHTML = '';
+    var opt = el('option', null, '暂不指定');
+    opt.value = '';
+    node.appendChild(opt);
+    (CAMPUS_INFO[school] || []).forEach(function (pair) {
+      var o = el('option', null, pair[1]);
+      o.value = pair[0];
+      node.appendChild(o);
+    });
+    node.value = node.querySelector('option[value="' + current + '"]') ? current : (CAMPUS_INFO[school] || [])[0] ? CAMPUS_INFO[school][0][0] : '';
+  }
+
+  function headOptions(sel, school, withEmpty, selectedName) {
+    var node = q(sel);
+    if (!node) return;
+    node.innerHTML = '';
+    if (withEmpty) {
+      var none = el('option', null, '暂不指定（建班后在列表行内指定）');
+      none.value = '';
+      node.appendChild(none);
+    }
+    TEACHER_INFO.forEach(function (t) {
+      var eligible = t.school === school && t.status === '在职';
+      var o = el('option', null, t.name + '（' + t.label + (eligible ? '' : ' · ' + t.status + '，不可选') + '）');
+      o.value = t.name;
+      if (!eligible) o.disabled = true;
+      node.appendChild(o);
+    });
+    node.value = selectedName && node.querySelector('option[value="' + selectedName + '"]') ? selectedName : '';
+  }
+
+  function leaderTeacherOptions(sel, school) {
+    var node = q(sel);
+    if (!node) return;
+    node.innerHTML = '';
+    var opt = el('option', null, '请选择新任班主任');
+    opt.value = '';
+    node.appendChild(opt);
+    TEACHER_INFO.forEach(function (t) {
+      var eligible = t.school === school && t.status === '在职';
+      var suffix = eligible ? '' : (t.school !== school ? ' · 非本校教师' : ' · ' + t.status);
+      var o = el('option', null, t.name + '（' + t.label + suffix + '）');
+      o.value = t.name;
+      if (!eligible) o.disabled = true;
+      node.appendChild(o);
+    });
+  }
+
+  function isRoleReadonly(node) {
+    var wrap = node && node.closest('[data-role-editable]');
+    return Boolean(wrap && wrap.classList.contains('role-readonly'));
+  }
+
+  /* 角色只读时不能被页面逻辑重新打开：applyRole 先把字段禁用，页面只在这里叠加「编辑态只读」。 */
+  function lockNode(node, locked) {
+    if (!node) return;
+    node.disabled = Boolean(locked) || isRoleReadonly(node);
+  }
+
+  function fieldError(sel, message) {
+    var node = q(sel);
+    if (!node) return;
+    var wrap = node.closest('.field');
+    wrap.classList.toggle('has-error', Boolean(message));
+    var err = wrap.querySelector('.error-text');
+    if (err && message) err.textContent = message;
+  }
+
+  function hidePanelNoise(panelId) {
+    var panel = q('[data-demo-panel="' + panelId + '"]');
+    if (!panel) return;
+    ['#class-form-conflict', '#class-form-done', '#class-copy-conflict', '#class-batch-conflict'].forEach(function (sel) {
+      var node = q(sel);
+      if (node && panel.contains(node)) node.classList.add('state-hidden');
+    });
+    var summary = panel.querySelector('[data-validate-summary]');
+    if (summary) summary.classList.add('state-hidden');
+    panel.querySelectorAll('.field.has-error').forEach(function (wrap) {
+      wrap.classList.remove('has-error');
+    });
+  }
+
+  /* ---------------- 弹窗 1：新建 / 编辑班级 ---------------- */
+
+  function setClassFormMode(mode, row) {
+    var isEdit = mode === 'edit';
+    q('#class-form-title').textContent = isEdit ? '编辑班级' : '新建班级';
+    q('#class-form-mode').textContent = isEdit ? '编辑' : '新建';
+    lockNode(q('#class-form-term'), isEdit);
+    lockNode(q('#class-form-grade'), isEdit);
+    // 有花名册后班级类型不可修改（REQ-CLS-023）；教学班在本弹窗只读（其维护入口在批次 2-7）
+    var enrolled = row ? Number(row.getAttribute('data-enrolled') || 0) : 0;
+    lockNode(q('#class-form-type'), isEdit && enrolled > 0);
+    // 班主任变更必须记录起止日期并保留任职历史，因此编辑态只读，变更走行内「指定班主任」（REQ-CLS-024 / 050）
+    lockNode(q('#class-form-head'), isEdit);
+    q('#class-form-head-locked').classList.toggle('state-hidden', !isEdit);
+    hidePanelNoise('PAGE-CLS-CREATE');
+  }
+
+  function fillClassFormForCreate() {
+    var school = currentSchool();
+    var term = q('#f-term').value || '202601';
+    q('#class-form-term').value = term;
+    gradeOptions('#class-form-grade', school, term, false, '');
+    campusOptions('#class-form-campus', school);
+    var gradeId = q('#class-form-grade').value;
+    q('#class-form-target').textContent = GRADE_INFO[gradeId] ? GRADE_INFO[gradeId].name : '未选年级';
+    q('#class-form-type').value = 'administrative';
+    q('#class-form-name').value = suggestClassName(school, term, gradeId);
+    headOptions('#class-form-head', school, true, '');
+    q('#class-form-capacity').value = '45';
+    q('#class-form-classroom').value = '';
+    setClassFormMode('create', null);
+  }
+
+  function fillClassFormForEdit(row) {
+    if (!row) return;
+    var school = row.getAttribute('data-school');
+    var term = row.getAttribute('data-term');
+    var gradeId = row.getAttribute('data-grade');
+    q('#class-form-term').value = term;
+    gradeOptions('#class-form-grade', school, term, true, gradeId);
+    campusOptions('#class-form-campus', school);
+    q('#class-form-grade').value = gradeId;
+    q('#class-form-target').textContent = GRADE_INFO[gradeId] ? GRADE_INFO[gradeId].name : '未选年级';
+    q('#class-form-type').value = row.getAttribute('data-type') === 'teaching' ? 'teaching' : 'administrative';
+    q('#class-form-name').value = classNameOf(row);
+    headOptions('#class-form-head', school, true, cellText(row, 3));
+    q('#class-form-capacity').value = row.getAttribute('data-capacity') || '';
+    var campus = q('#class-form-campus');
+    campus.value = row.getAttribute('data-campus') || '';
+    q('#class-form-classroom').value = cellText(row, 7) === '—' ? '' : cellText(row, 7);
+    setClassFormMode('edit', row);
+  }
+
+  function classFormConflict() {
+    if (q('#class-form-mode').textContent === '编辑') return false; // 编辑态允许保持原名
+    var school = currentSchool();
+    var term = q('#class-form-term').value;
+    var gradeId = q('#class-form-grade').value;
+    var name = q('#class-form-name').value.trim();
+    if (!name) return false;
+    return Object.prototype.hasOwnProperty.call(classNameIndex(school, term, gradeId), name);
+  }
+
+  function revealClassFormSaved() {
+    var panel = q('[data-demo-panel="PAGE-CLS-CREATE"]');
+    if (!panel || panel.querySelector('.field.has-error')) return;
+    var name = q('#class-form-name').value.trim();
+    q('#class-form-done-text').textContent = '已新建「' + name + '」，并写入审计（操作人、对象、时间、来源 IP）。';
+    q('#class-form-done').classList.remove('state-hidden');
+  }
+
+  /* ---------------- 弹窗 2：批量生成班级 ---------------- */
+
+  function renderBatchPreview() {
+    var box = q('#class-batch-preview');
+    if (!box) return;
+    var school = currentSchool();
+    var term = q('#class-batch-term').value;
+    var gradeId = q('#class-batch-grade').value;
+    var info = GRADE_INFO[gradeId];
+    var from = Number(q('#class-batch-from').value || 0);
+    var to = Number(q('#class-batch-to').value || 0);
+    box.innerHTML = '';
+    q('#class-batch-count').textContent = '将处理 ' + (to >= from && from > 0 ? to - from + 1 : 0) + ' 个';
+    if (!info) {
+      box.appendChild(el('div', 'list-empty', '先选年级：班级名称按「年级短名 + (序号) 班」生成，预览会随年级与序号区间实时刷新。'));
+      q('#class-batch-conflict').classList.add('state-hidden');
+      return;
+    }
+    if (!(from > 0) || to < from) {
+      box.appendChild(el('div', 'list-empty', '序号区间不合法：起始序号必须 ≥ 1，且结束序号不小于起始序号。'));
+      q('#class-batch-conflict').classList.add('state-hidden');
+      return;
+    }
+    var index = classNameIndex(school, term, gradeId);
+    var conflicts = 0;
+    var shown = 0;
+    for (var n = from; n <= to && shown < 30; n += 1) {
+      var name = info.short + ' (' + n + ') 班';
+      var dup = Object.prototype.hasOwnProperty.call(index, name);
+      if (dup) conflicts += 1;
+      var line = el('div', 'list-row' + (dup ? ' conflict' : ''));
+      line.appendChild(el('span', 'grow', name + '（序号 ' + n + '）'));
+      line.appendChild(el('span', 'el-tag ' + (dup ? 'warning' : 'success'), dup ? '已存在，跳过' : '将生成'));
+      box.appendChild(line);
+      shown += 1;
+    }
+    if (to - from + 1 > shown) {
+      box.appendChild(el('div', 'list-empty',
+        '区间共 ' + (to - from + 1) + ' 个，原型只展开前 ' + shown + ' 个；提交时按真实区间处理。'));
+    }
+    q('#class-batch-conflict').classList.toggle('state-hidden', conflicts === 0);
+    if (conflicts) {
+      q('#class-batch-conflict-text').textContent =
+        '本次将跳过 ' + conflicts + ' 个已存在的班级名称；不覆盖、不改名，已存在的班级保持原样（BR-CLASS-003）。';
+    }
+  }
+
+  function fillBatchDialog() {
+    var school = currentSchool();
+    var term = q('#f-term').value || '202601';
+    q('#class-batch-school').textContent = schoolName(school);
+    q('#class-batch-term').value = term;
+    gradeOptions('#class-batch-grade', school, term, false, '');
+    campusOptions('#class-batch-campus', school);
+    q('#class-batch-capacity').value = '45';
+    hidePanelNoise('PAGE-CLS-BATCH');
+    renderBatchPreview();
+  }
+
+  function batchRangeError() {
+    var from = Number(q('#class-batch-from').value || 0);
+    var to = Number(q('#class-batch-to').value || 0);
+    if (!from || !to) return '';
+    if (from < 1) return '起始序号必须 ≥ 1';
+    if (to < from) return '结束序号必须不小于起始序号';
+    return '';
+  }
+
+  /* ---------------- 弹窗 3：复制班级 ---------------- */
+
+  function renderCopySummary(row) {
+    var box = q('#class-copy-summary');
+    box.innerHTML = '';
+    if (!row) return;
+    var enrolled = row.getAttribute('data-enrolled') || '0';
+    var head = cellText(row, 3);
+    [['学年学期', termLabel(row.getAttribute('data-term'))],
+     ['年级', GRADE_INFO[row.getAttribute('data-grade')] ? GRADE_INFO[row.getAttribute('data-grade')].name : '—'],
+     ['班级类型', row.getAttribute('data-type') === 'teaching' ? '教学班' : '行政班'],
+     ['容量', row.getAttribute('data-capacity') || '—'],
+     ['校区', cellText(row, 6)],
+     ['教室', cellText(row, 7)],
+     ['花名册', '不复制（源班级在读 ' + enrolled + ' 人）'],
+     ['班主任', '不复制（' + head + '）'],
+     ['班主任任职历史', '不复制（新班级从指定之日起重新记录）']
+    ].forEach(function (pair) {
+      var line = el('div', 'list-row' + (pair[0] === '花名册' || pair[0] === '班主任' || pair[0] === '班主任任职历史' ? ' conflict' : ''));
+      line.appendChild(el('span', 'grow', pair[0]));
+      line.appendChild(el('span', null, pair[1]));
+      box.appendChild(line);
+    });
+  }
+
+  function fillCopyDialog(row) {
+    if (!row) return;
+    var school = row.getAttribute('data-school');
+    var gradeId = row.getAttribute('data-grade');
+    var term = q('#f-term').value || '202601';
+    q('#class-copy-source').textContent = classNameOf(row);
+    renderCopySummary(row);
+    q('#class-copy-term').value = TERM_LABEL[term] ? term : '202601';
+    gradeOptions('#class-copy-grade', school, '202601', true, gradeId);
+    q('#class-copy-name').value = suggestClassName(school, '202601', gradeId);
+    hidePanelNoise('PAGE-CLS-COPY');
+  }
+
+  function copyFormConflict() {
+    var row = copySourceRow();
+    var school = row ? row.getAttribute('data-school') : currentSchool();
+    var term = q('#class-copy-term').value;
+    var gradeId = q('#class-copy-grade').value;
+    var name = q('#class-copy-name').value.trim();
+    if (!name) return false;
+    return Object.prototype.hasOwnProperty.call(classNameIndex(school, term, gradeId), name);
+  }
+
+  /* ---------------- 弹窗 4：指定 / 变更班主任 ---------------- */
+
+  function renderLeaderCurrent(row) {
+    var box = q('#class-leader-current');
+    box.innerHTML = '';
+    var head = row ? cellText(row, 3) : '邓丽娟';
+    if (!row || head === '未指定' || head === '教学班不设') {
+      box.appendChild(el('div', 'list-empty',
+        '该班级当前没有在任班主任：未指定会让本班的数据范围（DS-06）解析不出来，建议建班后尽快指定。'));
+      return;
+    }
+    var line = el('div', 'list-row');
+    line.appendChild(el('span', 'grow', head));
+    line.appendChild(el('span', 'el-tag success', '生效中'));
+    line.appendChild(el('span', 'mono', '2026-09-01 ~ 长期'));
+    box.appendChild(line);
+  }
+
+  function renderLeaderHistory(row) {
+    var box = q('#class-leader-history');
+    box.innerHTML = '';
+    var head = row ? cellText(row, 3) : '邓丽娟';
+    if (!row || head === '未指定' || head === '教学班不设') {
+      box.appendChild(el('div', 'list-empty',
+        '该班级还没有班主任任职记录；指定后立即生效并开始记录，学年切换时重新指定、历史追加保留（REQ-CLS-024 / REQ-CLS-050）。'));
+      return;
+    }
+    var line = el('div', 'list-row');
+    line.appendChild(el('span', 'grow', termLabel(row.getAttribute('data-term'))));
+    line.appendChild(el('span', null, head));
+    line.appendChild(el('span', 'el-tag success', '生效中'));
+    line.appendChild(el('span', 'mono', '2026-09-01 ~ 长期'));
+    line.appendChild(el('span', 'cell-secondary', '操作人 郑雅琴（教务主任）'));
+    box.appendChild(line);
+    box.appendChild(el('div', 'list-empty',
+      '该班级成立于 2026-2027 学年，暂无更早的历史班主任；切换学年时重新指定，历史任职追加保留、不做覆盖。'));
+  }
+
+  function fillLeaderDialog(row) {
+    row = row || findRowByName('高一 (1) 班');
+    var school = row ? row.getAttribute('data-school') : currentSchool();
+    var term = row ? row.getAttribute('data-term') : (q('#f-term').value || '202601');
+    var head = row ? cellText(row, 3) : '邓丽娟';
+    var hasLeader = head && head !== '未指定' && head !== '教学班不设';
+    q('#class-leader-title').textContent = hasLeader ? '变更班主任' : '指定班主任';
+    q('#class-leader-target').textContent = row ? classNameOf(row) : '高一 (1) 班';
+    q('#class-leader-term').value = TERM_LABEL[term] ? term : '202601';
+    leaderTeacherOptions('#class-leader-teacher', school);
+    q('#class-leader-teacher').value = '';
+    q('#class-leader-effective').value = '2026-09-01';
+    q('#class-leader-remark').value = '';
+    renderLeaderCurrent(row);
+    renderLeaderHistory(row);
+    hidePanelNoise('PAGE-CLS-LEADER');
   }
 
   /* ---------------- 4. 筛选、数据范围与页头汇总 ---------------- */
@@ -918,18 +1747,111 @@
       return;
     }
 
-    // 本批未交付的页面：给出明确批次提示，只验证入口与权限显隐
-    var pendingMap = [
-      ['ACT-CLS-005', '班级表单（新建 / 编辑）在批次 2-3c 交付（PAGE-CLS-CREATE），本批只验证入口与权限显隐。'],
-      ['ACT-CLS-006', '指定班主任在批次 2-3c 交付（PAGE-CLS-LEADER），本批只验证入口与权限显隐。'],
-      ['ACT-CLS-001', '新建班级在批次 2-3c 交付（PAGE-CLS-CREATE），本批只验证入口与权限显隐。'],
-      ['ACT-CLS-002', '批量生成班级在批次 2-3c 交付（PAGE-CLS-BATCH），本批只验证入口与权限显隐。']
-    ];
-    for (var i = 0; i < pendingMap.length; i += 1) {
-      if (node.closest('[data-action-id="' + pendingMap[i][0] + '"]')) {
-        window.PrototypeShell.toast(pendingMap[i][1], 'warning');
+    // 行内「编辑」：先按当前行填好表单，再由外壳按 data-nav 打开弹窗（编辑态）
+    var editBtn = node.closest('[data-action-id="ACT-CLS-005"]');
+    if (editBtn) {
+      var editRow = editBtn.closest('tr');
+      if (editRow && editRow.getAttribute('data-type') === 'teaching') {
+        // 教学班的维护入口不在本弹窗：阻断外壳的 data-nav 打开行为
+        event.stopImmediatePropagation();
+        window.PrototypeShell.toast('教学班的维护入口在批次 2-7 的教学班管理页（PAGE-CLS-TEACHING）；本弹窗的班级单据只覆盖行政班。', 'warning');
         return;
       }
+      fillClassFormForEdit(editRow);
+      return;
+    }
+
+    // 行内「指定班主任」：填好当前班主任与任职历史后打开弹窗
+    var leaderBtn = node.closest('[data-action-id="ACT-CLS-006"]');
+    if (leaderBtn) {
+      fillLeaderDialog(leaderBtn.closest('tr'));
+      return;
+    }
+
+    // 工具条「新建」「批量生成」：填默认值后交给外壳的 data-nav 打开
+    if (node.closest('[data-action-id="ACT-CLS-001"]')) { fillClassFormForCreate(); }
+    if (node.closest('[data-action-id="ACT-CLS-002"]')) { fillBatchDialog(); }
+
+    // 按规则生成名称（新建 / 复制）
+    if (node.closest('[data-action-id="ACT-CLS-031"]')) {
+      q('#class-form-name').value = suggestClassName(currentSchool(), q('#class-form-term').value, q('#class-form-grade').value);
+      fieldError('#class-form-name', '');
+      q('#class-form-conflict').classList.add('state-hidden');
+      window.PrototypeShell.toast('已按「年级短名 + 该学年学期已有序号 + 1」重新生成班级名称，仍可人工微调。', 'info');
+      return;
+    }
+    if (node.closest('[data-action-id="ACT-CLS-041"]')) {
+      var copyRow = copySourceRow();
+      q('#class-copy-name').value = suggestClassName(copyRow ? copyRow.getAttribute('data-school') : currentSchool(),
+        q('#class-copy-term').value, q('#class-copy-grade').value);
+      fieldError('#class-copy-name', '');
+      q('#class-copy-conflict').classList.add('state-hidden');
+      window.PrototypeShell.toast('已按目标年级重新生成新班级名称，仍可人工微调。', 'info');
+      return;
+    }
+
+    // 唯一性与区间校验：前端先拦一次，接口同样会拒绝
+    if (node.closest('[data-action-id="ACT-CLS-033"]')) {
+      if (classFormConflict()) {
+        event.stopImmediatePropagation();
+        q('#class-form-conflict').classList.remove('state-hidden');
+        fieldError('#class-form-name', '该名称在本校、本学年学期、本学段下已存在，请改名后重试（BR-CLASS-003）。');
+        return;
+      }
+      var saveBtn = node.closest('[data-action-id="ACT-CLS-033"]');
+      if (q('#class-form-mode').textContent === '编辑') {
+        // 编辑保存后关闭弹窗；「继续新增 / 进入详情 / 立即编班」三个后续动作只在新建态出现（REQ-CLS-018）
+        saveBtn.setAttribute('data-after-success', 'close-panel');
+      } else {
+        saveBtn.setAttribute('data-after-success', 'stay');
+        window.setTimeout(revealClassFormSaved, 1200);
+      }
+      return;
+    }
+    if (node.closest('[data-action-id="ACT-CLS-043"]') && copyFormConflict()) {
+      event.stopImmediatePropagation();
+      q('#class-copy-conflict').classList.remove('state-hidden');
+      fieldError('#class-copy-name', '该名称在目标学年学期与学段下已存在，请改名后重试（BR-CLASS-003）。');
+      return;
+    }
+    if (node.closest('[data-action-id="ACT-CLS-039"]')) {
+      var rangeError = batchRangeError();
+      if (rangeError) {
+        event.stopImmediatePropagation();
+        fieldError('#class-batch-from', rangeError);
+        q('[data-demo-panel="PAGE-CLS-BATCH"] [data-validate-summary]').classList.remove('state-hidden');
+        return;
+      }
+      return;
+    }
+    if (node.closest('[data-action-id="ACT-CLS-046"]')) {
+      if (q('#class-leader-term').value === HISTORICAL_TERM) {
+        event.stopImmediatePropagation();
+        window.PrototypeShell.toast('历史学年学期只读，不能新增或变更班主任；请切换到当前学年学期（REQ-CLS-050）。', 'warning');
+        return;
+      }
+      return;
+    }
+
+    // 保存后的三个后续动作（REQ-CLS-018）
+    if (node.closest('[data-action-id="ACT-CLS-034"]')) {
+      fillClassFormForCreate();
+      window.PrototypeShell.toast('已清空名称与班主任，保留学年学期 / 年级 / 类型 / 容量 / 校区，可继续建班。', 'success');
+      return;
+    }
+    if (node.closest('[data-action-id="ACT-CLS-035"]')) {
+      window.PrototypeShell.closePanel('PAGE-CLS-CREATE');
+      window.location.href = 'class-detail.html';
+      return;
+    }
+    if (node.closest('[data-action-id="ACT-CLS-036"]')) {
+      window.PrototypeShell.toast('「立即编班」在批次 2-3d 交付（PAGE-CLS-ROSTER-ADD）；本批只验证入口与权限显隐。', 'warning');
+      return;
+    }
+    if (node.closest('[data-action-id="ACT-CLS-047"]')) {
+      window.PrototypeShell.closePanel('PAGE-CLS-LEADER');
+      window.location.href = 'class-detail.html#tab=leader-history';
+      return;
     }
 
     // 搜索 / 重置
@@ -990,7 +1912,39 @@
     }
   });
   document.addEventListener('change', function (event) {
-    if (event.target.id === 'f-school') applyFilter();
+    var node = event.target;
+    if (node.id === 'f-school') {
+      applyFilter();
+      // 学校上下文变化后，已关闭的弹窗默认值也跟着换（弹窗在筛选时是关闭状态）
+      fillClassFormForCreate();
+      fillBatchDialog();
+      return;
+    }
+    if (node.id === 'class-batch-term' || node.id === 'class-batch-grade'
+        || node.id === 'class-batch-from' || node.id === 'class-batch-to') {
+      renderBatchPreview();
+      return;
+    }
+    if (node.id === 'class-form-grade') {
+      q('#class-form-target').textContent = GRADE_INFO[node.value] ? GRADE_INFO[node.value].name : '未选年级';
+      if (q('#class-form-mode').textContent === '新建') {
+        q('#class-form-name').value = suggestClassName(currentSchool(), q('#class-form-term').value, node.value);
+      }
+      q('#class-form-conflict').classList.add('state-hidden');
+      fieldError('#class-form-name', '');
+      return;
+    }
+    if (node.id === 'class-form-term' && q('#class-form-mode').textContent === '新建') {
+      q('#class-form-name').value = suggestClassName(currentSchool(), node.value, q('#class-form-grade').value);
+      return;
+    }
+    if (node.id === 'class-copy-term' || node.id === 'class-copy-grade') {
+      var src = copySourceRow();
+      q('#class-copy-name').value = suggestClassName(src ? src.getAttribute('data-school') : currentSchool(),
+        q('#class-copy-term').value, q('#class-copy-grade').value);
+      q('#class-copy-conflict').classList.add('state-hidden');
+      fieldError('#class-copy-name', '');
+    }
   });
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Enter' && event.target && event.target.id === 'f-keyword') applyFilter();
@@ -1014,6 +1968,16 @@
     if (params.keyword) q('#f-keyword').value = params.keyword;
     if (params.state) window.PrototypeShell.applyState(params.state);
     applyFilter();
+    // 跨页深链接：班级详情页的「编辑班级 / 指定班主任 / 复制班级」带 class=<班级名称> 回来，
+    // 直接打开对应弹窗并带入该班级（写入入口的唯一载体仍在本页）。
+    if (params.class) {
+      var target = findRowByName(params.class);
+      if (target) {
+        if (params.panel === 'PAGE-CLS-COPY') fillCopyDialog(target);
+        else if (params.panel === 'PAGE-CLS-LEADER') fillLeaderDialog(target);
+        else fillClassFormForEdit(target);
+      }
+    }
     // 截图与评审辅助：直接把某一行的「更多」下拉展开（下拉本身需要一次点击才能出现）
     if (params.more) {
       stickyMore = params.more;
@@ -1022,6 +1986,11 @@
   }
   document.addEventListener('prototype:params', function (event) { applyPageParams(event.detail); });
 
+  // 弹窗的默认内容先填好：深链接 #panel=PAGE-CLS-* 在没有人点过行的情况下也要有真实样例
+  fillClassFormForCreate();
+  fillBatchDialog();
+  fillCopyDialog(copySourceRow());
+  fillLeaderDialog(null);
   applyFilter();
 })();
 </script>

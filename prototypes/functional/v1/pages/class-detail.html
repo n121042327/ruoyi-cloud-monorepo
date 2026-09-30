@@ -545,11 +545,24 @@
       return;
     }
 
+    // 批次 2-3c：写入入口的唯一载体是班级列表页的三个弹窗（DP-01），
+    // 因此这里带 class=<班级名称> 跳到列表页并直接把弹窗打开在对应班级上。
+    var classFormTarget = [
+      ['ACT-CLS-019', 'PAGE-CLS-CREATE'],
+      ['ACT-CLS-020', 'PAGE-CLS-LEADER'],
+      ['ACT-CLS-022', 'PAGE-CLS-COPY']
+    ];
+    for (var k = 0; k < classFormTarget.length; k += 1) {
+      if (node.closest('[data-action-id="' + classFormTarget[k][0] + '"]')) {
+        event.stopImmediatePropagation();
+        window.location.href = 'class-list.html#panel=' + classFormTarget[k][1]
+          + '&class=' + encodeURIComponent(q('#detail-title').textContent.trim());
+        return;
+      }
+    }
+
     var pendingMap = [
-      ['ACT-CLS-019', '班级表单（编辑）在批次 2-3c 交付（PAGE-CLS-CREATE），本批只验证入口与权限显隐。'],
-      ['ACT-CLS-020', '指定班主任在批次 2-3c 交付（PAGE-CLS-LEADER），本批只验证入口与权限显隐。'],
       ['ACT-CLS-021', '「添加学生」在批次 2-3d 交付（PAGE-CLS-ROSTER-ADD），本批只验证入口与权限显隐。'],
-      ['ACT-CLS-022', '「复制班级」在批次 2-3c 交付（PAGE-CLS-COPY），本批只验证入口与权限显隐。'],
       ['ACT-CLS-023', '「批量迁学生」在批次 2-3d 交付（PAGE-CLS-MOVE），本批只验证入口与权限显隐。'],
       ['ACT-CLS-026', '批量移出在批次 2-3d 交付，本批只验证入口与权限显隐。'],
       ['ACT-CLS-027', '操作日志在批次 2-8 交付（PAGE-AUDIT-LOG-LIST），本批只验证入口与权限显隐。']

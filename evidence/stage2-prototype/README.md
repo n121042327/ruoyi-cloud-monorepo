@@ -1,8 +1,9 @@
-# 阶段 2 业务原型 · 验收证据（批次 2-1、2-2a、2-2b-1、2-2b-2、2-2b-2b、2-3a）
+# 阶段 2 业务原型 · 验收证据（批次 2-1、2-2a、2-2b-1、2-2b-2、2-2b-2b、2-3a、2-3b、2-3c）
 
 本目录保存批次 2-1（学生管理列表 + 新增/编辑抽屉样板页）、2-2a（教师管理列表样板页）、
 2-2b-1（教师详情 + 新增教师 + 编辑教师，含放弃确认弹窗）、2-2b-2（教育角色分配 + 任教关系设置独立页）、
-2-2b-2b（年级管理列表样板页 + 删除确认弹窗）的截图证据。
+2-2b-2b（年级管理列表样板页 + 删除确认弹窗）、2-3a（班级管理列表样板页 + 停用/删除确认）、
+2-3b（班级详情与花名册）、2-3c（新建/编辑、批量生成、复制、指定班主任四个弹窗）的截图证据。
 截图由本机 Chrome 无头模式生成，命令可复现，见文末。
 
 ## 1. 截图清单
@@ -393,4 +394,29 @@ $ python tools/check_docs.py
 | 样例口径修正 | 高一 (1) 班「在读」3 → **2**（陈思远休学，`BR-STU-012`），班级列表 / 年级详情样本 / `content-samples.json` 三处同步；受影响截图（班级列表 4 张、年级列表 3 张、年级详情 1 张）已重拍 |
 | 验证 | `verify-class-detail.html` 20 / 20 通过；`verify-class-list.html` 39 / 39 通过；`python tools/check_docs.py` 通过 |
 
-下一批建议：2-3c 新建 / 批量生成 / 复制 / 指定班主任（4 个弹窗），随后 2-3d 添加学生与调班 / 批量迁学生、2-3e 升班四步向导与结果页。
+### 5.6 批次 2-3c（四个班级弹窗）的交付说明
+
+| 产物 | 路径 |
+|---|---|
+| 原型片段 | `prototypes/functional/v1/pages/class-list.html` 内的 `PAGE-CLS-CREATE` / `PAGE-CLS-BATCH` / `PAGE-CLS-COPY` / `PAGE-CLS-LEADER`（均为 `el-dialog`，D-059） |
+| 页面规格 | `page-specs/class-create.md` / `class-batch.md` / `class-copy.md` / `class-leader.md` |
+| 动作清单 | `page-actions.yaml` 新增 `class_create` / `class_batch` / `class_copy` / `class_leader` 四组（`ACT-CLS-030` ~ `ACT-CLS-047`，共 18 条） |
+| 跨页入口 | `pages/class-detail.html` 的「编辑班级 / 指定班主任 / 复制班级」改为跳转 `class-list.html#panel=PAGE-CLS-*&class=<班级名称>`，由列表页把弹窗打开在该班级上（写入入口仍只有班级模块一处，`DP-01`） |
+| 表单布局 | 四个弹窗的表单改用两列 `form-grid`，1440×900 下 8 个字段与底部操作条一屏可见，不再需要滚动才能看到容量 / 校区 / 教室 |
+| 截图 | `class-create_1440x900.png` / `class-create_edit_1440x900.png` / `class-batch_1440x900.png` / `class-copy_1440x900.png` / `class-leader_1440x900.png` / `class-leader_none_1440x900.png` / `class-dialogs_verify-results.png` |
+| 验证 | `verify-class-dialogs.html` 36 / 36 通过（CDL-01 ~ CDL-36）；回归 `verify-class-list` 39 / 39、`verify-class-detail` 20 / 20、`verify-detail-entry` 6 / 6、`verify-carrier-change` 14 / 14、`verify-grade-list` 38 / 38；`python tools/check_docs.py` 通过 |
+
+本批同时修掉一处上批遗留：
+
+- `verify-class-list.html` 的 CL-34 原来只允许 `ACT-CLS-001 ~ 016`，本页新增四个弹窗后必然失败；
+  已按「`common_actions` + `class_*` 各动作组」扩到 001 ~ 047，断言语义不变（仍是"页面用到的编号都已在 `page-actions.yaml` 登记"）。
+- `verify-grade-list.html` 的 GL-15 断言在 D-064 之后过期（「班级数」已从"只弹提示"改成真实跨页跳转），
+  且该 harness 的 `load` 监听没有启动守卫，跳转触发的第二次 load 会重启一条链并在 GL-04 抛异常，
+  页面长期停在「运行中…」。已按当前形态修正断言并补守卫，回归 38 / 38，见 `GAP-050`。
+
+待你拍板的两项（非阻塞，见 `gap-register.yaml`）：
+
+- `GAP-048`：新建班级弹窗里「班级类型」只允许行政班（教学班创建在批次 2-7），是否需要改成弹窗内可切换。
+- `GAP-049`：班级 PRD 第 8 节没有 `copyClass`，本批复制班级复用 `addClass`，是否需要补独立 operationId。
+
+下一批建议：2-3d 添加学生（`PAGE-CLS-ROSTER-ADD`）/ 调班（`PAGE-CLS-TRANSFER`）/ 批量迁学生（`PAGE-CLS-MOVE`），随后 2-3e 升班四步向导与结果页。

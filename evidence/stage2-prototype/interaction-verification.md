@@ -275,3 +275,54 @@ harness 总结果：`合计 38 / 38 条，通过 38 条，不通过 0 条 ——
 | RD-06 | 学生列表点数据行 | 学生详情属批次 2-5，只给提示、不开空抽屉 | 通过 |
 
 总结果：`合计 38 / 38 条`（年级）与 `合计 6 / 6 条`（三个列表页入口），均全部通过。
+
+---
+
+## 10. 批次 2-3c：班级四个弹窗（`verify-class-dialogs.html`）
+
+新增 `evidence/stage2-prototype/verify-class-dialogs.html`（36 条断言，`CDL-01` ~ `CDL-36`），
+覆盖 `pages/class-list.html` 的四个弹窗片段与一条跨页链路。
+harness 用**第二个 iframe** 加载 `pages/class-detail.html`，验证「详情页 → 列表页」的跨页带入，
+其余断言复用批次 2-3a / 2-3b 的同源 iframe + 真实事件派发方式。
+
+### 10.1 用例分组与结果（全部通过）
+
+| 分组 | 用例 | 关键断言 |
+|---|---|---|
+| 载体与入口 | CDL-01 ~ 07 | 四个片段均为 `el-dialog` 且无 `drawer-*` 钩子；弹窗内 0 个 `<table>`；行内「编辑 / 指定班主任」带 `data-nav`；教学班行不给班主任入口且点「编辑」给批次 2-7 提示；校领导下行内只剩「详情」 |
+| 新建 / 编辑班级 | CDL-08 ~ 15 | 默认值（当前学期 / 高一 / 行政班 / `高一 (4) 班` / 容量 45）；教学班选项置灰并指向 `addTeachingClass`；必填校验不关弹窗；重名拦截且 1.3 秒后仍无「已保存」；保存成功后弹窗不关并给出三个后续动作；编辑态学期 / 年级 / 类型 / 班主任只读；编辑保存后按编辑口径关闭弹窗 |
+| 批量生成 | CDL-16 ~ 20 | 高一 1–6 班预览 6 行、3 行「已存在，跳过」；冲突提示写明跳过数量；区间倒置被拦；1–100 只展开 30 行 + 说明行；7–8 无冲突两行「将生成」 |
+| 复制班级 | CDL-21 ~ 25 | 源班级 9 项摘要且花名册 / 班主任 / 任职历史三行标红；默认目标学期 / 年级 / 名称；重名拦截；教学班只给提示不开弹窗；`data-api="addClass"` |
+| 指定 / 变更班主任 | CDL-26 ~ 32 | 有在任时标题「变更班主任」、历史 1 行 + 说明；未指定时两处空态；离职 / 调离 / 非本校三项列出但不可选；历史学年学期不能保存；未选新任触发必填校验；`data-api="assignHeadTeacher"`；保存前四条检查写明规则编号 |
+| 角色与跨页 | CDL-33 ~ 36 | 校领导打开新建弹窗 8 字段全禁用且保存不渲染；平台运营看不到新建 / 批量生成 / 直接导出；深链接 `class=<名称>` 直接打开该班编辑态；班级详情「编辑班级」跳到列表页并带入该班 |
+
+### 10.2 本批顺带修掉的 harness 缺陷
+
+1. `verify-class-list.html` 的 `CL-34` 原来只允许 `ACT-CLS-001 ~ 016`；本批页面新增四个弹窗后必然失败。
+   已按「`common_actions` + `class_*` 各动作组」扩到 001 ~ 047，断言语义不变。
+2. `verify-grade-list.html` 的 `GL-15` 断言在 D-064 之后过期（「班级数」由提示改为真实跨页跳转），
+   且该 harness 的 `load` 监听缺少启动守卫，跳转触发的第二次 load 会重启一条断言链并在 `GL-04` 抛异常，
+   页面长期停在「运行中…」（实测 `--dump-dom` 只有 1 个 `li`）。
+   已按当前形态改断言 + 补 `FRAME_SRC` 与守卫 + 4 秒兜底，回归 `38 / 38`，见 `GAP-050`。
+
+### 10.3 全量回归结果
+
+| harness | 结果 |
+|---|---|
+| `verify-class-dialogs.html` | 36 / 36 通过 |
+| `verify-class-list.html` | 39 / 39 通过 |
+| `verify-class-detail.html` | 20 / 20 通过 |
+| `verify-grade-list.html` | 38 / 38 通过 |
+| `verify-detail-entry.html` | 6 / 6 通过 |
+| `verify-carrier-change.html` | 14 / 14 通过 |
+| `python tools/check_docs.py` | 通过：未发现问题 |
+
+复核命令（本机 PowerShell，任选一个 harness 替换文件名即可）：
+
+```powershell
+$chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+& $chrome --headless=new --disable-gpu --no-first-run --allow-file-access-from-files `
+  --user-data-dir="$env:TEMP\codex-chrome-verify" --virtual-time-budget=120000 --dump-dom `
+  "file:///D:/work/person_work/ruoyi-cloud-monorepo/evidence/stage2-prototype/verify-class-dialogs.html" |
+  Select-String -Pattern 'class="sum'
+```
