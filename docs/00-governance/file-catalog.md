@@ -119,10 +119,13 @@
 | `prototypes/functional/v1/assets/prototype-shell.js` | 原型演示引擎：外壳注入、角色 / 状态切换、浮层、提交模拟、校验 | `review` |
 | `prototypes/functional/v1/index.html` | 原型入口与导航（批次 2-1） | `review` |
 | `prototypes/functional/v1/pages/student-list.html` | 学生管理列表 + 新增 / 编辑抽屉浮层（**样板**） | `review` |
-| `prototypes/functional/v1/pages/teacher-list.html` | 教师管理列表（批次 2-2a 样板） | `review` |
+| `prototypes/functional/v1/pages/teacher-list.html` | 教师管理列表（批次 2-2a 样板）+ 教师详情 / 新增 / 编辑 / 离职 / 放弃确认五个浮层片段（批次 2-2b-1） | `review` |
 | `prototypes/functional/v1/page-specs/teacher-list.md` | 教师管理列表页面规格 | `review` |
+| `prototypes/functional/v1/page-specs/teacher-detail.md` | 教师详情页面规格（六分区、跨校任教与空角色两种形态） | `review` |
+| `prototypes/functional/v1/page-specs/teacher-create.md` | 新增教师三步抽屉页面规格 | `review` |
+| `prototypes/functional/v1/page-specs/teacher-edit.md` | 编辑教师抽屉页面规格（字段级可编辑性矩阵） | `review` |
 | ~~`prototypes/functional/v1/pages/student-form.html`~~ | 已由 `pages/student-list.html` 内的 `data-demo-panel="PAGE-STU-CREATE" / "PAGE-STU-EDIT"` 浮层片段取代，不再单独出文件 | `waived` |
-| `prototypes/functional/v1/pages/teacher-list.html` | 教师管理列表 | `planned` |
+| `prototypes/functional/v1/pages/teacher-assign.html` | 任教关系设置（独立页，双栏教师视角 / 班级视角，批次 2-2b-2） | `planned` |
 | `prototypes/functional/v1/pages/grade-list.html` | 年级管理列表 | `planned` |
 | `prototypes/functional/v1/pages/class-list.html` | 班级管理列表 | `planned` |
 | `prototypes/functional/v1/pages/class-detail.html` | 班级详情与花名册 | `planned` |

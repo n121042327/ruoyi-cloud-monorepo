@@ -850,6 +850,59 @@ gaps:
     blocking: false
     blocks_stages: [stage4, stage5, stage6, stage8]
     owner: 用户
+    resolution: "裁决 A（2026-09-30 用户同意推荐）：以 05-permission-matrix.yaml 为准，校领导对教师主体只读。经 CR-004 执行：教师 PRD 4.4 字段级可编辑性矩阵改为校领导全列只读；REQ-TCH-022 的「校级管理员」映射为 tenant_admin；权限矩阵新增 field_level_permissions.write_field_admin（granted_roles: [tenant_admin]，applies_to: person.teacher.teacher_no / person.teacher.hire_date）。原型按此实现：列表行内编辑、详情页编辑、角色分配入口都不对校领导渲染。"
+    resolved_at: "2026-09-30"
+    status: closed
+
+  - id: GAP-032
+    title: 教师 PRD 4.4 字段级可编辑性矩阵与权限矩阵对「校领导」的口径冲突
+    discovered_at: 2026-09-30
+    discovered_by: 批次 2-2b-1 编写 PAGE-TCH-EDIT 页面规格时的公共前置反查
+    evidence: |
+      docs/10-prd/modules/teacher/PRD.md 4.4 的字段级可编辑性矩阵把"校领导"列为：工号可改（需审计）、
+      姓名 / 性别可改、联系方式可改、入职日期可改、教育角色为审批、在职状态可改。
+      但 docs/10-prd/05-permission-matrix.yaml 中 school_leader 对 person.teacher 只有 ['read']（用 PyYAML 读取 matrix 核对）。
+      两份都是已冻结的公共前置 / 模块文档，互不一致。
+    impact: |
+      原型：列表行内"编辑"、详情页"编辑"是否对校领导渲染；编辑抽屉中工号、入职日期、联系方式对校领导可写还是只读。
+      阶段 6：生产前端的 v-hasPermi 与字段 disabled 逻辑会照抄错误的一方。
+      阶段 5：不影响表结构。
+      阶段 8：教师模块的权限验收用例会出现两个答案。
+    options:
+      - A 以权限矩阵为准（首轮校领导对教师主体只读）：原型与生产端都不给校领导编辑入口；用一次 CR 把 PRD 4.4 该行改为只读
+      - B 以 PRD 4.4 为准：给 school_leader 补 person.teacher:update，并同步 05-permission-matrix.yaml 与教师验收用例
+      - C 折中：只放开联系方式等非关键字段（需要把字段级权限矩阵正式纳入权限模型，成本最高）
+    recommended: 选项 A（权限矩阵是功能权限的权威来源，且"校领导审核而非录入"与 D-042「每个字段只有一个写入入口」一致；只需一次 CR）
+    blocking: false
+    blocks_stages: [stage2, stage6]
+    owner: 用户
+    resolution: "裁决 A（2026-09-30 用户同意推荐）：一次补全教师模块字段。经 CR-004 执行：06-field-dictionary.yaml 新增 employment_status 枚举与 13 个字段（teacher_id、school_id、teacher_phone、email、hire_date、employment_status、grade_id、term_id、subject_id、class_id、class_school_id、weekly_hours、teaching_assignment_id）；teacher_phone 标 sensitive 并写入权限矩阵的 sensitive_fields；原型新增 / 编辑抽屉的 data-field 由 status 改为 employment_status，四份教师页面规格的自查项转为满足。"
+    resolved_at: "2026-09-30"
+    status: closed
+
+  - id: GAP-033
+    title: 教师模块业务字段未登记进字段字典（school_id / teacher_phone / email / hire_date / status 等）
+    discovered_at: 2026-09-30
+    discovered_by: 批次 2-2b-1 编写页面规格第 3 节时的字段回查
+    evidence: |
+      用 PyYAML 读取 docs/10-prd/06-field-dictionary.yaml：
+      fields 只有 teacher_no、teacher_name、remark、login_name 等 60 个；
+      gender、edu_role、class_type、subject_code 仅作为 enums 存在；
+      school_id、teacher_phone、email、hire_date、status、teacher_id、class_id、term_id、weekly_hours 在 fields 与 enums 中都没有。
+      而 prototypes/functional/v1/pages/teacher-list.html 的 data-field 已经使用 school_id、teacher_phone、email、hire_date、status。
+      批次 2-2a 交付时该问题已经存在，本批扩大到新增与编辑表单才被暴露。
+    impact: |
+      阶段 5：建表列名缺少权威口径，同一含义可能出现两个列名。
+      阶段 6：TS 类型、字典下拉、字段级权限矩阵都要靠猜。
+      原型：page-specs 自查清单"每个 data-field 已在字段字典登记"无法打勾（3 份教师页面规格已标注未满足）。
+    options:
+      - A 立 CR-004 补登记教师模块字段（拟新增 school_id、school_name、teacher_id、teacher_phone、email、hire_date、employment_status、term_id、term_name、class_id、class_school、weekly_hours、subject_name）
+      - B 只补原型已用到的 5 个（school_id、teacher_phone、email、hire_date、status），其余留到对应批次
+      - C 保持现状，把原型自查清单该条降级为"阶段 4 概要设计时统一补"
+    recommended: 选项 A（一次补全，避免每个批次重复返工；字段字典属于冻结文档，必须走 CR 变更流程）
+    blocking: false
+    blocks_stages: [stage2, stage5, stage6]
+    owner: 用户
     resolution: ""
     resolved_at: ""
     status: open
@@ -877,3 +930,8 @@ open_questions_for_user:
   - "GAP-026 ~ GAP-030 已按用户裁决「按推荐来」全部关闭并落地（CR-003）：敏感字段权限点归属、学生照片纳入首轮、批量导出与批量调班、字段字典补登记、首轮不提供学号修改入口。"
   - "下一步：阶段 2 批次 2-2（教师管理 13 页 + 年级管理），按小步约定先交付 PAGE-TCH-LIST 教师管理列表 1 页，验收通过后再批量铺其余 12 页。"
   - "阶段 2 批次 2-2a 已产出待验收：prototypes/functional/v1/pages/teacher-list.html、page-specs/teacher-list.md、evidence/stage2-prototype/teacher-list_*.png；page-actions.yaml 新增 ACT-TCH-001 ~ 011；content-samples.json 新增 teachers_edge_cases（5 条）与 list_totals.teacher_list_total。"
+  - "阶段 2 批次 2-2b-1 已产出待验收：教师详情抽屉（PAGE-TCH-DETAIL，6 个分区）+ 新增教师三步抽屉（PAGE-TCH-CREATE）+ 编辑教师抽屉（PAGE-TCH-EDIT）+ 放弃确认弹窗（DIALOG-TCH-DISCARD）；page-actions.yaml 新增 ACT-TCH-012 ~ 029，并按页面复用给 ACT-TCH-006 / 007 / 008 / 009 / 011 补 pages 列表；content-samples.json 新增 teacher_detail_samples（苏睿跨校任教 / 邓丽娟班主任+任课）与 teacher_create_sample。"
+  - "批次 2-2b-1 顺手修掉 2-2a 的两个缺陷：原型外壳的侧边菜单未登记 PAGE-TCH-LIST 为已交付（点教师管理只弹提示不跳转）；勾选行内复选框会误触发「点击行」打开详情。"
+  - "prototype-shell.css 补 el-timeline 仿真样式（.timeline / .tl-head / .tl-body / .tl-meta）；prototype-shell.js 的 validateForm 补 code32 规则（工号长度 2–32 位字母、数字或连字符）。"
+  - "navigation.yaml 按教师 PRD 6.1 修正两处类型：PAGE-TCH-DETAIL 加 container: drawer + size: lg（PRD 写明详情页以抽屉承载）；PAGE-TCH-ASSIGN 由 drawer 改为 page 并补 route（PRD 写明为独立页，双栏教师视角 / 班级视角）。两处都属于「原型规范与上游 PRD 不一致」，按上游优先原则修正。"
+  - "GAP-032、GAP-033 已按用户裁决关闭（2026-09-30 两项均同意推荐方案 A），经 CR-004 执行完毕，见 decisions.md 的 D-054。"

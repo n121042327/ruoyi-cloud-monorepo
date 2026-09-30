@@ -325,6 +325,12 @@ sensitive_fields:
     mask: 不掩码，但按数据范围限制
     view_requires: []
 
+  - field: person.teacher.teacher_phone
+    mask: 中间 4 位掩码
+    view_requires: [read_contact]
+    granted_roles: [academic_director, homeroom, school_leader]
+    source: CR-004（GAP-033 裁决 A）
+
 field_level_permissions:
   read_sensitive:
     name: 查看敏感字段全量
@@ -334,9 +340,16 @@ field_level_permissions:
   read_contact:
     name: 查看联系方式全量
     granted_roles: [academic_director, homeroom, school_leader]
-    applies_to: [person.student_contact.phone, person.student_guardian.phone]
-    note: 年级主任与任课教师只有掩码；年级主任对监护人信息只读
-  scope: CR-003（GAP-026 裁决 A，2026-09-30 用户确认"按推荐来"）
+    applies_to: [person.student_contact.phone, person.student_guardian.phone, person.teacher.teacher_phone]
+    note: 年级主任与任课教师只有掩码；年级主任对监护人信息只读；教师列表对任课教师整列隐藏联系电话
+  write_field_admin:
+    name: 校级管理员专属字段写权限
+    granted_roles: [tenant_admin]
+    applies_to: [person.teacher.teacher_no, person.teacher.hire_date]
+    note: |
+      校级管理员在本平台映射为租户管理员（tenant_admin）。
+      修改必须写审计并记录变更前后值，见 REQ-TCH-022 与 CR-004（GAP-032 裁决 A：校领导对教师主体只读）。
+  scope: CR-003（GAP-026 裁决 A，2026-09-30 用户确认"按推荐来"）；CR-004（GAP-032 / GAP-033 裁决 A，2026-09-30 用户同意）
 
 deny_rules:
   - id: PM-DENY-001

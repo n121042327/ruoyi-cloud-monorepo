@@ -650,6 +650,48 @@
 - 执行：`docs/00-governance/change-requests/CR-003.md`（已批准并执行）
 - 如果错了的代价：照片可删、学号修改入口可后补，均为增量改动，不涉及数据迁移
 
+## D-053 阶段 2 批次 2-2b-1：教师详情与新增/编辑抽屉交付，并按上游 PRD 修正两处原型规范
+
+- 日期：2026-09-30
+- 背景：批次 2-2a 的教师列表样板已产出一页，按小步约定继续拆批。本批只做教师模块的读取与主体维护三件套：
+  `PAGE-TCH-DETAIL` 教师详情抽屉、`PAGE-TCH-CREATE` 新增教师三步抽屉、`PAGE-TCH-EDIT` 编辑教师抽屉；
+  角色分配、任教关系设置与年级模块留在 2-2b-2。
+- 决策：
+
+| 事项 | 裁决 | 落地 |
+|---|---|---|
+| 教师详情的承载方式 | 按教师 PRD 6.1 / 6.3 与 `ACT-TCH-010`：详情页以**抽屉**承载，6 个分区 | `navigation.yaml` 的 `PAGE-TCH-DETAIL` 加 `container: drawer`、`size: lg`；原型实现在 `pages/teacher-list.html` 内的 `data-demo-panel` 片段 |
+| 任教关系设置的承载方式 | 按教师 PRD 6.1：**独立页**，双栏教师视角 / 班级视角 | `navigation.yaml` 的 `PAGE-TCH-ASSIGN` 由 `drawer` 改为 `page` 并补 `route: /edu/teacher/assignment`（页面本体在批次 2-2b-2 交付） |
+| 编辑表单的可写角色 | 以 `05-permission-matrix.yaml` 为准：`person.teacher` 有 `update` 的只有教务主任与租户管理员 | `PAGE-TCH-EDIT` 的 `data-role-editable` 只列这两个角色；工号与入职日期仅租户管理员可改；所属学校永久只读（`REQ-TCH-023`） |
+| 详情页的形态演示 | 用两条真实样本覆盖两种形态：苏睿（跨校任教）、邓丽娟（班主任 + 任课，且无学校级教育角色） | `content-samples.json` 新增 `teacher_detail_samples`；无专属样本的教师复用形态 A 并在页面内给出「样本说明」提示，不允许静默错配 |
+| 新增保存后的结果 | 按 `REQ-TCH-019` 给三个后续动作 | 成功结果条 + `ACT-TCH-024` ~ `ACT-TCH-026`；登录名口径取自 `content-samples.json` 的 `teacher_create_sample` |
+| 表单关闭 | 取消必须二次确认，避免误丢已填内容 | 新增 `DIALOG-TCH-DISCARD` 与 `ACT-TCH-027` / `ACT-TCH-028` |
+| 2-2a 遗留的两个缺陷 | 本批一并修 | 原型外壳登记 `PAGE-TCH-LIST` 为已交付（菜单可跳转）；行内复选框 `stopPropagation`，勾选不再误开详情 |
+
+- 执行：`prototypes/functional/v1/` 下 `pages/teacher-list.html`、`page-actions.yaml`、`navigation.yaml`、`content-samples.json`、
+  `assets/prototype-shell.js`、`assets/prototype-shell.css`、`page-specs/teacher-detail.md`、`page-specs/teacher-create.md`、`page-specs/teacher-edit.md`
+- 新增待裁决缺项：`GAP-032`（教师 PRD 4.4 字段级矩阵与权限矩阵对校领导的口径冲突）、
+  `GAP-033`（教师模块业务字段未登记进字段字典，涉及 5 个已在原型使用的 `data-field`）
+- 如果错了的代价：两处承载方式若最终要与 PRD 不同，改的是原型规范与页面容器，不涉及数据迁移；
+  可写角色若最终要给校领导，补一次权限矩阵与验收用例即可
+
+## D-054 CR-004：补齐教师模块字段字典，并统一「校领导」对教师主体只读口径
+
+- 日期：2026-09-30
+- 背景：批次 2-2b-1 做公共前置反查时暴露两个缺项（`GAP-032`、`GAP-033`），用户对两项均回复"同意"推荐方案 A
+- 决策：
+
+| 事项 | 裁决 | 落地 |
+|---|---|---|
+| `GAP-032` 校领导对教师主体是否可写 | 以 `05-permission-matrix.yaml` 为准：校领导只读。改教师 PRD 4.4，不改权限矩阵 | 教师 PRD 4.4 矩阵校领导整列改为「—」，并补「校领导对本模块只读」的口径说明；`REQ-TCH-022` 的「校级管理员」映射为 `tenant_admin` |
+| `GAP-032` 配套 | 把"校级管理员专属字段"写进权限矩阵，而不是留在 PRD 正文 | `05-permission-matrix.yaml` 新增 `field_level_permissions.write_field_admin`（`granted_roles: [tenant_admin]`，`applies_to: person.teacher.teacher_no / person.teacher.hire_date`） |
+| `GAP-033` 教师模块字段未登记 | 一次补全：新增 `employment_status` 枚举与 13 个字段 | `06-field-dictionary.yaml` 新增 `teacher_id`、`school_id`、`teacher_phone`、`email`、`hire_date`、`employment_status`、`grade_id`、`term_id`、`subject_id`、`class_id`、`class_school_id`、`weekly_hours`、`teaching_assignment_id` |
+| `GAP-033` 敏感字段 | 教师手机号按敏感字段管理 | `sensitive_fields` 新增 `person.teacher.teacher_phone`（掩码中间 4 位，`read_contact`，教务主任 / 班主任 / 校领导）；`read_contact.applies_to` 同步 |
+| 原型字段名对齐 | 把原型里的 `data-field="status"` 改为 `employment_status`，避免与学籍状态 `enrollment_status` 混淆 | `pages/teacher-list.html` 与四份教师页面规格同步 |
+
+- 执行：`docs/00-governance/change-requests/CR-004.md`（已批准并执行）
+- 如果错了的代价：校领导若日后需要写权限，改回一行矩阵并补验收用例即可；字段名若需调整，此时尚未建表，改一行字典 + 一处 `data-field` 即可
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |
@@ -666,3 +708,5 @@
 | R-010 | ~~阶段 2 批次计划是否扩展到 2-5 ~ 2-9~~ → 已定：同意扩展（D-050） | GAP-025 | 已关闭 |
 | R-011 | ~~`CR-002`：共享授权对象限定为教学资源~~ → 已定：批准并执行（D-051） | GAP-031 | 已关闭 |
 | R-012 | ~~`CR-003`：GAP-026 ~ GAP-030 五项裁决~~ → 已定：用户"按推荐来"，已批准并执行（D-052） | GAP-026 ~ 030 | 已关闭 |
+| R-013 | ~~校领导对教师主体是否可写~~ → 已定：选项 A，校领导只读，改教师 PRD 4.4（D-054 / CR-004） | GAP-032 | 已关闭 |
+| R-014 | ~~是否立 CR 把教师模块业务字段补进 `06-field-dictionary.yaml`~~ → 已定：选项 A，一次补全 13 个字段 + `employment_status` 枚举（D-054 / CR-004） | GAP-033 | 已关闭 |
