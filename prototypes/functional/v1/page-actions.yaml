@@ -673,18 +673,314 @@ teacher_assign:
       batch: "2-2"
 
 # ---------------------------------------------------------------------------
-# 4. 其余页面
+# 4. 年级管理列表（PAGE-GRD-LIST）——批次 2-2b-2b 样板页
+# ---------------------------------------------------------------------------
+grade_list:
+  page: PAGE-GRD-LIST
+  actions:
+    - id: ACT-GRD-001
+      element: 新增
+      trigger: 点击
+      condition: 有 org.grade:create 权限
+      permission: "academic_director / tenant_admin / org.grade / create"
+      api: "-"
+      result: 打开 PAGE-GRD-CREATE 抽屉，重置为默认值；年级名称按"入学年份 + 学段 + 学段内序号"预生成且允许微调
+      audit: 否
+      batch: "2-2"
+    - id: ACT-GRD-002
+      element: 按学段批量生成
+      trigger: 点击
+      condition: 有 org.grade:create 权限
+      permission: "academic_director / tenant_admin / org.grade / create"
+      api: "-"
+      result: 打开 PAGE-GRD-BATCH 抽屉，选择学段与入学年份后一次生成该学段全部年级；已存在的年级列出冲突并跳过
+      audit: 否
+      batch: "2-2"
+    - id: ACT-GRD-003
+      element: 导出
+      trigger: 点击
+      condition: 有 data.export:export 权限
+      permission: "data.export:export"
+      confirm: 需要，提示"将按当前筛选条件导出；年级主任导出限本人负责的年级"
+      api: exportGrade
+      result: 直接下载或转异步任务；写入导出审计
+      audit: 是
+      batch: "2-2"
+    - id: ACT-GRD-004
+      element: 行内编辑
+      trigger: 点击行内按钮
+      condition: 有 org.grade:update 权限，且该年级不是已归档
+      permission: "academic_director / tenant_admin / org.grade / update"
+      api: "-"
+      result: 打开年级表单的编辑态；学段与学段内序号只读，入学年份在有班级时只读（REQ-GRD-018 / REQ-GRD-019）
+      audit: 否
+      batch: "2-2"
+      pending: "承载方式待 GAP-038 裁决：当前复用 PAGE-GRD-CREATE 的编辑态"
+    - id: ACT-GRD-005
+      element: 行内指定年级主任
+      trigger: 点击行内按钮
+      condition: 有 org.grade:update 权限，且该年级不是已归档
+      permission: "academic_director / tenant_admin / org.grade / update"
+      api: "-"
+      result: 打开 PAGE-GRD-LEADER 弹窗，必须选择学年学期，可添加多条任职并标记一名主要负责人（REQ-GRD-022 / REQ-GRD-023）
+      audit: 否
+      batch: "2-2"
+    - id: ACT-GRD-006
+      element: 行内归档
+      trigger: 点击行内按钮
+      condition: 有 org.grade:update 权限，且该年级不是已归档
+      permission: "academic_director / tenant_admin / org.grade / update"
+      confirm: 需要，提示"归档后该年级不在新建班级的可选列表中，历史数据与统计仍可查"
+      api: "-"
+      result: 打开 PAGE-GRD-ARCHIVE 弹窗，二次确认并填写原因；归档写审计
+      audit: 是
+      batch: "2-2"
+    - id: ACT-GRD-007
+      element: 行内删除
+      trigger: 点击行内按钮
+      condition: 有 org.grade:delete 权限；仅当年级下无班级且无学生关系时该入口才渲染，接口同样校验
+      permission: "academic_director / tenant_admin / org.grade / delete"
+      api: "-"
+      result: 打开 DIALOG-GRD-DELETE 二次确认弹窗；存在班级或学生关系时接口拒绝并提示改用归档（BR-GRADE-005）
+      audit: 否
+      batch: "2-2"
+    - id: ACT-GRD-008
+      element: 点击班级数
+      trigger: 点击单元格内的数字
+      condition: 有 org.class:read 权限且该年级在本次数据范围内
+      permission: "org.class:read"
+      api: "-"
+      result: 跳转班级列表并带入该年级筛选，返回时保留年级上下文（REQ-GRD-008、AC-GRD-008）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-GRD-009
+      element: 点击数据行 / 年级名称
+      trigger: 单击行
+      condition: 有 org.grade:read 权限且该年级在本次数据范围内
+      permission: "org.grade:read"
+      api: getGrade
+      result: 打开 PAGE-GRD-DETAIL 详情抽屉；关闭后回到列表并保留筛选与页码
+      audit: 否
+      batch: "2-2"
+    - id: ACT-GRD-010
+      element: 确认删除
+      trigger: 点击确认删除
+      condition: 已填写删除原因（至少 5 个字）；调接口前再次校验是否无班级无学生关系
+      permission: "academic_director / tenant_admin / org.grade / delete"
+      confirm: 需要，弹窗内已写明对象、影响范围与不可物理删除的说明
+      api: removeGrade
+      result: 逻辑删除该年级，写入审计；「学校 + 学段 + 入学年份 + 学段内序号」组合被释放
+      audit: 是
+      batch: "2-2"
+    - id: ACT-GRD-011
+      element: 取消删除
+      trigger: 点击取消或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭确认弹窗，不产生任何写入
+      audit: 否
+      batch: "2-2"
+
+# ---------------------------------------------------------------------------
+# 5. 其余页面
 #     规则：每个批次开始时，把该批页面的动作追加到下面，并按本文件的字段定义登记。
 #     批次 2-0 只定词汇与样板页；后续批次逐批补齐，未登记的动作不得出现在原型中。
 # ---------------------------------------------------------------------------
+grade_detail:
+    page: PAGE-GRD-DETAIL
+    actions:
+      - id: ACT-GRD-012
+        element: 详情内「编辑」
+        trigger: 点击
+        condition: 有 org.grade:update 权限且该年级未归档
+        permission: "academic_director / tenant_admin / org.grade / update"
+        api: "-"
+        result: 打开 PAGE-GRD-CREATE 弹窗的编辑态；学段、学段内序号只读，有班级时入学年份只读
+        audit: 否
+        batch: "2-2"
+      - id: ACT-GRD-013
+        element: 详情内「指定年级主任」
+        trigger: 点击
+        condition: 有 org.grade:update 权限
+        permission: "academic_director / tenant_admin / org.grade / update"
+        api: "-"
+        result: 打开 PAGE-GRD-LEADER 弹窗，带入当前年级
+        audit: 否
+        batch: "2-2"
+      - id: ACT-GRD-014
+        element: 详情内「查看全部班级」
+        trigger: 点击
+        condition: 有 org.class:read 权限
+        permission: "org.class:read"
+        api: "-"
+        result: 跳转班级管理并带入该年级筛选；返回时保留年级上下文（REQ-GRD-008）
+        audit: 否
+        batch: "2-3"
+      - id: ACT-GRD-015
+        element: 详情内「关闭」
+        trigger: 点击标题栏关闭或点「关闭」
+        condition: 始终可用
+        permission: "-"
+        api: "-"
+        result: 关闭详情抽屉，回到列表并保留筛选与页码
+        audit: 否
+        batch: "2-2"
+
+grade_form:
+    page: PAGE-GRD-CREATE
+    actions:
+      - id: ACT-GRD-016
+        element: 按规则重新生成年级名称
+        trigger: 点击
+        condition: 始终可用
+        permission: "-"
+        api: "-"
+        result: 按「入学年份 + 学段 + 学段内序号」重算名称，仍允许人工微调（REQ-GRD-011）
+        audit: 否
+        batch: "2-2"
+      - id: ACT-GRD-017
+        element: 取消
+        trigger: 点击
+        condition: 始终可用
+        permission: "-"
+        api: "-"
+        result: 关闭弹窗，不写入；已填内容不保留
+        audit: 否
+        batch: "2-2"
+      - id: ACT-GRD-018
+        element: 保存
+        trigger: 点击
+        condition: 必填项齐全，且「学校 + 学段 + 年级名称」不重名
+        permission: "academic_director / tenant_admin / org.grade / create"
+        confirm: 否
+        api: addGrade
+        result: 前端先拦重名，接口再校验「学校 + 学段 + 入学年份 + 学段内序号」唯一；成功后写审计并刷新列表
+        audit: 是
+        batch: "2-2"
+
+grade_batch:
+    page: PAGE-GRD-BATCH
+    actions:
+      - id: ACT-GRD-019
+        element: 选择学段 / 入学年份
+        trigger: 选择
+        condition: 有 org.grade:create 权限
+        permission: "academic_director / tenant_admin / org.grade / create"
+        api: "-"
+        result: 按学段与入学年份重算「将生成的年级」清单，并标出已存在、将被跳过的年级
+        audit: 否
+        batch: "2-2"
+      - id: ACT-GRD-020
+        element: 取消
+        trigger: 点击
+        condition: 始终可用
+        permission: "-"
+        api: "-"
+        result: 关闭弹窗，不生成任何年级
+        audit: 否
+        batch: "2-2"
+      - id: ACT-GRD-021
+        element: 确认生成
+        trigger: 点击
+        condition: 学段与入学年份已选
+        permission: "academic_director / tenant_admin / org.grade / create"
+        confirm: 需要，弹窗内已列出将生成的年级与冲突项
+        api: batchAddGrade
+        result: 一次生成该学段全部年级；已存在的跳过并列入结果，不覆盖不改名（AC-GRD-015）
+        audit: 是
+        batch: "2-2"
+
+grade_leader:
+    page: PAGE-GRD-LEADER
+    actions:
+      - id: ACT-GRD-022
+        element: 选择学年学期
+        trigger: 选择
+        condition: 有 org.grade:update 权限
+        permission: "academic_director / tenant_admin / org.grade / update"
+        api: listGradeLeader
+        result: 切换到该学年学期的任职清单；历史学年学期只读，不提供新增入口（REQ-GRD-022）
+        audit: 否
+        batch: "2-2"
+      - id: ACT-GRD-023
+        element: 填写待添加的年级主任
+        trigger: 选择教师 / 勾选主要负责人 / 选生效日期
+        condition: 当前学年学期不是历史学期
+        permission: "academic_director / tenant_admin / org.grade / update"
+        api: "-"
+        result: 只加入待保存清单；重复的「同一学年学期 + 同一年级 + 同一人」在添加时即被拒绝（REQ-GRD-024）
+        audit: 否
+        batch: "2-2"
+      - id: ACT-GRD-024
+        element: 添加
+        trigger: 点击
+        condition: 已选教师；同一学期同一年级同一人未存在
+        permission: "academic_director / tenant_admin / org.grade / update"
+        api: "-"
+        result: 加入待保存清单；勾选「主要负责人」时把原有主要负责人的标记取消（一人一名主要负责人）
+        audit: 否
+        batch: "2-2"
+      - id: ACT-GRD-025
+        element: 取消
+        trigger: 点击
+        condition: 始终可用
+        permission: "-"
+        api: "-"
+        result: 关闭弹窗，不保存
+        audit: 否
+        batch: "2-2"
+      - id: ACT-GRD-026
+        element: 保存
+        trigger: 点击
+        condition: 学年学期已选
+        permission: "academic_director / tenant_admin / org.grade / update"
+        confirm: 需要，保存前四条检查写在弹窗内
+        api: saveGradeLeader
+        result: 写入 edu_grade_leader；生效与解除都写审计，并立即失效相关用户的数据范围缓存（REQ-GRD-027）
+        audit: 是
+        batch: "2-2"
+      - id: ACT-GRD-027
+        element: 移除
+        trigger: 点击清单行内「移除」
+        condition: 有 org.grade:update 权限
+        permission: "academic_director / tenant_admin / org.grade / update"
+        api: "-"
+        result: 只从待保存清单移除；点「保存」后才真正解除任职并写审计
+        audit: 否
+        batch: "2-2"
+
+grade_archive:
+    page: PAGE-GRD-ARCHIVE
+    actions:
+      - id: ACT-GRD-028
+        element: 取消
+        trigger: 点击
+        condition: 始终可用
+        permission: "-"
+        api: "-"
+        result: 关闭弹窗，不归档
+        audit: 否
+        batch: "2-2"
+      - id: ACT-GRD-029
+        element: 确认归档
+        trigger: 点击
+        condition: 已填写归档原因（至少 5 个字）
+        permission: "academic_director / tenant_admin / org.grade / update"
+        confirm: 需要，弹窗内已写明对象、引用情况与影响范围
+        api: archiveGrade
+        result: 年级状态置为已归档并写审计；历史班级关系与统计仍可查，新建班级下拉中不再出现（REQ-GRD-029）
+        audit: 是
+        batch: "2-2"
+
 batches_pending:
   - { batch: "2-2", pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-CREATE, PAGE-TCH-EDIT, PAGE-TCH-LEAVE, PAGE-TCH-ROLE, PAGE-TCH-ASSIGN], status: "2-2a、2-2b-1 与 2-2b-2 教师部分已产出待验收（ACT-TCH-001 ~ 039 已登记）" }
-  - { batch: "2-2b-2b", pages: [PAGE-GRD-LIST, PAGE-GRD-DETAIL, PAGE-GRD-CREATE, PAGE-GRD-BATCH, PAGE-GRD-LEADER, PAGE-GRD-ARCHIVE], status: 待开始 }
+  - { batch: "2-2b-2b", pages: [PAGE-GRD-LIST, PAGE-GRD-DETAIL, PAGE-GRD-CREATE, PAGE-GRD-BATCH, PAGE-GRD-LEADER, PAGE-GRD-ARCHIVE], status: "PAGE-GRD-LIST 样板页已产出待验收（ACT-GRD-001 ~ 011 已登记）；其余 5 页待样板验收后铺开" }
   - { batch: "2-3", pages: [PAGE-CLS-LIST, PAGE-CLS-DETAIL, PAGE-CLS-CREATE, PAGE-CLS-BATCH, PAGE-CLS-ROSTER-ADD, PAGE-CLS-TRANSFER, PAGE-PRM-LIST, PAGE-PRM-CREATE, PAGE-PRM-PREVIEW, PAGE-PRM-VALIDATE, PAGE-PRM-EXECUTE, PAGE-PRM-RESULT], status: 待开始 }
   - { batch: "2-4", pages: [PAGE-IMP-WIZARD, PAGE-IMP-TEMPLATE, PAGE-IMP-VALIDATE, PAGE-IMP-EXECUTE, PAGE-STU-IMPORT, PAGE-TCH-IMPORT, PAGE-CLS-ROSTER-IMPORT, PAGE-LOGIN, PAGE-403, PAGE-404, PAGE-500], status: 待开始 }
 
 # ---------------------------------------------------------------------------
-# 5. 动作的通用状态规则
+# 6. 动作的通用状态规则
 # ---------------------------------------------------------------------------
 state_rules:
   - 提交类动作在请求中必须置 loading 并禁用，禁止重复提交
@@ -694,7 +990,7 @@ state_rules:
   - 无权限时不渲染入口；绕过前端直接调接口必须被后端拒绝
 
 # ---------------------------------------------------------------------------
-# 6. 反馈文案模板（原型与生产共用）
+# 7. 反馈文案模板（原型与生产共用）
 #    禁止出现"操作成功""操作失败""数据不存在"这类不含信息的文案。
 #    每条文案必须包含：发生了什么 + 对象是谁 + 下一步能做什么。
 #    变量用 {snake_case} 占位，变量名必须是字段字典中的字段或接口返回字段。

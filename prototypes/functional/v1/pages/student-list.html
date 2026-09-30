@@ -121,7 +121,7 @@
     <div class="card-header">
       <div class="toolbar" data-demo-state-target="toolbar">
         <button class="btn primary-plain" data-role="action" data-action-id="ACT-STU-001" data-component="el-button.primary.plain"
-                data-permission="person.student:create" data-nav="PAGE-STU-CREATE" data-overlay="drawer"
+                data-permission="person.student:create" data-nav="PAGE-STU-CREATE" data-overlay="dialog"
                 data-role-visible="academic_director,grade_leader">新增</button>
         <button class="btn primary-plain" data-role="action" data-action-id="ACT-STU-002" data-component="el-button.primary.plain"
                 data-permission="data.import:import" data-nav="PAGE-STU-IMPORT"
@@ -515,15 +515,15 @@
   <template id="row-actions-template"></template>
 </div>
 
-<!-- ============================================================== 抽屉：新增学生 -->
-<div class="overlay" data-demo="panel" data-demo-panel="PAGE-STU-CREATE" data-overlay-kind="drawer">
-  <aside class="drawer" data-role="drawer" data-component="el-drawer" data-size="md" data-page="PAGE-STU-CREATE" data-block="form">
-    <div class="drawer-header">
+<!-- ============================================================== 弹窗：新增学生 -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-STU-CREATE" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="md" data-page="PAGE-STU-CREATE" data-block="form">
+    <div class="dialog-header">
       <h2>新增学生</h2>
       <span class="el-tag info">学号由系统统一发号</span>
       <button class="close-x" data-close-panel="PAGE-STU-CREATE" title="关闭">✕</button>
     </div>
-    <div class="drawer-body">
+    <div class="dialog-body">
       <div class="steps">
         <div class="step on"><span class="idx">1</span><span>学籍信息</span></div>
         <div class="step-line"></div>
@@ -711,7 +711,7 @@
         </div>
       </div>
     </div>
-    <div class="drawer-footer">
+    <div class="dialog-footer">
       <button class="btn" data-role="action" data-action-id="ACT-STU-014" data-component="el-button"
               data-nav="DIALOG-STU-DISCARD" data-overlay="dialog" data-permission="person.student:create">取消</button>
       <button class="btn" data-role="action" data-action-id="ACT-STU-012" data-component="el-button" data-step-btn="prev" disabled>上一步</button>
@@ -721,19 +721,19 @@
               data-demo-message="已保存，学号为 2026000013。可继续新增或查看详情。"
               data-permission="person.student:create">保存</button>
     </div>
-  </aside>
+  </div>
 </div>
 
-<!-- ============================================================== 抽屉：编辑学生 -->
-<div class="overlay" data-demo="panel" data-demo-panel="PAGE-STU-EDIT" data-overlay-kind="drawer">
-  <aside class="drawer" data-role="drawer" data-component="el-drawer" data-size="md" data-page="PAGE-STU-EDIT" data-block="form">
-    <div class="drawer-header">
+<!-- ============================================================== 弹窗：编辑学生 -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-STU-EDIT" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="md" data-page="PAGE-STU-EDIT" data-block="form">
+    <div class="dialog-header">
       <h2>编辑学生 · 王梓萱</h2>
       <span class="el-tag primary">2026000001</span>
       <span class="el-tag success">在读</span>
       <button class="close-x" data-close-panel="PAGE-STU-EDIT" title="关闭">✕</button>
     </div>
-    <div class="drawer-body">
+    <div class="dialog-body">
       <div class="steps">
         <div class="step on"><span class="idx">1</span><span>学籍信息</span></div>
         <div class="step-line"></div>
@@ -891,7 +891,7 @@
         </div>
       </div>
     </div>
-    <div class="drawer-footer">
+    <div class="dialog-footer">
       <button class="btn" data-role="action" data-action-id="ACT-STU-014" data-component="el-button"
               data-nav="DIALOG-STU-DISCARD" data-overlay="dialog" data-permission="person.student:update">取消</button>
       <button class="btn" data-role="action" data-action-id="ACT-STU-012" data-component="el-button" data-step-btn="prev" disabled>上一步</button>
@@ -901,13 +901,13 @@
               data-demo-message="已保存。（若与他人的修改冲突，将提示"该记录已被 邓丽娟 于 2026-09-30 10:12 更新，请刷新后重试。"）"
               data-permission="person.student:update">保存</button>
     </div>
-  </aside>
+  </div>
 </div>
 
 <!-- ============================================================== 二次确认：放弃填写 -->
 <div class="overlay" data-demo="panel" data-demo-panel="DIALOG-STU-DISCARD" data-overlay-kind="dialog">
   <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="sm" data-block="footer">
-    <div class="drawer-header"><h2>放弃本次填写？</h2></div>
+    <div class="dialog-header"><h2>放弃本次填写？</h2></div>
     <div class="dialog-body">
       关闭后，本次已填写的内容不会保存。已经保存过的数据不受影响。
     </div>
@@ -939,7 +939,7 @@
     edit.setAttribute('data-component', 'el-button.link.primary');
     edit.setAttribute('data-permission', 'person.student:update');
     edit.setAttribute('data-nav', 'PAGE-STU-EDIT');
-    edit.setAttribute('data-overlay', 'drawer');
+    edit.setAttribute('data-overlay', 'dialog');
     edit.setAttribute('data-role-visible', 'academic_director,grade_leader,homeroom');
     // 注意：不要 stopPropagation。外壳的事件委托挂在 document 上，阻止冒泡会让行内按钮失效
     // （按钮的 data-nav 由演示引擎处理；"点按钮不打开详情"由引擎的 target 判定负责）。
@@ -954,7 +954,7 @@
       move.setAttribute('data-component', 'el-button.link.primary');
       move.setAttribute('data-permission', 'enrollment.transfer:create');
       move.setAttribute('data-nav', 'PAGE-STU-STATUS');
-      move.setAttribute('data-overlay', 'drawer');
+      move.setAttribute('data-overlay', 'dialog');
       move.setAttribute('data-role-visible', 'academic_director,grade_leader,homeroom');
       cell.appendChild(move);
 
@@ -966,7 +966,7 @@
       transfer.setAttribute('data-component', 'el-button.link.primary');
       transfer.setAttribute('data-permission', 'org.class:update');
       transfer.setAttribute('data-nav', 'PAGE-STU-TRANSFER');
-      transfer.setAttribute('data-overlay', 'drawer');
+      transfer.setAttribute('data-overlay', 'dialog');
       transfer.setAttribute('data-role-visible', 'academic_director,grade_leader');
       cell.appendChild(transfer);
     } else {
@@ -1117,19 +1117,16 @@
   syncChips();
   applyFilter();
 
-  document.addEventListener('DOMContentLoaded', function () {
-    // shell.js 在 <head> 中先注册 DOMContentLoaded，因此这里运行时外壳与深链接参数已就绪。
-    // 角色由演示引擎按 #role=... 或默认值应用，本页不再覆盖，避免深链接失效。
-    var raw = (window.location.search.replace(/^\?/, '') + '&' + window.location.hash.replace(/^#/, '')).replace(/^&|&$/g, '');
-    var params = {};
-    raw.split('&').forEach(function (pair) {
-      var kv = pair.split('=');
-      if (kv[0]) params[kv[0]] = decodeURIComponent(kv[1] || '');
-    });
+  // 页面自己的深链接参数：外壳在整页加载与 hashchange 时都会派发 prototype:params，
+  // 因此"在已打开的页面上直接改地址栏 hash"也能生效。
+  // 角色仍由外壳按 #role=... 应用，本页不覆盖，避免深链接失效。
+  document.addEventListener('prototype:params', function (event) {
+    var params = event.detail || {};
     if (params.school) {
       document.getElementById('f-school').value = params.school;
       applyFilter();
     }
+    if (params.state) window.PrototypeShell.applyState(params.state);
   });
 })();
 </script>

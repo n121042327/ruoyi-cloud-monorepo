@@ -9,6 +9,7 @@
 
   // 与 content-samples.json 的 prototype_roles 保持一致
   var ROLES = [
+    { code: 'super_admin', label: '超级管理员', persona: '系统内置账号' },
     { code: 'academic_director', label: '教务主任', persona: '郑雅琴' },
     { code: 'homeroom', label: '班主任', persona: '邓丽娟' },
     { code: 'grade_leader', label: '年级主任', persona: '何文博' },
@@ -36,7 +37,7 @@
         { id: 'PAGE-STU-LIST', name: '学生管理', batch: '2-1', delivered: 'pages/student-list.html' },
         { id: 'PAGE-TCH-LIST', name: '教师管理', batch: '2-2', delivered: 'pages/teacher-list.html' },
         { id: 'PAGE-CLS-LIST', name: '班级管理', batch: '2-3' },
-        { id: 'PAGE-GRD-LIST', name: '年级管理', batch: '2-2' },
+        { id: 'PAGE-GRD-LIST', name: '年级管理', batch: '2-2', delivered: 'pages/grade-list.html' },
         { id: 'PAGE-PRM-LIST', name: '升班与学籍', batch: '2-3' },
         { id: 'PAGE-STR-LIST', name: '选科与教学班', batch: '2-7' }
       ]
@@ -76,6 +77,20 @@
   Object.keys(EXTRA_PAGES).forEach(function (id) {
     PAGE_NAME[id] = EXTRA_PAGES[id].name;
     PAGE_BATCH[id] = EXTRA_PAGES[id].batch;
+  });
+
+  // 已在 navigation.yaml 注册、但本批尚未交付的页面：只为把提示文案里的页面编号换成中文名，
+  // 不改变交付状态判定（delivered 仍然只由 MENUS / EXTRA_PAGES 决定）。
+  var PENDING_PAGES = {
+    'PAGE-GRD-DETAIL': { name: '年级详情', batch: '2-2' },
+    'PAGE-GRD-CREATE': { name: '新建 / 编辑年级', batch: '2-2' },
+    'PAGE-GRD-BATCH': { name: '按学段批量生成', batch: '2-2' },
+    'PAGE-GRD-LEADER': { name: '指定年级主任', batch: '2-2' },
+    'PAGE-GRD-ARCHIVE': { name: '归档确认', batch: '2-2' }
+  };
+  Object.keys(PENDING_PAGES).forEach(function (id) {
+    if (!PAGE_NAME[id]) PAGE_NAME[id] = PENDING_PAGES[id].name;
+    if (!PAGE_BATCH[id]) PAGE_BATCH[id] = PENDING_PAGES[id].batch;
   });
 
   var state = { role: 'academic_director', state: 'normal', panels: [] };
@@ -271,14 +286,18 @@
     var meta = roleLabel(code);
     document.body.setAttribute('data-current-role', code);
 
+    // 超级管理员不受功能权限与字段可编辑性限制（BR-ORG-014）：
+    // 所有 data-role-visible / data-role-editable / data-role-enabled 一律放行。
+    var isSuperAdmin = code === 'super_admin';
+
     document.querySelectorAll('[data-role-visible]').forEach(function (node) {
       var allowed = node.getAttribute('data-role-visible').split(',').map(function (s) { return s.trim(); });
-      node.classList.toggle('role-hidden', allowed.indexOf(code) === -1);
+      node.classList.toggle('role-hidden', !isSuperAdmin && allowed.indexOf(code) === -1);
     });
 
     document.querySelectorAll('[data-role-editable]').forEach(function (node) {
       var editable = node.getAttribute('data-role-editable').split(',').map(function (s) { return s.trim(); });
-      var can = editable.indexOf(code) !== -1;
+      var can = isSuperAdmin || editable.indexOf(code) !== -1;
       node.classList.toggle('role-readonly', !can);
       node.querySelectorAll('input, select, textarea').forEach(function (input) {
         if (input.hasAttribute('data-keep-enabled')) return;
@@ -290,8 +309,9 @@
     // 控件可用性按角色控制（如"学校"筛选只有平台运营可切换）
     document.querySelectorAll('[data-role-enabled]').forEach(function (node) {
       var allowed = node.getAttribute('data-role-enabled').split(',').map(function (s) { return s.trim(); });
-      node.disabled = allowed.indexOf(code) === -1;
-      node.setAttribute('data-locked-by-role', String(allowed.indexOf(code) === -1));
+      var enabled = isSuperAdmin || allowed.indexOf(code) !== -1;
+      node.disabled = !enabled;
+      node.setAttribute('data-locked-by-role', String(!enabled));
     });
 
     document.querySelectorAll('[data-demo="role-switcher"] .pbtn').forEach(function (btn) {
@@ -339,6 +359,7 @@
       toast('「' + (PAGE_NAME[pageId] || pageId) + '」在本批未提供页面片段（原型按批交付），入口与权限显隐仍可验收。', 'warning');
       return;
     }
+    if (panel.classList.contains('open')) return; // 深链接重复触发时不重复入栈
     panel.classList.add('open');
     state.panels.push(pageId);
     var focusable = panel.querySelector('input, select, textarea, button');
@@ -530,6 +551,28 @@
     if (open) closePanel();
   }
 
+  /* ---------------------------------------------------------------- 深链接参数 */
+
+  // 支持 #role=homeroom&state=empty&panel=PAGE-STU-CREATE，也支持 ?role=... 形式。
+  // 页面自己的筛选参数（如 school / enroll / stage）由页面监听 prototype:params 事件处理。
+  function parseParams() {
+    var raw = (window.location.search.replace(/^\?/, '') + '&' + window.location.hash.replace(/^#/, '')).replace(/^&|&$/g, '');
+    var params = {};
+    raw.split('&').forEach(function (pair) {
+      var kv = pair.split('=');
+      if (kv[0]) params[kv[0]] = decodeURIComponent(kv[1] || '');
+    });
+    return params;
+  }
+
+  function applyParams(params) {
+    if (params.role) applyRole(params.role);
+    if (params.state) applyState(params.state);
+    if (params.panel) openPanel(params.panel);
+    // 交给页面处理自己的参数（筛选值等）。放在最后，保证页面看到的是已应用角色 / 状态之后的局面。
+    document.dispatchEvent(new CustomEvent('prototype:params', { detail: params }));
+  }
+
   /* ---------------------------------------------------------------- 初始化 */
 
   function init() {
@@ -565,17 +608,10 @@
 
     applyRole(state.role);
     applyState('normal');
-    // 深链接：支持 #role=homeroom&state=empty&panel=PAGE-STU-CREATE（也支持 ?role=... 形式），
-    // 便于截图与评审时直接定位到指定角色 / 状态 / 浮层
-    var raw = (window.location.search.replace(/^\?/, '') + '&' + window.location.hash.replace(/^#/, '')).replace(/^&|&$/g, '');
-    var params = {};
-    raw.split('&').forEach(function (pair) {
-      var kv = pair.split('=');
-      if (kv[0]) params[kv[0]] = decodeURIComponent(kv[1] || '');
-    });
-    if (params.role) applyRole(params.role);
-    if (params.state) applyState(params.state);
-    if (params.panel) openPanel(params.panel);
+    // 深链接：便于截图与评审时直接定位到指定角色 / 状态 / 浮层
+    applyParams(parseParams());
+    // 在已打开的页面上直接改地址栏 hash 也应当生效（同文档导航不会重新加载页面）
+    window.addEventListener('hashchange', function () { applyParams(parseParams()); });
     // 列级显隐：表头登记 data-col-hide-role，同一列的数据单元格自动继承
     document.querySelectorAll('table.el-table').forEach(function (table) {
       Array.prototype.forEach.call(table.querySelectorAll('thead th'), function (th, index) {
@@ -604,6 +640,8 @@
     applyState: applyState,
     openPanel: openPanel,
     closePanel: closePanel,
+    parseParams: parseParams,
+    applyParams: applyParams,
     // 深链接与截图辅助：把某个浮层内的步骤条直接切到第 index 步（向导类页面复用）
     step: function (pageId, index) {
       var panel = document.querySelector('[data-demo-panel="' + pageId + '"]');

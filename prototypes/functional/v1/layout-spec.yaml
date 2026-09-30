@@ -220,6 +220,12 @@ components:
     destructive_size: sm
     footer: "取消（plain）+ 确认（primary / danger）"
     rule: 二次确认文案必须写清"对谁、做什么、影响范围"
+    carrier_rule: |
+      表单类浮层的载体以**现有代码库**为准：apps/plus-ui 全库 40 处 el-dialog、0 处 el-drawer
+      （统计命令见 evidence/stage2-prototype/README.md 第 4 节），因此本项目的表单与二次确认统一用 **el-dialog**，
+      抽屉只用于 PRD 显式要求的详情页（如教师 / 学生 / 日志详情）。
+      落地到 apps/plus-ui 时的宽度映射：sm → 500px（plus-ui 出现 13 次，最常用）、md → 600px、lg → 800px。
+      决策依据见 docs/00-governance/decisions.md 的 D-058 与 change-requests/CR-007.md。
 
   steps:
     height: 72px

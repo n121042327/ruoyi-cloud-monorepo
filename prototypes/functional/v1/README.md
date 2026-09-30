@@ -37,6 +37,14 @@
 | `page-specs/teacher-role.md` | 教育角色分配弹窗页面规格 | 批次 2-2b-2 |
 | `page-specs/teacher-assign.md` | 任教关系设置独立页页面规格（双栏视角） | 批次 2-2b-2 |
 | `pages/teacher-assign.html` | 任教关系设置（独立页，双栏：班级视角 / 教师视角） | 批次 2-2b-2 |
+| `pages/grade-list.html` | 年级管理列表（批次 2-2b-2b 样板页）+ 删除年级二次确认浮层片段 `DIALOG-GRD-DELETE` | 批次 2-2b-2b |
+| `page-specs/grade-list.md` | 年级管理列表页面规格（字段 / 动作 / 状态 / 权限 / 样例数据） | 批次 2-2b-2b |
+| `pages/grade-list.html` 的其余 5 个浮层片段 | 年级详情抽屉（`PAGE-GRD-DETAIL`）、新建 / 编辑年级弹窗（`PAGE-GRD-CREATE`）、按学段批量生成弹窗（`PAGE-GRD-BATCH`）、指定年级主任弹窗（`PAGE-GRD-LEADER`）、归档确认弹窗（`PAGE-GRD-ARCHIVE`） | 批次 2-2b-2b |
+| `page-specs/grade-detail.md` | 年级详情抽屉页面规格（5 分区、两种样本） | 批次 2-2b-2b |
+| `page-specs/grade-create.md` | 新建 / 编辑年级弹窗页面规格（一窗两态、字段级只读） | 批次 2-2b-2b |
+| `page-specs/grade-batch.md` | 按学段批量生成弹窗页面规格（预览与冲突跳过） | 批次 2-2b-2b |
+| `page-specs/grade-leader.md` | 指定年级主任弹窗页面规格（任职清单、四条保存前检查） | 批次 2-2b-2b |
+| `page-specs/grade-archive.md` | 归档确认弹窗页面规格（引用情况、原因必填） | 批次 2-2b-2b |
 
 ## 3. 怎么打开
 
@@ -53,12 +61,20 @@
 
 | 参数 | 取值 | 示例 |
 |---|---|---|
-| `role` | `academic_director` / `homeroom` / `grade_leader` / `subject_teacher` / `school_leader` / `platform_ops` | `student-list.html#role=homeroom` |
+| `role` | `super_admin` / `academic_director` / `homeroom` / `grade_leader` / `subject_teacher` / `school_leader` / `platform_ops`（教师页面另有 `tenant_admin`） | `student-list.html#role=homeroom` |
 | `state` | `normal` / `loading` / `empty` / `error` / `forbidden` / `submitting` / `partial` / `queued` | `student-list.html#state=error` |
-| `panel` | `PAGE-STU-CREATE` / `PAGE-STU-EDIT` / `PAGE-TCH-DETAIL` / `PAGE-TCH-CREATE` / `PAGE-TCH-EDIT` / `PAGE-TCH-ROLE` / `DIALOG-TCH-LEAVE` / `DIALOG-TCH-DISCARD` / `DIALOG-TCH-COPY` | `teacher-list.html#panel=PAGE-TCH-DETAIL`；`#panel=PAGE-TCH-ROLE` 直接打开角色分配弹窗 |
+| `panel` | `PAGE-STU-CREATE` / `PAGE-STU-EDIT` / `PAGE-TCH-DETAIL` / `PAGE-TCH-CREATE` / `PAGE-TCH-EDIT` / `PAGE-TCH-ROLE` / `DIALOG-TCH-LEAVE` / `DIALOG-TCH-DISCARD` / `DIALOG-TCH-COPY` / `DIALOG-GRD-DELETE` / `PAGE-GRD-DETAIL` / `PAGE-GRD-CREATE` / `PAGE-GRD-BATCH` / `PAGE-GRD-LEADER` / `PAGE-GRD-ARCHIVE` | `grade-list.html#panel=PAGE-GRD-LEADER` 直接打开指定年级主任弹窗 |
 | `school` | `201` / `202` | `student-list.html?school=202#role=platform_ops`（平台运营切换他校的协助视图；学校用户看不到他校数据） |
 | `sample` | 教师详情样例：`1007`（跨校任教）/ `1003`（班主任 + 任课） | `teacher-list.html#panel=PAGE-TCH-DETAIL&sample=1003` |
 | `step` | 向导类浮层的步骤序号，如 `3` | `teacher-list.html#panel=PAGE-TCH-CREATE&step=3` |
+| `enroll` | 年级列表的入学年份筛选，如 `2021` | `grade-list.html#enroll=2021`（只看空年级） |
+| `leader` | 年级列表的年级主任筛选，教师姓名或 `__none` | `grade-list.html#leader=__none` |
+| `stage` | 年级列表的学段筛选，`primary` / `junior` / `senior`，逗号分隔 | `grade-list.html#stage=junior,senior` |
+| `sample` | 年级详情的样本：`A`（2026 级 高一）/ `B`（空年级） | `grade-list.html#panel=PAGE-GRD-DETAIL&sample=B` |
+
+> **深链接在"已经打开的页面"上也生效**：外壳在 `hashchange` 时会重新解析参数并派发 `prototype:params` 事件，
+> 页面监听该事件重放自己的筛选参数。因此直接在地址栏把 `#enroll=2021` 加到一个已经打开的年级列表后面即可生效，
+> 不需要刷新（`GL-34` 实测）。
 
 多个参数用 `&` 连接，例如 `student-list.html#role=homeroom&panel=PAGE-STU-EDIT`。
 
@@ -152,3 +168,45 @@
 | 弹窗高度 | `.dialog` 增加 `max-height: 84vh` 与内部滚动（``.dialog-body`` 滚动、footer 固定） | 教育角色分配弹窗内容较长，原先会溢出视口且看不到底部按钮 |
 | 菜单高亮 | 页面可用 `data-menu-page` 指定要高亮的菜单项（任教关系设置高亮"教师管理"） | 独立业务页不属于菜单树，但仍应让评审者看出自己在哪个模块里 |
 | 视角切换 | 左栏用 `班级视角 / 教师视角` 两个 chip 切换，右栏主体与表格结构复用 | `REQ-TCH-044` 要求支持班级视角与教师视角切换；复用一套表格列避免两套渲染逻辑 |
+
+## 11. 批次 2-2b-2b 的工程决策（待确认，若不认可可回退）
+
+| 事项 | 做法 | 理由 |
+|---|---|---|
+| 先出样板页 | 本批只交付 `PAGE-GRD-LIST` 一页，其余 5 页（详情 / 新建 / 批量生成 / 指定主任 / 归档）等样板验收通过后按同一标准铺开 | 用户明确要求"先生成一个页面，觉得好看了，用同样的标准生成其他剩下的一批页面"；也是 `AGENTS.md` 第 5 节的硬要求 |
+| 超级管理员的角色形态 | 外壳新增 `super_admin`；`applyRole` 对它一律放行 `data-role-visible` / `data-role-editable` / `data-role-enabled` | `BR-ORG-014` 要求"可以做任意事"，若仍按白名单渲染，原型就演示不出这个角色；演示面板默认收起，已交付页面的截图不受影响 |
+| 未交付页面的中文提示 | 外壳新增 `PENDING_PAGES`（页面编号 → 中文名 + 批次），只用于把提示文案里的编号换成中文名，不改变交付状态判定 | 此前点「新增」只会提示「PAGE-GRD-CREATE 在本批未提供页面片段」，对评审者不友好；交付状态仍只由 `MENUS` / `EXTRA_PAGES` 决定 |
+| 删除的承载 | 删除年级实现为列表页内的浮层片段 `DIALOG-GRD-DELETE`（二次确认 + 原因必填 + 写审计），不单独占页面 | 与 `PAGE-GRD-ARCHIVE`（归档确认，已由 PRD 6.1 登记为页面）分工不同：归档是独立登记的页面，删除是列表页内的确认片段；`CR-005` 已把 `DIALOG-GRD-DELETE` 写进年级 PRD 6.1 并注明"浮层片段（不单独占页面）" |
+| 删除入口的可用条件 | 行内「删除」只在**无班级且无学生关系**的年级行渲染，接口同样二次校验 | `BR-GRADE-005` 与 `REQ-GRD-028`；原型用 `2021 级 小学六年级`（班级数 0 / 在读数 0）作为唯一可见样本，便于验收者一眼看出条件 |
+| 只读角色的操作列 | 年级主任与班主任的"只读"说明由本页自己的 `<style>` 提供；校领导 / 任课教师 / 平台运营沿用外壳规则 | 外壳的 `td.actions::after` 是全局规则，但年级主任在教师模块是有行内操作的，不能全局改成只读，因此按页面收口 |
+| 已归档行的写入口 | 已归档年级不渲染编辑 / 指定主任 / 归档 / 删除，"已归档 · 仅可查看"这行说明只对可写角色渲染 | 只读角色下外壳会给空操作列补"只读"，两者叠加会读成"已归档 · 仅可查看只读" |
+| 列表列宽与表头 | 年级名称 264px；「学段内序号」表头显示为「序号」并用 `title` 写全称；表宽 `min-width: 1122px` | 5 字的表头在 `white-space: nowrap` 下需要约 94px；把列宽压到 72px 后表头会截断。1366×768 下的可用宽度约 1150px，1122px 是既能让 1366 不出现表格内横向滚动、又能让 4 个行操作（编辑 / 指定年级主任 / 归档 / 删除）排在一行的最小宽度 |
+| 统计口径说明 | 页头分别显示"共 18 个年级"（取自 `list_totals`）与"本页样例 N 行 · 班级数 · 在读学生数"（按当前筛选实时汇总） | 前者是真实量级的分页总数，后者是本页可见样例的合计；混在一个标签里会让评审者误以为学校只有 13 个年级 |
+| 交互验证方式 | 从本批起改用可复现的 harness `evidence/stage2-prototype/verify-grade-list.html`，把 22 条断言的结果渲染成清单后截图留档 | 前两批用一次性临时文件，无法被后人重跑；harness 落在 `evidence/` 下不进入 `prototypes/`，不污染原型目录与核查脚本 |
+
+## 12. 批次 2-2b-2b 收口时的两项修正（2026-09-30）
+
+| 事项 | 做法 | 理由 |
+|---|---|---|
+| 深链接在已打开页面上失效 | 外壳把深链接解析抽成 `parseParams` / `applyParams`，并新增 `hashchange` 监听；页面改为监听 `prototype:params` 事件重放自己的筛选参数（年级列表 / 学生列表 / 教师列表三处同步） | 用户按说明把 `#enroll=2021` 加到已打开的页面上，页面不会重新加载，原来的实现只在 `DOMContentLoaded` 里读一次参数，所以"没有达到预期"。根因与复现证据见 `evidence/stage2-prototype/_debug-grade-delete.png` |
+| 年级列表的行序 | 由「高中 → 初中 → 小学」改为「小学 → 初中 → 高中」 | 空年级（`2021 级 小学六年级`，唯一带「删除」入口的行）原本排在第 13 行，1440×900 下要滚动才看得到；按学段升序后它落在第 6 行，首屏可见，验收时不必先改 URL |
+| 浮层载体 | 年级的 5 个浮层全部用**弹窗**；`navigation.yaml` 的 `PAGE-GRD-CREATE` / `BATCH` / `LEADER` 由 `drawer` 改为 `dialog` | 用户要求与 `apps/plus-ui` 现状一致：全库 40 处 `el-dialog`、0 处 `el-drawer`（`CR-007` / `D-058`）；`PAGE-GRD-DETAIL` 按 PRD 6.1 保留抽屉 |
+| 详情空态 | 年级详情给两种样本：A 有数据、B 空年级；空态在三张子表里都给出说明与下一步 | 空白表格会被误读成加载失败；`prototype-quality-spec.md` 第 2 节要求空态写清"为什么空" |
+
+## 13. 载体统一（CR-008 / D-059，2026-09-30）
+
+用户要求浮层载体与 `apps/plus-ui` 保持一致（全库 40 处 `el-dialog`、0 处 `el-drawer`），
+因此定下三条规则并回溯到已交付页面：
+
+| 规则 | 适用 | 本次落地 |
+|---|---|---|
+| 表单类浮层用**弹窗** | 新增 / 编辑 / 短表单 | 学生新增与编辑、教师新增与编辑由抽屉改弹窗；学校编辑、学年新建、学科新建与编辑在 PRD 层同步 |
+| 详情类用**抽屉** | 教师详情、学生详情、日志详情、任务详情 | 保持不变；学生详情在 `navigation.yaml` 补 `container: drawer` |
+| 含表格或分页的内容用**独立页** | 校区管理、学期管理 | 由「抽屉内含表格」改为独立页，PRD 与 `navigation.yaml` 同步 |
+
+配套修的两处实现问题：
+
+- `.dialog-body` 原来没有 `flex:1`，弹窗内的高内容（如三步新增教师）会被 `.dialog { overflow:hidden }` 裁掉且无法滚动；
+  现已改为 `flex:1 1 auto; min-height:0`，footer 固定、正文内部滚动。
+- 弹窗内部仍沿用 `drawer-header` / `drawer-body` / `drawer-footer` 三个样式钩子，已按容器类型改名 `dialog-*`，
+  避免阶段 6 组件映射时误判容器。

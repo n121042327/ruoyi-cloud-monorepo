@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>调试：深链接 + 删除确认</title>
+<style>
+  body { margin: 12px; font: 13px/1.6 Consolas, "Microsoft YaHei", monospace; }
+  h1 { font-size: 16px; }
+  ol { padding-left: 20px; }
+  .bad { color: #c0392b; font-weight: 700; }
+  .ok { color: #1a7f37; }
+  iframe { width: 1300px; height: 520px; border: 1px solid #dcdfe6; }
+</style>
+</head>
+<body>
+<h1>调试：在已打开的页面上改 hash 是否生效 + 删除确认是否拦截</h1>
+<ol id="log"><li>运行中…</li></ol>
+<iframe id="frame" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/grade-list.html"></iframe>
+<script>
+(function () {
+  'use strict';
+  var log = [];
+  var frame = document.getElementById('frame');
+
+  function add(ok, text) {
+    log.push({ ok: ok, text: text });
+    var ol = document.getElementById('log');
+    ol.innerHTML = '';
+    log.forEach(function (item) {
+      var li = document.createElement('li');
+      li.className = item.ok ? 'ok' : 'bad';
+      li.textContent = (item.ok ? '通过 ' : '不通过 ') + item.text;
+      ol.appendChild(li);
+    });
+  }
+
+  function doc() { return frame.contentDocument; }
+  function visibleRows() {
+    return Array.prototype.filter.call(doc().querySelectorAll('#grade-rows tr'), function (tr) {
+      return !tr.classList.contains('state-hidden');
+    });
+  }
+
+  frame.addEventListener('load', function () {
+    window.setTimeout(function () {
+      var before = visibleRows().length;
+      add(true, '第 1 步：初始加载后可见 ' + before + ' 行（学校 = 本校，未带任何筛选）');
+
+      // 模拟"在地址栏补上 #enroll=2021 并按回车"：同文档导航，不重新加载页面
+      frame.contentWindow.location.hash = '#enroll=2021';
+
+      window.setTimeout(function () {
+        var afterHash = visibleRows().length;
+        var selectValue = doc().getElementById('f-enroll').value;
+        add(afterHash === 1, '第 2 步：直接改 hash 后可见行数 = ' + afterHash
+          + '（期望 1），入学年份下拉 = "' + selectValue + '"（期望 2021）');
+
+        // 若第 2 步没生效，再走一次"刷新页面 + hash"的路径作对照
+        if (afterHash !== 1) {
+          frame.contentWindow.location.reload();
+        }
+        window.setTimeout(function () {
+          var afterReload = visibleRows().length;
+          if (afterHash !== 1) {
+            add(afterReload === 1, '第 2b 步（对照）：整页重新加载后可见行数 = ' + afterReload + '（期望 1）');
+          }
+          var delBtn = doc().querySelector('[data-action-id="ACT-GRD-007"]');
+          add(Boolean(delBtn), '第 3 步：空年级行找到「删除」入口 = ' + Boolean(delBtn));
+          if (!delBtn) { return; }
+
+          delBtn.click();
+          window.setTimeout(function () {
+            var panel = doc().querySelector('[data-demo-panel="DIALOG-GRD-DELETE"]');
+            add(panel.classList.contains('open'), '第 4 步：删除确认弹窗打开 = ' + panel.classList.contains('open'));
+
+            var confirmBtn = panel.querySelector('[data-action-id="ACT-GRD-010"]');
+            confirmBtn.click();
+            window.setTimeout(function () {
+              var hasError = Boolean(panel.querySelector('.field.has-error'));
+              var errText = panel.querySelector('.error-text') ? panel.querySelector('.error-text').textContent.trim() : '';
+              add(hasError, '第 5 步：不填原因点确认 → 字段级错误出现 = ' + hasError + '，文案 = "' + errText + '"');
+              add(panel.classList.contains('open'), '第 6 步：弹窗保持打开 = ' + panel.classList.contains('open'));
+              add(confirmBtn.textContent.trim() === '确认删除',
+                '第 7 步：按钮未进入 loading（未发起请求）= ' + (confirmBtn.textContent.trim() === '确认删除')
+                + '，当前文案 = "' + confirmBtn.textContent.trim() + '"');
+            }, 200);
+          }, 200);
+        }, 900);
+      }, 400);
+    }, 400);
+  });
+})();
+</script>
+</body>
+</html>

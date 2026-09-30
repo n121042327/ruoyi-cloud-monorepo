@@ -113,7 +113,7 @@
     <div class="card-header">
       <div class="toolbar" data-demo-state-target="toolbar">
         <button class="btn primary-plain" data-role="action" data-action-id="ACT-TCH-001" data-component="el-button.primary.plain"
-                data-permission="person.teacher:create" data-nav="PAGE-TCH-CREATE" data-overlay="drawer"
+                data-permission="person.teacher:create" data-nav="PAGE-TCH-CREATE" data-overlay="dialog"
                 data-role-visible="academic_director,tenant_admin">新增</button>
         <button class="btn primary-plain" data-role="action" data-action-id="ACT-TCH-002" data-component="el-button.primary.plain"
                 data-permission="data.import:import" data-nav="PAGE-TCH-IMPORT"
@@ -415,7 +415,7 @@
 <!-- ============================================================== 弹窗：教育角色分配 -->
 <div class="overlay" data-demo="panel" data-demo-panel="PAGE-TCH-ROLE" data-overlay-kind="dialog">
   <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="md" data-page="PAGE-TCH-ROLE" data-block="form">
-    <div class="drawer-header">
+    <div class="dialog-header">
       <h2>教育角色分配 · <span data-role-target="teacher_name">苏睿</span></h2>
       <span class="el-tag primary" data-role-target="teacher_no">YXWY2017001</span>
       <span class="el-tag info">教育角色 ≠ 系统角色</span>
@@ -590,7 +590,7 @@
           <h3>基本信息</h3>
           <div class="header-right">
             <button class="btn plain" data-role="action" data-action-id="ACT-TCH-006" data-component="el-button"
-                    data-permission="person.teacher:update" data-nav="PAGE-TCH-EDIT" data-overlay="drawer"
+                    data-permission="person.teacher:update" data-nav="PAGE-TCH-EDIT" data-overlay="dialog"
                     data-role-visible="academic_director,tenant_admin,school_leader">编辑</button>
           </div>
         </div>
@@ -843,15 +843,15 @@
   </aside>
 </div>
 
-<!-- ============================================================== 抽屉：新增教师 -->
-<div class="overlay" data-demo="panel" data-demo-panel="PAGE-TCH-CREATE" data-overlay-kind="drawer">
-  <aside class="drawer" data-role="drawer" data-component="el-drawer" data-size="md" data-page="PAGE-TCH-CREATE" data-block="form">
-    <div class="drawer-header">
+<!-- ============================================================== 弹窗：新增教师 -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-TCH-CREATE" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="md" data-page="PAGE-TCH-CREATE" data-block="form">
+    <div class="dialog-header">
       <h2>新增教师</h2>
       <span class="el-tag info">保存后自动创建教师账号</span>
       <button class="close-x" data-close-panel="PAGE-TCH-CREATE" title="关闭">✕</button>
     </div>
-    <div class="drawer-body">
+    <div class="dialog-body">
       <div class="steps">
         <div class="step on"><span class="idx">1</span><span>基本信息</span></div>
         <div class="step-line"></div>
@@ -868,7 +868,7 @@
           学校分发登录名与一次性初始凭据，教师首次登录强制修改密码（<span class="mono">REQ-TCH-018</span>）。</span>
         <div class="alert-actions">
           <button class="btn" data-role="action" data-action-id="ACT-TCH-024" data-component="el-button"
-                  data-demo-toast="已重新打开空白新增抽屉，上一份内容不保留。" data-demo-toast-type="info">继续新增</button>
+                  data-demo-toast="已重新打开空白新增表单，上一份内容不保留。" data-demo-toast-type="info">继续新增</button>
           <button class="btn" data-role="action" data-action-id="ACT-TCH-025" data-component="el-button"
                   data-demo-toast="真实系统中跳转到刚创建的教师详情；原型演示中不再打开第二个浮层。" data-demo-toast-type="info">查看详情</button>
           <button class="btn primary" data-role="action" data-action-id="ACT-TCH-026" data-component="el-button.primary"
@@ -982,7 +982,7 @@
         </div>
       </div>
     </div>
-    <div class="drawer-footer">
+    <div class="dialog-footer">
       <button class="btn" data-role="action" data-action-id="ACT-TCH-022" data-component="el-button"
               data-nav="DIALOG-TCH-DISCARD" data-overlay="dialog">取消</button>
       <button class="btn" data-role="action" data-action-id="ACT-TCH-020" data-component="el-button" data-step-btn="prev" disabled>上一步</button>
@@ -993,19 +993,19 @@
               data-demo-message="已保存，登录名 weizhiyuan。学校分发登录名与一次性初始凭据，教师首次登录强制修改密码。"
               data-permission="person.teacher:create">保存</button>
     </div>
-  </aside>
+  </div>
 </div>
 
-<!-- ============================================================== 抽屉：编辑教师 -->
-<div class="overlay" data-demo="panel" data-demo-panel="PAGE-TCH-EDIT" data-overlay-kind="drawer">
-  <aside class="drawer" data-role="drawer" data-component="el-drawer" data-size="md" data-page="PAGE-TCH-EDIT" data-block="form">
-    <div class="drawer-header">
+<!-- ============================================================== 弹窗：编辑教师 -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-TCH-EDIT" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="md" data-page="PAGE-TCH-EDIT" data-block="form">
+    <div class="dialog-header">
       <h2>编辑教师 · <span data-detail-field="teacher_name">苏睿</span></h2>
       <span class="el-tag primary" data-detail-field="teacher_no">YXWY2017001</span>
       <span class="el-tag success" data-detail-field="status">在职</span>
       <button class="close-x" data-close-panel="PAGE-TCH-EDIT" title="关闭">✕</button>
     </div>
-    <div class="drawer-body">
+    <div class="dialog-body">
       <div class="alert info">
         <span>字段级权限</span>
         <span>下方字段按角色渲染：只读字段为灰底 disabled，不隐藏（<span class="mono">REQ-TCH-021</span>）。
@@ -1105,7 +1105,7 @@
         </div>
       </div>
     </div>
-    <div class="drawer-footer">
+    <div class="dialog-footer">
       <button class="btn" data-role="action" data-action-id="ACT-TCH-022" data-component="el-button"
               data-nav="DIALOG-TCH-DISCARD" data-overlay="dialog">取消</button>
       <button class="btn primary" data-role="action" data-action-id="ACT-TCH-021" data-component="el-button.primary"
@@ -1113,13 +1113,13 @@
               data-demo-message="已保存。本次变更（含工号与教育角色）已写入审计日志。"
               data-permission="person.teacher:update">保存</button>
     </div>
-  </aside>
+  </div>
 </div>
 
 <!-- ============================================================== 二次确认：放弃已填写内容 -->
 <div class="overlay" data-demo="panel" data-demo-panel="DIALOG-TCH-DISCARD" data-overlay-kind="dialog">
   <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="sm" data-block="footer">
-    <div class="drawer-header"><h2>放弃已填写的内容？</h2></div>
+    <div class="dialog-header"><h2>放弃已填写的内容？</h2></div>
     <div class="dialog-body">
       <div class="alert warning" style="margin:0">
         <span>影响范围</span>
@@ -1138,7 +1138,7 @@
 <!-- ============================================================== 二次确认：离职 / 调离登记 -->
 <div class="overlay" data-demo="panel" data-demo-panel="DIALOG-TCH-LEAVE" data-overlay-kind="dialog">
   <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="sm" data-block="footer">
-    <div class="drawer-header"><h2>登记离职 / 调离</h2><span class="el-tag primary" id="leave-target">郑雅琴</span></div>
+    <div class="dialog-header"><h2>登记离职 / 调离</h2><span class="el-tag primary" id="leave-target">郑雅琴</span></div>
     <div class="dialog-body">
       <div class="field">
         <label>登记类型<span class="required">*</span></label>
@@ -1207,7 +1207,7 @@
       return btn;
     }
 
-    link('编辑', 'ACT-TCH-006', 'person.teacher:update', 'PAGE-TCH-EDIT', 'academic_director,tenant_admin', 'drawer');
+    link('编辑', 'ACT-TCH-006', 'person.teacher:update', 'PAGE-TCH-EDIT', 'academic_director,tenant_admin', 'dialog');
     link('角色', 'ACT-TCH-007', 'person.teacher:update', 'PAGE-TCH-ROLE', 'academic_director,tenant_admin', 'dialog');
     link('任教', 'ACT-TCH-008', 'person.teaching_assignment:read', 'PAGE-TCH-ASSIGN',
          'academic_director,tenant_admin,grade_leader');
@@ -1361,22 +1361,19 @@
   syncRoleChips();
   applyFilter();
 
-  document.addEventListener('DOMContentLoaded', function () {
-    var raw = (window.location.search.replace(/^\?/, '') + '&' + window.location.hash.replace(/^#/, '')).replace(/^&|&$/g, '');
-    var params = {};
-    raw.split('&').forEach(function (pair) {
-      var kv = pair.split('=');
-      if (kv[0]) params[kv[0]] = decodeURIComponent(kv[1] || '');
-    });
+  // 页面自己的深链接参数：外壳在整页加载与 hashchange 时都会派发 prototype:params
+  document.addEventListener('prototype:params', function (event) {
+    var params = event.detail || {};
     if (params.school) {
       document.getElementById('f-school').value = params.school;
       applyFilter();
     }
+    if (params.state) window.PrototypeShell.applyState(params.state);
   });
 })();
 </script>
 <!-- ============================================================== 批次 2-2b-1 演示脚本
-     覆盖：教师详情抽屉（两种形态）、新增教师三步抽屉、编辑教师抽屉、放弃确认弹窗。
+     覆盖：教师详情抽屉（两种形态）、新增教师三步弹窗、编辑教师弹窗、放弃确认弹窗。
      数据来源：content-samples.json 的 teachers / teachers_edge_cases / teacher_detail_samples / teacher_create_sample。 -->
 <script>
 (function () {
@@ -1650,7 +1647,7 @@
       window.setTimeout(function () { panel.classList.remove('state-hidden'); }, 1100);
     });
 
-    // 深链接：sample=1003 直接切到形态 B；step=3 把三步抽屉切到第 3 步（截图与评审用）
+    // 深链接：sample=1003 直接切到形态 B；step=3 把三步表单切到第 3 步（截图与评审用）
     var raw = (window.location.search.replace(/^\?/, '') + '&' + window.location.hash.replace(/^#/, '')).replace(/^&|&$/g, '');
     var params = {};
     raw.split('&').forEach(function (pair) {

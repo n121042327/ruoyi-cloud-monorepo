@@ -62,9 +62,9 @@ menu_rules:
 pages:
   # ---- 学生管理 ----
   - { id: PAGE-STU-LIST, name: 学生管理列表, module: student, type: page, route: /edu/student/list, template: TPL-LIST, batch: "2-1" }
-  - { id: PAGE-STU-CREATE, name: 新增学生, module: student, type: drawer, size: md, parent: PAGE-STU-LIST, batch: "2-1" }
-  - { id: PAGE-STU-EDIT, name: 编辑学生, module: student, type: drawer, size: md, parent: PAGE-STU-LIST, batch: "2-1" }
-  - { id: PAGE-STU-DETAIL, name: 学生详情, module: student, type: detail, route: /edu/student/detail, parent: PAGE-STU-LIST, batch: "2-5" }
+  - { id: PAGE-STU-CREATE, name: 新增学生, module: student, type: dialog, size: md, parent: PAGE-STU-LIST, batch: "2-1", note: "CR-008 / D-059：表单类浮层统一用弹窗（与 apps/plus-ui 一致），三步仍在一个弹窗内" }
+  - { id: PAGE-STU-EDIT, name: 编辑学生, module: student, type: dialog, size: md, parent: PAGE-STU-LIST, batch: "2-1", note: "CR-008 / D-059：表单类浮层统一用弹窗" }
+  - { id: PAGE-STU-DETAIL, name: 学生详情, module: student, type: detail, container: drawer, size: lg, route: /edu/student/detail, parent: PAGE-STU-LIST, batch: "2-5", note: "CR-008 / D-059：详情类保留抽屉" }
   - { id: PAGE-STU-STATUS, name: 学籍异动, module: student, type: dialog, size: md, parent: PAGE-STU-DETAIL, batch: "2-5" }
   - { id: PAGE-STU-TRANSFER, name: 调班, module: student, type: dialog, size: sm, parent: PAGE-STU-DETAIL, batch: "2-5" }
   - { id: PAGE-STU-HISTORY, name: 变更记录, module: student, type: block, parent: PAGE-STU-DETAIL, batch: "2-5" }
@@ -74,8 +74,8 @@ pages:
   # ---- 教师管理 ----
   - { id: PAGE-TCH-LIST, name: 教师管理列表, module: teacher, type: page, route: /edu/teacher/list, template: TPL-LIST, batch: "2-2" }
   - { id: PAGE-TCH-DETAIL, name: 教师详情, module: teacher, type: detail, container: drawer, size: lg, parent: PAGE-TCH-LIST, batch: "2-2", note: "PRD 6.1 写明详情页以抽屉承载；内含基本信息 / 教育角色 / 任教关系 / 班主任任职 / 账号 / 变更记录 6 个分区" }
-  - { id: PAGE-TCH-CREATE, name: 新增教师, module: teacher, type: drawer, size: md, parent: PAGE-TCH-LIST, batch: "2-2" }
-  - { id: PAGE-TCH-EDIT, name: 编辑教师, module: teacher, type: drawer, size: md, parent: PAGE-TCH-LIST, batch: "2-2" }
+  - { id: PAGE-TCH-CREATE, name: 新增教师, module: teacher, type: dialog, size: md, parent: PAGE-TCH-LIST, batch: "2-2", note: "CR-008 / D-059：表单类浮层统一用弹窗，三步仍在同一个弹窗内" }
+  - { id: PAGE-TCH-EDIT, name: 编辑教师, module: teacher, type: dialog, size: md, parent: PAGE-TCH-LIST, batch: "2-2", note: "CR-008 / D-059：表单类浮层统一用弹窗" }
   - { id: PAGE-TCH-ROLE, name: 教育角色分配, module: teacher, type: dialog, size: sm, parent: PAGE-TCH-LIST, batch: "2-2" }
   - { id: PAGE-TCH-ASSIGN, name: 任教关系设置, module: teacher, type: page, route: /edu/teacher/assignment, parent: PAGE-TCH-LIST, batch: "2-2", note: "PRD 6.1 写明为独立页，双栏承载教师视角 / 班级视角；批次 2-2b-2 交付" }
   - { id: PAGE-TCH-LEAVE, name: 离职与调离登记, module: teacher, type: dialog, size: sm, parent: PAGE-TCH-LIST, batch: "2-2" }
@@ -83,10 +83,10 @@ pages:
 
   # ---- 年级管理 ----
   - { id: PAGE-GRD-LIST, name: 年级管理列表, module: grade, type: page, route: /edu/grade/list, template: TPL-LIST, batch: "2-2" }
-  - { id: PAGE-GRD-DETAIL, name: 年级详情, module: grade, type: detail, parent: PAGE-GRD-LIST, batch: "2-2" }
-  - { id: PAGE-GRD-CREATE, name: 新建年级, module: grade, type: drawer, size: sm, parent: PAGE-GRD-LIST, batch: "2-2" }
-  - { id: PAGE-GRD-BATCH, name: 按学段批量生成, module: grade, type: drawer, size: sm, parent: PAGE-GRD-LIST, batch: "2-2" }
-  - { id: PAGE-GRD-LEADER, name: 指定年级主任, module: grade, type: drawer, size: md, parent: PAGE-GRD-LIST, batch: "2-2" }
+  - { id: PAGE-GRD-DETAIL, name: 年级详情, module: grade, type: detail, container: drawer, size: lg, parent: PAGE-GRD-LIST, batch: "2-2", note: "PRD 6.1 写明详情页以抽屉承载；内含基本信息 / 下辖班级 / 在读学生统计 / 年级主任任职历史 / 变更记录 5 个分区" }
+  - { id: PAGE-GRD-CREATE, name: 新建 / 编辑年级, module: grade, type: dialog, size: md, parent: PAGE-GRD-LIST, batch: "2-2", note: "PRD 6.1 写明为弹窗；编辑复用同一弹窗的编辑态，不另立页面（GAP-038 裁决 A / CR-007）" }
+  - { id: PAGE-GRD-BATCH, name: 按学段批量生成, module: grade, type: dialog, size: md, parent: PAGE-GRD-LIST, batch: "2-2", note: "PRD 6.1 写明为弹窗；预览用列表而非表格（layout-spec 禁止在弹窗内放表格）" }
+  - { id: PAGE-GRD-LEADER, name: 指定年级主任, module: grade, type: dialog, size: md, parent: PAGE-GRD-LIST, batch: "2-2", note: "PRD 6.1 写明为弹窗；任职清单用列表渲染，不在弹窗内放表格" }
   - { id: PAGE-GRD-ARCHIVE, name: 归档确认, module: grade, type: dialog, size: sm, parent: PAGE-GRD-LIST, batch: "2-2" }
 
   # ---- 班级管理 ----
@@ -116,7 +116,7 @@ pages:
   - { id: PAGE-SCH-DETAIL, name: 学校详情, module: school, type: detail, parent: PAGE-SCH-LIST, batch: "2-6" }
   - { id: PAGE-SCH-CREATE, name: 新建学校, module: school, type: drawer, size: md, parent: PAGE-SCH-LIST, batch: "2-6" }
   - { id: PAGE-SCH-EDIT, name: 编辑学校, module: school, type: drawer, size: md, parent: PAGE-SCH-LIST, batch: "2-6" }
-  - { id: PAGE-SCH-CAMPUS, name: 校区管理, module: school, type: drawer, size: lg, parent: PAGE-SCH-DETAIL, batch: "2-6" }
+  - { id: PAGE-SCH-CAMPUS, name: 校区管理, module: school, type: page, route: /edu/school/campus, parent: PAGE-SCH-DETAIL, batch: "2-6", note: "CR-008 / D-059：含表格与分页的内容用独立页，不用抽屉或弹窗" }
   - { id: PAGE-SCH-STAGE, name: 学段配置, module: school, type: drawer, size: sm, parent: PAGE-SCH-DETAIL, batch: "2-6" }
   - { id: PAGE-SCH-INIT, name: 开通初始化向导, module: school, type: wizard, route: /edu/school/init, batch: "2-6" }
   - { id: PAGE-SCH-DISABLE, name: 停用确认, module: school, type: dialog, size: sm, parent: PAGE-SCH-LIST, batch: "2-6" }
@@ -124,7 +124,7 @@ pages:
   # ---- 学年学期 ----
   - { id: PAGE-TERM-LIST, name: 学年学期列表, module: term, type: page, route: /edu/term/list, template: TPL-LIST, batch: "2-6" }
   - { id: PAGE-TERM-CREATE, name: 新建学年, module: term, type: drawer, size: sm, parent: PAGE-TERM-LIST, batch: "2-6" }
-  - { id: PAGE-TERM-TERMS, name: 学期管理, module: term, type: drawer, size: md, parent: PAGE-TERM-LIST, batch: "2-6" }
+  - { id: PAGE-TERM-TERMS, name: 学期管理, module: term, type: page, route: /edu/term/terms, parent: PAGE-TERM-LIST, batch: "2-6", note: "CR-008 / D-059：含表格的内容用独立页" }
   - { id: PAGE-TERM-SETCURRENT, name: 设为当前学年学期, module: term, type: dialog, size: sm, parent: PAGE-TERM-LIST, batch: "2-6" }
   - { id: PAGE-TERM-ARCHIVE, name: 学年归档, module: term, type: dialog, size: sm, parent: PAGE-TERM-LIST, batch: "2-6" }
 
@@ -177,7 +177,7 @@ pages:
 delivery_batches:
   - { batch: "2-0", content: 原型规范（layout-spec / navigation / page-actions / markup-contract / 样例数据）, pages: 0, status: 本批 }
   - { batch: "2-1", content: 学生管理列表 + 新增/编辑抽屉（样板）, pages: 3, status: 待验收 }
-  - { batch: "2-2", content: "教师管理 + 年级管理（执行时拆为 2-2a 教师列表 1 页 / 2-2b-1 教师详情与新增编辑 3 项 / 2-2b-2 角色与任教 2 项 / 2-2b-2b 年级 6 页）", pages: 13, status: "2-2a、2-2b-1、2-2b-2 已产出待验收；2-2b-2b（年级 6 页）待开始" }
+  - { batch: "2-2", content: "教师管理 + 年级管理（执行时拆为 2-2a 教师列表 1 页 / 2-2b-1 教师详情与新增编辑 3 项 / 2-2b-2 角色与任教 2 项 / 2-2b-2b 年级 6 页）", pages: 13, status: "2-2a、2-2b-1、2-2b-2 已产出待验收；2-2b-2b 的年级 6 页全部产出待验收（含删除确认浮层片段 DIALOG-GRD-DELETE 与 ACT-GRD-001 ~ 029）" }
   - { batch: "2-3", content: 班级管理 + 班级详情 + 升班向导, pages: 12, status: 待开始 }
   - { batch: "2-4", content: 导入向导 + 登录 + 异常页, pages: 11, status: 待开始 }
   - { batch: "2-5", content: 学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录）, pages: 8, status: 已确认（D-050），待开始 }
@@ -193,12 +193,12 @@ delivery_batches:
 jump_map:
   - { from: PAGE-STU-LIST, trigger: 点击行, to: PAGE-STU-DETAIL, keep_filters: true }
   - { from: PAGE-TCH-LIST, trigger: 点击行, to: PAGE-TCH-DETAIL, overlay: drawer, keep_filters: true }
-  - { from: PAGE-TCH-LIST, trigger: 行内"编辑", to: PAGE-TCH-EDIT, overlay: drawer }
+  - { from: PAGE-TCH-LIST, trigger: 行内"编辑", to: PAGE-TCH-EDIT, overlay: dialog }
   - { from: PAGE-TCH-LIST, trigger: 行内"角色", to: PAGE-TCH-ROLE, overlay: dialog }
   - { from: PAGE-TCH-LIST, trigger: 行内"任教", to: PAGE-TCH-ASSIGN, overlay: page }
   - { from: PAGE-TCH-LIST, trigger: 行内"离职", to: PAGE-TCH-LEAVE, overlay: dialog }
   - { from: PAGE-TCH-LIST, trigger: 点击"导入", to: PAGE-TCH-IMPORT, overlay: page }
-  - { from: PAGE-TCH-DETAIL, trigger: 详情"编辑", to: PAGE-TCH-EDIT, overlay: drawer }
+  - { from: PAGE-TCH-DETAIL, trigger: 详情"编辑", to: PAGE-TCH-EDIT, overlay: dialog }
   - { from: PAGE-TCH-DETAIL, trigger: 详情"分配角色", to: PAGE-TCH-ROLE, overlay: dialog }
   - { from: PAGE-TCH-DETAIL, trigger: 详情"设置任教", to: PAGE-TCH-ASSIGN, overlay: page }
   - { from: PAGE-TCH-DETAIL, trigger: 班主任任职"前往班级详情", to: PAGE-CLS-DETAIL, overlay: page }
@@ -206,8 +206,8 @@ jump_map:
   - { from: PAGE-TCH-ASSIGN, trigger: 左侧列表选择班级 / 教师, to: PAGE-TCH-ASSIGN, overlay: block, note: 同页内切换主体，不跳页 }
   - { from: PAGE-TCH-ASSIGN, trigger: 主体页头"前往班级详情", to: PAGE-CLS-DETAIL, overlay: page }
   - { from: PAGE-TCH-ASSIGN, trigger: 工具条"复制上一学年", to: PAGE-TCH-ASSIGN, overlay: dialog, note: 就地打开复制预览弹窗 }
-  - { from: PAGE-STU-LIST, trigger: 点击"新增", to: PAGE-STU-CREATE, overlay: drawer }
-  - { from: PAGE-STU-LIST, trigger: 行内"编辑", to: PAGE-STU-EDIT, overlay: drawer }
+  - { from: PAGE-STU-LIST, trigger: 点击"新增", to: PAGE-STU-CREATE, overlay: dialog }
+  - { from: PAGE-STU-LIST, trigger: 行内"编辑", to: PAGE-STU-EDIT, overlay: dialog }
   - { from: PAGE-STU-LIST, trigger: 点击"导入", to: PAGE-STU-IMPORT, overlay: page }
   - { from: PAGE-STU-DETAIL, trigger: 行内"异动", to: PAGE-STU-STATUS, overlay: dialog }
   - { from: PAGE-STU-DETAIL, trigger: 行内"调班", to: PAGE-STU-TRANSFER, overlay: dialog }

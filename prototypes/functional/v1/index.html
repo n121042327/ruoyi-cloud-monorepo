@@ -20,7 +20,7 @@
   </div>
 
   <section class="card">
-    <div class="card-header"><h3>本批已交付（批次 2-1 · 样板）</h3><span class="el-tag success">待人工验收</span></div>
+    <div class="card-header"><h3>已交付页面（批次 2-1、2-2a、2-2b-1、2-2b-2、2-2b-2b）</h3><span class="el-tag success">待人工验收</span></div>
     <div class="card-body">
       <table class="el-table">
         <thead>
@@ -36,16 +36,16 @@
           </tr>
           <tr>
             <td class="mono">PAGE-STU-CREATE</td>
-            <td>新增学生（抽屉 · 三步）</td>
+            <td>新增学生（弹窗 · 三步）</td>
             <td>抽屉（TPL-OVERLAY）</td>
-            <td><a href="pages/student-list.html" data-demo-toast="进入列表页后点「新增」打开该抽屉。" data-demo-toast-type="info">列表页内「新增」</a></td>
+            <td><a href="pages/student-list.html" data-demo-toast="进入列表页后点「新增」打开该弹窗。" data-demo-toast-type="info">列表页内「新增」</a></td>
             <td>系统发号只读、三步校验、监护人上限 3、取消二次确认、提交中禁用</td>
           </tr>
           <tr>
             <td class="mono">PAGE-STU-EDIT</td>
-            <td>编辑学生（抽屉）</td>
+            <td>编辑学生（弹窗）</td>
             <td>抽屉（TPL-OVERLAY）</td>
-            <td><a href="pages/student-list.html" data-demo-toast="进入列表页后点行内「编辑」打开该抽屉。" data-demo-toast-type="info">列表页内行内「编辑」</a></td>
+            <td><a href="pages/student-list.html" data-demo-toast="进入列表页后点行内「编辑」打开该弹窗。" data-demo-toast-type="info">列表页内行内「编辑」</a></td>
             <td>字段级可编辑性矩阵、只读字段灰底、学号修改入口、查看完整证件号留痕</td>
           </tr>
           <tr>
@@ -64,14 +64,14 @@
           </tr>
           <tr>
             <td class="mono">PAGE-TCH-CREATE</td>
-            <td>新增教师（抽屉 · 三步）</td>
+            <td>新增教师（弹窗 · 三步）</td>
             <td>抽屉（TPL-OVERLAY）</td>
             <td><a href="pages/teacher-list.html#panel=PAGE-TCH-CREATE">列表页内「新增」</a></td>
             <td>基本信息 → 联系方式 → 任职信息；工号格式与必填校验、所属学校受数据范围约束、保存成功给三个后续动作</td>
           </tr>
           <tr>
             <td class="mono">PAGE-TCH-EDIT</td>
-            <td>编辑教师（抽屉）</td>
+            <td>编辑教师（弹窗）</td>
             <td>抽屉（TPL-OVERLAY）</td>
             <td><a href="pages/teacher-list.html#panel=PAGE-TCH-EDIT">列表页内行内「编辑」</a></td>
             <td>字段级可编辑性（只读灰底 disabled）、工号仅租户管理员可改、所属学校永久只读、并发冲突提示</td>
@@ -80,7 +80,7 @@
             <td class="mono">DIALOG-TCH-DISCARD</td>
             <td>放弃已填写内容（二次确认）</td>
             <td>弹窗（TPL-OVERLAY · sm）</td>
-            <td><a href="pages/teacher-list.html#panel=PAGE-TCH-CREATE">新增 / 编辑抽屉内「取消」</a></td>
+            <td><a href="pages/teacher-list.html#panel=PAGE-TCH-CREATE">新增 / 编辑弹窗内「取消」</a></td>
             <td>写清"对谁、做什么、影响范围"；确认后同时关闭表单浮层且不保存</td>
           </tr>
           <tr>
@@ -97,10 +97,59 @@
             <td><a href="pages/teacher-assign.html">pages/teacher-assign.html</a></td>
             <td>左栏 8 个班级 / 11 名教师可选；右栏 8 条任教关系（含已失效与待补充）；复制上一学年带冲突预览；六类状态</td>
           </tr>
+          <tr>
+            <td class="mono">PAGE-GRD-LIST</td>
+            <td>年级管理列表（批次 2-2b-2b 样板）</td>
+            <td>列表页（TPL-LIST）</td>
+            <td><a href="pages/grade-list.html">pages/grade-list.html</a></td>
+            <td>筛选项 4 个、列 8 个、行操作最多 4 个、14 行样例、毕业年级与空年级标记；「删除」只在无班级无学生的空年级行出现；7 类状态、8 种角色（含超级管理员）</td>
+          </tr>
+          <tr>
+            <td class="mono">DIALOG-GRD-DELETE</td>
+            <td>删除年级（二次确认）</td>
+            <td>弹窗（TPL-OVERLAY · sm）</td>
+            <td><a href="pages/grade-list.html#panel=DIALOG-GRD-DELETE">年级列表点空年级行内「删除」</a></td>
+            <td>写清对象、影响范围与"逻辑删除"口径；原因必填并写审计；未填原因时校验拦截、不关闭</td>
+          </tr>
+          <tr>
+            <td class="mono">PAGE-GRD-DETAIL</td>
+            <td>年级详情（抽屉 · 5 分区）</td>
+            <td>抽屉（TPL-DETAIL · lg）</td>
+            <td><a href="pages/grade-list.html#panel=PAGE-GRD-DETAIL">年级列表点击数据行</a></td>
+            <td>基本信息 / 下辖班级 / 在读学生统计 / 年级主任任职历史 / 变更记录；两种样本（有数据 / 空年级）</td>
+          </tr>
+          <tr>
+            <td class="mono">PAGE-GRD-CREATE</td>
+            <td>新建 / 编辑年级（弹窗 · 一窗两态）</td>
+            <td>弹窗（TPL-OVERLAY · md）</td>
+            <td><a href="pages/grade-list.html#panel=PAGE-GRD-CREATE">列表内「新增」或行内「编辑」</a></td>
+            <td>名称按「入学年份 + 学段 + 学段内序号」生成可微调；编辑态学段与序号只读；重名前端先拦</td>
+          </tr>
+          <tr>
+            <td class="mono">PAGE-GRD-BATCH</td>
+            <td>按学段批量生成（弹窗）</td>
+            <td>弹窗（TPL-OVERLAY · md）</td>
+            <td><a href="pages/grade-list.html#panel=PAGE-GRD-BATCH">列表内「按学段批量生成」</a></td>
+            <td>小学 6 项 / 初中 3 项 / 高中 3 项预览；已存在的标"已存在，跳过"；弹窗内不放表格</td>
+          </tr>
+          <tr>
+            <td class="mono">PAGE-GRD-LEADER</td>
+            <td>指定年级主任（弹窗）</td>
+            <td>弹窗（TPL-OVERLAY · md）</td>
+            <td><a href="pages/grade-list.html#panel=PAGE-GRD-LEADER">列表行内「指定年级主任」</a></td>
+            <td>必须绑定学年学期（历史学期只读）；可指定多名并标记一名主要负责人；重复任职被拒绝；保存前四条检查</td>
+          </tr>
+          <tr>
+            <td class="mono">PAGE-GRD-ARCHIVE</td>
+            <td>归档确认（弹窗）</td>
+            <td>弹窗（TPL-OVERLAY · sm）</td>
+            <td><a href="pages/grade-list.html#panel=PAGE-GRD-ARCHIVE">列表行内「归档」</a></td>
+            <td>影响范围 + 引用情况（班级 / 在读 / 主任）+ 原因必填写审计；与"删除"的区别写在同一行文案里</td>
+          </tr>
         </tbody>
       </table>
       <div class="legend" style="margin-top:10px">
-        <span>新增、编辑、详情、离职与放弃确认按 <b>markup-contract.md 第 10.1 节</b> 实现为列表页内的浮层片段（<span class="mono">data-demo-panel</span>），不单独出页面文件；教师 PRD 6.1 也写明详情以抽屉承载。</span>
+        <span>新增、编辑、详情、离职与放弃确认按 <b>markup-contract.md 第 10.1 节</b> 实现为列表页内的浮层片段（<span class="mono">data-demo-panel</span>），不单独出页面文件。<b>载体规则（CR-008 / D-059）</b>：表单类用弹窗、详情类用抽屉、含表格或分页用独立页——与 apps/plus-ui 的 40 处 el-dialog / 0 处 el-drawer 一致。</span>
       </div>
     </div>
   </section>
@@ -110,16 +159,18 @@
     <div class="card-body">
       <ol style="margin:0;padding-left:20px;line-height:26px">
         <li>打开 <a href="pages/student-list.html">学生管理列表</a>，左侧菜单与顶部导航、页签栏、面包屑为完整外壳。</li>
-        <li>右下角「原型演示」面板（点标题栏展开）切换角色（教务主任 / 班主任 / 年级主任 / 任课教师 / 校领导 / 平台运营），观察按钮与字段的显隐差异。</li>
+        <li>右下角「原型演示」面板（点标题栏展开）切换角色（超级管理员 / 教务主任 / 班主任 / 年级主任 / 任课教师 / 校领导 / 平台运营），观察按钮与字段的显隐差异。</li>
         <li>切换页面状态（加载中 / 空数据 / 查询失败 / 无权限 / 提交中 / 部分失败 / 排队中），逐条核对状态形态。</li>
-        <li>点「新增」打开三步抽屉，只填姓名直接点「下一步」可见字段级校验；填完三步点「保存」见成功反馈。</li>
-        <li>点行内「编辑」打开编辑抽屉，切换角色可见「字段级可编辑性矩阵」效果（灰底字段为只读）。</li>
+        <li>点「新增」打开三步弹窗，只填姓名直接点「下一步」可见字段级校验；填完三步点「保存」见成功反馈。</li>
+        <li>点行内「编辑」打开编辑弹窗，切换角色可见「字段级可编辑性矩阵」效果（灰底字段为只读）。</li>
         <li>打开 <a href="pages/teacher-list.html">教师管理列表</a>，点任意数据行打开教师详情抽屉：左上角切换「跨校任教（苏睿）」与「班主任 + 任课（邓丽娟）」两种形态，看跨校说明、教育角色空态与变更记录时间线。</li>
-        <li>在教师列表点「新增」打开三步抽屉：只填姓名直接点「下一步」看字段级校验；走到第三步点「保存」看成功结果条与「继续新增 / 查看详情 / 立即设置任教」三个后续动作。</li>
+        <li>在教师列表点「新增」打开三步弹窗：只填姓名直接点「下一步」看字段级校验；走到第三步点「保存」看成功结果条与「继续新增 / 查看详情 / 立即设置任教」三个后续动作。</li>
         <li>点「取消」看放弃确认弹窗：写清影响范围，确认后同时关闭两个浮层。</li>
         <li>在教师列表点行内「角色」打开教育角色分配：看学校级角色勾选、年级主任任职（学年学期 + 年级必填）与保存前四条检查；点「新增年级主任任职」展开子表单。</li>
         <li>在教师列表点行内「任教」进入 <a href="pages/teacher-assign.html">任教关系设置</a>：左栏切「班级视角 / 教师视角」，点不同班级或教师看右栏变化；点「复制上一学年」看冲突预览（复制 / 跳过 / 待处理）。</li>
         <li>学生列表点任意数据行：学生详情在批次 2-5 交付，本批只给占位提示，用于验证入口与权限显隐。</li>
+        <li>打开 <a href="pages/grade-list.html">年级管理列表</a>，点工具条「导出」上方的空年级行（也可直接用 <a href="pages/grade-list.html#enroll=2021">#enroll=2021</a> 只筛出它）：它是唯一带「删除」入口的行，点「删除」看二次确认，不填原因直接确认可看到字段级校验。</li>
+        <li>在年级列表把角色切到「校领导」与「年级主任」：两者都看不到新增 / 批量生成，操作列显示「只读」；再切到「超级管理员」，页头出现全平台与强制留痕提示，且全部按钮与行内操作都可见。</li>
       </ol>
     </div>
   </section>
@@ -149,11 +200,11 @@
         <thead><tr><th style="width:90px">批次</th><th>内容</th><th style="width:90px">页面数</th><th style="width:120px">状态</th></tr></thead>
         <tbody>
           <tr><td>2-0</td><td>原型规范（本目录 8 个文件）</td><td class="num">0</td><td><span class="el-tag warning">待验收</span></td></tr>
-          <tr><td>2-1</td><td>学生管理列表 + 新增/编辑抽屉（样板）</td><td class="num">3</td><td><span class="el-tag warning">待验收</span></td></tr>
+          <tr><td>2-1</td><td>学生管理列表 + 新增/编辑弹窗（样板）</td><td class="num">3</td><td><span class="el-tag warning">待验收</span></td></tr>
           <tr><td>2-2a</td><td>教师管理列表（标准校验页）</td><td class="num">1</td><td><span class="el-tag warning">待验收</span></td></tr>
           <tr><td>2-2b-1</td><td>教师详情 + 新增教师 + 编辑教师（含放弃确认弹窗）</td><td class="num">3</td><td><span class="el-tag warning">待验收</span></td></tr>
           <tr><td>2-2b-2</td><td>教育角色分配 + 任教关系设置（独立页）</td><td class="num">2</td><td><span class="el-tag warning">待验收</span></td></tr>
-          <tr><td>2-2b-2b</td><td>年级管理 6 页</td><td class="num">6</td><td><span class="el-tag info">待开始</span></td></tr>
+          <tr><td>2-2b-2b</td><td>年级管理 6 页（列表 + 详情 + 新建/编辑 + 批量生成 + 指定主任 + 归档确认）</td><td class="num">6</td><td><span class="el-tag warning">待验收</span></td></tr>
           <tr><td>2-3</td><td>班级管理 + 班级详情 + 升班向导</td><td class="num">12</td><td><span class="el-tag info">待开始</span></td></tr>
           <tr><td>2-4</td><td>导入向导 + 登录 + 异常页</td><td class="num">11</td><td><span class="el-tag info">待开始</span></td></tr>
           <tr><td>2-5</td><td>学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录）</td><td class="num">8</td><td><span class="el-tag info">待开始</span></td></tr>
@@ -179,8 +230,14 @@
           <tr><td class="mono">GAP-029</td><td>字段字典缺 <span class="mono">is_primary</span>、<span class="mono">enroll_date</span> 等 PRD 已使用的字段</td><td>表单字段标记与阶段 5 建表列清单</td></tr>
           <tr><td class="mono">GAP-030</td><td>学号修改的"校级管理员"未映射到权限矩阵角色（矩阵中校领导对学号标"—"）</td><td>学号修改入口谁能看到、谁能提交</td></tr>
           <tr><td class="mono">已关闭</td><td><span class="mono">GAP-026</span> ~ <span class="mono">030</span> 已按用户"按推荐来"执行（<span class="mono">CR-003</span>）；<span class="mono">GAP-031</span> 随 <span class="mono">CR-002</span> 关闭：共享授权只针对题库 / 试卷资源</td><td>本表保留历史，最新状态见 <span class="mono">gap-register.yaml</span></td></tr>
-          <tr><td class="mono">GAP-032</td><td>教师 PRD 4.4 字段级矩阵说"校领导可改工号 / 姓名 / 联系方式 / 入职日期 / 在职状态"，但权限矩阵里校领导对 <span class="mono">person.teacher</span> 只有 <span class="mono">read</span></td><td>列表与详情是否给校领导"编辑"入口；编辑抽屉哪些字段可写；阶段 6 的 <span class="mono">v-hasPermi</span> 与字段 disabled 逻辑</td></tr>
-          <tr><td class="mono">GAP-033</td><td>教师模块业务字段未登记进 <span class="mono">06-field-dictionary.yaml</span>：<span class="mono">school_id</span> / <span class="mono">teacher_phone</span> / <span class="mono">email</span> / <span class="mono">hire_date</span> / <span class="mono">status</span> 等，但这些 <span class="mono">data-field</span> 已在原型里使用（批次 2-2a 已存在）</td><td>阶段 5 建表列名的权威口径；阶段 6 的 TS 类型与字典下拉；三份教师页面规格的自查清单无法打勾</td></tr>
+          <tr><td class="mono">已关闭</td><td><span class="mono">GAP-032</span>（校领导对教师主体只读）与 <span class="mono">GAP-033</span>（教师模块字段补登记）已按 <span class="mono">CR-004</span> 执行完毕</td><td>本表保留历史，最新状态见 <span class="mono">gap-register.yaml</span></td></tr>
+          <tr><td class="mono">已关闭</td><td><span class="mono">GAP-034</span> ~ <span class="mono">037</span> 已按用户"同意推荐方案"执行（<span class="mono">CR-005</span>）：校领导对年级只读、三个角色补年级读权限、教务主任与租户管理员可删空年级、年级模块字段一次补进字段字典</td><td>年级模块的按钮显隐、菜单可见性与 <span class="mono">data-field</span> 全部有依据</td></tr>
+          <tr><td class="mono">已关闭</td><td><span class="mono">CR-006</span>：新增系统超级管理员 <span class="mono">super_admin</span>（<span class="mono">BR-ORG-014</span> / <span class="mono">DP-07</span>）——不受数据范围与功能权限限制、可执行全部功能，但强制写审计且禁止日常业务操作</td><td>角色切换器新增一种形态；原型对它的可见性一律放行</td></tr>
+          <tr><td class="mono">GAP-038</td><td>年级表单的承载方式与「编辑年级」的页面登记：年级 PRD 6.1 写"弹窗"，<span class="mono">navigation.yaml</span> 写 <span class="mono">drawer</span>；且 PRD 6.1 没有「编辑年级」页面，但 4.4 节有 4 条编辑需求</td><td>下一批（2-2b-2c）的年级表单用抽屉还是弹窗；「编辑年级」是否独立登记为一个页面</td></tr>
+          <tr><td class="mono">已关闭</td><td><span class="mono">GAP-038</span> 已裁决（选项 A + 载体按 <span class="mono">apps/plus-ui</span> 取弹窗）：新建与编辑共用同一弹窗，三个年级浮层由 <span class="mono">drawer</span> 改为 <span class="mono">dialog</span>（<span class="mono">CR-007</span> / <span class="mono">D-058</span>）</td><td>实测依据：<span class="mono">apps/plus-ui</span> 全库 40 处 <span class="mono">el-dialog</span>、0 处 <span class="mono">el-drawer</span></td></tr>
+          <tr><td class="mono">GAP-039</td><td>已交付的学生 / 教师表单用的是抽屉，与 <span class="mono">apps/plus-ui</span> 的 dialog 习惯不一致；另有 5 份冻结 PRD 也写抽屉</td><td>阶段 3 与阶段 6：要么统一为弹窗（返工已交付页面 + 改 PRD），要么详情保留抽屉。推荐选项 B（表单改弹窗、详情保留）</td></tr>
+          <tr><td class="mono">已关闭</td><td><span class="mono">GAP-039</span> 已按选项 B 执行（<span class="mono">CR-008</span> / <span class="mono">D-059</span>）：学生与教师的新增 / 编辑由抽屉改弹窗，教师 / 学生详情保留抽屉，校区管理与学期管理改独立页；同时修好弹窗内长内容被裁切、无法滚动的问题</td><td>回归验证 14 / 14 通过：<span class="mono">evidence/stage2-prototype/verify-carrier-change.html</span></td></tr>
+          <tr><td class="mono">已裁决</td><td><span class="mono">GAP-034</span> 校领导对年级只读（选项 B） · <span class="mono">GAP-035</span> 三个角色补年级读权限（选项 A） · <span class="mono">GAP-036</span> 可删空年级（选项 B） · <span class="mono">GAP-037</span> 字段一次补全（选项 A）</td><td>见 <span class="mono">CR-005</span> 与 <span class="mono">decisions.md</span> D-056</td></tr>
         </tbody>
       </table>
     </div>

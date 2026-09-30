@@ -482,7 +482,11 @@ table.el-table .mono { font-size: 13px; }
   flex-direction: column;
 }
 .dialog[data-size="sm"] { width: 480px; }
-.dialog-body { padding: 20px; font-size: 14px; color: var(--app-text-regular); overflow-y: auto; }
+.dialog-header { display: flex; align-items: center; gap: 8px; padding: 16px 20px; border-bottom: 1px solid var(--app-border-light); flex: 0 0 auto; }
+.dialog-header h2 { margin: 0; font-size: 16px; font-weight: 600; }
+.dialog-header .close-x { margin-left: auto; border: 0; background: transparent; font-size: 16px; color: var(--app-text-secondary); cursor: pointer; }
+/* 弹窗内容超出 84vh 时由 body 内部滚动，footer 固定（flex:1 + min-height:0 才能撑出滚动区） */
+.dialog-body { flex: 1 1 auto; min-height: 0; padding: 20px; font-size: 14px; color: var(--app-text-regular); overflow-y: auto; }
 .dialog-footer { flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px 16px; border-top: 1px solid var(--app-border-light); }
 
 /* ------------------------------------------------------------------ 步骤条 */
