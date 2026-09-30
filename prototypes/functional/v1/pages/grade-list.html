@@ -15,6 +15,8 @@
     font-size: 12px;
     color: var(--app-text-secondary);
   }
+  /* 点数据行或年级名称打开详情抽屉（ACT-GRD-009）：名称给链接色，明确"这一行可以点开" */
+  #grade-rows tr[data-role="row"] td:first-child { color: var(--app-primary); }
   /* 弹窗内不放表格（layout-spec 规则），任职清单与生成预览用列表渲染 */
   .list { display: flex; flex-direction: column; gap: 8px; }
   .list-row {
@@ -159,7 +161,7 @@
                  style="min-width:1122px;table-layout:fixed">
             <thead>
               <tr>
-                <th data-role="column" data-field="grade_name" style="width:264px">年级名称</th>
+                <th data-role="column" data-field="grade_name" style="width:200px">年级名称</th>
                 <th data-role="column" data-field="stage_code" style="width:76px">学段</th>
                 <th data-role="column" data-field="enroll_year" style="width:88px">入学年份</th>
                 <th data-role="column" data-field="grade_level" class="center" style="width:72px" title="学段内序号">序号</th>
@@ -167,7 +169,7 @@
                 <th data-role="column" data-field="student_count" class="num" style="width:100px">在读学生数</th>
                 <th data-role="column" data-field="leader_user_id" style="width:150px">年级主任</th>
                 <th data-role="column" data-field="grade_status" style="width:84px">状态</th>
-                <th class="actions" style="width:216px">操作</th>
+                <th class="actions" style="width:280px">操作</th>
               </tr>
             </thead>
             <tbody id="grade-rows">
@@ -477,7 +479,7 @@
 </div>
 
 <!-- ============================================================== 抽屉:年级详情 -->
-<div class="overlay" data-demo="panel" data-demo-panel="PAGE-GRD-DETAIL">
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-GRD-DETAIL" data-overlay-kind="drawer">
   <aside class="drawer" data-role="drawer" data-component="el-drawer" data-size="lg" data-page="PAGE-GRD-DETAIL" data-block="detail">
     <div class="drawer-header">
       <h2>年级详情 · <span data-detail-field="grade_name">2026 级 高一</span></h2>
@@ -915,6 +917,8 @@
 
     // 归档年级只有读与历史可查：不提供编辑、指定主任、归档、删除
     if (!archived) {
+      // 详情是读操作：所有能看到列表的角色都能点（ACT-GRD-009）
+      link('详情', 'ACT-GRD-009', 'org.grade:read', 'PAGE-GRD-DETAIL', null, 'drawer');
       // 编辑复用「新建 / 编辑年级」弹窗的编辑态（GAP-038 裁决 A / CR-007：载体与 apps/plus-ui 一致，用弹窗）
       link('编辑', 'ACT-GRD-004', 'org.grade:update', 'PAGE-GRD-CREATE', 'academic_director,tenant_admin', 'dialog');
       link('指定年级主任', 'ACT-GRD-005', 'org.grade:update', 'PAGE-GRD-LEADER', 'academic_director,tenant_admin', 'dialog');
@@ -1495,7 +1499,9 @@
 
     // 点数据行：详情抽屉按当前行更新基本信息（子列表仍用样本数据并给出说明）
     var row = node.closest('#grade-rows tr');
-    if (row && !node.closest('td.actions') && !node.closest('input, select, textarea, label')) {
+    // 「详情」按钮与点行的效果一致；操作列里的其他按钮（编辑 / 指定主任 / 归档 / 删除）不触发本逻辑
+    var detailTrigger = Boolean(node.closest('[data-action-id="ACT-GRD-009"]'));
+    if (row && (!node.closest('td.actions') || detailTrigger) && !node.closest('input, select, textarea, label')) {
       var stage = row.getAttribute('data-stage');
       var sample = {
         grade_name: cell(row, 0).split(' ').slice(0, 3).join(' '),

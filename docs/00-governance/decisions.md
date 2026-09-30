@@ -789,6 +789,32 @@
   新增 `student-list_dialog-create` / `student-list_dialog-edit-homeroom` 两张；教师相关截图直接重拍覆盖
 - 如果错了的代价：把四个浮层与五份 PRD 的对应行改回 `drawer` 即可，此时尚未进入阶段 3 / 6
 
+## D-060 详情浮层入口缺陷修复：外壳按「当前页是否已有该片段」自动判定浮层
+
+- 日期：2026-09-30
+- 触发：用户验收年级批次时问「怎么打开抽屉」——列表行看起来可点（`table.el-table tbody tr[data-role="row"] { cursor: pointer }`），
+  但点了只弹「「年级详情」在批次 2-2 交付（PAGE-GRD-DETAIL），本批只验证入口与权限显隐」，抽屉打不开
+- 根因：数据行只写了 `data-nav="PAGE-GRD-DETAIL"`，没写 `data-overlay="drawer"`；
+  `prototype-shell.js` 的点击委托因此走「跳独立页」分支，命中「该页未交付」提示。
+  同一缺陷存在于**学生列表**（`PAGE-STU-DETAIL`）与**教师列表**（`PAGE-TCH-DETAIL`）的数据行
+- 修复（外壳，一次修三类页面）：`prototypes/functional/v1/assets/prototype-shell.js` 的点击委托中，
+  未显式标注 `data-overlay` 时，若当前文档存在 `[data-demo-panel="<data-nav>"]` 就按浮层打开；
+  显式 `data-overlay` 的优先级不变（教师「编辑」仍开弹窗，不被抽屉规则覆盖）
+- 修复（年级列表补可见入口）：
+
+| 事项 | 落地 |
+|---|---|
+| 操作列入口 | 新增只读「详情」（复用 `ACT-GRD-009`，`data-overlay="drawer"`），所有可读角色可见 |
+| 年级名称列 | 加链接色 `#grade-rows tr[data-role="row"] td:first-child { color: var(--app-primary) }`，明确「这一行可以点开」 |
+| 动作登记 | `page-actions.yaml` 的 `ACT-GRD-009` element 补为「点击数据行 / 年级名称 / 操作列「详情」」 |
+| 列宽 | 操作列 216 → 280px、年级名称 264 → 200px，表格 `min-width` 保持 1122px（1440 下仍不横向滚动） |
+| 未交付的详情 | 学生详情（批次 2-5）仍走「批次交付」提示，不打开空抽屉；`PENDING_PAGES` 补学生 / 教师浮层页中文名 |
+
+- 回归证据：`evidence/stage2-prototype/verify-grade-list.html`（GL-01 ~ GL-38 全部通过，截图 `grade-list_verify-results.png`）、
+  `evidence/stage2-prototype/verify-detail-entry.html`（RD-01 ~ RD-06 全部通过，截图 `detail-entry_verify-results.png`）
+- 截图复拍：年级列表 18 张 + 6 张浮层截图重拍；补拍 `grade-list_platform-ops-school-switch_1440x900.png`（README 曾登记但目录里没有）
+- 如果错了的代价：三个列表页的点行行为回退成「只弹提示」，改回逐行显式写 `data-overlay` 即可，此时尚未进入阶段 6
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |

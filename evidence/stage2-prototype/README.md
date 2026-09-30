@@ -58,7 +58,7 @@
 | `teacher-assign_dialog-copy_1440x900.png` | 1440×900 | 复制上一学年（冲突预览） | 复制 / 跳过 / 待处理三种处理方式与异步口径 |
 | `teacher-assign_role-subject-teacher_1440x900.png` | 1440×900 | 任教关系设置（角色 = 任课教师） | 只读角色：无新增与保存入口，左栏仍可浏览 |
 | `grade-list_1366x768.png` | 1366×768 | 年级管理列表（默认） | 批次 2-2b-2b 样板：最小分辨率无整页横向滚动、无元素重叠；可见 7 行 |
-| `grade-list_1440x900.png` | 1440×900 | 年级管理列表（默认） | 4 个筛选项、8 列 + 固定操作列、4 个行操作、13 行样例；可见 11 行 |
+| `grade-list_1440x900.png` | 1440×900 | 年级管理列表（默认） | 4 个筛选项、8 列 + 固定操作列（操作列 280px）、4 个行入口（详情 / 编辑 / 指定年级主任 / 归档；空年级行多一个「删除」）、13 行样例；可见 11 行 |
 | `grade-list_1920x1080.png` | 1920×1080 | 年级管理列表（宽屏） | 主内容区不无限拉伸；14 行样例与分页器同屏可见 |
 | `grade-list_role-tenant-admin_1440x900.png` | 1440×900 | 角色 = 租户管理员 | 有新增 / 批量生成 / 编辑 / 指定主任 / 归档；**无导出**（矩阵未授予 `data.export`） |
 | `grade-list_role-school-leader_1440x900.png` | 1440×900 | 角色 = 校领导 | 只读并审批年级主任变更（`GAP-034` 裁决 B）；只有导出，全列只读 |
@@ -74,8 +74,8 @@
 | `grade-list_state-forbidden_1440x900.png` | 1440×900 | 状态 = 无权限 | 说明范围为空集且不降级为全量（`DS-DENY-03`） |
 | `grade-list_state-partial_1440x900.png` | 1440×900 | 状态 = 部分失败 | 按学段批量生成的部分冲突：3 条中 2 成功 1 冲突 |
 | `grade-list_dialog-delete_1440x900.png` | 1440×900 | 删除年级二次确认 | 写清对象、影响范围、删除是逻辑删除；原因必填并写审计 |
-| `grade-list_verify-results.png` | 1500×620 | 交互验证 harness 结果清单 | GL-01 ~ GL-22 共 22 条用例**全部通过** |
-| `verify-grade-list.html` | — | 年级列表交互验证 harness | 用同源 iframe + 真实事件派发跑 22 条断言，可重复执行 |
+| `grade-list_verify-results.png` | 1500×1250 | 交互验证 harness 结果清单 | GL-01 ~ GL-38 共 38 条用例**全部通过** |
+| `verify-grade-list.html` | — | 年级列表交互验证 harness | 用同源 iframe + 真实事件派发跑 38 条断言，可重复执行 |
 | `grade-detail_1440x900.png` | 1440×900 | 年级详情抽屉（样本 A · 2026 级 高一） | 5 个分区齐备；下辖班级 3 个、在读学生统计含合计行、任职历史含已解除的历史行 |
 | `grade-detail_sample-b_1440x900.png` | 1440×900 | 年级详情抽屉（样本 B · 空年级） | 三个子分区同时给空态说明，不留空白表格 |
 | `grade-create_1440x900.png` | 1440×900 | 新建 / 编辑年级弹窗 | 载体与 apps/plus-ui 一致用弹窗；名称按规则生成、序号按学段给 1–6 / 1–3 |
@@ -85,6 +85,9 @@
 | `_debug-grade-delete.html` / `_debug-grade-delete.png` | — | 深链接与删除确认的根因复现 | 修前：在已打开页面上改 hash 不生效（13 行 / 下拉为空）；修后：立即生效（1 行 / 下拉 2021） |
 | `verify-carrier-change.html` | — | 载体变更回归 harness | 同源 iframe + 真实事件派发跑 14 条断言：表单是弹窗、详情仍是抽屉、弹窗内无 drawer-* 钩子 |
 | `carrier-change_verify-results.png` | 1500×620 | 载体变更回归结果 | `合计 14 条，通过 14 条，不通过 0 条 —— 全部通过` |
+| `grade-list_platform-ops-school-switch_1440x900.png` | 1440×900 | 平台运营切到云溪外国语学校（年级） | 协助视图 · 只读提示条；工具栏只剩「导出（需授权）」；他校行只给「详情」可读，无任何写入口 |
+| `verify-detail-entry.html` | — | 详情浮层入口验证 harness | 三个同源 iframe（年级 / 教师 / 学生）真实派发点击，跑 6 条断言：点行与操作列「详情」都能开抽屉、显式 dialog 不被覆盖、未交付的详情不开空抽屉 |
+| `detail-entry_verify-results.png` | 1500×1150 | 详情浮层入口验证结果 | `合计 6 / 6 条，通过 6 条，不通过 0 条 —— 全部通过`（RD-01 ~ RD-06） |
 
 ## 2. 截图里的关键事实（验收时可直接核对）
 
@@ -163,15 +166,28 @@ $out    = "D:\work\person_work\ruoyi-cloud-monorepo\evidence\stage2-prototype"
 Start-Process $chrome -Wait -WindowStyle Hidden -ArgumentList @(
   "--headless=new","--disable-gpu","--no-first-run","--hide-scrollbars",
   "--allow-file-access-from-files",
-  "--user-data-dir=$prof","--virtual-time-budget=15000",
-  "--window-size=1500,620","--screenshot=$out\grade-list_verify-results.png",
+  "--user-data-dir=$prof","--virtual-time-budget=30000",
+  "--window-size=1500,1250","--screenshot=$out\grade-list_verify-results.png",
   "file:///D:/work/person_work/ruoyi-cloud-monorepo/evidence/stage2-prototype/verify-grade-list.html")
 ```
 
 结果解读：`grade-list_verify-results.png` 的最后一行为
-`合计 34 / 34 条，通过 34 条，不通过 0 条 —— 全部通过`。
+`合计 38 / 38 条，通过 38 条，不通过 0 条 —— 全部通过`（D-060 后新增 GL-35 ~ GL-38 四条浮层入口用例）。
 若某一行为红色"不通过"，该行会同时打印实际观测值，便于定位是页面缺陷还是断言写法问题。
 `--allow-file-access-from-files` 是必需的：没有它，父页面无法读取 iframe 内文档。
+
+详情浮层入口 harness（一次覆盖年级 / 教师 / 学生三个列表页）：
+
+```powershell
+Start-Process $chrome -Wait -WindowStyle Hidden -ArgumentList @(
+  "--headless=new","--disable-gpu","--no-first-run","--hide-scrollbars",
+  "--allow-file-access-from-files",
+  "--user-data-dir=$prof","--virtual-time-budget=20000",
+  "--window-size=1500,1150","--screenshot=$out\detail-entry_verify-results.png",
+  "file:///D:/work/person_work/ruoyi-cloud-monorepo/evidence/stage2-prototype/verify-detail-entry.html")
+```
+
+结果解读：最后一行为 `合计 6 / 6 条，通过 6 条，不通过 0 条 —— 全部通过`。
 
 ## 4. 载体决策的核查命令（CR-007 / D-058 用）
 

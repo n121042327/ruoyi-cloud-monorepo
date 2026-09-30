@@ -141,8 +141,9 @@
 | `docs/00-governance/change-requests/CR-007.md` | 变更申请：统一浮层载体为弹窗，与 apps/plus-ui 一致（已批准并执行，关联 D-058） | `review` |
 | `docs/00-governance/change-requests/CR-008.md` | 变更申请：表单类改弹窗、详情类保留抽屉、含表格改独立页（已批准并执行，关联 GAP-039 / D-059） | `review` |
 | `evidence/stage2-prototype/verify-carrier-change.html` | 载体变更回归 harness（14 条断言：表单是弹窗、详情仍是抽屉、弹窗内无 drawer-* 钩子） | `review` |
-| `evidence/stage2-prototype/verify-grade-list.html` | 年级列表交互验证 harness（同源 iframe + 真实事件派发，22 条断言） | `review` |
-| `evidence/stage2-prototype/interaction-verification.md` | 原型交互可点性验证报告（含批次 2-2b-2b 的 GL-01 ~ GL-22 实测结果） | `review` |
+| `evidence/stage2-prototype/verify-grade-list.html` | 年级列表交互验证 harness（同源 iframe + 真实事件派发，38 条断言） | `review` |
+| `evidence/stage2-prototype/verify-detail-entry.html` | 详情浮层入口验证 harness（年级 / 教师 / 学生三个列表页，6 条断言，关联 D-060） | `review` |
+| `evidence/stage2-prototype/interaction-verification.md` | 原型交互可点性验证报告（含批次 2-2b-2b 的 GL-01 ~ GL-38、D-060 的 RD-01 ~ RD-06 实测结果） | `review` |
 | `prototypes/functional/v1/pages/class-list.html` | 班级管理列表 | `planned` |
 | `prototypes/functional/v1/pages/class-detail.html` | 班级详情与花名册 | `planned` |
 | `prototypes/functional/v1/pages/promotion-wizard.html` | 升班向导 | `planned` |

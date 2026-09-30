@@ -20,6 +20,7 @@
 | `data-component` | 建议 | 见第 4 节 | 目标 Element Plus 组件（含变体），如 `el-button.primary.plain` |
 | `data-action-id` | 动作类必填 | `ACT-*` | 对应 `page-actions.yaml` 的动作编号 |
 | `data-nav` | 跳转类必填 | `PAGE-*` | 点击后跳转或打开的页面编号 |
+| `data-overlay` | 浮层跳转必填 | `drawer` / `dialog` / `block` | 声明 `data-nav` 的目标是本页浮层片段而不是独立页面。**未写时**：当前文档存在 `[data-demo-panel="<data-nav>"]` 就按浮层打开，否则按独立页跳转，未交付则给"批次交付"提示。既有详情抽屉又要跳独立页的页面必须显式写 |
 | `data-permission` | 动作类必填 | `资源:操作` | 与 `05-permission-matrix.yaml` 一致 |
 | `data-api` | 有接口时必填 | `operationId` | 与 `page-actions.yaml` 的 `api` 一致 |
 | `data-field` | 表单与列必填 | 字段名 | 取值来自 `06-field-dictionary.yaml` |
@@ -202,7 +203,7 @@ apps/plus-ui/src/views/edu/student/index.vue 中的 handleAdd()
 
 1. **角色切换**：切换后按 `data-role-visible` 显示或隐藏元素，同一页面演示多种角色形态
 2. **状态切换**：在 `normal / loading / empty / error / forbidden / submitting` 之间切换，用于验收状态覆盖
-3. **打开浮层**：点击带 `data-nav` 的元素，显示同页内 `data-demo-panel` 对应的浮层片段
+3. **打开浮层**：点击带 `data-nav` 的元素，若目标是同页 `data-demo-panel` 片段（或显式写了 `data-overlay`），显示该浮层片段；目标页面属后续批次时只给"批次 X 交付"提示，不打开空浮层
 4. **模拟提交**：点击带 `data-api` 的动作，进入 1 秒 loading，再按 `data-demo-outcome` 给出对应反馈
 5. **表单校验**：必填项为空时给出字段级错误并阻止提交
 

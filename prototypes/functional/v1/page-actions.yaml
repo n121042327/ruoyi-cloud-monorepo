@@ -754,7 +754,7 @@ grade_list:
       audit: 否
       batch: "2-3"
     - id: ACT-GRD-009
-      element: 点击数据行 / 年级名称
+      element: 点击数据行 / 年级名称 / 操作列「详情」
       trigger: 单击行
       condition: 有 org.grade:read 权限且该年级在本次数据范围内
       permission: "org.grade:read"

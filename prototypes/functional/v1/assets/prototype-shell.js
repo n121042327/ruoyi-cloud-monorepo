@@ -86,7 +86,18 @@
     'PAGE-GRD-CREATE': { name: '新建 / 编辑年级', batch: '2-2' },
     'PAGE-GRD-BATCH': { name: '按学段批量生成', batch: '2-2' },
     'PAGE-GRD-LEADER': { name: '指定年级主任', batch: '2-2' },
-    'PAGE-GRD-ARCHIVE': { name: '归档确认', batch: '2-2' }
+    'PAGE-GRD-ARCHIVE': { name: '归档确认', batch: '2-2' },
+    // 学生 / 教师模块的浮层页面：已交付的片段由外壳自动识别，这里只补中文名，
+    // 让"未交付的详情仍然走提示"这条路径读起来是页面名而不是页面编号
+    'PAGE-STU-CREATE': { name: '新增学生', batch: '2-1' },
+    'PAGE-STU-EDIT': { name: '编辑学生', batch: '2-1' },
+    'PAGE-STU-DETAIL': { name: '学生详情', batch: '2-5' },
+    'PAGE-STU-STATUS': { name: '学籍异动', batch: '2-5' },
+    'PAGE-STU-TRANSFER': { name: '调班', batch: '2-5' },
+    'PAGE-TCH-DETAIL': { name: '教师详情', batch: '2-2' },
+    'PAGE-TCH-CREATE': { name: '新增教师', batch: '2-2' },
+    'PAGE-TCH-EDIT': { name: '编辑教师', batch: '2-2' },
+    'PAGE-TCH-ROLE': { name: '教育角色分配', batch: '2-2' }
   };
   Object.keys(PENDING_PAGES).forEach(function (id) {
     if (!PAGE_NAME[id]) PAGE_NAME[id] = PENDING_PAGES[id].name;
@@ -521,6 +532,10 @@
     if (navNode && !node.closest('input, select, textarea, label')) {
       var pageId = navNode.getAttribute('data-nav');
       var overlay = navNode.getAttribute('data-overlay');
+      // 未显式标注 data-overlay 时：只要当前文档里存在该页面片段，就按浮层打开。
+      // 这样数据行只写 data-nav="…-DETAIL" 就能打开详情抽屉，不需要逐行补 data-overlay，
+      // 也不会再把"本页已有片段"误判成"后续批次交付"。
+      if (!overlay && document.querySelector('[data-demo-panel="' + pageId + '"]')) overlay = 'drawer';
       if (overlay === 'drawer' || overlay === 'dialog' || overlay === 'block') {
         openPanel(pageId);
         return;
