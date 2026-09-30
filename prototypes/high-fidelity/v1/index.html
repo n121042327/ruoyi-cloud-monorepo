@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>高保真原型 v1 入口 — K12 教育 ToB 平台（阶段 3）</title>
+<link rel="stylesheet" href="assets/hifi.css" />
+</head>
+<body>
+<div style="max-width:1180px;margin:0 auto;padding:28px 20px 80px">
+
+  <div class="page-head">
+    <h1>K12 教育 ToB 平台 · 高保真原型 v1</h1>
+    <span class="el-tag primary">阶段 3</span>
+    <span class="el-tag info">纯静态 HTML · 不连后端</span>
+    <span class="el-tag success">3-0 规范 + 3-1 样板 已产出待验收</span>
+  </div>
+
+  <div class="alert info">
+    <span>与阶段 2 的区别</span>
+    <span>阶段 2（<a href="../../functional/v1/index.html">prototypes/functional/v1</a>）回答「长什么样、怎么操作、页面怎么跳」；
+      本目录回答「<b>最终长什么样</b>」——视觉规范来自 Element Plus 设计规范与 <span class="mono">apps/plus-ui</span> 的现有风格，
+      只提升视觉，<b>不改阶段 2 的信息架构与字段</b>（由 <span class="mono">verify-hifi-student</span> 的 HF-17 逐列比对看住）。</span>
+  </div>
+
+  <section class="card">
+    <div class="card-header"><h3>已交付页面（样板批 3-1）</h3><span class="el-tag success">待人工验收</span></div>
+    <div class="card-body">
+      <table class="el-table">
+        <thead>
+          <tr><th style="width:200px">页面编号</th><th>页面</th><th style="width:150px">类型</th><th style="width:230px">入口</th><th>验收要点</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">PAGE-STU-LIST</td>
+            <td>学生管理列表（样板）</td>
+            <td>列表页</td>
+            <td><a href="pages/student-list.html">pages/student-list.html</a></td>
+            <td>12 列 12 行、列宽之和 = min-width = 1128；高保真 token（主色 / 卡片阴影 / 表头底色）生效；8 种角色形态；字段裁剪（任课教师隐藏联系电话列）</td>
+          </tr>
+          <tr>
+            <td class="mono">PAGE-STU-DETAIL</td>
+            <td>学生详情（抽屉）</td>
+            <td>抽屉（详情类浮层）</td>
+            <td><a href="pages/student-list.html#panel=PAGE-STU-DETAIL">列表页内行内「详情」</a></td>
+            <td>基本信息 + 证件号掩码与留痕口径 + 追加式变更记录时间线</td>
+          </tr>
+          <tr>
+            <td class="mono">PAGE-STU-CREATE / PAGE-STU-EDIT</td>
+            <td>新增 / 编辑学生（弹窗）</td>
+            <td>弹窗（表单类浮层）</td>
+            <td><a href="pages/student-list.html#panel=PAGE-STU-CREATE">列表页「新增学生」</a></td>
+            <td>系统发号只读、字段级校验、字段级可编辑性矩阵（联系电话按角色灰底只读）、保存后默认未分班（DP-01）</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="legend" style="margin-top:12px">
+        <span>载体口径沿用阶段 2：<b>表单类浮层用弹窗、详情类用抽屉、含表格用独立页</b>（D-059 / CR-015）。</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-header"><h3>视觉规范（阶段 3 的冻结候选）</h3><span class="el-tag info">visual-spec.yaml</span></div>
+    <div class="card-body">
+      <div class="legend" style="margin-bottom:10px">
+        <span>视觉规范有两份，同源：<span class="mono">design-tokens.json</span>（机器可读，权威值，阶段 6 搬进 apps/plus-ui）与
+          <span class="mono">visual-spec.yaml</span>（人类可读摘要）；另有 <span class="mono">component-spec.md</span>（组件规格）、
+          <span class="mono">component-mapping.yaml</span>（每个可交互元素 → Element Plus 组件）、<span class="mono">visual-checklist.md</span>（32 条交批自查）。</span>
+      </div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="label">主色</div><div class="value small">#2f6bff</div></div>
+        <div class="stat-card"><div class="label">语义色</div><div class="value small">成功 / 警告 / 危险 / 信息</div></div>
+        <div class="stat-card"><div class="label">字号阶梯</div><div class="value small">20 / 15 / 14 / 12</div></div>
+        <div class="stat-card"><div class="label">间距基准</div><div class="value small">4px 的倍数</div></div>
+        <div class="stat-card"><div class="label">圆角</div><div class="value small">4 / 8 / 12</div></div>
+        <div class="stat-card"><div class="label">动效</div><div class="value small">150–180ms</div></div>
+      </div>
+      <div class="legend" style="margin-top:12px">
+        <span>完整 token（色彩 / 字体 / 间距 / 圆角 / 阴影 / 组件 / 图表 / 动效 / 状态 / 可访问性）见 <span class="mono">visual-spec.yaml</span>；
+          阶段 6 生产前端按该文件落地到 Element Plus 变量与设计 token。</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-header"><h3>怎么演示（2 分钟）</h3></div>
+    <div class="card-body">
+      <ol style="margin:0;padding-left:20px;line-height:28px">
+        <li>打开 <a href="pages/student-list.html">学生管理列表</a>：白色卡片浮在浅灰底上、表头有底色、主行动是主色按钮——这就是阶段 3 与阶段 2 的视觉差异。</li>
+        <li>右下角「高保真演示」面板（点标题栏展开）切换 8 种角色：<span class="mono">任课教师</span> 会隐藏「联系电话」整列，<span class="mono">租户管理员</span> 直接进入无权限形态（DS-02 无教学数据范围）。</li>
+        <li>切换页面状态：空数据 / 查询失败 / 无权限 / 提交中——状态片段会<b>替换</b>主内容而不是堆在下方。</li>
+        <li>点任一行「详情」：抽屉带回该行学生的姓名 / 学号 / 班级 / 状态，并展示证件号掩码口径与变更记录时间线。</li>
+        <li>点「新增学生」：清空姓名点保存会出现字段级错误；「保存」的反馈写明系统发号与「默认未分班」。</li>
+        <li>点行内「编辑」：联系电话字段登记了字段级可编辑性——把角色切到「年级主任」看它变灰底只读。</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-header"><h3>后续批次</h3><span class="el-tag info">每批 ≤ 3 个页面并暂停验收</span></div>
+    <div class="card-body">
+      <table class="el-table">
+        <thead><tr><th style="width:110px">批次</th><th>内容</th><th style="width:180px">状态</th></tr></thead>
+        <tbody>
+          <tr><td>3-0</td><td>视觉规范四件套：design-tokens / component-spec / component-mapping / visual-checklist</td><td><span class="el-tag warning">已产出待验收</span></td></tr>
+          <tr><td>3-1</td><td>样板批：学生管理列表（含详情抽屉与新增 / 编辑弹窗）+ 高保真外壳</td><td><span class="el-tag warning">已产出待验收</span></td></tr>
+          <tr><td>3-2</td><td>教师 / 年级</td><td><span class="el-tag info">待开始</span></td></tr>
+          <tr><td>3-3</td><td>班级 / 班级详情 / 升班向导</td><td><span class="el-tag info">待开始</span></td></tr>
+          <tr><td>3-4</td><td>导入向导 / 登录 / 异常页</td><td><span class="el-tag info">待开始</span></td></tr>
+          <tr><td>3-5 ~ 3-9</td><td>学生模块剩余 / 学校与配置 / 选科与教学班 / 审计 / 异步任务（与阶段 2 的 2-5 ~ 2-9 对齐）</td><td><span class="el-tag info">待开始</span></td></tr>
+        </tbody>
+      </table>
+      <div class="legend" style="margin-top:12px"><span>批次划分与阶段 2 的 2-1 ~ 2-9 一一对应，便于按同一份 PRD 与页面规格逐批验收。</span></div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

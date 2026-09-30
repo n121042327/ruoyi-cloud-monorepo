@@ -1581,6 +1581,52 @@
 - 如果错了的代价：删除 2 个页面、回滚 `page-actions.yaml` 的 2 个动作组、`navigation.yaml` 的片段与页数、
   导入导出 PRD 的版本行与片段登记即可
 
+## D-084 交付批次 3-0 与 3-1：视觉规范四件套 + 高保真样板（阶段 3 开工）
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要拍板的默认选推荐，执行完以后没有任何问题提交合并」；阶段 2 已合并本地 main）
+- 上游依据：`docs/00-governance/stage-inputs.yaml` 的 stage3（输入、门禁、批次计划）；
+  `prototypes/functional/v1/**`（信息架构与布局基准）；`visual-spec.yaml` 的 source_of_truth 三条
+- 决策（全部取推荐方案）：
+  1. **阶段 3 独立于阶段 2**：新建 `prototypes/high-fidelity/v1/`，不改阶段 2 的任何文件；
+     两套原型沿用同一套 `data-*` 约定与同一份 `markup-contract.md` 映射表，阶段 6 可一起替换成 Element Plus 组件。
+  2. **视觉规范出两份同源文件**：`design-tokens.json`（机器可读、权威值，阶段 6 搬进 `apps/plus-ui`）与
+     `visual-spec.yaml`（人类可读摘要）；再加 `component-spec.md`（组件规格）与
+     `component-mapping.yaml`（每个可交互元素 → Element Plus 组件）、`visual-checklist.md`（32 条交批自查），
+     与 stage-inputs 登记的 3-0 四件套对齐。
+  3. **主色定为 `#2f6bff`**：以 `apps/plus-ui` 现有配色为基准、在 Element Plus 默认 `#409eff` 之上提亮一档；
+     页面底色 `#f3f5f9` + 白色卡片形成层次；表头加 `#f7f9fc` 底色。
+  4. **状态片段必须替换主内容**：主内容包在 `[data-normal-view]` 内、状态片段放在 `#page-root` 内其外；
+     这条在阶段 2 由 D-080 实证（状态片段堆在内容之后导致 forbidden 截图与默认态字节完全相同），本阶段写进 `component-spec.md`。
+  5. **租户管理员在学生名单页进入无权限形态**（`DS-02` 只有组织配置范围，无教学数据范围）：
+     样板批首次实现时曾把租户管理员放进可读角色，harness 与截图两次实测后修正，并写进 `visual-checklist.md` 第 23 条的判据。
+  6. **批次编号不自造**：发现 `stage-inputs.yaml` 已把 3-0 定义为规范批次（而非我最初写的「3-1 样板批」）后，
+     按登记的计划重排为 3-0（规范）+ 3-1（样板），并在 README 与 index.html 中同步说明。
+- 关键设计：样板批交付 `PAGE-STU-LIST` / `PAGE-STU-DETAIL` / `PAGE-STU-CREATE` / `PAGE-STU-EDIT` 四个页面编号，
+  12 列 12 行、列宽之和 = `min-width` = 1128；组件映射覆盖 4 个页面 32 个可交互元素；
+  三档分辨率（1366 / 1440 / 1920）+ 4 种角色形态 + 3 类状态共 10 张截图。
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/high-fidelity/v1/design-tokens.json` | 新增：色彩 / 字体 / 间距 / 圆角 / 阴影 / 布局 / 动效 / 层级 token（机器可读） |
+| `prototypes/high-fidelity/v1/visual-spec.yaml` | 新增：视觉规范的人类可读摘要（与 token 同源） |
+| `prototypes/high-fidelity/v1/component-spec.md` | 新增：20 个组件的变体 / 尺寸 / 状态 / Element Plus 映射 + 载体规则 + 禁止事项 |
+| `prototypes/high-fidelity/v1/component-mapping.yaml` | 新增：4 个页面 32 个可交互元素 → Element Plus 组件与属性 |
+| `prototypes/high-fidelity/v1/visual-checklist.md` | 新增：32 条交批自查清单（结构 / 视觉 / 三档分辨率 / 状态角色 / 可访问性 / 交批动作） |
+| `prototypes/high-fidelity/v1/assets/hifi.css` | 新增：高保真样式（token 落地；类名与阶段 2 一致） |
+| `prototypes/high-fidelity/v1/assets/hifi-shell.js` | 新增：高保真外壳（8 角色 + 8 状态 + 深链接 + 列级显隐继承 + `prototype:params` 对齐约定） |
+| `prototypes/high-fidelity/v1/pages/student-list.html` | 新增：样板页（列表 + 详情抽屉 + 新增 / 编辑弹窗 + 五类状态片段） |
+| `prototypes/high-fidelity/v1/index.html`、`README.md` | 新增：入口与交付说明（含 3-0 ~ 3-9 批次表） |
+| `evidence/stage3-highfidelity/verify-hifi-student.html` | 新增：18 条断言 |
+| `evidence/stage3-highfidelity/*.png`（10 张） | 新增：三档分辨率 + 抽屉 / 弹窗 + 3 种角色形态 + 空态 / 无权限 + harness 结果 |
+| `evidence/stage3-highfidelity/README.md` | 新增：阶段 3 验收证据与「阶段 2 vs 阶段 3」差异表 |
+
+- 验证证据：`verify-hifi-student.html` 18 / 18；`python tools/check_docs.py` 通过；
+  阶段 2 的 19 个 harness 未受影响（本批只新增文件，未改阶段 2 任何文件）
+- 阶段状态：3-0（规范）与 3-1（样板）已产出待验收；**需用户验收视觉方向并冻结 `design-tokens.json` 后**再铺 3-2 ~ 3-9
+- 如果错了的代价：删除 `prototypes/high-fidelity/v1/` 与 `evidence/stage3-highfidelity/` 两个目录即可；
+  阶段 2 与已合并的 main 不受影响
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |
