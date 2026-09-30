@@ -4,7 +4,7 @@
 |---|---|
 | 模块 | 班级管理（`class`） |
 | 文档路径 | `docs/10-prd/modules/class/PRD.md` |
-| 版本 | 1.0.4-draft |
+| 版本 | 1.0.5-draft |
 | 状态 | `frozen`（2026-09-30 冻结，见 D-045、CR-001） |
 | 批次 | 1-2（按学生管理 PRD 样板结构产出） |
 | 上游依赖 | 见 1.4 |
@@ -18,6 +18,7 @@
 | 1.0.2-draft | 2026-09-30 | 按 `GAP-023` 裁决（选 A）**恢复教学班为首轮实现**：第 1.2 / 1.3 / 4.6 / 6.1 / 10 节与第 12 节第 4 项同步改写；仅交付顺序排在选科之后，不再属于范围外 | Codex |
 | 1.0.3-draft | 2026-09-30 | 按 `CR-009` 落地两项裁决：新建班级由抽屉改**弹窗**、添加学生由抽屉改**独立页**（对齐 `D-059`）；6.1 补登记指定班主任、复制班级、批量迁学生 3 个页面与停用 / 删除 2 个确认浮层片段；6.3 交互表同步 | Codex |
 | 1.0.4-draft | 2026-09-30 | 按 `CR-010` 补齐模块公共前置：第 7.1 节的班级 `status` 明确为「在读 / 已停用」两个取值（`FD-class_status`），`campus_id` 与 `classroom` 登记进字段字典；7.1 的字段列表补注唯一性与权限口径 | Codex |
+| 1.0.5-draft | 2026-10-01 | 按 `CR-017` 补齐教学班管理的交付面：6.1 登记 `DRAWER-CLS-TEACHING`（详情抽屉）与 `DIALOG-TCL-DISABLE`（停用确认）两个同页片段；8 节补 `getTeachingClass` / `disableTeachingClass` / `listTeachingClassRoster` 三个 operationId；明确教学班的**创建入口唯一**（统一在 `PAGE-STR-GEN-CLASS`，本页不提供手工新增成员） | Codex |
 
 ## 0. 怎么读这份文档
 
@@ -346,6 +347,12 @@ erDiagram
 | `PAGE-CLS-ROSTER-IMPORT` | 编班表导入向导 | 独立页 | 教务主任 |
 | `PAGE-CLS-TEACHING` | 教学班管理 | 列表页 + 抽屉 | 教务主任、年级主任 |
 
+> **教学班管理的两个同页片段（`CR-017` 补登记）**：
+> `DRAWER-CLS-TEACHING`（教学班详情抽屉：基本信息 + 跨行政班的成员清单 + 未同步的选科变更入口）与
+> `DIALOG-TCL-DISABLE`（停用教学班确认：写清影响范围、原因必填、写审计）。
+> **创建入口唯一**：教学班主体与成员的创建统一走 `PAGE-STR-GEN-CLASS`（按组合生成教学班），
+> 本页不提供「手工新增教学班 / 手工增删成员」——同一份名单只允许一条写入路径（`DP-01`、`REQ-STR-056`）。
+
 > **载体口径（2026-09-30，`CR-009` / `D-059`）**：表单类浮层统一用**弹窗**；
 > 详情类用**抽屉**；含表格或分页的内容用**独立页**。
 > 停用与删除的二次确认按 `markup-contract.md` 登记为**同页浮层片段**（`DIALOG-CLS-DISABLE` / `DIALOG-CLS-DELETE`），
@@ -452,6 +459,9 @@ erDiagram
 | `exportClassRoster` | POST | `/edu/class/{id}/roster/export` | 花名册导出 |
 | `listTeachingClass` | GET | `/edu/teaching-class/list` | 教学班列表 |
 | `addTeachingClass` | POST | `/edu/teaching-class` | 新建教学班 |
+| `getTeachingClass` | GET | `/edu/teaching-class/{id}` | 教学班详情（`CR-017` 补登记：详情抽屉的数据来源） |
+| `disableTeachingClass` | POST | `/edu/teaching-class/{id}/disable` | 停用教学班（`CR-017` 补登记：原因必填、写审计、历史成员保留） |
+| `listTeachingClassRoster` | GET | `/edu/teaching-class/{id}/roster` | 教学班成员清单（`CR-017` 补登记：只读，成员写入仍由生成流程触发） |
 
 ---
 

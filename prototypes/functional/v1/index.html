@@ -20,7 +20,7 @@
   </div>
 
   <section class="card">
-    <div class="card-header"><h3>已交付页面（批次 2-1 ~ 2-7a）</h3><span class="el-tag success">待人工验收</span></div>
+    <div class="card-header"><h3>已交付页面（批次 2-1 ~ 2-7b）</h3><span class="el-tag success">待人工验收</span></div>
     <div class="card-body">
       <table class="el-table">
         <thead>
@@ -412,6 +412,34 @@
 <td><a href="pages/stream-list.html">pages/stream-list.html</a></td>
 <td>8 列 6 行、列宽之和 = min-width = 1080；页内选科历史时间线（3 条，旧组合 → 新组合 + 原因，追加式不可删除）；变更申请弹窗（新的首选 / 新的再选 / 原因必填，同一学生只允许一条待审批 BR-STREAM-007）；页头写明「选科结果只有一个写入路径」</td>
 </tr>
+<tr>
+<td class="mono">PAGE-STR-STAT</td>
+<td>组合分布统计（批次 2-7b）</td>
+<td>独立页（图表 + 表格）</td>
+<td><a href="pages/stream-stat.html">pages/stream-stat.html</a></td>
+<td>总览五张统计卡（高中在读 15 / 已提交 12 / 未提交 3 / 待审批 2 / 生效组合 6）+ 6 行纯 CSS 柱条（合计 12 人）+ 组合明细 6 列（行内「查看学生」按组合下钻）+ 各学科选择人数（首选 12 / 再选 24 人次）；待审批不计入分布（BR-STREAM-006）、统计与清单同口径（REQ-STR-050）</td>
+</tr>
+<tr>
+<td class="mono">PAGE-STR-APPROVE + DIALOG-STR-APPROVE</td>
+<td>变更审批待办（批次 2-7b）</td>
+<td>列表页 + 审批弹窗</td>
+<td><a href="pages/stream-approve.html">pages/stream-approve.html</a></td>
+<td>8 列 4 行（待审批 2 / 已通过 1 / 已驳回 1，默认筛「待审批」、按提交时间升序）；行内「审批」打开弹窗：原 / 新组合对比（REQ-STR-038）、审批意见（驳回必填 REQ-STR-037）、同意并生效 / 驳回；教务主任不能自审（REQ-STR-034）</td>
+</tr>
+<tr>
+<td class="mono">PAGE-STR-GEN-CLASS</td>
+<td>按组合生成教学班（批次 2-7b）</td>
+<td>向导页（预览 + 执行 + 核对）</td>
+<td><a href="pages/stream-generate-class.html">pages/stream-generate-class.html</a></td>
+<td>四步：选方式与范围（按完整组合 / 按单学科，REQ-STR-058）→ 生成预览（4 新建 + 1 已存在跳过，幂等 REQ-STR-057）→ 执行与进度（写入由班级管理模块执行，REQ-STR-056）→ 核对结果（人数与统计一致 + 差异清单，REQ-STR-059 / 060）</td>
+</tr>
+<tr>
+<td class="mono">PAGE-CLS-TEACHING + DRAWER-CLS-TEACHING + DIALOG-TCL-DISABLE</td>
+<td>教学班管理（批次 2-7b）</td>
+<td>列表页 + 详情抽屉 + 停用确认</td>
+<td><a href="pages/teaching-class-list.html">pages/teaching-class-list.html</a></td>
+<td>8 列 5 行（名称 / 学年学期 / 年级 / 组合或学科 / 人数 / 任课教师 / 状态 / 操作），列宽之和 = min-width = 1140；详情抽屉含跨行政班成员；停用确认原因必填且写审计；行政班与教学班两套独立关系（BR-CLASS-001）、教学班不设班主任（REQ-CLS-039）、创建入口唯一（DP-01）</td>
+</tr>
         </tbody>
       </table>
       <div class="legend" style="margin-top:10px">
@@ -442,6 +470,10 @@
         <li>打开 <a href="pages/stream-config.html">选科配置</a>：清空「开放日期」点「保存配置」看字段级拦截；把演示面板角色切到「任课教师」，页面进入无权限形态（租户管理员同理——无选科教学数据范围 DS-02），切到「校领导」则为可写（stream.config [read, update]）。</li>
         <li>打开 <a href="pages/stream-selection.html">学生选科</a>：取消一门再选，看计数变 1 / 2、拦截提示出现、「提交选科」置为被阻止（点它给出原因）；再点「历史」卡看当前结果联动，点「恢复当前结果」回滚。</li>
         <li>打开 <a href="pages/stream-list.html">选科清单</a>：看 8 列 6 行与页内的选科历史时间线；角色切到「班主任」行内出现「发起变更」（待审批行显示「审批中」），点它打开变更申请弹窗——不填原因直接提交会被字段级拦截；角色切到「校领导」则全部行只读。</li>
+        <li>打开 <a href="pages/stream-stat.html">组合分布统计</a>：看 6 行柱条与组合明细——柱条合计 12 人、明细合计也是 12 人（统计与清单同口径）；点明细行内「查看学生」会带着该组合下钻到选科清单；角色切到「年级主任」，范围提示变为 DS-05（统计只含本年级）。</li>
+        <li>打开 <a href="pages/stream-approve.html">变更审批待办</a>：默认角色是教务主任，待审批行只显示「只读」（不能自审，REQ-STR-034）；把演示面板角色切到「校领导」，两行待审批出现「审批」——点它看原 / 新组合对比，不填审批意见点「驳回」会被字段级拦截。</li>
+        <li>打开 <a href="pages/stream-generate-class.html">按组合生成教学班</a>：第 1 步选「按完整组合」→ 下一步看生成预览（4 个新建 + 1 个「已存在」跳过，幂等）→ 下一步点「执行生成」，1 秒后自动进入第 4 步核对（4 行人数与统计一致）。也可直接用 <a href="pages/stream-generate-class.html#step=2">#step=2</a> / <a href="pages/stream-generate-class.html#step=4">#step=4</a> 深链接定位。</li>
+        <li>打开 <a href="pages/teaching-class-list.html">教学班管理</a>：看 8 列与「教学班不设班主任」的口径；点行内「详情」打开抽屉（跨行政班的成员）；点「停用」看不填原因被拦截、填了才允许提交；已停用的那一行没有「停用」入口。</li>
       </ol>
     </div>
   </section>
@@ -480,7 +512,7 @@
           <tr><td>2-4</td><td>导入向导（含模板 / 校验 / 执行三个区块）+ 学生 / 教师 / 编班表三个模块导入向导 + 登录 + 403 / 404 / 500</td><td class="num">11</td><td><span class="el-tag warning">2-4 待验收</span></td></tr>
           <tr><td>2-5</td><td>学生模块剩余（详情 + 变更记录 / 学籍异动 / 调班 / 异动登记 / 跨校转学两侧向导 / 异动历史）</td><td class="num">8</td><td><span class="el-tag warning">2-5 待验收</span></td></tr>
           <tr><td>2-6</td><td>学校管理 + 学年学期 + 学科与配置（2-6a 学校 6 页、2-6b 校区/初始化/学年学期 4 页、2-6c 学科与配置 6 页）</td><td class="num">19</td><td><span class="el-tag warning">2-6 全部产出待验收</span></td></tr>
-          <tr><td>2-7</td><td>选科与教学班（2-7a 选科配置 / 学生选科 / 选科清单 5 个页面编号；2-7b 组合分布统计 / 变更审批待办 / 按组合生成教学班 / 教学班管理 4 个）</td><td class="num">9</td><td><span class="el-tag warning">2-7a 已产出待验收</span></td></tr>
+          <tr><td>2-7</td><td>选科与教学班（2-7a 选科配置 / 学生选科 / 选科清单；2-7b 组合分布统计 / 变更审批待办 / 按组合生成教学班 / 教学班管理 + 3 个同页片段）</td><td class="num">12</td><td><span class="el-tag warning">2-7 全部产出待验收</span></td></tr>
           <tr><td>2-8</td><td>审计与操作日志</td><td class="num">7</td><td><span class="el-tag info">待开始</span></td></tr>
           <tr><td>2-9</td><td>异步任务中心 + 死信 + 导出配置</td><td class="num">4</td><td><span class="el-tag info">待开始</span></td></tr>
         </tbody>
@@ -512,6 +544,7 @@
           <tr><td class="mono">已关闭</td><td><span class="mono">GAP-055</span>（升班明细的 7 个字段与「调整方式」枚举没进字段字典）已按选项 A 执行（<span class="mono">CR-014</span> / <span class="mono">D-073</span>）：补 7 个字段 + 3 个枚举、<span class="mono">BR-PROMO-006</span> 补留级去向、升班 PRD 6.1 / 6.3 / 7.1 补字段口径并升 1.0.4-draft</td><td>2-3e 剩余 5 页可以按同一标准铺开；阶段 5 的升班建表有字段与枚举依据</td></tr>
           <tr><td class="mono">GAP-056</td><td>编班表导入模板的列清单未在班级 PRD 枚举（本批按推荐 4 列实现：学号 / 姓名 / 目标班级 / 班级类型）</td><td>阶段 3 的模板截图与阶段 6 的模板下载接口各维护一份列定义的风险</td></tr>
           <tr><td class="mono">已关闭</td><td><span class="mono">GAP-057</span>（选科模块的 3 个字段没进字段字典、9 条权限码沿用邻近模块、<span class="mono">PAGE-STR-STAT</span> 载体与选科 PRD 6.1 不一致、租户管理员与校领导的选科角色口径与 PRD 2.1 / 5.1 冲突）已按选项 A 执行（<span class="mono">CR-016</span> / <span class="mono">D-080</span>）：补 <span class="mono">stream_open_from</span> / <span class="mono">overdue_requires_approval</span> / <span class="mono">subject_combination</span>，权限码改用 <span class="mono">stream.*</span>，统计页改独立页，选科配置可写角色改为教务主任 + 校领导</td><td>2-7b 的四个页面（统计 / 审批 / 生成教学班 / 教学班管理）可以直接开工；阶段 5 的选科建表有字段与权限依据</td></tr>
+          <tr><td class="mono">已关闭</td><td><span class="mono">GAP-058</span>（教学班的详情 / 停用 / 成员清单缺 operationId，且教学班能否手工新增没有裁决）已按选项 A 执行（<span class="mono">CR-017</span> / <span class="mono">D-081</span>）：班级 PRD 升 1.0.5-draft（补 <span class="mono">DRAWER-CLS-TEACHING</span> / <span class="mono">DIALOG-TCL-DISABLE</span> 两个片段 + <span class="mono">getTeachingClass</span> / <span class="mono">disableTeachingClass</span> / <span class="mono">listTeachingClassRoster</span> 三个 operationId + 创建入口唯一），选科 PRD 升 1.0.1-draft</td><td>阶段 4 接口清单与阶段 6 前端对教学班有权威依据；同一份名单只有一条写入路径</td></tr>
         </tbody>
       </table>
     </div>

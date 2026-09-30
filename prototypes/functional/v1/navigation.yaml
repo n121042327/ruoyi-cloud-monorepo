@@ -100,7 +100,9 @@ pages:
   - { id: PAGE-CLS-COPY, name: 复制班级, module: class, type: dialog, size: md, parent: PAGE-CLS-LIST, batch: "2-3", note: "CR-009 补登记：REQ-CLS-061，不复制花名册与班主任" }
   - { id: PAGE-CLS-MOVE, name: 批量迁学生, module: class, type: page, route: /edu/class/move-students, parent: PAGE-CLS-LIST, batch: "2-3", note: "CR-009 补登记：REQ-CLS-062，含影响预览表格，按 D-059 用独立页" }
   - { id: PAGE-CLS-ROSTER-IMPORT, name: 编班表导入向导, module: class, type: wizard, route: /edu/class/import-roster, batch: "2-4", note: "2-4 已交付：按班级列的编班表（一行一学生含目标班级列，REQ-CLS-035）、两阶段校验（REQ-CLS-036）、导入幂等（REQ-CLS-037）；模板 4 列见 GAP-056" }
-  - { id: PAGE-CLS-TEACHING, name: 教学班管理, module: class, type: page, route: /edu/class/teaching, template: TPL-LIST, batch: "2-7", note: "2-7b 待产出：教学班列表（组合 / 班级名 / 人数 / 任课教师 / 状态）；行政班与教学班两套独立关系（PRD 硬约束）" }
+  - { id: PAGE-CLS-TEACHING, name: 教学班管理, module: class, type: page, route: /edu/class/teaching, template: TPL-LIST, batch: "2-7", note: "2-7b 已交付：8 列教学班列表（名称 / 学年学期 / 年级 / 组合或学科 / 人数 / 任课教师 / 状态 / 操作）+ 行内详情抽屉与停用确认；行政班与教学班两套独立关系（BR-CLASS-001）、教学班不设班主任（REQ-CLS-039）、创建入口统一在生成向导（DP-01）" }
+  - { id: DRAWER-CLS-TEACHING, name: 教学班详情抽屉, module: class, type: detail, container: drawer, size: md, parent: PAGE-CLS-TEACHING, batch: "2-7", note: "2-7b 已交付：同页浮层片段（详情类用抽屉）；基本信息 + 跨行政班的成员清单 + 未同步的选科变更入口（REQ-STR-060）" }
+  - { id: DIALOG-TCL-DISABLE, name: 停用教学班确认, module: class, type: dialog, size: sm, parent: PAGE-CLS-TEACHING, batch: "2-7", note: "2-7b 已交付：同页浮层片段；危险动作二次确认，原因必填、写审计（REQ-CLS-047）" }
   - { id: PAGE-CLS-MERGE, name: 班级合并, module: class, type: wizard, route: /edu/class/merge, batch: deferred, note: "PRD 已标明延后，本轮不做" }
 
   # ---- 升班与学籍异动 ----
@@ -145,11 +147,12 @@ pages:
   - { id: PAGE-STR-CONFIG, name: 选科配置, module: stream, type: page, route: /edu/stream/config, template: TPL-DETAIL, batch: "2-7", note: "2-7a 已交付：开放期与截止时间（BR-STREAM-005 逾期需校级管理员审批）+ 固定规则卡片（首选物理 / 历史、再选 4 选 2、同一学生同时只允许一条待审批申请）；页内表单自带 validateScope" }
   - { id: PAGE-STR-STUDENT, name: 学生选科, module: stream, type: page, route: /edu/stream/selection, template: TPL-DETAIL, batch: "2-7", note: "2-7a 已交付：首选卡片物理 / 历史二选一 + 再选卡片 4 选 2、即时计数与提交拦截（REQ-STR-004 / 005）、已选组合回显与修改入口（逾期转变更申请）" }
   - { id: PAGE-STR-LIST, name: 选科清单, module: stream, type: page, route: /edu/stream/list, template: TPL-LIST, batch: "2-7", note: "2-7a 已交付：8 列 6 行清单（学号 / 姓名 / 行政班 / 首选 / 再选 / 组合 / 状态 / 操作）+ 页内 PAGE-STR-HISTORY 时间线区块 + PAGE-STR-CHANGE 变更申请弹窗；列宽合计 = 表格 min-width 1080" }
-  - { id: PAGE-STR-STAT, name: 组合分布统计, module: stream, type: page, route: /edu/stream/stat, template: TPL-DETAIL, batch: "2-7", note: "CR-016：PRD 6.1 要求独立页（图表 + 表格），角色含校领导；由 block 改为独立 page（2-7b 待产出）" }
+  - { id: PAGE-STR-STAT, name: 组合分布统计, module: stream, type: page, route: /edu/stream/stat, template: TPL-DETAIL, batch: "2-7", note: "2-7b 已交付：总览五张统计卡 + 组合分布柱条（6 组合合计 12 人）+ 组合明细 6 列（可下钻「查看学生」）+ 各学科选择人数（首选 12 人 / 再选 24 人次）；待审批不计入分布（BR-STREAM-006）、统计与清单同口径（REQ-STR-050）、受范围约束（DS-DENY-08）" }
   - { id: PAGE-STR-CHANGE, name: 发起变更申请, module: stream, type: dialog, size: sm, parent: PAGE-STR-LIST, batch: "2-7", note: "2-7a 已交付：逾期变更申请弹窗（新组合 / 变更原因必填）；同一学生同时只允许一条待审批申请（BR-STREAM-007）" }
-  - { id: PAGE-STR-APPROVE, name: 变更审批待办, module: stream, type: page, route: /edu/stream/approve, template: TPL-LIST, batch: "2-7", note: "2-7b 待产出：校领导审批待办列表 + 同意 / 驳回弹窗（BR-STREAM-005）" }
+  - { id: PAGE-STR-APPROVE, name: 变更审批待办, module: stream, type: page, route: /edu/stream/approve, template: TPL-LIST, batch: "2-7", note: "2-7b 已交付：10 列审批待办（默认筛「待审批」、按提交时间升序）+ 行内「审批」打开 DIALOG-STR-APPROVE；审批人是校级管理员、教务主任不能自审（REQ-STR-034）、通过前保持原值（BR-STREAM-006）、驳回意见必填（REQ-STR-037）、弹窗同时展示原 / 新组合（REQ-STR-038）" }
   - { id: PAGE-STR-HISTORY, name: 选科历史, module: stream, type: block, parent: PAGE-STR-LIST, batch: "2-7", note: "2-7a 已交付：追加式时间线（变更日期 / 原组合 → 新组合 / 操作人 / 原因），不提供删除（BR-AUDIT-003）" }
-  - { id: PAGE-STR-GEN-CLASS, name: 按组合生成教学班, module: stream, type: wizard, route: /edu/stream/generate-class, batch: "2-7", note: "2-7b 待产出：按组合生成教学班向导（预览 → 执行 → 核对）" }
+  - { id: PAGE-STR-GEN-CLASS, name: 按组合生成教学班, module: stream, type: wizard, route: /edu/stream/generate-class, batch: "2-7", note: "2-7b 已交付：四步（选方式与范围 → 生成预览 → 执行与进度 → 核对结果）；支持按完整组合与按单学科两种粒度（REQ-STR-058）、幂等（REQ-STR-057）、写入由班级模块执行（REQ-STR-056）、核对人数与统计一致性并给差异清单（REQ-STR-059 / 060）" }
+  - { id: DIALOG-STR-APPROVE, name: 选科变更审批弹窗, module: stream, type: dialog, size: sm, parent: PAGE-STR-APPROVE, batch: "2-7", note: "2-7b 已交付：同页浮层片段（CR-008 / D-059 表单类浮层用弹窗）；原 / 新组合对比 + 审批意见 + 同意并生效 / 驳回" }
 
   # ---- 导入导出与异步任务 ----
   - { id: PAGE-IMP-WIZARD, name: 导入向导, module: import-export, type: wizard, route: /edu/import/wizard, batch: "2-4", note: "2-4 已交付：四步向导（选模板 → 上传并同步校验 → 校验结果 → 异步执行），页内含 PAGE-IMP-TEMPLATE / PAGE-IMP-VALIDATE / PAGE-IMP-EXECUTE 三个区块；5000 行 / 10 MB / 30 秒与并发配额按 IMP-Q-01 ~ 05 落地" }
@@ -187,7 +190,7 @@ delivery_batches:
   - { batch: "2-4", content: 导入向导 + 登录 + 异常页, pages: 11, status: "已全部产出待验收：PAGE-IMP-WIZARD（含 TEMPLATE / VALIDATE / EXECUTE 三个区块）、PAGE-STU-IMPORT / PAGE-TCH-IMPORT / PAGE-CLS-ROSTER-IMPORT（模块快捷入口）、PAGE-LOGIN / PAGE-403 / PAGE-404 / PAGE-500（不套管理外壳）；动作 ACT-IMP-001 ~ 010、ACT-IO-001 ~ 002、ACT-AUTH-001 ~ 003、ACT-ERR-001 ~ 005 已登记" }
   - { batch: "2-5", content: 学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录）, pages: 8, status: "已全部产出待验收：PAGE-STU-DETAIL（抽屉，含 PAGE-STU-HISTORY 区块）与三个同页弹窗（PAGE-STU-STATUS / PAGE-STU-TRANSFER / PAGE-PRM-CHANGE）、PAGE-STU-CROSS-TRANSFER / PAGE-PRM-TRANSFER（转出校 / 转入校两侧向导）、PAGE-PRM-HISTORY（异动历史列表）；动作 ACT-STU-023 ~ 034、ACT-STU-040 ~ 043、ACT-PRM-044 ~ 048、ACT-PRM-050 ~ 054 已登记" }
   - { batch: "2-6", content: 学校管理 + 学年学期 + 学科与配置, pages: 19, status: "已全部产出待验收：2-6a 学校管理 6 页、2-6b 校区 / 开通初始化 / 学年学期 4 页、2-6c 学科与配置 6 页（ACT-SUB-001 ~ 018）；本批 9 条表单浮层已按 CR-015 由抽屉改为弹窗" }
-  - { batch: "2-7", content: 选科与教学班, pages: 9, status: "2-7a 已产出待验收（选科配置 / 学生选科 / 选科清单（含变更申请弹窗与选科历史区块）5 个页面编号，ACT-STR-001 ~ 025）；2-7b 待铺开（组合分布统计 / 变更审批待办 / 按组合生成教学班 / 教学班管理 4 个页面编号）" }
+  - { batch: "2-7", content: 选科与教学班, pages: 12, status: "已全部产出待验收：2-7a 选科配置 / 学生选科 / 选科清单（含 PAGE-STR-CHANGE 与 PAGE-STR-HISTORY 片段）、2-7b 组合分布统计 / 变更审批待办 / 按组合生成教学班 / 教学班管理 + 3 个同页片段（DIALOG-STR-APPROVE / DRAWER-CLS-TEACHING / DIALOG-TCL-DISABLE）；动作 ACT-STR-001 ~ 058、ACT-TCL-001 ~ 012 已登记" }
   - { batch: "2-8", content: 审计与操作日志, pages: 7, status: 已确认（D-050），待开始 }
   - { batch: "2-9", content: 异步任务中心 + 死信 + 导出配置, pages: 4, status: 已确认（D-050），待开始 }
   - { batch: deferred, content: "已延后页面（PRD 标注本轮不做）", pages: 1, status: 已延后 }
@@ -242,6 +245,19 @@ jump_map:
   - { from: PAGE-IMP-WIZARD, trigger: 步骤三, to: PAGE-IMP-VALIDATE, overlay: block }
   - { from: PAGE-IMP-WIZARD, trigger: 确认执行, to: PAGE-IMP-EXECUTE, overlay: block }
   - { from: PAGE-IMP-TASK-LIST, trigger: 点击行, to: PAGE-IMP-TASK-DETAIL, overlay: detail }
+  - { from: PAGE-STR-CONFIG, trigger: "查看选科清单", to: PAGE-STR-LIST, overlay: page }
+  - { from: PAGE-STR-STUDENT, trigger: 锚点"查看选科历史", to: PAGE-STR-HISTORY, overlay: block }
+  - { from: PAGE-STR-LIST, trigger: "组合分布统计", to: PAGE-STR-STAT, overlay: page }
+  - { from: PAGE-STR-LIST, trigger: "选科配置", to: PAGE-STR-CONFIG, overlay: page }
+  - { from: PAGE-STR-LIST, trigger: 行内"发起变更", to: PAGE-STR-CHANGE, overlay: dialog }
+  - { from: PAGE-STR-STAT, trigger: 行内"查看学生", to: PAGE-STR-LIST, overlay: page, note: 带组合筛选下钻（REQ-STR-049） }
+  - { from: PAGE-STR-STAT, trigger: "按组合生成教学班", to: PAGE-STR-GEN-CLASS, overlay: page }
+  - { from: PAGE-STR-APPROVE, trigger: 行内"审批", to: DIALOG-STR-APPROVE, overlay: dialog }
+  - { from: PAGE-STR-GEN-CLASS, trigger: "去教学班管理", to: PAGE-CLS-TEACHING, overlay: page }
+  - { from: PAGE-STR-GEN-CLASS, trigger: "查看组合分布统计", to: PAGE-STR-STAT, overlay: page }
+  - { from: PAGE-CLS-TEACHING, trigger: 行内"详情", to: DRAWER-CLS-TEACHING, overlay: drawer }
+  - { from: PAGE-CLS-TEACHING, trigger: 行内"停用", to: DIALOG-TCL-DISABLE, overlay: dialog }
+  - { from: PAGE-CLS-TEACHING, trigger: "去生成教学班", to: PAGE-STR-GEN-CLASS, overlay: page }
   - { from: PAGE-AUDIT-LOG-LIST, trigger: 点击行, to: PAGE-AUDIT-LOG-DETAIL, overlay: detail }
   - { from: PAGE-AUDIT-LOG-DETAIL, trigger: "对象标识", to: PAGE-AUDIT-OBJECT-TIMELINE, overlay: block }
   - { from: PAGE-SCH-LIST, trigger: "行内「校区数」", to: PAGE-SCH-CAMPUS, overlay: page, note: "GAP-046 选项 A：校区检索入口复用学校详情下的校区管理页，不新增页面" }

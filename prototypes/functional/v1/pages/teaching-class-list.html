@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>教学班管理 — 业务原型 v1（批次 2-7b）</title>
+<link rel="stylesheet" href="../assets/prototype-shell.css" />
+<script src="../assets/prototype-shell.js"></script>
+<style>
+  #tcl-table td.actions { white-space: nowrap; }
+</style>
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-CLS-TEACHING"
+  data-menu-page="PAGE-CLS-LIST"
+  data-breadcrumb="教育管理 / 班级管理 / 教学班管理"
+  data-tab="教学班管理"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-CLS-TEACHING" data-role="page">
+
+  <div data-normal-view>
+
+  <div class="page-head">
+    <h1>教学班管理</h1>
+    <span class="scope-hint" data-role="scope-hint">数据范围：本校（DS-04）· 只读（创建走生成向导）</span>
+    <span class="el-tag primary">2026-2027 学年 第一学期</span>
+    <span class="el-tag info">共 5 个教学班</span>
+  </div>
+
+  <div class="alert info">
+    <span>两套关系</span>
+    <span>行政班与教学班是<b>两套独立关系</b>：一名学生同一学年学期只能属于一个行政班，但可同时属于多个教学班（<span class="mono">BR-CLASS-001</span> / <span class="mono">BR-STU-004</span>）；
+      教学班<b>不设班主任</b>，也不参与班主任的数据范围解析（<span class="mono">REQ-CLS-039</span>）。</span>
+  </div>
+
+  <div class="alert warning">
+    <span>写入入口唯一</span>
+    <span>教学班主体与成员关系的写入统一由<b>「按组合生成教学班」向导</b>触发班级管理模块执行（<span class="mono">REQ-STR-056</span> / <span class="mono">DP-01</span>）；
+      本页不提供「手工新增成员」，避免同一份名单出现两套写入规则。任课教师通过教师模块的任教关系设置（<span class="mono">REQ-CLS-042</span>），本页只读展示。</span>
+  </div>
+
+  <section class="card" data-block="toolbar" data-role="toolbar" data-component="el-card.hover">
+    <div class="card-header">
+      <div class="toolbar" data-demo-state-target="toolbar">
+        <select class="select" data-role="filter" data-action-id="ACT-TCL-010" data-field="grade_id" data-default="">
+          <option value="">全部年级</option>
+          <option value="2026">2026 级 高一</option>
+          <option value="2025">2025 级 高二</option>
+          <option value="2024">2024 级 高三</option>
+        </select>
+        <select class="select" data-role="filter" data-action-id="ACT-TCL-011" data-field="combination" data-default="">
+          <option value="">全部组合 / 学科</option>
+          <option value="物理 + 化学 + 生物">物理 + 化学 + 生物</option>
+          <option value="历史 + 思想政治 + 地理">历史 + 思想政治 + 地理</option>
+          <option value="单学科：物理">单学科：物理</option>
+        </select>
+        <select class="select" data-role="filter" data-action-id="ACT-TCL-012" data-field="status" data-default="">
+          <option value="">全部状态</option>
+          <option value="正常">正常</option>
+          <option value="已停用">已停用</option>
+        </select>
+      </div>
+      <div class="header-right">
+        <button class="btn" data-role="action" data-action-id="ACT-TCL-001" data-component="el-button"
+                data-permission="org.teaching_class:create" data-nav="PAGE-STR-GEN-CLASS">去生成教学班</button>
+        <button class="btn" data-role="action" data-action-id="ACT-COM-005" data-component="el-button" data-api="listTeachingClass"
+                data-demo-message="已刷新教学班列表。">刷新</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" data-block="list" data-role="section" data-component="el-card.hover">
+    <div class="card-header"><h2>教学班列表</h2><span class="el-tag info">listTeachingClass</span></div>
+    <div class="card-body">
+      <div class="table-scroll">
+        <table class="el-table" id="tcl-table" data-role="table" data-component="el-table" data-api="listTeachingClass"
+               style="min-width:1140px;table-layout:fixed">
+          <thead>
+            <tr>
+              <th data-role="column" data-field="class_name" style="width:200px">教学班名称</th>
+              <th data-role="column" data-field="term_id" style="width:150px">学年学期</th>
+              <th data-role="column" data-field="grade_id" style="width:110px">年级</th>
+              <th data-role="column" data-field="subject_combination" style="width:200px">组合 / 学科</th>
+              <th data-role="column" data-field="member_count" style="width:90px">人数</th>
+              <th data-role="column" data-field="teacher_name" style="width:150px">任课教师</th>
+              <th data-role="column" data-field="status" style="width:100px">状态</th>
+              <th class="actions" style="width:140px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tcl-rows">
+            <tr data-role="row" data-class="高一 · 物化生 A 层" data-status="正常" data-count="3">
+              <td>高一 · 物化生 A 层</td><td>2026-2027 学年 第一学期</td><td>2026 级 高一</td>
+              <td>物理 + 化学 + 生物</td><td class="num">3</td><td>谢明轩（化学）</td>
+              <td><span class="el-tag success">正常</span></td><td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-class="高一 · 史政地 A 层" data-status="正常" data-count="3">
+              <td>高一 · 史政地 A 层</td><td>2026-2027 学年 第一学期</td><td>2026 级 高一</td>
+              <td>历史 + 思想政治 + 地理</td><td class="num">3</td><td class="cell-empty">未设置</td>
+              <td><span class="el-tag success">正常</span></td><td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-class="高一 · 史化生 A 层" data-status="正常" data-count="2">
+              <td>高一 · 史化生 A 层</td><td>2026-2027 学年 第一学期</td><td>2026 级 高一</td>
+              <td>历史 + 化学 + 生物</td><td class="num">2</td><td>谢明轩（化学）</td>
+              <td><span class="el-tag success">正常</span></td><td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-class="高一 · 物理 A 层" data-status="正常" data-count="6">
+              <td>高一 · 物理 A 层</td><td>2026-2027 学年 第一学期</td><td>2026 级 高一</td>
+              <td>单学科：物理</td><td class="num">6</td><td class="cell-empty">未设置</td>
+              <td><span class="el-tag success">正常</span></td><td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-class="高三 · 史生地 A 层" data-status="已停用" data-count="1">
+              <td>高三 · 史生地 A 层</td><td>2026-2027 学年 第一学期</td><td>2024 级 高三</td>
+              <td>历史 + 生物 + 地理</td><td class="num">1</td><td class="cell-empty">未设置</td>
+              <td><span class="el-tag info">已停用</span></td><td class="actions"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination"><span class="total">共 5 个教学班 · 在读成员合计 15 人（本页显示 5 行样例）</span></div>
+      <div class="legend" style="margin-top:8px"><span>教学班容量不设上限、也不做强制校验（与行政班同口径，<span class="mono">BR-CLASS-005</span>）；已停用的教学班只保留「详情」，历史成员仍可查（<span class="mono">REQ-CLS-044</span> 同口径）。</span></div>
+    </div>
+  </section>
+
+  </div>
+
+  <!-- DRAWER-CLS-TEACHING：教学班详情（详情类浮层用抽屉，CR-008 / D-059） -->
+  <div class="overlay" data-demo="panel" data-demo-panel="DRAWER-CLS-TEACHING" data-overlay-kind="drawer">
+    <div class="drawer" data-role="drawer" data-component="el-drawer" data-size="md" data-page="DRAWER-CLS-TEACHING">
+      <div class="drawer-header"><h2>教学班详情 · <span id="tcl-detail-name">高一 · 物化生 A 层</span></h2><button class="close-x" data-close-panel="DRAWER-CLS-TEACHING" title="关闭">✕</button></div>
+      <div class="drawer-body">
+        <section class="card" data-block="basic" data-role="section">
+          <div class="card-header"><h3>基本信息</h3><span class="el-tag info">getTeachingClass</span></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="field" data-field="class_name"><label>教学班名称</label><div class="readonly-value" id="tcl-d-name">高一 · 物化生 A 层</div></div>
+              <div class="field" data-field="term_id"><label>学年学期</label><div class="readonly-value">2026-2027 学年 第一学期</div></div>
+              <div class="field" data-field="grade_id"><label>年级</label><div class="readonly-value" id="tcl-d-grade">2026 级 高一</div></div>
+              <div class="field" data-field="subject_combination"><label>组合 / 学科</label><div class="readonly-value" id="tcl-d-combination">物理 + 化学 + 生物</div></div>
+              <div class="field" data-field="member_count"><label>成员数</label><div class="readonly-value" id="tcl-d-count">3 人</div></div>
+              <div class="field" data-field="teacher_name"><label>任课教师（只读）</label><div class="readonly-value" id="tcl-d-teacher">谢明轩（化学）</div></div>
+            </div>
+            <div class="alert info" style="margin-top:10px">
+              <span>为什么不能在这里改</span>
+              <span>教学班成员来自选科结果，成员的写入归<b>班级管理模块</b>（<span class="mono">REQ-STR-056</span>）；任课教师通过教师模块的任教关系设置（<span class="mono">REQ-CLS-042</span>）。本抽屉是只读视图，改名单请走生成向导或班级模块。</span>
+            </div>
+          </div>
+        </section>
+        <section class="card" data-block="members" data-role="section" style="margin-top:12px">
+          <div class="card-header"><h3>成员（就读于不同行政班）</h3><span class="el-tag info">listTeachingClassRoster</span></div>
+          <div class="card-body">
+            <ul class="timeline">
+              <li><div class="tl-head"><b>王梓萱</b><span class="cell-secondary">2026000001 · 高一 (1) 班</span></div><div>行政班归属不受影响（BR-CLASS-001）</div></li>
+              <li><div class="tl-head"><b>赵一诺</b><span class="cell-secondary">2026000004 · 高一 (2) 班</span></div><div>同一名学生在多个教学班中同时存在（BR-STU-004）</div></li>
+              <li><div class="tl-head"><b>朱书瑶</b><span class="cell-secondary">2026000101 · 高一 (3) 班</span></div><div>教学班成员可跨行政班</div></li>
+            </ul>
+            <div class="legend" style="margin-top:8px"><span>成员清单按只读展示；行数超过 2000 转异步导出（与花名册导出同口径，<span class="mono">REQ-CLS-054</span>）。</span></div>
+          </div>
+        </section>
+        <section class="card" data-block="pending" data-role="section" style="margin-top:12px">
+          <div class="card-header"><h3>未同步的选科变更</h3><span class="el-tag warning">REQ-STR-060</span></div>
+          <div class="card-body">
+            <div class="alert warning">
+              <span>不自动同步</span>
+              <span>新审批通过的选科变更<b>不会自动同步</b>教学班名单；需要在生成向导里人工触发增量生成并核对差异，避免名单被静默改动。</span>
+            </div>
+            <button class="btn" data-role="action" data-action-id="ACT-TCL-003" data-component="el-button"
+                    data-permission="org.teaching_class:read" data-nav="PAGE-STR-GEN-CLASS">去增量生成并核对</button>
+          </div>
+        </section>
+      </div>
+      <div class="drawer-footer">
+        <button class="btn" data-role="action" data-action-id="ACT-TCL-004" data-component="el-button" data-close-panel="DRAWER-CLS-TEACHING">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIALOG-TCL-DISABLE：停用教学班二次确认（危险动作，CR-008 / D-059 表单浮层用弹窗） -->
+  <div class="overlay" data-demo="panel" data-demo-panel="DIALOG-TCL-DISABLE" data-overlay-kind="dialog">
+    <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="sm" data-page="DIALOG-TCL-DISABLE" data-block="form">
+      <div class="dialog-header"><h2>停用教学班 · <span id="tcl-disable-name">高一 · 物理 A 层</span></h2><span class="el-tag danger">危险操作</span><button class="close-x" data-close-panel="DIALOG-TCL-DISABLE" title="关闭">✕</button></div>
+      <div class="dialog-body">
+        <div class="alert warning">
+          <span>影响范围</span>
+          <span>停用后该教学班不再出现在任课关系与走班安排的可选列表中，<b>历史成员与考勤记录保留</b>；如需恢复请重新生成或联系教务主任。</span>
+        </div>
+        <div class="form-grid">
+          <div class="field span-2" data-field="reason">
+            <label>停用原因<span class="required">*</span></label>
+            <textarea class="input" rows="2" style="width:100%;min-width:100%" id="tcl-disable-reason"
+                      data-component="el-input.textarea" data-required data-required-message="请填写停用原因（至少 5 个字）"
+                      placeholder="如：该组合已并入新的教学班"></textarea>
+            <div class="error-text"></div>
+            <div class="hint">停用动作写入审计，含原因与操作人（<span class="mono">REQ-CLS-047</span> / <span class="mono">NFR-AUDIT-01</span>）。</div>
+          </div>
+        </div>
+        <div class="alert danger state-hidden" data-validate-summary>表单校验未通过：请修正下方标红的字段后重试。</div>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn" data-role="action" data-action-id="ACT-TCL-006" data-component="el-button" data-close-panel="DIALOG-TCL-DISABLE">取消</button>
+        <button class="btn danger" data-role="action" data-action-id="ACT-TCL-007" data-component="el-button.danger"
+                data-permission="org.teaching_class:update" data-api="disableTeachingClass" data-validate-on-submit
+                data-after-success="close-panel"
+                data-demo-message="已停用该教学班：不再出现在可选列表，历史成员与考勤记录保留，停用原因已记入审计。">确认停用</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="state-hidden" data-demo-state-panel="loading">
+    <section class="card"><div class="card-body">
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:180px"></div><div class="skeleton-bar" style="width:200px"></div><div class="skeleton-bar" style="width:90px"></div></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:180px"></div><div class="skeleton-bar" style="width:200px"></div><div class="skeleton-bar" style="width:90px"></div></div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="empty">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">📭</div>
+        <div class="title">本学期还没有教学班</div>
+        <div class="desc">教学班由选科结果驱动生成：先确认选科已截止并生效，再用「按组合生成教学班」向导生成（幂等，可重复执行）。</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-TCL-001" data-component="el-button.primary.plain"
+                data-permission="org.teaching_class:create" data-nav="PAGE-STR-GEN-CLASS">去生成教学班</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="error">
+    <section class="card"><div class="card-body">
+      <div class="state-block error">
+        <div class="icon">⚠️</div>
+        <div class="title">教学班列表读取失败</div>
+        <div class="desc">重试不会放宽数据范围（DS-DENY-03）。</div>
+        <div class="req-id">请求编号 REQ-20261001-002140 · 错误码 EDU-CLS-5004</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-COM-005" data-component="el-button.primary.plain" data-api="listTeachingClass">重试</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="forbidden">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">🔒</div>
+        <div class="title">你没有教学班管理的权限</div>
+        <div class="desc">需要 <span class="mono">org.teaching_class:read</span>（教务主任 / 年级主任 / 校领导）；班主任只读本班行政班花名册、任课教师只在任教关系里看到本班，均不进入本页。无权限时不降级为全量（<span class="mono">DS-DENY-03</span>）。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="submitting">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⏳</div>
+        <div class="title">正在提交</div>
+        <div class="desc">按钮已置 loading 并禁用，禁止重复提交。</div>
+      </div>
+    </div></section>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  // 班级 PRD 6.1：教学班管理的角色 = 教务主任、年级主任；校领导 DS-04 只读；平台运营 DS-01 只读；超管全放行。
+  var READ_ROLES = ['super_admin', 'academic_director', 'grade_leader', 'school_leader', 'platform_ops'];
+  var DISABLE_ROLES = ['super_admin', 'academic_director'];
+  function q(sel) { return document.querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function currentRole() { return window.PrototypeShell.currentRole(); }
+
+  function rowActions() {
+    qa('#tcl-rows tr').forEach(function (row) {
+      var box = row.querySelector('td.actions');
+      box.innerHTML = '';
+      box.style.color = '';
+      box.style.fontSize = '';
+      var disabled = row.getAttribute('data-status') === '已停用';
+      var canDisable = DISABLE_ROLES.indexOf(currentRole()) !== -1 && !disabled;
+      var detail = document.createElement('button');
+      detail.className = 'btn link';
+      detail.textContent = '详情';
+      detail.setAttribute('data-role', 'row-action');
+      detail.setAttribute('data-action-id', 'ACT-TCL-002');
+      detail.setAttribute('data-component', 'el-button.link.primary');
+      detail.setAttribute('data-permission', 'org.teaching_class:read');
+      detail.setAttribute('data-nav', 'DRAWER-CLS-TEACHING');
+      detail.setAttribute('data-overlay', 'drawer');
+      detail.setAttribute('data-class', row.getAttribute('data-class'));
+      box.appendChild(detail);
+      if (canDisable) {
+        var b = document.createElement('button');
+        b.className = 'btn link';
+        b.textContent = '停用';
+        b.setAttribute('data-role', 'row-action');
+        b.setAttribute('data-action-id', 'ACT-TCL-005');
+        b.setAttribute('data-component', 'el-button.link.danger');
+        b.setAttribute('data-permission', 'org.teaching_class:update');
+        b.setAttribute('data-nav', 'DIALOG-TCL-DISABLE');
+        b.setAttribute('data-overlay', 'dialog');
+        b.setAttribute('data-class', row.getAttribute('data-class'));
+        box.appendChild(b);
+      } else if (disabled) {
+        box.insertAdjacentHTML('beforeend', '<span class="cell-secondary" style="font-size:12px">已停用</span>');
+      } else {
+        box.insertAdjacentHTML('beforeend', '<span class="cell-secondary" style="font-size:12px">只读</span>');
+      }
+    });
+  }
+
+  document.addEventListener('click', function (event) {
+    var node = event.target;
+    if (node.closest('input, select, textarea, label')) return;
+    var detail = node.closest('[data-action-id="ACT-TCL-002"]');
+    if (detail) {
+      var row = detail.closest('tr');
+      q('#tcl-detail-name').textContent = row.getAttribute('data-class');
+      q('#tcl-d-name').textContent = row.getAttribute('data-class');
+      q('#tcl-d-grade').textContent = row.children[2].textContent.trim();
+      q('#tcl-d-combination').textContent = row.children[3].textContent.trim();
+      q('#tcl-d-count').textContent = row.children[4].textContent.trim() + ' 人';
+      q('#tcl-d-teacher').textContent = row.children[5].textContent.trim();
+      return;
+    }
+    var disable = node.closest('[data-action-id="ACT-TCL-005"]');
+    if (disable) q('#tcl-disable-name').textContent = disable.closest('tr').getAttribute('data-class');
+  });
+
+  var lastRole = '';
+  function applyRoleState(role) {
+    if (role === lastRole) return;
+    lastRole = role;
+    rowActions();
+    if (READ_ROLES.indexOf(role) === -1) window.PrototypeShell.applyState('forbidden');
+    else if (window.PrototypeShell.currentState() === 'forbidden') window.PrototypeShell.applyState('normal');
+    var hint = q('[data-role="scope-hint"]');
+    if (role === 'academic_director') hint.textContent = '数据范围：本校（DS-04）· 可写（可停用）';
+    else if (role === 'grade_leader') hint.textContent = '数据范围：本人负责年级（DS-05）· 只读（可停用本年级教学班）';
+    else if (role === 'school_leader') hint.textContent = '数据范围：本校（DS-04）· 只读';
+    else if (role === 'platform_ops') hint.textContent = '数据范围：平台运营协助视图 · 只读（DS-01）';
+    else if (role === 'super_admin') hint.textContent = '数据范围：全平台 · 不受限制（BR-ORG-014）';
+    else hint.textContent = '数据范围：本校（DS-04）· 只读';
+  }
+
+  rowActions();
+  new MutationObserver(function () { applyRoleState(currentRole()); })
+    .observe(document.body, { attributes: true, attributeFilter: ['data-current-role'] });
+  applyRoleState(currentRole());
+})();
+</script>
+</body>
+</html>

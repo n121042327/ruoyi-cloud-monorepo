@@ -3259,6 +3259,313 @@ stream_list:
       audit: 否
       batch: "2-7"
 
+# ---------------------------------------------------------------------------
+# 组合分布统计（PAGE-STR-STAT）——批次 2-7b
+# ---------------------------------------------------------------------------
+stream_stat:
+  page: PAGE-STR-STAT
+  actions:
+    - id: ACT-STR-030
+      element: 导出统计
+      trigger: 点击
+      condition: 有 data.export:export 权限；导出前重新解析数据范围
+      permission: "data.export / export"
+      api: exportStreamSelection
+      result: 导出组合分布与逐生明细；超 2000 行转异步，导出行数 / 条件 / 耗时写审计（DS-DENY-04）
+      audit: 是
+      batch: "2-7"
+    - id: ACT-STR-031
+      element: 返回选科清单
+      trigger: 点击
+      condition: 有 stream.selection:read 权限
+      permission: "stream.selection / read"
+      api: "-"
+      result: 跳转 PAGE-STR-LIST
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-032
+      element: 查看未选科学生
+      trigger: 点击
+      condition: 有 stream.selection:read 权限；范围按当前角色（REQ-STR-051）
+      permission: "stream.selection / read"
+      api: listUnselectedStudent
+      result: 导出未选科学生清单（按年级 / 班级分组）用于催办
+      audit: 是
+      batch: "2-7"
+    - id: ACT-STR-033
+      element: 按组合生成教学班
+      trigger: 点击
+      condition: 有 stream.selection:read 权限
+      permission: "stream.selection / read"
+      api: "-"
+      result: 跳转 PAGE-STR-GEN-CLASS
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-034
+      element: 行内「查看学生」
+      trigger: 点击行内按钮
+      condition: 有 stream.selection:read 权限
+      permission: "stream.selection / read"
+      api: "-"
+      result: 按该组合下钻到选科清单并带上组合筛选（REQ-STR-049 的统计下钻）
+      audit: 否
+      batch: "2-7"
+
+# ---------------------------------------------------------------------------
+# 变更审批待办（PAGE-STR-APPROVE）与审批弹窗（DIALOG-STR-APPROVE）——批次 2-7b
+# ---------------------------------------------------------------------------
+stream_approve:
+  page: "PAGE-STR-APPROVE / DIALOG-STR-APPROVE"
+  actions:
+    - id: ACT-STR-040
+      element: 行内「审批」
+      trigger: 点击行内按钮
+      condition: 有 stream.change_request:approve 权限（校级管理员）；该行状态为待审批
+      permission: "stream.change_request / approve"
+      api: "-"
+      result: 打开 DIALOG-STR-APPROVE 并带入该申请；弹窗同时展示原组合与新组合（REQ-STR-038）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-041
+      element: 同意并生效
+      trigger: 点击
+      condition: 有 stream.change_request:approve 权限；审批意见可留空或补充说明
+      permission: "stream.change_request / approve"
+      api: approveStreamChangeRequest
+      result: 学生选科立即更新为新组合并记录生效时间与审批人（REQ-STR-036）；失效相关缓存（REQ-STR-040）；教学班名单不自动同步（REQ-STR-060）
+      audit: 是
+      batch: "2-7"
+    - id: ACT-STR-042
+      element: 驳回
+      trigger: 点击
+      condition: 有 stream.change_request:approve 权限；审批意见必填（至少 5 个字）
+      permission: "stream.change_request / approve"
+      api: approveStreamChangeRequest
+      result: 状态转已驳回，学生选科保持原值（REQ-STR-037）；驳回意见写入审计并通知申请人
+      audit: 是
+      batch: "2-7"
+    - id: ACT-STR-043
+      element: 审批「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不写入
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-045
+      element: 状态筛选
+      trigger: 变更
+      condition: 有 stream.change_request:read 权限
+      permission: "stream.change_request / read"
+      api: listStreamChangeRequest
+      result: 按状态筛选（默认「待审批」；待审批按提交时间升序，REQ-STR-035）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-046
+      element: 年级筛选
+      trigger: 变更
+      condition: 有 stream.change_request:read 权限；选项按数据范围收窄（filter_cascade）
+      permission: "stream.change_request / read"
+      api: listStreamChangeRequest
+      result: 按年级筛选待办（REQ-STR-035）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-047
+      element: 关键字检索
+      trigger: 输入
+      condition: 有 stream.change_request:read 权限
+      permission: "stream.change_request / read"
+      api: listStreamChangeRequest
+      result: 按申请单号 / 姓名 / 学号检索
+      audit: 否
+      batch: "2-7"
+
+# ---------------------------------------------------------------------------
+# 按组合生成教学班（PAGE-STR-GEN-CLASS）——批次 2-7b
+# ---------------------------------------------------------------------------
+stream_generate_class:
+  page: PAGE-STR-GEN-CLASS
+  actions:
+    - id: ACT-STR-050
+      element: 生成方式「按完整组合」
+      trigger: 点击
+      condition: 教务主任（触发者）；有 stream.selection:read 权限
+      permission: "stream.selection / read"
+      api: "-"
+      result: 预览按完整组合（如物理 + 化学 + 生物）生成教学班（REQ-STR-058）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-051
+      element: 生成方式「按单学科」
+      trigger: 点击
+      condition: 教务主任（触发者）
+      permission: "stream.selection / read"
+      api: "-"
+      result: 预览按单学科（如全体选物理的学生）生成教学班（REQ-STR-058）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-052
+      element: 年级范围
+      trigger: 变更
+      condition: 必选；跨年级不会合并教学班
+      permission: "stream.selection / read"
+      api: previewTeachingClassGenerate
+      result: 决定预览里出现的教学班集合
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-053
+      element: 增量生成并核对
+      trigger: 点击
+      condition: 教务主任；核对页发现差异时可用
+      permission: "stream.selection / read"
+      api: previewTeachingClassGenerate
+      result: 按当前选科重新计算差异（REQ-STR-060 不自动同步，需人工触发并展示差异清单）
+      audit: 是
+      batch: "2-7"
+    - id: ACT-STR-054
+      element: 去教学班管理
+      trigger: 点击
+      condition: 有 org.teaching_class:read 权限
+      permission: "org.teaching_class / read"
+      api: "-"
+      result: 跳转 PAGE-CLS-TEACHING
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-055
+      element: 查看组合分布统计
+      trigger: 点击
+      condition: 有 stream.selection:read 权限
+      permission: "stream.selection / read"
+      api: "-"
+      result: 跳转 PAGE-STR-STAT（用于核对人数口径，REQ-STR-050）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-056
+      element: 向导「下一步」
+      trigger: 点击
+      condition: 当前步骤必填项通过；第 1 步需选年级范围
+      permission: "stream.selection / read"
+      api: previewTeachingClassGenerate
+      result: 进入下一步；预览阶段不写库（REQ-STR-055）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-057
+      element: 执行生成
+      trigger: 点击
+      condition: 教务主任；已完成预览
+      permission: "stream.selection / read"
+      api: executeTeachingClassGenerate
+      result: 触发按组合生成教学班；写入由班级管理模块执行（REQ-STR-056），幂等不重复建班不重复写成员（REQ-STR-057）
+      audit: 是
+      batch: "2-7"
+    - id: ACT-STR-058
+      element: 向导「上一步」
+      trigger: 点击
+      condition: 当前步骤 > 1
+      permission: "stream.selection / read"
+      api: "-"
+      result: 回到上一步，已填内容保留
+      audit: 否
+      batch: "2-7"
+
+# ---------------------------------------------------------------------------
+# 教学班管理（PAGE-CLS-TEACHING）与两个片段——批次 2-7b
+# ---------------------------------------------------------------------------
+teaching_class_list:
+  page: "PAGE-CLS-TEACHING / DRAWER-CLS-TEACHING / DIALOG-TCL-DISABLE"
+  actions:
+    - id: ACT-TCL-001
+      element: 去生成教学班
+      trigger: 点击
+      condition: 有 org.teaching_class:create 权限（教务主任）
+      permission: "org.teaching_class / create"
+      api: "-"
+      result: 跳转 PAGE-STR-GEN-CLASS；教学班创建入口统一在生成向导（DP-01 只有一条写入路径）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-TCL-002
+      element: 行内「详情」
+      trigger: 点击行内按钮
+      condition: 有 org.teaching_class:read 权限
+      permission: "org.teaching_class / read"
+      api: getTeachingClass
+      result: 打开 DRAWER-CLS-TEACHING 并带入该教学班（含成员与未同步变更说明）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-TCL-003
+      element: 去增量生成并核对
+      trigger: 点击
+      condition: 有 org.teaching_class:read 权限（发起增量生成需教务主任）
+      permission: "org.teaching_class / read"
+      api: "-"
+      result: 跳转 PAGE-STR-GEN-CLASS（REQ-STR-060 不自动同步名单）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-TCL-004
+      element: 详情「关闭」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭抽屉，不写入
+      audit: 否
+      batch: "2-7"
+    - id: ACT-TCL-005
+      element: 行内「停用」
+      trigger: 点击行内按钮
+      condition: 有 org.teaching_class:update 权限（教务主任）；该行不是已停用状态
+      permission: "org.teaching_class / update"
+      api: "-"
+      result: 打开 DIALOG-TCL-DISABLE 二次确认并带入该教学班；已停用行显示「已停用」无入口
+      audit: 否
+      batch: "2-7"
+    - id: ACT-TCL-006
+      element: 停用「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不写入
+      audit: 否
+      batch: "2-7"
+    - id: ACT-TCL-007
+      element: 确认停用
+      trigger: 点击
+      condition: 有 org.teaching_class:update 权限；停用原因必填（至少 5 个字）
+      permission: "org.teaching_class / update"
+      api: disableTeachingClass
+      result: 教学班转已停用，不再出现在可选列表；历史成员保留；原因写审计（REQ-CLS-047）
+      audit: 是
+      batch: "2-7"
+    - id: ACT-TCL-010
+      element: 年级筛选
+      trigger: 变更
+      condition: 有 org.teaching_class:read 权限；选项按 DS-05 收窄
+      permission: "org.teaching_class / read"
+      api: listTeachingClass
+      result: 按年级筛选教学班
+      audit: 否
+      batch: "2-7"
+    - id: ACT-TCL-011
+      element: 组合筛选
+      trigger: 变更
+      condition: 有 org.teaching_class:read 权限
+      permission: "org.teaching_class / read"
+      api: listTeachingClass
+      result: 按组合或单学科筛选教学班
+      audit: 否
+      batch: "2-7"
+    - id: ACT-TCL-012
+      element: 状态筛选
+      trigger: 变更
+      condition: 有 org.teaching_class:read 权限
+      permission: "org.teaching_class / read"
+      api: listTeachingClass
+      result: 按正常 / 已停用筛选
+      audit: 否
+      batch: "2-7"
+
 batches_pending:
   - { batch: "2-2", pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-CREATE, PAGE-TCH-EDIT, PAGE-TCH-LEAVE, PAGE-TCH-ROLE, PAGE-TCH-ASSIGN], status: "2-2a、2-2b-1 与 2-2b-2 教师部分已产出待验收（ACT-TCH-001 ~ 039 已登记）" }
   - { batch: "2-2b-2b", pages: [PAGE-GRD-LIST, PAGE-GRD-DETAIL, PAGE-GRD-CREATE, PAGE-GRD-BATCH, PAGE-GRD-LEADER, PAGE-GRD-ARCHIVE], status: "PAGE-GRD-LIST 样板页已产出待验收（ACT-GRD-001 ~ 011 已登记）；其余 5 页待样板验收后铺开" }

@@ -210,6 +210,13 @@
 | `evidence/stage2-prototype/stream-*.png`、`evidence/stage2-prototype/stream_verify-results.png` | 批次 2-7a 截图（12 张，见 README 第 6.10 节） | `review` |
 | `docs/00-governance/change-requests/CR-016.md` | 变更申请：选科模块的字段补登记、权限码对齐与组合分布统计载体修正（已批准并执行，关联 D-080 / GAP-057） | `review` |
 | `docs/10-prd/06-field-dictionary.yaml` | 新增 `stream_open_from` / `overdue_requires_approval` / `subject_combination` 三个字段（CR-016） | `review` |
+| `prototypes/functional/v1/pages/stream-stat.html` | 组合分布统计（总览统计卡 + 纯 CSS 柱条 + 组合明细与学科选择人数 + 下钻，批次 2-7b） | `review` |
+| `prototypes/functional/v1/pages/stream-approve.html` | 变更审批待办 + 审批弹窗 DIALOG-STR-APPROVE（批次 2-7b） | `review` |
+| `prototypes/functional/v1/pages/stream-generate-class.html` | 按组合生成教学班四步向导（预览 / 执行 / 核对，批次 2-7b） | `review` |
+| `prototypes/functional/v1/pages/teaching-class-list.html` | 教学班管理 + 详情抽屉 DRAWER-CLS-TEACHING + 停用确认 DIALOG-TCL-DISABLE（批次 2-7b） | `review` |
+| `evidence/stage2-prototype/verify-stream-b.html` | 批次 2-7b 交互验证 harness（SB-01 ~ SB-37 共 37 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/stream-stat_*.png`、`evidence/stage2-prototype/stream-approve_*.png`、`evidence/stage2-prototype/stream-generate-class_*.png`、`evidence/stage2-prototype/teaching-class-list_*.png`、`evidence/stage2-prototype/stream-b_verify-results.png` | 批次 2-7b 截图（13 张，见 README 第 6.11 节） | `review` |
+| `docs/00-governance/change-requests/CR-017.md` | 变更申请：教学班管理的交付面补齐（片段登记 / 3 个 operationId / 创建入口唯一，已批准并执行，关联 D-081 / GAP-058） | `review` |
 | `prototypes/functional/v1/pages/school-campus.html` | 校区管理（列表 + 页内表单 + 停用二次确认，批次 2-6b） | `review` |
 | `prototypes/functional/v1/pages/school-init.html` | 开通初始化四步向导（`initSchoolBaseline` 幂等，批次 2-6b） | `review` |
 | `prototypes/functional/v1/pages/term-list.html` | 学年列表 + 新建学年 / 设为当前 / 归档三个弹窗（批次 2-6b） | `review` |

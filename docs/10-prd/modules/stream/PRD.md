@@ -4,7 +4,7 @@
 |---|---|
 | 模块 | 3+1+2 选科与教学班（`stream`） |
 | 文档路径 | `docs/10-prd/modules/stream/PRD.md` |
-| 版本 | 1.0.0-draft |
+| 版本 | 1.0.1-draft |
 | 状态 | `frozen`（2026-09-30 冻结，见 D-045、CR-001） |
 | 批次 | 1-3（按学生管理 PRD 样板结构产出） |
 | 上游依赖 | 见 1.4 |
@@ -14,6 +14,7 @@
 | 版本 | 日期 | 变更 | 作者 |
 |---|---|---|---|
 | 1.0.0-draft | 2026-09-30 | 首版。结构与粒度对齐 `modules/student/PRD.md` v1.0.2；范围按 `GAP-023` 选 A（选科与教学班均属首轮） | Codex |
+| 1.0.1-draft | 2026-10-01 | 按 `CR-016` / `CR-017` 补齐交付面：6.1 的 `PAGE-STR-STAT` 明确为**独立页**（图表 + 表格）、补登记 `DIALOG-STR-APPROVE`（变更审批弹窗）与 `PAGE-STR-CHANGE` / `PAGE-STR-HISTORY` 的载体；字段字典补 `stream_open_from` / `overdue_requires_approval` / `subject_combination`；本模块权限码统一为 `stream.config` / `stream.selection` / `stream.change_request` | Codex |
 
 ## 0. 怎么读这份文档
 
@@ -342,6 +343,12 @@ stateDiagram-v2
 | `PAGE-STR-APPROVE` | 变更审批待办 | 列表页 + 审批弹窗 | 校领导 |
 | `PAGE-STR-HISTORY` | 选科历史 | 详情页内区块 | 学生、班主任、教务主任 |
 | `PAGE-STR-GEN-CLASS` | 按组合生成教学班 | 独立页（预览 + 执行 + 核对） | 教务主任 |
+
+> **同页浮层片段（`CR-017` 补登记）**：`DIALOG-STR-APPROVE`（选科变更审批弹窗：原 / 新组合对比 + 审批意见 +
+> 同意并生效 / 驳回，挂在 `PAGE-STR-APPROVE` 下）。`PAGE-STR-CHANGE`（发起变更申请）与
+> `PAGE-STR-HISTORY`（选科历史）与本表的登记一致：前者是弹窗、后者是详情页内区块。
+> **`PAGE-STR-STAT` 的载体**：按本表为**独立页**（图表 + 表格）；统计口径只计入已生效的选科，
+> 待审批的变更在通过前不计入（`BR-STREAM-006`），并必须与 `PAGE-STR-LIST` 的明细同口径（`REQ-STR-050`）。
 
 ### 6.2 学生选科页要素
 

@@ -1451,6 +1451,54 @@
 - 如果错了的代价：删除 3 个 stream 页面、回滚 `page-actions.yaml` 的 3 个动作组、`navigation.yaml` 的 6 条改动、
   `prototype-shell.js` 的 3 条登记、字段字典的 3 条字段即可
 
+## D-081 交付批次 2-7b：组合分布统计 / 变更审批待办 / 按组合生成教学班 / 教学班管理（含 CR-017）
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要我拍板的默认选推荐，执行完以后没有任何问题提交合并」）
+- 上游依据：选科 PRD 4.5 / 4.7 / 4.8 / 5.1 / 5.2 / 6.1 / 8 节；班级 PRD 4.6 / 6.1 / 8 节；
+  `BR-CLASS-001` / `005` / `007`、`BR-STREAM-005` / `006` / `007`、
+  `REQ-STR-029` / `034` / `036` / `037` / `038` / `050` / `054` ~ `060`、
+  `REQ-CLS-038` ~ `042` / `047`、`DP-01`、`DS-DENY-08`
+- 决策（全部取推荐方案，已落进 `CR-017`）：
+  1. **统计只计入已生效的选科**：待审批的变更在通过前保持原组合（`BR-STREAM-006`），因此不计入组合分布；
+     统计与清单必须同口径（`REQ-STR-050`），图上的每个数字都能在明细里找到对应行。
+  2. **统计页做成独立页并自带汇总卡与柱条**：柱条是纯 CSS（`.bar-chart`），生产端映射 ECharts bar；
+     组合明细行内提供「查看学生」下钻到选科清单并带组合筛选（`REQ-STR-049`）。
+  3. **审批人只有校级管理员，教务主任不能自审**（`REQ-STR-034`）：默认角色（教务主任）打开审批待办时
+     看到的是只读视图 + 一句说明，只有切到校领导才出现「审批」入口；弹窗必须同时展示原组合与新组合（`REQ-STR-038`）。
+  4. **审批弹窗写明影响面**：通过后立即生效、教学班名单不自动同步、需教务主任人工触发增量生成（`REQ-STR-060`）；驳回意见必填（`REQ-STR-037`）。
+  5. **教学班创建入口唯一**：统一走「按组合生成教学班」向导（支持按完整组合与按单学科两种粒度，`REQ-STR-058`），
+     `PAGE-CLS-TEACHING` 只提供查看 / 停用 / 核对，不提供手工增删成员——同一份名单只允许一条写入路径（`DP-01`、`REQ-STR-056`）。
+  6. **教学班的详情 / 停用 / 成员清单补三个 operationId**：`getTeachingClass` / `disableTeachingClass` / `listTeachingClassRoster`
+     （班级 PRD 8 节原只有列表与新建，见 `CR-017`）。
+  7. **补齐 CSS 与规范缺口**：`stat-row` / `stat-card` 被 13 个页面使用却一直没有共享样式，本批在 `prototype-shell.css` 补齐；
+     `layout-spec.yaml` 新增 `charts` 段（载体、生产端映射、四条规则）。
+- 关键设计：四个新页面都带五类状态片段（生成向导额外带「部分失败 / 排队中」）；
+  教学班列表的已停用行只留「详情」；教学班不设班主任且不参与 `DS-06` 解析（`REQ-CLS-039`）。
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/functional/v1/pages/stream-stat.html` | 新增：组合分布统计（总览 5 卡 + 柱条 6 行 + 组合明细 6 列 + 学科选择人数 + 下钻） |
+| `prototypes/functional/v1/pages/stream-approve.html` | 新增：变更审批待办 8 列 4 行 + `DIALOG-STR-APPROVE` 审批弹窗 |
+| `prototypes/functional/v1/pages/stream-generate-class.html` | 新增：按组合生成教学班四步向导（方式与范围 / 预览 / 执行 / 核对） |
+| `prototypes/functional/v1/pages/teaching-class-list.html` | 新增：教学班管理 8 列 5 行 + `DRAWER-CLS-TEACHING` 详情抽屉 + `DIALOG-TCL-DISABLE` 停用确认 |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `stream_stat`（ACT-STR-030 ~ 034）/ `stream_approve`（040 ~ 047）/ `stream_generate_class`（050 ~ 058）/ `teaching_class_list`（ACT-TCL-001 ~ 012） |
+| `prototypes/functional/v1/navigation.yaml` | 登记 3 个片段、7 条跳转；批次 2-7 声明页数 9 → 12 并改为「已全部产出待验收」 |
+| `prototypes/functional/v1/assets/prototype-shell.js` | `EXTRA_PAGES` 补 4 个新页面 |
+| `prototypes/functional/v1/assets/prototype-shell.css` | 补 `.stat-row` / `.stat-card` / `.bar-chart` 系列共享样式（修 13 个页面的统计卡无样式缺陷） |
+| `prototypes/functional/v1/layout-spec.yaml` | 新增 `charts` 段（载体、生产端映射、四条规则、统计卡约定） |
+| `prototypes/functional/v1/content-samples.json` | `stream` 补 `summary` / `subject_selection` / `change_requests` / `teaching_class_plan` / `teaching_classes`；分布改为 6 组合合计 12 人 |
+| `docs/10-prd/modules/class/PRD.md` | 升 1.0.5-draft：6.1 补 2 个片段与「创建入口唯一」、8 节补 3 个 operationId |
+| `docs/10-prd/modules/stream/PRD.md` | 升 1.0.1-draft：6.1 补 `DIALOG-STR-APPROVE` 与统计页 / 变更申请 / 选科历史的载体口径 |
+| `docs/00-governance/change-requests/CR-017.md` | 新增：教学班交付面补齐 |
+| `evidence/stage2-prototype/verify-stream-b.html` | 新增：37 条断言 |
+| `evidence/stage2-prototype/stream-stat_*.png`、`stream-approve_*.png`、`stream-generate-class_*.png`、`teaching-class-list_*.png` | 13 张截图 |
+
+- 验证证据：`verify-stream-b.html` 37 / 37；16 个已交付 harness 全量回归；`python tools/check_docs.py` 通过
+- 阶段 2 状态：批次 2-7 已全部产出（12 个页面编号）；剩余 2-8 审计（7）、2-9 异步任务中心（4）
+- 如果错了的代价：删除 4 个新页面、回滚 `page-actions.yaml` 的 4 个动作组、`navigation.yaml` 的片段与页数、
+  两个 PRD 的版本行与新增段落、`prototype-shell.css` 与 `layout-spec.yaml` 的新增段即可
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |
@@ -1490,3 +1538,4 @@
 | R-033 | ~~升班任务的两个公共前置缺项（字段未进字段字典、取消确认片段未进 PRD 6.1）~~ → 已定：选项 A，立一次 CR 一起补（D-071 / CR-013） | GAP-054 | 已关闭 |
 | R-034 | ~~升班明细的 7 个字段与「调整方式」枚举是否一次 CR 补进 `06-field-dictionary.yaml`~~ → 已定：选项 A，一次 CR 补全（7 个字段 + 3 个枚举），并补 `BR-PROMO-006` 的留级去向与升班 PRD 的字段口径（D-073 / CR-014） | GAP-055 | 已关闭 |
 | R-035 | ~~选科模块的 3 个字段、权限码对齐与 `PAGE-STR-STAT` 载体是否一次 CR 补齐~~ → 已定：一次 CR 补全（3 个字段 + 9 条权限码 + 1 条页面载体）（D-080 / CR-016） | GAP-057 | 已关闭 |
+| R-036 | ~~教学班的「详情 / 停用 / 成员清单」缺 operationId，且教学班能否手工新增没有裁决~~ → 已定：补 3 个 operationId + 两个同页片段，创建入口唯一在生成向导（D-081 / CR-017） | GAP-058 | 已关闭 |

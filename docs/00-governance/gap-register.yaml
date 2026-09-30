@@ -1777,6 +1777,44 @@ gaps:
       与三个页面的 data-permission 改用 stream.*、选科配置与选科清单的角色集合与 PRD 2.1 / 5.1 / 6.1 对齐；
       verify-stream 26 / 26 通过，15 个已交付 harness 全量回归通过。
 
+  - id: GAP-058
+    title: 教学班的详情 / 停用 / 成员清单缺 operationId，且教学班能否手工新增没有裁决
+    discovered_at: 2026-10-01
+    discovered_by: 批次 2-7b 开工前的公共前置反查（按组合生成教学班 / 教学班管理）
+    evidence: |
+      docs/10-prd/modules/class/PRD.md 第 8 节只登记了 listTeachingClass 与 addTeachingClass 两个教学班接口，
+      但 4.6 节的 REQ-CLS-038 ~ 042 与 6.1 的「PAGE-CLS-TEACHING = 列表页 + 抽屉」要求
+      「看详情」「停用」「看成员」三件事；原型只能给按钮写接口清单里不存在的 data-api。
+      另外 REQ-CLS-038 说「支持创建教学班」，但没说入口在哪：
+      若在 PAGE-CLS-TEACHING 再放「手工新增成员」，就与 REQ-STR-056（成员写入归班级模块、由生成流程触发）
+      形成两条写入路径，违反 DP-01。
+      同类问题在班级模块已发生过（GAP-049 复制班级缺 operationId，当时裁决复用 addClass，见 D-066）。
+    expected: 教学班的每个可点动作都有对应 operationId；成员写入只有一条路径
+    actual: 缺 getTeachingClass / disableTeachingClass / listTeachingClassRoster；创建入口未裁决
+    impact: |
+      不补：阶段 4 的接口清单会缺这三项，阶段 6 的前端只能按原型里的字符串猜接口；
+      若不裁决创建入口，班级模块与选科模块会各自实现一套成员写入，出问题时无法判断是谁改的。
+    options:
+      - A 一次 CR 补齐：班级 PRD 6.1 登记 DRAWER-CLS-TEACHING 与 DIALOG-TCL-DISABLE 两个同页片段、
+        8 节补 3 个 operationId、明确「创建入口唯一 = PAGE-STR-GEN-CLASS」（推荐）
+      - B 只补 3 个 operationId，创建入口留到阶段 4 接口设计时再定
+      - C 允许在 PAGE-CLS-TEACHING 手工增删成员，并给对应接口
+    recommended: |
+      选项 A。理由：与 GAP-049（复用 addClass）和 REQ-STR-056 的口径一致——
+      教学班成员来自选科结果，多一条写入路径就多一套规则，违反 DP-01；
+      片段登记是 CR-009 / D-059 已确立的做法，与 DIALOG-CLS-DISABLE / DELETE 同处理。
+      选项 B 的代价是阶段 4 与阶段 6 都要各自判断入口；选项 C 的代价最大（两套写入规则）。
+    blocking: false
+    blocks_stages: [stage4, stage6]
+    owner: 用户
+    status: closed
+    resolution: |
+      用户 2026-10-01 授权「需要拍板的默认选推荐」，取选项 A，经 CR-017 执行完毕（见 decisions.md D-081）：
+      班级 PRD 升 1.0.5-draft（6.1 补两个片段与创建入口唯一口径、8 节补 3 个 operationId）、
+      选科 PRD 升 1.0.1-draft（6.1 补 DIALOG-STR-APPROVE 与统计页 / 变更申请 / 选科历史的载体口径）、
+      navigation.yaml 登记 3 个片段并把批次 2-7 声明页数改为 12；
+      verify-stream-b 37 / 37 通过，16 个已交付 harness 全量回归通过。
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"
@@ -1854,3 +1892,7 @@ open_questions_for_user:
   - "阶段 2 批次 2-7a 已产出待验收：选科配置（开放期 / 截止时间 / 逾期审批 + 固定规则卡片）、学生选科（首选物理 / 历史二选一 + 再选 4 选 2 + 当前结果 / 恢复 / 提交）、选科清单（8 列 6 行 + PAGE-STR-HISTORY 时间线区块 + PAGE-STR-CHANGE 变更申请弹窗）；动作组 stream_config（ACT-STR-001 ~ 003）/ stream_student（010 ~ 014）/ stream_list（020 ~ 025）已登记；harness verify-stream 26 / 26 通过，见 D-080。"
   - "新增 GAP-057 并已关闭：选科模块的 3 个字段未进字段字典、9 条权限码沿用邻近模块、PAGE-STR-STAT 载体与 PRD 6.1 不一致、租户管理员与校领导的选科角色口径与 PRD 2.1 / 5.1 冲突。用户授权默认取推荐，按 CR-016 一次补齐（字段/权限码/角色/页面载体），见 D-080。"
   - "下一步：2-7b 剩余 4 个页面编号（PAGE-STR-STAT 组合分布统计 / PAGE-STR-APPROVE 变更审批待办 / PAGE-STR-GEN-CLASS 按组合生成教学班 / PAGE-CLS-TEACHING 教学班管理）→ 2-8 审计（7）→ 2-9 异步任务中心（4）；阶段 2 全部完成且无问题后合并本地 main，再进阶段 3 高保真。"
+  - "阶段 2 批次 2-7b 已产出待验收：组合分布统计（总览 5 卡 + 柱条 6 行 + 组合明细 + 学科选择人数 + 「查看学生」下钻）、变更审批待办（8 列 4 行 + DIALOG-STR-APPROVE 审批弹窗）、按组合生成教学班（四步向导 + 幂等 + 核对差异）、教学班管理（8 列 5 行 + DRAWER-CLS-TEACHING + DIALOG-TCL-DISABLE）；动作 ACT-STR-030 ~ 058、ACT-TCL-001 ~ 012 已登记；harness verify-stream-b 37 / 37 通过，见 D-081。"
+  - "新增 GAP-058 并已关闭：教学班的详情 / 停用 / 成员清单缺 operationId，且教学班能否手工新增没有裁决。用户授权默认取推荐，按 CR-017 补齐（3 个 operationId + 2 个同页片段 + 创建入口唯一在生成向导），班级 PRD 升 1.0.5-draft、选科 PRD 升 1.0.1-draft，见 D-081。"
+  - "本批顺带修掉两个共享层缺陷：①prototype-shell.css 一直缺少 .stat-row / .stat-card 样式（13 个页面在用），本批补齐并新增 .bar-chart 系列；②layout-spec.yaml 新增 charts 段（原型用纯 CSS 柱条、生产端映射 ECharts，并写明「图表必须与同页表格同源」的规则）。"
+  - "下一步：2-8 审计与操作日志（7 页：操作日志列表 / 日志详情 / 对象变更时间线 / 运营访问记录 / 敏感数据访问记录 / 登录与安全事件 / 归档管理）→ 2-9 异步任务中心（4 页：任务列表 / 任务详情 / 导出配置 / 死信任务）；阶段 2 全部完成且无问题后合并本地 main，再进阶段 3 高保真。"

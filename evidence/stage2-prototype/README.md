@@ -796,3 +796,35 @@ harness：`verify-stream.html`（3 个 iframe，`ST-01` ~ `ST-24` 含两个子�
 | `stream-list_state-empty_1440x900.png` | 1440×900 | 深链接 `#state=empty` | 空数据形态 + 「去选科配置」入口 |
 | `stream-list_dialog-change_1440x900.png` | 1440×900 | 角色 = 班主任 + `#panel=PAGE-STR-CHANGE` | 变更申请弹窗（候选载体 `el-dialog`、变更口径、三类字段） |
 | `stream_verify-results.png` | 1100×1500 | harness 结果清单 | `合计 26 / 26 条，通过 26 条，不通过 0 条 —— 全部通过` |
+
+### 6.11 批次 2-7b（组合分布统计 / 变更审批待办 / 按组合生成教学班 / 教学班管理）的交付说明
+
+| 页面 | 文件 | 说明 |
+|---|---|---|
+| `PAGE-STR-STAT` | `pages/stream-stat.html` | 组合分布统计：总览五张统计卡（高中在读 15 / 已提交 12 / 未提交 3 / 待审批 2 / 生效组合 6）+ 6 行纯 CSS 柱条（合计 12 人）+ 组合明细 6 列（行内「查看学生」按组合下钻）+ 各学科选择人数（首选 12 人 / 再选 24 人次）；待审批不计入分布（`BR-STREAM-006`）、统计与清单同口径（`REQ-STR-050`） |
+| `PAGE-STR-APPROVE` + `DIALOG-STR-APPROVE` | `pages/stream-approve.html` | 变更审批待办 8 列 4 行（待审批 2 / 已通过 1 / 已驳回 1，默认筛「待审批」、按提交时间升序）+ 行内「审批」打开审批弹窗：原 / 新组合对比、审批意见（驳回必填）、同意并生效 / 驳回；教务主任不能自审（`REQ-STR-034`） |
+| `PAGE-STR-GEN-CLASS` | `pages/stream-generate-class.html` | 按组合生成教学班四步向导（选方式与范围 → 生成预览 → 执行与进度 → 核对结果）：支持按完整组合与按单学科（`REQ-STR-058`）、幂等跳过已存在（`REQ-STR-057`）、写入由班级管理模块执行（`REQ-STR-056`）、核对人数与统计一致性并给差异清单（`REQ-STR-059` / `060`） |
+| `PAGE-CLS-TEACHING` + `DRAWER-CLS-TEACHING` + `DIALOG-TCL-DISABLE` | `pages/teaching-class-list.html` | 教学班管理 8 列 5 行（名称 / 学年学期 / 年级 / 组合或学科 / 人数 / 任课教师 / 状态 / 操作）+ 详情抽屉（基本信息 + 跨行政班成员 + 未同步变更入口）+ 停用二次确认（原因必填、写审计）；两套独立关系（`BR-CLASS-001`）、教学班不设班主任（`REQ-CLS-039`）、创建入口唯一（`DP-01`） |
+
+harness：`verify-stream-b.html`（4 个 iframe，`SB-01` ~ `SB-37` 共 37 条断言，37 / 37 通过）。
+动作组：`stream_stat`（`ACT-STR-030` ~ `034`）、`stream_approve`（`ACT-STR-040` ~ `047`）、
+`stream_generate_class`（`ACT-STR-050` ~ `058`）、`teaching_class_list`（`ACT-TCL-001` ~ `012`）。
+本批同时执行 `CR-017`：班级 PRD 升 1.0.5-draft（补 2 个同页片段 + 3 个教学班 operationId + 创建入口唯一口径）、
+选科 PRD 升 1.0.1-draft（补 `DIALOG-STR-APPROVE` 与统计页 / 变更申请 / 选科历史的载体口径）；
+`prototype-shell.css` 补统计卡与柱条共享样式，`layout-spec.yaml` 新增 `charts` 段。
+
+| 截图 | 分辨率 | 场景 | 用于验证 |
+|---|---|---|---|
+| `stream-stat_1440x900.png` | 1440×900 | 组合分布统计（教务主任） | 总览五卡、柱条 6 行、组合明细与学科人数 |
+| `stream-stat_role-grade-leader_1440x900.png` | 1440×900 | 角色 = 年级主任 | 范围收敛为 DS-05（统计只含本年级，DS-DENY-08） |
+| `stream-stat_state-empty_1440x900.png` | 1440×900 | 深链接 `#state=empty` | 空数据形态（不画空坐标系） |
+| `stream-approve_1440x900.png` | 1440×900 | 变更审批待办（教务主任） | 8 列 4 行、待审批行「只读」（不能自审） |
+| `stream-approve_role-school-leader_1440x900.png` | 1440×900 | 角色 = 校领导 | 2 行待审批出现「审批」入口 |
+| `stream-approve_dialog-approve_1440x900.png` | 1440×900 | 角色 = 校领导 + `#panel=DIALOG-STR-APPROVE` | 审批弹窗：影响面、原 / 新组合对比、审批意见、三个动作 |
+| `stream-generate-class_step-1_1440x900.png` | 1440×900 | 生成向导第 1 步 | 两种生成粒度、年级范围必填、命名规则只读 |
+| `stream-generate-class_step-2_1440x900.png` | 1440×900 | 深链接 `#step=2` | 生成预览 5 行（4 新建 + 1 已存在跳过）与汇总卡 |
+| `stream-generate-class_step-4_1440x900.png` | 1440×900 | 深链接 `#step=4` | 核对结果 4 行一致 + 三个出口 |
+| `teaching-class-list_1440x900.png` | 1440×900 | 教学班管理（教务主任） | 8 列 5 行、行内详情 / 停用、已停用行只读 |
+| `teaching-class-list_drawer-detail_1440x900.png` | 1440×900 | 深链接 `#panel=DRAWER-CLS-TEACHING` | 详情抽屉：基本信息 + 跨行政班成员 + 未同步变更入口 |
+| `teaching-class-list_role-school-leader_1440x900.png` | 1440×900 | 角色 = 校领导 | 只读（无停用入口，详情仍可用） |
+| `stream-b_verify-results.png` | 1100×1800 | harness 结果清单 | `合计 37 / 37 条，通过 37 条，不通过 0 条 —— 全部通过` |

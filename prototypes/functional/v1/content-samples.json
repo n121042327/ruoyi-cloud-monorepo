@@ -1303,8 +1303,8 @@
     "config": {
       "school_id": 201,
       "term_id": 202601,
-      "open_from": "2026-10-08",
-      "deadline": "2026-10-31 23:59",
+      "stream_open_from": "2026-10-08",
+      "stream_deadline": "2026-10-31 23:59",
       "overdue_requires_approval": true,
       "note": "逾期变更需校级管理员审批（BR-STREAM-005）"
     },
@@ -1341,21 +1341,235 @@
         "note": "截止日期后提交，等待校级管理员审批"
       }
     ],
+    "summary": {
+      "enrolled_total": 15,
+      "selected_total": 12,
+      "pending_total": 2,
+      "unselected_total": 3,
+      "combination_total": 6,
+      "note": "15 名高中在读数 = 已提交选科 12 + 未提交 3；待审批 2 条不计入生效分布（BR-STREAM-006：审批通过前保持原值），口径与 PAGE-STR-LIST 的 12 条选科一致（REQ-STR-050）"
+    },
     "distribution": [
       {
         "combination": "物理 + 化学 + 生物",
-        "count": 1,
-        "ratio": "33.3%"
+        "count": 3,
+        "ratio": "25.0%"
       },
       {
-        "combination": "历史 + 政治 + 地理",
+        "combination": "历史 + 思想政治 + 地理",
+        "count": 3,
+        "ratio": "25.0%"
+      },
+      {
+        "combination": "历史 + 化学 + 生物",
+        "count": 2,
+        "ratio": "16.7%"
+      },
+      {
+        "combination": "物理 + 生物 + 地理",
+        "count": 2,
+        "ratio": "16.7%"
+      },
+      {
+        "combination": "历史 + 生物 + 地理",
         "count": 1,
-        "ratio": "33.3%"
+        "ratio": "8.3%"
       },
       {
         "combination": "物理 + 化学 + 地理",
         "count": 1,
-        "ratio": "33.3%"
+        "ratio": "8.3%"
+      }
+    ],
+    "subject_selection": [
+      {
+        "subject_code": "physics",
+        "subject_name": "物理",
+        "stream_role": "primary",
+        "count": 6,
+        "ratio": "50.0%",
+        "ratio_base": "首选 12 人"
+      },
+      {
+        "subject_code": "history",
+        "subject_name": "历史",
+        "stream_role": "primary",
+        "count": 6,
+        "ratio": "50.0%",
+        "ratio_base": "首选 12 人"
+      },
+      {
+        "subject_code": "chemistry",
+        "subject_name": "化学",
+        "stream_role": "secondary",
+        "count": 6,
+        "ratio": "25.0%",
+        "ratio_base": "再选 24 人次"
+      },
+      {
+        "subject_code": "biology",
+        "subject_name": "生物",
+        "stream_role": "secondary",
+        "count": 8,
+        "ratio": "33.3%",
+        "ratio_base": "再选 24 人次"
+      },
+      {
+        "subject_code": "politics",
+        "subject_name": "思想政治",
+        "stream_role": "secondary",
+        "count": 3,
+        "ratio": "12.5%",
+        "ratio_base": "再选 24 人次"
+      },
+      {
+        "subject_code": "geography",
+        "subject_name": "地理",
+        "stream_role": "secondary",
+        "count": 7,
+        "ratio": "29.2%",
+        "ratio_base": "再选 24 人次"
+      }
+    ],
+    "change_requests": [
+      {
+        "request_no": "SC-2026-0031",
+        "student_no": "2026000004",
+        "student_name": "赵一诺",
+        "grade_class": "2026 级 高一 · (2) 班",
+        "before_combination": "物理 + 化学 + 生物",
+        "after_combination": "物理 + 化学 + 地理",
+        "reason": "地理更适合升学方向",
+        "apply_by": "赵一诺（学生本人）",
+        "apply_time": "2026-10-09 20:14",
+        "status": "待审批",
+        "approve_by": "",
+        "approve_time": "",
+        "approve_opinion": ""
+      },
+      {
+        "request_no": "SC-2026-0032",
+        "student_no": "2025000002",
+        "student_name": "孙悠然",
+        "grade_class": "2025 级 高二 · (1) 班",
+        "before_combination": "物理 + 化学 + 生物",
+        "after_combination": "物理 + 生物 + 地理",
+        "reason": "生物与地理成绩更稳定",
+        "apply_by": "邓丽娟（班主任代发起）",
+        "apply_time": "2026-10-10 08:30",
+        "status": "待审批",
+        "approve_by": "",
+        "approve_time": "",
+        "approve_opinion": ""
+      },
+      {
+        "request_no": "SC-2026-0028",
+        "student_no": "2024000001",
+        "student_name": "马嘉懿",
+        "grade_class": "2024 级 高三 · (1) 班",
+        "before_combination": "历史 + 思想政治 + 地理",
+        "after_combination": "历史 + 生物 + 地理",
+        "reason": "原组合思想政治成绩不理想",
+        "apply_by": "马嘉懿（学生本人）",
+        "apply_time": "2026-10-06 15:02",
+        "status": "已通过",
+        "approve_by": "陆承志（校领导）",
+        "approve_time": "2026-10-07 09:20",
+        "approve_opinion": "同意，注意后续教学班调整"
+      },
+      {
+        "request_no": "SC-2026-0026",
+        "student_no": "2026000101",
+        "student_name": "朱书瑶",
+        "grade_class": "2026 级 高一 · (3) 班",
+        "before_combination": "历史 + 化学 + 生物",
+        "after_combination": "历史 + 思想政治 + 地理",
+        "reason": "家长与学生共同决定调整方向",
+        "apply_by": "朱书瑶（学生本人）",
+        "apply_time": "2026-10-04 11:41",
+        "status": "已驳回",
+        "approve_by": "陆承志（校领导）",
+        "approve_time": "2026-10-05 10:05",
+        "approve_opinion": "原组合已满足开班条件，本次调整会影响教学班稳定，暂不通过"
+      }
+    ],
+    "teaching_class_plan": [
+      {
+        "combination": "物理 + 化学 + 生物",
+        "student_count": 3,
+        "class_name": "高一 · 物化生 A 层",
+        "existing": false,
+        "action": "新建教学班 1 个 + 成员 3 人"
+      },
+      {
+        "combination": "历史 + 思想政治 + 地理",
+        "student_count": 3,
+        "class_name": "高一 · 史政地 A 层",
+        "existing": false,
+        "action": "新建教学班 1 个 + 成员 3 人"
+      },
+      {
+        "combination": "历史 + 化学 + 生物",
+        "student_count": 2,
+        "class_name": "高一 · 史化生 A 层",
+        "existing": false,
+        "action": "新建教学班 1 个 + 成员 2 人"
+      },
+      {
+        "combination": "物理 + 生物 + 地理",
+        "student_count": 2,
+        "class_name": "高一 · 物生地 A 层",
+        "existing": false,
+        "action": "新建教学班 1 个 + 成员 2 人"
+      },
+      {
+        "combination": "物理 + 化学 + 生物",
+        "student_count": 1,
+        "class_name": "高一 · 物化生 A 层",
+        "existing": true,
+        "action": "已存在，跳过（幂等，REQ-STR-057）"
+      }
+    ],
+    "teaching_classes": [
+      {
+        "class_name": "高一 · 物化生 A 层",
+        "combination": "物理 + 化学 + 生物",
+        "member_count": 3,
+        "capacity": 0,
+        "teacher_name": "谢明轩（化学）",
+        "status": "正常"
+      },
+      {
+        "class_name": "高一 · 史政地 A 层",
+        "combination": "历史 + 思想政治 + 地理",
+        "member_count": 3,
+        "capacity": 0,
+        "teacher_name": "未设置",
+        "status": "正常"
+      },
+      {
+        "class_name": "高一 · 史化生 A 层",
+        "combination": "历史 + 化学 + 生物",
+        "member_count": 2,
+        "capacity": 0,
+        "teacher_name": "谢明轩（化学）",
+        "status": "正常"
+      },
+      {
+        "class_name": "高一 · 物理 A 层",
+        "combination": "单学科：物理",
+        "member_count": 6,
+        "capacity": 0,
+        "teacher_name": "未设置",
+        "status": "正常"
+      },
+      {
+        "class_name": "高三 · 史生地 A 层",
+        "combination": "历史 + 生物 + 地理",
+        "member_count": 1,
+        "capacity": 0,
+        "teacher_name": "未设置",
+        "status": "已停用"
       }
     ]
   },

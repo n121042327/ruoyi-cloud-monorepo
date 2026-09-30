@@ -308,6 +308,17 @@ required_states:
   - { id: forbidden, marker: 'data-state="forbidden"', form: 无权限说明 + 返回入口，不显示空表格 }
   - { id: submitting, marker: 'data-state="submitting"', form: 按钮 loading 且禁用，禁止重复提交 }
 
+charts:
+  carrier: 原型内一律用纯 CSS 柱条（.bar-chart / .bar-row / .bar-track / .bar-fill），不引入 JS 图表库
+  production_mapping: 阶段 6 由 ECharts 承接：柱状图用 bar、饼图用 pie；数据接口与原型一致（如 getStreamStat）
+  rules:
+    - 图表必须与同页表格同源：图上的每个数字都要能在表格里找到对应行（REQ-STR-050 同口径）
+    - 每个柱条 / 扇区可下钻时必须登记 data-action-id（点击 → 下钻清单）
+    - 数值标签用等宽数字（font-variant-numeric: tabular-nums），百分比保留 1 位小数
+    - 空数据不画空坐标系，走页面的 empty 状态片段
+  stats_card:
+    - 统计卡统一用 .stat-row + .stat-card（label / value 两层），不使用自由排版
+
 z_index:
   drawer_backdrop: 1000
   dialog: 2000

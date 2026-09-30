@@ -96,7 +96,11 @@
     'PAGE-TERM-LIST': { path: 'pages/term-list.html', name: '学年学期', batch: '2-6' },
     'PAGE-TERM-TERMS': { path: 'pages/term-terms.html', name: '学期管理', batch: '2-6' },
     'PAGE-STR-CONFIG': { path: 'pages/stream-config.html', name: '选科配置', batch: '2-7' },
-    'PAGE-STR-STUDENT': { path: 'pages/stream-selection.html', name: '学生选科', batch: '2-7' }
+    'PAGE-STR-STUDENT': { path: 'pages/stream-selection.html', name: '学生选科', batch: '2-7' },
+    'PAGE-STR-STAT': { path: 'pages/stream-stat.html', name: '组合分布统计', batch: '2-7' },
+    'PAGE-STR-APPROVE': { path: 'pages/stream-approve.html', name: '变更审批待办', batch: '2-7' },
+    'PAGE-STR-GEN-CLASS': { path: 'pages/stream-generate-class.html', name: '按组合生成教学班', batch: '2-7' },
+    'PAGE-CLS-TEACHING': { path: 'pages/teaching-class-list.html', name: '教学班管理', batch: '2-7' }
   };
   Object.keys(EXTRA_PAGES).forEach(function (id) {
     PAGE_NAME[id] = EXTRA_PAGES[id].name;

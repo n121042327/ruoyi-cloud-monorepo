@@ -594,6 +594,22 @@ table.el-table .mono { font-size: 13px; }
 .demo-panel .panel-hint { margin-top: 8px; color: var(--app-text-secondary); line-height: 16px; }
 
 /* ------------------------------------------------------------------ 工具与自检 */
+/* 统计卡与图表：13 个页面都在用 stat-row / stat-card，但此前没有共享样式（2026-10-01 补齐）。
+   图表在原型里一律用纯 CSS 柱条（不引入 JS 图表库），生产端映射到 ECharts，见 layout-spec.yaml 的 charts。 */
+.stat-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.stat-card {
+  flex: 1 1 150px; min-width: 140px; padding: 10px 12px;
+  border: 1px solid var(--app-border-light); border-radius: var(--app-radius-base); background: #fafbfc;
+}
+.stat-card .label { font-size: 12px; color: var(--app-text-secondary); }
+.stat-card .value { margin-top: 4px; font-size: 16px; font-weight: 600; color: var(--app-text-primary); }
+.bar-chart { display: flex; flex-direction: column; gap: 8px; }
+.bar-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.bar-row .bar-label { width: 190px; flex: none; color: var(--app-text-regular); }
+.bar-row .bar-track { flex: 1; height: 14px; border-radius: 7px; background: #eef2f7; overflow: hidden; }
+.bar-row .bar-fill { height: 100%; border-radius: 7px; background: var(--app-primary); }
+.bar-row .bar-value { width: 96px; flex: none; text-align: right; color: var(--app-text-secondary); font-variant-numeric: tabular-nums; }
+
 .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--app-text-secondary); }
 .legend b { color: var(--app-text-regular); font-weight: 400; }
 .mono { font-family: Consolas, "Courier New", monospace; }

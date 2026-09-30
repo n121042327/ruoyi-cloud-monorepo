@@ -728,3 +728,56 @@ $chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 **本批暴露并已修掉的一处载体缺陷**：选科三页的状态片段原先堆在主内容之后，空数据 / 无权限形态会被挤到首屏之外
 （截图实证：`#state=forbidden` 与默认态截图字节完全一致）。主内容已包进 `[data-normal-view]`、状态片段移入 `#page-root`，
 12 张截图全部重拍且互不相同。
+
+## 21. 批次 2-7b：组合分布统计 / 变更审批待办 / 按组合生成教学班 / 教学班管理
+
+新增 harness `evidence/stage2-prototype/verify-stream-b.html`（4 个 iframe + 真实事件派发，`SB-01` ~ `SB-37`，共 37 条）。
+
+| 分组 | 覆盖 |
+|---|---|
+| 统计总览与口径（`SB-01` / `SB-05`） | 五张统计卡（15 / 12 / 3 / 2 / 6）；口径写明「待审批不计入分布」（`BR-STREAM-006`）、统计与导出按范围实时解析（`DS-DENY-08` / `DS-DENY-04`）、只对高中开放（`REQ-STR-013`） |
+| 同口径与分布（`SB-02` / `SB-04`） | 柱条 6 行合计 12 人 = 明细合计 = 已提交选科数（`REQ-STR-050`）；各学科选择人数首选合计 12、再选合计 24（`BR-STREAM-002`） |
+| 明细与下钻（`SB-03` / `SB-06`） | 组合明细 6 列 6 行，列宽之和 = `min-width` = 920；6 个行内「查看学生」（`ACT-STR-034`）都跳 `PAGE-STR-LIST` |
+| 统计页动作与角色（`SB-07` ~ `SB-09`） | 导出 `exportStreamSelection`（`data.export:export`）、未选科走 `listUnselectedStudent`、按组合生成跳 `PAGE-STR-GEN-CLASS`；年级主任收敛为 `DS-05`；五类状态片段齐全 |
+| 审批待办结构（`SB-10` ~ `SB-12`） | 4 行样例（待审批 2 / 已通过 1 / 已驳回 1）、默认筛「待审批」且按提交时间升序（`REQ-STR-035`）；已通过 / 已驳回行只显示状态、不提供重复审批入口（`REQ-STR-031`） |
+| 审批人与入口（`SB-11` / `SB-13`） | 默认角色（教务主任）待审批行显示「只读」且不渲染审批入口（`REQ-STR-034` 不能自审）；切到校领导后 2 行出现「审批」（`DIALOG-STR-APPROVE`） |
+| 审批弹窗（`SB-14` ~ `SB-17`） | 带入申请单号 / 学生 / 年级班级 / 原组合 / 新组合 / 原因（`REQ-STR-038`）；驳回未填意见被字段级拦截且弹窗不关（`REQ-STR-037`）；同意与驳回都走 `approveStreamChangeRequest`（`stream.change_request:approve`）；弹窗写明「教学班名单不自动同步」（`REQ-STR-060`） |
+| 审批筛选与状态（`SB-18`） | 3 个筛选器（状态 / 年级 / 关键字，`ACT-STR-045` ~ `047`）+ 五类状态片段齐全 |
+| 生成向导结构与校验（`SB-19` / `SB-20`） | 四步步骤条第 1 步进行中；两种粒度「按完整组合 / 按单学科」（`REQ-STR-058`）；未选年级范围点「下一步」被字段级拦截且不进入第 2 步 |
+| 生成预览与幂等（`SB-21` / `SB-22`） | 5 行（4 新建 + 1「已存在」跳过，`REQ-STR-057`）；汇总卡 4 个 / 10 人 / 跳过 1 / 参与统计 12 条；预览表格 5 列 |
+| 执行与写入口径（`SB-23` / `SB-24`） | 步骤 3 显示异步任务号与「写入由班级管理模块执行」（`REQ-STR-056` / `DP-01`）；该步只有「执行生成」（`executeTeachingClassGenerate`），「下一步」隐藏 |
+| 核对结果（`SB-25` / `SB-26`） | 点「执行生成」进入步骤 4；4 行教学班人数与选科统计一致、差异块隐藏（`REQ-STR-059`）；三个出口（增量生成 / 去教学班管理 / 查看统计）指向正确 |
+| 生成向导角色（`SB-27` / `SB-28`） | 校领导进入无权限形态（`REQ-STR-054`）；切回教务主任恢复；七类状态片段齐全（含部分失败与排队中） |
+| 教学班列表（`SB-29` ~ `SB-31`） | 8 列 5 行，列宽之和 = `min-width` = 1140；写明两套独立关系（`BR-CLASS-001` / `BR-STU-004`）、教学班不设班主任（`REQ-CLS-039`）、创建入口唯一（`DP-01`）；教务主任 4 行「详情 + 停用」、已停用行无停用入口 |
+| 教学班详情抽屉（`SB-32`） | 点「详情」打开 `DRAWER-CLS-TEACHING` 并带入名称 / 组合 / 人数，且写明任课教师走任教关系（`REQ-CLS-042`） |
+| 教学班停用（`SB-33` ~ `SB-35`） | 打开 `DIALOG-TCL-DISABLE` 并带入教学班、写清影响范围（历史成员与考勤保留）；未填原因被字段级拦截且弹窗不关；确认走 `disableTeachingClass`（`org.teaching_class:update`） |
+| 教学班角色与状态（`SB-36` / `SB-37`） | 校领导只读（无停用入口，详情仍可用）；五类状态片段齐全 |
+
+| harness | 结果 |
+|---|---|
+| `verify-stream-b.html` | 37 / 37 通过 |
+
+本批回归（新增 4 个页面与 3 个同页片段；`prototype-shell.css` 补统计卡与柱条样式、`layout-spec.yaml` 新增 charts 段）：
+
+| harness | 结果 |
+|---|---|
+| `verify-stream.html` | 26 / 26 通过 |
+| `verify-subject.html` | 14 / 14 通过 |
+| `verify-org-config.html` | 23 / 23 通过 |
+| `verify-school.html` | 16 / 16 通过 |
+| `verify-student-module.html` | 28 / 28 通过 |
+| `verify-detail-entry.html` | 6 / 6 通过 |
+| `verify-import-login.html` | 30 / 30 通过 |
+| `verify-promotion-wizard.html` | 39 / 39 通过 |
+| `verify-promotion-create.html` | 22 / 22 通过 |
+| `verify-promotion-list.html` | 36 / 36 通过 |
+| `verify-class-list.html` | 39 / 39 通过 |
+| `verify-class-detail.html` | 20 / 20 通过 |
+| `verify-class-roster.html` | 34 / 34 通过 |
+| `verify-class-dialogs.html` | 36 / 36 通过 |
+| `verify-grade-list.html` | 38 / 38 通过 |
+| `verify-carrier-change.html` | 14 / 14 通过 |
+| `python tools/check_docs.py` | 通过：未发现问题 |
+
+**本批顺带修掉的共享层缺陷**：`.stat-row` / `.stat-card` 被 13 个页面使用却一直没有共享样式（统计卡渲染成裸 div），
+已在 `prototype-shell.css` 补齐并新增 `.bar-chart` 系列；`layout-spec.yaml` 新增 `charts` 段承载图表约定。
