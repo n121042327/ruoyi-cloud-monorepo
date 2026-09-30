@@ -200,6 +200,11 @@
 | `prototypes/functional/v1/page-specs/promotion-list.md` | 升班任务列表页面规格（状态驱动的行内动作、权限与数据范围、样例数据、自查） | `review` |
 | `prototypes/functional/v1/pages/promotion-create.html` | 升班向导第一步：选择源 / 目标学年学期 + 目标年级班级齐备性 + 未结束任务冲突 + 在读规模与耗时预估（批次 2-3e-s2） | `review` |
 | `prototypes/functional/v1/page-specs/promotion-create.md` | 升班向导第一步页面规格（四档校验样例、三类前置校验、权限与数据范围、自查） | `review` |
+| `prototypes/functional/v1/pages/school-list.html` | 学校管理列表 + 详情抽屉 + 4 个弹窗（批次 2-6a） | `review` |
+| `prototypes/functional/v1/page-specs/school.md` | 学校管理页面规格（覆盖 6 个页面编号） | `review` |
+| `docs/00-governance/change-requests/CR-015.md` | 变更申请：批次 2-6 的 9 条表单浮层由抽屉改为弹窗（已批准并执行，关联 D-077） | `review` |
+| `evidence/stage2-prototype/verify-school.html` | 学校管理交互验证 harness（SC-01 ~ SC-16 共 16 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/school-list_*.png`、`evidence/stage2-prototype/school-detail_1440x900.png`、`evidence/stage2-prototype/school-dialog-*_1440x900.png`、`evidence/stage2-prototype/school_verify-results.png` | 批次 2-6a 截图（见 README 第 6.7 节） | `review` |
 | `prototypes/functional/v1/pages/student-cross-transfer.html` | 跨校转学（转出校视角）四步向导（批次 2-5） | `review` |
 | `prototypes/functional/v1/pages/promotion-transfer.html` | 跨校转学（转入校视角）四步向导：待接收 → 接收 → 报到（批次 2-5） | `review` |
 | `prototypes/functional/v1/pages/promotion-history.html` | 异动历史列表（追加式记录 + 跨页登记入口，批次 2-5） | `review` |

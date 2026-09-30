@@ -2504,6 +2504,175 @@ promotion_history:
       audit: 是
       batch: "2-5"
 
+# ---------------------------------------------------------------------------
+# 学校管理（PAGE-SCH-LIST / DETAIL / CREATE / EDIT / STAGE / DISABLE）——批次 2-6a
+# ---------------------------------------------------------------------------
+school_list:
+  page: "PAGE-SCH-LIST / PAGE-SCH-DETAIL / PAGE-SCH-CREATE / PAGE-SCH-EDIT / PAGE-SCH-STAGE / PAGE-SCH-DISABLE"
+  actions:
+    - id: ACT-SCH-001
+      element: 新建学校
+      trigger: 点击
+      condition: 有 org.school:create 权限（租户管理员 / 超级管理员）
+      permission: "tenant_admin / org.school / create"
+      api: "-"
+      result: 打开 PAGE-SCH-CREATE 弹窗（CR-015：表单类浮层统一用弹窗）；学校编码由系统生成
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-002
+      element: 开通初始化
+      trigger: 点击
+      condition: 有 org.school:create 权限
+      permission: "tenant_admin / org.school / create"
+      api: "-"
+      result: 进入 PAGE-SCH-INIT 开通初始化向导（学校基本信息 → 学段与年级 → 学年学期 → 执行）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-003
+      element: 导出
+      trigger: 点击
+      condition: 有 data.export:export 权限
+      permission: "data.export:export"
+      api: exportSchool
+      result: 导出学校台账（集团与运营方需逐次授权并留痕，与 IMP-Q-04 同口径）；超 2000 行转异步
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SCH-004
+      element: 行内「校区数」
+      trigger: 点击
+      condition: 有 org.school:read 权限
+      permission: "org.school / read"
+      api: "-"
+      result: 跳转 PAGE-SCH-CAMPUS 校区管理页（GAP-046 选项 A：不新增页面，复用详情下的校区管理）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-018
+      element: 行内「详情」
+      trigger: 点击
+      condition: 有 org.school:read 权限
+      permission: "org.school / read"
+      api: getSchool
+      result: 打开 PAGE-SCH-DETAIL 抽屉，带入该学校（基本信息 / 规模概览 / 学段配置）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-005
+      element: 详情「配置学段」
+      trigger: 点击
+      condition: 有 org.school:update 权限
+      permission: "tenant_admin / org.school / update"
+      api: "-"
+      result: 打开 PAGE-SCH-STAGE 弹窗（学段序号固定映射：小学 1–6、初中 / 高中 1–3）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-006
+      element: 详情 / 行内「编辑学校」
+      trigger: 点击
+      condition: 有 org.school:update 权限；学校未停用
+      permission: "tenant_admin / org.school / update"
+      api: "-"
+      result: 打开 PAGE-SCH-EDIT 弹窗；学校编码只读（变更需单独申请 updateSchoolCode 并写审计）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-007
+      element: 详情「校区管理」
+      trigger: 点击
+      condition: 有 org.school:read 权限
+      permission: "org.school / read"
+      api: "-"
+      result: 跳转 PAGE-SCH-CAMPUS（含新增 / 编辑 / 停用校区）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-008
+      element: 详情「学段配置」
+      trigger: 点击
+      condition: 有 org.school:update 权限
+      permission: "tenant_admin / org.school / update"
+      api: "-"
+      result: 同 ACT-SCH-005（详情底部的第二个入口）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-009
+      element: 详情「停用学校」
+      trigger: 点击
+      condition: 有 org.school:update 权限
+      permission: "tenant_admin / org.school / update"
+      api: "-"
+      result: 打开 PAGE-SCH-DISABLE 二次确认弹窗；原因必填并写审计
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-010
+      element: 新建学校「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭 PAGE-SCH-CREATE，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-011
+      element: 新建学校「保存」
+      trigger: 点击
+      condition: 学校名称与所属租户必填、至少一个学段
+      permission: "tenant_admin / org.school / create"
+      api: addSchool
+      result: 创建学校（编码系统生成、默认启用）并写审计；可在详情里继续配置学段与校区
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SCH-012
+      element: 编辑学校「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭 PAGE-SCH-EDIT，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-013
+      element: 编辑学校「保存」
+      trigger: 点击
+      condition: 学校名称必填
+      permission: "tenant_admin / org.school / update"
+      api: updateSchool
+      result: 保存学校信息并写审计；编码与所属租户只读（编码变更走 updateSchoolCode）
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SCH-014
+      element: 学段配置「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭 PAGE-SCH-STAGE，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-015
+      element: 学段配置「保存配置」
+      trigger: 点击
+      condition: 已选学段
+      permission: "tenant_admin / org.school / update"
+      api: saveSchoolStage
+      result: 保存学段启用配置（小学 1–6、初中 / 高中 1–3）；新增学段后可创建对应年级（BR-GRADE-006）
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SCH-016
+      element: 停用学校「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭 PAGE-SCH-DISABLE，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-017
+      element: 停用学校「确认停用」
+      trigger: 点击
+      condition: 已填写停用原因（≥5 字）
+      permission: "tenant_admin / org.school / update"
+      api: disableSchool
+      result: 停用学校（不再出现在业务选择项，历史数据保留）并写审计；可再启用（enableSchool）
+      audit: 是
+      batch: "2-6"
+
 batches_pending:
   - { batch: "2-2", pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-CREATE, PAGE-TCH-EDIT, PAGE-TCH-LEAVE, PAGE-TCH-ROLE, PAGE-TCH-ASSIGN], status: "2-2a、2-2b-1 与 2-2b-2 教师部分已产出待验收（ACT-TCH-001 ~ 039 已登记）" }
   - { batch: "2-2b-2b", pages: [PAGE-GRD-LIST, PAGE-GRD-DETAIL, PAGE-GRD-CREATE, PAGE-GRD-BATCH, PAGE-GRD-LEADER, PAGE-GRD-ARCHIVE], status: "PAGE-GRD-LIST 样板页已产出待验收（ACT-GRD-001 ~ 011 已登记）；其余 5 页待样板验收后铺开" }

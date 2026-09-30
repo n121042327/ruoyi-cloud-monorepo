@@ -1309,6 +1309,41 @@
   `navigation.yaml` 的 note 与批次文本、`prototype-shell.js` 的 `EXTRA_PAGES` 三行、`content-samples.json` 的 `student_module_notes`、
   并把 `verify-detail-entry.html` 的 `RD-06` 恢复为「未交付」形态即可
 
+
+## D-077 交付批次 2-6a：学校管理（列表 / 详情 / 新建 / 编辑 / 学段配置 / 停用）
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要拍板的默认选推荐」）
+- 上游依据：学校 PRD 的列表 / 详情 / 学段配置 / 停用章节；`BR-ORG-001`（租户 = 组织单元）、`BR-ORG-009`（校区不参与权限）、`BR-GRADE-006`、`RV-GRD-03`；`GAP-046` 选项 A（校区检索入口复用学校详情下的校区管理页）
+- 决策（全部取推荐方案）：
+  1. **批次 2-6 再拆三个小批**：2-6a 学校管理（6 页，本批）→ 2-6b 学年学期（5 页）→ 2-6c 学科与配置（6 + 1 页）；
+     理由与本批规模一致：19 个页面与片段一次交付无法逐页验收。
+  2. **`CR-015`：批次 2-6 的 9 条表单类浮层登记由 `drawer` 改为 `dialog`**，沿用 `D-059` / `CR-008` 的口径；
+     学校模块的 4 条本批落地，学年学期与学科模块的 5 条在各自小批落地。
+  3. **只读角色保留「详情」入口**：只读不等于没有入口——校领导 / 平台运营 / 教务主任仍能看到「详情」，
+     只是没有「编辑」（`SC-03` / `SC-14` 断言）。
+  4. **停用学校用二次确认 + 原因必填**：影响范围写清「不再出现在业务选择项、历史数据保留」，并写审计。
+- 关键设计：
+  1. 列表 9 列中「校区数」可点，复用 `PAGE-SCH-CAMPUS`（不新增页面，`GAP-046` 选项 A）
+  2. 学段配置把「学段序号固定映射」写在界面上（小学 1–6、初中 / 高中 1–3），避免与年级模块的序号口径漂移
+  3. 编辑态把「学校编码」「所属租户」设为只读，编码变更指向 `updateSchoolCode` 并写审计
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/functional/v1/pages/school-list.html` | 新增：学校列表 + 详情抽屉 + 4 个弹窗片段（列表 / 详情 / 新建 / 编辑 / 学段配置 / 停用共 6 个页面编号） |
+| `prototypes/functional/v1/page-specs/school.md` | 新增：学校管理页面规格（覆盖 6 个页面编号） |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `school_list` 动作组（`ACT-SCH-001` ~ `018`） |
+| `prototypes/functional/v1/navigation.yaml` | 6 个页面补 note；批次 2-6 状态改为「2-6a 已产出、2-6b / 2-6c 待铺开」；按 `CR-015` 把 9 条表单浮层改为 `dialog` |
+| `prototypes/functional/v1/content-samples.json` | 新增 `school_module_notes`（4 行学校样例与口径说明） |
+| `docs/00-governance/change-requests/CR-015.md` | 新增：批次 2-6 表单浮层载体修正 |
+| `evidence/stage2-prototype/verify-school.html` | 新增：16 条断言 |
+| `evidence/stage2-prototype/school-*.png` + `school_verify-results.png` | 9 张截图 |
+
+- 验证证据：`verify-school.html` 16 / 16 通过；12 个已交付 harness 回归全绿；`python tools/check_docs.py` 通过
+- 如果错了的代价：删除 `school-list.html` 与 `school.md`、回滚 `page-actions.yaml` 的 `school_list` 组、
+  `navigation.yaml` 的 6 条 note 与批次状态、`content-samples.json` 的 `school_module_notes`、
+  `CR-015`（把 9 条 `type` 改回 `drawer`）即可
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |

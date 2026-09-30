@@ -20,7 +20,7 @@
   </div>
 
   <section class="card">
-    <div class="card-header"><h3>已交付页面（批次 2-1 ~ 2-5）</h3><span class="el-tag success">待人工验收</span></div>
+    <div class="card-header"><h3>已交付页面（批次 2-1 ~ 2-6a）</h3><span class="el-tag success">待人工验收</span></div>
     <div class="card-body">
       <table class="el-table">
         <thead>
@@ -349,6 +349,13 @@
 <td><a href="pages/promotion-history.html">pages/promotion-history.html</a></td>
 <td>筛选（类型 / 学年学期 / 年级 / 生效日期）+ 追加式记录表（类型·生效日期·原状态·新状态·操作人·原因）+ 行内「查看学生」；「异动登记」入口唯一（跳学生列表并由 data-panel-hash 打开登记弹窗）</td>
 </tr>
+<tr>
+<td class="mono">PAGE-SCH-LIST</td>
+<td>学校管理（批次 2-6a）</td>
+<td>列表页（TPL-LIST）+ 详情抽屉 + 4 弹窗</td>
+<td><a href="pages/school-list.html">pages/school-list.html</a></td>
+<td>9 列（名称 / 编码 / 学段 / 校区数 / 班级数 / 在读学生 / 状态 / 所属租户 / 操作）；校区数可点跳校区管理（GAP-046 选项 A）；新建 / 编辑 / 学段配置 / 停用四个浮层按 CR-015 用弹窗；只读角色保留「详情」入口</td>
+</tr>
         </tbody>
       </table>
       <div class="legend" style="margin-top:10px">
@@ -413,7 +420,7 @@
 <tr><td>2-3</td><td>班级管理 + 班级详情 + 升班向导 6 页（2-3a 列表 / 2-3b 详情 / 2-3c 四个弹窗 / 2-3d 编班与迁学生 / 2-3e 升班全流程：列表 → 新建 → 预览 → 校验 → 执行 → 结果）</td><td class="num">17</td><td><span class="el-tag warning">2-3 全部产出待验收</span></td></tr>
           <tr><td>2-4</td><td>导入向导（含模板 / 校验 / 执行三个区块）+ 学生 / 教师 / 编班表三个模块导入向导 + 登录 + 403 / 404 / 500</td><td class="num">11</td><td><span class="el-tag warning">2-4 待验收</span></td></tr>
           <tr><td>2-5</td><td>学生模块剩余（详情 + 变更记录 / 学籍异动 / 调班 / 异动登记 / 跨校转学两侧向导 / 异动历史）</td><td class="num">8</td><td><span class="el-tag warning">2-5 待验收</span></td></tr>
-          <tr><td>2-6</td><td>学校管理 + 学年学期 + 学科与配置</td><td class="num">19</td><td><span class="el-tag info">待开始</span></td></tr>
+          <tr><td>2-6</td><td>学校管理 + 学年学期 + 学科与配置（2-6a 学校管理已产出；2-6b 学年学期、2-6c 学科与配置待铺开）</td><td class="num">19</td><td><span class="el-tag warning">2-6a 待验收</span></td></tr>
           <tr><td>2-7</td><td>选科与教学班</td><td class="num">9</td><td><span class="el-tag info">待开始</span></td></tr>
           <tr><td>2-8</td><td>审计与操作日志</td><td class="num">7</td><td><span class="el-tag info">待开始</span></td></tr>
           <tr><td>2-9</td><td>异步任务中心 + 死信 + 导出配置</td><td class="num">4</td><td><span class="el-tag info">待开始</span></td></tr>

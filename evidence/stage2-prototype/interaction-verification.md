@@ -561,3 +561,41 @@ $chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 | `verify-detail-entry.html` | 6 / 6 通过 |
 | `verify-carrier-change.html` | 14 / 14 通过 |
 | `python tools/check_docs.py` | 通过：未发现问题 |
+
+---
+
+## 17. 批次 2-6a：学校管理（列表 / 详情 / 新建 / 编辑 / 学段配置 / 停用）
+
+新增 harness `evidence/stage2-prototype/verify-school.html`（单 iframe + 真实事件派发，`SC-01` ~ `SC-16`）。
+
+| 分组 | 覆盖 |
+|---|---|
+| 结构与布局（`SC-01` / `SC-02`） | 9 列与规格一致、4 行样例；列宽之和 = `min-width` = 1140 |
+| 详情抽屉（`SC-03` / `SC-04`） | 点行开 `PAGE-SCH-DETAIL` 并带入该学校；三个分区 + 底部四动作；只读角色仍保留「详情」入口 |
+| 停用二次确认（`SC-05` / `SC-06`） | 影响范围文案 + 原因必填；未填原因被字段级拦截且弹窗不关 |
+| 新建 / 编辑（`SC-07` ~ `SC-10`） | 载体是 `el-dialog`（`CR-015`）、三个学段勾选、`addSchool` / `updateSchool`；未填名称被拦截；编码只读 |
+| 学段配置（`SC-11`） | 学段序号固定映射文案 + `saveSchoolStage` |
+| 入口与跳转（`SC-12` / `SC-13`） | 行内校区数 → `PAGE-SCH-CAMPUS`；开通初始化 → `PAGE-SCH-INIT`；导出 → `exportSchool` + `data.export:export` |
+| 角色形态（`SC-14` ~ `SC-16`） | 校领导只给详情且新建隐藏；平台运营只读 + `DS-01` 提示；切回租户管理员后写入口恢复；五类状态齐全 |
+
+| harness | 结果 |
+|---|---|
+| `verify-school.html` | 16 / 16 通过 |
+
+本批回归（新增页面与动作组，未改动既有页面）：
+
+| harness | 结果 |
+|---|---|
+| `verify-student-module.html` | 28 / 28 通过 |
+| `verify-detail-entry.html` | 6 / 6 通过 |
+| `verify-import-login.html` | 30 / 30 通过 |
+| `verify-promotion-wizard.html` | 39 / 39 通过 |
+| `verify-promotion-create.html` | 22 / 22 通过 |
+| `verify-promotion-list.html` | 36 / 36 通过 |
+| `verify-class-list.html` | 39 / 39 通过 |
+| `verify-class-detail.html` | 20 / 20 通过 |
+| `verify-class-roster.html` | 34 / 34 通过 |
+| `verify-class-dialogs.html` | 36 / 36 通过 |
+| `verify-grade-list.html` | 38 / 38 通过 |
+| `verify-carrier-change.html` | 14 / 14 通过 |
+| `python tools/check_docs.py` | 通过：未发现问题 |

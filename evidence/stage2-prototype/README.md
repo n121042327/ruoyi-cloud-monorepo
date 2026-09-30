@@ -697,3 +697,29 @@ harness：`verify-student-module.html`（4 个 iframe，`SM` / `CT` / `PT` / `PH
 | `verify-detail-entry.html` | 6 / 6 通过 |
 | `verify-carrier-change.html` | 14 / 14 通过 |
 | `python tools/check_docs.py` | 通过：未发现问题 |
+
+### 6.7 批次 2-6a（学校管理）的交付说明
+
+| 页面 | 文件 | 说明 |
+|---|---|---|
+| `PAGE-SCH-LIST` | `pages/school-list.html` | 学校列表：9 列（名称 / 编码 / 学段 / 校区数 / 班级数 / 在读学生 / 状态 / 所属租户 / 操作）；校区数可点跳校区管理（`GAP-046` 选项 A） |
+| `PAGE-SCH-DETAIL` | 同上（抽屉） | 基本信息 / 规模概览（`getSchoolSummary`）/ 学段配置 + 底部四个写入口 |
+| `PAGE-SCH-CREATE` / `EDIT` | 同上（弹窗） | 新建 / 编辑学校；编码与所属租户只读（编码变更走 `updateSchoolCode`） |
+| `PAGE-SCH-STAGE` | 同上（弹窗） | 学段配置：学段序号固定映射（小学 1–6、初中 / 高中 1–3，`RV-GRD-03`） |
+| `PAGE-SCH-DISABLE` | 同上（弹窗） | 停用二次确认：影响范围 + 原因必填并写审计 |
+
+本批同时执行 **`CR-015`**：把批次 2-6 的 9 条表单类浮层登记由 `drawer` 改为 `dialog`（沿用 `D-059` / `CR-008` 的口径），
+学校模块的 4 个浮层已按弹窗实现；学年学期与学科模块的 5 条在各自小批交付时落地。
+
+harness：`verify-school.html`（`SC-01` ~ `SC-16`，16 / 16 通过）。动作组：`page-actions.yaml` 的 `school_list`（`ACT-SCH-001` ~ `018`）。
+
+| 截图 | 分辨率 | 场景 | 用于验证 |
+|---|---|---|---|
+| `school-list_1440x900.png` / `school-list_1366x768.png` | 1440×900 / 1366×768 | 学校列表默认（教务主任只读） | 9 列 + 列宽之和 = min-width = 1140；最小分辨率无表格内横向滚动 |
+| `school-detail_1440x900.png` | 1440×900 | 深链接 `#panel=PAGE-SCH-DETAIL` | 三个分区 + 底部四动作（编辑 / 校区管理 / 学段配置 / 停用） |
+| `school-dialog-create_1440x900.png` | 1440×900 | 深链接 `#panel=PAGE-SCH-CREATE` | 弹窗载体（`CR-015`）、名称 / 租户必填、三个学段勾选 |
+| `school-dialog-stage_1440x900.png` | 1440×900 | 深链接 `#panel=PAGE-SCH-STAGE` | 学段序号固定映射说明 |
+| `school-dialog-disable_1440x900.png` | 1440×900 | 深链接 `#panel=PAGE-SCH-DISABLE` | 影响范围 + 原因必填 |
+| `school-list_role-school-leader_1440x900.png` | 1440×900 | 角色 = 校领导 | 只保留「详情」入口，新建 / 开通初始化隐藏 |
+| `school-list_state-empty_1440x900.png` | 1440×900 | 状态 = 空数据 | 「还没有任何学校」+ 新建入口 |
+| `school_verify-results.png` | 1500×1200 | harness 结果清单 | `合计 16 / 16 条，通过 16 条，不通过 0 条 —— 全部通过` |
