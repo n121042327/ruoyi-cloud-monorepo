@@ -236,7 +236,7 @@ matrix:
       - { resource: person.student_contact, actions: [read] }
       - { resource: person.teacher, actions: [read] }
       - { resource: enrollment.transfer, actions: [read, approve] }
-      - { resource: promotion.batch, actions: [read, approve] }
+      - { resource: promotion.batch, actions: [read], condition: 升班任务无审批环节，校领导只读（CR-012 / GAP-052） }
       - { resource: stream.change_request, actions: [read, approve] }
       - { resource: stream.config, actions: [read, update] }
       - { resource: data.export, actions: [export] }
@@ -256,7 +256,7 @@ matrix:
       - { resource: person.teaching_assignment, actions: [read, create, update, delete] }
       - { resource: enrollment.status, actions: [read, create, update] }
       - { resource: enrollment.transfer, actions: [read, create] }
-      - { resource: promotion.batch, actions: [read, create] }
+      - { resource: promotion.batch, actions: [read, create, update], condition: 预览 / 执行 / 重试 / 取消统一映射到 update（CR-012 / GAP-052） }
       - { resource: stream.config, actions: [read, update] }
       - { resource: stream.selection, actions: [read, update] }
       - { resource: data.import, actions: [import] }
@@ -276,6 +276,7 @@ matrix:
       - { resource: person.teaching_assignment, actions: [read, create] }
       - { resource: enrollment.status, actions: [read] }
       - { resource: enrollment.transfer, actions: [read, create] }
+      - { resource: promotion.batch, actions: [read], condition: 仅本人负责的年级（DS-05），只读（CR-012 / GAP-053） }
       - { resource: stream.selection, actions: [read] }
       - { resource: data.export, actions: [export] }
       - { resource: data.async_task, actions: [read], condition: 仅本人发起的任务 }

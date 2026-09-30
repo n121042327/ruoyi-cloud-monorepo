@@ -1030,6 +1030,32 @@
 - 如果错了的代价：把 `BR-STU-012` 的扩写回退为原句、删掉 `counts_as_enrolled`、
   高二 (1) 班样例数改回 2 并重拍同一批截图即可；不涉及代码与表结构
 
+## D-069 升班任务的权限动作收敛为 update，年级主任只读参与（GAP-052 / GAP-053 选项 A / CR-012）
+
+- 日期：2026-09-30
+- 触发：批次 2-3e 开工前的公共前置反查——升班 PRD 要求 5 个按钮，但权限矩阵里只有 `create` 与一个没有落点的 `approve`
+- 上游依据：用户对 `GAP-052` / `GAP-053` 的两项「推荐 A」答复「1.a 2.a」
+- 决策一（`GAP-052`）：**升班任务没有审批环节**，「预览 / 执行 / 重试 / 取消」四个写动作统一由
+  `promotion.batch:update` 承载；`academic_director` 补 `update`，`school_leader` 收回 `approve`、保留 `read`。
+  不新增 `execute` / `retry` / `cancel` 动作，不改任务状态机（8 个状态不变）
+- 决策二（`GAP-053`）：**年级主任只读参与升班**——补 `promotion.batch:read` + `DS-05` 范围，
+  可在预览页核对本人负责年级的去向，但调整去向仍只归教务主任
+- 落地内容（`CR-012`）：
+
+| 文件 | 变更 |
+|---|---|
+| `docs/10-prd/05-permission-matrix.yaml` | `school_leader` 的 `promotion.batch` 由 `read + approve` 收为 `read`；`academic_director` 补 `update`；`grade_leader` 新增 `read` + `DS-05` 条件 |
+| `docs/10-prd/modules/promotion/PRD.md` | 头部升 `1.0.2-draft`；2.1 校领导改「审批学籍异动；升班任务只读」、年级主任改「只读参与预览核对」；2.3 的 `SCN-PROMO-01` 校领导与年级主任都改「查看」；`REQ-PRM-006` 写明五个按钮的动作映射；5.1 收敛为 `read / create / update`；6.1 的 `PAGE-PRM-LIST` 补年级主任（只读）、`PAGE-PRM-ADJUST` 收敛为教务主任；6.3 补「年级主任打开预览页 = 只读形态」 |
+| `docs/00-governance/gap-register.yaml` | `GAP-052` / `GAP-053` 置 `closed`、`blocking: false`，补 `resolution` |
+| `docs/00-governance/file-catalog.md` | 升班 PRD 版本由 `v1.0.0-draft` 更正为 `v1.0.2-draft`，登记 `CR-012` |
+
+- 为什么选 A 而不是新增 `execute` 动作：矩阵已把写类动作统一为 `update`，升班四个动作都是「改本任务状态与明细」，
+  语义就是 `update`；新增动作要改公共前置的 `actions` 集合与全部角色条目，收益与成本不成比例
+- 为什么收回校领导的 `approve`：升班 PRD 1.2 范围内没有审批环节，保留一个永远点不到的按钮会让阶段 4 / 6 / 8 各自造一套答案
+- 验证证据：`python tools/check_docs.py` 通过；PyYAML 解析权限矩阵通过；7 个原型 harness 重跑通过（本次不改原型，作为回归证据）
+- 如果错了的代价：把矩阵两行改回 `read/approve` 与 `read/create`、删掉 `grade_leader` 的 `promotion.batch` 条目，
+  并把 PRD 的 2.1 / 2.3 / `REQ-PRM-006` / 5.1 / 6.1 / 6.3 回滚即可，不涉及表结构与已交付原型
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |
@@ -1064,5 +1090,5 @@
 | R-028 | ~~新建班级弹窗里「班级类型」的可选范围~~ → 已定：选项 A，只建行政班，教学班创建留在批次 2-7（D-066） | GAP-048 | 已关闭 |
 | R-029 | ~~复制班级是否新增独立 operationId~~ → 已定：选项 A，复用 `addClass`，不新增 `copyClass`（D-066） | GAP-049 | 已关闭 |
 | R-030 | ~~出国留学（保留学籍）是否计入班级在读人数~~ → 已定：选项 A，与休学同口径不计入，并把高二 (1) 班样例数 2 → 1（D-068 / CR-011） | GAP-051 | 已关闭 |
-| R-031 | 升班任务的「预览 / 执行 / 重试 / 取消」用哪个权限动作承载 → 推荐 A（用现有 `update`，给教务主任补 update、收回校领导的 approve） | GAP-052 | **待你答复** |
-| R-032 | 年级主任是否参与升班（PRD 6.1 列为预览 / 调整页主要角色，矩阵无授权）→ 推荐 A（补 `promotion.batch: read` + DS-05 范围，只读） | GAP-053 | **待你答复** |
+| R-031 | ~~升班任务的「预览 / 执行 / 重试 / 取消」用哪个权限动作承载~~ → 已定：选项 A，用现有 `update`（D-069 / CR-012） | GAP-052 | 已关闭 |
+| R-032 | ~~年级主任是否参与升班~~ → 已定：选项 A，补 `promotion.batch: read` + `DS-05` 范围，只读（D-069 / CR-012） | GAP-053 | 已关闭 |

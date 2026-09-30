@@ -1559,10 +1559,17 @@ gaps:
       语义上就是 update；不动 actions 集合、不新增权限点，改动面最小。
       选项 B 更精确（未来若要单独授权「执行」而不给「取消」会更灵活），代价是公共前置的 actions 与
       全部角色的条目都要过一遍，收益与成本不成比例，建议留到阶段 4 若确有细分需求再立 CR。
-    blocking: true
-    blocks_stages: [stage2, stage4, stage6]
+    resolution: |
+      2026-09-30 用户答复「1.a 2.a」，GAP-052 取选项 A，经 CR-012 落地（见 D-069）：
+      promotion.batch 的「预览 / 执行 / 重试 / 取消」统一由 update 承载；
+      academic_director 补 update（read / create / update）；school_leader 收回 approve、保留 read；
+      升班 PRD 2.1 与 2.3 的「校领导审批升班任务」改为只读（升班无审批环节）；
+      5.1 的操作集合收敛为 read / create / update；REQ-PRM-006 写明五个按钮的动作映射。
+      不新增权限动作、不改任务状态机。
+    blocking: false
+    blocks_stages: []
     owner: Codex
-    status: open
+    status: closed
 
   - id: GAP-053
     title: 年级主任在升班预览 / 调整页被列为主要角色，但矩阵里没有 promotion.batch 的任何权限
@@ -1591,10 +1598,17 @@ gaps:
       年级主任的价值在于**核对自己年级的去向**；给 read + DS-05 范围既能满足 PRD 6.1 的角色登记，
       又不会把写权限摊到两个角色上（`DP-01` 的同一原则）。
       若确实需要年级主任调整去向，再用选项 C 之外的方式另立需求，不要在首轮顺手打开。
-    blocking: true
-    blocks_stages: [stage2, stage4, stage6]
+    resolution: |
+      2026-09-30 用户答复「1.a 2.a」，GAP-053 取选项 A，经 CR-012 落地（见 D-069）：
+      grade_leader 补 promotion.batch 的 read，范围 DS-05（只读本人负责的年级）；
+      调整去向仍只归 academic_director（update）；
+      PRD 2.1 与 2.3 的「可参与升班预览调整」收敛为「只读参与预览核对」；
+      6.1 把 PAGE-PRM-ADJUST 的主要角色收敛为教务主任、PAGE-PRM-PREVIEW 标为年级主任只读；
+      6.3 补一行「年级主任打开预览页 = 只读形态，调整弹窗入口不渲染」。
+    blocking: false
+    blocks_stages: []
     owner: Codex
-    status: open
+    status: closed
 
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
@@ -1651,3 +1665,5 @@ open_questions_for_user:
   - "批次 2-3d 为编班页新增两条学生样本（2026000013 潘思彤、2026000014 蒋知远，在读但 class_id 为空）：原来的 15 条学生样本里没有任何一个「在读且可编班」的学生，编班页只能演示冲突、演示不了成功路径。content-samples.json 的 notes 已同步说明。"
   - "GAP-051 已关闭（用户 2026-09-30 对「推荐 A」答复「同意」），经 CR-011 落地：BR-STU-012 扩写为「只有在读（enrolled）计入在读名单」，字段字典补 counts_as_enrolled、学生 PRD 与验收补 AC-STU-408、高二 (1) 班样例数 2 → 1，21 张 class-list 截图重拍，见 D-068。"
   - "批次 2-3e（升班四步向导与结果页）开工前的公共前置反查暴露 2 个**阻塞**缺项，等用户拍板：GAP-052（「预览 / 执行 / 重试 / 取消」在权限矩阵里没有对应动作，推荐用现有 update 承载并给 academic_director 补 update、收回 school_leader 的 approve）、GAP-053（年级主任被 PRD 6.1 列为预览 / 调整页主要角色，但矩阵里没有 promotion.batch 的任何授权，推荐补 read + DS-05 范围）。两项都只影响按钮与角色形态，不影响任务列表的状态机与字段设计。"
+  - "GAP-052、GAP-053 已关闭（用户 2026-09-30 答复「1.a 2.a」，两项均取推荐方案 A），经 CR-012 落地：promotion.batch 的预览 / 执行 / 重试 / 取消统一映射到 update、教务主任补 update、校领导收回 approve 保留 read、年级主任补 read + DS-05 只读；升班 PRD 升 1.0.2-draft（2.1 / 2.3 / REQ-PRM-006 / 5.1 / 6.1 / 6.3 同步收敛），见 D-069。"
+  - "下一步：阶段 2 批次 2-3e 首件样板 PAGE-PRM-LIST（升班任务列表）：含 8 状态任务的样例行、按角色（教务主任 / 校领导只读 / 年级主任只读 / 超管）的按钮形态，以及 5 个按钮与 read / create / update 的动作映射；样板人工验收通过后再铺向导四步页。"
