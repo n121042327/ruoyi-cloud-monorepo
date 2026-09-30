@@ -7,196 +7,1523 @@
     "学号格式遵循 BR-STU-017：入学年份 4 位 + 全局序号 6 位，例如 2026000001。",
     "学生登录名遵循 BR-ACCOUNT-002：s + 学号，例如 s2026000001。",
     "证件号与手机号一律按脱敏后的形态给出，原型不出现完整值。",
-    "跨校共享的样例：云溪教育集团下的两所学校之间有一条只读数据共享授权。"
+    "跨校资源授权样例：运营方给云溪实验学校开通了云溪外国语学校「题库习题 + 试卷」的只读使用授权。共享对象只有教学资源；学生、班级、年级、教师、成绩等业务数据不跨校共享（用户 2026-09-30 澄清）。首轮题库与试卷不在交付范围，本条只用于说明授权模型，首轮只保留表结构。",
+    "students_edge_cases 把 edge_cases 里只有文字描述的边界样本补成可直接渲染的记录，页面必须从这两个节点取数，不得在 HTML 里临时编造。",
+    "学生 2026000005（转入未报到）的 class_id 为空：未报到不编入行政班，见 BR-STU-023。",
+    "teachers_edge_cases 补齐教师模块的 5 类边界样本（校领导无任教、无手机号、姓名含间隔号、离职、调离），教师列表页必须从 teachers 与 teachers_edge_cases 两个节点取数。"
   ],
-
   "org": {
     "tenants": [
-      { "tenant_id": "T000000000000000001", "name": "平台运营方", "type": "operator", "level": 0 },
-      { "tenant_id": "T000000000000000101", "name": "云溪教育集团", "type": "group", "level": 1, "parent": "T000000000000000001" },
-      { "tenant_id": "T000000000000000201", "name": "云溪实验学校", "type": "school", "level": 2, "parent": "T000000000000000101", "root_tenant_id": "T000000000000000101" },
-      { "tenant_id": "T000000000000000202", "name": "云溪外国语学校", "type": "school", "level": 2, "parent": "T000000000000000101", "root_tenant_id": "T000000000000000101" },
-      { "tenant_id": "T000000000000000301", "name": "青岩中学", "type": "school", "level": 2, "parent": "T000000000000000001", "root_tenant_id": "T000000000000000301", "note": "无集团的独立学校" }
+      {
+        "tenant_id": "T000000000000000001",
+        "name": "平台运营方",
+        "type": "operator",
+        "level": 0
+      },
+      {
+        "tenant_id": "T000000000000000101",
+        "name": "云溪教育集团",
+        "type": "group",
+        "level": 1,
+        "parent": "T000000000000000001"
+      },
+      {
+        "tenant_id": "T000000000000000201",
+        "name": "云溪实验学校",
+        "type": "school",
+        "level": 2,
+        "parent": "T000000000000000101",
+        "root_tenant_id": "T000000000000000101"
+      },
+      {
+        "tenant_id": "T000000000000000202",
+        "name": "云溪外国语学校",
+        "type": "school",
+        "level": 2,
+        "parent": "T000000000000000101",
+        "root_tenant_id": "T000000000000000101"
+      },
+      {
+        "tenant_id": "T000000000000000301",
+        "name": "青岩中学",
+        "type": "school",
+        "level": 2,
+        "parent": "T000000000000000001",
+        "root_tenant_id": "T000000000000000301",
+        "note": "无集团的独立学校"
+      }
     ],
     "schools": [
-      { "school_id": 201, "tenant_id": "T000000000000000201", "school_code": "YXSY", "school_name": "云溪实验学校", "stage_codes": ["junior", "senior"], "campus_count": 2, "status": "enabled" },
-      { "school_id": 202, "tenant_id": "T000000000000000202", "school_code": "YXWY", "school_name": "云溪外国语学校", "stage_codes": ["primary", "junior"], "campus_count": 1, "status": "enabled" },
-      { "school_id": 301, "tenant_id": "T000000000000000301", "school_code": "QYZX", "school_name": "青岩中学", "stage_codes": ["junior"], "campus_count": 1, "status": "enabled" }
+      {
+        "school_id": 201,
+        "tenant_id": "T000000000000000201",
+        "school_code": "YXSY",
+        "school_name": "云溪实验学校",
+        "stage_codes": [
+          "junior",
+          "senior"
+        ],
+        "campus_count": 2,
+        "status": "enabled"
+      },
+      {
+        "school_id": 202,
+        "tenant_id": "T000000000000000202",
+        "school_code": "YXWY",
+        "school_name": "云溪外国语学校",
+        "stage_codes": [
+          "primary",
+          "junior"
+        ],
+        "campus_count": 1,
+        "status": "enabled"
+      },
+      {
+        "school_id": 301,
+        "tenant_id": "T000000000000000301",
+        "school_code": "QYZX",
+        "school_name": "青岩中学",
+        "stage_codes": [
+          "junior"
+        ],
+        "campus_count": 1,
+        "status": "enabled"
+      }
     ],
     "campuses": [
-      { "campus_id": 2011, "school_id": 201, "campus_name": "本部校区", "address": "浙江省杭州市西湖区文一路 128 号" },
-      { "campus_id": 2012, "school_id": 201, "campus_name": "北苑校区", "address": "浙江省杭州市西湖区古墩路 66 号" },
-      { "campus_id": 2021, "school_id": 202, "campus_name": "主校区", "address": "浙江省杭州市拱墅区湖墅南路 9 号" }
+      {
+        "campus_id": 2011,
+        "school_id": 201,
+        "campus_name": "本部校区",
+        "address": "浙江省杭州市西湖区文一路 128 号"
+      },
+      {
+        "campus_id": 2012,
+        "school_id": 201,
+        "campus_name": "北苑校区",
+        "address": "浙江省杭州市西湖区古墩路 66 号"
+      },
+      {
+        "campus_id": 2021,
+        "school_id": 202,
+        "campus_name": "主校区",
+        "address": "浙江省杭州市拱墅区湖墅南路 9 号"
+      }
     ],
     "share_grants": [
-      { "grant_id": "DG-2026-0007", "granter": "平台运营方", "grantee": "云溪实验学校 教务主任 郑雅琴", "scope_schools": [202], "actions": ["read", "export"], "effective_from": "2026-09-01", "effective_to": "2027-08-31", "status": "生效中", "note": "只读；需要修改共享内容时必须复制到自有空间" }
+      {
+        "grant_id": "DG-2026-0007",
+        "granter": "平台运营方",
+        "grantee": "云溪实验学校",
+        "grantee_note": "被授权方使用人示例：教务主任 郑雅琴；授权对象是租户，不是个人",
+        "resource_owner": "云溪外国语学校",
+        "resource_types": [
+          "question_bank_item",
+          "exam_paper"
+        ],
+        "resource_scope_note": "题库习题与试卷资源；不含学生、班级、年级、教师、成绩等业务数据",
+        "actions": [
+          "read",
+          "export"
+        ],
+        "effective_from": "2026-09-01",
+        "effective_to": "2027-08-31",
+        "status": "生效中",
+        "first_round": "not_implemented",
+        "note": "只读；被授权方需要修改共享资源时必须复制到自有空间后再改（BR-DATA-015）。首轮不实现题库与试卷，故本授权在首轮没有落地对象，只保留 edu_data_grant / edu_data_grant_scope 表结构。"
+      }
     ]
   },
-
   "calendar": {
     "academic_years": [
-      { "year_id": 2025, "academic_year_code": "2025-2026", "start_date": "2025-09-01", "end_date": "2026-08-31", "is_current": false, "status": "归档" },
-      { "year_id": 2026, "academic_year_code": "2026-2027", "start_date": "2026-09-01", "end_date": "2027-08-31", "is_current": true, "status": "进行中" }
+      {
+        "year_id": 2025,
+        "academic_year_code": "2025-2026",
+        "start_date": "2025-09-01",
+        "end_date": "2026-08-31",
+        "is_current": false,
+        "status": "归档"
+      },
+      {
+        "year_id": 2026,
+        "academic_year_code": "2026-2027",
+        "start_date": "2026-09-01",
+        "end_date": "2027-08-31",
+        "is_current": true,
+        "status": "进行中"
+      }
     ],
     "terms": [
-      { "term_id": 202601, "year_id": 2026, "term_code": "2026-2027-1", "term_name": "2026-2027 学年 第一学期", "start_date": "2026-09-01", "end_date": "2027-01-24", "is_current": true },
-      { "term_id": 202602, "year_id": 2026, "term_code": "2026-2027-2", "term_name": "2026-2027 学年 第二学期", "start_date": "2027-02-22", "end_date": "2027-07-10", "is_current": false }
+      {
+        "term_id": 202601,
+        "year_id": 2026,
+        "term_code": "2026-2027-1",
+        "term_name": "2026-2027 学年 第一学期",
+        "start_date": "2026-09-01",
+        "end_date": "2027-01-24",
+        "is_current": true
+      },
+      {
+        "term_id": 202602,
+        "year_id": 2026,
+        "term_code": "2026-2027-2",
+        "term_name": "2026-2027 学年 第二学期",
+        "start_date": "2027-02-22",
+        "end_date": "2027-07-10",
+        "is_current": false
+      }
     ]
   },
-
   "subjects": [
-    { "subject_id": 1, "school_id": 201, "subject_code": "chinese", "subject_name": "语文", "customary": "语文", "meaning": "习惯说法", "stream_role": "none", "enabled_stages": ["junior", "senior"], "status": "启用" },
-    { "subject_id": 2, "school_id": 201, "subject_code": "math", "subject_name": "数学", "customary": "数学", "meaning": "习惯说法", "stream_role": "none", "enabled_stages": ["junior", "senior"], "status": "启用" },
-    { "subject_id": 3, "school_id": 201, "subject_code": "english", "subject_name": "外语", "customary": "英语", "meaning": "习惯说法", "stream_role": "none", "enabled_stages": ["junior", "senior"], "status": "启用" },
-    { "subject_id": 4, "school_id": 201, "subject_code": "physics", "subject_name": "物理", "customary": "物理", "meaning": "首选科目", "stream_role": "primary", "enabled_stages": ["junior", "senior"], "status": "启用" },
-    { "subject_id": 5, "school_id": 201, "subject_code": "history", "subject_name": "历史", "customary": "历史", "meaning": "首选科目", "stream_role": "primary", "enabled_stages": ["junior", "senior"], "status": "启用" },
-    { "subject_id": 6, "school_id": 201, "subject_code": "chemistry", "subject_name": "化学", "customary": "化学", "meaning": "再选科目", "stream_role": "secondary", "enabled_stages": ["junior", "senior"], "status": "启用" },
-    { "subject_id": 7, "school_id": 201, "subject_code": "biology", "subject_name": "生物", "customary": "生物", "meaning": "再选科目", "stream_role": "secondary", "enabled_stages": ["junior", "senior"], "status": "启用" },
-    { "subject_id": 8, "school_id": 201, "subject_code": "politics", "subject_name": "思想政治", "customary": "政治", "meaning": "再选科目", "stream_role": "secondary", "enabled_stages": ["junior", "senior"], "status": "启用" },
-    { "subject_id": 9, "school_id": 201, "subject_code": "geography", "subject_name": "地理", "customary": "地理", "meaning": "再选科目", "stream_role": "secondary", "enabled_stages": ["junior", "senior"], "status": "启用" }
+    {
+      "subject_id": 1,
+      "school_id": 201,
+      "subject_code": "chinese",
+      "subject_name": "语文",
+      "customary": "语文",
+      "meaning": "习惯说法",
+      "stream_role": "none",
+      "enabled_stages": [
+        "junior",
+        "senior"
+      ],
+      "status": "启用"
+    },
+    {
+      "subject_id": 2,
+      "school_id": 201,
+      "subject_code": "math",
+      "subject_name": "数学",
+      "customary": "数学",
+      "meaning": "习惯说法",
+      "stream_role": "none",
+      "enabled_stages": [
+        "junior",
+        "senior"
+      ],
+      "status": "启用"
+    },
+    {
+      "subject_id": 3,
+      "school_id": 201,
+      "subject_code": "english",
+      "subject_name": "外语",
+      "customary": "英语",
+      "meaning": "习惯说法",
+      "stream_role": "none",
+      "enabled_stages": [
+        "junior",
+        "senior"
+      ],
+      "status": "启用"
+    },
+    {
+      "subject_id": 4,
+      "school_id": 201,
+      "subject_code": "physics",
+      "subject_name": "物理",
+      "customary": "物理",
+      "meaning": "首选科目",
+      "stream_role": "primary",
+      "enabled_stages": [
+        "junior",
+        "senior"
+      ],
+      "status": "启用"
+    },
+    {
+      "subject_id": 5,
+      "school_id": 201,
+      "subject_code": "history",
+      "subject_name": "历史",
+      "customary": "历史",
+      "meaning": "首选科目",
+      "stream_role": "primary",
+      "enabled_stages": [
+        "junior",
+        "senior"
+      ],
+      "status": "启用"
+    },
+    {
+      "subject_id": 6,
+      "school_id": 201,
+      "subject_code": "chemistry",
+      "subject_name": "化学",
+      "customary": "化学",
+      "meaning": "再选科目",
+      "stream_role": "secondary",
+      "enabled_stages": [
+        "junior",
+        "senior"
+      ],
+      "status": "启用"
+    },
+    {
+      "subject_id": 7,
+      "school_id": 201,
+      "subject_code": "biology",
+      "subject_name": "生物",
+      "customary": "生物",
+      "meaning": "再选科目",
+      "stream_role": "secondary",
+      "enabled_stages": [
+        "junior",
+        "senior"
+      ],
+      "status": "启用"
+    },
+    {
+      "subject_id": 8,
+      "school_id": 201,
+      "subject_code": "politics",
+      "subject_name": "思想政治",
+      "customary": "政治",
+      "meaning": "再选科目",
+      "stream_role": "secondary",
+      "enabled_stages": [
+        "junior",
+        "senior"
+      ],
+      "status": "启用"
+    },
+    {
+      "subject_id": 9,
+      "school_id": 201,
+      "subject_code": "geography",
+      "subject_name": "地理",
+      "customary": "地理",
+      "meaning": "再选科目",
+      "stream_role": "secondary",
+      "enabled_stages": [
+        "junior",
+        "senior"
+      ],
+      "status": "启用"
+    }
   ],
-
   "grades": [
-    { "grade_id": 202601, "school_id": 201, "stage_code": "senior", "grade_level": 1, "grade_name": "2026 级 高一", "enroll_year": 2026, "class_count": 3, "student_count": 6, "grade_leaders": ["何文博"], "status": "在读" },
-    { "grade_id": 202501, "school_id": 201, "stage_code": "senior", "grade_level": 2, "grade_name": "2025 级 高二", "enroll_year": 2025, "class_count": 2, "student_count": 3, "grade_leaders": ["郑雅琴"], "status": "在读" },
-    { "grade_id": 202401, "school_id": 201, "stage_code": "senior", "grade_level": 3, "grade_name": "2024 级 高三", "enroll_year": 2024, "class_count": 2, "student_count": 1, "grade_leaders": ["谢明轩"], "status": "在读" },
-    { "grade_id": 202602, "school_id": 202, "stage_code": "junior", "grade_level": 1, "grade_name": "2026 级 初一", "enroll_year": 2026, "class_count": 1, "student_count": 2, "grade_leaders": [], "status": "在读" }
+    {
+      "grade_id": 202601,
+      "school_id": 201,
+      "stage_code": "senior",
+      "grade_level": 1,
+      "grade_name": "2026 级 高一",
+      "enroll_year": 2026,
+      "class_count": 3,
+      "student_count": 6,
+      "grade_leaders": [
+        "何文博"
+      ],
+      "status": "在读"
+    },
+    {
+      "grade_id": 202501,
+      "school_id": 201,
+      "stage_code": "senior",
+      "grade_level": 2,
+      "grade_name": "2025 级 高二",
+      "enroll_year": 2025,
+      "class_count": 2,
+      "student_count": 3,
+      "grade_leaders": [
+        "郑雅琴"
+      ],
+      "status": "在读"
+    },
+    {
+      "grade_id": 202401,
+      "school_id": 201,
+      "stage_code": "senior",
+      "grade_level": 3,
+      "grade_name": "2024 级 高三",
+      "enroll_year": 2024,
+      "class_count": 2,
+      "student_count": 1,
+      "grade_leaders": [
+        "谢明轩"
+      ],
+      "status": "在读"
+    },
+    {
+      "grade_id": 202602,
+      "school_id": 202,
+      "stage_code": "junior",
+      "grade_level": 1,
+      "grade_name": "2026 级 初一",
+      "enroll_year": 2026,
+      "class_count": 1,
+      "student_count": 2,
+      "grade_leaders": [],
+      "status": "在读"
+    }
   ],
-
   "classes": [
-    { "class_id": 20260101, "school_id": 201, "term_id": 202601, "grade_id": 202601, "class_type": "administrative", "class_name": "高一 (1) 班", "head_teacher": "邓丽娟", "class_capacity": 45, "student_count": 3, "classroom": "本部教学楼 A203", "status": "在读" },
-    { "class_id": 20260102, "school_id": 201, "term_id": 202601, "grade_id": 202601, "class_type": "administrative", "class_name": "高一 (2) 班", "head_teacher": "冯振国", "class_capacity": 45, "student_count": 2, "classroom": "本部教学楼 A205", "status": "在读" },
-    { "class_id": 20260103, "school_id": 201, "term_id": 202601, "grade_id": 202601, "class_type": "administrative", "class_name": "高一 (3) 班", "head_teacher": null, "class_capacity": 45, "student_count": 1, "classroom": "本部教学楼 A207", "status": "在读" },
-    { "class_id": 20250101, "school_id": 201, "term_id": 202601, "grade_id": 202501, "class_type": "administrative", "class_name": "高二 (1) 班", "head_teacher": "卢佳音", "class_capacity": 45, "student_count": 2, "classroom": "北苑教学楼 B301", "status": "在读" },
-    { "class_id": 20240101, "school_id": 201, "term_id": 202601, "grade_id": 202401, "class_type": "administrative", "class_name": "高三 (1) 班", "head_teacher": "何文博", "class_capacity": 45, "student_count": 1, "classroom": "北苑教学楼 B501", "status": "在读" },
-    { "class_id": 20260201, "school_id": 202, "term_id": 202601, "grade_id": 202602, "class_type": "administrative", "class_name": "初一 (1) 班", "head_teacher": "郑雅琴", "class_capacity": 40, "student_count": 2, "classroom": "主教学楼 102", "status": "在读" },
-    { "class_id": 20260111, "school_id": 201, "term_id": 202601, "grade_id": 202601, "class_type": "teaching", "class_name": "高一 物理 A 层", "head_teacher": null, "class_capacity": null, "student_count": 3, "classroom": null, "status": "在读", "note": "教学班：不设班主任，成员来自选科结果" }
+    {
+      "class_id": 20260101,
+      "school_id": 201,
+      "term_id": 202601,
+      "grade_id": 202601,
+      "class_type": "administrative",
+      "class_name": "高一 (1) 班",
+      "head_teacher": "邓丽娟",
+      "class_capacity": 45,
+      "student_count": 3,
+      "classroom": "本部教学楼 A203",
+      "status": "在读"
+    },
+    {
+      "class_id": 20260102,
+      "school_id": 201,
+      "term_id": 202601,
+      "grade_id": 202601,
+      "class_type": "administrative",
+      "class_name": "高一 (2) 班",
+      "head_teacher": "冯振国",
+      "class_capacity": 45,
+      "student_count": 2,
+      "classroom": "本部教学楼 A205",
+      "status": "在读"
+    },
+    {
+      "class_id": 20260103,
+      "school_id": 201,
+      "term_id": 202601,
+      "grade_id": 202601,
+      "class_type": "administrative",
+      "class_name": "高一 (3) 班",
+      "head_teacher": null,
+      "class_capacity": 45,
+      "student_count": 1,
+      "classroom": "本部教学楼 A207",
+      "status": "在读"
+    },
+    {
+      "class_id": 20250101,
+      "school_id": 201,
+      "term_id": 202601,
+      "grade_id": 202501,
+      "class_type": "administrative",
+      "class_name": "高二 (1) 班",
+      "head_teacher": "卢佳音",
+      "class_capacity": 45,
+      "student_count": 2,
+      "classroom": "北苑教学楼 B301",
+      "status": "在读"
+    },
+    {
+      "class_id": 20240101,
+      "school_id": 201,
+      "term_id": 202601,
+      "grade_id": 202401,
+      "class_type": "administrative",
+      "class_name": "高三 (1) 班",
+      "head_teacher": "何文博",
+      "class_capacity": 45,
+      "student_count": 1,
+      "classroom": "北苑教学楼 B501",
+      "status": "在读"
+    },
+    {
+      "class_id": 20260201,
+      "school_id": 202,
+      "term_id": 202601,
+      "grade_id": 202602,
+      "class_type": "administrative",
+      "class_name": "初一 (1) 班",
+      "head_teacher": "郑雅琴",
+      "class_capacity": 40,
+      "student_count": 2,
+      "classroom": "主教学楼 102",
+      "status": "在读"
+    },
+    {
+      "class_id": 20260111,
+      "school_id": 201,
+      "term_id": 202601,
+      "grade_id": 202601,
+      "class_type": "teaching",
+      "class_name": "高一 物理 A 层",
+      "head_teacher": null,
+      "class_capacity": null,
+      "student_count": 3,
+      "classroom": null,
+      "status": "在读",
+      "note": "教学班：不设班主任，成员来自选科结果"
+    }
   ],
-
   "teachers": [
-    { "teacher_id": 1001, "teacher_no": "YX2019001", "teacher_name": "郑雅琴", "gender": "女", "school_id": 201, "edu_roles": ["academic_director"], "phone_mask": "138****2210", "status": "在职", "notes": "本校教务主任" },
-    { "teacher_id": 1002, "teacher_no": "YX2015007", "teacher_name": "何文博", "gender": "男", "school_id": 201, "edu_roles": ["grade_leader"], "phone_mask": "139****8801", "status": "在职", "notes": "兼任 2026 级与 2024 级年级主任" },
-    { "teacher_id": 1003, "teacher_no": "YX2018003", "teacher_name": "邓丽娟", "gender": "女", "school_id": 201, "edu_roles": ["homeroom", "subject_teacher"], "phone_mask": "137****6652", "status": "在职", "notes": "高一 (1) 班班主任，任教语文" },
-    { "teacher_id": 1004, "teacher_no": "YX2016009", "teacher_name": "冯振国", "gender": "男", "school_id": 201, "edu_roles": ["homeroom"], "phone_mask": "135****3390", "status": "在职", "notes": "高一 (2) 班班主任" },
-    { "teacher_id": 1005, "teacher_no": "YX2014002", "teacher_name": "谢明轩", "gender": "男", "school_id": 201, "edu_roles": ["grade_leader", "subject_teacher"], "phone_mask": "136****1177", "status": "在职", "notes": "2024 级年级主任，任教物理" },
-    { "teacher_id": 1006, "teacher_no": "YX2020015", "teacher_name": "卢佳音", "gender": "女", "school_id": 201, "edu_roles": ["homeroom", "subject_teacher"], "phone_mask": "133****9042", "status": "在职", "notes": "高二 (1) 班班主任，任教英语" },
-    { "teacher_id": 1007, "teacher_no": "YXWY2017001", "teacher_name": "苏睿", "gender": "男", "school_id": 202, "edu_roles": ["academic_director"], "phone_mask": "131****5588", "status": "在职", "notes": "外国语学校教务主任；示例中演示跨校任教" }
+    {
+      "teacher_id": 1001,
+      "teacher_no": "YX2019001",
+      "teacher_name": "郑雅琴",
+      "gender": "女",
+      "school_id": 201,
+      "edu_roles": [
+        "academic_director"
+      ],
+      "phone_mask": "138****2210",
+      "status": "在职",
+      "notes": "本校教务主任",
+      "subject_codes": [
+        "chinese"
+      ],
+      "class_count": 1
+    },
+    {
+      "teacher_id": 1002,
+      "teacher_no": "YX2015007",
+      "teacher_name": "何文博",
+      "gender": "男",
+      "school_id": 201,
+      "edu_roles": [
+        "grade_leader"
+      ],
+      "phone_mask": "139****8801",
+      "status": "在职",
+      "notes": "兼任 2026 级与 2024 级年级主任",
+      "subject_codes": [],
+      "class_count": 0
+    },
+    {
+      "teacher_id": 1003,
+      "teacher_no": "YX2018003",
+      "teacher_name": "邓丽娟",
+      "gender": "女",
+      "school_id": 201,
+      "edu_roles": [
+        "homeroom",
+        "subject_teacher"
+      ],
+      "phone_mask": "137****6652",
+      "status": "在职",
+      "notes": "高一 (1) 班班主任，任教语文",
+      "subject_codes": [
+        "chinese"
+      ],
+      "class_count": 1
+    },
+    {
+      "teacher_id": 1004,
+      "teacher_no": "YX2016009",
+      "teacher_name": "冯振国",
+      "gender": "男",
+      "school_id": 201,
+      "edu_roles": [
+        "homeroom"
+      ],
+      "phone_mask": "135****3390",
+      "status": "在职",
+      "notes": "高一 (2) 班班主任",
+      "subject_codes": [],
+      "class_count": 0
+    },
+    {
+      "teacher_id": 1005,
+      "teacher_no": "YX2014002",
+      "teacher_name": "谢明轩",
+      "gender": "男",
+      "school_id": 201,
+      "edu_roles": [
+        "grade_leader",
+        "subject_teacher"
+      ],
+      "phone_mask": "136****1177",
+      "status": "在职",
+      "notes": "2024 级年级主任，任教物理",
+      "subject_codes": [
+        "physics"
+      ],
+      "class_count": 1
+    },
+    {
+      "teacher_id": 1006,
+      "teacher_no": "YX2020015",
+      "teacher_name": "卢佳音",
+      "gender": "女",
+      "school_id": 201,
+      "edu_roles": [
+        "homeroom",
+        "subject_teacher"
+      ],
+      "phone_mask": "133****9042",
+      "status": "在职",
+      "notes": "高二 (1) 班班主任，任教英语",
+      "subject_codes": [
+        "english"
+      ],
+      "class_count": 1
+    },
+    {
+      "teacher_id": 1007,
+      "teacher_no": "YXWY2017001",
+      "teacher_name": "苏睿",
+      "gender": "男",
+      "school_id": 202,
+      "edu_roles": [
+        "academic_director"
+      ],
+      "phone_mask": "131****5588",
+      "status": "在职",
+      "notes": "外国语学校教务主任；示例中演示跨校任教",
+      "subject_codes": [
+        "english"
+      ],
+      "class_count": 1,
+      "cross_school_note": "跨校任教：外国语学校教师到实验学校授课；在实验学校视图中单独占一行并标明任教学校"
+    }
   ],
-
   "teaching_assignments": [
-    { "id": 1, "teacher_id": 1003, "term_id": 202601, "subject_code": "chinese", "class_id": 20260101, "class_type": "administrative" },
-    { "id": 2, "teacher_id": 1005, "term_id": 202601, "subject_code": "physics", "class_id": 20260111, "class_type": "teaching" },
-    { "id": 3, "teacher_id": 1006, "term_id": 202601, "subject_code": "english", "class_id": 20250101, "class_type": "administrative" },
-    { "id": 4, "teacher_id": 1007, "term_id": 202601, "subject_code": "english", "class_id": 20260101, "class_type": "administrative", "note": "跨校任教：外国语学校教师到实验学校授课" }
+    {
+      "id": 1,
+      "teacher_id": 1003,
+      "term_id": 202601,
+      "subject_code": "chinese",
+      "class_id": 20260101,
+      "class_type": "administrative"
+    },
+    {
+      "id": 2,
+      "teacher_id": 1005,
+      "term_id": 202601,
+      "subject_code": "physics",
+      "class_id": 20260111,
+      "class_type": "teaching"
+    },
+    {
+      "id": 3,
+      "teacher_id": 1006,
+      "term_id": 202601,
+      "subject_code": "english",
+      "class_id": 20250101,
+      "class_type": "administrative"
+    },
+    {
+      "id": 4,
+      "teacher_id": 1007,
+      "term_id": 202601,
+      "subject_code": "english",
+      "class_id": 20260101,
+      "class_type": "administrative",
+      "note": "跨校任教：外国语学校教师到实验学校授课"
+    }
   ],
-
   "students": [
-    { "student_id": 5001, "student_no": "2026000001", "login_name": "s2026000001", "student_name": "王梓萱", "gender": "女", "enroll_year": 2026, "stage_code": "senior", "grade_id": 202601, "class_id": 20260101, "enrollment_status": "enrolled", "national_student_no": "G33010220260001", "id_card_mask": "330102********1234", "birth_date": "2010-03", "phone_mask": "136****7781", "guardian_count": 2, "school_id": 201, "update_time": "2026-09-24 10:12" },
-    { "student_id": 5002, "student_no": "2026000002", "login_name": "s2026000002", "student_name": "李俊逸", "gender": "男", "enroll_year": 2026, "stage_code": "senior", "grade_id": 202601, "class_id": 20260101, "enrollment_status": "enrolled", "national_student_no": "G33010220260002", "id_card_mask": "330105********0917", "birth_date": "2010-07", "phone_mask": "150****3320", "guardian_count": 1, "school_id": 201, "update_time": "2026-09-24 10:15" },
-    { "student_id": 5003, "student_no": "2026000003", "login_name": "s2026000003", "student_name": "陈思远", "gender": "男", "enroll_year": 2026, "stage_code": "senior", "grade_id": 202601, "class_id": 20260101, "enrollment_status": "suspended", "national_student_no": null, "id_card_mask": "330106********4455", "birth_date": "2010-01", "phone_mask": "138****9008", "guardian_count": 2, "school_id": 201, "update_time": "2026-09-20 16:40", "note": "休学保留行政班关系，不计入在读名单" },
-    { "student_id": 5004, "student_no": "2026000004", "login_name": "s2026000004", "student_name": "赵一诺", "gender": "女", "enroll_year": 2026, "stage_code": "senior", "grade_id": 202601, "class_id": 20260102, "enrollment_status": "enrolled", "national_student_no": "G33010220260004", "id_card_mask": "330103********2318", "birth_date": "2010-05", "phone_mask": null, "guardian_count": 3, "school_id": 201, "update_time": "2026-09-24 11:02" },
-    { "student_id": 5005, "student_no": "2026000005", "login_name": "s2026000005", "student_name": "周子涵", "gender": "男", "enroll_year": 2026, "stage_code": "senior", "grade_id": 202601, "class_id": 20260102, "enrollment_status": "pending_enroll", "national_student_no": null, "id_card_mask": "330104********7712", "birth_date": "2010-11", "phone_mask": "159****4413", "guardian_count": 1, "school_id": 201, "update_time": "2026-09-28 09:05", "note": "转入未报到：不编入行政班，报到后转为在读" },
-    { "student_id": 5006, "student_no": "2026000006", "login_name": "s2026000006", "student_name": "吴雨桐", "gender": "女", "enroll_year": 2026, "stage_code": "senior", "grade_id": 202601, "class_id": 20260103, "enrollment_status": "enrolled", "national_student_no": "G33010220260006", "id_card_mask": "330102********6689", "birth_date": "2010-02", "phone_mask": "137****2205", "guardian_count": 1, "school_id": 201, "update_time": "2026-09-24 11:20" },
-    { "student_id": 5007, "student_no": "2025000001", "login_name": "s2025000001", "student_name": "徐昊然", "gender": "男", "enroll_year": 2025, "stage_code": "senior", "grade_id": 202501, "class_id": 20250101, "enrollment_status": "studying_abroad", "national_student_no": "G33010220250001", "id_card_mask": "330105********3301", "birth_date": "2009-09", "phone_mask": "186****7712", "guardian_count": 2, "school_id": 201, "update_time": "2026-09-18 14:30", "note": "出国留学，保留学籍" },
-    { "student_id": 5008, "student_no": "2025000002", "login_name": "s2025000002", "student_name": "孙悠然", "gender": "女", "enroll_year": 2025, "stage_code": "senior", "grade_id": 202501, "class_id": 20250101, "enrollment_status": "enrolled", "national_student_no": "G33010220250002", "id_card_mask": "330103********9902", "birth_date": "2009-12", "phone_mask": "135****6631", "guardian_count": 2, "school_id": 201, "update_time": "2026-09-24 12:01" },
-    { "student_id": 5009, "student_no": "2024000001", "login_name": "s2024000001", "student_name": "马嘉懿", "gender": "男", "enroll_year": 2024, "stage_code": "senior", "grade_id": 202401, "class_id": 20240101, "enrollment_status": "enrolled", "national_student_no": "G33010220240001", "id_card_mask": "330104********1180", "birth_date": "2008-08", "phone_mask": "139****0091", "guardian_count": 1, "school_id": 201, "update_time": "2026-09-24 12:30" },
-    { "student_id": 5010, "student_no": "2026000101", "login_name": "s2026000101", "student_name": "朱书瑶", "gender": "女", "enroll_year": 2026, "stage_code": "junior", "grade_id": 202602, "class_id": 20260201, "enrollment_status": "enrolled", "national_student_no": "G33010520260010", "id_card_mask": "330105********5566", "birth_date": "2013-04", "phone_mask": null, "guardian_count": 2, "school_id": 202, "update_time": "2026-09-22 09:40", "note": "另一所学校的学生，用于演示跨校只读授权" }
+    {
+      "student_id": 5001,
+      "student_no": "2026000001",
+      "login_name": "s2026000001",
+      "student_name": "王梓萱",
+      "gender": "女",
+      "enroll_year": 2026,
+      "stage_code": "senior",
+      "grade_id": 202601,
+      "class_id": 20260101,
+      "enrollment_status": "enrolled",
+      "national_student_no": "G33010220260001",
+      "id_card_mask": "330102********1234",
+      "birth_date": "2010-03",
+      "phone_mask": "136****7781",
+      "guardian_count": 2,
+      "school_id": 201,
+      "update_time": "2026-09-24 10:12"
+    },
+    {
+      "student_id": 5002,
+      "student_no": "2026000002",
+      "login_name": "s2026000002",
+      "student_name": "李俊逸",
+      "gender": "男",
+      "enroll_year": 2026,
+      "stage_code": "senior",
+      "grade_id": 202601,
+      "class_id": 20260101,
+      "enrollment_status": "enrolled",
+      "national_student_no": "G33010220260002",
+      "id_card_mask": "330105********0917",
+      "birth_date": "2010-07",
+      "phone_mask": "150****3320",
+      "guardian_count": 1,
+      "school_id": 201,
+      "update_time": "2026-09-24 10:15"
+    },
+    {
+      "student_id": 5003,
+      "student_no": "2026000003",
+      "login_name": "s2026000003",
+      "student_name": "陈思远",
+      "gender": "男",
+      "enroll_year": 2026,
+      "stage_code": "senior",
+      "grade_id": 202601,
+      "class_id": 20260101,
+      "enrollment_status": "suspended",
+      "national_student_no": null,
+      "id_card_mask": "330106********4455",
+      "birth_date": "2010-01",
+      "phone_mask": "138****9008",
+      "guardian_count": 2,
+      "school_id": 201,
+      "update_time": "2026-09-20 16:40",
+      "note": "休学保留行政班关系，不计入在读名单"
+    },
+    {
+      "student_id": 5004,
+      "student_no": "2026000004",
+      "login_name": "s2026000004",
+      "student_name": "赵一诺",
+      "gender": "女",
+      "enroll_year": 2026,
+      "stage_code": "senior",
+      "grade_id": 202601,
+      "class_id": 20260102,
+      "enrollment_status": "enrolled",
+      "national_student_no": "G33010220260004",
+      "id_card_mask": "330103********2318",
+      "birth_date": "2010-05",
+      "phone_mask": null,
+      "guardian_count": 3,
+      "school_id": 201,
+      "update_time": "2026-09-24 11:02"
+    },
+    {
+      "student_id": 5005,
+      "student_no": "2026000005",
+      "login_name": "s2026000005",
+      "student_name": "周子涵",
+      "gender": "男",
+      "enroll_year": 2026,
+      "stage_code": "senior",
+      "grade_id": 202601,
+      "class_id": null,
+      "enrollment_status": "pending_enroll",
+      "national_student_no": null,
+      "id_card_mask": "330104********7712",
+      "birth_date": "2010-11",
+      "phone_mask": "159****4413",
+      "guardian_count": 1,
+      "school_id": 201,
+      "update_time": "2026-09-28 09:05",
+      "note": "转入未报到：不编入行政班，报到后转为在读"
+    },
+    {
+      "student_id": 5006,
+      "student_no": "2026000006",
+      "login_name": "s2026000006",
+      "student_name": "吴雨桐",
+      "gender": "女",
+      "enroll_year": 2026,
+      "stage_code": "senior",
+      "grade_id": 202601,
+      "class_id": 20260103,
+      "enrollment_status": "enrolled",
+      "national_student_no": "G33010220260006",
+      "id_card_mask": "330102********6689",
+      "birth_date": "2010-02",
+      "phone_mask": "137****2205",
+      "guardian_count": 1,
+      "school_id": 201,
+      "update_time": "2026-09-24 11:20"
+    },
+    {
+      "student_id": 5007,
+      "student_no": "2025000001",
+      "login_name": "s2025000001",
+      "student_name": "徐昊然",
+      "gender": "男",
+      "enroll_year": 2025,
+      "stage_code": "senior",
+      "grade_id": 202501,
+      "class_id": 20250101,
+      "enrollment_status": "studying_abroad",
+      "national_student_no": "G33010220250001",
+      "id_card_mask": "330105********3301",
+      "birth_date": "2009-09",
+      "phone_mask": "186****7712",
+      "guardian_count": 2,
+      "school_id": 201,
+      "update_time": "2026-09-18 14:30",
+      "note": "出国留学，保留学籍"
+    },
+    {
+      "student_id": 5008,
+      "student_no": "2025000002",
+      "login_name": "s2025000002",
+      "student_name": "孙悠然",
+      "gender": "女",
+      "enroll_year": 2025,
+      "stage_code": "senior",
+      "grade_id": 202501,
+      "class_id": 20250101,
+      "enrollment_status": "enrolled",
+      "national_student_no": "G33010220250002",
+      "id_card_mask": "330103********9902",
+      "birth_date": "2009-12",
+      "phone_mask": "135****6631",
+      "guardian_count": 2,
+      "school_id": 201,
+      "update_time": "2026-09-24 12:01"
+    },
+    {
+      "student_id": 5009,
+      "student_no": "2024000001",
+      "login_name": "s2024000001",
+      "student_name": "马嘉懿",
+      "gender": "男",
+      "enroll_year": 2024,
+      "stage_code": "senior",
+      "grade_id": 202401,
+      "class_id": 20240101,
+      "enrollment_status": "enrolled",
+      "national_student_no": "G33010220240001",
+      "id_card_mask": "330104********1180",
+      "birth_date": "2008-08",
+      "phone_mask": "139****0091",
+      "guardian_count": 1,
+      "school_id": 201,
+      "update_time": "2026-09-24 12:30"
+    },
+    {
+      "student_id": 5010,
+      "student_no": "2026000101",
+      "login_name": "s2026000101",
+      "student_name": "朱书瑶",
+      "gender": "女",
+      "enroll_year": 2026,
+      "stage_code": "junior",
+      "grade_id": 202602,
+      "class_id": 20260201,
+      "enrollment_status": "enrolled",
+      "national_student_no": "G33010520260010",
+      "id_card_mask": "330105********5566",
+      "birth_date": "2013-04",
+      "phone_mask": null,
+      "guardian_count": 2,
+      "school_id": 202,
+      "update_time": "2026-09-22 09:40",
+      "note": "另一所学校的学生：只有平台运营切换学校后才可见，学校用户看不到他校学生；跨校转学在「升班与学籍异动」模块处理，不通过共享授权"
+    }
   ],
-
   "guardians": [
-    { "guardian_id": 9001, "guardian_name": "王海峰", "relation": "父亲", "phone_mask": "138****2210", "is_primary": true, "students": ["2026000001"], "bind_status": "已通过" },
-    { "guardian_id": 9002, "guardian_name": "刘敏", "relation": "母亲", "phone_mask": "137****8890", "is_primary": false, "students": ["2026000001", "2026000002"], "bind_status": "已通过", "note": "一位家长关联多个孩子，跨班级" }
+    {
+      "guardian_id": 9001,
+      "guardian_name": "王海峰",
+      "relation": "父亲",
+      "phone_mask": "138****2210",
+      "is_primary": true,
+      "students": [
+        "2026000001"
+      ],
+      "bind_status": "已通过"
+    },
+    {
+      "guardian_id": 9002,
+      "guardian_name": "刘敏",
+      "relation": "母亲",
+      "phone_mask": "137****8890",
+      "is_primary": false,
+      "students": [
+        "2026000001",
+        "2026000002"
+      ],
+      "bind_status": "已通过",
+      "note": "一位家长关联多个孩子，跨班级"
+    }
   ],
-
   "student_class_relations": [
-    { "id": 1, "student_no": "2026000001", "class_id": 20260101, "term_id": 202601, "class_type": "administrative", "status": "在读" },
-    { "id": 2, "student_no": "2026000002", "class_id": 20260101, "term_id": 202601, "class_type": "administrative", "status": "在读" },
-    { "id": 3, "student_no": "2026000003", "class_id": 20260101, "term_id": 202601, "class_type": "administrative", "status": "休学（保留关系）" }
+    {
+      "id": 1,
+      "student_no": "2026000001",
+      "class_id": 20260101,
+      "term_id": 202601,
+      "class_type": "administrative",
+      "status": "在读"
+    },
+    {
+      "id": 2,
+      "student_no": "2026000002",
+      "class_id": 20260101,
+      "term_id": 202601,
+      "class_type": "administrative",
+      "status": "在读"
+    },
+    {
+      "id": 3,
+      "student_no": "2026000003",
+      "class_id": 20260101,
+      "term_id": 202601,
+      "class_type": "administrative",
+      "status": "休学（保留关系）"
+    }
   ],
-
   "stream": {
-    "config": { "school_id": 201, "term_id": 202601, "open_from": "2026-10-08", "deadline": "2026-10-31 23:59", "overdue_requires_approval": true, "note": "逾期变更需校级管理员审批（BR-STREAM-005）" },
+    "config": {
+      "school_id": 201,
+      "term_id": 202601,
+      "open_from": "2026-10-08",
+      "deadline": "2026-10-31 23:59",
+      "overdue_requires_approval": true,
+      "note": "逾期变更需校级管理员审批（BR-STREAM-005）"
+    },
     "selections": [
-      { "student_no": "2026000001", "primary_subject_code": "physics", "secondary_subject_codes": ["chemistry", "biology"], "status": "已生效", "effective_from": "2026-09-26" },
-      { "student_no": "2026000002", "primary_subject_code": "history", "secondary_subject_codes": ["politics", "geography"], "status": "已生效", "effective_from": "2026-09-26" },
-      { "student_no": "2026000004", "primary_subject_code": "physics", "secondary_subject_codes": ["chemistry", "geography"], "status": "待审批", "change_request_no": "SC-2026-0031", "note": "截止日期后提交，等待校级管理员审批" }
+      {
+        "student_no": "2026000001",
+        "primary_subject_code": "physics",
+        "secondary_subject_codes": [
+          "chemistry",
+          "biology"
+        ],
+        "status": "已生效",
+        "effective_from": "2026-09-26"
+      },
+      {
+        "student_no": "2026000002",
+        "primary_subject_code": "history",
+        "secondary_subject_codes": [
+          "politics",
+          "geography"
+        ],
+        "status": "已生效",
+        "effective_from": "2026-09-26"
+      },
+      {
+        "student_no": "2026000004",
+        "primary_subject_code": "physics",
+        "secondary_subject_codes": [
+          "chemistry",
+          "geography"
+        ],
+        "status": "待审批",
+        "change_request_no": "SC-2026-0031",
+        "note": "截止日期后提交，等待校级管理员审批"
+      }
     ],
     "distribution": [
-      { "combination": "物理 + 化学 + 生物", "count": 1, "ratio": "33.3%" },
-      { "combination": "历史 + 政治 + 地理", "count": 1, "ratio": "33.3%" },
-      { "combination": "物理 + 化学 + 地理", "count": 1, "ratio": "33.3%" }
+      {
+        "combination": "物理 + 化学 + 生物",
+        "count": 1,
+        "ratio": "33.3%"
+      },
+      {
+        "combination": "历史 + 政治 + 地理",
+        "count": 1,
+        "ratio": "33.3%"
+      },
+      {
+        "combination": "物理 + 化学 + 地理",
+        "count": 1,
+        "ratio": "33.3%"
+      }
     ]
   },
-
   "import_batches": [
-    { "batch_no": "IMP-20260928-0001", "module": "student", "template_version": "student-v3", "row_total": 120, "valid": 118, "invalid": 2, "operator": "郑雅琴", "create_time": "2026-09-28 10:22", "status": "校验通过待执行" },
-    { "batch_no": "IMP-20260920-0002", "module": "student", "template_version": "student-v2", "row_total": 60, "valid": 60, "invalid": 0, "operator": "郑雅琴", "create_time": "2026-09-20 15:03", "status": "已完成", "note": "使用的是旧版模板，校验时被提示过期" }
+    {
+      "batch_no": "IMP-20260928-0001",
+      "module": "student",
+      "template_version": "student-v3",
+      "row_total": 120,
+      "valid": 118,
+      "invalid": 2,
+      "operator": "郑雅琴",
+      "create_time": "2026-09-28 10:22",
+      "status": "校验通过待执行"
+    },
+    {
+      "batch_no": "IMP-20260920-0002",
+      "module": "student",
+      "template_version": "student-v2",
+      "row_total": 60,
+      "valid": 60,
+      "invalid": 0,
+      "operator": "郑雅琴",
+      "create_time": "2026-09-20 15:03",
+      "status": "已完成",
+      "note": "使用的是旧版模板，校验时被提示过期"
+    }
   ],
-
   "import_errors": [
-    { "row_no": 17, "student_name": "高若曦", "reason": "证件号已存在（与 2025000009 重复）" },
-    { "row_no": 42, "student_name": "彭宇轩", "reason": "年级「2026 级 高一」在该学校不存在" }
+    {
+      "row_no": 17,
+      "student_name": "高若曦",
+      "reason": "证件号已存在（与 2025000009 重复）"
+    },
+    {
+      "row_no": 42,
+      "student_name": "彭宇轩",
+      "reason": "年级「2026 级 高一」在该学校不存在"
+    }
   ],
-
   "async_tasks": [
-    { "task_no": "TASK-20260928-000312", "task_type": "import", "task_status": "running", "progress_percent": 62, "owner": "郑雅琴", "school": "云溪实验学校", "create_time": "2026-09-28 10:25", "elapsed": "1 分 12 秒", "result_file": null, "batch_no": "IMP-20260928-0001" },
-    { "task_no": "TASK-20260927-000288", "task_type": "export", "task_status": "succeeded", "progress_percent": 100, "owner": "郑雅琴", "school": "云溪实验学校", "create_time": "2026-09-27 16:40", "elapsed": "18 秒", "result_file": { "file_id": 88012, "file_kind": "export_result", "expire_time": "2026-10-04 16:41" }, "batch_no": null },
-    { "task_no": "TASK-20260926-000255", "task_type": "promotion", "task_status": "partial_failed", "progress_percent": 100, "owner": "郑雅琴", "school": "云溪实验学校", "create_time": "2026-09-26 09:10", "elapsed": "4 分 05 秒", "result_file": { "file_id": 88020, "file_kind": "failed_rows", "expire_time": "2026-10-03 09:14" }, "batch_no": "PRM-20260926-0001", "failed_count": 3 }
+    {
+      "task_no": "TASK-20260928-000312",
+      "task_type": "import",
+      "task_status": "running",
+      "progress_percent": 62,
+      "owner": "郑雅琴",
+      "school": "云溪实验学校",
+      "create_time": "2026-09-28 10:25",
+      "elapsed": "1 分 12 秒",
+      "result_file": null,
+      "batch_no": "IMP-20260928-0001"
+    },
+    {
+      "task_no": "TASK-20260927-000288",
+      "task_type": "export",
+      "task_status": "succeeded",
+      "progress_percent": 100,
+      "owner": "郑雅琴",
+      "school": "云溪实验学校",
+      "create_time": "2026-09-27 16:40",
+      "elapsed": "18 秒",
+      "result_file": {
+        "file_id": 88012,
+        "file_kind": "export_result",
+        "expire_time": "2026-10-04 16:41"
+      },
+      "batch_no": null
+    },
+    {
+      "task_no": "TASK-20260926-000255",
+      "task_type": "promotion",
+      "task_status": "partial_failed",
+      "progress_percent": 100,
+      "owner": "郑雅琴",
+      "school": "云溪实验学校",
+      "create_time": "2026-09-26 09:10",
+      "elapsed": "4 分 05 秒",
+      "result_file": {
+        "file_id": 88020,
+        "file_kind": "failed_rows",
+        "expire_time": "2026-10-03 09:14"
+      },
+      "batch_no": "PRM-20260926-0001",
+      "failed_count": 3
+    },
+    {
+      "task_no": "TASK-20260930-000331",
+      "task_type": "export",
+      "task_status": "queued",
+      "progress_percent": 0,
+      "queue_position": 2,
+      "owner": "郑雅琴",
+      "school": "云溪实验学校",
+      "create_time": "2026-09-30 10:12",
+      "elapsed": "0 秒",
+      "result_file": null,
+      "batch_no": null,
+      "note": "同一用户 1 个、同一学校 3 个配额已满，进入排队（BR-IMP-015）"
+    }
   ],
-
   "audit_logs": [
-    { "log_id": 700001, "create_time": "2026-09-28 10:22:31", "operator": "郑雅琴", "operator_role": "教务主任", "action_type": "import", "object_type": "学生导入批次", "object_id": "IMP-20260928-0001", "result": "成功", "client_ip": "10.20.31.45", "batch_no": "IMP-20260928-0001", "change_diff": null },
-    { "log_id": 700002, "create_time": "2026-09-27 15:08:02", "operator": "邓丽娟", "operator_role": "班主任", "action_type": "update", "object_type": "学生监护人", "object_id": "5001", "result": "成功", "client_ip": "10.20.31.88", "batch_no": null, "change_diff": [{ "field": "guardian_phone", "before": "138****2210", "after": "138****6620" }] },
-    { "log_id": 700003, "create_time": "2026-09-27 11:40:19", "operator": "郑雅琴", "operator_role": "教务主任", "action_type": "view_sensitive", "object_type": "学生证件号", "object_id": "5001", "result": "成功", "client_ip": "10.20.31.45", "batch_no": null, "change_diff": null, "purpose": "核对学籍上报材料" },
-    { "log_id": 700004, "create_time": "2026-09-26 20:15:07", "operator": "平台运营 运维账号 A", "operator_role": "平台运营", "action_type": "read", "object_type": "学生", "object_id": "5002", "result": "成功", "client_ip": "203.0.113.24", "batch_no": null, "change_diff": null, "purpose": "工单 WO-20260926-118 排查导入异常", "target_tenant": "云溪实验学校" },
-    { "log_id": 700005, "create_time": "2026-09-25 08:03:44", "operator": "s2026000007", "operator_role": "学生", "action_type": "login", "object_type": "登录", "object_id": "-", "result": "失败（密码错误，第 3 次）", "client_ip": "10.20.50.17", "batch_no": null, "change_diff": null }
+    {
+      "log_id": 700001,
+      "create_time": "2026-09-28 10:22:31",
+      "operator": "郑雅琴",
+      "operator_role": "教务主任",
+      "action_type": "import",
+      "object_type": "学生导入批次",
+      "object_id": "IMP-20260928-0001",
+      "result": "成功",
+      "client_ip": "10.20.31.45",
+      "batch_no": "IMP-20260928-0001",
+      "change_diff": null
+    },
+    {
+      "log_id": 700002,
+      "create_time": "2026-09-27 15:08:02",
+      "operator": "邓丽娟",
+      "operator_role": "班主任",
+      "action_type": "update",
+      "object_type": "学生监护人",
+      "object_id": "5001",
+      "result": "成功",
+      "client_ip": "10.20.31.88",
+      "batch_no": null,
+      "change_diff": [
+        {
+          "field": "guardian_phone",
+          "before": "138****2210",
+          "after": "138****6620"
+        }
+      ]
+    },
+    {
+      "log_id": 700003,
+      "create_time": "2026-09-27 11:40:19",
+      "operator": "郑雅琴",
+      "operator_role": "教务主任",
+      "action_type": "view_sensitive",
+      "object_type": "学生证件号",
+      "object_id": "5001",
+      "result": "成功",
+      "client_ip": "10.20.31.45",
+      "batch_no": null,
+      "change_diff": null,
+      "purpose": "核对学籍上报材料"
+    },
+    {
+      "log_id": 700004,
+      "create_time": "2026-09-26 20:15:07",
+      "operator": "平台运营 运维账号 A",
+      "operator_role": "平台运营",
+      "action_type": "read",
+      "object_type": "学生",
+      "object_id": "5002",
+      "result": "成功",
+      "client_ip": "203.0.113.24",
+      "batch_no": null,
+      "change_diff": null,
+      "purpose": "工单 WO-20260926-118 排查导入异常",
+      "target_tenant": "云溪实验学校"
+    },
+    {
+      "log_id": 700005,
+      "create_time": "2026-09-25 08:03:44",
+      "operator": "s2026000007",
+      "operator_role": "学生",
+      "action_type": "login",
+      "object_type": "登录",
+      "object_id": "-",
+      "result": "失败（密码错误，第 3 次）",
+      "client_ip": "10.20.50.17",
+      "batch_no": null,
+      "change_diff": null
+    }
   ],
-
   "prototype_roles": [
-    { "code": "academic_director", "label": "教务主任", "persona": "郑雅琴", "note": "主流程操作者，出现新增 / 导入 / 导出 / 异动" },
-    { "code": "homeroom", "label": "班主任", "persona": "邓丽娟", "note": "不出现新增 / 导入；可改监护人信息与联系方式" },
-    { "code": "grade_leader", "label": "年级主任", "persona": "何文博", "note": "监护人信息只读；可导出本年级" },
-    { "code": "subject_teacher", "label": "任课教师", "persona": "谢明轩", "note": "禁止导出；看不到证件号与监护人" },
-    { "code": "school_leader", "label": "校领导", "persona": "陆承志", "note": "本校全部只读 + 审批" },
-    { "code": "platform_ops", "label": "平台运营", "persona": "运维账号 A", "note": "默认只读，导出需显式授权，访问留痕" }
+    {
+      "code": "academic_director",
+      "label": "教务主任",
+      "persona": "郑雅琴",
+      "note": "主流程操作者，出现新增 / 导入 / 导出 / 异动"
+    },
+    {
+      "code": "homeroom",
+      "label": "班主任",
+      "persona": "邓丽娟",
+      "note": "不出现新增 / 导入；可改监护人信息与联系方式"
+    },
+    {
+      "code": "grade_leader",
+      "label": "年级主任",
+      "persona": "何文博",
+      "note": "监护人信息只读；可导出本年级"
+    },
+    {
+      "code": "subject_teacher",
+      "label": "任课教师",
+      "persona": "谢明轩",
+      "note": "禁止导出；看不到证件号与监护人"
+    },
+    {
+      "code": "school_leader",
+      "label": "校领导",
+      "persona": "陆承志",
+      "note": "本校全部只读 + 审批"
+    },
+    {
+      "code": "platform_ops",
+      "label": "平台运营",
+      "persona": "运维账号 A",
+      "note": "默认只读，导出需显式授权，访问留痕"
+    }
   ],
-
   "dictionaries": {
     "enrollment_status": [
-      { "code": "pending_enroll", "label": "转入未报到", "terminal": false, "tag": "warning" },
-      { "code": "enrolled", "label": "在读", "terminal": false, "tag": "success" },
-      { "code": "suspended", "label": "休学", "terminal": false, "tag": "warning" },
-      { "code": "studying_abroad", "label": "出国", "terminal": false, "tag": "warning" },
-      { "code": "missing", "label": "失踪", "terminal": false, "tag": "warning" },
-      { "code": "transferred_out", "label": "已转出", "terminal": true, "tag": "info" },
-      { "code": "graduated", "label": "毕业", "terminal": true, "tag": "info" },
-      { "code": "course_completed", "label": "结业", "terminal": true, "tag": "info" },
-      { "code": "course_incomplete", "label": "肄业", "terminal": true, "tag": "info" },
-      { "code": "expelled", "label": "开除", "terminal": true, "tag": "danger" },
-      { "code": "withdrawn", "label": "退学", "terminal": true, "tag": "info" },
-      { "code": "deceased", "label": "死亡", "terminal": true, "tag": "info" }
+      {
+        "code": "pending_enroll",
+        "label": "转入未报到",
+        "terminal": false,
+        "tag": "warning"
+      },
+      {
+        "code": "enrolled",
+        "label": "在读",
+        "terminal": false,
+        "tag": "success"
+      },
+      {
+        "code": "suspended",
+        "label": "休学",
+        "terminal": false,
+        "tag": "warning"
+      },
+      {
+        "code": "studying_abroad",
+        "label": "出国",
+        "terminal": false,
+        "tag": "warning"
+      },
+      {
+        "code": "missing",
+        "label": "失踪",
+        "terminal": false,
+        "tag": "warning"
+      },
+      {
+        "code": "transferred_out",
+        "label": "已转出",
+        "terminal": true,
+        "tag": "info"
+      },
+      {
+        "code": "graduated",
+        "label": "毕业",
+        "terminal": true,
+        "tag": "info"
+      },
+      {
+        "code": "course_completed",
+        "label": "结业",
+        "terminal": true,
+        "tag": "info"
+      },
+      {
+        "code": "course_incomplete",
+        "label": "肄业",
+        "terminal": true,
+        "tag": "info"
+      },
+      {
+        "code": "expelled",
+        "label": "开除",
+        "terminal": true,
+        "tag": "danger"
+      },
+      {
+        "code": "withdrawn",
+        "label": "退学",
+        "terminal": true,
+        "tag": "info"
+      },
+      {
+        "code": "deceased",
+        "label": "死亡",
+        "terminal": true,
+        "tag": "info"
+      }
     ],
     "async_task_status": [
-      { "code": "queued", "label": "排队中", "tag": "primary" },
-      { "code": "running", "label": "执行中", "tag": "primary" },
-      { "code": "succeeded", "label": "成功", "tag": "success" },
-      { "code": "partial_failed", "label": "部分失败", "tag": "warning" },
-      { "code": "failed", "label": "失败", "tag": "danger" },
-      { "code": "cancelled", "label": "已取消", "tag": "info" }
+      {
+        "code": "queued",
+        "label": "排队中",
+        "tag": "primary"
+      },
+      {
+        "code": "running",
+        "label": "执行中",
+        "tag": "primary"
+      },
+      {
+        "code": "succeeded",
+        "label": "成功",
+        "tag": "success"
+      },
+      {
+        "code": "partial_failed",
+        "label": "部分失败",
+        "tag": "warning"
+      },
+      {
+        "code": "failed",
+        "label": "失败",
+        "tag": "danger"
+      },
+      {
+        "code": "cancelled",
+        "label": "已取消",
+        "tag": "info"
+      }
+    ],
+    "source_of_truth": "docs/10-prd/06-field-dictionary.yaml",
+    "source_note": "本节点的标签与颜色只是页面渲染用的副本；枚举值与标签一律以 06-field-dictionary.yaml 为准，二者不一致时以字典为准并登记缺口"
+  },
+  "edge_cases": {
+    "note": "边界样本。每个原型页面至少用到与其相关的 3 类，用于证明页面能承接真实世界的脏数据，而不是只画理想态。「跨校」一类指跨校任教、跨校转学与平台运营视图，不含学生数据的跨校共享。",
+    "items": [
+      {
+        "id": "edge-empty",
+        "category": "空",
+        "samples": [
+          "高一 (3) 班学生数为 0",
+          "2026 级 高一 未指定年级主任"
+        ],
+        "expected_ui": "空态：插画加说明原因加主动作按钮（添加学生 / 指定年级主任）",
+        "related_pages": [
+          "PAGE-STU-LIST",
+          "PAGE-CLS-DETAIL",
+          "PAGE-GRD-LIST"
+        ]
+      },
+      {
+        "id": "edge-full",
+        "category": "满",
+        "samples": [
+          "高一 (1) 班 45 / 45 人"
+        ],
+        "expected_ui": "容量提示，仅提示不拦截（BR-CLASS-005）：警示色文字，仍允许保存",
+        "related_pages": [
+          "PAGE-CLS-DETAIL",
+          "PAGE-CLS-ROSTER-ADD"
+        ]
+      },
+      {
+        "id": "edge-overlong",
+        "category": "超长",
+        "samples": [
+          "学生姓名 欧阳慕容芷若",
+          "联系地址 60 字以上",
+          "班级名称 2026 级高一实验班（强基计划方向）(3) 班"
+        ],
+        "expected_ui": "表格内省略号加悬浮完整；详情页完整展示且不折行错乱",
+        "related_pages": [
+          "PAGE-STU-LIST",
+          "PAGE-STU-DETAIL"
+        ]
+      },
+      {
+        "id": "edge-missing",
+        "category": "缺失",
+        "samples": [
+          "学生 2026000004 无学生手机号",
+          "学生 2026000003 无全国学籍号",
+          "学生 2026000006 无主要联系人"
+        ],
+        "expected_ui": "统一显示 —（中文长横），不显示 null 或空白",
+        "related_pages": [
+          "PAGE-STU-LIST",
+          "PAGE-STU-DETAIL"
+        ]
+      },
+      {
+        "id": "edge-special",
+        "category": "特殊字符",
+        "samples": [
+          "姓名 阿依古丽·买买提",
+          "姓名 欧阳·娜仁托娅"
+        ],
+        "expected_ui": "完整展示间隔号；按姓氏排序不乱码",
+        "related_pages": [
+          "PAGE-STU-LIST"
+        ]
+      },
+      {
+        "id": "edge-terminal",
+        "category": "终态",
+        "samples": [
+          "已毕业学生（历史名单里的高一 (3) 班）",
+          "已转出学生"
+        ],
+        "expected_ui": "终态学生无任何异动入口；状态标签用 info 色",
+        "related_pages": [
+          "PAGE-STU-LIST",
+          "PAGE-STU-STATUS"
+        ]
+      },
+      {
+        "id": "edge-pending",
+        "category": "待办中",
+        "samples": [
+          "学生 2026000005 转入未报到",
+          "SC-2026-0031 选科变更待审批"
+        ],
+        "expected_ui": "warning 色标签加可执行动作（报到 / 审批）",
+        "related_pages": [
+          "PAGE-STU-LIST",
+          "PAGE-STR-APPROVE"
+        ]
+      },
+      {
+        "id": "edge-crossschool",
+        "category": "跨校",
+        "samples": [
+          "学生 2026000101 属云溪外国语学校",
+          "只读共享授权 DG-2026-0007"
+        ],
+        "expected_ui": "只读呈现；页头显示「共享授权 · 只读」标识，不出现写操作按钮",
+        "related_pages": [
+          "PAGE-STU-LIST",
+          "PAGE-STU-DETAIL"
+        ]
+      }
     ]
   },
-
-  "edge_cases": {
-    "note": "边界样本。每个原型页面至少用到与其相关的 3 类，用于证明页面能承接真实世界的脏数据，而不是只画理想态。",
-    "items": [
-      { "id": "edge-empty", "category": "空", "samples": ["高一 (3) 班学生数为 0", "2026 级 高一 未指定年级主任"], "expected_ui": "空态：插画加说明原因加主动作按钮（添加学生 / 指定年级主任）", "related_pages": ["PAGE-STU-LIST", "PAGE-CLS-DETAIL", "PAGE-GRD-LIST"] },
-      { "id": "edge-full", "category": "满", "samples": ["高一 (1) 班 45 / 45 人"], "expected_ui": "容量提示，仅提示不拦截（BR-CLASS-005）：警示色文字，仍允许保存", "related_pages": ["PAGE-CLS-DETAIL", "PAGE-CLS-ROSTER-ADD"] },
-      { "id": "edge-overlong", "category": "超长", "samples": ["学生姓名 欧阳慕容芷若", "联系地址 60 字以上", "班级名称 2026 级高一实验班（强基计划方向）(3) 班"], "expected_ui": "表格内省略号加悬浮完整；详情页完整展示且不折行错乱", "related_pages": ["PAGE-STU-LIST", "PAGE-STU-DETAIL"] },
-      { "id": "edge-missing", "category": "缺失", "samples": ["学生 2026000004 无学生手机号", "学生 2026000003 无全国学籍号", "学生 2026000006 无主要联系人"], "expected_ui": "统一显示 —（中文长横），不显示 null 或空白", "related_pages": ["PAGE-STU-LIST", "PAGE-STU-DETAIL"] },
-      { "id": "edge-special", "category": "特殊字符", "samples": ["姓名 阿依古丽·买买提", "姓名 欧阳·娜仁托娅"], "expected_ui": "完整展示间隔号；按姓氏排序不乱码", "related_pages": ["PAGE-STU-LIST"] },
-      { "id": "edge-terminal", "category": "终态", "samples": ["已毕业学生（历史名单里的高一 (3) 班）", "已转出学生"], "expected_ui": "终态学生无任何异动入口；状态标签用 info 色", "related_pages": ["PAGE-STU-LIST", "PAGE-STU-STATUS"] },
-      { "id": "edge-pending", "category": "待办中", "samples": ["学生 2026000005 转入未报到", "SC-2026-0031 选科变更待审批"], "expected_ui": "warning 色标签加可执行动作（报到 / 审批）", "related_pages": ["PAGE-STU-LIST", "PAGE-STR-APPROVE"] },
-      { "id": "edge-crossschool", "category": "跨校", "samples": ["学生 2026000101 属云溪外国语学校", "只读共享授权 DG-2026-0007"], "expected_ui": "只读呈现；页头显示「共享授权 · 只读」标识，不出现写操作按钮", "related_pages": ["PAGE-STU-LIST", "PAGE-STU-DETAIL"] }
-    ]
-  }
+  "students_edge_cases": [
+    {
+      "student_id": 5011,
+      "student_no": "2026000011",
+      "login_name": "s2026000011",
+      "student_name": "欧阳慕容芷若",
+      "gender": "女",
+      "enroll_year": 2026,
+      "stage_code": "senior",
+      "grade_id": 202601,
+      "class_id": 20260101,
+      "enrollment_status": "enrolled",
+      "national_student_no": "G33010220260011",
+      "id_card_mask": "330106********3320",
+      "birth_date": "2010-06",
+      "phone_mask": "137****9922",
+      "guardian_count": 2,
+      "school_id": 201,
+      "update_time": "2026-09-29 08:12",
+      "edge": "超长：姓名 6 个汉字，用于验证表格省略号加悬浮完整、详情不折行"
+    },
+    {
+      "student_id": 5012,
+      "student_no": "2026000012",
+      "login_name": "s2026000012",
+      "student_name": "阿依古丽·买买提",
+      "gender": "女",
+      "enroll_year": 2026,
+      "stage_code": "senior",
+      "grade_id": 202601,
+      "class_id": 20260102,
+      "enrollment_status": "enrolled",
+      "national_student_no": "G33010220260012",
+      "id_card_mask": "330103********7788",
+      "birth_date": "2010-10",
+      "phone_mask": "135****6677",
+      "guardian_count": 2,
+      "school_id": 201,
+      "update_time": "2026-09-29 08:20",
+      "edge": "特殊字符：姓名含间隔号，用于验证不截断成乱码与排序正确"
+    },
+    {
+      "student_id": 5013,
+      "student_no": "2024000009",
+      "login_name": "s2024000009",
+      "student_name": "罗一鸣",
+      "gender": "男",
+      "enroll_year": 2024,
+      "stage_code": "senior",
+      "grade_id": 202401,
+      "class_id": 20240101,
+      "enrollment_status": "transferred_out",
+      "national_student_no": "G33010220240009",
+      "id_card_mask": "330104********4409",
+      "birth_date": "2008-11",
+      "phone_mask": "138****4411",
+      "guardian_count": 1,
+      "school_id": 201,
+      "update_time": "2026-08-30 17:05",
+      "edge": "终态：已转出，无任何异动入口，行内只读"
+    },
+    {
+      "student_id": 5014,
+      "student_no": "2024000010",
+      "login_name": "s2024000010",
+      "student_name": "韦清和",
+      "gender": "男",
+      "enroll_year": 2024,
+      "stage_code": "senior",
+      "grade_id": 202401,
+      "class_id": 20240101,
+      "enrollment_status": "withdrawn",
+      "national_student_no": "G33010220240010",
+      "id_card_mask": "330105********7700",
+      "birth_date": "2008-07",
+      "phone_mask": "139****7700",
+      "guardian_count": 1,
+      "school_id": 201,
+      "update_time": "2026-09-05 09:00",
+      "edge": "终态：退学，无任何异动入口，行内只读"
+    }
+  ],
+  "list_totals": {
+    "note": "列表页分页器与总条数的示意值；原型只渲染 content-samples 内的样例行，其余行不落盘，避免编造大量假数据",
+    "student_list_total": 137,
+    "student_list_page_size": 20,
+    "teacher_list_total": 46
+  },
+  "teachers_edge_cases": [
+    {
+      "teacher_id": 1008,
+      "teacher_no": "YX2009002",
+      "teacher_name": "陆承志",
+      "gender": "男",
+      "school_id": 201,
+      "edu_roles": [
+        "school_leader"
+      ],
+      "phone_mask": "137****1120",
+      "status": "在职",
+      "subject_codes": [],
+      "class_count": 0,
+      "update_time": "2026-09-24 09:10",
+      "edge": "教育角色为校领导、无任教关系（任教学科与班级数为空）"
+    },
+    {
+      "teacher_id": 1009,
+      "teacher_no": "YX2010005",
+      "teacher_name": "韦志远",
+      "gender": "男",
+      "school_id": 201,
+      "edu_roles": [
+        "subject_teacher"
+      ],
+      "phone_mask": null,
+      "status": "在职",
+      "subject_codes": [
+        "math"
+      ],
+      "class_count": 2,
+      "update_time": "2026-09-24 09:22",
+      "edge": "缺失：未登记手机号，联系电话显示 —"
+    },
+    {
+      "teacher_id": 1010,
+      "teacher_no": "YX2021008",
+      "teacher_name": "阿依努尔·艾山",
+      "gender": "女",
+      "school_id": 201,
+      "edu_roles": [
+        "subject_teacher"
+      ],
+      "phone_mask": "136****8899",
+      "status": "在职",
+      "subject_codes": [
+        "biology"
+      ],
+      "class_count": 1,
+      "update_time": "2026-09-25 14:02",
+      "edge": "特殊字符：姓名含间隔号，列表不截断、排序正确"
+    },
+    {
+      "teacher_id": 1011,
+      "teacher_no": "YX2013006",
+      "teacher_name": "高洪波",
+      "gender": "男",
+      "school_id": 201,
+      "edu_roles": [
+        "subject_teacher"
+      ],
+      "phone_mask": "138****2233",
+      "status": "离职",
+      "subject_codes": [
+        "chemistry"
+      ],
+      "class_count": 0,
+      "update_time": "2026-08-31 17:30",
+      "edge": "离职状态：不再出现在任教关系选择项中，历史关系保留"
+    },
+    {
+      "teacher_id": 1012,
+      "teacher_no": "YX2022009",
+      "teacher_name": "苗雨欣",
+      "gender": "女",
+      "school_id": 201,
+      "edu_roles": [
+        "subject_teacher"
+      ],
+      "phone_mask": "135****6677",
+      "status": "调离",
+      "subject_codes": [
+        "geography"
+      ],
+      "class_count": 0,
+      "update_time": "2026-07-15 10:05",
+      "edge": "调离状态：跨校调离后原校只读保留"
+    }
+  ]
 }

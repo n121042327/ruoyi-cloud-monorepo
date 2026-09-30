@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>业务原型 v1 入口 — K12 教育 ToB 平台（阶段 2）</title>
+<link rel="stylesheet" href="assets/prototype-shell.css" />
+</head>
+<body style="overflow:auto">
+<div style="max-width:1180px;margin:0 auto;padding:20px 16px 60px">
+
+  <div class="page-head" style="padding-bottom:12px">
+    <h1>K12 教育 ToB 平台 · 业务原型 v1</h1>
+    <span class="el-tag primary">阶段 2</span>
+    <span class="el-tag info">纯静态 HTML · 不连后端</span>
+  </div>
+
+  <div class="alert info">
+    <span>本目录回答三个问题：<b>长什么样、怎么操作、页面怎么跳</b>。视觉精修在阶段 3 的独立高保真原型目录里做，本目录不改配色与字体。</span>
+  </div>
+
+  <section class="card">
+    <div class="card-header"><h3>本批已交付（批次 2-1 · 样板）</h3><span class="el-tag success">待人工验收</span></div>
+    <div class="card-body">
+      <table class="el-table">
+        <thead>
+          <tr><th style="width:180px">页面编号</th><th>页面</th><th style="width:110px">类型</th><th style="width:180px">入口</th><th>验收要点</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">PAGE-STU-LIST</td>
+            <td>学生管理列表</td>
+            <td>列表页（TPL-LIST）</td>
+            <td><a href="pages/student-list.html">pages/student-list.html</a></td>
+            <td>筛选项 9 个、列 12 个、行操作 3 个、14 行样例、分页与总条数、8 类边界样本、六类状态、六种角色</td>
+          </tr>
+          <tr>
+            <td class="mono">PAGE-STU-CREATE</td>
+            <td>新增学生（抽屉 · 三步）</td>
+            <td>抽屉（TPL-OVERLAY）</td>
+            <td><a href="pages/student-list.html" data-demo-toast="进入列表页后点「新增」打开该抽屉。" data-demo-toast-type="info">列表页内「新增」</a></td>
+            <td>系统发号只读、三步校验、监护人上限 3、取消二次确认、提交中禁用</td>
+          </tr>
+          <tr>
+            <td class="mono">PAGE-STU-EDIT</td>
+            <td>编辑学生（抽屉）</td>
+            <td>抽屉（TPL-OVERLAY）</td>
+            <td><a href="pages/student-list.html" data-demo-toast="进入列表页后点行内「编辑」打开该抽屉。" data-demo-toast-type="info">列表页内行内「编辑」</a></td>
+            <td>字段级可编辑性矩阵、只读字段灰底、学号修改入口、查看完整证件号留痕</td>
+          </tr>
+          <tr>
+            <td class="mono">PAGE-TCH-LIST</td>
+            <td>教师管理列表（批次 2-2a 样板）</td>
+            <td>列表页（TPL-LIST）</td>
+            <td><a href="pages/teacher-list.html">pages/teacher-list.html</a></td>
+            <td>筛选项 7 个、列 11 个、行操作 4 个、12 行样例、跨校任教标注、离职登记二次确认、7 类状态、6 种角色</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="legend" style="margin-top:10px">
+        <span>新增与编辑抽屉按 <b>markup-contract.md 第 10.1 节</b> 实现为列表页内的浮层片段（<span class="mono">data-demo-panel</span>），不单独出页面文件。</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-header"><h3>怎么演示（2 分钟）</h3></div>
+    <div class="card-body">
+      <ol style="margin:0;padding-left:20px;line-height:26px">
+        <li>打开 <a href="pages/student-list.html">学生管理列表</a>，左侧菜单与顶部导航、页签栏、面包屑为完整外壳。</li>
+        <li>右下角「原型演示」面板（点标题栏展开）切换角色（教务主任 / 班主任 / 年级主任 / 任课教师 / 校领导 / 平台运营），观察按钮与字段的显隐差异。</li>
+        <li>切换页面状态（加载中 / 空数据 / 查询失败 / 无权限 / 提交中 / 部分失败 / 排队中），逐条核对状态形态。</li>
+        <li>点「新增」打开三步抽屉，只填姓名直接点「下一步」可见字段级校验；填完三步点「保存」见成功反馈。</li>
+        <li>点行内「编辑」打开编辑抽屉，切换角色可见「字段级可编辑性矩阵」效果（灰底字段为只读）。</li>
+        <li>点任意数据行：详情页在批次 2-5 交付，本批只给占位提示，用于验证入口与权限显隐。</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-header"><h3>规范文件（写页面之前先看这些）</h3></div>
+    <div class="card-body">
+      <table class="el-table">
+        <thead><tr><th style="width:280px">文件</th><th>作用</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">prototype-quality-spec.md</td><td>18 类"空洞"根因与约束、数据真实性、边界数据、角色视角、组件选择决策、15 条交批验收清单</td></tr>
+          <tr><td class="mono">layout-spec.yaml</td><td>五区域尺寸、字阶、间距刻度、组件尺寸、四种页面模板、格式规范、必需状态</td></tr>
+          <tr><td class="mono">navigation.yaml</td><td>菜单树、87 项页面注册表、跳转关系、入口条件、10 个交付批次</td></tr>
+          <tr><td class="mono">page-actions.yaml</td><td>动作清单（按钮 → 触发 → 结果 → 权限 → 接口）与反馈文案模板</td></tr>
+          <tr><td class="mono">markup-contract.md</td><td>data-* 语义标记、元素到 Element Plus 组件的映射表、原型可交互约定、反例清单</td></tr>
+          <tr><td class="mono">content-samples.json</td><td>演示数据与 8 类边界样本（<span class="mono">students_edge_cases</span>、<span class="mono">list_totals</span>）</td></tr>
+          <tr><td class="mono">assets/prototype-shell.css / .js</td><td>外壳与演示引擎（侧边菜单、顶部导航、页签栏、面包屑、角色/状态切换、浮层、校验、轻提示）</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-header"><h3>批次进度（86 个页面）</h3></div>
+    <div class="card-body">
+      <table class="el-table">
+        <thead><tr><th style="width:90px">批次</th><th>内容</th><th style="width:90px">页面数</th><th style="width:120px">状态</th></tr></thead>
+        <tbody>
+          <tr><td>2-0</td><td>原型规范（本目录 8 个文件）</td><td class="num">0</td><td><span class="el-tag warning">待验收</span></td></tr>
+          <tr><td>2-1</td><td>学生管理列表 + 新增/编辑抽屉（样板）</td><td class="num">3</td><td><span class="el-tag warning">待验收</span></td></tr>
+          <tr><td>2-2a</td><td>教师管理列表（标准校验页）</td><td class="num">1</td><td><span class="el-tag warning">待验收</span></td></tr>
+          <tr><td>2-2b</td><td>教师管理其余 6 页 + 年级管理 6 页</td><td class="num">12</td><td><span class="el-tag info">待开始</span></td></tr>
+          <tr><td>2-3</td><td>班级管理 + 班级详情 + 升班向导</td><td class="num">12</td><td><span class="el-tag info">待开始</span></td></tr>
+          <tr><td>2-4</td><td>导入向导 + 登录 + 异常页</td><td class="num">11</td><td><span class="el-tag info">待开始</span></td></tr>
+          <tr><td>2-5</td><td>学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录）</td><td class="num">8</td><td><span class="el-tag info">待开始</span></td></tr>
+          <tr><td>2-6</td><td>学校管理 + 学年学期 + 学科与配置</td><td class="num">19</td><td><span class="el-tag info">待开始</span></td></tr>
+          <tr><td>2-7</td><td>选科与教学班</td><td class="num">9</td><td><span class="el-tag info">待开始</span></td></tr>
+          <tr><td>2-8</td><td>审计与操作日志</td><td class="num">7</td><td><span class="el-tag info">待开始</span></td></tr>
+          <tr><td>2-9</td><td>异步任务中心 + 死信 + 导出配置</td><td class="num">4</td><td><span class="el-tag info">待开始</span></td></tr>
+        </tbody>
+      </table>
+      <div class="legend" style="margin-top:10px"><span>批次状态以 <span class="mono">navigation.yaml</span> 的 <span class="mono">delivery_batches</span> 为准；每批结束时暂停，经人工验收后再进入下一批。</span></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-header"><h3>已知缺口（本批暴露，需要你拍板）</h3></div>
+    <div class="card-body">
+      <table class="el-table">
+        <thead><tr><th style="width:110px">编号</th><th>缺口</th><th style="width:280px">影响</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">GAP-026</td><td><span class="mono">read_sensitive</span> / <span class="mono">read_contact</span> 两个权限点未在 05-permission-matrix.yaml 定义归属角色</td><td>证件号后四位筛选、查看完整证件号、掩码与明文的角色差异</td></tr>
+          <tr><td class="mono">GAP-027</td><td>学生照片（学籍照片）未进入字段字典与新增表单</td><td>学生新增 / 编辑表单的字段清单</td></tr>
+          <tr><td class="mono">GAP-028</td><td>PRD 6.2 提到"批量操作下拉"，page-actions.yaml 未登记对应动作</td><td>列表页工具条形态与批量调班 / 批量导出</td></tr>
+          <tr><td class="mono">GAP-029</td><td>字段字典缺 <span class="mono">is_primary</span>、<span class="mono">enroll_date</span> 等 PRD 已使用的字段</td><td>表单字段标记与阶段 5 建表列清单</td></tr>
+          <tr><td class="mono">GAP-030</td><td>学号修改的"校级管理员"未映射到权限矩阵角色（矩阵中校领导对学号标"—"）</td><td>学号修改入口谁能看到、谁能提交</td></tr>
+          <tr><td class="mono">已关闭</td><td><span class="mono">GAP-026</span> ~ <span class="mono">030</span> 已按用户"按推荐来"执行（<span class="mono">CR-003</span>）；<span class="mono">GAP-031</span> 随 <span class="mono">CR-002</span> 关闭：共享授权只针对题库 / 试卷资源</td><td>本表保留历史，最新状态见 <span class="mono">gap-register.yaml</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+
+<script src="assets/prototype-shell.js"></script>
+</body>
+</html>

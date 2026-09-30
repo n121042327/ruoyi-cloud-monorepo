@@ -177,7 +177,7 @@ pages:
 delivery_batches:
   - { batch: "2-0", content: 原型规范（layout-spec / navigation / page-actions / markup-contract / 样例数据）, pages: 0, status: 本批 }
   - { batch: "2-1", content: 学生管理列表 + 新增/编辑抽屉（样板）, pages: 3, status: 待验收 }
-  - { batch: "2-2", content: 教师管理 + 年级管理, pages: 13, status: 待开始 }
+  - { batch: "2-2", content: "教师管理 + 年级管理（执行时拆为 2-2a 教师列表 1 页 / 2-2b 其余 12 页）", pages: 13, status: 2-2a 已产出待验收 }
   - { batch: "2-3", content: 班级管理 + 班级详情 + 升班向导, pages: 12, status: 待开始 }
   - { batch: "2-4", content: 导入向导 + 登录 + 异常页, pages: 11, status: 待开始 }
   - { batch: "2-5", content: 学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录）, pages: 8, status: 已确认（D-050），待开始 }

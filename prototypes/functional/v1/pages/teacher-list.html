@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>教师管理列表 — 业务原型 v1（批次 2-2a 样板）</title>
+<link rel="stylesheet" href="../assets/prototype-shell.css" />
+<script src="../assets/prototype-shell.js"></script>
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-TCH-LIST"
+  data-breadcrumb="教育管理 / 教师管理 / 教师列表"
+  data-tab="教师管理列表"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-TCH-LIST" data-role="page">
+
+  <!-- ============================================================ 页头 -->
+  <div class="page-head">
+    <h1>教师管理</h1>
+    <span class="scope-hint" data-role="scope-hint">数据范围：本校 · 全部教育角色 · 含离职与调离</span>
+    <span class="el-tag primary">共 46 名教师</span>
+    <span class="el-tag info">列表数据截止 2026-09-30 10:20</span>
+  </div>
+
+  <!-- ============================================================ 搜索区 -->
+  <section class="card" data-block="filter" data-role="filter" data-component="el-card.hover">
+    <div class="card-body">
+      <div class="form-inline">
+        <div class="form-item">
+          <label for="f-school">学校</label>
+          <select class="select" id="f-school" style="min-width:160px" data-role="field" data-field="school_id"
+                  data-component="el-select" data-filter="school" data-role-enabled="platform_ops"
+                  title="只有平台运营可以切换学校；教师数据不跨校共享（BR-DATA-018）">
+            <option value="201" selected>云溪实验学校（本校）</option>
+            <option value="202">云溪外国语学校（平台运营视图）</option>
+          </select>
+        </div>
+        <div class="form-item wide">
+          <label>教育角色</label>
+          <span class="chip-group" data-role="field" data-field="edu_role" data-component="el-select.multiple">
+            <button class="chip" data-role-chip="school_leader">校领导</button>
+            <button class="chip" data-role-chip="academic_director">教务主任</button>
+            <button class="chip" data-role-chip="grade_leader">年级主任</button>
+            <button class="chip" data-role-chip="homeroom">班主任</button>
+            <button class="chip" data-role-chip="subject_teacher">任课教师</button>
+            <button class="chip" data-role-chip="__all">全部</button>
+          </span>
+        </div>
+        <div class="form-item">
+          <label for="f-grade">任教年级</label>
+          <select class="select" id="f-grade" data-role="field" data-field="grade_name" data-component="el-select" data-filter="grade">
+            <option value="">全部年级</option>
+            <option value="202601">2026 级 高一</option>
+            <option value="202501">2025 级 高二</option>
+            <option value="202401">2024 级 高三</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label for="f-status">在职状态</label>
+          <select class="select" id="f-status" style="min-width:120px" data-role="field" data-component="el-select" data-filter="status">
+            <option value="在职" selected>在职</option>
+            <option value="离职">离职</option>
+            <option value="调离">调离</option>
+            <option value="__all">全部状态</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-inline" style="margin-top:12px">
+        <div class="form-item">
+          <label for="f-subject">任教学科</label>
+          <select class="select" style="min-width:120px" id="f-subject" data-role="field" data-field="subject_code"
+                  data-component="el-select" data-filter="subject">
+            <option value="">全部学科</option>
+            <option value="chinese">语文</option>
+            <option value="math">数学</option>
+            <option value="english">外语</option>
+            <option value="physics">物理</option>
+            <option value="chemistry">化学</option>
+            <option value="biology">生物</option>
+            <option value="geography">地理</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label for="f-class">任教班级</label>
+          <select class="select" id="f-class" data-role="field" data-field="class_name" data-component="el-select" data-filter="class">
+            <option value="">全部班级</option>
+            <option value="20260101">高一 (1) 班</option>
+            <option value="20260102">高一 (2) 班</option>
+            <option value="20250101">高二 (1) 班</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label for="f-keyword">关键字</label>
+          <input class="input" id="f-keyword" style="min-width:150px" data-role="field" data-field="teacher_name"
+                 data-component="el-input" placeholder="工号 / 姓名" data-filter="keyword" />
+        </div>
+        <div class="form-item" style="margin-left:auto;min-width:auto">
+          <button class="btn primary" data-role="action" data-action-id="ACT-COM-001" data-component="el-button.primary" data-permission="person.teacher:read">搜索</button>
+          <button class="btn" data-role="action" data-action-id="ACT-COM-002" data-component="el-button" data-permission="person.teacher:read">重置</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ 工具条 + 表格 -->
+  <section class="card" data-block="toolbar" data-role="toolbar" data-component="el-card.hover">
+    <div class="card-header">
+      <div class="toolbar" data-demo-state-target="toolbar">
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-TCH-001" data-component="el-button.primary.plain"
+                data-permission="person.teacher:create" data-nav="PAGE-TCH-CREATE" data-overlay="drawer"
+                data-role-visible="academic_director,tenant_admin">新增</button>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-TCH-002" data-component="el-button.primary.plain"
+                data-permission="data.import:import" data-nav="PAGE-TCH-IMPORT"
+                data-role-visible="academic_director,tenant_admin">导入</button>
+        <button class="btn plain" data-role="action" data-action-id="ACT-TCH-003" data-component="el-button"
+                data-permission="data.export:export" data-api="exportTeacher"
+                data-demo-message="已生成 46 行，开始下载。"
+                data-role-visible="academic_director,grade_leader,school_leader">导出</button>
+        <button class="btn plain" data-role="action" data-action-id="ACT-TCH-004" data-component="el-button"
+                data-permission="data.import:import" data-api="downloadTeacherImportTemplate"
+                data-demo-message="已下载教师导入模板 teacher-v2.xlsx（版本号在文件内可见）。"
+                data-role-visible="academic_director,tenant_admin">下载模板</button>
+        <button class="btn plain" data-role="action" data-action-id="ACT-TCH-005" data-component="el-button"
+                data-permission="person.teaching_assignment:create" data-api="batchSaveTeachingAssignment"
+                data-demo-message="已带入 2 名教师进入任教关系页（批次 2-2b）；逐条校验范围，任一条越权则整体拒绝。"
+                data-role-visible="academic_director,grade_leader">批量设置任教</button>
+        <button class="btn plain" data-role="action" data-action-id="ACT-COM-007" data-component="el-button"
+                data-permission="data.export:export" data-role-visible="platform_ops"
+                data-demo-toast="平台运营导出需要逐次授权：授权后本次导出写入审计，并同步给被访问学校（PM-Q-004）。"
+                data-demo-toast-type="warning">导出（需授权）</button>
+      </div>
+      <div class="header-right">
+        <button class="btn" data-role="action" data-action-id="ACT-COM-003" data-component="el-button">隐藏搜索</button>
+        <button class="btn" data-role="action" data-action-id="ACT-COM-004" data-component="el-button" title="可选列：邮箱、入职日期、任职年级、更新时间">列配置</button>
+        <button class="btn" data-role="action" data-action-id="ACT-COM-005" data-component="el-button" data-api="listTeacher"
+                data-demo-message="已按当前条件刷新，未重置页码。">刷新</button>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="alert warning state-hidden" id="ops-scope-alert" data-role-visible="platform_ops">
+        <span>平台运营协助视图 · 只读</span>
+        <span>当前查看的是云溪外国语学校的教师数据；本次访问写入访问日志并同步给被访问学校。</span>
+      </div>
+      <div class="alert warning state-hidden" data-demo-state-panel="submitting">
+        <span>提交中</span><span>写操作按钮已置 loading 并禁用，禁止重复提交。</span>
+      </div>
+
+      <div data-normal-view>
+        <div class="table-scroll">
+          <table class="el-table" id="teacher-table" data-role="table" data-component="el-table" data-api="listTeacher"
+                 style="min-width:1060px;table-layout:fixed">
+            <thead>
+              <tr>
+                <th style="width:50px" class="center"><input type="checkbox" data-role="selection" data-action-id="ACT-COM-008" /></th>
+                <th data-role="column" data-field="teacher_no" style="width:96px">工号</th>
+                <th data-role="column" data-field="teacher_name" style="width:104px">姓名</th>
+                <th data-role="column" data-field="gender" style="width:48px">性别</th>
+                <th data-role="column" data-field="school_id" style="width:150px">所属学校</th>
+                <th data-role="column" data-field="edu_role" style="width:132px">教育角色</th>
+                <th data-role="column" data-field="subject_code" style="width:96px">任教学科</th>
+                <th data-role="column" class="num" style="width:88px">任课班级数</th>
+                <th data-role="column" style="width:84px">在职状态</th>
+                <th data-role="column" data-field="teacher_phone" style="width:104px" data-col-hide-role="subject_teacher">联系电话</th>
+                <th class="actions" style="width:150px">操作</th>
+              </tr>
+            </thead>
+            <tbody id="teacher-rows">
+              <!-- 数据来源：content-samples.json 的 teachers 与 teachers_edge_cases -->
+              <tr data-role="row" data-nav="PAGE-TCH-DETAIL" data-school="201" data-status="在职" data-grade="202601" data-class="20260101"
+                  data-subject="chinese" data-roles="academic_director" data-keyword="YX2019001 郑雅琴">
+                <td class="center"><input type="checkbox" /></td>
+                <td class="mono">YX2019001</td>
+                <td>郑雅琴</td><td>女</td>
+                <td>云溪实验学校</td>
+                <td><span class="el-tag primary">教务主任</span></td>
+                <td>语文</td><td class="num">1</td>
+                <td><span class="el-tag success">在职</span></td>
+                <td class="mono">138****2210</td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-TCH-DETAIL" data-school="201" data-status="在职" data-grade="" data-class=""
+                  data-subject="" data-roles="grade_leader" data-keyword="YX2015007 何文博">
+                <td class="center"><input type="checkbox" /></td>
+                <td class="mono">YX2015007</td>
+                <td>何文博</td><td>男</td>
+                <td>云溪实验学校</td>
+                <td><span class="el-tag primary">年级主任</span></td>
+                <td class="cell-empty">—</td><td class="num">0</td>
+                <td><span class="el-tag success">在职</span></td>
+                <td class="mono">139****8801</td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-TCH-DETAIL" data-school="201" data-status="在职" data-grade="202601" data-class="20260101"
+                  data-subject="chinese" data-roles="homeroom,subject_teacher" data-keyword="YX2018003 邓丽娟">
+                <td class="center"><input type="checkbox" /></td>
+                <td class="mono">YX2018003</td>
+                <td>邓丽娟</td><td>女</td>
+                <td>云溪实验学校</td>
+                <td><span class="el-tag primary">班主任</span> <span class="el-tag info">任课教师</span></td>
+                <td>语文</td><td class="num">1</td>
+                <td><span class="el-tag success">在职</span></td>
+                <td class="mono">137****6652</td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-TCH-DETAIL" data-school="201" data-status="在职" data-grade="" data-class=""
+                  data-subject="" data-roles="homeroom" data-keyword="YX2016009 冯振国">
+                <td class="center"><input type="checkbox" /></td>
+                <td class="mono">YX2016009</td>
+                <td>冯振国</td><td>男</td>
+                <td>云溪实验学校</td>
+                <td><span class="el-tag primary">班主任</span></td>
+                <td class="cell-empty">—</td><td class="num">0</td>
+                <td><span class="el-tag success">在职</span></td>
+                <td class="mono">135****3390</td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-TCH-DETAIL" data-school="201" data-status="在职" data-grade="202401" data-class=""
+                  data-subject="physics" data-roles="grade_leader,subject_teacher" data-keyword="YX2014002 谢明轩">
+                <td class="center"><input type="checkbox" /></td>
+                <td class="mono">YX2014002</td>
+                <td>谢明轩</td><td>男</td>
+                <td>云溪实验学校</td>
+                <td><span class="el-tag primary">年级主任</span> <span class="el-tag info">任课教师</span></td>
+                <td>物理</td><td class="num">1</td>
+                <td><span class="el-tag success">在职</span></td>
+                <td class="mono">136****1177</td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-TCH-DETAIL" data-school="201" data-status="在职" data-grade="202501" data-class="20250101"
+                  data-subject="english" data-roles="homeroom,subject_teacher" data-keyword="YX2020015 卢佳音">
+                <td class="center"><input type="checkbox" /></td>
+                <td class="mono">YX2020015</td>
+                <td>卢佳音</td><td>女</td>
+                <td>云溪实验学校</td>
+                <td><span class="el-tag primary">班主任</span> <span class="el-tag info">任课教师</span></td>
+                <td>外语</td><td class="num">1</td>
+                <td><span class="el-tag success">在职</span></td>
+                <td class="mono">133****9042</td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-TCH-DETAIL" data-school="202" data-home-school="202" data-status="在职" data-grade="202601" data-class="20260101"
+                  data-subject="english" data-roles="academic_director" data-keyword="YXWY2017001 苏睿">
+                <td class="center"><input type="checkbox" /></td>
+                <td class="mono">YXWY2017001</td>
+                <td>苏睿</td><td>男</td>
+                <td>云溪外国语学校 <span class="el-tag warning">跨校任教</span></td>
+                <td><span class="el-tag primary">教务主任</span></td>
+                <td>外语</td><td class="num">1</td>
+                <td><span class="el-tag success">在职</span></td>
+                <td class="mono">131****5588</td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-TCH-DETAIL" data-school="201" data-status="在职" data-grade="" data-class=""
+                  data-subject="" data-roles="school_leader" data-keyword="YX2009002 陆承志">
+                <td class="center"><input type="checkbox" /></td>
+                <td class="mono">YX2009002</td>
+                <td>陆承志</td><td>男</td>
+                <td>云溪实验学校</td>
+                <td><span class="el-tag primary">校领导</span></td>
+                <td class="cell-empty">—</td><td class="num">0</td>
+                <td><span class="el-tag success">在职</span></td>
+                <td class="mono">137****1120</td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-TCH-DETAIL" data-school="201" data-status="在职" data-grade="202601" data-class="20260101"
+                  data-subject="math" data-roles="subject_teacher" data-keyword="YX2010005 韦志远">
+                <td class="center"><input type="checkbox" /></td>
+                <td class="mono">YX2010005</td>
+                <td>韦志远</td><td>男</td>
+                <td>云溪实验学校</td>
+                <td><span class="el-tag info">任课教师</span></td>
+                <td>数学</td><td class="num">2</td>
+                <td><span class="el-tag success">在职</span></td>
+                <td class="cell-empty">—</td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-TCH-DETAIL" data-school="201" data-status="在职" data-grade="202601" data-class=""
+                  data-subject="biology" data-roles="subject_teacher" data-keyword="YX2021008 阿依努尔·艾山">
+                <td class="center"><input type="checkbox" /></td>
+                <td class="mono">YX2021008</td>
+                <td><span class="ellipsis" title="阿依努尔·艾山">阿依努尔·艾山</span></td><td>女</td>
+                <td>云溪实验学校</td>
+                <td><span class="el-tag info">任课教师</span></td>
+                <td>生物</td><td class="num">1</td>
+                <td><span class="el-tag success">在职</span></td>
+                <td class="mono">136****8899</td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-TCH-DETAIL" data-school="201" data-status="离职" data-grade="" data-class=""
+                  data-subject="chemistry" data-roles="subject_teacher" data-keyword="YX2013006 高洪波">
+                <td class="center"><input type="checkbox" /></td>
+                <td class="mono">YX2013006</td>
+                <td>高洪波</td><td>男</td>
+                <td>云溪实验学校</td>
+                <td><span class="el-tag info">任课教师</span></td>
+                <td>化学</td><td class="num">0</td>
+                <td><span class="el-tag info">离职</span></td>
+                <td class="mono">138****2233</td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-nav="PAGE-TCH-DETAIL" data-school="201" data-status="调离" data-grade="" data-class=""
+                  data-subject="geography" data-roles="subject_teacher" data-keyword="YX2022009 苗雨欣">
+                <td class="center"><input type="checkbox" /></td>
+                <td class="mono">YX2022009</td>
+                <td>苗雨欣</td><td>女</td>
+                <td>云溪实验学校</td>
+                <td><span class="el-tag info">任课教师</span></td>
+                <td>地理</td><td class="num">0</td>
+                <td><span class="el-tag warning">调离</span></td>
+                <td class="mono">135****6677</td>
+                <td class="actions"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination" data-role="pagination" data-component="pagination">
+          <span class="total" id="pg-total">共 46 条 · 当前第 1 页 · 每页 20 条</span>
+          <button class="pg" disabled>‹</button>
+          <button class="pg active">1</button>
+          <button class="pg" data-role="action" data-action-id="ACT-COM-006" data-component="pagination">2</button>
+          <button class="pg" data-role="action" data-action-id="ACT-COM-006" data-component="pagination">3</button>
+          <button class="pg">›</button>
+        </div>
+
+        <div class="legend" style="margin-top:8px">
+          <span><b>PRD 默认值</b>：在职状态 = 在职。样板页默认也是"在职"，切到"全部状态"可看到离职、调离样本。</span>
+          <span><b>边界样本</b>：跨校任教 1 条（苏睿，行内标明任教学校）、无手机号 1 条、姓名含间隔号 1 条、校领导无任教关系 1 条、离职 1 条、调离 1 条</span>
+        </div>
+      </div>
+
+      <!-- 加载中 -->
+      <div class="state-hidden" data-demo-state-panel="loading">
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:96px"></div><div class="skeleton-bar" style="width:104px"></div><div class="skeleton-bar" style="width:150px"></div><div class="skeleton-bar" style="width:132px"></div><div class="skeleton-bar" style="width:96px"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:96px"></div><div class="skeleton-bar" style="width:104px"></div><div class="skeleton-bar" style="width:150px"></div><div class="skeleton-bar" style="width:132px"></div><div class="skeleton-bar" style="width:96px"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:96px"></div><div class="skeleton-bar" style="width:104px"></div><div class="skeleton-bar" style="width:150px"></div><div class="skeleton-bar" style="width:132px"></div><div class="skeleton-bar" style="width:96px"></div></div>
+        <div class="legend" style="margin-top:10px"><span>表格区域加载中：使用表格内 loading，不使用全屏遮罩</span></div>
+      </div>
+
+      <!-- 空数据 -->
+      <div class="state-hidden" data-demo-state-panel="empty">
+        <div class="state-block">
+          <div class="icon">🗂️</div>
+          <div class="title" id="empty-title">当前筛选条件下没有教师</div>
+          <div class="desc" id="empty-desc">筛选条件：在职状态 = 在职；任教学科 = 地理（无匹配）</div>
+          <div class="chip-group" style="justify-content:center;margin-bottom:14px">
+            <button class="chip on" id="empty-v1">筛选无结果</button>
+            <button class="chip" id="empty-v2">无数据范围</button>
+          </div>
+          <button class="btn primary" id="empty-action">清空筛选条件</button>
+        </div>
+      </div>
+
+      <!-- 查询失败 -->
+      <div class="state-hidden" data-demo-state-panel="error">
+        <div class="state-block error">
+          <div class="icon">⚠️</div>
+          <div class="title">教师列表加载失败</div>
+          <div class="desc">查询超时（等待 5 秒未返回），已自动重试 1 次仍失败。</div>
+          <div class="req-id">请求编号 <span class="mono">REQ-20260930-000208</span> · 错误码 DS-5001</div>
+          <button class="btn primary" data-role="action" data-action-id="ACT-COM-005" data-component="el-button"
+                  data-api="listTeacher" data-demo-message="已重新发起查询（第 2 次重试）。">重试</button>
+        </div>
+      </div>
+
+      <!-- 无权限 -->
+      <div class="state-hidden" data-demo-state-panel="forbidden">
+        <div class="state-block">
+          <div class="icon">🔒</div>
+          <div class="title">当前账号没有可查看的教师数据</div>
+          <div class="desc">你的数据范围为空集（未配置教育角色、未建立任教关系）。任课教师只能查看本人信息。<br />
+            系统不会因为范围为空而返回全量数据（<span class="mono">DS-DENY-03</span>）。</div>
+          <button class="btn" data-demo-toast="已返回原型入口。" data-demo-toast-type="info">返回入口</button>
+        </div>
+      </div>
+
+      <!-- 部分失败 -->
+      <div class="state-hidden" data-demo-state-panel="partial">
+        <div class="card" style="margin:0">
+          <div class="card-header"><h3>形态样例 · 批量设置任教部分失败</h3><span class="el-tag warning">partial_failed</span></div>
+          <div class="card-body">
+            <table class="el-table">
+              <thead><tr><th>任务编号</th><th>对象</th><th class="num">总数</th><th class="num">成功</th><th class="num">失败</th><th>失败原因</th></tr></thead>
+              <tbody><tr>
+                <td class="mono">TASK-20260930-000402</td><td>批量设置任教关系</td>
+                <td class="num">12</td><td class="num">11</td><td class="num">1</td>
+                <td>第 7 条：教师 高洪波 已离职，不允许新增任教关系</td>
+              </tr></tbody>
+            </table>
+            <div class="legend" style="margin-top:8px"><span>任一条越权或状态不允许时，按 <span class="mono">DS-DENY-06</span> 整体拒绝；本样例演示"部分失败"的展示形态。</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 排队中 -->
+      <div class="state-hidden" data-demo-state-panel="queued">
+        <div class="state-block">
+          <div class="icon">⏳</div>
+          <div class="title">已受理，排队中</div>
+          <div class="desc">任务编号 <span class="mono">TASK-20260930-000410</span> · 队列位置 1 · 配额：同一用户 1 个、同一学校 3 个（<span class="mono">BR-IMP-015</span>）</div>
+          <button class="btn" data-demo-toast="已打开异步任务中心（批次 2-9 交付）。" data-demo-toast-type="info">查看任务中心</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================== 二次确认：离职 / 调离登记 -->
+<div class="overlay" data-demo="panel" data-demo-panel="DIALOG-TCH-LEAVE" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="sm" data-block="footer">
+    <div class="drawer-header"><h2>登记离职 / 调离</h2><span class="el-tag primary" id="leave-target">郑雅琴</span></div>
+    <div class="dialog-body">
+      <div class="field">
+        <label>登记类型<span class="required">*</span></label>
+        <select class="select" data-field="change_type" data-component="el-select" style="min-width:220px">
+          <option value="leave" selected>离职</option>
+          <option value="transfer_out">调离（跨校）</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>生效日期<span class="required">*</span></label>
+        <input class="input" data-field="effective_date" data-component="el-date-picker" value="2026-10-31" style="min-width:220px" />
+      </div>
+      <div class="field">
+        <label>原因<span class="required">*</span></label>
+        <input class="input" data-component="el-input" style="min-width:360px" placeholder="如：调往青岩中学，2026-10-31 生效" />
+      </div>
+      <div class="alert warning" style="margin:0">
+        <span>影响范围</span>
+        <span>登记后该教师不再出现在任教关系与班主任的选择项中；历史任教关系与班主任历史保留可查。</span>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-close-panel="DIALOG-TCH-LEAVE">取消</button>
+      <button class="btn primary" data-role="action" data-action-id="ACT-TCH-009" data-component="el-button.primary"
+              data-api="saveTeacherLeave" data-demo-message="已登记离职（生效日期 2026-10-31），历史任教关系保留。"
+              data-close-panel="DIALOG-TCH-LEAVE">确认登记</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================== 页面级演示脚本 -->
+<script>
+(function () {
+  'use strict';
+
+  // 教师模块特有角色：租户管理员（可维护教师主体与教育角色，不含教学数据）
+  if (window.PrototypeShell && window.PrototypeShell.roles) {
+    window.PrototypeShell.roles.push({ code: 'tenant_admin', label: '租户管理员', persona: '周敏' });
+  }
+
+  // 1. 行操作：按 page-actions.yaml 的 ACT-TCH-* 逐行渲染
+  Array.prototype.forEach.call(document.querySelectorAll('#teacher-rows tr'), function (row) {
+    var status = row.getAttribute('data-status');
+    var onJob = status === '在职';
+    var cell = row.querySelector('td.actions');
+    if (!cell) return;
+
+    function link(text, actionId, permission, nav, roles, extra) {
+      var btn = document.createElement('button');
+      btn.className = 'btn link';
+      btn.textContent = text;
+      btn.setAttribute('data-role', 'row-action');
+      btn.setAttribute('data-action-id', actionId);
+      btn.setAttribute('data-component', 'el-button.link.primary');
+      btn.setAttribute('data-permission', permission);
+      if (nav) { btn.setAttribute('data-nav', nav); btn.setAttribute('data-overlay', 'dialog'); }
+      if (roles) btn.setAttribute('data-role-visible', roles);
+      if (extra) extra(btn);
+      btn.addEventListener('click', function (event) { event.stopPropagation(); });
+      cell.appendChild(btn);
+      return btn;
+    }
+
+    link('编辑', 'ACT-TCH-006', 'person.teacher:update', 'PAGE-TCH-EDIT', 'academic_director,tenant_admin');
+    link('角色', 'ACT-TCH-007', 'person.teacher:update', 'PAGE-TCH-ROLE', 'academic_director,tenant_admin');
+    link('任教', 'ACT-TCH-008', 'person.teaching_assignment:read', 'PAGE-TCH-ASSIGN',
+         'academic_director,tenant_admin,grade_leader');
+    if (onJob) {
+      link('离职', 'ACT-TCH-009', 'person.teacher:update', 'DIALOG-TCH-LEAVE', 'academic_director,tenant_admin',
+           function (btn) { btn.classList.add('danger'); });
+    } else {
+      var none = document.createElement('span');
+      none.className = 'cell-empty';
+      none.textContent = '非在职 · 仅可查看';
+      cell.appendChild(none);
+    }
+  });
+
+  // 2. 筛选：本地模拟，不访问后端
+  var selectedRoles = [];
+  var roleChips = document.querySelectorAll('[data-role-chip]');
+  function syncRoleChips() {
+    Array.prototype.forEach.call(roleChips, function (chip) {
+      var value = chip.getAttribute('data-role-chip');
+      var on = value === '__all' ? selectedRoles.length === 0 : selectedRoles.indexOf(value) !== -1;
+      chip.classList.toggle('on', on);
+    });
+  }
+  Array.prototype.forEach.call(roleChips, function (chip) {
+    chip.addEventListener('click', function () {
+      var value = chip.getAttribute('data-role-chip');
+      if (value === '__all') {
+        selectedRoles = [];
+      } else if (selectedRoles.indexOf(value) !== -1) {
+        selectedRoles = selectedRoles.filter(function (item) { return item !== value; });
+      } else {
+        selectedRoles.push(value);
+      }
+      syncRoleChips();
+      applyFilter();
+    });
+  });
+
+  function readValue(id) {
+    var node = document.getElementById(id);
+    return node ? node.value.trim() : '';
+  }
+
+  function applyFilter() {
+    var school = readValue('f-school') || '201';
+    var grade = readValue('f-grade');
+    var status = readValue('f-status');
+    var subject = readValue('f-subject');
+    var klass = readValue('f-class');
+    var keyword = readValue('f-keyword').toLowerCase();
+    var visible = 0;
+
+    Array.prototype.forEach.call(document.querySelectorAll('#teacher-rows tr'), function (row) {
+      var ok = true;
+      var inSchool = row.getAttribute('data-school') === school || row.getAttribute('data-home-school') === school;
+      if (!inSchool) ok = false;
+      if (ok && status && status !== '__all' && row.getAttribute('data-status') !== status) ok = false;
+      if (ok && grade && row.getAttribute('data-grade') !== grade) ok = false;
+      if (ok && klass && row.getAttribute('data-class') !== klass) ok = false;
+      if (ok && subject && row.getAttribute('data-subject') !== subject) ok = false;
+      if (ok && selectedRoles.length) {
+        var rowRoles = (row.getAttribute('data-roles') || '').split(',');
+        var hit = selectedRoles.some(function (r) { return rowRoles.indexOf(r) !== -1; });
+        if (!hit) ok = false;
+      }
+      if (ok && keyword && (row.getAttribute('data-keyword') || '').toLowerCase().indexOf(keyword) === -1) ok = false;
+      row.classList.toggle('state-hidden', !ok);
+      if (ok) visible += 1;
+    });
+
+    document.getElementById('ops-scope-alert').classList.toggle('state-hidden', school === '201');
+    var scopeHint = document.querySelector('[data-role="scope-hint"]');
+    if (scopeHint) {
+      scopeHint.textContent = school === '201'
+        ? '数据范围：本校 · 全部教育角色 · 含离职与调离'
+        : '数据范围：平台运营协助视图 · 云溪外国语学校 · 只读并留痕（教师数据不跨校共享）';
+    }
+    document.getElementById('pg-total').textContent =
+      '共 46 条 · 当前第 1 页 · 每页 20 条（本页显示 ' + visible + ' 行样例）';
+  }
+
+  document.addEventListener('click', function (event) {
+    var node = event.target;
+
+    // 批量设置任教：未勾选先提示
+    if (node.closest('[data-action-id="ACT-TCH-005"]')) {
+      var checked = document.querySelectorAll('#teacher-rows input[type="checkbox"]:checked').length;
+      var btn = node.closest('[data-action-id="ACT-TCH-005"]');
+      if (!checked) {
+        event.stopPropagation();
+        window.PrototypeShell.toast('请先勾选要设置任教的教师；批量操作至少需要 1 行。', 'warning');
+        return;
+      }
+      btn.setAttribute('data-demo-message',
+        '已带入 ' + checked + ' 名教师进入任教关系页（批次 2-2b）；逐条校验数据范围，任一条越权则整体拒绝。');
+    }
+
+    // 离职登记：把目标教师写进弹窗标题
+    var leave = node.closest('[data-action-id="ACT-TCH-009"]');
+    if (leave && (leave.getAttribute('data-nav') === 'DIALOG-TCH-LEAVE')) {
+      var row = leave.closest('tr');
+      var name = row ? row.children[2].textContent.trim() : '';
+      var target = document.getElementById('leave-target');
+      if (target && name) target.textContent = name;
+    }
+
+    if (node.closest('[data-action-id="ACT-COM-001"]') || node.closest('[data-action-id="ACT-COM-002"]')) {
+      applyFilter();
+      return;
+    }
+    if (node.closest('#empty-action')) {
+      document.getElementById('f-grade').value = '';
+      document.getElementById('f-class').value = '';
+      document.getElementById('f-subject').value = '';
+      document.getElementById('f-status').value = '在职';
+      document.getElementById('f-keyword').value = '';
+      document.getElementById('f-school').value = '201';
+      selectedRoles = [];
+      syncRoleChips();
+      applyFilter();
+      window.PrototypeShell.applyState('normal');
+      window.PrototypeShell.toast('已清空筛选条件，并退回 PRD 默认（在职状态 = 在职）。', 'success');
+      return;
+    }
+    if (node.closest('#empty-v1')) {
+      document.getElementById('empty-title').textContent = '当前筛选条件下没有教师';
+      document.getElementById('empty-desc').textContent = '筛选条件：在职状态 = 在职；任教学科 = 地理（无匹配）';
+      document.getElementById('empty-v1').classList.add('on');
+      document.getElementById('empty-v2').classList.remove('on');
+      document.getElementById('empty-action').textContent = '清空筛选条件';
+      return;
+    }
+    if (node.closest('#empty-v2')) {
+      document.getElementById('empty-title').textContent = '当前账号没有可查看的教师数据';
+      document.getElementById('empty-desc').textContent = '数据范围解析为空集（未配置教育角色、未建立任教关系）；任课教师只能查看本人信息。';
+      document.getElementById('empty-v2').classList.add('on');
+      document.getElementById('empty-v1').classList.remove('on');
+      document.getElementById('empty-action').textContent = '申请数据范围';
+      return;
+    }
+    if (node.closest('[data-action-id="ACT-COM-003"]')) {
+      var body = document.querySelector('[data-block="filter"] .card-body');
+      var hidden = body.classList.toggle('state-hidden');
+      node.closest('[data-action-id="ACT-COM-003"]').textContent = hidden ? '显示搜索' : '隐藏搜索';
+      return;
+    }
+  });
+
+  syncRoleChips();
+  applyFilter();
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var raw = (window.location.search.replace(/^\?/, '') + '&' + window.location.hash.replace(/^#/, '')).replace(/^&|&$/g, '');
+    var params = {};
+    raw.split('&').forEach(function (pair) {
+      var kv = pair.split('=');
+      if (kv[0]) params[kv[0]] = decodeURIComponent(kv[1] || '');
+    });
+    if (params.school) {
+      document.getElementById('f-school').value = params.school;
+      applyFilter();
+    }
+  });
+})();
+</script>
+<!-- demo script end -->
+
+</body>
+</html>

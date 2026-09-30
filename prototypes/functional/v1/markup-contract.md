@@ -26,6 +26,8 @@
 | `data-state` | 状态块必填 | 见第 5 节 | 页面状态 |
 | `data-mask` | 敏感字段必填 | `mask` / `full` | 默认掩码还是全量 |
 | `data-size` | 浮层必填 | `sm` / `md` / `lg` / `xl` | 与 `layout-spec.yaml` 的枚举一致 |
+| `data-role-editable` | 表单字段必填 | 角色 code，逗号分隔 | 该字段对哪些角色可写；不在名单内的角色渲染成灰底 disabled 的只读形态，后端必须同样拒绝写入 |
+| `data-col-hide-role` | 表格可选列必填 | 角色 code，空格分隔 | 该列对哪些角色整列隐藏；只在 `<th>` 上声明，演示引擎会把同一列的数据单元格同步标记 |
 
 ## 3. `data-role` 取值表
 
@@ -52,6 +54,8 @@
 | `forbidden` | 无权限态 | 自定义提示块 |
 | `skeleton` | 加载骨架 | `el-skeleton` |
 | `nav` | 菜单或跳转链接 | `router-link` 或路由跳转 |
+| `row` | 数据行（可点击） | `el-table` 的 `@row-click` |
+| `selection` | 表格选择列 | `el-table-column type="selection"` |
 
 ## 4. 元素 → Element Plus 组件映射表
 
@@ -208,6 +212,7 @@ apps/plus-ui/src/views/edu/student/index.vue 中的 handleAdd()
 |---|---|---|
 | `data-demo` | `role-switcher` / `state-switcher` / `panel` / `toast` | 演示控件与演示容器 |
 | `data-demo-panel` | `PAGE-*` | 被打开的浮层片段编号 |
+| `data-demo-panel` | `DIALOG-*` | 二次确认弹窗片段编号（不对应 `navigation.yaml` 的页面注册表） |
 | `data-demo-outcome` | `success` / `error` / `partial` / `validation` | 模拟提交的结果 |
 | `data-role-visible` | 角色 code，逗号分隔 | 该元素对哪些角色可见；不写表示所有角色可见 |
 | `data-empty-source` | `filter` / `scope` | 空态原因：筛选无结果 / 无数据范围 |
@@ -216,6 +221,7 @@ apps/plus-ui/src/views/edu/student/index.vue 中的 handleAdd()
 ### 10.3 脚本约定
 
 - 内联在页面底部，最后一行注释 `<!-- demo script end -->`
+- **外壳与公共演示引擎放在 `assets/prototype-shell.css` / `assets/prototype-shell.js`**（同目录相对路径引用，不引第三方库、不需构建）；每个页面底部仍保留一段内联脚本，只写本页差异（本页数据、筛选、行内动作）。这样 86 个页面共用同一份侧边菜单、顶部导航、页签栏与状态切换，不会出现"每页外壳都不一样"
 - **不调用后端**；提交只做本地模拟，不产生真实数据
 - 页面之间用相对路径真实跳转（如 `pages/student-list.html`）
 - 演示控件统一放在页面右上角的浮动面板里，按钮文案用中文，标注"仅原型演示"
