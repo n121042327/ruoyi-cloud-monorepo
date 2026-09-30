@@ -1406,6 +1406,51 @@
 - 如果错了的代价：删除 `subject-list.html`、回滚 `page-actions.yaml` 的 `subject_list` 组、`navigation.yaml` 的 6 条 note 与批次状态、
   `prototype-shell.js` 的菜单登记即可
 
+## D-080 交付批次 2-7a：选科配置 / 学生选科 / 选科清单（含 CR-016）
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要我拍板的默认选推荐，执行完以后没有任何问题提交合并」）
+- 上游依据：选科 PRD 2.1 / 4.1 ~ 4.8 / 5.1 / 5.2 / 6.1 / 8 节；
+  `BR-STREAM-001` / `002` / `005` / `007`、`BV-STREAM-001`、`REQ-STR-004` / `005` / `046` ~ `053`、
+  `DS-02` / `DS-04` / `DS-05` / `DS-06` / `DS-08` / `DS-DENY-03`、
+  `docs/10-prd/05-permission-matrix.yaml` 的 `stream.config` / `stream.selection` / `stream.change_request`
+- 决策（全部取推荐方案，已落进 `CR-016`）：
+  1. **组合分布统计做成独立页**（`PAGE-STR-STAT`：图表 + 表格）：校领导不在选科清单页的角色集合里，
+     做成清单页内的区块会让校领导没有入口；PRD 6.1 也写的是「独立页」。
+  2. **选科配置可写角色 = 教务主任 + 校领导**：租户管理员只有组织配置范围（`DS-02`），无选科教学数据范围；
+     任课教师不含选科明细（`REQ-STR-053`），因此两者进入无权限形态且不降级为可读。
+  3. **选科清单可读角色 = 教务主任 / 校领导 / 年级主任 / 班主任 / 平台运营**：与 PRD 6.1 的页面角色一致；
+     行内「发起变更」只给班主任与教务主任（`REQ-STR-028`），学生本人走「学生选科」页。
+  4. **选科只有一条写入路径**：学生本人在开放期内自助提交（`submitMyStream` / `updateMyStream`），
+     截止后或已生效结果需要改时走「变更申请 → 校级管理员审批」；教务主任不直接改写学生选科。
+  5. **补 3 个字段进字段字典**：`stream_open_from` / `overdue_requires_approval` / `subject_combination`；
+     原型原先用的 `open_from` / `deadline` 改成字典里的 `stream_open_from` / `stream_deadline`。
+  6. **状态片段替换内容而不是堆在内容之后**：选科三页的主内容包进 `[data-normal-view]`，
+     5 个状态片段移入 `#page-root`，否则空数据 / 无权限形态会被挤到首屏之外（截图实证）。
+- 关键设计：规则卡片明写「首选物理 / 历史、再选 4 选 2，学校与教务主任都不能增减」；
+  学生选科页用卡片二选一 + 四选二并把计数、拦截提示、提交按钮的 `data-blocked` 联动；
+  选科历史采用追加式时间线（旧组合 → 新组合 + 原因 + 操作人），全页不提供删除入口
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/functional/v1/pages/stream-config.html` | 新增：选科配置（开放期 / 截止时间 / 逾期审批开关 / 固定规则卡片） |
+| `prototypes/functional/v1/pages/stream-selection.html` | 新增：学生选科（首选卡片 + 再选 4 选 2 + 当前结果 + 恢复 / 提交） |
+| `prototypes/functional/v1/pages/stream-list.html` | 新增：选科清单 8 列 6 行 + 页内 `PAGE-STR-HISTORY` 区块 + `PAGE-STR-CHANGE` 变更申请弹窗 |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `stream_config`（ACT-STR-001 ~ 003）/ `stream_student`（010 ~ 014）/ `stream_list`（020 ~ 025） |
+| `prototypes/functional/v1/navigation.yaml` | 5 个页面补 note；`PAGE-STR-STAT` 由 block 改为 page（CR-016）；批次 2-7 状态改为「2-7a 已产出待验收」 |
+| `prototypes/functional/v1/assets/prototype-shell.js` | 菜单「选科与教学班」登记 stream-list；`EXTRA_PAGES` 补选科配置 / 学生选科；顺带补登记学校管理菜单项（2-6a 遗漏） |
+| `prototypes/functional/v1/content-samples.json` | 新增 `stream_module_notes`（5 条） |
+| `docs/10-prd/06-field-dictionary.yaml` | 新增 3 个字段（`CR-016`） |
+| `docs/00-governance/change-requests/CR-016.md` | 新增：字段补登记、权限码对齐、`PAGE-STR-STAT` 载体修正 |
+| `evidence/stage2-prototype/verify-stream.html` | 新增：26 条断言 |
+| `evidence/stage2-prototype/stream-*.png`（12 张） | 3 页 × 角色 / 状态 / 弹窗形态 |
+
+- 验证证据：`verify-stream.html` 26 / 26；15 个已交付 harness 全量回归；`python tools/check_docs.py` 通过
+- 阶段 2 状态：批次 2-7a 已产出（5 / 9 个页面编号）；2-7b 剩余 4 个（组合分布统计 / 变更审批待办 / 按组合生成教学班 / 教学班管理）；
+  2-8 审计（7）、2-9 异步任务中心（4）待开始
+- 如果错了的代价：删除 3 个 stream 页面、回滚 `page-actions.yaml` 的 3 个动作组、`navigation.yaml` 的 6 条改动、
+  `prototype-shell.js` 的 3 条登记、字段字典的 3 条字段即可
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |
@@ -1444,3 +1489,4 @@
 | R-032 | ~~年级主任是否参与升班~~ → 已定：选项 A，补 `promotion.batch: read` + `DS-05` 范围，只读（D-069 / CR-012） | GAP-053 | 已关闭 |
 | R-033 | ~~升班任务的两个公共前置缺项（字段未进字段字典、取消确认片段未进 PRD 6.1）~~ → 已定：选项 A，立一次 CR 一起补（D-071 / CR-013） | GAP-054 | 已关闭 |
 | R-034 | ~~升班明细的 7 个字段与「调整方式」枚举是否一次 CR 补进 `06-field-dictionary.yaml`~~ → 已定：选项 A，一次 CR 补全（7 个字段 + 3 个枚举），并补 `BR-PROMO-006` 的留级去向与升班 PRD 的字段口径（D-073 / CR-014） | GAP-055 | 已关闭 |
+| R-035 | ~~选科模块的 3 个字段、权限码对齐与 `PAGE-STR-STAT` 载体是否一次 CR 补齐~~ → 已定：一次 CR 补全（3 个字段 + 9 条权限码 + 1 条页面载体）（D-080 / CR-016） | GAP-057 | 已关闭 |

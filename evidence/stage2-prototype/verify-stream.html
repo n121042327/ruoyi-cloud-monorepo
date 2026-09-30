@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>批次 2-7a（选科配置 / 学生选科 / 选科清单）交互验证</title>
+<style>
+  body { margin: 14px; background: #fff; color: #24292f; font: 13px/1.55 Consolas, "Microsoft YaHei", monospace; }
+  h1 { font-size: 17px; margin: 0 0 8px; }
+  ol { margin: 0 0 10px; padding-left: 22px; }
+  li.ok { color: #1a7f37; }
+  li.bad { color: #c0392b; font-weight: 700; }
+  p.sum { font-weight: 700; }
+  p.sum.bad { color: #c0392b; }
+  iframe { width: 1440px; height: 860px; border: 1px solid #dcdfe6; }
+  iframe.offscreen { display: none; }
+</style>
+</head>
+<body>
+<h1>批次 2-7a（选科配置 / 学生选科 / 选科清单）交互验证（真实事件派发）</h1>
+<ol id="results"><li>运行中…</li></ol>
+<iframe id="f-cfg" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/stream-config.html"></iframe>
+<iframe id="f-sel" class="offscreen" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/stream-selection.html"></iframe>
+<iframe id="f-list" class="offscreen" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/stream-list.html"></iframe>
+<script>
+(function () {
+  'use strict';
+  var RESULTS = [];
+  var F = {
+    cfg: document.getElementById('f-cfg'),
+    sel: document.getElementById('f-sel'),
+    list: document.getElementById('f-list')
+  };
+
+  function rec(id, name, pass, detail) { RESULTS.push({ id: id, name: name, pass: Boolean(pass), detail: detail || '' }); }
+  function d(k) { return F[k].contentDocument; }
+  function w(k) { return F[k].contentWindow; }
+  function q(k, sel) { return d(k).querySelector(sel); }
+  function qa(k, sel) { return Array.prototype.slice.call(d(k).querySelectorAll(sel)); }
+  function text(k, sel) { var n = q(k, sel); return n ? n.textContent.replace(/\s+/g, ' ').trim() : ''; }
+  function attr(k, sel, name) { var n = q(k, sel); return n ? n.getAttribute(name) : null; }
+  function hasClass(k, sel, cls) { var n = q(k, sel); return Boolean(n && n.classList.contains(cls)); }
+  function click(k, sel) {
+    var n = q(k, sel);
+    if (!n) throw new Error('找不到元素 ' + sel);
+    n.click();
+    return n;
+  }
+  function setVal(k, sel, value) {
+    var n = q(k, sel);
+    if (!n) throw new Error('找不到元素 ' + sel);
+    n.value = value;
+    n.dispatchEvent(new (w(k).Event)('change', { bubbles: true }));
+    return n;
+  }
+  function delay(k) { return new Promise(function (r) { w(k).setTimeout(r, 60); }); }
+  function role(k, code, label) {
+    var btn = qa(k, '[data-demo="role-switcher"] .pbtn').filter(function (b) { return b.textContent.trim() === label; })[0];
+    if (btn) { btn.click(); return delay(k); }
+    w(k).PrototypeShell.applyRole(code);
+    return delay(k);
+  }
+  function lastToast(k) {
+    var nodes = qa(k, '.toast-host .toast');
+    var n = nodes[nodes.length - 1];
+    return n ? n.textContent.replace(/\s+/g, ' ').trim() : '';
+  }
+  function panelOpen(k, id) {
+    return Boolean(q(k, '[data-demo-panel="' + id + '"].open'));
+  }
+  function statePanels(k) {
+    var codes = ['loading', 'empty', 'error', 'forbidden', 'submitting'];
+    return codes.filter(function (c) { return !q(k, '[data-demo-state-panel="' + c + '"]'); });
+  }
+  function frameReady(k) {
+    return new Promise(function (resolve) {
+      if (d(k) && d(k).readyState === 'complete' && d(k).querySelector('#page-root')) { resolve(); return; }
+      F[k].addEventListener('load', function () { w(k).setTimeout(resolve, 250); });
+    });
+  }
+  function allReady() { return Promise.all(Object.keys(F).map(frameReady)); }
+
+  var steps = [
+    function (next) {
+      return allReady().then(function () {
+        var primary = qa('cfg', '[data-block="rule"] .rule-card:first-child .chip').map(function (c) { return c.textContent.trim(); });
+        var secondary = qa('cfg', '[data-block="rule"] .rule-card:nth-child(2) .chip').map(function (c) { return c.textContent.trim(); });
+        var body = text('cfg', '#page-root');
+        rec('ST-01', '选科配置：规则是固定卡片（不可自由配置）——首选 2 门物理 / 历史、再选 4 门化学 / 生物 / 思想政治 / 地理',
+          qa('cfg', '[data-block="rule"] .rule-card').length === 2
+          && primary.join(',') === '物理,历史'
+          && secondary.join(',') === '化学,生物,思想政治,地理'
+          && body.indexOf('BV-STREAM-001') !== -1 && body.indexOf('BR-STREAM-002') !== -1
+          && body.indexOf('BR-STREAM-005') !== -1,
+          '首选 ' + primary.join('/') + ' · 再选 ' + secondary.join('/'));
+        next();
+      });
+    },
+    function (next) {
+      var fields = qa('cfg', '[data-block="form"] .field[data-field]').map(function (f) { return f.getAttribute('data-field'); });
+      var checked = q('cfg', '[data-block="form"] input[name="overdue"]:checked');
+      rec('ST-02', '选科配置表单：字段名取字段字典（stream_open_from / stream_deadline）、两项必填、逾期默认「需校级管理员审批」、适用学期只读',
+        fields.indexOf('stream_open_from') !== -1 && fields.indexOf('stream_deadline') !== -1
+        && fields.indexOf('overdue_requires_approval') !== -1 && fields.indexOf('term_id') !== -1
+        && Boolean(checked) && checked.value === 'yes'
+        && Boolean(q('cfg', '[data-field="term_id"] .readonly-value')),
+        '字段 ' + fields.join(',') + ' · 逾期默认 ' + (checked ? checked.value : '—'));
+      next();
+    },
+    function (next) {
+      setVal('cfg', '[data-field="stream_open_from"] input', '');
+      click('cfg', '#btn-save-config');
+      return delay('cfg').then(function () {
+        rec('ST-03', '选科配置：清空开放日期点保存被字段级拦截（字段标红 + 汇总提示），提交未发出',
+          hasClass('cfg', '[data-field="stream_open_from"]', 'has-error')
+          && !hasClass('cfg', '[data-block="form"] [data-validate-summary]', 'state-hidden')
+          && text('cfg', '[data-field="stream_open_from"] .error-text').indexOf('请选择开放日期') !== -1,
+          text('cfg', '[data-field="stream_open_from"] .error-text'));
+        setVal('cfg', '[data-field="stream_open_from"] input', '2026-10-08');
+        next();
+      });
+    },
+    function (next) {
+      rec('ST-04', '选科配置动作：保存配置 saveStreamConfig / stream.config:update；查看选科清单跳 PAGE-STR-LIST；查看未选科走 listUnselectedStudent',
+        attr('cfg', '[data-action-id="ACT-STR-001"]', 'data-api') === 'saveStreamConfig'
+        && attr('cfg', '[data-action-id="ACT-STR-001"]', 'data-permission') === 'stream.config:update'
+        && attr('cfg', '[data-action-id="ACT-STR-002"]', 'data-nav') === 'PAGE-STR-LIST'
+        && attr('cfg', '[data-action-id="ACT-STR-003"]', 'data-api') === 'listUnselectedStudent',
+        attr('cfg', '[data-action-id="ACT-STR-001"]', 'data-api'));
+      next();
+    },
+    function (next) {
+      return role('cfg', 'school_leader', '校领导').then(function () {
+        rec('ST-05', '选科配置：校领导可写（PRD 5.1 给校领导 stream.config [read, update]），范围提示写明本校 + 可写',
+          hasClass('cfg', '[data-demo-state-panel="forbidden"]', 'state-hidden')
+          && text('cfg', '[data-role="scope-hint"]').indexOf('可写') !== -1,
+          text('cfg', '[data-role="scope-hint"]'));
+        return role('cfg', 'subject_teacher', '任课教师');
+      }).then(function () {
+        rec('ST-05b', '选科配置：任课教师无选科配置权限（进入无权限形态，不降级为可读）',
+          !hasClass('cfg', '[data-demo-state-panel="forbidden"]', 'state-hidden')
+          && text('cfg', '[data-role="scope-hint"]').indexOf('无选科配置权限') !== -1
+          && text('cfg', '[data-demo-state-panel="forbidden"]').indexOf('REQ-STR-053') !== -1,
+          text('cfg', '[data-role="scope-hint"]'));
+        return role('cfg', 'academic_director', '教务主任');
+      }).then(function () {
+        rec('ST-05c', '选科配置：切回教务主任恢复可写形态（无权限形态自动退出）',
+          hasClass('cfg', '[data-demo-state-panel="forbidden"]', 'state-hidden')
+          && text('cfg', '[data-role="scope-hint"]').indexOf('可写') !== -1,
+          text('cfg', '[data-role="scope-hint"]'));
+        next();
+      });
+    },
+    function (next) {
+      var p1 = qa('sel', '#sel-primary .pick-card').map(function (c) { return c.getAttribute('data-value'); });
+      var p2 = qa('sel', '#sel-secondary .pick-card').map(function (c) { return c.getAttribute('data-value'); });
+      rec('ST-06', '学生选科：首选只给物理 / 历史两张卡、再选只给化学 / 生物 / 思想政治 / 地理四张卡（固定集合，不提供越界选项）',
+        p1.join(',') === 'physics,history' && p2.join(',') === 'chemistry,biology,politics,geography',
+        '首选 ' + p1.join('/') + ' · 再选 ' + p2.join('/'));
+      rec('ST-07', '学生选科：初始 2 / 2 已选满，提交按钮 data-blocked=false',
+        text('sel', '#sel-secondary-count').indexOf('已选 2 / 2') !== -1
+        && attr('sel', '#btn-submit-stream', 'data-blocked') === 'false'
+        && hasClass('sel', '#sel-limit-alert', 'state-hidden'),
+        text('sel', '#sel-secondary-count'));
+      next();
+    },
+    function (next) {
+      click('sel', '#sel-secondary .pick-card[data-value="biology"]');
+      return delay('sel').then(function () {
+        rec('ST-08', '学生选科：取消一门再选后计数变 1 / 2、拦截提示出现、提交按钮置 data-blocked=true',
+          text('sel', '#sel-secondary-count').indexOf('已选 1 / 2') !== -1
+          && !hasClass('sel', '#sel-limit-alert', 'state-hidden')
+          && text('sel', '#sel-limit-text').indexOf('当前 1 门') !== -1
+          && attr('sel', '#btn-submit-stream', 'data-blocked') === 'true',
+          text('sel', '#sel-limit-text'));
+        next();
+      });
+    },
+    function (next) {
+      click('sel', '#btn-submit-stream');
+      return delay('sel').then(function () {
+        rec('ST-09', '学生选科：不足 2 门时点提交被拦截，给出可操作提示（BR-STREAM-002），不写入',
+          lastToast('sel').indexOf('必须恰好 2 门') !== -1,
+          lastToast('sel'));
+        next();
+      });
+    },
+    function (next) {
+      click('sel', '#sel-primary .pick-card[data-value="history"]');
+      return delay('sel').then(function () {
+        rec('ST-10', '学生选科：切换首选立刻联动「当前选科结果」（首选 / 再选 / 组合三张统计卡）',
+          attr('sel', '#page-root', 'data-primary') === 'history'
+          && hasClass('sel', '#sel-primary .pick-card[data-value="history"]', 'on')
+          && text('sel', '#sel-current-primary') === '历史'
+          && text('sel', '#sel-current-combo') === '历史 + 化学',
+          text('sel', '#sel-current-combo'));
+        next();
+      });
+    },
+    function (next) {
+      click('sel', '#btn-reset');
+      return delay('sel').then(function () {
+        rec('ST-11', '学生选科：「恢复当前结果」把表单回滚到已生效组合（丢弃未提交改动）', 
+          attr('sel', '#page-root', 'data-primary') === 'physics'
+          && attr('sel', '#page-root', 'data-secondary') === 'chemistry,biology'
+          && text('sel', '#sel-current-combo') === '物理 + 化学 + 生物',
+          text('sel', '#sel-current-combo'));
+        rec('ST-12', '学生选科动作：提交 updateMyStream / stream.selection:update；查看选科历史跳 PAGE-STR-HISTORY；页面写明「教学班与行政班两套独立关系」',
+          attr('sel', '[data-action-id="ACT-STR-014"]', 'data-api') === 'updateMyStream'
+          && attr('sel', '[data-action-id="ACT-STR-014"]', 'data-permission') === 'stream.selection:update'
+          && attr('sel', '[data-action-id="ACT-STR-012"]', 'data-nav') === 'PAGE-STR-HISTORY'
+          && text('sel', '[data-block="current"]').indexOf('两套独立关系') !== -1,
+          attr('sel', '[data-action-id="ACT-STR-014"]', 'data-api'));
+        rec('ST-13', '学生选科：五类状态片段齐全（加载中 / 空数据 / 失败 / 无权限 / 提交中）', statePanels('sel').length === 0,
+          statePanels('sel').length ? ('缺 ' + statePanels('sel').join(',')) : '齐全');
+        next();
+      });
+    },
+    function (next) {
+      var cols = qa('list', '#str-table thead th').map(function (th) { return th.textContent.trim(); });
+      var widths = qa('list', '#str-table thead th[style]').reduce(function (s, th) { return s + (parseInt(th.style.width, 10) || 0); }, 0);
+      var minWidth = q('list', '#str-table').style.minWidth;
+      rec('ST-14', '选科清单：8 列表头 + 6 行样例；列宽之和 = 表格 min-width = 1080（1366×768 无表格内横向滚动）',
+        cols.length === 8 && cols[0] === '学号' && cols[7] === '操作'
+        && qa('list', '#str-rows tr').length === 6
+        && widths === 1080 && minWidth === '1080px',
+        cols.join(' | ') + ' · 列宽 ' + widths + ' / min-width ' + minWidth);
+      next();
+    },
+    function (next) {
+      var timeline = qa('list', '[data-page="PAGE-STR-HISTORY"] .timeline li');
+      var hasDelete = qa('list', '#page-root button, #page-root a').some(function (b) {
+        return /删除/.test(b.textContent);
+      });
+      rec('ST-15', '选科清单：页内带 PAGE-STR-HISTORY 选科历史区块（3 条追加式时间线，含旧组合 → 新组合与原因），全页无「删除」入口',
+        timeline.length === 3 && !hasDelete
+        && text('list', '[data-page="PAGE-STR-HISTORY"]').indexOf('→') !== -1,
+        '时间线 ' + timeline.length + ' 条 / 删除入口 ' + (hasDelete ? '有' : '无'));
+      rec('ST-16', '选科清单页头写明「选科结果只有一个写入路径」（学生本人改 / 截止后走变更申请 → 校级管理员审批）',
+        text('list', '.alert.info').indexOf('只读清单') !== -1
+        && text('list', '.alert.info').indexOf('变更申请') !== -1
+        && text('list', '.alert.info').indexOf('只有一个写入路径') !== -1,
+        text('list', '.alert.info').slice(0, 40));
+      next();
+    },
+    function (next) {
+      rec('ST-17', '选科清单工具栏：组合分布统计跳独立页 PAGE-STR-STAT（CR-016）、选科配置跳 PAGE-STR-CONFIG、导出走 exportStreamSelection',
+        attr('list', '[data-action-id="ACT-STR-020"]', 'data-nav') === 'PAGE-STR-STAT'
+        && attr('list', '[data-action-id="ACT-STR-020"]', 'title').indexOf('独立页') !== -1
+        && attr('list', '[data-action-id="ACT-STR-021"]', 'data-nav') === 'PAGE-STR-CONFIG'
+        && attr('list', '[data-action-id="ACT-STR-022"]', 'data-api') === 'exportStreamSelection',
+        attr('list', '[data-action-id="ACT-STR-022"]', 'data-api'));
+      return role('list', 'school_leader', '校领导').then(function () {
+        var readonly = qa('list', '#str-rows tr td.actions').every(function (td) { return td.textContent.indexOf('只读') !== -1 || td.textContent.indexOf('审批中') !== -1; });
+        rec('ST-18', '选科清单：校领导只读 —— 行内不出现「发起变更」，操作列显示「只读 / 审批中」',
+          readonly && qa('list', '[data-action-id="ACT-STR-025"]').length === 0,
+          qa('list', '#str-rows tr td.actions').map(function (td) { return td.textContent.trim(); }).join(' | '));
+        next();
+      });
+    },
+    function (next) {
+      return role('list', 'homeroom', '班主任').then(function () {
+        var reqs = qa('list', '[data-action-id="ACT-STR-025"]');
+        var pendingRow = q('list', '#str-rows tr[data-status="待审批"] td.actions');
+        rec('ST-19', '选科清单：班主任可代学生发起变更 —— 4 行出现行内「发起变更」（ACT-STR-025 / data-nav=PAGE-STR-CHANGE），2 行待审批显示「审批中」无入口',
+          reqs.length === 4
+          && reqs.every(function (b) { return b.getAttribute('data-nav') === 'PAGE-STR-CHANGE' && b.getAttribute('data-permission') === 'stream.change_request:create'; })
+          && pendingRow.textContent.indexOf('审批中') !== -1,
+          '入口 ' + reqs.length + ' 个 / 待审批行 ' + pendingRow.textContent.trim());
+        next();
+      });
+    },
+    function (next) {
+      var target = q('list', '#str-rows tr[data-student="2026000101"] [data-action-id="ACT-STR-025"]');
+      if (!target) throw new Error('找不到朱书瑶行的「发起变更」');
+      target.click();
+      return delay('list').then(function () {
+        rec('ST-20', '选科清单：点行内「发起变更」打开 PAGE-STR-CHANGE 弹窗并带入该行学生姓名',
+          panelOpen('list', 'PAGE-STR-CHANGE') && text('list', '#str-change-name') === '朱书瑶',
+          '弹窗打开 ' + panelOpen('list', 'PAGE-STR-CHANGE') + ' / 姓名 ' + text('list', '#str-change-name'));
+        next();
+      });
+    },
+    function (next) {
+      var dialog = 'list';
+      var primary = qa(dialog, '[data-demo-panel="PAGE-STR-CHANGE"] input[name="change-primary"]').map(function (r) { return r.value; });
+      var secondary = qa(dialog, '[data-demo-panel="PAGE-STR-CHANGE"] input[name="change-secondary"]').map(function (r) { return r.value; });
+      setVal(dialog, '[data-demo-panel="PAGE-STR-CHANGE"] textarea', '');
+      click(dialog, '[data-action-id="ACT-STR-024"]');
+      return delay(dialog).then(function () {
+        rec('ST-21', '变更申请弹窗：新的首选 2 选项 / 新的再选 4 复选 / 变更原因必填；清空原因点提交被字段级拦截且弹窗不关闭',
+          primary.join(',') === 'physics,history'
+          && secondary.join(',') === 'chemistry,biology,politics,geography'
+          && hasClass(dialog, '[data-demo-panel="PAGE-STR-CHANGE"] [data-field="reason"]', 'has-error')
+          && !hasClass(dialog, '[data-demo-panel="PAGE-STR-CHANGE"] [data-validate-summary]', 'state-hidden')
+          && panelOpen(dialog, 'PAGE-STR-CHANGE'),
+          '首选 ' + primary.join('/') + ' · 再选 ' + secondary.length + ' 项 · 弹窗仍开 ' + panelOpen(dialog, 'PAGE-STR-CHANGE'));
+        rec('ST-22', '变更申请：提交走 addStreamChangeRequest（stream.change_request:create），页内写明「审批通过前保持原组合不变、同一学生只允许一条待审批」',
+          attr(dialog, '[data-action-id="ACT-STR-024"]', 'data-api') === 'addStreamChangeRequest'
+          && attr(dialog, '[data-action-id="ACT-STR-024"]', 'data-permission') === 'stream.change_request:create'
+          && text(dialog, '[data-demo-panel="PAGE-STR-CHANGE"]').indexOf('只允许一条待审批申请') !== -1,
+          attr(dialog, '[data-action-id="ACT-STR-024"]', 'data-api'));
+        w(dialog).PrototypeShell.closePanel('all');
+        rec('ST-23', '选科清单：五类状态片段齐全（加载中 / 空数据 / 失败 / 无权限 / 提交中）', statePanels(dialog).length === 0,
+          statePanels(dialog).length ? ('缺 ' + statePanels(dialog).join(',')) : '齐全');
+        rec('ST-24', '选科配置：五类状态片段齐全（加载中 / 空数据 / 失败 / 无权限 / 提交中）', statePanels('cfg').length === 0,
+          statePanels('cfg').length ? ('缺 ' + statePanels('cfg').join(',')) : '齐全');
+        next();
+      });
+    }
+  ];
+
+  var EXPECTED = 26;
+  var rendered = false;
+  function render() {
+    rendered = true;
+    var ol = document.getElementById('results');
+    ol.innerHTML = '';
+    var pass = 0;
+    RESULTS.forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = r.pass ? 'ok' : 'bad';
+      li.textContent = (r.pass ? '通过  ' : '不通过 ') + r.id + '  ' + r.name + (r.detail ? '  —— ' + r.detail : '');
+      ol.appendChild(li);
+      if (r.pass) pass += 1;
+    });
+    var p = document.createElement('p');
+    p.className = pass === EXPECTED && RESULTS.length === EXPECTED ? 'sum' : 'sum bad';
+    p.textContent = '合计 ' + RESULTS.length + ' / ' + EXPECTED + ' 条，通过 ' + pass + ' 条，不通过 '
+      + (RESULTS.length - pass) + ' 条' + (pass === EXPECTED && RESULTS.length === EXPECTED ? ' —— 全部通过' : '');
+    ol.appendChild(p);
+  }
+  function run(index) {
+    if (index >= steps.length) { render(); return; }
+    var called = false;
+    function next() { if (called) return; called = true; run(index + 1); }
+    var out;
+    try { out = steps[index](next); }
+    catch (err) {
+      rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步抛异常', false, String((err && err.message) || err));
+      run(index + 1); return;
+    }
+    if (out && typeof out.then === 'function') {
+      out.catch(function (err) {
+        rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步异步断言失败', false, String((err && err.message) || err));
+        next();
+      });
+    }
+  }
+  window.addEventListener('load', function () { window.setTimeout(function () { run(0); }, 600); });
+  window.setTimeout(function () { if (!rendered) { rec('WATCHDOG', '运行超时', false, ''); render(); } }, 40000);
+})();
+</script>
+</body>
+</html>

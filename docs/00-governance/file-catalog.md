@@ -203,6 +203,13 @@
 | `prototypes/functional/v1/pages/subject-list.html` | 学科与配置（列表 + 5 个弹窗：新建 / 编辑 / 选科角色 / 学段启用 / 批量初始化，批次 2-6c） | `review` |
 | `evidence/stage2-prototype/verify-subject.html` | 学科与配置交互验证 harness（SB-01 ~ SB-14 共 14 条断言全部通过） | `review` |
 | `evidence/stage2-prototype/subject-list_*.png`、`evidence/stage2-prototype/subject-dialog-*_1440x900.png`、`evidence/stage2-prototype/subject_verify-results.png` | 批次 2-6c 截图（见 README 第 6.9 节） | `review` |
+| `prototypes/functional/v1/pages/stream-config.html` | 选科配置（开放期 / 截止时间 / 逾期审批 + 固定规则卡片，批次 2-7a） | `review` |
+| `prototypes/functional/v1/pages/stream-selection.html` | 学生选科（首选二选一 + 再选 4 选 2 + 当前结果与提交，批次 2-7a） | `review` |
+| `prototypes/functional/v1/pages/stream-list.html` | 选科清单（8 列 6 行 + PAGE-STR-HISTORY 时间线区块 + PAGE-STR-CHANGE 变更申请弹窗，批次 2-7a） | `review` |
+| `evidence/stage2-prototype/verify-stream.html` | 选科三页交互验证 harness（ST-01 ~ ST-24 共 26 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/stream-*.png`、`evidence/stage2-prototype/stream_verify-results.png` | 批次 2-7a 截图（12 张，见 README 第 6.10 节） | `review` |
+| `docs/00-governance/change-requests/CR-016.md` | 变更申请：选科模块的字段补登记、权限码对齐与组合分布统计载体修正（已批准并执行，关联 D-080 / GAP-057） | `review` |
+| `docs/10-prd/06-field-dictionary.yaml` | 新增 `stream_open_from` / `overdue_requires_approval` / `subject_combination` 三个字段（CR-016） | `review` |
 | `prototypes/functional/v1/pages/school-campus.html` | 校区管理（列表 + 页内表单 + 停用二次确认，批次 2-6b） | `review` |
 | `prototypes/functional/v1/pages/school-init.html` | 开通初始化四步向导（`initSchoolBaseline` 幂等，批次 2-6b） | `review` |
 | `prototypes/functional/v1/pages/term-list.html` | 学年列表 + 新建学年 / 设为当前 / 归档三个弹窗（批次 2-6b） | `review` |

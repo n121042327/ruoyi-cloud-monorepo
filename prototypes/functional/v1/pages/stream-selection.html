@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>学生选科 — 业务原型 v1（批次 2-7a）</title>
+<link rel="stylesheet" href="../assets/prototype-shell.css" />
+<script src="../assets/prototype-shell.js"></script>
+<style>
+  .pick-card {
+    border: 1px solid var(--app-border); border-radius: var(--app-radius-base);
+    padding: 12px 14px; background: #fff; cursor: pointer; min-width: 150px;
+  }
+  .pick-card.on { border-color: var(--app-primary); background: #ecf5ff; }
+  .pick-card .name { font-size: 15px; font-weight: 600; color: var(--app-text-primary); }
+  .pick-card .meta { font-size: 12px; color: var(--app-text-secondary); }
+  .pick-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .period-bar { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--app-radius-small); background: #ecf5ff; border: 1px solid #a0cfff; font-size: 13px; }
+</style>
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-STR-STUDENT"
+  data-menu-page="PAGE-STR-LIST"
+  data-breadcrumb="教育管理 / 选科与教学班 / 学生选科"
+  data-tab="学生选科"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-STR-STUDENT" data-role="page" data-primary="physics" data-secondary="chemistry,biology">
+
+  <div class="page-head">
+    <h1>学生选科（3+1+2）</h1>
+    <span class="scope-hint" data-role="scope-hint">当前账号：王梓萱（s2026000001）· 2026 级 高一 (1) 班</span>
+    <span class="el-tag primary">2026-2027 学年 第一学期</span>
+    <span class="el-tag success" id="sel-status-tag">已生效</span>
+  </div>
+
+  <div data-normal-view>
+
+  <div class="period-bar">
+    <span>选科开放期</span>
+    <span>2026-10-08 00:00 — 2026-10-31 23:59（进行中）</span>
+    <span class="el-tag info">截止后提交的变更需校级管理员审批（BR-STREAM-005）</span>
+  </div>
+
+  <section class="card" data-block="primary" data-role="section" data-component="el-card.hover">
+    <div class="card-header"><h2>第一步 · 首选科目（1 门）</h2><span class="el-tag info">物理 / 历史（固定）</span></div>
+    <div class="card-body">
+      <div class="pick-row" id="sel-primary">
+        <div class="pick-card on" data-role="action" data-action-id="ACT-STR-010" data-component="el-radio-button" data-value="physics">
+          <div class="name">物理</div><div class="meta">首选科目 · 固定集合</div>
+        </div>
+        <div class="pick-card" data-role="action" data-action-id="ACT-STR-010" data-component="el-radio-button" data-value="history">
+          <div class="name">历史</div><div class="meta">首选科目 · 固定集合</div>
+        </div>
+      </div>
+      <div class="legend" style="margin:8px 0 0"><span>首选科目只能是物理或历史（<span class="mono">BV-STREAM-001</span> / <span class="mono">BR-STREAM-001</span>），不提供其它选项。</span></div>
+    </div>
+  </section>
+
+  <section class="card" data-block="secondary" data-role="section" data-component="el-card.hover">
+    <div class="card-header"><h2>第二步 · 再选科目（4 选 2）</h2><span class="el-tag info" id="sel-secondary-count">已选 2 / 2</span></div>
+    <div class="card-body">
+      <div class="pick-row" id="sel-secondary">
+        <div class="pick-card on" data-role="action" data-action-id="ACT-STR-011" data-component="el-checkbox" data-value="chemistry">
+          <div class="name">化学</div><div class="meta">再选科目 · 固定集合</div>
+        </div>
+        <div class="pick-card on" data-role="action" data-action-id="ACT-STR-011" data-component="el-checkbox" data-value="biology">
+          <div class="name">生物</div><div class="meta">再选科目 · 固定集合</div>
+        </div>
+        <div class="pick-card" data-role="action" data-action-id="ACT-STR-011" data-component="el-checkbox" data-value="politics">
+          <div class="name">思想政治</div><div class="meta">再选科目 · 固定集合</div>
+        </div>
+        <div class="pick-card" data-role="action" data-action-id="ACT-STR-011" data-component="el-checkbox" data-value="geography">
+          <div class="name">地理</div><div class="meta">再选科目 · 固定集合</div>
+        </div>
+      </div>
+      <div class="alert danger state-hidden" id="sel-limit-alert">
+        <span>选择数量不符</span>
+        <span id="sel-limit-text">再选科目必须选满 2 门且不能重复（当前 1 门）。</span>
+      </div>
+      <div class="legend" style="margin:8px 0 0"><span>再选科目固定 4 门中选 2 门（<span class="mono">BR-STREAM-002</span>）；组合结果 = 1 门首选 + 2 门再选，共 12 种组合。</span></div>
+    </div>
+  </section>
+
+  <section class="card" data-block="current" data-role="section" data-component="el-card.hover">
+    <div class="card-header"><h2>当前选科结果</h2><span class="el-tag success" id="sel-current-tag">已生效 · 2026-09-26</span></div>
+    <div class="card-body">
+      <div class="stat-row">
+        <div class="stat-card"><div class="label">首选</div><div class="value" style="font-size:18px" id="sel-current-primary">物理</div></div>
+        <div class="stat-card"><div class="label">再选</div><div class="value" style="font-size:18px" id="sel-current-secondary">化学 · 生物</div></div>
+        <div class="stat-card"><div class="label">组合</div><div class="value" style="font-size:16px" id="sel-current-combo">物理 + 化学 + 生物</div></div>
+        <div class="stat-card"><div class="label">教学班</div><div class="value" style="font-size:16px">高一 物理 A 层 · 化学 B 层</div></div>
+      </div>
+      <div class="alert warning state-hidden" id="sel-overdue">
+        <span>已截止</span>
+        <span>当前已过选科截止时间：提交会作为<b>变更申请</b>进入校级管理员审批（<span class="mono">BR-STREAM-005</span>），审批通过前保持原选科不变。</span>
+      </div>
+      <div class="legend" style="margin:8px 0 0"><span>选科结果决定教学班归属；行政班不变（教学班与行政班是两套独立关系）。</span></div>
+    </div>
+    <div class="card-body" style="border-top:1px solid var(--app-border-light); display:flex; gap:8px; align-items:center">
+      <button class="btn" data-role="action" data-action-id="ACT-STR-012" data-component="el-button"
+              data-nav="PAGE-STR-HISTORY">查看选科历史</button>
+      <div style="flex:1"></div>
+      <button class="btn" id="btn-reset" data-role="action" data-action-id="ACT-STR-013" data-component="el-button">恢复当前结果</button>
+      <button class="btn primary" id="btn-submit-stream" data-role="action" data-action-id="ACT-STR-014" data-component="el-button.primary"
+              data-permission="stream.selection:update" data-api="updateMyStream"
+              data-demo-message="已提交选科变更：在开放期内直接生效（updateMyStream）；截止后进入审批待办（BR-STREAM-005）。">提交选科</button>
+    </div>
+  </section>
+
+  </div>
+
+  <div class="state-hidden" data-demo-state-panel="loading">
+    <section class="card"><div class="card-body">
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:150px"></div><div class="skeleton-bar" style="width:220px"></div></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:150px"></div><div class="skeleton-bar" style="width:220px"></div></div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="empty">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">📭</div>
+        <div class="title">选科未开放</div>
+        <div class="desc">本校还没有配置选科开放期，或你所在的年级不在本次选科范围内（选科按年级开放）。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="error">
+    <section class="card"><div class="card-body">
+      <div class="state-block error">
+        <div class="icon">⚠️</div>
+        <div class="title">提交失败</div>
+        <div class="desc">保存失败时保持原有选科结果不变，可重试。</div>
+        <div class="req-id">请求编号 REQ-20261001-001640 · 错误码 EDU-STR-5002</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="forbidden">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">🔒</div>
+        <div class="title">你没有选科的权限</div>
+        <div class="desc">本页是学生视角：只有学生本人可以提交自己的选科（<span class="mono">DS-08</span> 仅本人）；班主任与教务主任在选科清单页查看。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="submitting">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⏳</div>
+        <div class="title">正在提交</div>
+        <div class="desc">按钮已置 loading 并禁用。</div>
+      </div>
+    </div></section>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var LABEL = { physics: '物理', history: '历史', chemistry: '化学', biology: '生物', politics: '思想政治', geography: '地理' };
+  function q(sel) { return document.querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function state() {
+    var root = q('#page-root');
+    return {
+      primary: root.getAttribute('data-primary'),
+      secondary: (root.getAttribute('data-secondary') || '').split(',').filter(Boolean)
+    };
+  }
+  function render() {
+    var s = state();
+    qa('#sel-primary .pick-card').forEach(function (card) {
+      card.classList.toggle('on', card.getAttribute('data-value') === s.primary);
+    });
+    qa('#sel-secondary .pick-card').forEach(function (card) {
+      card.classList.toggle('on', s.secondary.indexOf(card.getAttribute('data-value')) !== -1);
+    });
+    q('#sel-secondary-count').textContent = '已选 ' + s.secondary.length + ' / 2';
+    q('#sel-current-primary').textContent = LABEL[s.primary] || '—';
+    q('#sel-current-secondary').textContent = s.secondary.map(function (c) { return LABEL[c]; }).join(' · ') || '—';
+    q('#sel-current-combo').textContent = [LABEL[s.primary]].concat(s.secondary.map(function (c) { return LABEL[c]; })).join(' + ');
+    var bad = s.secondary.length !== 2;
+    q('#sel-limit-alert').classList.toggle('state-hidden', !bad);
+    if (bad) q('#sel-limit-text').textContent = '再选科目必须选满 2 门且不能重复（当前 ' + s.secondary.length + ' 门）。';
+    q('#btn-submit-stream').setAttribute('data-blocked', bad ? 'true' : 'false');
+    q('#btn-submit-stream').title = bad ? '再选科目必须恰好 2 门' : '';
+  }
+  document.addEventListener('click', function (event) {
+    var node = event.target;
+    var primary = node.closest('#sel-primary .pick-card');
+    if (primary) { q('#page-root').setAttribute('data-primary', primary.getAttribute('data-value')); render(); return; }
+    var sec = node.closest('#sel-secondary .pick-card');
+    if (sec) {
+      var s = state();
+      var v = sec.getAttribute('data-value');
+      if (s.secondary.indexOf(v) !== -1) s.secondary = s.secondary.filter(function (x) { return x !== v; });
+      else if (s.secondary.length < 2) s.secondary.push(v);
+      q('#page-root').setAttribute('data-secondary', s.secondary.join(','));
+      render();
+      return;
+    }
+    if (node.closest('#btn-reset')) {
+      q('#page-root').setAttribute('data-primary', 'physics');
+      q('#page-root').setAttribute('data-secondary', 'chemistry,biology');
+      render();
+      return;
+    }
+  });
+  q('#btn-submit-stream').addEventListener('click', function (event) {
+    var s = state();
+    if (s.secondary.length !== 2) {
+      event.stopPropagation();
+      window.PrototypeShell.toast('再选科目必须恰好 2 门：请修正后再提交（BR-STREAM-002）。', 'warning');
+    }
+  });
+  render();
+})();
+</script>
+</body>
+</html>

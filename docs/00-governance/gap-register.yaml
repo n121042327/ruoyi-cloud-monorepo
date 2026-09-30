@@ -1732,6 +1732,51 @@ gaps:
     owner: 用户
     status: open
 
+  - id: GAP-057
+    title: 选科模块的 3 个字段未进字段字典、权限码沿用邻近模块、PAGE-STR-STAT 载体与 PRD 6.1 不一致
+    discovered_at: 2026-10-01
+    discovered_by: 批次 2-7a 开工前的公共前置反查（选科配置 / 学生选科 / 选科清单）
+    evidence: |
+      docs/10-prd/06-field-dictionary.yaml 的 fields 段只有 stream_deadline、primary_subject_code、
+      secondary_subject_codes 三个选科字段；选科配置表单还需要「开放期起点」与「逾期需审批」，
+      组合分布统计还需要「选科组合」这个展示值，三者都没有定义。
+      docs/10-prd/05-permission-matrix.yaml 已定义 stream.config / stream.selection / stream.change_request
+      三个资源（教务主任 read+update、校领导 config read+update + change_request read+approve、
+      年级主任 selection read、班主任 change_request read+create、学生 selection read+create+update），
+      但选科三页原型沿用 org.subject / person.student / enrollment.transfer，权限注解指向错误资源。
+      另外原型把「租户管理员」当作选科配置可写与选科清单可读角色，与选科 PRD 2.1
+      「PER-TENANT-ADMIN 无选科教学数据范围（DS-02）」冲突；同时把校领导当作选科配置只读，
+      与矩阵给校领导 stream.config [read, update] 冲突。
+      PAGE-STR-STAT 在 navigation.yaml 登记为 PAGE-STR-LIST 内的 block，但选科 PRD 6.1 写「独立页（图表 + 表格）」
+      且角色含校领导，而校领导并不在选科清单页的角色集合里（6.1：清单页 = 教务主任 / 年级主任 / 班主任）。
+    expected: 字段名的唯一来源是字段字典；权限码的唯一来源是权限矩阵；页面载体与角色以模块 PRD 6.1 为准
+    actual: 3 个字段缺登记、9 条权限码指向邻近模块、租户管理员与校领导的角色口径与 PRD 冲突、统计页载体与 PRD 冲突
+    impact: |
+      不补：阶段 5 建表时「开放期起点 / 逾期需审批」没有权威字段名；阶段 6 的按钮权限注解会指向
+      org.subject 等错误资源（后端只能靠猜）；校领导在选科配置页被拦、租户管理员被误放行；
+      组合分布统计若做成清单页内的区块，校领导没有入口。
+    options:
+      - A 一次 CR 补齐：登记 3 个字段（stream_open_from / overdue_requires_approval / subject_combination）、
+        9 条权限码改用 stream.*、选科配置可写角色改为教务主任 + 校领导（去掉租户管理员）、
+        选科清单可读角色去掉租户管理员、PAGE-STR-STAT 由 block 改为独立 page（推荐）
+      - B 只补字段与权限码，角色集合与统计页载体留到 2-7b 再定
+      - C 不改字段字典与权限矩阵，由阶段 5 的详细设计文件承载字段与权限口径
+    recommended: |
+      选项 A。理由：字段字典与权限矩阵是「唯一来源」文档，选科模块的其余 5 个字段（stream_deadline、
+      primary_subject_code、secondary_subject_codes、reason、term_id）都在字典里，只漏这 3 个会让
+      「字段名只有一个权威来源」在选科模块失效。
+      选项 B 的代价是 2-7b 的四个页面（统计 / 审批 / 生成教学班 / 教学班管理）要各自判断角色；
+      选项 C 会让 PRD 与实现之间少一层可核对的中间文档，也与 CR-004 / 005 / 010 / 014 的既有口径不一致。
+    blocking: false
+    blocks_stages: [stage5, stage6]
+    owner: 用户
+    status: closed
+    resolution: |
+      用户 2026-10-01 授权「需要拍板的默认选推荐」，取选项 A，经 CR-016 执行完毕（见 decisions.md D-080）：
+      navigation.yaml 的 PAGE-STR-STAT 改为独立页、字段字典补 3 个字段、page-actions.yaml 的 9 条 permission
+      与三个页面的 data-permission 改用 stream.*、选科配置与选科清单的角色集合与 PRD 2.1 / 5.1 / 6.1 对齐；
+      verify-stream 26 / 26 通过，15 个已交付 harness 全量回归通过。
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"
@@ -1806,3 +1851,6 @@ open_questions_for_user:
   - "阶段 2 批次 2-6b 已产出待验收：校区管理（页内表单 + 停用二次确认）、开通初始化四步向导（initSchoolBaseline 幂等）、学年列表 + 新建/设为当前/归档三个弹窗、学期管理（页内表单 + 删除引用检查）；harness verify-org-config 23 / 23；act ACT-SCH-030 ~ 042、ACT-TERM-001 ~ 021 已登记，见 D-078。"
   - "阶段 2 批次 2-6c 已产出待验收：学科与配置（列表 + 新建 / 编辑 / 选科角色 / 学段启用 / 批量初始化五个弹窗），动作 ACT-SUB-001 ~ 018；harness verify-subject 14 / 14。批次 2-6 至此 19 个页面编号全部产出，CR-015 的 9 条表单浮层载体修正全部落地，见 D-079。"
   - "下一步：2-7 选科与教学班（9 页）→ 2-8 审计（7 页）→ 2-9 异步任务中心（4 页）；阶段 2 全部完成且无问题后合并本地 main，再进阶段 3 高保真。"
+  - "阶段 2 批次 2-7a 已产出待验收：选科配置（开放期 / 截止时间 / 逾期审批 + 固定规则卡片）、学生选科（首选物理 / 历史二选一 + 再选 4 选 2 + 当前结果 / 恢复 / 提交）、选科清单（8 列 6 行 + PAGE-STR-HISTORY 时间线区块 + PAGE-STR-CHANGE 变更申请弹窗）；动作组 stream_config（ACT-STR-001 ~ 003）/ stream_student（010 ~ 014）/ stream_list（020 ~ 025）已登记；harness verify-stream 26 / 26 通过，见 D-080。"
+  - "新增 GAP-057 并已关闭：选科模块的 3 个字段未进字段字典、9 条权限码沿用邻近模块、PAGE-STR-STAT 载体与 PRD 6.1 不一致、租户管理员与校领导的选科角色口径与 PRD 2.1 / 5.1 冲突。用户授权默认取推荐，按 CR-016 一次补齐（字段/权限码/角色/页面载体），见 D-080。"
+  - "下一步：2-7b 剩余 4 个页面编号（PAGE-STR-STAT 组合分布统计 / PAGE-STR-APPROVE 变更审批待办 / PAGE-STR-GEN-CLASS 按组合生成教学班 / PAGE-CLS-TEACHING 教学班管理）→ 2-8 审计（7）→ 2-9 异步任务中心（4）；阶段 2 全部完成且无问题后合并本地 main，再进阶段 3 高保真。"

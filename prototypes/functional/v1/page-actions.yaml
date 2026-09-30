@@ -3112,6 +3112,153 @@ subject_list:
       audit: 是
       batch: "2-6"
 
+# ---------------------------------------------------------------------------
+# 选科配置（PAGE-STR-CONFIG）——批次 2-7a
+# ---------------------------------------------------------------------------
+stream_config:
+  page: PAGE-STR-CONFIG
+  actions:
+    - id: ACT-STR-001
+      element: 保存配置
+      trigger: 点击
+      condition: 有 stream.config:update 权限；开放日期与截止时间必填且开放 ≤ 截止
+      permission: "stream.config / update"
+      api: saveStreamConfig
+      result: 保存选科开放期与逾期审批口径并写审计；逾期变更默认需校级管理员审批（BR-STREAM-005）
+      audit: 是
+      batch: "2-7"
+    - id: ACT-STR-002
+      element: 查看选科清单
+      trigger: 点击
+      condition: 有 stream.selection:read 权限
+      permission: "stream.selection / read"
+      api: "-"
+      result: 跳转 PAGE-STR-LIST
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-003
+      element: 查看未选科学生
+      trigger: 点击
+      condition: 有 stream.selection:read 权限；范围按当前角色（REQ-STR-051）
+      permission: "stream.selection / read"
+      api: listUnselectedStudent
+      result: 导出未选科学生清单（按年级 / 班级分组）用于催办
+      audit: 是
+      batch: "2-7"
+
+# ---------------------------------------------------------------------------
+# 学生选科（PAGE-STR-STUDENT）——批次 2-7a
+# ---------------------------------------------------------------------------
+stream_student:
+  page: PAGE-STR-STUDENT
+  actions:
+    - id: ACT-STR-010
+      element: 首选科目卡片（物理 / 历史）
+      trigger: 点击
+      condition: 学生本人（DS-08 仅本人）
+      permission: "-"
+      api: "-"
+      result: 选中首选科目；首选固定为物理 / 历史，页面上不提供其它选项（BR-STREAM-001 / BV-STREAM-001）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-011
+      element: 再选科目卡片（4 选 2）
+      trigger: 点击
+      condition: 学生本人
+      permission: "-"
+      api: "-"
+      result: 勾选 / 取消再选科目；必须恰好 2 门，超过 2 门时不允许继续勾选，不足时提交被拦（BR-STREAM-002）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-012
+      element: 查看选科历史
+      trigger: 点击
+      condition: 学生本人 / 班主任 / 教务主任
+      permission: "-"
+      api: listStreamHistory
+      result: 打开 / 跳转选科历史区块（PAGE-STR-HISTORY，追加式记录）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-013
+      element: 恢复当前结果
+      trigger: 点击
+      condition: 学生本人
+      permission: "-"
+      api: "-"
+      result: 把表单恢复到已生效的选科结果，丢弃未提交的改动
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-014
+      element: 提交选科
+      trigger: 点击
+      condition: 首选已选 + 再选恰好 2 门；在开放期内
+      permission: "stream.selection / update"
+      api: updateMyStream
+      result: 开放期内直接生效（首次用 submitMyStream、修改用 updateMyStream）；截止后作为变更申请进审批待办（BR-STREAM-005）
+      audit: 是
+      batch: "2-7"
+
+# ---------------------------------------------------------------------------
+# 选科清单（PAGE-STR-LIST）与变更申请（PAGE-STR-CHANGE）——批次 2-7a
+# ---------------------------------------------------------------------------
+stream_list:
+  page: "PAGE-STR-LIST / PAGE-STR-HISTORY / PAGE-STR-CHANGE"
+  actions:
+    - id: ACT-STR-020
+      element: 组合分布统计
+      trigger: 点击
+      condition: 有 stream.selection:read 权限
+      permission: "stream.selection / read"
+      api: "-"
+      result: 跳转 PAGE-STR-STAT（独立页：图表 + 表格，CR-016）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-021
+      element: 选科配置
+      trigger: 点击
+      condition: 有 stream.config:read 权限
+      permission: "stream.config / read"
+      api: "-"
+      result: 跳转 PAGE-STR-CONFIG
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-022
+      element: 导出
+      trigger: 点击
+      condition: 有 data.export:export 权限
+      permission: "data.export:export"
+      api: exportStreamSelection
+      result: 导出选科清单与组合分布；超 2000 行转异步，导出前重新解析数据范围（DS-DENY-04）
+      audit: 是
+      batch: "2-7"
+    - id: ACT-STR-023
+      element: 变更申请「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不写入
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-024
+      element: 变更申请「提交变更申请」
+      trigger: 点击
+      condition: 新的首选 + 新的再选恰好 2 门 + 原因必填；同一学生无待审批申请
+      permission: "stream.change_request / create"
+      api: addStreamChangeRequest
+      result: 生成变更申请（status=待审批）进入 PAGE-STR-APPROVE；审批通过前保持原组合不变（BR-STREAM-005 / 007）
+      audit: 是
+      batch: "2-7"
+    - id: ACT-STR-025
+      element: 行内「发起变更」
+      trigger: 点击行内按钮
+      condition: 有 stream.change_request:create 权限（班主任 / 教务主任）；该行不是待审批状态
+      permission: "stream.change_request / create"
+      api: "-"
+      result: 打开 PAGE-STR-CHANGE 并带入该学生；待审批行显示「审批中」不提供入口
+      audit: 否
+      batch: "2-7"
+
 batches_pending:
   - { batch: "2-2", pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-CREATE, PAGE-TCH-EDIT, PAGE-TCH-LEAVE, PAGE-TCH-ROLE, PAGE-TCH-ASSIGN], status: "2-2a、2-2b-1 与 2-2b-2 教师部分已产出待验收（ACT-TCH-001 ~ 039 已登记）" }
   - { batch: "2-2b-2b", pages: [PAGE-GRD-LIST, PAGE-GRD-DETAIL, PAGE-GRD-CREATE, PAGE-GRD-BATCH, PAGE-GRD-LEADER, PAGE-GRD-ARCHIVE], status: "PAGE-GRD-LIST 样板页已产出待验收（ACT-GRD-001 ~ 011 已登记）；其余 5 页待样板验收后铺开" }

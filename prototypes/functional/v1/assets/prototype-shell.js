@@ -39,13 +39,13 @@
         { id: 'PAGE-CLS-LIST', name: '班级管理', batch: '2-3', delivered: 'pages/class-list.html' },
         { id: 'PAGE-GRD-LIST', name: '年级管理', batch: '2-2', delivered: 'pages/grade-list.html' },
         { id: 'PAGE-PRM-LIST', name: '升班与学籍', batch: '2-3', delivered: 'pages/promotion-list.html' },
-        { id: 'PAGE-STR-LIST', name: '选科与教学班', batch: '2-7' }
+        { id: 'PAGE-STR-LIST', name: '选科与教学班', batch: '2-7', delivered: 'pages/stream-list.html' }
       ]
     },
     {
       group: '组织与配置',
       items: [
-        { id: 'PAGE-SCH-LIST', name: '学校管理', batch: '2-6' },
+        { id: 'PAGE-SCH-LIST', name: '学校管理', batch: '2-6', delivered: 'pages/school-list.html' },
         { id: 'PAGE-TERM-LIST', name: '学年学期', batch: '2-6' },
         { id: 'PAGE-SUB-LIST', name: '学科与配置', batch: '2-6', delivered: 'pages/subject-list.html' }
       ]
@@ -94,7 +94,9 @@
     'PAGE-SCH-CAMPUS': { path: 'pages/school-campus.html', name: '校区管理', batch: '2-6' },
     'PAGE-SCH-INIT': { path: 'pages/school-init.html', name: '开通初始化', batch: '2-6' },
     'PAGE-TERM-LIST': { path: 'pages/term-list.html', name: '学年学期', batch: '2-6' },
-    'PAGE-TERM-TERMS': { path: 'pages/term-terms.html', name: '学期管理', batch: '2-6' }
+    'PAGE-TERM-TERMS': { path: 'pages/term-terms.html', name: '学期管理', batch: '2-6' },
+    'PAGE-STR-CONFIG': { path: 'pages/stream-config.html', name: '选科配置', batch: '2-7' },
+    'PAGE-STR-STUDENT': { path: 'pages/stream-selection.html', name: '学生选科', batch: '2-7' }
   };
   Object.keys(EXTRA_PAGES).forEach(function (id) {
     PAGE_NAME[id] = EXTRA_PAGES[id].name;

@@ -356,6 +356,9 @@ fields:
   - { name: primary_subject_code, cn: 首选科目, type: varchar(20), required: true, enum_ref: subject_code, br: BR-STREAM-001 }
   - { name: secondary_subject_codes, cn: 再选科目, type: varchar(64), required: true, note: 两个编码以逗号分隔，需校验数量为 2，见 BR-STREAM-002 }
   - { name: stream_deadline, cn: 选科截止日期, type: datetime, required: false, br: BR-STREAM-004 }
+  - { name: stream_open_from, cn: 选科开放日期, type: datetime, required: false, br: BR-STREAM-004, note: 开放期起点，与 stream_deadline 组成开放期；截止后提交转为变更申请（CR-016） }
+  - { name: overdue_requires_approval, cn: 逾期变更需审批, type: tinyint(1), required: true, default: "1", br: BR-STREAM-005, note: 逾期变更是否需校级管理员审批；默认 1（需审批），见「选科逾期变更」口径（CR-016） }
+  - { name: subject_combination, cn: 选科组合, type: varchar(64), required: false, note: 首选 + 再选两门的展示用组合（如「物理 + 化学 + 生物」），由 primary_subject_code 与 secondary_subject_codes 派生，不单独落库（CR-016） }
 
   - { name: change_type, cn: 变更类型, type: varchar(30), required: true }
   - { name: effective_date, cn: 生效日期, type: date, required: true }

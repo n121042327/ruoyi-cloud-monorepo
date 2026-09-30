@@ -766,3 +766,33 @@ harness：`verify-subject.html`（`SB-01` ~ `SB-14`，14 / 14 通过）。动作
 | `subject-dialog-batch_1440x900.png` | 1440×900 | 深链接 `#panel=PAGE-SUB-BATCH` | 标准 9 学科清单预览 + 「已存在，跳过」 |
 | `subject-list_role-school-leader_1440x900.png` | 1440×900 | 角色 = 校领导 | 只读（与教务主任形态一致，新建 / 批量初始化隐藏） |
 | `subject_verify-results.png` | 1500×1200 | harness 结果清单 | `合计 14 / 14 条，通过 14 条，不通过 0 条 —— 全部通过` |
+
+### 6.10 批次 2-7a（选科配置 / 学生选科 / 选科清单）的交付说明
+
+| 页面 | 文件 | 说明 |
+|---|---|---|
+| `PAGE-STR-CONFIG` | `pages/stream-config.html` | 选科配置：开放期与截止时间（`stream_open_from` / `stream_deadline`）+ 逾期变更开关（默认「需校级管理员审批」`BR-STREAM-005`）+ 两张固定规则卡片（首选物理 / 历史、再选 4 选 2，学校与教务主任都不能增减）+ 查看选科清单 / 查看未选科学生 |
+| `PAGE-STR-STUDENT` | `pages/stream-selection.html` | 学生选科：首选卡片二选一 + 再选 4 选 2（即时计数、超出不允许再勾、不足提交被拦）+ 当前选科结果三张统计卡 + 恢复当前结果 / 查看选科历史 / 提交；页内写明「选科结果决定教学班归属，行政班不变」 |
+| `PAGE-STR-LIST` + `PAGE-STR-HISTORY` | `pages/stream-list.html` | 选科清单 8 列 6 行（学号 / 姓名 / 年级班级 / 首选 / 再选 / 组合 / 状态 / 操作），列宽之和 = `min-width` = 1080；页内 `PAGE-STR-HISTORY` 追加式时间线（3 条，旧组合 → 新组合 + 原因），全页无删除入口 |
+| `PAGE-STR-CHANGE` | 同上（弹窗） | 发起变更申请：新的首选（2 选项）+ 新的再选（4 复选）+ 变更原因必填；审批通过前保持原组合不变，同一学生只允许一条待审批申请（`BR-STREAM-007`） |
+
+harness：`verify-stream.html`（3 个 iframe，`ST-01` ~ `ST-24` 含两个子项，共 26 条断言，26 / 26 通过）。
+动作组：`stream_config`（`ACT-STR-001` ~ `003`）、`stream_student`（`ACT-STR-010` ~ `014`）、`stream_list`（`ACT-STR-020` ~ `025`）。
+本批同时执行 `CR-016`：字段名改 `stream_open_from` / `stream_deadline`、9 条权限码改用 `stream.config` / `stream.selection` / `stream.change_request`、
+`PAGE-STR-STAT` 由 block 改为独立页、选科配置可写角色改为教务主任 + 校领导（租户管理员无选科教学数据范围，`DS-02`）。
+
+| 截图 | 分辨率 | 场景 | 用于验证 |
+|---|---|---|---|
+| `stream-config_1440x900.png` | 1440×900 | 选科配置（教务主任，可写） | 固定规则卡片、开放期状态条、四个字段与保存入口 |
+| `stream-config_role-subject-teacher_1440x900.png` | 1440×900 | 角色 = 任课教师 | 无权限形态（`REQ-STR-053` / `DS-DENY-03`），内容整体替换而非堆在下方 |
+| `stream-config_role-school-leader_1440x900.png` | 1440×900 | 角色 = 校领导 | 校领导可写选科配置（`stream.config [read, update]`） |
+| `stream-config_state-empty_1440x900.png` | 1440×900 | 深链接 `#state=empty` | 空数据形态（未配置开放期时的口径） |
+| `stream-selection_1440x900.png` | 1440×900 | 学生选科（学生视角） | 首选卡片 + 再选 4 选 2 + 计数 2 / 2 + 当前结果三张卡 + 提交 |
+| `stream-selection_state-empty_1440x900.png` | 1440×900 | 深链接 `#state=empty` | 「选科未开放」空态（按年级开放的口径） |
+| `stream-list_1440x900.png` | 1440×900 | 选科清单（教务主任） | 8 列 6 行、列宽 1080、读口径提示、选科历史时间线、行内「发起变更」 |
+| `stream-list_role-homeroom_1440x900.png` | 1440×900 | 角色 = 班主任 | 4 行可代发起变更、2 行待审批显示「审批中」 |
+| `stream-list_role-school-leader_1440x900.png` | 1440×900 | 角色 = 校领导 | 全部行「只读」、无行内入口（审批在变更审批待办页） |
+| `stream-list_state-forbidden_1440x900.png` | 1440×900 | 角色 = 任课教师 + `#state=forbidden` | 无权限卡片（含 `REQ-STR-053` 与 `DS-02` 的排除依据） |
+| `stream-list_state-empty_1440x900.png` | 1440×900 | 深链接 `#state=empty` | 空数据形态 + 「去选科配置」入口 |
+| `stream-list_dialog-change_1440x900.png` | 1440×900 | 角色 = 班主任 + `#panel=PAGE-STR-CHANGE` | 变更申请弹窗（候选载体 `el-dialog`、变更口径、三类字段） |
+| `stream_verify-results.png` | 1100×1500 | harness 结果清单 | `合计 26 / 26 条，通过 26 条，不通过 0 条 —— 全部通过` |

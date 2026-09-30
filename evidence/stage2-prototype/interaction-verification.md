@@ -681,3 +681,50 @@ $chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 
 **批次 2-6 收尾**：2-6a（学校 6 页）+ 2-6b（校区 / 初始化 / 学年学期 4 页）+ 2-6c（学科 6 页）共 19 个页面编号全部产出；
 `CR-015` 的 9 条表单浮层载体修正也全部落地。
+
+## 20. 批次 2-7a：选科配置 / 学生选科 / 选科清单
+
+新增 harness `evidence/stage2-prototype/verify-stream.html`（3 个 iframe + 真实事件派发，`ST-01` ~ `ST-24`，含 `ST-05b` / `ST-05c`，共 26 条）。
+
+| 分组 | 覆盖 |
+|---|---|
+| 选科配置的固定规则（`ST-01`） | 两张规则卡片；首选 chips = 物理 / 历史、再选 chips = 化学 / 生物 / 思想政治 / 地理；页面上写明 `BV-STREAM-001` / `BR-STREAM-002` / `BR-STREAM-005` |
+| 选科配置表单（`ST-02` / `ST-03`） | 字段名取字段字典（`stream_open_from` / `stream_deadline` / `overdue_requires_approval` / `term_id`）；逾期默认「需校级管理员审批」；适用学年学期只读；清空开放日期点保存被字段级拦截（字段标红 + 汇总提示），提交未发出 |
+| 选科配置动作与角色（`ST-04` / `ST-05` / `ST-05b` / `ST-05c`） | 保存走 `saveStreamConfig` + `stream.config:update`；查看选科清单跳 `PAGE-STR-LIST`；查看未选科走 `listUnselectedStudent`；校领导可写、任课教师进入无权限形态（不降级）、切回教务主任恢复可写 |
+| 学生选科的固定集合（`ST-06` / `ST-07`） | 首选只有 2 张卡、再选只有 4 张卡；初始 2 / 2 已选满，提交按钮 `data-blocked=false`，拦截提示隐藏 |
+| 学生选科的规则联动（`ST-08` / `ST-09` / `ST-10` / `ST-11`） | 取消一门再选 → 计数 1 / 2 + 拦截提示 + `data-blocked=true`；不足 2 门点提交给出可操作提示且不写入；切换首选即时联动「当前选科结果」三张统计卡；「恢复当前结果」回滚到已生效组合 |
+| 学生选科动作与状态（`ST-12` / `ST-13`） | 提交走 `updateMyStream` + `stream.selection:update`；查看选科历史跳 `PAGE-STR-HISTORY`；页面写明「教学班与行政班两套独立关系」；五类状态片段齐全 |
+| 选科清单结构与口径（`ST-14` / `ST-15` / `ST-16`） | 8 列 + 6 行样例，列宽之和 = `min-width` = 1080；页内 `PAGE-STR-HISTORY` 时间线 3 条（旧组合 → 新组合 + 原因）、全页无删除入口；页头写明「选科结果只有一个写入路径」 |
+| 选科清单工具栏（`ST-17`） | 组合分布统计跳独立页 `PAGE-STR-STAT`（`CR-016`）、选科配置跳 `PAGE-STR-CONFIG`、导出走 `exportStreamSelection` |
+| 选科清单角色（`ST-18` / `ST-19` / `ST-20`） | 校领导只读（无行内「发起变更」，操作列「只读 / 审批中」）；班主任 4 行出现行内「发起变更」（`data-nav=PAGE-STR-CHANGE`）、2 行待审批显示「审批中」；点行内入口打开 `PAGE-STR-CHANGE` 并带入该行姓名 |
+| 变更申请弹窗（`ST-21` / `ST-22`） | 新的首选 2 选项 / 新的再选 4 复选 / 变更原因必填；清空原因点提交被字段级拦截且弹窗不关闭；提交走 `addStreamChangeRequest` + `stream.change_request:create`，页内写明「审批通过前保持原组合不变、同一学生只允许一条待审批」 |
+| 状态片段（`ST-23` / `ST-24`） | 选科清单与选科配置的五类状态片段齐全（加载中 / 空数据 / 失败 / 无权限 / 提交中） |
+
+| harness | 结果 |
+|---|---|
+| `verify-stream.html` | 26 / 26 通过 |
+
+本批回归（新增 3 个页面与 3 个动作组；`prototype-shell.js` 的菜单与 `EXTRA_PAGES` 登记更新）：
+
+| harness | 结果 |
+|---|---|
+| `verify-subject.html` | 14 / 14 通过 |
+| `verify-org-config.html` | 23 / 23 通过 |
+| `verify-school.html` | 16 / 16 通过 |
+| `verify-student-module.html` | 28 / 28 通过 |
+| `verify-detail-entry.html` | 6 / 6 通过 |
+| `verify-import-login.html` | 30 / 30 通过 |
+| `verify-promotion-wizard.html` | 39 / 39 通过 |
+| `verify-promotion-create.html` | 22 / 22 通过 |
+| `verify-promotion-list.html` | 36 / 36 通过 |
+| `verify-class-list.html` | 39 / 39 通过 |
+| `verify-class-detail.html` | 20 / 20 通过 |
+| `verify-class-roster.html` | 34 / 34 通过 |
+| `verify-class-dialogs.html` | 36 / 36 通过 |
+| `verify-grade-list.html` | 38 / 38 通过 |
+| `verify-carrier-change.html` | 14 / 14 通过 |
+| `python tools/check_docs.py` | 通过：未发现问题 |
+
+**本批暴露并已修掉的一处载体缺陷**：选科三页的状态片段原先堆在主内容之后，空数据 / 无权限形态会被挤到首屏之外
+（截图实证：`#state=forbidden` 与默认态截图字节完全一致）。主内容已包进 `[data-normal-view]`、状态片段移入 `#page-root`，
+12 张截图全部重拍且互不相同。
