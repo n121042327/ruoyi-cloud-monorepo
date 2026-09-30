@@ -483,6 +483,36 @@ table.el-table .mono { font-size: 13px; }
 .step.on .idx { background: var(--app-primary); border-color: var(--app-primary); color: #fff; }
 .step-line { flex: 1; height: 1px; background: var(--app-border-light); margin: 0 6px; min-width: 12px; }
 
+/* ------------------------------------------------------------------ 时间线（el-timeline 仿真） */
+.timeline { list-style: none; margin: 0; padding: 0 0 0 18px; position: relative; }
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: var(--app-border-light);
+}
+.timeline > li { position: relative; padding: 0 0 16px 0; }
+.timeline > li:last-child { padding-bottom: 0; }
+.timeline > li::before {
+  content: "";
+  position: absolute;
+  left: -18px;
+  top: 6px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--app-primary);
+}
+.timeline .tl-head { display: flex; align-items: baseline; gap: 10px; }
+.timeline .tl-head b { font-weight: 600; color: var(--app-text-primary); }
+.timeline .tl-time { font-size: 12px; color: var(--app-text-secondary); }
+.timeline .tl-body { margin-top: 2px; color: var(--app-text-regular); }
+.timeline .tl-meta { margin-top: 2px; font-size: 12px; color: var(--app-text-secondary); }
+
 /* ------------------------------------------------------------------ 提示条与轻提示 */
 .alert {
   display: flex;

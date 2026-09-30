@@ -45,11 +45,11 @@
 | `edu_role` | 教育角色 | `el-tag` 组 | 132px | 多角色并排显示；取值来自 `edu_role` 枚举 |
 | `subject_code` | 任教学科 | 文本 | 96px | 多学科用 `、` 连接；无任教关系显示 `—` |
 | — | 任课班级数 | 数字（右对齐） | 88px | 受数据范围约束（`DS-DENY-08`） |
-| — | 在职状态 | `el-tag` | 84px | 在职 / 离职 / 调离 |
+| `employment_status` | 在职状态 | `el-tag` | 84px | 在职 / 离职 / 调离；取值来自 `employment_status` 枚举 |
 | `teacher_phone` | 联系电话 | 文本（掩码） | 104px | 空值显示 `—`；对任课教师整列隐藏（`data-col-hide-role`） |
 | — | 操作 | `el-table-column`（固定右侧） | 150px | 编辑 / 角色 / 任教 / 离职，按权限与状态显隐 |
 
-筛选项字段：`school_id`、`edu_role`、`grade_name`、`class_name`、`subject_code`、在职状态、`teacher_name`（关键字）。
+筛选项字段：`school_id`、`edu_role`、`grade_name`、`class_name`、`subject_code`、`employment_status`、`teacher_name`（关键字）。
 
 ## 4. 动作清单
 
@@ -119,7 +119,7 @@
 - [x] 页面骨架属于 `TPL-LIST`
 - [x] 每个可交互元素带 `data-page` / `data-role` / `data-action-id`（跳转类带 `data-nav`）
 - [x] 每个 `data-action-id` 已在 `page-actions.yaml` 登记（`ACT-TCH-001` ~ `011` 本批新增）
-- [x] 每个 `data-field` 已在 `06-field-dictionary.yaml` 登记
+- [x] 每个 `data-field` 已在 `06-field-dictionary.yaml` 登记（`CR-004` 补登记 13 个教师模块字段与 `employment_status` 枚举，`GAP-033` 已关闭）
 - [x] 七类状态齐全（loading / empty / error / forbidden / submitting / partial / queued）
 - [x] 至少 2 种角色形态（本页给出 6 种，差异落在按钮与整列显隐上）
 - [x] 样例数据取自 `content-samples.json`，未出现占位人名

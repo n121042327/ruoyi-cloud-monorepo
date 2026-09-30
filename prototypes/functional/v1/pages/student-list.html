@@ -941,7 +941,8 @@
     edit.setAttribute('data-nav', 'PAGE-STU-EDIT');
     edit.setAttribute('data-overlay', 'drawer');
     edit.setAttribute('data-role-visible', 'academic_director,grade_leader,homeroom');
-    edit.addEventListener('click', function (event) { event.stopPropagation(); });
+    // 注意：不要 stopPropagation。外壳的事件委托挂在 document 上，阻止冒泡会让行内按钮失效
+    // （按钮的 data-nav 由演示引擎处理；"点按钮不打开详情"由引擎的 target 判定负责）。
     cell.appendChild(edit);
 
     if (!term) {
@@ -955,7 +956,6 @@
       move.setAttribute('data-nav', 'PAGE-STU-STATUS');
       move.setAttribute('data-overlay', 'drawer');
       move.setAttribute('data-role-visible', 'academic_director,grade_leader,homeroom');
-      move.addEventListener('click', function (event) { event.stopPropagation(); });
       cell.appendChild(move);
 
       var transfer = document.createElement('button');
@@ -968,7 +968,6 @@
       transfer.setAttribute('data-nav', 'PAGE-STU-TRANSFER');
       transfer.setAttribute('data-overlay', 'drawer');
       transfer.setAttribute('data-role-visible', 'academic_director,grade_leader');
-      transfer.addEventListener('click', function (event) { event.stopPropagation(); });
       cell.appendChild(transfer);
     } else {
       var none = document.createElement('span');

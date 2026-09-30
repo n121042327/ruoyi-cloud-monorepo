@@ -34,7 +34,7 @@
       group: '教育管理',
       items: [
         { id: 'PAGE-STU-LIST', name: '学生管理', batch: '2-1', delivered: 'pages/student-list.html' },
-        { id: 'PAGE-TCH-LIST', name: '教师管理', batch: '2-2' },
+        { id: 'PAGE-TCH-LIST', name: '教师管理', batch: '2-2', delivered: 'pages/teacher-list.html' },
         { id: 'PAGE-CLS-LIST', name: '班级管理', batch: '2-3' },
         { id: 'PAGE-GRD-LIST', name: '年级管理', batch: '2-2' },
         { id: 'PAGE-PRM-LIST', name: '升班与学籍', batch: '2-3' },
@@ -326,7 +326,7 @@
   function openPanel(pageId) {
     var panel = document.querySelector('[data-demo-panel="' + pageId + '"]');
     if (!panel) {
-      toast('未找到页面片段 ' + pageId, 'error');
+      toast('「' + (PAGE_NAME[pageId] || pageId) + '」在本批未提供页面片段（原型按批交付），入口与权限显隐仍可验收。', 'warning');
       return;
     }
     panel.classList.add('open');
@@ -387,6 +387,7 @@
       if (!message && value && input.hasAttribute('data-validate')) {
         var rule = input.getAttribute('data-validate');
         if (rule === 'phone11' && !/^1\d{10}$/.test(value)) message = '手机号格式不正确';
+        if (rule === 'code32' && !/^[A-Za-z0-9-]{2,32}$/.test(value)) message = '长度须为 2–32 位字母、数字或连字符';
         if (rule === 'nation-student-no' && !/^[GL]\d+$/.test(value)) message = '全国学籍号须以 G 或 L 开头';
         if (rule === 'year4' && !/^(19|20)\d{2}$/.test(value)) message = '入学年份不合法';
       }
@@ -401,9 +402,16 @@
       }
     });
     if (!ok) {
-      var summary = scope.querySelector('[data-validate-summary]');
+      // 校验汇总通常放在步骤内容之外（步骤条下方），因此到整个浮层里找，而不是只看当前步骤
+      var summaryScope = scope.closest('[data-demo-panel]') || scope;
+      var summary = summaryScope.querySelector('[data-validate-summary]');
       if (summary) summary.classList.remove('state-hidden');
       if (firstBad) firstBad.focus();
+    } else {
+      // 校验通过时收起上一次的汇总，避免"已经改好了但提示还挂着"
+      var okScope = scope.closest('[data-demo-panel]') || scope;
+      var okSummary = okScope.querySelector('[data-validate-summary]');
+      if (okSummary) okSummary.classList.add('state-hidden');
     }
     return ok;
   }
@@ -461,8 +469,13 @@
       return;
     }
 
+    // 只有"动作元素"才把 data-api 当作触发点。
+    // 表格、卡片上的 data-api 只是接口标注（markup-contract 第 2 节要求 table 带 data-api），
+    // 若把容器也算触发点，点击行、行内按钮、复选框都会被误判为"调接口"。
     var apiNode = node.closest('[data-api]');
-    if (apiNode && !apiNode.classList.contains('is-disabled')) {
+    var apiTrigger = apiNode && (apiNode.tagName === 'BUTTON' || apiNode.tagName === 'A' ||
+      apiNode.getAttribute('data-role') === 'action');
+    if (apiTrigger && !apiNode.classList.contains('is-disabled')) {
       var host = apiNode.closest('[data-demo-panel]');
       if (host && apiNode.hasAttribute('data-validate-on-submit')) {
         var stepNode = host.querySelector('[data-step-content]:not(.state-hidden)') || host;
@@ -472,8 +485,9 @@
       return;
     }
 
+    // 落在表单控件上的点击（复选框 / 下拉 / 输入框 / label）不触发所在行或卡片的跳转
     var navNode = node.closest('[data-nav]');
-    if (navNode) {
+    if (navNode && !node.closest('input, select, textarea, label')) {
       var pageId = navNode.getAttribute('data-nav');
       var overlay = navNode.getAttribute('data-overlay');
       if (overlay === 'drawer' || overlay === 'dialog' || overlay === 'block') {
@@ -487,7 +501,9 @@
       if (delivered) {
         window.location.href = base + '/' + delivered;
       } else {
-        toast('「' + (PAGE_NAME[pageId] || pageId) + '」在批次 ' + (PAGE_BATCH[pageId] || '后续') + ' 交付（' + pageId + '），本批只验证入口与权限显隐。', 'warning');
+        toast(PAGE_NAME[pageId]
+          ? '「' + PAGE_NAME[pageId] + '」在批次 ' + PAGE_BATCH[pageId] + ' 交付（' + pageId + '），本批只验证入口与权限显隐。'
+          : '「' + pageId + '」在后续批次交付，本批只验证入口与权限显隐。', 'warning');
       }
       return;
     }
@@ -560,7 +576,8 @@
     document.addEventListener('click', onDocumentClick);
     document.addEventListener('keydown', onKeydown);
 
-    root.querySelectorAll('[data-demo-panel]').forEach(function (panel) {
+    // 浮层片段可能挂在 #page-root 之外（列表页的抽屉与弹窗），因此按整篇文档初始化步骤条
+    document.querySelectorAll('[data-demo-panel]').forEach(function (panel) {
       if (panel.querySelector('[data-step-content]')) setStep(panel, 1);
     });
   }
@@ -573,6 +590,11 @@
     applyState: applyState,
     openPanel: openPanel,
     closePanel: closePanel,
+    // 深链接与截图辅助：把某个浮层内的步骤条直接切到第 index 步（向导类页面复用）
+    step: function (pageId, index) {
+      var panel = document.querySelector('[data-demo-panel="' + pageId + '"]');
+      if (panel && panel.querySelector('[data-step-content]')) setStep(panel, index);
+    },
     currentRole: function () { return state.role; },
     currentState: function () { return state.state; }
   };

@@ -73,11 +73,11 @@ pages:
 
   # ---- 教师管理 ----
   - { id: PAGE-TCH-LIST, name: 教师管理列表, module: teacher, type: page, route: /edu/teacher/list, template: TPL-LIST, batch: "2-2" }
-  - { id: PAGE-TCH-DETAIL, name: 教师详情, module: teacher, type: detail, parent: PAGE-TCH-LIST, batch: "2-2" }
+  - { id: PAGE-TCH-DETAIL, name: 教师详情, module: teacher, type: detail, container: drawer, size: lg, parent: PAGE-TCH-LIST, batch: "2-2", note: "PRD 6.1 写明详情页以抽屉承载；内含基本信息 / 教育角色 / 任教关系 / 班主任任职 / 账号 / 变更记录 6 个分区" }
   - { id: PAGE-TCH-CREATE, name: 新增教师, module: teacher, type: drawer, size: md, parent: PAGE-TCH-LIST, batch: "2-2" }
   - { id: PAGE-TCH-EDIT, name: 编辑教师, module: teacher, type: drawer, size: md, parent: PAGE-TCH-LIST, batch: "2-2" }
   - { id: PAGE-TCH-ROLE, name: 教育角色分配, module: teacher, type: dialog, size: sm, parent: PAGE-TCH-LIST, batch: "2-2" }
-  - { id: PAGE-TCH-ASSIGN, name: 任教关系设置, module: teacher, type: drawer, size: lg, parent: PAGE-TCH-LIST, batch: "2-2" }
+  - { id: PAGE-TCH-ASSIGN, name: 任教关系设置, module: teacher, type: page, route: /edu/teacher/assignment, parent: PAGE-TCH-LIST, batch: "2-2", note: "PRD 6.1 写明为独立页，双栏承载教师视角 / 班级视角；批次 2-2b-2 交付" }
   - { id: PAGE-TCH-LEAVE, name: 离职与调离登记, module: teacher, type: dialog, size: sm, parent: PAGE-TCH-LIST, batch: "2-2" }
   - { id: PAGE-TCH-IMPORT, name: 教师导入向导, module: teacher, type: wizard, route: /edu/teacher/import, batch: "2-4" }
 
@@ -177,7 +177,7 @@ pages:
 delivery_batches:
   - { batch: "2-0", content: 原型规范（layout-spec / navigation / page-actions / markup-contract / 样例数据）, pages: 0, status: 本批 }
   - { batch: "2-1", content: 学生管理列表 + 新增/编辑抽屉（样板）, pages: 3, status: 待验收 }
-  - { batch: "2-2", content: "教师管理 + 年级管理（执行时拆为 2-2a 教师列表 1 页 / 2-2b 其余 12 页）", pages: 13, status: 2-2a 已产出待验收 }
+  - { batch: "2-2", content: "教师管理 + 年级管理（执行时拆为 2-2a 教师列表 1 页 / 2-2b-1 教师详情与新增编辑 3 项 / 2-2b-2 角色、任教与年级 6 页）", pages: 13, status: "2-2a 与 2-2b-1 已产出待验收；2-2b-2 待开始" }
   - { batch: "2-3", content: 班级管理 + 班级详情 + 升班向导, pages: 12, status: 待开始 }
   - { batch: "2-4", content: 导入向导 + 登录 + 异常页, pages: 11, status: 待开始 }
   - { batch: "2-5", content: 学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录）, pages: 8, status: 已确认（D-050），待开始 }
@@ -192,6 +192,17 @@ delivery_batches:
 # ---------------------------------------------------------------------------
 jump_map:
   - { from: PAGE-STU-LIST, trigger: 点击行, to: PAGE-STU-DETAIL, keep_filters: true }
+  - { from: PAGE-TCH-LIST, trigger: 点击行, to: PAGE-TCH-DETAIL, overlay: drawer, keep_filters: true }
+  - { from: PAGE-TCH-LIST, trigger: 行内"编辑", to: PAGE-TCH-EDIT, overlay: drawer }
+  - { from: PAGE-TCH-LIST, trigger: 行内"角色", to: PAGE-TCH-ROLE, overlay: dialog }
+  - { from: PAGE-TCH-LIST, trigger: 行内"任教", to: PAGE-TCH-ASSIGN, overlay: page }
+  - { from: PAGE-TCH-LIST, trigger: 行内"离职", to: PAGE-TCH-LEAVE, overlay: dialog }
+  - { from: PAGE-TCH-LIST, trigger: 点击"导入", to: PAGE-TCH-IMPORT, overlay: page }
+  - { from: PAGE-TCH-DETAIL, trigger: 详情"编辑", to: PAGE-TCH-EDIT, overlay: drawer }
+  - { from: PAGE-TCH-DETAIL, trigger: 详情"分配角色", to: PAGE-TCH-ROLE, overlay: dialog }
+  - { from: PAGE-TCH-DETAIL, trigger: 详情"设置任教", to: PAGE-TCH-ASSIGN, overlay: page }
+  - { from: PAGE-TCH-DETAIL, trigger: 班主任任职"前往班级详情", to: PAGE-CLS-DETAIL, overlay: page }
+  - { from: PAGE-TCH-DETAIL, trigger: 变更记录"查看全部", to: PAGE-AUDIT-LOG-LIST, overlay: page }
   - { from: PAGE-STU-LIST, trigger: 点击"新增", to: PAGE-STU-CREATE, overlay: drawer }
   - { from: PAGE-STU-LIST, trigger: 行内"编辑", to: PAGE-STU-EDIT, overlay: drawer }
   - { from: PAGE-STU-LIST, trigger: 点击"导入", to: PAGE-STU-IMPORT, overlay: page }

@@ -55,10 +55,38 @@
             <td><a href="pages/teacher-list.html">pages/teacher-list.html</a></td>
             <td>筛选项 7 个、列 11 个、行操作 4 个、12 行样例、跨校任教标注、离职登记二次确认、7 类状态、6 种角色</td>
           </tr>
+          <tr>
+            <td class="mono">PAGE-TCH-DETAIL</td>
+            <td>教师详情（抽屉 · 六分区）</td>
+            <td>抽屉（TPL-DETAIL · lg）</td>
+            <td><a href="pages/teacher-list.html#panel=PAGE-TCH-DETAIL">列表页内点击数据行</a></td>
+            <td>基本信息 / 教育角色 / 任教关系 / 班主任任职 / 账号 / 变更记录；跨校任教与"无学校级角色"两种形态可切换；手机号掩码与查看留痕</td>
+          </tr>
+          <tr>
+            <td class="mono">PAGE-TCH-CREATE</td>
+            <td>新增教师（抽屉 · 三步）</td>
+            <td>抽屉（TPL-OVERLAY）</td>
+            <td><a href="pages/teacher-list.html#panel=PAGE-TCH-CREATE">列表页内「新增」</a></td>
+            <td>基本信息 → 联系方式 → 任职信息；工号格式与必填校验、所属学校受数据范围约束、保存成功给三个后续动作</td>
+          </tr>
+          <tr>
+            <td class="mono">PAGE-TCH-EDIT</td>
+            <td>编辑教师（抽屉）</td>
+            <td>抽屉（TPL-OVERLAY）</td>
+            <td><a href="pages/teacher-list.html#panel=PAGE-TCH-EDIT">列表页内行内「编辑」</a></td>
+            <td>字段级可编辑性（只读灰底 disabled）、工号仅租户管理员可改、所属学校永久只读、并发冲突提示</td>
+          </tr>
+          <tr>
+            <td class="mono">DIALOG-TCH-DISCARD</td>
+            <td>放弃已填写内容（二次确认）</td>
+            <td>弹窗（TPL-OVERLAY · sm）</td>
+            <td><a href="pages/teacher-list.html#panel=PAGE-TCH-CREATE">新增 / 编辑抽屉内「取消」</a></td>
+            <td>写清"对谁、做什么、影响范围"；确认后同时关闭表单浮层且不保存</td>
+          </tr>
         </tbody>
       </table>
       <div class="legend" style="margin-top:10px">
-        <span>新增与编辑抽屉按 <b>markup-contract.md 第 10.1 节</b> 实现为列表页内的浮层片段（<span class="mono">data-demo-panel</span>），不单独出页面文件。</span>
+        <span>新增、编辑、详情、离职与放弃确认按 <b>markup-contract.md 第 10.1 节</b> 实现为列表页内的浮层片段（<span class="mono">data-demo-panel</span>），不单独出页面文件；教师 PRD 6.1 也写明详情以抽屉承载。</span>
       </div>
     </div>
   </section>
@@ -72,7 +100,10 @@
         <li>切换页面状态（加载中 / 空数据 / 查询失败 / 无权限 / 提交中 / 部分失败 / 排队中），逐条核对状态形态。</li>
         <li>点「新增」打开三步抽屉，只填姓名直接点「下一步」可见字段级校验；填完三步点「保存」见成功反馈。</li>
         <li>点行内「编辑」打开编辑抽屉，切换角色可见「字段级可编辑性矩阵」效果（灰底字段为只读）。</li>
-        <li>点任意数据行：详情页在批次 2-5 交付，本批只给占位提示，用于验证入口与权限显隐。</li>
+        <li>打开 <a href="pages/teacher-list.html">教师管理列表</a>，点任意数据行打开教师详情抽屉：左上角切换「跨校任教（苏睿）」与「班主任 + 任课（邓丽娟）」两种形态，看跨校说明、教育角色空态与变更记录时间线。</li>
+        <li>在教师列表点「新增」打开三步抽屉：只填姓名直接点「下一步」看字段级校验；走到第三步点「保存」看成功结果条与「继续新增 / 查看详情 / 立即设置任教」三个后续动作。</li>
+        <li>点「取消」看放弃确认弹窗：写清影响范围，确认后同时关闭两个浮层。</li>
+        <li>学生列表点任意数据行：学生详情在批次 2-5 交付，本批只给占位提示，用于验证入口与权限显隐。</li>
       </ol>
     </div>
   </section>
@@ -88,7 +119,7 @@
           <tr><td class="mono">navigation.yaml</td><td>菜单树、87 项页面注册表、跳转关系、入口条件、10 个交付批次</td></tr>
           <tr><td class="mono">page-actions.yaml</td><td>动作清单（按钮 → 触发 → 结果 → 权限 → 接口）与反馈文案模板</td></tr>
           <tr><td class="mono">markup-contract.md</td><td>data-* 语义标记、元素到 Element Plus 组件的映射表、原型可交互约定、反例清单</td></tr>
-          <tr><td class="mono">content-samples.json</td><td>演示数据与 8 类边界样本（<span class="mono">students_edge_cases</span>、<span class="mono">list_totals</span>）</td></tr>
+          <tr><td class="mono">content-samples.json</td><td>演示数据与 8 类边界样本（<span class="mono">students_edge_cases</span>、<span class="mono">teachers_edge_cases</span>、<span class="mono">teacher_detail_samples</span>、<span class="mono">teacher_create_sample</span>、<span class="mono">list_totals</span>）</td></tr>
           <tr><td class="mono">assets/prototype-shell.css / .js</td><td>外壳与演示引擎（侧边菜单、顶部导航、页签栏、面包屑、角色/状态切换、浮层、校验、轻提示）</td></tr>
         </tbody>
       </table>
@@ -104,7 +135,8 @@
           <tr><td>2-0</td><td>原型规范（本目录 8 个文件）</td><td class="num">0</td><td><span class="el-tag warning">待验收</span></td></tr>
           <tr><td>2-1</td><td>学生管理列表 + 新增/编辑抽屉（样板）</td><td class="num">3</td><td><span class="el-tag warning">待验收</span></td></tr>
           <tr><td>2-2a</td><td>教师管理列表（标准校验页）</td><td class="num">1</td><td><span class="el-tag warning">待验收</span></td></tr>
-          <tr><td>2-2b</td><td>教师管理其余 6 页 + 年级管理 6 页</td><td class="num">12</td><td><span class="el-tag info">待开始</span></td></tr>
+          <tr><td>2-2b-1</td><td>教师详情 + 新增教师 + 编辑教师（含放弃确认弹窗）</td><td class="num">3</td><td><span class="el-tag warning">待验收</span></td></tr>
+          <tr><td>2-2b-2</td><td>教育角色分配 + 任教关系设置（独立页）+ 年级管理 6 页</td><td class="num">8</td><td><span class="el-tag info">待开始</span></td></tr>
           <tr><td>2-3</td><td>班级管理 + 班级详情 + 升班向导</td><td class="num">12</td><td><span class="el-tag info">待开始</span></td></tr>
           <tr><td>2-4</td><td>导入向导 + 登录 + 异常页</td><td class="num">11</td><td><span class="el-tag info">待开始</span></td></tr>
           <tr><td>2-5</td><td>学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录）</td><td class="num">8</td><td><span class="el-tag info">待开始</span></td></tr>
@@ -130,6 +162,8 @@
           <tr><td class="mono">GAP-029</td><td>字段字典缺 <span class="mono">is_primary</span>、<span class="mono">enroll_date</span> 等 PRD 已使用的字段</td><td>表单字段标记与阶段 5 建表列清单</td></tr>
           <tr><td class="mono">GAP-030</td><td>学号修改的"校级管理员"未映射到权限矩阵角色（矩阵中校领导对学号标"—"）</td><td>学号修改入口谁能看到、谁能提交</td></tr>
           <tr><td class="mono">已关闭</td><td><span class="mono">GAP-026</span> ~ <span class="mono">030</span> 已按用户"按推荐来"执行（<span class="mono">CR-003</span>）；<span class="mono">GAP-031</span> 随 <span class="mono">CR-002</span> 关闭：共享授权只针对题库 / 试卷资源</td><td>本表保留历史，最新状态见 <span class="mono">gap-register.yaml</span></td></tr>
+          <tr><td class="mono">GAP-032</td><td>教师 PRD 4.4 字段级矩阵说"校领导可改工号 / 姓名 / 联系方式 / 入职日期 / 在职状态"，但权限矩阵里校领导对 <span class="mono">person.teacher</span> 只有 <span class="mono">read</span></td><td>列表与详情是否给校领导"编辑"入口；编辑抽屉哪些字段可写；阶段 6 的 <span class="mono">v-hasPermi</span> 与字段 disabled 逻辑</td></tr>
+          <tr><td class="mono">GAP-033</td><td>教师模块业务字段未登记进 <span class="mono">06-field-dictionary.yaml</span>：<span class="mono">school_id</span> / <span class="mono">teacher_phone</span> / <span class="mono">email</span> / <span class="mono">hire_date</span> / <span class="mono">status</span> 等，但这些 <span class="mono">data-field</span> 已在原型里使用（批次 2-2a 已存在）</td><td>阶段 5 建表列名的权威口径；阶段 6 的 TS 类型与字典下拉；三份教师页面规格的自查清单无法打勾</td></tr>
         </tbody>
       </table>
     </div>

@@ -1525,5 +1525,140 @@
       "update_time": "2026-07-15 10:05",
       "edge": "调离状态：跨校调离后原校只读保留"
     }
-  ]
+  ],
+  "teacher_detail_samples": {
+    "note": "教师详情页（PAGE-TCH-DETAIL）的分区样例，按 teacher_id 索引。列表页点击行时按工号匹配样本；未列出专属样本的教师复用形态 A 的结构，页面内以样本说明提示。",
+    "samples": [
+      {
+        "teacher_id": 1007,
+        "teacher_no": "YXWY2017001",
+        "teacher_name": "苏睿",
+        "gender": "男",
+        "school_id": 202,
+        "school_name": "云溪外国语学校",
+        "scope_text": "云溪外国语学校（归属校）· 在云溪实验学校任教",
+        "phone_mask": "131****5588",
+        "email": "surui@yunxi-wgy.edu.cn",
+        "hire_date": "2017-08-20",
+        "status": "在职",
+        "update_time": "2026-09-28 14:32（郑雅琴）",
+        "remark": "外国语学校教务主任；2026-2027 第一学期在云溪实验学校兼授高一 (1) 班外语。",
+        "cross_school": true,
+        "edge": "跨校：归属校与任教校不同，两校各自只看到本校范围内的任教明细；跨校可见只来自平台运营的全平台范围",
+        "edu_roles": [
+          {
+            "edu_role": "academic_director",
+            "role_label": "教务主任",
+            "scope": "云溪外国语学校（学校级）",
+            "period": "2024-09-01 ~ 长期",
+            "status": "生效中"
+          }
+        ],
+        "teaching_assignments": [
+          {
+            "term_id": 202601,
+            "term_name": "2026-2027 学年第一学期",
+            "current": true,
+            "subject_code": "english",
+            "subject_name": "外语",
+            "class_type": "administrative",
+            "class_id": 20260101,
+            "class_name": "高一 (1) 班",
+            "class_school": "云溪实验学校",
+            "weekly_hours": 5,
+            "status": "生效中"
+          },
+          {
+            "term_id": 202501,
+            "term_name": "2025-2026 学年第一学期",
+            "current": false,
+            "subject_code": "english",
+            "subject_name": "外语",
+            "class_type": "administrative",
+            "class_id": 20250101,
+            "class_name": "高二 (1) 班",
+            "class_school": "云溪实验学校",
+            "weekly_hours": 5,
+            "status": "已失效"
+          }
+        ],
+        "homeroom_class": null,
+        "homeroom_term": null,
+        "account": {
+          "login_name": "surui",
+          "status": "正常",
+          "last_login_time": "2026-09-30 08:12",
+          "last_login_ip": "10.20.3.18",
+          "create_time": "2017-08-20 09:40"
+        }
+      },
+      {
+        "teacher_id": 1003,
+        "teacher_no": "YX2018003",
+        "teacher_name": "邓丽娟",
+        "gender": "女",
+        "school_id": 201,
+        "school_name": "云溪实验学校",
+        "scope_text": "云溪实验学校 · 本校全部教师（含班主任与任教关系）",
+        "phone_mask": "137****6652",
+        "email": "denglj@yunxi.edu.cn",
+        "hire_date": "2018-08-15",
+        "status": "在职",
+        "update_time": "2026-09-26 11:05（郑雅琴）",
+        "remark": "高一 (1) 班班主任；2026-2027 第一学期任教语文，含 1 个行政班与 1 个教学班。",
+        "cross_school": false,
+        "edge": "空：该教师没有学校级教育角色，教育角色分组显示空态而不是空表格；同时具备班主任任职（只读）与任课关系",
+        "edu_roles": [],
+        "teaching_assignments": [
+          {
+            "term_id": 202601,
+            "term_name": "2026-2027 学年第一学期",
+            "current": true,
+            "subject_code": "chinese",
+            "subject_name": "语文",
+            "class_type": "administrative",
+            "class_id": 20260101,
+            "class_name": "高一 (1) 班",
+            "class_school": "云溪实验学校",
+            "weekly_hours": 6,
+            "status": "生效中"
+          },
+          {
+            "term_id": 202601,
+            "term_name": "2026-2027 学年第一学期",
+            "current": true,
+            "subject_code": "chinese",
+            "subject_name": "语文",
+            "class_type": "teaching",
+            "class_id": 20260191,
+            "class_name": "高一语文 A 层",
+            "class_school": "云溪实验学校",
+            "weekly_hours": 4,
+            "status": "生效中"
+          }
+        ],
+        "homeroom_class": "高一 (1) 班",
+        "homeroom_term": "2026-2027 学年第一学期",
+        "account": {
+          "login_name": "denglijuan",
+          "status": "正常",
+          "last_login_time": "2026-09-30 07:41",
+          "last_login_ip": "10.20.4.26",
+          "create_time": "2018-08-15 10:20"
+        }
+      }
+    ]
+  },
+  "teacher_create_sample": {
+    "note": "新增教师抽屉（PAGE-TCH-CREATE）保存成功后的样例结果，用于统一登录名与工号的展示口径；页面不得自行编造新工号。",
+    "teacher_no": "YX2026013",
+    "teacher_name": "崔文昊",
+    "gender": "男",
+    "school_id": 201,
+    "school_name": "云溪实验学校",
+    "login_name": "cuiwenhao",
+    "hire_date": "2026-09-01",
+    "edu_roles": ["subject_teacher"],
+    "initial_credential": "一次性初始凭据由学校分发，教师首次登录强制修改密码"
+  }
 }

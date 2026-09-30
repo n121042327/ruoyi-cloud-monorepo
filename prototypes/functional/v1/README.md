@@ -24,13 +24,16 @@
 | `markup-contract.md` | 原型 HTML 必须携带的 `data-*` 语义标记约定 | 批次 2-0 |
 | `content-samples.json` | 真实感中文样例数据 | 批次 2-0 |
 | `page-specs/_template.md` | 页面规格模板 | 批次 2-0 |
-| `page-specs/<page>.md` | 每个页面的规格：元素、状态、交互、跳转 | 随各批产出（2-1 已产出 3 份） |
+| `page-specs/<page>.md` | 每个页面的规格：元素、状态、交互、跳转 | 随各批产出（2-1 三份、2-2a 一份、2-2b-1 三份） |
 | `assets/prototype-shell.css` | 外壳与组件样式（Element Plus 仿真，非生产代码） | 批次 2-1 |
 | `assets/prototype-shell.js` | 演示引擎：外壳注入、角色切换、状态切换、浮层、提交模拟、校验、轻提示 | 批次 2-1 |
 | `index.html` | 原型入口与导航 | 批次 2-1 |
 | `pages/<page>.html` | 各页面原型 | 随各批产出（2-1 已产出 `pages/student-list.html`） |
-| `pages/teacher-list.html` | 教师管理列表（批次 2-2a 样板） | 批次 2-2a |
+| `pages/teacher-list.html` | 教师管理列表（批次 2-2a 样板）+ 教师详情 / 新增 / 编辑 / 离职 / 放弃确认五个浮层片段（批次 2-2b-1） | 批次 2-2a、2-2b-1 |
 | `page-specs/teacher-list.md` | 教师管理列表页面规格 | 批次 2-2a |
+| `page-specs/teacher-detail.md` | 教师详情页面规格（6 个分区、两种形态） | 批次 2-2b-1 |
+| `page-specs/teacher-create.md` | 新增教师三步抽屉页面规格 | 批次 2-2b-1 |
+| `page-specs/teacher-edit.md` | 编辑教师抽屉页面规格（字段级可编辑性） | 批次 2-2b-1 |
 
 ## 3. 怎么打开
 
@@ -49,8 +52,10 @@
 |---|---|---|
 | `role` | `academic_director` / `homeroom` / `grade_leader` / `subject_teacher` / `school_leader` / `platform_ops` | `student-list.html#role=homeroom` |
 | `state` | `normal` / `loading` / `empty` / `error` / `forbidden` / `submitting` / `partial` / `queued` | `student-list.html#state=error` |
-| `panel` | `PAGE-STU-CREATE` / `PAGE-STU-EDIT` | `student-list.html#panel=PAGE-STU-CREATE` |
+| `panel` | `PAGE-STU-CREATE` / `PAGE-STU-EDIT` / `PAGE-TCH-DETAIL` / `PAGE-TCH-CREATE` / `PAGE-TCH-EDIT` / `DIALOG-TCH-LEAVE` / `DIALOG-TCH-DISCARD` | `teacher-list.html#panel=PAGE-TCH-DETAIL`；`#panel=PAGE-TCH-CREATE` 直接打开新增抽屉 |
 | `school` | `201` / `202` | `student-list.html?school=202#role=platform_ops`（平台运营切换他校的协助视图；学校用户看不到他校数据） |
+| `sample` | 教师详情样例：`1007`（跨校任教）/ `1003`（班主任 + 任课） | `teacher-list.html#panel=PAGE-TCH-DETAIL&sample=1003` |
+| `step` | 向导类浮层的步骤序号，如 `3` | `teacher-list.html#panel=PAGE-TCH-CREATE&step=3` |
 
 多个参数用 `&` 连接，例如 `student-list.html#role=homeroom&panel=PAGE-STU-EDIT`。
 
@@ -79,7 +84,7 @@
 |---|---|---|
 | 2-0 | 原型规范（已产出，待验收） | 0 |
 | 2-1 | 学生管理列表 + 新增/编辑抽屉（**样板**，已产出，待验收） | 3 |
-| 2-2 | 教师管理 + 年级管理（拆为 2-2a 教师列表 1 页 / 2-2b 其余 12 页） | 13 |
+| 2-2 | 教师管理 + 年级管理（拆为 2-2a 教师列表 1 页 / 2-2b-1 教师详情与新增编辑 3 项 / 2-2b-2 角色、任教与年级 6 页） | 13 |
 | 2-3 | 班级管理 + 班级详情 + 升班向导 | 12 |
 | 2-4 | 导入向导 + 登录 + 异常页 | 11 |
 | 2-5 | 学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录） | 8 |
@@ -119,3 +124,16 @@
 | 演示控件位置 | "原型演示"面板放在左下角并默认收起，避免遮挡表格右侧的操作列 | 右侧固定操作列与浮层控件会互相遮挡 |
 | 密度基线 | 把 `layout-spec.yaml` 的"1440×900 可见 12 行"按三档实测修正为 8 行 | 行高 48px + 页头 + 筛选区 + 分页器的固定占比决定上限，12 行与原约束自相矛盾 |
 | 全国学籍号列 | 按 `REQ-STU-007` 归入"可选列表列"，默认不渲染 | 默认渲染会让 1366 下的表格多出约 130px 内部横向滚动 |
+
+## 9. 批次 2-2b-1 的工程决策（待确认，若不认可可回退）
+
+| 事项 | 做法 | 理由 |
+|---|---|---|
+| 教师详情的承载 | 实现为列表页内的浮层片段（`data-demo-panel="PAGE-TCH-DETAIL"`），尺寸 `lg` = 800px | 教师 PRD 6.1 与 6.3 都写明"详情页（抽屉）"，`ACT-TCH-010` 同样写"打开详情抽屉"；`navigation.yaml` 已补 `container: drawer` |
+| 详情分区的数据形态 | 两个形态共用一套分区结构，用切换器在 苏睿（跨校任教）与 邓丽娟（班主任 + 任课、无学校级角色）之间切换；点其他行时复用形态 A 并在页面内给出「样本说明」 | 两个形态正好覆盖跨校与空态两类边界；若静默复用而不提示，验收者会以为数据串了 |
+| 任教关系分组的修改入口 | 详情页只读展示；"复制上一学年""设置任教"在批次 2-2b-2 交付，本批给出明确的批次提示而不是死按钮 | `ACT-TCH-015` / `ACT-TCH-008` 的页面本体或前置页面尚未产出，入口形态可以现在验收 |
+| 可写角色口径 | 只把教务主任与租户管理员标为可写，工号与入职日期限租户管理员 | 以 `05-permission-matrix.yaml` 为准；与教师 PRD 4.4 的差异已登记 `GAP-032` 待裁决 |
+| 字段字典缺口 | 原型继续使用真实业务字段名（`school_id` / `teacher_phone` / `email` / `hire_date` / `status`），并在三份页面规格的自查里标注未满足 | 去掉 `data-field` 会让阶段 6 的组件映射失去依据，比留着并登记缺口更差；缺口见 `GAP-033` |
+| 时间线样式 | 在 `assets/prototype-shell.css` 新增 `el-timeline` 仿真样式（`.timeline` / `.tl-head` / `.tl-body` / `.tl-meta`） | `markup-contract.md` 的组件映射表已约定 `<ul class="timeline">` → `el-timeline`，但外壳此前没有对应样式 |
+| 工号格式校验 | 在 `prototype-shell.js` 的 `validateForm` 增加 `code32` 规则（2–32 位字母、数字或连字符） | 教师 PRD 4.3 校验规则汇总里工号有长度约束；唯一性属于服务端校验，原型用演示面板的"唯一性冲突"样本演示 |
+| 勾选与开启详情 | 行内复选框 `stopPropagation`，勾选不再触发"点击行"打开详情 | 2-2a 遗留缺陷：外壳的事件委托挂在 `document` 上，复选框点击会冒泡到行 |
