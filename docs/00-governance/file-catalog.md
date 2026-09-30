@@ -39,6 +39,8 @@
 | `docs/00-governance/decisions.md` | 决策与裁决记录 | `review` |
 | `docs/00-governance/change-control.md` | 变更流程 | `review` |
 | `docs/00-governance/change-requests/CR-001.md` | 变更申请：修正已冻结模块的范围划分章节引用（已批准并执行） | `review` |
+| `docs/00-governance/change-requests/CR-002.md` | 变更申请：把数据共享授权的对象限定为教学资源（题库习题、试卷），同步改写 2 条验收用例 | `review` |
+| `docs/00-governance/change-requests/CR-003.md` | 变更申请：补齐敏感字段权限点归属、学生照片、批量导出与批量调班、字段字典补登记、学号修改口径（用户已批准） | `review` |
 | `docs/00-governance/traceability.yaml` | 追踪矩阵骨架 | `review` |
 | `docs/00-governance/task-packet.md` | 任务包模板 | `review` |
 | `docs/00-governance/baseline-manifest.schema.json` | 冻结清单 Schema | `review` |
@@ -102,17 +104,24 @@
 | 路径 | 用途 | 状态 |
 |---|---|---|
 | `prototypes/functional/v1/README.md` | 原型说明、运行方式、批次对照 | `review` |
-| `prototypes/functional/v1/prototype-quality-spec.md` | 原型质量规范：14 类"空洞"根因与约束、数据真实性、边界数据、角色视角、组件选择决策、交批验收清单 | `review` |
+| `prototypes/functional/v1/prototype-quality-spec.md` | 原型质量规范：18 类"空洞"根因与约束、数据真实性、边界数据、角色视角、组件选择决策、交批验收清单 | `review` |
 | `prototypes/functional/v1/layout-spec.yaml` | 栅格、区域划分、主内容区宽度、组件尺寸规则 | `review` |
 | `prototypes/functional/v1/navigation.yaml` | 菜单树、87 项页面注册表、跳转关系、入口条件、批次 | `review` |
 | `prototypes/functional/v1/page-actions.yaml` | 动作清单：按钮 → 触发 → 结果 → 权限 → 接口 | `review` |
 | `prototypes/functional/v1/markup-contract.md` | 原型 HTML 必须携带的 `data-*` 语义标记与组件映射表 | `review` |
 | `prototypes/functional/v1/content-samples.json` | 原型演示数据（真实感中文样例） | `review` |
 | `prototypes/functional/v1/page-specs/_template.md` | 页面规格模板 | `review` |
-| `prototypes/functional/v1/page-specs/<page>.md` | 每个页面的规格：元素、状态、交互、跳转（随各批产出） | `planned` |
-| `prototypes/functional/v1/index.html` | 原型入口与导航（批次 2-1） | `planned` |
-| `prototypes/functional/v1/pages/student-list.html` | 学生管理列表（**样板**） | `planned` |
-| `prototypes/functional/v1/pages/student-form.html` | 学生新增 / 编辑抽屉（**样板**） | `planned` |
+| `prototypes/functional/v1/page-specs/student-list.md` | 学生管理列表页面规格（批次 2-1 样板） | `review` |
+| `prototypes/functional/v1/page-specs/student-create.md` | 新增学生抽屉页面规格（批次 2-1 样板） | `review` |
+| `prototypes/functional/v1/page-specs/student-edit.md` | 编辑学生抽屉页面规格（批次 2-1 样板） | `review` |
+| `prototypes/functional/v1/page-specs/<page>.md` | 其余页面的规格：元素、状态、交互、跳转（随各批产出） | `planned` |
+| `prototypes/functional/v1/assets/prototype-shell.css` | 原型外壳与组件样式（Element Plus 仿真，非生产代码） | `review` |
+| `prototypes/functional/v1/assets/prototype-shell.js` | 原型演示引擎：外壳注入、角色 / 状态切换、浮层、提交模拟、校验 | `review` |
+| `prototypes/functional/v1/index.html` | 原型入口与导航（批次 2-1） | `review` |
+| `prototypes/functional/v1/pages/student-list.html` | 学生管理列表 + 新增 / 编辑抽屉浮层（**样板**） | `review` |
+| `prototypes/functional/v1/pages/teacher-list.html` | 教师管理列表（批次 2-2a 样板） | `review` |
+| `prototypes/functional/v1/page-specs/teacher-list.md` | 教师管理列表页面规格 | `review` |
+| ~~`prototypes/functional/v1/pages/student-form.html`~~ | 已由 `pages/student-list.html` 内的 `data-demo-panel="PAGE-STU-CREATE" / "PAGE-STU-EDIT"` 浮层片段取代，不再单独出文件 | `waived` |
 | `prototypes/functional/v1/pages/teacher-list.html` | 教师管理列表 | `planned` |
 | `prototypes/functional/v1/pages/grade-list.html` | 年级管理列表 | `planned` |
 | `prototypes/functional/v1/pages/class-list.html` | 班级管理列表 | `planned` |

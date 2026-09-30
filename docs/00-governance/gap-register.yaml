@@ -665,6 +665,195 @@ gaps:
     resolved_at: 2026-09-30
     status: closed
 
+  - id: GAP-026
+    title: read_sensitive / read_contact 两个敏感字段权限点未在权限矩阵定义归属角色
+    discovered_at: 2026-09-30
+    discovered_by: 阶段 2 批次 2-1 编制学生管理列表原型时，按 REQ-STU-004 实现"证件号后四位"筛选
+    evidence: |
+      docs/10-prd/05-permission-matrix.yaml 的 sensitive_fields 用 view_requires 引用了
+      read_sensitive 与 read_contact，但 roles 段没有任何角色被授予这两个权限点，
+      actions 列表 [read, create, update, delete, export, approve, import] 里也没有它们。
+      同一问题出现在：student PRD REQ-STU-004 与 5.3 节、class PRD 第 313 行、
+      audit PRD REQ-AUD-008、import-export PRD REQ-IMP-028 与 289 ~ 291 行、
+      teacher PRD 404 / 406 行、prototypes/functional/v1/page-actions.yaml 的 ACT-STU-009 / 010。
+    expected: 每个权限点都能在 05-permission-matrix.yaml 找到"哪些角色拥有它"
+    actual: 两个权限点被 6 个模块引用，但没有任何角色被授予
+    impact: |
+      原型阶段：证件号后四位筛选、查看完整证件号、掩码与明文的角色差异只能按推测渲染，
+      本批已在页面上直接标注"GAP-026 待确认"。
+      实现阶段：阶段 6 无法确定按钮显隐，阶段 8 的越权用例（AC-STU-004、AC-STU-066）无法判定通过与否。
+    options:
+      - A 由教务主任 + 校领导 + 平台运营持有 read_sensitive；教务主任 + 班主任 + 校领导持有 read_contact
+      - B 只有教务主任与校领导持有两个权限点，班主任改监护人信息时只能看到掩码
+      - C 把两个权限点并入 person.student 的 read，不再单独授权（等于取消敏感字段的二次授权）
+    recommended: 选项 A（与 PRD 5.3 的"掩码默认、查看全量另授权"口径一致，也覆盖班主任改监护人电话的场景）
+    blocking: false
+    blocks_stages: [stage6]
+    owner: 用户
+    resolution: |
+      用户 2026-09-30 答复"按推荐来"，采纳选项 A。
+      已落地 CR-003：05-permission-matrix.yaml 的 sensitive_fields 每条补 granted_roles，
+      并新增 field_level_permissions 段：
+      read_sensitive → 教务主任 / 校领导 / 平台运营；
+      read_contact → 教务主任 / 班主任 / 校领导；
+      同时把出生日期补进敏感字段清单（原先只在 student PRD 5.3 提到）。
+      批次 2-1 原型的"证件号后四位"筛选按该归属渲染。
+    resolved_at: 2026-09-30
+    status: closed
+
+  - id: GAP-027
+    title: 学生照片（学籍照片）未进入字段字典与新增表单
+    discovered_at: 2026-09-30
+    discovered_by: 阶段 2 批次 2-1 编制新增学生抽屉时核对 PRD 4.3 的字段清单
+    evidence: |
+      student PRD 4.3 的新增表单字段清单（学籍信息 / 证件与联系方式 / 监护人三组）没有照片字段；
+      docs/10-prd/06-field-dictionary.yaml 的 fields 段没有 photo / avatar 相关字段；
+      全仓库检索"照片 / 头像 / avatar"无命中。
+      但 K12 学籍场景通常需要一寸照片用于学籍表、校卡、考试报名与花名册打印。
+    expected: 明确"首轮是否采集学生照片"，若采集则给出字段、存储方式、尺寸与权限
+    actual: PRD 与字段字典均未定义，原型按不含照片渲染
+    impact: |
+      若纳入首轮：学生新增 / 编辑表单要加照片上传字段，学生详情与花名册要加照片展示，
+      阶段 5 的 edu_student 或附件表要加列（照片属于敏感个人信息，另需访问日志与掩码口径），
+      阶段 6 需要上传组件与裁剪交互，阶段 2 的 2-1 样板页需要返工。
+      若不纳入：本项关闭，照片能力进入后续版本。
+    options:
+      - A 首轮纳入：edu_student 增加 photo_file_id，走统一文件服务，仅展示掩码缩略图，查看原图写审计
+      - B 首轮不纳入，只在学生详情预留"照片"占位说明，后续版本实现
+      - C 首轮纳入但只做导入（导入模板带照片列），不做单条上传界面
+    recommended: 选项 A（学籍场景刚需，且阶段 5 建表时补列的成本低于后续迁移）
+    blocking: true
+    blocks_stages: [stage2, stage5, stage6]
+    owner: 用户
+    resolution: |
+      用户 2026-09-30 答复"按推荐来"，采纳选项 A：首轮纳入学生照片。
+      已落地：字段字典新增 photo_file_id（sensitive: true，只存文件服务引用）；
+      student PRD 4.3 表单字段清单新增"学生照片"；
+      原型 ACT-STU-021（上传/更换）与 ACT-STU-022（查看原图，需 read_sensitive 并写访问日志）；
+      验收新增 AC-STU-133。阶段 5 需在 edu_student 增 photo_file_id 列。
+    resolved_at: 2026-09-30
+    status: closed
+
+  - id: GAP-028
+    title: PRD 6.2 的"批量操作下拉"在 page-actions.yaml 中没有对应动作
+    discovered_at: 2026-09-30
+    discovered_by: 阶段 2 批次 2-1 编制学生管理列表原型工具条时逐项核对 PRD 6.2
+    evidence: |
+      student PRD 6.2 列表页要素第 3 项写明"操作栏（左）：新增、导入、导出、批量操作下拉"。
+      page-actions.yaml 的 common_actions 只登记了 ACT-COM-008（批量选择），没有批量动作本身；
+      student_list.actions 的 ACT-STU-001 ~ 010 也没有批量项。
+      按 markup-contract.md 第 1 节，未登记动作的元素不允许出现在原型中，因此本批未渲染该控件。
+    expected: 批量操作下拉里每一项都有动作编号、权限与接口
+    actual: 只有一个下拉壳的提法，没有动作定义
+    impact: 工具条形态不完整；批量调班、批量导出等后续会被临时发明，权限与审计口径缺失。
+    options:
+      - A 首轮只做"批量导出"与"批量调班"两项，补 ACT-STU-019 / 020 并写清权限与审计
+      - B 首轮不做批量操作下拉，只保留复选列与批量选择动作（页面更干净，少一类越权面）
+      - C 首轮做全量批量操作（批量调班、批量异动、批量导出、批量删除）
+    recommended: 选项 A（覆盖教务主任最常用的两个批量场景，越权面可控）
+    blocking: false
+    blocks_stages: [stage2, stage4]
+    owner: 用户
+    resolution: |
+      用户 2026-09-30 答复"按推荐来"，采纳选项 A：首轮只做批量导出与批量调班。
+      已落地：page-actions.yaml 新增 ACT-STU-019 / ACT-STU-020；
+      student PRD 6.2 操作栏与 6.3 交互同步；验收新增 AC-STU-134 / AC-STU-135；
+      批次 2-1 原型工具条已渲染两个按钮，未勾选时提示先勾选。
+    resolved_at: 2026-09-30
+    status: closed
+
+  - id: GAP-029
+    title: 字段字典缺少 PRD 已使用的字段（is_primary / enroll_date / remark 等）
+    discovered_at: 2026-09-30
+    discovered_by: 阶段 2 批次 2-1 给表单字段加 data-field 标记时逐个回查 06-field-dictionary.yaml
+    evidence: |
+      student PRD 7.1 的"监护人与学生关联"用到 relation、is_primary、bind_status，
+      "在校记录"用到 enroll_date、graduation_date，"学生资料变更申请"用到 field_name、old_value、new_value；
+      guardians 样例还带 remark 概念（05-permission-matrix.yaml 的 homeroom.field_rules 也写了 remark）。
+      docs/10-prd/06-field-dictionary.yaml 的 fields 段只有 guardian_name、relation、guardian_phone 等，
+      没有 is_primary、enroll_date、bind_status、remark。
+      该 PRD 第 7.1 节自己写明"新增使用但字典中尚未登记的字段，需先在字段字典登记再进入详细设计"。
+    expected: 原型表单上的每个 data-field 都能在字段字典查到
+    actual: 主要联系人、入学日期、备注三个控件查不到字段定义
+    impact: |
+      本批处理：原型只在主要联系人处标"字段待登记（GAP-029）"，不伪造字段名。
+      影响面：阶段 5 建表列清单、阶段 4 接口契约的字段名，以及阶段 6 的校验规则来源。
+      字段字典属于已冻结文档，补登记需要走 change-control.md 产出新版本。
+    options:
+      - A 走 CR 给字段字典补登记 is_primary、enroll_date、graduation_date、bind_status、remark、field_name 等
+      - B 不改字段字典，改为在详细设计里单独维护"模块字段补充表"（会造成两处字段来源）
+      - C 从原型与 PRD 里删掉这些字段（主要联系人与备注功能随之取消，不建议）
+    recommended: 选项 A（字段字典是唯一来源，补登记成本低，符合 PRD 7.1 的既有约定）
+    blocking: false
+    blocks_stages: [stage5, stage6]
+    owner: 用户
+    resolution: |
+      用户 2026-09-30 答复"按推荐来"，采纳选项 A。
+      已落地 CR-003：06-field-dictionary.yaml 新增 photo_file_id、is_primary、bind_status、
+      remark、enroll_date、field_name 六个字段（photo_file_id 标 sensitive）。
+    resolved_at: 2026-09-30
+    status: closed
+
+  - id: GAP-030
+    title: 学号修改所需的"校级管理员"未映射到权限矩阵角色
+    discovered_at: 2026-09-30
+    discovered_by: 阶段 2 批次 2-1 渲染编辑抽屉的"高级操作 · 修改学号"时核对 REQ-STU-027 与 4.4 矩阵
+    evidence: |
+      student PRD REQ-STU-027 写"学号允许修改，但需校级管理员权限，且强制留审计"；
+      page-actions.yaml 的 ACT-STU-018 把权限写成 "school_leader / person.student / update"。
+      但 student PRD 4.4 的字段级可编辑性矩阵里，学号一行对校领导、教务主任、年级主任、班主任全部是 "—"；
+      05-permission-matrix.yaml 也没有 school_leader 的 person.student.update 授权（校领导是纯只读 + 审批）。
+    expected: 术语"校级管理员"能对应到权限矩阵中的具体角色，且与 4.4 的字段级可编辑性矩阵不冲突
+    actual: 需求、动作清单、字段级矩阵三处口径不一致
+    impact: 学号修改入口对谁可见、谁能提交无法确定；学号修改会同步改登录名，错了会导致学生无法登录。
+    options:
+      - A 明确"校级管理员 = 校领导 + 教务主任"，同时给两者授予 person.student.update，并修正 4.4 矩阵学号一行
+      - B 维持只读口径：首轮不提供学号修改入口，需要改学号走平台运营工单（ACT-STU-018 延后）
+      - C 只有校领导能改，教务主任不可改（与 4.4 矩阵一致，但需删掉 REQ-STU-027 里的"校级管理员"歧义）
+    recommended: 选项 B（学号是登录名来源，首轮禁用可避免"改错学号导致学生集体无法登录"，且不影响主流程验收）
+    blocking: false
+    blocks_stages: [stage2, stage6]
+    owner: 用户
+    resolution: |
+      用户 2026-09-30 答复"按推荐来"，采纳选项 B：首轮不提供学号修改入口。
+      已落地：student PRD 的 REQ-STU-027 改写为"首轮不提供，确需更正走平台运营工单"；
+      4.4 矩阵下方说明同步；page-actions.yaml 的 ACT-STU-018 置为 deferred；
+      批次 2-1 的编辑抽屉已移除"修改学号"入口，只保留说明。
+    resolved_at: 2026-09-30
+    status: closed
+
+  - id: GAP-031
+    title: 数据共享授权的对象被写成了学生数据，实际只有题库习题与试卷等教学资源
+    discovered_at: 2026-09-30
+    discovered_by: 用户澄清"共享的是共享授权学校下面的题库习题资源数据或者试卷资源数据，不是学生数据等"
+    evidence: |
+      现有文档把共享授权写成了可扩大被授权学校对**学生数据**的可见范围：
+      student PRD 第 531 行"额外可见范围只能来自运营方创建的共享授权，且只读"；
+      student acceptance 第 84 行准备数据"A 校 → B 校教师的只读授权"、AC-STU-115"有共享授权的账号读取被授权学校数据"；
+      import-export acceptance 第 80 行、AC-IMP-110 同型；
+      05-permission-matrix.yaml 第 344 行 PM-Q-005 答复"跨校可见性只能来自运营方创建的数据共享授权"。
+      批次 2-1 的学生列表原型据此做出了"跨校只读学生列表 + DG-2026-0007 授权提示条"，方向错误。
+      另外 BR-DATA-015 / DP-08 写"被授权方需要修改共享内容时必须复制到自有空间后再改"，
+      这句本身只对资源类对象成立，对在校学生记录不成立，说明口径一直偏向资源但从未写明。
+    expected: 共享授权的对象范围在公共前置里写明，并与各模块 PRD 的页面、用例一致
+    actual: 对象范围缺失，且学生模块与导入导出模块把它当成学生数据授权
+    impact: |
+      页面：学生 / 班级 / 教师等业务页面上会出现不该有的"共享授权"标识与入口。
+      表结构：edu_data_grant 没有 resource_types / resource_scope，无法表达"共享哪些题库、哪些试卷"。
+      验收：AC-STU-115、AC-IMP-110 两条用例方向相反，阶段 8 无法判定通过与否。
+      实现：阶段 4 的接口清单与阶段 6 的按钮显隐会被错误口径带偏。
+    options:
+      - A 按用户澄清统一修正（CR-002）：共享对象只有教学资源，业务数据不跨校共享；edu_data_grant 加 resource_types / resource_scope；两条用例改为负向
+      - B 保留"共享学生数据"为可选能力，只在文档里补一句"默认关闭"
+      - C 删除共享授权模型，改为资源复制（复制到自有空间后各自维护）
+    recommended: 选项 A（与用户澄清、BR-ORG-008、D-026 一致；首轮无落地对象，只保留表结构，成本最低）
+    blocking: false
+    blocks_stages: [stage4, stage5, stage6, stage8]
+    owner: 用户
+    resolution: ""
+    resolved_at: ""
+    status: open
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"
@@ -678,5 +867,13 @@ open_questions_for_user:
   - "下一步：阶段 2 业务原型，批次 2-0 先出原型规范（layout-spec / page-actions / navigation / markup-contract / 样例数据），批次 2-1 出学生管理列表与新增编辑抽屉样板页。"
   - "阶段 2 批次 2-0 已产出：prototypes/functional/v1/ 下 README.md、layout-spec.yaml、navigation.yaml、page-actions.yaml、markup-contract.md、content-samples.json、page-specs/_template.md，等待验收。"
   - "GAP-025 已关闭：用户同意选项 A，阶段 2 追加批次 2-5 ~ 2-9，共 10 批、86 个页面，见 D-050。"
-  - "下一步：阶段 2 批次 2-1（学生管理列表 + 新增/编辑抽屉样板页），需按 prototype-quality-spec.md 的 15 条交批清单交付。"
-  - "未提交：批次 1-2 / 1-3 的 8 个模块目录与 6 个治理文件、批次 1-4 的全部产出目前都在工作区，尚未 git commit。"
+  - "阶段 2 批次 2-1 已产出待验收：prototypes/functional/v1/ 下 index.html、pages/student-list.html（含 PAGE-STU-CREATE / PAGE-STU-EDIT 浮层）、assets/prototype-shell.css / .js、page-specs/student-list.md / student-create.md / student-edit.md；截图归档在 evidence/stage2-prototype/。"
+  - "批次 2-0 的 prototype-quality-spec.md 由 14 类根因扩充为 18 类（新增：枚举无唯一来源、页面未标数据范围、字段级可编辑性未落到原型、写后数据一致性），交批清单同步增加 4 条。"
+  - "content-samples.json 本批有写入：新增 students_edge_cases（超长姓名、间隔号、终态 2 条）、list_totals（分页示意总条数）、一条 queued 异步任务、dictionaries.source_of_truth；并修正 2026000005（转入未报到）的 class_id 为空，使其与 BR-STU-023 一致。"
+  - "本批暴露 5 个缺口待用户拍板：GAP-026（read_sensitive / read_contact 归属角色）、GAP-027（学生照片是否纳入首轮）、GAP-028（批量操作下拉的动作定义）、GAP-029（字段字典补登记 is_primary 等）、GAP-030（学号修改的校级管理员映射）。"
+  - "Codex 会话内的提交策略：批次 2-0 已由用户授权提交到 codex/prototype 分支（9adbe37a）；批次 2-1 的改动尚未提交，等用户确认后再提交。"
+  - "GAP-031 已登记：用户澄清跨校共享的对象是题库习题与试卷等教学资源，不是学生等业务数据。非冻结产物已先行修正；冻结的 PRD 与 AGENTS.md 走 CR-002，待用户批准。"
+  - "CR-002 已获批准并执行（2026-09-30）：共享对象限定为教学资源，新增 BR-DATA-018；01-product-context / 04-business-rules / 05-permission-matrix / 08-data-scope-model / 10-data-permission-schema / student PRD 与验收 / import-export 验收 / teacher PRD / AGENTS.md 均已改完。GAP-031 关闭。"
+  - "GAP-026 ~ GAP-030 已按用户裁决「按推荐来」全部关闭并落地（CR-003）：敏感字段权限点归属、学生照片纳入首轮、批量导出与批量调班、字段字典补登记、首轮不提供学号修改入口。"
+  - "下一步：阶段 2 批次 2-2（教师管理 13 页 + 年级管理），按小步约定先交付 PAGE-TCH-LIST 教师管理列表 1 页，验收通过后再批量铺其余 12 页。"
+  - "阶段 2 批次 2-2a 已产出待验收：prototypes/functional/v1/pages/teacher-list.html、page-specs/teacher-list.md、evidence/stage2-prototype/teacher-list_*.png；page-actions.yaml 新增 ACT-TCH-001 ~ 011；content-samples.json 新增 teachers_edge_cases（5 条）与 list_totals.teacher_list_total。"

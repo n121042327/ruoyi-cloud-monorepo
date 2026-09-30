@@ -107,6 +107,8 @@
 | `grantee_id` | varchar(64) | 被授权对象 ID |
 | `title` | varchar(200) | 事由标题 |
 | `reason` | varchar(500) | 共享原因 |
+| `resource_types` | varchar(200) | 资源类型集合，逗号分隔，如 `question_bank_item,exam_paper`。**只允许教学资源**，不允许学生等业务数据（BR-DATA-018） |
+| `resource_scope` | json | 资源范围细化：共享哪些题库、哪些试卷；为空表示该资源类型下的全部 |
 | `effective_start` | datetime | 生效时间 |
 | `effective_end` | datetime | 失效时间，为空表示长期有效 |
 | `status` | varchar(20) | 草稿 / 生效 / 已撤销 / 已过期 |
@@ -225,7 +227,7 @@ status = '生效' AND now >= effective_start AND (effective_end IS NULL OR now <
 |---|---|
 | 六张表（`edu_user_role` / `edu_grade_leader` / `edu_teaching_assignment` / `edu_data_grant` / `edu_data_grant_scope`，以及 `edu_class` 的班主任字段） | 建表，进入首轮迁移脚本 |
 | 范围解析与拦截 | 实现 |
-| 共享授权界面 | 不实现界面，仅提供表与后端解析能力 |
+| 共享授权界面 | 不实现界面，仅提供表与后端解析能力；**首轮没有可授权对象**（题库与试卷不在首轮交付范围，见 BR-DATA-018） |
 | 授权审批 | **不设审批**，运营人员创建后直接生效（BR-DATA-017） |
 | 授权权限级别 | 仅 `read` 与 `export`，不开放 `write`（BR-DATA-015） |
 

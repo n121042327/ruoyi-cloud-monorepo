@@ -299,15 +299,44 @@ sensitive_fields:
   - field: person.student.id_card_no
     mask: 前 6 位与后 4 位之外的字符掩码
     view_requires: [read_sensitive]
+    granted_roles: [academic_director, school_leader, platform_ops]
+    source: CR-003（GAP-026 裁决 A）
   - field: person.student_contact.phone
     mask: 中间 4 位掩码
     view_requires: [read_contact]
+    granted_roles: [academic_director, homeroom, school_leader]
+    source: CR-003（GAP-026 裁决 A）
   - field: person.student_guardian.phone
     mask: 中间 4 位掩码
     view_requires: [read_contact]
+    granted_roles: [academic_director, homeroom, school_leader]
+    source: CR-003（GAP-026 裁决 A）
+  - field: person.student.birth_date
+    mask: 只显示年月
+    view_requires: [read_sensitive]
+    granted_roles: [academic_director, school_leader, platform_ops]
+    source: CR-003（GAP-026 裁决 A；与 student PRD 5.3 对齐）
+  - field: person.student.photo_file_id
+    mask: 列表与详情只展示缩略图；原图需 read_sensitive 并写访问日志
+    view_requires: [read_sensitive]
+    granted_roles: [academic_director, homeroom, school_leader, platform_ops]
+    source: CR-003（GAP-027 裁决 A）
   - field: person.student.address
     mask: 不掩码，但按数据范围限制
     view_requires: []
+
+field_level_permissions:
+  read_sensitive:
+    name: 查看敏感字段全量
+    granted_roles: [academic_director, school_leader, platform_ops]
+    applies_to: [person.student.id_card_no, person.student.birth_date, person.student.photo_file_id]
+    note: 查看全量必须写访问日志（查看人、对象、字段、时间、用途说明），见 REQ-AUD-008
+  read_contact:
+    name: 查看联系方式全量
+    granted_roles: [academic_director, homeroom, school_leader]
+    applies_to: [person.student_contact.phone, person.student_guardian.phone]
+    note: 年级主任与任课教师只有掩码；年级主任对监护人信息只读
+  scope: CR-003（GAP-026 裁决 A，2026-09-30 用户确认"按推荐来"）
 
 deny_rules:
   - id: PM-DENY-001
@@ -341,7 +370,7 @@ resolved_questions:
     resolved_at: 2026-09-29
   - id: PM-Q-005
     question: 集团租户的管理员是否可以只读下属学校的学生名单？
-    answer: 禁止。集团默认只有 DS-03 集团自有数据；跨校可见性只能来自运营方创建的数据共享授权
+    answer: 禁止。集团默认只有 DS-03 集团自有数据；跨校共享只针对教学资源（题库习题、试卷），学生等业务数据不跨校共享（BR-DATA-018）
     applied_to: group_expert / group_leader 的 note 与 BR-ORG-007、BR-ORG-008
     resolved_at: 2026-09-30
   - id: PM-Q-006

@@ -256,6 +256,12 @@ fields:
   - { name: relation, cn: 与监护人关系, type: varchar(20), required: true }
   - { name: guardian_phone, cn: 监护人电话, type: varchar(20), required: false, sensitive: true }
   - { name: student_phone, cn: 学生电话, type: varchar(20), required: false, sensitive: true }
+  - { name: photo_file_id, cn: 学生照片, type: bigint, required: false, sensitive: true, note: 只存文件服务引用；列表与详情默认展示缩略图，查看原图需 read_sensitive 并写访问日志；单张，支持上传与导入（CR-003 / GAP-027） }
+  - { name: is_primary, cn: 是否主要联系人, type: tinyint, required: true, default: "0", note: 同一学生最多一条为 1；与 relation 同在 edu_guardian_student（CR-003 / GAP-029） }
+  - { name: bind_status, cn: 监护人绑定状态, type: varchar(20), required: true, note: 待审核 / 已通过 / 已驳回 / 已解绑（CR-003 / GAP-029） }
+  - { name: remark, cn: 备注, type: varchar(500), required: false, note: 通用备注字段；监护人、联系方式、离职登记共用（CR-003 / GAP-029） }
+  - { name: enroll_date, cn: 入学日期, type: date, required: false, note: 默认取学年开始日期（CR-003 / GAP-029） }
+  - { name: field_name, cn: 变更字段名, type: varchar(64), required: true, note: 学生资料变更申请的字段标识（CR-003 / GAP-029） }
   - { name: address, cn: 联系地址, type: varchar(200), required: false, sensitive: true }
 
   - { name: academic_year_code, cn: 学年编码, type: varchar(9), required: true, format: "YYYY-YYYY", br: BR-TERM-003 }
