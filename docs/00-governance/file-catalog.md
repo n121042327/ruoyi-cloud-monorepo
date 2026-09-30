@@ -214,11 +214,22 @@
 | `prototypes/functional/v1/assets/wizard.css` | 向导类页面共用样式（步骤条、sticky 操作条、分组清单、数值卡、进度条、弹窗清单行） | `review` |
 | `evidence/stage2-prototype/verify-promotion-wizard.html` | 升班向导第 2 ~ 4 步交互验证 harness（PV / ADJ / VD / EX / RS / ALL 共 39 条断言全部通过） | `review` |
 | `evidence/stage2-prototype/promotion-preview_*.png`（5 张）、`promotion-validate_*.png`（3 张）、`promotion-execute_*.png`（3 张）、`promotion-result_*.png`（4 张）、`evidence/stage2-prototype/promotion-wizard_verify-results.png` | 升班向导第 2 ~ 4 步截图（见 README 第 6.4 节）；含调整弹窗、只读角色、错误下钻与四类清单切换 | `review` |
-| `prototypes/functional/v1/pages/import-wizard.html` | 批量导入向导 | `planned` |
-| `prototypes/functional/v1/pages/login.html` | 登录 | `planned` |
-| `prototypes/functional/v1/pages/403.html` | 无权限页 | `planned` |
-| `prototypes/functional/v1/pages/404.html` | 页面不存在 | `planned` |
-| `prototypes/functional/v1/pages/500.html` | 服务异常 | `planned` |
+| `prototypes/functional/v1/pages/import-wizard.html` | 导入向导（四步 + 模板 / 校验 / 执行三个区块，`ACT-IMP-001` ~ `010`） | `review` |
+| `prototypes/functional/v1/pages/student-import.html` | 学生批量导入向导（14 列模板，不含学号列） | `review` |
+| `prototypes/functional/v1/pages/teacher-import.html` | 教师批量导入向导（9 列模板，工号租户内唯一） | `review` |
+| `prototypes/functional/v1/pages/class-import-roster.html` | 编班表导入向导（4 列，含目标班级列；列清单见 GAP-056） | `review` |
+| `prototypes/functional/v1/page-specs/import-wizard.md` | 导入向导页面规格（覆盖 PAGE-IMP-WIZARD + 三个区块） | `review` |
+| `prototypes/functional/v1/page-specs/student-import.md` | 学生批量导入的页面规格（14 列模板、不含学号列、学号对照表） | `review` |
+| `prototypes/functional/v1/page-specs/teacher-import.md` | 教师批量导入的页面规格（9 列模板、工号租户内唯一） | `review` |
+| `prototypes/functional/v1/page-specs/class-import-roster.md` | 编班表导入的页面规格（4 列、两阶段、幂等、冲突修正提示） | `review` |
+| `prototypes/functional/v1/pages/login.html` | 登录（不套管理外壳；多校切换、s + 学号、首登改密、锁定口径） | `review` |
+| `prototypes/functional/v1/pages/403.html` | 无权限页（不降级为全量，`DS-DENY-03` / `NFR-SEC-05`） | `review` |
+| `prototypes/functional/v1/page-specs/error-pages.md` | 异常页规格（403 / 404 / 500 合并一份规格，三页都指向同一口径） | `review` |
+| `prototypes/functional/v1/pages/404.html` | 页面不存在（指向 navigation.yaml 的页面注册表） | `review` |
+| `prototypes/functional/v1/pages/500.html` | 服务异常（请求编号 + 错误码 + 不产生部分写入） | `review` |
+| `prototypes/functional/v1/page-specs/login.md` | 登录页规格（三类账号形态、四类状态、D-039 口径） | `review` |
+| `evidence/stage2-prototype/verify-import-login.html` | 批次 2-4 交互验证 harness（IMP / MS / MT / MC / LG / ER / ALL 共 30 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/import-wizard*.png`（5 张）、`evidence/stage2-prototype/student-import*.png`（2 张）、`evidence/stage2-prototype/teacher-import_1440x900.png`、`evidence/stage2-prototype/class-import-roster_1440x900.png`、`evidence/stage2-prototype/login_*.png`（2 张）、`evidence/stage2-prototype/error-403_1440x900.png`、`evidence/stage2-prototype/error-404_1440x900.png`、`evidence/stage2-prototype/error-500_1440x900.png`、`evidence/stage2-prototype/import-login_verify-results.png` | 批次 2-4 截图（见 README 第 6.5 节）；含四步向导、模块导入、登录页与三个异常页 | `review` |
 
 ---
 

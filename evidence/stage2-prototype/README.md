@@ -614,6 +614,49 @@ $b = "file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/
 
 > 9 个 harness 的全部重跑结果见本文件下方（`CR-014` 一节）与 `interaction-verification.md` 第 14 节。
 
+### 6.5 批次 2-4（导入向导 + 登录 + 异常页）的交付说明
+
+| 页面 | 文件 | 规格 | 说明 |
+|---|---|---|---|
+| `PAGE-IMP-WIZARD` + `PAGE-IMP-TEMPLATE` / `PAGE-IMP-VALIDATE` / `PAGE-IMP-EXECUTE` | `pages/import-wizard.html` | `page-specs/import-wizard.md` | 四步向导：选模板（14 / 9 / 4 列清单）→ 上传并同步校验（5000 行 / 10 MB / 30 秒）→ 校验结果（120 / 118 / 2 + 失败明细可下载）→ 异步执行（任务号 + 进度 + 配额） |
+| `PAGE-STU-IMPORT` | `pages/student-import.html` | `page-specs/student-import.md` | 学生管理「导入」快捷入口：14 列模板不含学号列（`BR-STU-019`），导入后默认不给行政班（`REQ-STU-062`），生成学号对照表 |
+| `PAGE-TCH-IMPORT` | `pages/teacher-import.html` | `page-specs/teacher-import.md` | 教师管理「导入」快捷入口：9 列模板、工号租户内唯一（`BR-TEACHER-002`）、教育角色列可多值 |
+| `PAGE-CLS-ROSTER-IMPORT` | `pages/class-import-roster.html` | `page-specs/class-import-roster.md` | 编班表导入：4 列（含目标班级列，`REQ-CLS-035`）、两阶段校验、导入幂等；冲突行给调班 / 移出提示 |
+| `PAGE-LOGIN` | `pages/login.html` | `page-specs/login.md` | 登录：多校切换、学生 `s` + 学号（`BR-ACCOUNT-002`）、首登强制改密（`D-039`）、连续 5 次错误锁定 5 分钟 |
+| `PAGE-403` / `PAGE-404` / `PAGE-500` | `pages/403.html` / `404.html` / `500.html` | `page-specs/error-pages.md` | 三个异常页各回答一个问题：为什么没权限（不降级为全量）、地址为什么不对（指向页面注册表）、有没有部分写入（异步任务不产生部分写入） |
+
+**载本决策（`D-075` 第 4 条）**：登录页与三个异常页**不套管理外壳**（与真实系统一致，无左侧菜单 / 顶部导航 / 演示面板），
+因此这四页没有角色与状态切换；页面自身的状态（校验失败 / 登录失败 / 锁定 / 请求编号）在页内直接可见，由 harness 断言覆盖。
+
+harness：`verify-import-login.html`（8 个 iframe，`IMP` / `MS` / `MT` / `MC` / `LG` / `ER` 共 30 条断言，30 / 30 通过）。
+动作组：`import_common`（`ACT-IMP-001` ~ `010`、`ACT-IO-001` / `002`）、`auth`（`ACT-AUTH-001` ~ `003`）、`error_page`（`ACT-ERR-001` ~ `005`）。
+
+| 截图 | 分辨率 | 场景 | 用于验证 |
+|---|---|---|---|
+| `import-wizard_1440x900.png` | 1440×900 | 默认（第 1 步） | 四步步骤条、模板版本与过期强提示、14 列清单 |
+| `import-wizard_step-3_1440x900.png` | 1440×900 | 深链接 `#step=3` | 校验结果：120 / 118 / 2 + 失败明细 2 行 + 学号对照表说明 |
+| `import-wizard_step-4_1440x900.png` | 1440×900 | 深链接 `#step=4` | 任务号 `TASK-20260928-000312`、进度 62%、结果文件 7 天 |
+| `import-wizard_role-subject-teacher_1440x900.png` | 1440×900 | 角色 = 任课教师 | 无 `data.import:import` → 无权限面板，内容区隐藏（`DS-DENY-03`） |
+| `import-wizard_state-empty_1440x900.png` | 1440×900 | 状态 = 空数据 | 「文件里没有数据行」+ 重新下载模板 |
+| `student-import_1440x900.png` | 1440×900 | 学生导入第 1 步 | 14 列模板与「不含学号列」口径 |
+| `student-import_step-3_1440x900.png` | 1440×900 | 学生导入第 3 步 | 与导入向导一致的失败明细（证件号重复 / 年级不存在） |
+| `teacher-import_1440x900.png` | 1440×900 | 教师导入第 1 步 | 9 列模板与工号唯一口径 |
+| `class-import-roster_1440x900.png` | 1440×900 | 编班表导入第 1 步 | 4 列（含目标班级列）与导入幂等口径 |
+| `login_1440x900.png` / `login_1366x768.png` | 1440×900 / 1366×768 | 登录页 | 无管理外壳；多校切换、登录名占位符（`s2026000001`）、首登改密与锁定口径 |
+| `error-403_1440x900.png` / `error-404_1440x900.png` / `error-500_1440x900.png` | 1440×900 | 三个异常页 | 403 的 `DS-DENY-03` / `NFR-SEC-05`、404 的页面注册表口径、500 的请求编号与「不产生部分写入」 |
+| `import-login_verify-results.png` | 1500×1500 | harness 结果清单 | `合计 30 / 30 条，通过 30 条，不通过 0 条 —— 全部通过` |
+
+复现命令（深链接 `#step=` / `#role=` / `#state=` 可用）：
+
+```powershell
+$chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+$b = "file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages"
+& $chrome --headless=new --disable-gpu --no-first-run --hide-scrollbars --allow-file-access-from-files `
+  --user-data-dir="$env:TEMP\codex-imp" --virtual-time-budget=9000 --window-size=1440,900 `
+  --screenshot="D:\work\person_work\ruoyi-cloud-monorepo\evidence\stage2-prototype\import-wizard_step-3_1440x900.png" `
+  "$b/import-wizard.html#step=3"
+```
+
 | harness | 结果 |
 |---|---|
 | `verify-promotion-create.html` | 22 / 22 通过 |

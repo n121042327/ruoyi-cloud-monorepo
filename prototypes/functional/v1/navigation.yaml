@@ -69,7 +69,7 @@ pages:
   - { id: PAGE-STU-TRANSFER, name: 调班, module: student, type: dialog, size: sm, parent: PAGE-STU-DETAIL, batch: "2-5" }
   - { id: PAGE-STU-HISTORY, name: 变更记录, module: student, type: block, parent: PAGE-STU-DETAIL, batch: "2-5" }
   - { id: PAGE-STU-CROSS-TRANSFER, name: 跨校转学, module: student, type: wizard, route: /edu/student/cross-transfer, batch: "2-5" }
-  - { id: PAGE-STU-IMPORT, name: 批量导入向导, module: student, type: wizard, route: /edu/student/import, batch: "2-4" }
+  - { id: PAGE-STU-IMPORT, name: 批量导入向导, module: student, type: wizard, route: /edu/student/import, batch: "2-4", note: "2-4 已交付：学生管理列表工具条「导入」的模块快捷入口；14 列模板（REQ-STU-052，不含学号列 BR-STU-019）、两阶段校验、导入后不给行政班（REQ-STU-062）、学号对照表（REQ-IMP-021 ~ 023）" }
 
   # ---- 教师管理 ----
   - { id: PAGE-TCH-LIST, name: 教师管理列表, module: teacher, type: page, route: /edu/teacher/list, template: TPL-LIST, batch: "2-2" }
@@ -79,7 +79,7 @@ pages:
   - { id: PAGE-TCH-ROLE, name: 教育角色分配, module: teacher, type: dialog, size: sm, parent: PAGE-TCH-LIST, batch: "2-2" }
   - { id: PAGE-TCH-ASSIGN, name: 任教关系设置, module: teacher, type: page, route: /edu/teacher/assignment, parent: PAGE-TCH-LIST, batch: "2-2", note: "PRD 6.1 写明为独立页，双栏承载教师视角 / 班级视角；批次 2-2b-2 交付" }
   - { id: PAGE-TCH-LEAVE, name: 离职与调离登记, module: teacher, type: dialog, size: sm, parent: PAGE-TCH-LIST, batch: "2-2" }
-  - { id: PAGE-TCH-IMPORT, name: 教师导入向导, module: teacher, type: wizard, route: /edu/teacher/import, batch: "2-4" }
+  - { id: PAGE-TCH-IMPORT, name: 教师导入向导, module: teacher, type: wizard, route: /edu/teacher/import, batch: "2-4", note: "2-4 已交付：教师管理列表工具条「导入」的模块快捷入口；9 列模板（REQ-TCH-050）、工号租户内唯一（BR-TEACHER-002）、教育角色列可多值" }
 
   # ---- 年级管理 ----
   - { id: PAGE-GRD-LIST, name: 年级管理列表, module: grade, type: page, route: /edu/grade/list, template: TPL-LIST, batch: "2-2" }
@@ -99,7 +99,7 @@ pages:
   - { id: PAGE-CLS-LEADER, name: 指定 / 变更班主任, module: class, type: dialog, size: md, parent: PAGE-CLS-LIST, batch: "2-3", note: "CR-009 补登记：REQ-CLS-006 / 048 / 050 要求，班主任的唯一写入入口（DP-01）" }
   - { id: PAGE-CLS-COPY, name: 复制班级, module: class, type: dialog, size: md, parent: PAGE-CLS-LIST, batch: "2-3", note: "CR-009 补登记：REQ-CLS-061，不复制花名册与班主任" }
   - { id: PAGE-CLS-MOVE, name: 批量迁学生, module: class, type: page, route: /edu/class/move-students, parent: PAGE-CLS-LIST, batch: "2-3", note: "CR-009 补登记：REQ-CLS-062，含影响预览表格，按 D-059 用独立页" }
-  - { id: PAGE-CLS-ROSTER-IMPORT, name: 编班表导入向导, module: class, type: wizard, route: /edu/class/import-roster, batch: "2-4" }
+  - { id: PAGE-CLS-ROSTER-IMPORT, name: 编班表导入向导, module: class, type: wizard, route: /edu/class/import-roster, batch: "2-4", note: "2-4 已交付：按班级列的编班表（一行一学生含目标班级列，REQ-CLS-035）、两阶段校验（REQ-CLS-036）、导入幂等（REQ-CLS-037）；模板 4 列见 GAP-056" }
   - { id: PAGE-CLS-TEACHING, name: 教学班管理, module: class, type: page, route: /edu/class/teaching, template: TPL-LIST, batch: "2-7" }
   - { id: PAGE-CLS-MERGE, name: 班级合并, module: class, type: wizard, route: /edu/class/merge, batch: deferred, note: "PRD 已标明延后，本轮不做" }
 
@@ -152,10 +152,10 @@ pages:
   - { id: PAGE-STR-GEN-CLASS, name: 按组合生成教学班, module: stream, type: wizard, route: /edu/stream/generate-class, batch: "2-7" }
 
   # ---- 导入导出与异步任务 ----
-  - { id: PAGE-IMP-WIZARD, name: 导入向导, module: import-export, type: wizard, route: /edu/import/wizard, batch: "2-4" }
-  - { id: PAGE-IMP-TEMPLATE, name: 模板下载与说明, module: import-export, type: block, parent: PAGE-IMP-WIZARD, batch: "2-4" }
-  - { id: PAGE-IMP-VALIDATE, name: 校验结果, module: import-export, type: block, parent: PAGE-IMP-WIZARD, batch: "2-4" }
-  - { id: PAGE-IMP-EXECUTE, name: 执行与进度, module: import-export, type: block, parent: PAGE-IMP-WIZARD, batch: "2-4" }
+  - { id: PAGE-IMP-WIZARD, name: 导入向导, module: import-export, type: wizard, route: /edu/import/wizard, batch: "2-4", note: "2-4 已交付：四步向导（选模板 → 上传并同步校验 → 校验结果 → 异步执行），页内含 PAGE-IMP-TEMPLATE / PAGE-IMP-VALIDATE / PAGE-IMP-EXECUTE 三个区块；5000 行 / 10 MB / 30 秒与并发配额按 IMP-Q-01 ~ 05 落地" }
+  - { id: PAGE-IMP-TEMPLATE, name: 模板下载与说明, module: import-export, type: block, parent: PAGE-IMP-WIZARD, batch: "2-4", note: "2-4 已交付：模板选择 + 版本口径（BR-IMP-007）+ 14 / 9 / 4 列清单 + 下载模板（downloadImportTemplate）" }
+  - { id: PAGE-IMP-VALIDATE, name: 校验结果, module: import-export, type: block, parent: PAGE-IMP-WIZARD, batch: "2-4", note: "2-4 已交付：总数 / 可执行 / 失败三档统计 + 失败明细（行号·对象·原因）+ 下载失败明细 + 失败行处理策略 + 学号对照表说明" }
+  - { id: PAGE-IMP-EXECUTE, name: 执行与进度, module: import-export, type: block, parent: PAGE-IMP-WIZARD, batch: "2-4", note: "2-4 已交付：异步任务编号 + 进度条 + 成功 / 失败计数 + 并发配额 + 结果文件 7 天 / 元数据 90 天口径" }
   - { id: PAGE-IMP-TASK-LIST, name: 异步任务列表, module: import-export, type: page, route: /edu/async-task/list, template: TPL-LIST, batch: "2-9" }
   - { id: PAGE-IMP-TASK-DETAIL, name: 任务详情, module: import-export, type: detail, parent: PAGE-IMP-TASK-LIST, batch: "2-9" }
   - { id: PAGE-IMP-EXPORT, name: 导出配置, module: import-export, type: dialog, size: md, parent: PAGE-IMP-TASK-LIST, batch: "2-9" }
@@ -171,10 +171,10 @@ pages:
   - { id: PAGE-AUDIT-ARCHIVE, name: 归档管理, module: audit, type: page, route: /edu/audit/archive, template: TPL-LIST, batch: "2-8" }
 
   # ---- 独立页（不属于任何模块菜单） ----
-  - { id: PAGE-LOGIN, name: 登录, module: common, type: standalone, route: /login, batch: "2-4" }
-  - { id: PAGE-403, name: 无权限, module: common, type: standalone, route: /403, batch: "2-4" }
-  - { id: PAGE-404, name: 页面不存在, module: common, type: standalone, route: /404, batch: "2-4" }
-  - { id: PAGE-500, name: 服务异常, module: common, type: standalone, route: /500, batch: "2-4" }
+  - { id: PAGE-LOGIN, name: 登录, module: common, type: standalone, route: /login, batch: "2-4", note: "2-4 已交付：不套管理外壳（与真实系统一致）；多校切换、学生 s+学号（BR-ACCOUNT-002）、首次登录强制改密（D-039）、连续 5 次错误锁定 5 分钟（NFR-SEC-04）" }
+  - { id: PAGE-403, name: 无权限, module: common, type: standalone, route: /403, batch: "2-4", note: "2-4 已交付：说明功能权限或数据范围为空集时不降级为全量（DS-DENY-03 / NFR-SEC-05），给返回工作台与申请开通入口" }
+  - { id: PAGE-404, name: 页面不存在, module: common, type: standalone, route: /404, batch: "2-4", note: "2-4 已交付：指向 navigation.yaml 的页面注册表（看不到的入口原型里不允许出现），给返回上一页与返回工作台" }
+  - { id: PAGE-500, name: 服务异常, module: common, type: standalone, route: /500, batch: "2-4", note: "2-4 已交付：请求编号 + 错误码 + 已自动上报；写明批量写操作走异步任务、不产生部分写入（NFR-MQ-02）" }
 
 # ---------------------------------------------------------------------------
 # 4. 交付批次（页面总数与 README 的对照表必须一致）
@@ -184,7 +184,7 @@ delivery_batches:
   - { batch: "2-1", content: 学生管理列表 + 新增/编辑抽屉（样板）, pages: 3, status: 待验收 }
   - { batch: "2-2", content: "教师管理 + 年级管理（执行时拆为 2-2a 教师列表 1 页 / 2-2b-1 教师详情与新增编辑 3 项 / 2-2b-2 角色与任教 2 项 / 2-2b-2b 年级 6 页）", pages: 13, status: "2-2a、2-2b-1、2-2b-2 已产出待验收；2-2b-2b 的年级 6 页全部产出待验收（含删除确认浮层片段 DIALOG-GRD-DELETE 与 ACT-GRD-001 ~ 029）" }
   - { batch: "2-3", content: 班级管理 + 班级详情 + 升班向导, pages: 17, status: "已全部产出待验收：2-3a 班级列表、2-3b 班级详情（含花名册）、2-3c 四个弹窗、2-3d 编班 / 批量迁学生 / 移出与调班、2-3e 升班 6 页（PAGE-PRM-LIST / CREATE / PREVIEW / VALIDATE / EXECUTE / RESULT）+ 2 个同页片段（DIALOG-PRM-CANCEL、PAGE-PRM-ADJUST）；动作 ACT-CLS-001 ~ 064、ACT-PRM-001 ~ 043 已登记" }
-  - { batch: "2-4", content: 导入向导 + 登录 + 异常页, pages: 11, status: 待开始 }
+  - { batch: "2-4", content: 导入向导 + 登录 + 异常页, pages: 11, status: "已全部产出待验收：PAGE-IMP-WIZARD（含 TEMPLATE / VALIDATE / EXECUTE 三个区块）、PAGE-STU-IMPORT / PAGE-TCH-IMPORT / PAGE-CLS-ROSTER-IMPORT（模块快捷入口）、PAGE-LOGIN / PAGE-403 / PAGE-404 / PAGE-500（不套管理外壳）；动作 ACT-IMP-001 ~ 010、ACT-IO-001 ~ 002、ACT-AUTH-001 ~ 003、ACT-ERR-001 ~ 005 已登记" }
   - { batch: "2-5", content: 学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录）, pages: 8, status: 已确认（D-050），待开始 }
   - { batch: "2-6", content: 学校管理 + 学年学期 + 学科与配置, pages: 19, status: 已确认（D-050），待开始 }
   - { batch: "2-7", content: 选科与教学班, pages: 9, status: 已确认（D-050），待开始 }

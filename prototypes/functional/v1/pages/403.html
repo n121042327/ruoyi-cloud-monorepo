@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>你没有访问该页面的权限 — 业务原型 v1（批次 2-4）</title>
+<link rel="stylesheet" href="../assets/prototype-shell.css" />
+<style>
+  body { margin: 0; background: #f5f7fb; }
+  .err-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .err-card {
+    width: 520px; background: #fff; border: 1px solid var(--app-border-light);
+    border-radius: var(--app-radius-base); box-shadow: var(--app-shadow-md); padding: 32px 32px 26px; text-align: center;
+  }
+  .err-code { font-size: 46px; font-weight: 700; color: var(--app-primary); line-height: 1; }
+  .err-title { font-size: 18px; font-weight: 600; color: var(--app-text-primary); margin: 12px 0 8px; }
+  .err-desc { font-size: 13px; color: var(--app-text-secondary); line-height: 1.8; text-align: left; }
+  .err-actions { display: flex; gap: 8px; justify-content: center; margin-top: 20px; }
+  .err-meta { margin-top: 16px; font-size: 12px; color: var(--app-text-secondary); text-align: left; }
+</style>
+</head>
+<body>
+<div id="page-root" data-page="PAGE-403" data-role="page" data-state="normal">
+  <div class="err-wrap">
+    <div class="err-card">
+      <div class="err-code">403</div>
+      <div class="err-title">你没有访问该页面的权限</div>
+      <div class="err-desc">当前账号缺少该功能权限，或该页面的数据范围为空集。<b>无权限时不会降级为全量可见</b>（<span class="mono">DS-DENY-03</span>）：页面不会渲染空表格，接口层同样拒绝并要求租户、学校与执行人上下文（<span class="mono">NFR-SEC-05</span>）。<br>如果你是平台运营账号：查看 / 修改 / 导出分别授权、分别审计（<span class="mono">DS-01</span>），请联系运营管理员开通查看权。</div>
+      <div class="err-actions">
+        <button class="btn primary" data-role="action" data-action-id="ACT-ERR-001" data-component="el-button.primary"
+                data-demo-toast="已返回工作台首页（原型演示）。" data-demo-toast-type="info">返回工作台</button>
+        <button class="btn" data-role="action" data-action-id="ACT-ERR-002" data-component="el-button"
+                data-demo-toast="已提示：如需开通权限，请联系本校管理员或运营管理员；申请会记录在审计里。" data-demo-toast-type="info">申请开通权限</button>
+      </div>
+      <div class="err-meta">本页不展示任何业务数据；缺少权限时的访问同样写入审计（<span class="mono">NFR-AUDIT-02</span>）。</div>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  'use strict';
+  var host = document.createElement('div');
+  host.className = 'toast-host';
+  document.body.appendChild(host);
+  function toast(message, type) {
+    var node = document.createElement('div');
+    node.className = 'toast ' + (type || 'info');
+    node.textContent = message;
+    host.appendChild(node);
+    window.setTimeout(function () { node.remove(); }, 3600);
+  }
+  document.addEventListener('click', function (event) {
+    var btn = event.target.closest('[data-demo-toast]');
+    if (!btn) return;
+    event.preventDefault();
+    toast(btn.getAttribute('data-demo-toast'), btn.getAttribute('data-demo-toast-type') || 'info');
+  });
+})();
+</script>
+</body>
+</html>

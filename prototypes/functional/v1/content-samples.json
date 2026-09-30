@@ -14,7 +14,7 @@
     "class_edge_cases 补齐班级模块的 4 类边界样本（空班、已停用、超容量、超长班级名称），班级列表页必须从 classes 与 class_edge_cases 两个节点取数。",
     "班级在读人数分两档口径：classes 里的 20260101 / 20260102 / 20260103 / 20250101 / 20240101 / 20260201 与 student_class_relations 逐条一致；class_edge_cases 与班级数对应关系取自 grades 样例的统计示意值，两者都不代表真实规模（真实规模见 list_totals.class_list_total）。",
     "学生 2026000013（潘思彤）与 2026000014（蒋知远）是批次 2-3d 新增的两条样本：在读、class_id 为空，用于「编班（添加学生）」页的学生池——没有他们，学生池里没有任何一个可编班的在读学生，页面只能演示冲突而演示不了成功路径。",
-    "在读口径（BR-STU-012，CR-011）：只有在读（enrolled）计入「在读人数」，休学、转入未报到、出国（studying_abroad，保留学籍）等非在读状态保留班级关系但不计入。因此高二 (1) 班（20250101）的 student_count 是 1（只算在读的孙悠然 2025000002），徐昊然 2025000001 处于出国保留学籍状态、保留班级关系但不计入在读。" 
+    "在读口径（BR-STU-012，CR-011）：只有在读（enrolled）计入「在读人数」，休学、转入未报到、出国（studying_abroad，保留学籍）等非在读状态保留班级关系但不计入。因此高二 (1) 班（20250101）的 student_count 是 1（只算在读的孙悠然 2025000002），徐昊然 2025000001 处于出国保留学籍状态、保留班级关系但不计入在读。"
   ],
   "promotion_tasks": [
     {
@@ -28,7 +28,13 @@
       "failed_count": 0,
       "create_by": "郑雅琴",
       "create_time": "2026-06-20 09:10",
-      "grade_scope": { "grade_id": 202601, "label": "2026 级 高一", "total_count": 0, "success_count": 0, "failed_count": 0 },
+      "grade_scope": {
+        "grade_id": 202601,
+        "label": "2026 级 高一",
+        "total_count": 0,
+        "success_count": 0,
+        "failed_count": 0
+      },
       "note": "上一学年升级任务，已完成并随学年归档；源学年与目标学年都早于当前学期"
     },
     {
@@ -42,7 +48,13 @@
       "failed_count": 3,
       "create_by": "郑雅琴",
       "create_time": "2026-06-28 14:05",
-      "grade_scope": { "grade_id": 202601, "label": "2026 级 高一", "total_count": 0, "success_count": 0, "failed_count": 0 },
+      "grade_scope": {
+        "grade_id": 202601,
+        "label": "2026 级 高一",
+        "total_count": 0,
+        "success_count": 0,
+        "failed_count": 0
+      },
       "failure_summary": "3 名学生目标班级不存在（高二 (3) 班未建）",
       "note": "部分失败样本：失败逐条记录原因，重试只处理失败项（REQ-PRM-032）"
     },
@@ -57,7 +69,13 @@
       "failed_count": 120,
       "create_by": "郑雅琴",
       "create_time": "2026-09-26 09:10",
-      "grade_scope": { "grade_id": 202601, "label": "2026 级 高一", "total_count": 0, "success_count": 0, "failed_count": 0 },
+      "grade_scope": {
+        "grade_id": 202601,
+        "label": "2026 级 高一",
+        "total_count": 0,
+        "success_count": 0,
+        "failed_count": 0
+      },
       "failure_summary": "目标学年学期尚未创建对应年级（2026-2027 学年 第一学期 缺 高二）",
       "note": "全量失败样本：创建前校验缺失即阻止创建（REQ-PRM-009），此任务为历史遗留的手工修复场景"
     },
@@ -72,7 +90,13 @@
       "failed_count": 0,
       "create_by": "郑雅琴",
       "create_time": "2026-09-30 10:20",
-      "grade_scope": { "grade_id": 202601, "label": "2026 级 高一", "total_count": 0, "success_count": 0, "failed_count": 0 },
+      "grade_scope": {
+        "grade_id": 202601,
+        "label": "2026 级 高一",
+        "total_count": 0,
+        "success_count": 0,
+        "failed_count": 0
+      },
       "note": "草稿样本：尚未生成预览，因此没有升班明细，三个计数列显示「—」（REQ-PRM-011）"
     },
     {
@@ -86,7 +110,13 @@
       "failed_count": 0,
       "create_by": "郑雅琴",
       "create_time": "2026-09-30 11:02",
-      "grade_scope": { "grade_id": 202601, "label": "2026 级 高一", "total_count": 128, "success_count": 0, "failed_count": 0 },
+      "grade_scope": {
+        "grade_id": 202601,
+        "label": "2026 级 高一",
+        "total_count": 128,
+        "success_count": 0,
+        "failed_count": 0
+      },
       "note": "已预览待确认样本：预览不写入任何学生数据（REQ-PRM-020）"
     },
     {
@@ -100,7 +130,13 @@
       "failed_count": 0,
       "create_by": "郑雅琴",
       "create_time": "2026-09-30 11:20",
-      "grade_scope": { "grade_id": 202601, "label": "2026 级 高一", "total_count": 128, "success_count": 0, "failed_count": 0 },
+      "grade_scope": {
+        "grade_id": 202601,
+        "label": "2026 级 高一",
+        "total_count": 128,
+        "success_count": 0,
+        "failed_count": 0
+      },
       "note": "校验中样本：校验维度为目标年级 / 目标班级 / 目标学期 / 在读 / 重复去向（REQ-PRM-022）"
     },
     {
@@ -115,7 +151,13 @@
       "progress_percent": 76,
       "create_by": "郑雅琴",
       "create_time": "2026-09-30 11:35",
-      "grade_scope": { "grade_id": 202601, "label": "2026 级 高一", "total_count": 128, "success_count": 97, "failed_count": 0 },
+      "grade_scope": {
+        "grade_id": 202601,
+        "label": "2026 级 高一",
+        "total_count": 128,
+        "success_count": 97,
+        "failed_count": 0
+      },
       "note": "执行中样本：异步执行、界面不阻塞（REQ-PRM-027），行内给进度条"
     },
     {
@@ -129,7 +171,13 @@
       "failed_count": 0,
       "create_by": "郑雅琴",
       "create_time": "2026-09-30 12:10",
-      "grade_scope": { "grade_id": 202601, "label": "2026 级 高一", "total_count": 128, "success_count": 52, "failed_count": 0 },
+      "grade_scope": {
+        "grade_id": 202601,
+        "label": "2026 级 高一",
+        "total_count": 128,
+        "success_count": 52,
+        "failed_count": 0
+      },
       "note": "已取消样本：保留已完成部分，可「继续执行剩余项」或逐条回滚（已确认 4）"
     },
     {
@@ -144,7 +192,13 @@
       "cross_stage": true,
       "create_by": "何文博",
       "create_time": "2026-09-30 13:40",
-      "grade_scope": { "grade_id": 202601, "label": "2026 级 高一", "total_count": 0, "success_count": 0, "failed_count": 0 },
+      "grade_scope": {
+        "grade_id": 202601,
+        "label": "2026 级 高一",
+        "total_count": 0,
+        "success_count": 0,
+        "failed_count": 0
+      },
       "note": "跨学段样本：九年一贯制小学六年级 → 初中一年级（学段内序号 +1 之外的特例，见 BR-GRADE-006）"
     },
     {
@@ -158,7 +212,13 @@
       "failed_count": 0,
       "create_by": "郑雅琴",
       "create_time": "2026-09-30 14:00",
-      "grade_scope": { "grade_id": 202601, "label": "2026 级 高一", "total_count": 2048, "success_count": 0, "failed_count": 0 },
+      "grade_scope": {
+        "grade_id": 202601,
+        "label": "2026 级 高一",
+        "total_count": 2048,
+        "success_count": 0,
+        "failed_count": 0
+      },
       "note": "超阈值样本：源学年在读 10240 人 > 阈值 10000，预览与执行前给出耗时预估（REQ-PRM-010）"
     },
     {
@@ -172,7 +232,13 @@
       "failed_count": 3,
       "create_by": "何文博",
       "create_time": "2026-09-30 16:20",
-      "grade_scope": { "grade_id": 202601, "label": "2026 级 高一", "total_count": 96, "success_count": 93, "failed_count": 3 },
+      "grade_scope": {
+        "grade_id": 202601,
+        "label": "2026 级 高一",
+        "total_count": 96,
+        "success_count": 93,
+        "failed_count": 3
+      },
       "failure_summary": "3 名学生目标班级（高一 (3) 班）已停用",
       "note": "年级主任视图下唯一能看到失败数的样本：计数按 DS-05 收窄后仍为 96"
     },
@@ -187,7 +253,13 @@
       "failed_count": 0,
       "create_by": "王丽君",
       "create_time": "2026-09-30 15:10",
-      "grade_scope": { "grade_id": 202602, "label": "2026 级 初一（他校）", "total_count": 0, "success_count": 0, "failed_count": 0 },
+      "grade_scope": {
+        "grade_id": 202602,
+        "label": "2026 级 初一（他校）",
+        "total_count": 0,
+        "success_count": 0,
+        "failed_count": 0
+      },
       "note": "他校样本：云溪外国语学校，用于验证平台运营切校后的协助视图与升班任务不跨校共享"
     }
   ],
@@ -1832,18 +1904,74 @@
       "school": "云溪实验学校",
       "class_type_note": "行政班 3 个；教学班不在此列表内（教学班属教学关系，见班级模块）",
       "classes": [
-        { "class_id": 20260101, "class_name": "高一 (1) 班", "head_teacher": "邓丽娟", "class_capacity": 45, "student_count": 2, "classroom": "本部教学楼 A203", "status": "在读" },
-        { "class_id": 20260102, "class_name": "高一 (2) 班", "head_teacher": "冯振国", "class_capacity": 45, "student_count": 2, "classroom": "本部教学楼 A205", "status": "在读" },
-        { "class_id": 20260103, "class_name": "高一 (3) 班", "head_teacher": null, "class_capacity": 45, "student_count": 1, "classroom": "本部教学楼 A207", "status": "在读" }
+        {
+          "class_id": 20260101,
+          "class_name": "高一 (1) 班",
+          "head_teacher": "邓丽娟",
+          "class_capacity": 45,
+          "student_count": 2,
+          "classroom": "本部教学楼 A203",
+          "status": "在读"
+        },
+        {
+          "class_id": 20260102,
+          "class_name": "高一 (2) 班",
+          "head_teacher": "冯振国",
+          "class_capacity": 45,
+          "student_count": 2,
+          "classroom": "本部教学楼 A205",
+          "status": "在读"
+        },
+        {
+          "class_id": 20260103,
+          "class_name": "高一 (3) 班",
+          "head_teacher": null,
+          "class_capacity": 45,
+          "student_count": 1,
+          "classroom": "本部教学楼 A207",
+          "status": "在读"
+        }
       ],
       "student_stats": [
-        { "class_name": "高一 (1) 班", "enrolled": 2, "suspended": 1, "transferred_out": 0, "pending_enroll": 0 },
-        { "class_name": "高一 (2) 班", "enrolled": 2, "suspended": 0, "transferred_out": 0, "pending_enroll": 0 },
-        { "class_name": "高一 (3) 班", "enrolled": 1, "suspended": 0, "transferred_out": 0, "pending_enroll": 0 }
+        {
+          "class_name": "高一 (1) 班",
+          "enrolled": 2,
+          "suspended": 1,
+          "transferred_out": 0,
+          "pending_enroll": 0
+        },
+        {
+          "class_name": "高一 (2) 班",
+          "enrolled": 2,
+          "suspended": 0,
+          "transferred_out": 0,
+          "pending_enroll": 0
+        },
+        {
+          "class_name": "高一 (3) 班",
+          "enrolled": 1,
+          "suspended": 0,
+          "transferred_out": 0,
+          "pending_enroll": 0
+        }
       ],
       "leaders": [
-        { "term_name": "2026-2027 学年 第一学期", "name": "何文博", "is_primary": true, "status": "生效中", "effective_date": "2026-09-01", "expire_date": null },
-        { "term_name": "2025-2026 学年 第一学期", "name": "冯振国", "is_primary": true, "status": "已解除", "effective_date": "2025-09-01", "expire_date": "2026-08-31" }
+        {
+          "term_name": "2026-2027 学年 第一学期",
+          "name": "何文博",
+          "is_primary": true,
+          "status": "生效中",
+          "effective_date": "2026-09-01",
+          "expire_date": null
+        },
+        {
+          "term_name": "2025-2026 学年 第一学期",
+          "name": "冯振国",
+          "is_primary": true,
+          "status": "已解除",
+          "effective_date": "2025-09-01",
+          "expire_date": "2026-08-31"
+        }
       ]
     },
     "B": {
@@ -2167,7 +2295,9 @@
     "school_name": "云溪实验学校",
     "login_name": "cuiwenhao",
     "hire_date": "2026-09-01",
-    "edu_roles": ["subject_teacher"],
+    "edu_roles": [
+      "subject_teacher"
+    ],
     "initial_credential": "一次性初始凭据由学校分发，教师首次登录强制修改密码"
   },
   "teacher_role_samples": {
@@ -2224,41 +2354,254 @@
   "teaching_assignment_board": {
     "note": "任教关系设置（PAGE-TCH-ASSIGN）的双栏样例：左栏是主体选择器（班级视角 / 教师视角），右栏是该主体的任教关系。",
     "view_modes": [
-      { "code": "class", "label": "班级视角", "picker_total": "8 个班级" },
-      { "code": "teacher", "label": "教师视角", "picker_total": "11 名教师" }
+      {
+        "code": "class",
+        "label": "班级视角",
+        "picker_total": "8 个班级"
+      },
+      {
+        "code": "teacher",
+        "label": "教师视角",
+        "picker_total": "11 名教师"
+      }
     ],
     "class_picker": [
-      { "class_id": 20260101, "class_name": "高一 (1) 班", "class_type": "administrative", "grade_name": "2026 级 高一", "head_teacher": "邓丽娟", "assignment_count": 7, "selected": true },
-      { "class_id": 20260102, "class_name": "高一 (2) 班", "class_type": "administrative", "grade_name": "2026 级 高一", "head_teacher": "冯振国", "assignment_count": 3 },
-      { "class_id": 20260103, "class_name": "高一 (3) 班", "class_type": "administrative", "grade_name": "2026 级 高一", "head_teacher": null, "assignment_count": 1, "edge": "空：班主任未指定，验证空值与「仍需指定班主任」的提示" },
-      { "class_id": 20250101, "class_name": "高二 (1) 班", "class_type": "administrative", "grade_name": "2025 级 高二", "head_teacher": "卢佳音", "assignment_count": 4 },
-      { "class_id": 20240101, "class_name": "高三 (1) 班", "class_type": "administrative", "grade_name": "2024 级 高三", "head_teacher": "何文博", "assignment_count": 2 },
-      { "class_id": 20260111, "class_name": "高一 物理 A 层", "class_type": "teaching", "grade_name": "2026 级 高一", "head_teacher": null, "assignment_count": 1, "edge": "教学班：不设班主任，成员来自选科结果" },
-      { "class_id": 20260201, "class_name": "初一 (1) 班", "class_type": "administrative", "grade_name": "2026 级 初一", "head_teacher": "郑雅琴", "assignment_count": 2, "edge": "跨校：云溪外国语学校的班级，只有平台运营协助视图可见" },
-      { "class_id": 20250302, "class_name": "初三 (2) 班", "class_type": "administrative", "grade_name": "2025 级 初三", "head_teacher": null, "assignment_count": 0, "edge": "空：尚未排课，用来验证「该班级没有任教关系」的空态" }
+      {
+        "class_id": 20260101,
+        "class_name": "高一 (1) 班",
+        "class_type": "administrative",
+        "grade_name": "2026 级 高一",
+        "head_teacher": "邓丽娟",
+        "assignment_count": 7,
+        "selected": true
+      },
+      {
+        "class_id": 20260102,
+        "class_name": "高一 (2) 班",
+        "class_type": "administrative",
+        "grade_name": "2026 级 高一",
+        "head_teacher": "冯振国",
+        "assignment_count": 3
+      },
+      {
+        "class_id": 20260103,
+        "class_name": "高一 (3) 班",
+        "class_type": "administrative",
+        "grade_name": "2026 级 高一",
+        "head_teacher": null,
+        "assignment_count": 1,
+        "edge": "空：班主任未指定，验证空值与「仍需指定班主任」的提示"
+      },
+      {
+        "class_id": 20250101,
+        "class_name": "高二 (1) 班",
+        "class_type": "administrative",
+        "grade_name": "2025 级 高二",
+        "head_teacher": "卢佳音",
+        "assignment_count": 4
+      },
+      {
+        "class_id": 20240101,
+        "class_name": "高三 (1) 班",
+        "class_type": "administrative",
+        "grade_name": "2024 级 高三",
+        "head_teacher": "何文博",
+        "assignment_count": 2
+      },
+      {
+        "class_id": 20260111,
+        "class_name": "高一 物理 A 层",
+        "class_type": "teaching",
+        "grade_name": "2026 级 高一",
+        "head_teacher": null,
+        "assignment_count": 1,
+        "edge": "教学班：不设班主任，成员来自选科结果"
+      },
+      {
+        "class_id": 20260201,
+        "class_name": "初一 (1) 班",
+        "class_type": "administrative",
+        "grade_name": "2026 级 初一",
+        "head_teacher": "郑雅琴",
+        "assignment_count": 2,
+        "edge": "跨校：云溪外国语学校的班级，只有平台运营协助视图可见"
+      },
+      {
+        "class_id": 20250302,
+        "class_name": "初三 (2) 班",
+        "class_type": "administrative",
+        "grade_name": "2025 级 初三",
+        "head_teacher": null,
+        "assignment_count": 0,
+        "edge": "空：尚未排课，用来验证「该班级没有任教关系」的空态"
+      }
     ],
     "teacher_picker": [
-      { "teacher_id": 1003, "teacher_name": "邓丽娟", "edu_role_label": "班主任 · 语文", "assignment_count": 2 },
-      { "teacher_id": 1007, "teacher_name": "苏睿", "edu_role_label": "教务主任 · 外语", "assignment_count": 2, "edge": "跨校任教：归属外国语学校，在实验学校授课" },
-      { "teacher_id": 1010, "teacher_name": "韦志远", "edu_role_label": "任课教师 · 数学", "assignment_count": 2 },
-      { "teacher_id": 1005, "teacher_name": "谢明轩", "edu_role_label": "年级主任 · 物理", "assignment_count": 1 },
-      { "teacher_id": 1012, "teacher_name": "阿依努尔·艾山", "edu_role_label": "任课教师 · 生物", "assignment_count": 1, "edge": "特殊：姓名含间隔号，列表与详情都不截断" },
-      { "teacher_id": 1006, "teacher_name": "卢佳音", "edu_role_label": "班主任 · 外语", "assignment_count": 1 },
-      { "teacher_id": 1001, "teacher_name": "郑雅琴", "edu_role_label": "教务主任 · 语文", "assignment_count": 1 },
-      { "teacher_id": 1002, "teacher_name": "何文博", "edu_role_label": "年级主任 · 无任教", "assignment_count": 0, "edge": "空：纯管理角色可以没有任教关系" },
-      { "teacher_id": 1004, "teacher_name": "冯振国", "edu_role_label": "班主任 · 无任教", "assignment_count": 0 },
-      { "teacher_id": 1011, "teacher_name": "高洪波", "edu_role_label": "任课教师 · 化学", "assignment_count": 0, "edge": "终态：离职，不再出现在新增任教关系的教师选项里" },
-      { "teacher_id": 1013, "teacher_name": "苗雨欣", "edu_role_label": "任课教师 · 地理", "assignment_count": 0, "edge": "终态：调离，原校只读保留历史任教关系" }
+      {
+        "teacher_id": 1003,
+        "teacher_name": "邓丽娟",
+        "edu_role_label": "班主任 · 语文",
+        "assignment_count": 2
+      },
+      {
+        "teacher_id": 1007,
+        "teacher_name": "苏睿",
+        "edu_role_label": "教务主任 · 外语",
+        "assignment_count": 2,
+        "edge": "跨校任教：归属外国语学校，在实验学校授课"
+      },
+      {
+        "teacher_id": 1010,
+        "teacher_name": "韦志远",
+        "edu_role_label": "任课教师 · 数学",
+        "assignment_count": 2
+      },
+      {
+        "teacher_id": 1005,
+        "teacher_name": "谢明轩",
+        "edu_role_label": "年级主任 · 物理",
+        "assignment_count": 1
+      },
+      {
+        "teacher_id": 1012,
+        "teacher_name": "阿依努尔·艾山",
+        "edu_role_label": "任课教师 · 生物",
+        "assignment_count": 1,
+        "edge": "特殊：姓名含间隔号，列表与详情都不截断"
+      },
+      {
+        "teacher_id": 1006,
+        "teacher_name": "卢佳音",
+        "edu_role_label": "班主任 · 外语",
+        "assignment_count": 1
+      },
+      {
+        "teacher_id": 1001,
+        "teacher_name": "郑雅琴",
+        "edu_role_label": "教务主任 · 语文",
+        "assignment_count": 1
+      },
+      {
+        "teacher_id": 1002,
+        "teacher_name": "何文博",
+        "edu_role_label": "年级主任 · 无任教",
+        "assignment_count": 0,
+        "edge": "空：纯管理角色可以没有任教关系"
+      },
+      {
+        "teacher_id": 1004,
+        "teacher_name": "冯振国",
+        "edu_role_label": "班主任 · 无任教",
+        "assignment_count": 0
+      },
+      {
+        "teacher_id": 1011,
+        "teacher_name": "高洪波",
+        "edu_role_label": "任课教师 · 化学",
+        "assignment_count": 0,
+        "edge": "终态：离职，不再出现在新增任教关系的教师选项里"
+      },
+      {
+        "teacher_id": 1013,
+        "teacher_name": "苗雨欣",
+        "edu_role_label": "任课教师 · 地理",
+        "assignment_count": 0,
+        "edge": "终态：调离，原校只读保留历史任教关系"
+      }
     ],
     "assignments_of_class_20260101": [
-      { "subject_code": "chinese", "subject_name": "语文", "teacher_id": 1003, "teacher_name": "邓丽娟", "class_id": 20260101, "class_name": "高一 (1) 班", "class_type": "administrative", "weekly_hours": 6, "status": "生效中" },
-      { "subject_code": "english", "subject_name": "外语", "teacher_id": 1007, "teacher_name": "苏睿", "class_id": 20260101, "class_name": "高一 (1) 班", "class_type": "administrative", "weekly_hours": 5, "status": "生效中", "cross_school": true },
-      { "subject_code": "math", "subject_name": "数学", "teacher_id": 1010, "teacher_name": "韦志远", "class_id": 20260101, "class_name": "高一 (1) 班", "class_type": "administrative", "weekly_hours": 5, "status": "生效中" },
-      { "subject_code": "physics", "subject_name": "物理", "teacher_id": 1005, "teacher_name": "谢明轩", "class_id": 20260111, "class_name": "高一 物理 A 层", "class_type": "teaching", "weekly_hours": 4, "status": "生效中" },
-      { "subject_code": "biology", "subject_name": "生物", "teacher_id": 1012, "teacher_name": "阿依努尔·艾山", "class_id": 20260101, "class_name": "高一 (1) 班", "class_type": "administrative", "weekly_hours": 3, "status": "生效中" },
-      { "subject_code": "chemistry", "subject_name": "化学", "teacher_id": 1011, "teacher_name": "高洪波", "class_id": 20260101, "class_name": "高一 (1) 班", "class_type": "administrative", "weekly_hours": 4, "status": "已失效", "edge": "终态：教师离职后任教关系失效，但记录保留可查" },
-      { "subject_code": "geography", "subject_name": "地理", "teacher_id": 1013, "teacher_name": "苗雨欣", "class_id": 20260101, "class_name": "高一 (1) 班", "class_type": "administrative", "weekly_hours": 4, "status": "已失效", "edge": "终态：教师调离后任教关系失效" },
-      { "subject_code": "politics", "subject_name": "思想政治", "teacher_id": null, "teacher_name": null, "class_id": 20260101, "class_name": "高一 (1) 班", "class_type": "administrative", "weekly_hours": null, "status": "待补充", "edge": "待办中：学科已开但尚未指定教师" }
+      {
+        "subject_code": "chinese",
+        "subject_name": "语文",
+        "teacher_id": 1003,
+        "teacher_name": "邓丽娟",
+        "class_id": 20260101,
+        "class_name": "高一 (1) 班",
+        "class_type": "administrative",
+        "weekly_hours": 6,
+        "status": "生效中"
+      },
+      {
+        "subject_code": "english",
+        "subject_name": "外语",
+        "teacher_id": 1007,
+        "teacher_name": "苏睿",
+        "class_id": 20260101,
+        "class_name": "高一 (1) 班",
+        "class_type": "administrative",
+        "weekly_hours": 5,
+        "status": "生效中",
+        "cross_school": true
+      },
+      {
+        "subject_code": "math",
+        "subject_name": "数学",
+        "teacher_id": 1010,
+        "teacher_name": "韦志远",
+        "class_id": 20260101,
+        "class_name": "高一 (1) 班",
+        "class_type": "administrative",
+        "weekly_hours": 5,
+        "status": "生效中"
+      },
+      {
+        "subject_code": "physics",
+        "subject_name": "物理",
+        "teacher_id": 1005,
+        "teacher_name": "谢明轩",
+        "class_id": 20260111,
+        "class_name": "高一 物理 A 层",
+        "class_type": "teaching",
+        "weekly_hours": 4,
+        "status": "生效中"
+      },
+      {
+        "subject_code": "biology",
+        "subject_name": "生物",
+        "teacher_id": 1012,
+        "teacher_name": "阿依努尔·艾山",
+        "class_id": 20260101,
+        "class_name": "高一 (1) 班",
+        "class_type": "administrative",
+        "weekly_hours": 3,
+        "status": "生效中"
+      },
+      {
+        "subject_code": "chemistry",
+        "subject_name": "化学",
+        "teacher_id": 1011,
+        "teacher_name": "高洪波",
+        "class_id": 20260101,
+        "class_name": "高一 (1) 班",
+        "class_type": "administrative",
+        "weekly_hours": 4,
+        "status": "已失效",
+        "edge": "终态：教师离职后任教关系失效，但记录保留可查"
+      },
+      {
+        "subject_code": "geography",
+        "subject_name": "地理",
+        "teacher_id": 1013,
+        "teacher_name": "苗雨欣",
+        "class_id": 20260101,
+        "class_name": "高一 (1) 班",
+        "class_type": "administrative",
+        "weekly_hours": 4,
+        "status": "已失效",
+        "edge": "终态：教师调离后任教关系失效"
+      },
+      {
+        "subject_code": "politics",
+        "subject_name": "思想政治",
+        "teacher_id": null,
+        "teacher_name": null,
+        "class_id": 20260101,
+        "class_name": "高一 (1) 班",
+        "class_type": "administrative",
+        "weekly_hours": null,
+        "status": "待补充",
+        "edge": "待办中：学科已开但尚未指定教师"
+      }
     ],
     "copy_preview": {
       "source_term_name": "2025-2026 学年 第一学期",
@@ -2267,23 +2610,70 @@
       "will_skip": 2,
       "needs_attention": 1,
       "rows": [
-        { "action": "复制", "object": "语文 · 邓丽娟 · 高一 (1) 班", "reason": "目标学期不存在有效关系" },
-        { "action": "跳过", "object": "外语 · 苏睿 · 高一 (1) 班", "reason": "目标学期已存在同一 教师 + 学科 + 班级类型 + 班级" },
-        { "action": "待处理", "object": "化学 · 高洪波 · 高一 (1) 班", "reason": "教师已离职，不允许复制到目标学期" }
+        {
+          "action": "复制",
+          "object": "语文 · 邓丽娟 · 高一 (1) 班",
+          "reason": "目标学期不存在有效关系"
+        },
+        {
+          "action": "跳过",
+          "object": "外语 · 苏睿 · 高一 (1) 班",
+          "reason": "目标学期已存在同一 教师 + 学科 + 班级类型 + 班级"
+        },
+        {
+          "action": "待处理",
+          "object": "化学 · 高洪波 · 高一 (1) 班",
+          "reason": "教师已离职，不允许复制到目标学期"
+        }
       ]
     }
   },
   "promotion_create_samples": {
     "purpose": "升班向导第一步（PAGE-PRM-CREATE，批次 2-3e-s2）的四档校验样例：齐备 / 缺年级与班级 / 同一源→目标学期已有未结束任务 / 在读超阈值。取值依据 REQ-PRM-005、REQ-PRM-007 ~ 012、NFR-PERF-07。",
     "source_terms": [
-      { "term_id": 202502, "name": "2025-2026 学年 第二学期", "start_date": "2026-02-23", "term_status": "archived", "enrolled_count": 486, "note": "已归档的学年学期仍可作为源，用于补做历史升班；只在读口径计入（BR-STU-012）" },
-      { "term_id": 202601, "name": "2026-2027 学年 第一学期", "start_date": "2026-09-01", "term_status": "current", "enrolled_count": 512, "note": "当前学年学期，默认源学年学期" },
-      { "term_id": 202602, "name": "2026-2027 学年 第二学期", "start_date": "2027-02-22", "term_status": "planned", "enrolled_count": 0, "note": "尚未开始的学年学期：在读为 0，选中后进入空态（该校第二学期还没有在读名单）" }
+      {
+        "term_id": 202502,
+        "name": "2025-2026 学年 第二学期",
+        "start_date": "2026-02-23",
+        "term_status": "archived",
+        "enrolled_count": 486,
+        "note": "已归档的学年学期仍可作为源，用于补做历史升班；只在读口径计入（BR-STU-012）"
+      },
+      {
+        "term_id": 202601,
+        "name": "2026-2027 学年 第一学期",
+        "start_date": "2026-09-01",
+        "term_status": "current",
+        "enrolled_count": 512,
+        "note": "当前学年学期，默认源学年学期"
+      },
+      {
+        "term_id": 202602,
+        "name": "2026-2027 学年 第二学期",
+        "start_date": "2027-02-22",
+        "term_status": "planned",
+        "enrolled_count": 0,
+        "note": "尚未开始的学年学期：在读为 0，选中后进入空态（该校第二学期还没有在读名单）"
+      }
     ],
     "target_terms": [
-      { "term_id": 202601, "name": "2026-2027 学年 第一学期", "start_date": "2026-09-01", "note": "与源 2026-2027 第二学期组合时触发 REQ-PRM-008（目标起始日期不得早于源）" },
-      { "term_id": 202602, "name": "2026-2027 学年 第二学期", "start_date": "2027-02-22" },
-      { "term_id": 202701, "name": "2027-2028 学年 第一学期", "start_date": "2027-09-01", "note": "默认目标学年学期" }
+      {
+        "term_id": 202601,
+        "name": "2026-2027 学年 第一学期",
+        "start_date": "2026-09-01",
+        "note": "与源 2026-2027 第二学期组合时触发 REQ-PRM-008（目标起始日期不得早于源）"
+      },
+      {
+        "term_id": 202602,
+        "name": "2026-2027 学年 第二学期",
+        "start_date": "2027-02-22"
+      },
+      {
+        "term_id": 202701,
+        "name": "2027-2028 学年 第一学期",
+        "start_date": "2027-09-01",
+        "note": "默认目标学年学期"
+      }
     ],
     "scope_samples": [
       {
@@ -2296,9 +2686,24 @@
         "preview_seconds": 25,
         "execute_seconds": 120,
         "stages": [
-          { "stage": "小学部", "grade_range": "一年级 — 六年级", "grade": "6 / 6", "class": "24 / 24" },
-          { "stage": "初中部", "grade_range": "一年级 — 三年级（初一 — 初三）", "grade": "3 / 3", "class": "12 / 12" },
-          { "stage": "高中部", "grade_range": "一年级 — 三年级（高一 — 高三）", "grade": "3 / 3", "class": "18 / 18" }
+          {
+            "stage": "小学部",
+            "grade_range": "一年级 — 六年级",
+            "grade": "6 / 6",
+            "class": "24 / 24"
+          },
+          {
+            "stage": "初中部",
+            "grade_range": "一年级 — 三年级（初一 — 初三）",
+            "grade": "3 / 3",
+            "class": "12 / 12"
+          },
+          {
+            "stage": "高中部",
+            "grade_range": "一年级 — 三年级（高一 — 高三）",
+            "grade": "3 / 3",
+            "class": "18 / 18"
+          }
         ],
         "note": "无阻塞项、未超阈值：可以创建草稿任务（REQ-PRM-009 / 010）"
       },
@@ -2310,11 +2715,31 @@
         "target_term_id": 202701,
         "enrolled_count": 512,
         "stages": [
-          { "stage": "小学部", "grade_range": "一年级 — 六年级", "grade": "6 / 6", "class": "24 / 24" },
-          { "stage": "初中部", "grade_range": "一年级 — 三年级（初一 — 初三）", "grade": "3 / 3", "class": "12 / 12" },
-          { "stage": "高中部", "grade_range": "缺 高二、高三 2 个年级；缺 高一 (4) 班 1 个班级", "grade": "1 / 3", "class": "5 / 6", "miss": true }
+          {
+            "stage": "小学部",
+            "grade_range": "一年级 — 六年级",
+            "grade": "6 / 6",
+            "class": "24 / 24"
+          },
+          {
+            "stage": "初中部",
+            "grade_range": "一年级 — 三年级（初一 — 初三）",
+            "grade": "3 / 3",
+            "class": "12 / 12"
+          },
+          {
+            "stage": "高中部",
+            "grade_range": "缺 高二、高三 2 个年级；缺 高一 (4) 班 1 个班级",
+            "grade": "1 / 3",
+            "class": "5 / 6",
+            "miss": true
+          }
         ],
-        "missing": ["高二", "高三", "高一 (4) 班"],
+        "missing": [
+          "高二",
+          "高三",
+          "高一 (4) 班"
+        ],
         "note": "缺项未补齐前阻止创建（REQ-PRM-009），入口指向 PAGE-GRD-LIST 与 PAGE-CLS-LIST"
       },
       {
@@ -2324,7 +2749,11 @@
         "source_term_id": 202601,
         "target_term_id": 202701,
         "enrolled_count": 512,
-        "conflict_task": { "task_no": "PRM-20260930-0012", "status": "previewed", "total_count": 512 },
+        "conflict_task": {
+          "task_no": "PRM-20260930-0012",
+          "status": "previewed",
+          "total_count": 512
+        },
         "note": "同一源→目标学期只允许一个未结束任务（REQ-PRM-005 / BR-PROMO-003），入口指向 PAGE-PRM-LIST"
       },
       {
@@ -2337,9 +2766,24 @@
         "preview_seconds": 60,
         "execute_seconds": 300,
         "stages": [
-          { "stage": "小学部", "grade_range": "一年级 — 六年级", "grade": "6 / 6", "class": "24 / 24" },
-          { "stage": "初中部", "grade_range": "一年级 — 三年级（初一 — 初三）", "grade": "3 / 3", "class": "36 / 36" },
-          { "stage": "高中部", "grade_range": "一年级 — 三年级（高一 — 高三）", "grade": "3 / 3", "class": "54 / 54" }
+          {
+            "stage": "小学部",
+            "grade_range": "一年级 — 六年级",
+            "grade": "6 / 6",
+            "class": "24 / 24"
+          },
+          {
+            "stage": "初中部",
+            "grade_range": "一年级 — 三年级（初一 — 初三）",
+            "grade": "3 / 3",
+            "class": "36 / 36"
+          },
+          {
+            "stage": "高中部",
+            "grade_range": "一年级 — 三年级（高一 — 高三）",
+            "grade": "3 / 3",
+            "class": "54 / 54"
+          }
         ],
         "note": "在读 10,240 人 > 阈值 10,000（NFR-PERF-07）：只提示耗时预估，不阻止创建（REQ-PRM-010）"
       }
@@ -2365,25 +2809,110 @@
       "generated_at": "2026-10-01 10:05"
     },
     "source_classes": [
-      { "class_id": 20260101, "class_name": "2026 级 高一 (1) 班", "enrolled": 2, "excluded": "另有 1 名休学（陈思远，BR-STU-012 不计入在读）", "default_target": "2027 级 高二 (1) 班" },
-      { "class_id": 20260102, "class_name": "2026 级 高一 (2) 班", "enrolled": 2, "default_target": "2027 级 高二 (2) 班" },
-      { "class_id": 20260103, "class_name": "2026 级 高一 (3) 班", "enrolled": 1, "default_target": "2027 级 高二 (3) 班" },
-      { "class_id": 20250101, "class_name": "2025 级 高二 (1) 班", "enrolled": 1, "excluded": "另有 1 名出国保留学籍（徐昊然，BR-STU-012 不计入在读）", "default_target": "2027 级 高三 (1) 班" },
-      { "class_id": 20240101, "class_name": "2024 级 高三 (1) 班", "enrolled": 1, "note": "毕业年级：学段内序号最大，结果为毕业，不生成下一学年班级关系（REQ-PRM-015 / BR-PROMO-005）" }
+      {
+        "class_id": 20260101,
+        "class_name": "2026 级 高一 (1) 班",
+        "enrolled": 2,
+        "excluded": "另有 1 名休学（陈思远，BR-STU-012 不计入在读）",
+        "default_target": "2027 级 高二 (1) 班"
+      },
+      {
+        "class_id": 20260102,
+        "class_name": "2026 级 高一 (2) 班",
+        "enrolled": 2,
+        "default_target": "2027 级 高二 (2) 班"
+      },
+      {
+        "class_id": 20260103,
+        "class_name": "2026 级 高一 (3) 班",
+        "enrolled": 1,
+        "default_target": "2027 级 高二 (3) 班"
+      },
+      {
+        "class_id": 20250101,
+        "class_name": "2025 级 高二 (1) 班",
+        "enrolled": 1,
+        "excluded": "另有 1 名出国保留学籍（徐昊然，BR-STU-012 不计入在读）",
+        "default_target": "2027 级 高三 (1) 班"
+      },
+      {
+        "class_id": 20240101,
+        "class_name": "2024 级 高三 (1) 班",
+        "enrolled": 1,
+        "note": "毕业年级：学段内序号最大，结果为毕业，不生成下一学年班级关系（REQ-PRM-015 / BR-PROMO-005）"
+      }
     ],
     "rows": [
-      { "student_no": "2026000001", "student_name": "王梓萱", "source_class": "2026 级 高一 (1) 班", "result_type": "upgrade", "target_class": "2027 级 高二 (1) 班", "status": "pending" },
-      { "student_no": "2026000002", "student_name": "李俊逸", "source_class": "2026 级 高一 (1) 班", "result_type": "upgrade", "target_class": "2027 级 高二 (1) 班", "status": "pending" },
-      { "student_no": "2026000004", "student_name": "赵一诺", "source_class": "2026 级 高一 (2) 班", "result_type": "transfer", "target_class": "2027 级 高二 (2) 班", "status": "pending", "note": "由默认的高二 (2) 班改为随选科调整后的班级（REQ-PRM-017 转班）" },
-      { "student_no": "2026000006", "student_name": "吴雨桐", "source_class": "2026 级 高一 (2) 班", "result_type": "repeat", "target_class": null, "status": "pending", "note": "留级：去向为目标学年学期的同学段同名年级，不写 target_class_id（BR-PROMO-006）" },
-      { "student_no": "2026000101", "student_name": "朱书瑶", "source_class": "2026 级 高一 (3) 班", "result_type": "upgrade", "target_class": "2027 级 高二 (3) 班", "status": "pending" },
-      { "student_no": "2025000002", "student_name": "孙悠然", "source_class": "2025 级 高二 (1) 班", "result_type": "upgrade", "target_class": "2027 级 高三 (1) 班", "status": "pending" },
-      { "student_no": "2024000001", "student_name": "马嘉懿", "source_class": "2024 级 高三 (1) 班", "result_type": "graduate", "target_class": null, "status": "pending", "note": "毕业年级：不参与「同学段序号 +1」（REQ-PRM-015）" }
+      {
+        "student_no": "2026000001",
+        "student_name": "王梓萱",
+        "source_class": "2026 级 高一 (1) 班",
+        "result_type": "upgrade",
+        "target_class": "2027 级 高二 (1) 班",
+        "status": "pending"
+      },
+      {
+        "student_no": "2026000002",
+        "student_name": "李俊逸",
+        "source_class": "2026 级 高一 (1) 班",
+        "result_type": "upgrade",
+        "target_class": "2027 级 高二 (1) 班",
+        "status": "pending"
+      },
+      {
+        "student_no": "2026000004",
+        "student_name": "赵一诺",
+        "source_class": "2026 级 高一 (2) 班",
+        "result_type": "transfer",
+        "target_class": "2027 级 高二 (2) 班",
+        "status": "pending",
+        "note": "由默认的高二 (2) 班改为随选科调整后的班级（REQ-PRM-017 转班）"
+      },
+      {
+        "student_no": "2026000006",
+        "student_name": "吴雨桐",
+        "source_class": "2026 级 高一 (2) 班",
+        "result_type": "repeat",
+        "target_class": null,
+        "status": "pending",
+        "note": "留级：去向为目标学年学期的同学段同名年级，不写 target_class_id（BR-PROMO-006）"
+      },
+      {
+        "student_no": "2026000101",
+        "student_name": "朱书瑶",
+        "source_class": "2026 级 高一 (3) 班",
+        "result_type": "upgrade",
+        "target_class": "2027 级 高二 (3) 班",
+        "status": "pending"
+      },
+      {
+        "student_no": "2025000002",
+        "student_name": "孙悠然",
+        "source_class": "2025 级 高二 (1) 班",
+        "result_type": "upgrade",
+        "target_class": "2027 级 高三 (1) 班",
+        "status": "pending"
+      },
+      {
+        "student_no": "2024000001",
+        "student_name": "马嘉懿",
+        "source_class": "2024 级 高三 (1) 班",
+        "result_type": "graduate",
+        "target_class": null,
+        "status": "pending",
+        "note": "毕业年级：不参与「同学段序号 +1」（REQ-PRM-015）"
+      }
     ],
     "notes": [
       "预览只生成任务明细，不写入学生数据（REQ-PRM-020）；真正写入在第 4 步执行，且只新增下一学年关系（REQ-PRM-030）。",
       "年级主任（DS-05）只能看到本人负责年级（2026 级 高一）的 5 行；高二 (1) 班与高三 (1) 班的 2 行对其不可见，与升班列表页的计数收窄口径一致。",
       "「跳过」样例没有单列一行：跳过的语义与「不参与本次升班」相同，本页用左栏的休学 / 出国提示说明不参与者，避免多造一条与在读口径冲突的数据。"
     ]
-  }
+  },
+  "import_wizard_notes": [
+    "导入向导（PAGE-IMP-WIZARD 与三个模块导入向导）复用 import_batches 的 IMP-20260928-0001（120 行 / 118 可执行 / 2 失败）、import_errors 的两条失败（行 17 证件号重复、行 42 年级不存在）与 async_tasks 的 TASK-20260928-000312（running 62%）。",
+    "三个模块导入向导共用同一组失败样例，只是把「对象」换成该模块的标识列：学生用姓名、教师用姓名（工号冲突）、编班表用「学号 + 姓名」。",
+    "学生导入模板 14 列见学生 PRD 第 425 行起；教师模板 9 列见教师 PRD 第 339 行起；编班表列数在 PRD 只要求「一行一学生 + 目标班级列」，本批取推荐 4 列（GAP-056）。",
+    "登录页与三个异常页不涉及业务样例；500 页的请求编号 REQ-20261001-000701 与错误码 EDU-SYS-5001 为固定演示值。"
+  ]
 }

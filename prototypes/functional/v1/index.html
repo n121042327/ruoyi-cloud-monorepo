@@ -20,7 +20,7 @@
   </div>
 
   <section class="card">
-    <div class="card-header"><h3>已交付页面（批次 2-1 ~ 2-3e-s4）</h3><span class="el-tag success">待人工验收</span></div>
+    <div class="card-header"><h3>已交付页面（批次 2-1 ~ 2-4）</h3><span class="el-tag success">待人工验收</span></div>
     <div class="card-body">
       <table class="el-table">
         <thead>
@@ -258,6 +258,48 @@
 <td><a href="pages/promotion-result.html">pages/promotion-result.html</a></td>
 <td>四类清单切换（成功 6 / 失败 1 / 留级 1 / 毕业 1，REQ-PRM-034）；失败原因逐条 + 只重试失败项（REQ-PRM-032）；已取消可「继续执行剩余项」；结果导出下载前重新解析范围（DS-DENY-04）</td>
 </tr>
+<tr>
+<td class="mono">PAGE-IMP-WIZARD</td>
+<td>导入向导（批次 2-4 · 含模板 / 校验 / 执行三个区块）</td>
+<td>向导页（TPL-WIZARD）</td>
+<td><a href="pages/import-wizard.html">pages/import-wizard.html</a></td>
+<td>四步页内切换：选模板（14 / 9 / 4 列 + 版本口径 BR-IMP-007）→ 上传并同步校验（5000 行 / 10 MB / 30 秒）→ 校验结果（120 / 118 / 2 + 失败明细可下载）→ 异步执行（任务号 + 进度 + 配额）；无 data.import:import 的角色进无权限态</td>
+</tr>
+<tr>
+<td class="mono">PAGE-STU-IMPORT</td>
+<td>学生批量导入（批次 2-4）</td>
+<td>向导页（TPL-WIZARD）</td>
+<td><a href="pages/student-import.html">pages/student-import.html</a></td>
+<td>14 列模板（REQ-STU-052，不含学号列 BR-STU-019）；导入后默认不给行政班（REQ-STU-062）；执行后给学号对照表（REQ-IMP-021 ~ 023）</td>
+</tr>
+<tr>
+<td class="mono">PAGE-TCH-IMPORT</td>
+<td>教师批量导入（批次 2-4）</td>
+<td>向导页（TPL-WIZARD）</td>
+<td><a href="pages/teacher-import.html">pages/teacher-import.html</a></td>
+<td>9 列模板（REQ-TCH-050）；工号租户内唯一（BR-TEACHER-002）；教育角色列可多值</td>
+</tr>
+<tr>
+<td class="mono">PAGE-CLS-ROSTER-IMPORT</td>
+<td>编班表导入（批次 2-4）</td>
+<td>向导页（TPL-WIZARD）</td>
+<td><a href="pages/class-import-roster.html">pages/class-import-roster.html</a></td>
+<td>按班级列的一行一学生（REQ-CLS-035）；4 列（学号 / 姓名 / 目标班级 / 班级类型，列清单见 GAP-056）；两阶段校验（REQ-CLS-036）与导入幂等（REQ-CLS-037）</td>
+</tr>
+<tr>
+<td class="mono">PAGE-LOGIN</td>
+<td>登录（批次 2-4 · 不套管理外壳）</td>
+<td>独立页（standalone）</td>
+<td><a href="pages/login.html">pages/login.html</a></td>
+<td>多校切换；学生 s + 学号（BR-ACCOUNT-002）；首登强制改密（D-039）；连续 5 次错误锁定 5 分钟（NFR-SEC-04）；原型约定密码输入 wrong 触发失败路径</td>
+</tr>
+<tr>
+<td class="mono">PAGE-403 / 404 / 500</td>
+<td>异常页（批次 2-4 · 不套管理外壳）</td>
+<td>独立页（standalone）</td>
+<td><a href="pages/403.html">403</a> · <a href="pages/404.html">404</a> · <a href="pages/500.html">500</a></td>
+<td>403：无权限不降级为全量（DS-DENY-03 / NFR-SEC-05）；404：指向 navigation.yaml 的页面注册表；500：请求编号 + 错误码 + 批量写不产生部分写入（NFR-MQ-02）</td>
+</tr>
         </tbody>
       </table>
       <div class="legend" style="margin-top:10px">
@@ -320,7 +362,7 @@
           <tr><td>2-2b-2</td><td>教育角色分配 + 任教关系设置（独立页）</td><td class="num">2</td><td><span class="el-tag warning">待验收</span></td></tr>
           <tr><td>2-2b-2b</td><td>年级管理 6 页（列表 + 详情 + 新建/编辑 + 批量生成 + 指定主任 + 归档确认）</td><td class="num">6</td><td><span class="el-tag warning">待验收</span></td></tr>
 <tr><td>2-3</td><td>班级管理 + 班级详情 + 升班向导 6 页（2-3a 列表 / 2-3b 详情 / 2-3c 四个弹窗 / 2-3d 编班与迁学生 / 2-3e 升班全流程：列表 → 新建 → 预览 → 校验 → 执行 → 结果）</td><td class="num">17</td><td><span class="el-tag warning">2-3 全部产出待验收</span></td></tr>
-          <tr><td>2-4</td><td>导入向导 + 登录 + 异常页</td><td class="num">11</td><td><span class="el-tag info">待开始</span></td></tr>
+          <tr><td>2-4</td><td>导入向导（含模板 / 校验 / 执行三个区块）+ 学生 / 教师 / 编班表三个模块导入向导 + 登录 + 403 / 404 / 500</td><td class="num">11</td><td><span class="el-tag warning">2-4 待验收</span></td></tr>
           <tr><td>2-5</td><td>学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录）</td><td class="num">8</td><td><span class="el-tag info">待开始</span></td></tr>
           <tr><td>2-6</td><td>学校管理 + 学年学期 + 学科与配置</td><td class="num">19</td><td><span class="el-tag info">待开始</span></td></tr>
           <tr><td>2-7</td><td>选科与教学班</td><td class="num">9</td><td><span class="el-tag info">待开始</span></td></tr>

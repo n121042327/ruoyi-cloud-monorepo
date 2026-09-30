@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>教师批量导入 — 业务原型 v1（批次 2-4）</title>
+<link rel="stylesheet" href="../assets/prototype-shell.css" />
+<link rel="stylesheet" href="../assets/wizard.css" />
+<script src="../assets/prototype-shell.js"></script>
+<style>
+  .upload-area {
+    border: 1px dashed var(--app-border); border-radius: var(--app-radius-base);
+    background: #fafbfc; padding: 22px 16px; text-align: center;
+    color: var(--app-text-secondary); font-size: 13px;
+  }
+  .upload-area .icon { font-size: 26px; }
+  .upload-area b { color: var(--app-text-primary); }
+  .col-list { columns: 2; column-gap: 24px; margin: 0; padding-left: 18px; font-size: 13px; }
+  .col-list li { break-inside: avoid; margin-bottom: 2px; }
+  #mi-table td.actions { white-space: nowrap; }
+</style>
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-TCH-IMPORT"
+  data-menu-page="PAGE-TCH-LIST"
+  data-breadcrumb="教育管理 / 教师管理 / 教师导入向导"
+  data-tab="教师批量导入"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-TCH-IMPORT" data-role="page" data-step="1">
+
+  <div class="page-head">
+    <h1>教师批量导入</h1>
+    <span class="scope-hint" data-role="scope-hint">数据范围：本校 · 2026-2027 学年 第一学期</span>
+    <span class="el-tag primary">向导 <span id="mi-step-no">1</span> / 4</span>
+    <span class="el-tag info">≤ 3000 行 / 10 MB · 同步校验 ≤ 30 秒</span>
+  </div>
+
+  <section class="card" data-block="steps" data-role="wizard" data-component="el-steps">
+    <div class="card-body">
+      <div class="steps wizard-steps" id="mi-steps">
+        <div class="step on" data-role="nav" data-step-btn="goto" data-goto="1"><span class="idx">1</span><span>下载模板</span></div>
+        <div class="step-line"></div>
+        <div class="step" data-role="nav" data-step-btn="goto" data-goto="2"><span class="idx">2</span><span>上传与校验</span></div>
+        <div class="step-line"></div>
+        <div class="step" data-role="nav" data-step-btn="goto" data-goto="3"><span class="idx">3</span><span>校验结果</span></div>
+        <div class="step-line"></div>
+        <div class="step" data-role="nav" data-step-btn="goto" data-goto="4"><span class="idx">4</span><span>执行与进度</span></div>
+      </div>
+      <div class="legend" style="margin:0">
+        <span>与「导入导出 → 导入向导」同一套四步流程（<span class="mono">BR-IMP-001</span>），本页是从教师管理列表的工具条「导入」进入的模块快捷入口；
+          模板列为固定顺序并含填写说明与示例行（REQ-TCH-050）。工号由学校提供且在租户内唯一（<span class="mono">BR-TEACHER-002</span>）。</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="alert info state-hidden" data-role-visible="platform_ops">
+    <span>平台运营协助视图 · 只读</span>
+    <span>平台运营不能发起导入；协助排查请到异步任务中心（<span class="mono">DS-01</span>）。</span>
+  </div>
+
+  <div data-normal-view>
+    <section class="card" data-block="template" data-step-content="1" data-role="section" data-component="el-card.hover">
+      <div class="card-header">
+        <h2>步骤 1 · 下载教师批量导入模板</h2>
+        <span class="el-tag info">当前版本 teacher-v2</span>
+        <div class="header-right">
+          <button class="btn primary-plain" data-role="action" data-action-id="ACT-IMP-001" data-component="el-button.primary.plain"
+                  data-permission="data.import:import" data-api="downloadImportTemplate"
+                  data-demo-message="已生成教师批量导入模板 teacher-v2（含列名、必填标记、格式说明与示例行），开始下载；下载写审计。">下载模板</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="legend" style="margin:0 0 6px"><span>教师批量导入模板列（共 9 列）</span></div>
+        <ol class="col-list">
+              <li>工号（必填）</li>
+              <li>姓名（必填）</li>
+              <li>性别（必填）</li>
+              <li>所属学校（必填）</li>
+              <li>手机号（选填）</li>
+              <li>邮箱（选填）</li>
+              <li>入职日期（选填）</li>
+              <li>教育角色（选填，多个用逗号分隔）</li>
+              <li>备注（选填）</li>
+        </ol>
+        <div class="alert warning" style="margin-top:12px">
+          <span>模板版本口径</span>
+          <span>模板版本与字段字典版本对应，模板字段变更必须升版本（<span class="mono">BR-IMP-007</span>）；用旧版模板导入时先报「模板版本过期」强提示，仍可继续（<span class="mono">IMP-Q-05</span> 已确认）。</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card state-hidden" data-block="upload" data-step-content="2" data-role="section" data-component="el-card.hover">
+      <div class="card-header"><h2>步骤 2 · 上传文件并同步校验</h2><span class="el-tag info">≤ 3000 行 / 10 MB / 30 秒</span></div>
+      <div class="card-body">
+        <div class="upload-area">
+          <div class="icon">⬆️</div>
+          <div>把 <b>.xlsx</b> 文件拖到这里，或 <button class="btn link" data-role="action" data-action-id="ACT-IO-002" data-component="el-button.link.primary">选择文件</button></div>
+          <div style="margin-top:6px">已选择：<b class="mono">教师导入模板_teacher-v2_20261001.xlsx</b> · 96 KB · 46 行</div>
+        </div>
+        <div class="form-grid" style="margin-top:12px">
+          <div class="field" data-field="term_id">
+            <label>目标学年学期<span class="required">*</span></label>
+            <select class="select" style="min-width:100%" data-component="el-select" data-required data-required-message="请选择目标学年学期">
+              <option value="202601" selected>2026-2027 学年 第一学期（当前）</option>
+              <option value="202602">2026-2027 学年 第二学期</option>
+            </select>
+            <div class="error-text"></div>
+            <div class="hint">导入的教师与教育角色关系都落在该学年学期。</div>
+          </div>
+          <div class="field">
+            <label>重复数据</label>
+            <select class="select" style="min-width:100%" data-component="el-select">
+              <option value="skip" selected>跳过重复行（默认）</option>
+              <option value="fail">整批失败，全部修正后重传</option>
+            </select>
+            <div class="hint">重复判定：工号租户内唯一（BR-TEACHER-002）+ 手机号；导入幂等，同一批次重复提交不产生重复数据（<span class="mono">BR-IMP-002</span>）。</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card state-hidden" data-block="validate" data-step-content="3" data-role="section" data-component="el-card.hover">
+      <div class="card-header">
+        <h2>步骤 3 · 校验结果</h2>
+        <span class="el-tag info">文件 教师导入模板_teacher-v2_20261001.xlsx</span>
+        <div class="header-right">
+          <button class="btn" data-role="action" data-action-id="ACT-IMP-005" data-component="el-button"
+                  data-permission="data.import:import" data-api="downloadImportFailedRows"
+                  data-demo-message="已生成失败明细文件（1 行，标注行号与原因），开始下载；临时文件有效期 7 天（IMP-Q-02）。">下载失败明细</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="stat-row">
+          <div class="stat-card"><div class="label">文件总行数</div><div class="value">46</div></div>
+          <div class="stat-card pass"><div class="label">可执行</div><div class="value">45<span class="unit">行</span></div></div>
+          <div class="stat-card error"><div class="label">失败</div><div class="value">1<span class="unit">行</span></div></div>
+        </div>
+        <div class="table-scroll" style="margin-top:12px">
+          <table class="el-table" id="mi-table" data-role="table" data-component="el-table" data-api="validateImportFile"
+                 style="min-width:720px;table-layout:fixed">
+            <thead>
+              <tr>
+                <th data-role="column" data-field="row_no" style="width:90px">行号</th>
+                <th data-role="column" data-field="object_name" style="width:120px">对象</th>
+                <th data-role="column" data-field="error_msg" style="width:510px">失败原因</th>
+              </tr>
+            </thead>
+            <tbody id="mi-rows">
+              <tr data-role="row"><td>9</td><td>沈亦寒</td><td>工号已在租户内存在（YX2026012）—— 按 <span class="mono">BR-TEACHER-002</span> 工号租户内唯一</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="alert info" style="margin-top:12px">
+          <span>两阶段导入</span>
+          <span>先校验并展示结果，确认后才异步执行（<span class="mono">BR-IMP-001</span> / <span class="mono">BR-IMP-003</span>）；
+            失败行可下载明细逐条修正（<span class="mono">REQ-IMP-012</span>）。</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card state-hidden" data-block="execute" data-step-content="4" data-role="section" data-component="el-card.hover">
+      <div class="card-header">
+        <h2>步骤 4 · 执行与进度</h2>
+        <span class="el-tag primary">执行中</span>
+        <div class="header-right">
+          <button class="btn" data-role="action" data-action-id="ACT-IMP-007" data-component="el-button"
+                  data-permission="data.async_task:read" data-nav="PAGE-IMP-TASK-LIST">查看异步任务</button>
+          <button class="btn" data-role="action" data-action-id="ACT-IMP-008" data-component="el-button"
+                  data-permission="data.import:import" data-api="downloadImportResult"
+                  data-demo-message="已生成结果摘要，开始下载；结果文件有效期 7 天、任务元数据保留 90 天（IMP-Q-02）。">下载结果摘要</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="progress-line">
+          <div class="progress-track"><i style="width:45%"></i></div>
+          <div class="progress-text">20 / 45 行（45%）</div>
+        </div>
+        <div class="stat-row" style="margin-top:12px">
+          <div class="stat-card"><div class="label">任务编号</div><div class="value mono" style="font-size:16px">TASK-20261001-006121</div></div>
+          <div class="stat-card"><div class="label">成功</div><div class="value">20<span class="unit">行</span></div></div>
+          <div class="stat-card"><div class="label">失败</div><div class="value">0<span class="unit">行</span></div></div>
+          <div class="stat-card"><div class="label">配额</div><div class="value" style="font-size:16px">同校 1 / 3</div></div>
+        </div>
+        <div class="alert info" style="margin-top:12px">
+          <span>可以离开页面</span>
+          <span>导入异步执行，同一用户同时 1 个、同一学校同时 3 个，超出排队（<span class="mono">IMP-Q-03</span> 已确认）；
+            可在异步任务中心看进度与结果文件（<span class="mono">REQ-IMP-052</span>）。</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card sticky-actions" data-block="footer" data-role="section">
+      <div class="footer-bar" data-demo-state-target="toolbar">
+        <button class="btn" id="btn-prev" data-role="action" data-action-id="ACT-IMP-003" data-component="el-button"
+                data-permission="data.import:import">上一步</button>
+        <div class="grow"></div>
+        <span class="footer-note" id="mi-footer-note">下一步：上传文件并同步校验（≤ 3000 行 / 10 MB / 30 秒）。</span>
+        <button class="btn primary" id="btn-next" data-role="action" data-action-id="ACT-IMP-002" data-component="el-button.primary"
+                data-permission="data.import:import">下一步：上传与校验</button>
+        <button class="btn primary state-hidden" id="btn-run" data-role="action" data-action-id="ACT-IMP-006" data-component="el-button.primary"
+                data-permission="data.import:import" data-api="executeImport"
+                data-demo-message="已提交执行：任务编号 TASK-20261001-006121，异步导入 45 行；可在异步任务中查看进度（REQ-IMP-015）。">确认执行（异步）</button>
+        <button class="btn state-hidden" id="btn-again" data-role="action" data-action-id="ACT-IMP-009" data-component="el-button"
+                data-permission="data.import:import">重新导入</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="state-hidden" data-demo-state-panel="loading">
+    <section class="card"><div class="card-body">
+      <div class="legend" style="margin:0 0 8px"><span>正在同步校验文件…</span></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:90px"></div><div class="skeleton-bar" style="width:240px"></div></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:90px"></div><div class="skeleton-bar" style="width:240px"></div></div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="empty">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">📭</div>
+        <div class="title">文件里没有数据行</div>
+        <div class="desc">上传的文件只有表头没有数据行。请按模板填写后重新上传（<span class="mono">REQ-IMP-002</span>）。</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-IMP-001" data-component="el-button.primary.plain"
+                data-permission="data.import:import" data-api="downloadImportTemplate"
+                data-demo-message="已生成当前版本模板，开始下载；下载写审计。">重新下载模板</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="error">
+    <section class="card"><div class="card-body">
+      <div class="state-block error">
+        <div class="icon">⚠️</div>
+        <div class="title">校验失败</div>
+        <div class="desc">文件解析失败或列与模板不一致（列顺序固定）。请下载模板后按列填写。</div>
+        <div class="req-id">请求编号 REQ-20261001-000622 · 错误码 IMP-4002 · 文件：教师导入模板_teacher-v2_20261001.xlsx</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-IMP-001" data-component="el-button.primary.plain"
+                data-permission="data.import:import" data-api="downloadImportTemplate"
+                data-demo-message="已生成当前版本模板，开始下载；下载写审计。">下载模板后重试</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="forbidden">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">🔒</div>
+        <div class="title">你没有导入权限</div>
+        <div class="desc">导入需要 <span class="mono">data.import:import</span>；任课教师与平台运营没有该权限，且无权限时不降级为可读（<span class="mono">DS-DENY-03</span>）。</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-IMP-010" data-component="el-button.primary.plain"
+                data-nav="PAGE-IMP-TASK-LIST">去异步任务中心（只读）</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="submitting">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⏳</div>
+        <div class="title">正在提交</div>
+        <div class="desc">按钮已置 loading 并禁用；同步校验最多 30 秒（<span class="mono">NFR-PERF-06</span>）。</div>
+      </div>
+    </div></section>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var READ_ROLES = ['super_admin', 'academic_director', 'school_leader', 'grade_leader', 'tenant_admin', 'platform_ops'];
+  var BACKEND_ROLES = ['super_admin', 'academic_director', 'tenant_admin'];
+  var NOTES = {
+    '1': '下一步：上传文件并同步校验（≤ 3000 行 / 10 MB / 30 秒）。',
+    '2': '下一步：查看校验结果（可执行行数与失败明细）。',
+    '3': '下一步：确认执行（异步导入，可在异步任务中心看进度）。',
+    '4': '导入已受理：可在异步任务中心看进度与结果文件（有效期 7 天）。'
+  };
+
+  function q(sel) { return document.querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function currentRole() { return window.PrototypeShell.currentRole(); }
+  function currentStep() { return Number(q('#page-root').getAttribute('data-step') || '1'); }
+
+  function setStep(n) {
+    n = Math.max(1, Math.min(4, n));
+    q('#page-root').setAttribute('data-step', String(n));
+    qa('[data-step-content]').forEach(function (node) {
+      node.classList.toggle('state-hidden', Number(node.getAttribute('data-step-content')) !== n);
+    });
+    qa('#mi-steps .step').forEach(function (node, i) {
+      var order = i + 1;
+      node.classList.remove('on', 'done');
+      if (order < n) node.classList.add('done');
+      if (order === n) node.classList.add('on');
+    });
+    q('#mi-step-no').textContent = String(n);
+    q('#mi-footer-note').textContent = NOTES[String(n)];
+    q('#btn-prev').toggleAttribute('disabled', n === 1);
+    q('#btn-next').classList.toggle('state-hidden', n === 4);
+    q('#btn-run').classList.toggle('state-hidden', n !== 3);
+    q('#btn-again').classList.toggle('state-hidden', n !== 4);
+    q('#btn-next').textContent = n === 1 ? '下一步：上传与校验' : (n === 2 ? '下一步：校验结果' : '下一步：确认执行');
+  }
+
+  document.addEventListener('click', function (event) {
+    var node = event.target;
+    var goto = node.closest('[data-step-btn="goto"]');
+    if (goto) { setStep(Number(goto.getAttribute('data-goto'))); return; }
+    if (node.closest('#btn-prev')) { setStep(currentStep() - 1); return; }
+    if (node.closest('#btn-next')) { setStep(currentStep() + 1); return; }
+    if (node.closest('#btn-again')) { setStep(1); return; }
+  });
+
+  function updateScopeHint() {
+    var hint = q('[data-role="scope-hint"]');
+    var role = currentRole();
+    if (role === 'platform_ops') { hint.textContent = '数据范围：平台运营协助视图 · 只读，不能发起导入（DS-01）'; return; }
+    if (role === 'super_admin') { hint.textContent = '数据范围：全平台 · 不受限制 · 操作强制留痕（BR-ORG-014）'; return; }
+    if (BACKEND_ROLES.indexOf(role) !== -1) { hint.textContent = '数据范围：本校（DS-04）· 可发起导入与下载模板'; return; }
+    hint.textContent = '数据范围：无——当前角色没有 data.import:import';
+  }
+
+  var lastRole = '';
+  function applyRoleState(role) {
+    if (role === lastRole) return;
+    lastRole = role;
+    if (BACKEND_ROLES.indexOf(role) === -1) window.PrototypeShell.applyState('forbidden');
+    else if (window.PrototypeShell.currentState() === 'forbidden') window.PrototypeShell.applyState('normal');
+    updateScopeHint();
+  }
+
+  document.addEventListener('prototype:params', function (event) {
+    if (event.detail && event.detail.step) setStep(Number(event.detail.step));
+  });
+
+  setStep(1);
+  updateScopeHint();
+  new MutationObserver(function () { applyRoleState(currentRole()); })
+    .observe(document.body, { attributes: true, attributeFilter: ['data-current-role'] });
+})();
+</script>
+</body>
+</html>

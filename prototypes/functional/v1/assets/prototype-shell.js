@@ -53,7 +53,7 @@
     {
       group: '平台与运维',
       items: [
-        { id: 'PAGE-IMP-WIZARD', name: '导入导出', batch: '2-4' },
+        { id: 'PAGE-IMP-WIZARD', name: '导入导出', batch: '2-4', delivered: 'pages/import-wizard.html' },
         { id: 'PAGE-IMP-TASK-LIST', name: '异步任务', batch: '2-9' },
         { id: 'PAGE-AUDIT-LOG-LIST', name: '审计日志', batch: '2-8' }
       ]
@@ -80,7 +80,14 @@
     'PAGE-PRM-PREVIEW': { path: 'pages/promotion-preview.html', name: '升班预览与调整', batch: '2-3' },
     'PAGE-PRM-VALIDATE': { path: 'pages/promotion-validate.html', name: '升班校验结果', batch: '2-3' },
     'PAGE-PRM-EXECUTE': { path: 'pages/promotion-execute.html', name: '执行与进度', batch: '2-3' },
-    'PAGE-PRM-RESULT': { path: 'pages/promotion-result.html', name: '执行结果与重试', batch: '2-3' }
+    'PAGE-PRM-RESULT': { path: 'pages/promotion-result.html', name: '执行结果与重试', batch: '2-3' },
+    'PAGE-STU-IMPORT': { path: 'pages/student-import.html', name: '学生批量导入', batch: '2-4' },
+    'PAGE-TCH-IMPORT': { path: 'pages/teacher-import.html', name: '教师批量导入', batch: '2-4' },
+    'PAGE-CLS-ROSTER-IMPORT': { path: 'pages/class-import-roster.html', name: '编班表导入', batch: '2-4' },
+    'PAGE-LOGIN': { path: 'pages/login.html', name: '登录', batch: '2-4' },
+    'PAGE-403': { path: 'pages/403.html', name: '无权限', batch: '2-4' },
+    'PAGE-404': { path: 'pages/404.html', name: '页面不存在', batch: '2-4' },
+    'PAGE-500': { path: 'pages/500.html', name: '服务异常', batch: '2-4' }
   };
   Object.keys(EXTRA_PAGES).forEach(function (id) {
     PAGE_NAME[id] = EXTRA_PAGES[id].name;

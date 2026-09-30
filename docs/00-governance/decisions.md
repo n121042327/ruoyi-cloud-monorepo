@@ -1237,6 +1237,37 @@
   不涉及已验收的 `promotion-list.html` / `promotion-create.html`，也不涉及表结构与接口实现
 - 阶段 2 状态：批次 2-1 ~ 2-3 已全部产出（`2-4` ~ `2-9` 待做），升班模块（`2-3e`）收尾完成
 
+## D-075 交付批次 2-4：导入向导 + 登录 + 异常页
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要拍板的默认选推荐」，本目标已登记为 goal）
+- 上游依据：导入导出 PRD 8 节接口清单与 `REQ-IMP-001` ~ `REQ-IMP-023`；学生 PRD 4.8（14 列模板）、教师 PRD 4.8（9 列模板）、班级 PRD `REQ-CLS-035` ~ `037`；`BR-IMP-001` / `002` / `003` / `007`；`NFR-PERF-06`、`NFR-SEC-04`、`NFR-MQ-02`；已确认 `IMP-Q-01` ~ `05`
+- 决策（全部取推荐方案）：
+  1. **导入向导与三个模块导入向导共用一套动作编号**（`import_common`）：同语义动作（下载模板 / 上一步 / 下一步 / 下载失败明细 / 确认执行 / 查看任务 / 下载结果 / 重新导入）在四个页面共用一个 `ACT-IMP-*`，与 `common_actions` 同口径；
+  2. **模块导入向导做成独立页**（`PAGE-STU-IMPORT` / `TCH-IMPORT` / `CLS-ROSTER-IMPORT`）而不是复用导入向导的弹窗：`navigation.yaml` 给三者都注册了独立 `route`，且模块入口需要带着模块上下文（模板列、去重口径、失败样例）；
+  3. **导入的四步在页内切换**（步骤条 + `data-step-content`），不拆成四个路由：导入是一次连续操作，中途拆路由会让「已上传文件 + 校验结果」的状态难以保留；升班向导之所以拆页，是因为 PRD 明确把每一步列为独立页；
+  4. **登录页与三个异常页不套管理外壳**：真实系统里它们都在登录态之外或框架之外；原型里保持同样形态（无侧边栏 / 顶部导航 / 演示面板），页面自身状态在页内可见，并由 harness 断言覆盖；
+  5. **编班表列数取推荐 4 列**（学号 / 姓名 / 目标班级 / 班级类型）：班级 PRD 只要求「一行一学生，含目标班级列」，未枚举列清单，登记为 `GAP-056`（非阻塞，可在阶段 3 前一并裁决）；
+  6. **登录页的失败与锁定路径可演示**：约定密码输入 `wrong` 触发失败提示与「剩余 N 次」计数，连续 5 次进锁定态（`NFR-SEC-04`），便于验收而不需要真实后端。
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/functional/v1/pages/import-wizard.html` | 新增：四步导入向导（含 `PAGE-IMP-TEMPLATE` / `VALIDATE` / `EXECUTE` 三个区块） |
+| `prototypes/functional/v1/pages/student-import.html` / `teacher-import.html` / `class-import-roster.html` | 新增：三个模块导入向导（14 / 9 / 4 列模板） |
+| `prototypes/functional/v1/pages/login.html` | 新增：登录（多校切换、`s` + 学号、首登改密、锁定口径） |
+| `prototypes/functional/v1/pages/403.html` / `404.html` / `500.html` | 新增：三个异常页（不套外壳） |
+| `prototypes/functional/v1/page-specs/{import-wizard,student-import,teacher-import,class-import-roster,login,error-pages}.md` | 新增：6 份页面规格（覆盖 11 个页面编号：向导 + 3 区块 + 3 模块 + 登录 + 3 异常页） |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `import_common`（`ACT-IMP-001` ~ `010`、`ACT-IO-001` / `002`）、`auth`（`ACT-AUTH-001` ~ `003`）、`error_page`（`ACT-ERR-001` ~ `005`） |
+| `prototypes/functional/v1/navigation.yaml` | 11 个页面补 note；批次 2-4 状态改为「已全部产出待验收」 |
+| `prototypes/functional/v1/content-samples.json` | 新增 `import_wizard_notes`（复用 `import_batches` / `import_errors` / `async_tasks`） |
+| `prototypes/functional/v1/assets/prototype-shell.js` | `MENUS` 的「导入导出」登记为已交付；`EXTRA_PAGES` 增加 8 个页面 |
+| `evidence/stage2-prototype/verify-import-login.html` | 新增：30 条断言（8 个 iframe） |
+| `evidence/stage2-prototype/{import-wizard,student-import,teacher-import,class-import-roster,login,error-*}_*.png` + `import-login_verify-results.png` | 15 张截图 |
+
+- 验证证据：`verify-import-login.html` 30 / 30 通过；10 个已交付 harness 回归全绿；`python tools/check_docs.py` 通过
+- 如果错了的代价：删除 8 个页面与 6 份规格、回滚 `page-actions.yaml` 的三个动作组、`navigation.yaml` 的 note 与批次文本、
+  `prototype-shell.js` 的 `MENUS` / `EXTRA_PAGES` 改动、`content-samples.json` 的 `import_wizard_notes` 即可；不涉及已验收的 2-1 ~ 2-3 批次
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |

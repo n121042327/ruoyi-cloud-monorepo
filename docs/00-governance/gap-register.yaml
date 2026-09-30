@@ -1703,6 +1703,35 @@ gaps:
     owner: Codex
     status: closed
 
+  - id: GAP-056
+    title: 编班表导入模板的列清单未在班级 PRD 枚举（本批按推荐 4 列实现）
+    discovered_at: 2026-10-01
+    discovered_by: 批次 2-4 交付 PAGE-CLS-ROSTER-IMPORT 时按页面规格自查
+    evidence: |
+      docs/10-prd/modules/class/PRD.md 第 233 行（REQ-CLS-035）只写「编班（花名册导入）支持『按班级列』的编班表：
+      一行一个学生，含目标班级列」，没有像学生 PRD 第 425 行起（14 列）与教师 PRD 第 339 行起（9 列）那样
+      列出模板的列清单与必填标记；第 234 / 235 行只约束「两阶段」与「幂等」。
+      因此编班表有哪几列、姓名列是否必填、是否需要「班级类型」列，PRD 没有给依据。
+    expected: 班级 PRD 或公共前置里给出编班表模板的列清单（列名、必填、说明）
+    actual: 只有「一行一学生 + 含目标班级列」的口径，列清单缺失
+    impact: |
+      不补：阶段 3 的高保真原型与阶段 5 的导入校验规则（BR-IMP-008）没有权威列清单；
+      阶段 6 的模板下载接口返回的列定义只能引用本批的推荐值。
+      本批已按推荐 4 列实现（学号 / 姓名 / 目标班级 / 班级类型），页面与规格里都标注了来源，不影响批次 2-4 的验收。
+    options:
+      - A 一次 CR 把 4 列写进班级 PRD 4.6 节（推荐）：与学生 / 教师模板列同口径，明确「学号必填、姓名选填（用于核对）、目标班级必填、班级类型选填（默认行政班）」
+      - B 只登记「学号 + 目标班级」两列必填，其余列由阶段 4 接口设计时再定
+      - C 不改 PRD，由阶段 5 的导入校验规则文件承载列清单
+    recommended: |
+      选项 A。理由：学生与教师两个模块的模板列都写在模块 PRD 里，编班表是唯一例外；
+      拆分登记会让「模板列只有一个权威来源」这条约定在班级模块失效。
+      选项 B 的代价是阶段 3 的模板截图与阶段 6 的模板下载接口各维护一份列定义；
+      选项 C 会让 PRD 与实现之间少一层可核对的中间文档。
+    blocking: false
+    blocks_stages: [stage3, stage5]
+    owner: 用户
+    status: open
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"
@@ -1767,3 +1796,7 @@ open_questions_for_user:
   - "阶段 2 批次 2-3e-s2 已产出待验收：prototypes/functional/v1/pages/promotion-create.html（PAGE-PRM-CREATE，升班向导第一步：源 / 目标学年学期 + 目标学年学期的年级与班级齐备性 + 未结束任务冲突 + 在读规模与耗时预估，四档校验样例可切换）、page-specs/promotion-create.md、page-actions.yaml 的 promotion_create（ACT-PRM-011 ~ 019）、content-samples.json 的 promotion_create_samples；navigation.yaml 与 prototype-shell.js 已登记该页为已交付，见 D-072。"
   - "GAP-055 已关闭（用户 2026-10-01 对「推荐 A」答复「同意」），经 CR-014 落地：字段字典补升班明细 7 个字段（task_id / student_id / source_class_id / target_class_id / result_type / status / error_msg）与 3 个枚举（promotion_result_type / promotion_item_status / promotion_validation_level）；BR-PROMO-006 补「留级的去向是目标学年学期的同学段同名年级」；升班 PRD 6.1 补字段口径、6.3 补指定留级 / 转班两行、7.1 修正 result_type 取值并区分任务与明细两层状态，版本升 1.0.4-draft；stage3 / stage5 的 blocking_gaps 已移出该条，见 D-073。"
   - "下一步：2-3e-s3（PAGE-PRM-PREVIEW + PAGE-PRM-ADJUST）已具备全部前置（字段字典 + 权限矩阵 + 动作映射），可按与 s1 / s2 相同的标准铺开；之后再 2-3e-s4（VALIDATE + EXECUTE + RESULT）收尾升班模块。"
+  - "阶段 2 批次 2-3e-s3 / s4 已产出并提交（5a5f95dc）：PAGE-PRM-PREVIEW（双栏 + 批量指定目标班级）、PAGE-PRM-ADJUST、PAGE-PRM-VALIDATE（三分类 + 下钻 + 标记跳过）、PAGE-PRM-EXECUTE（进度 + 时间线 + 排队中）、PAGE-PRM-RESULT（四类清单 + 只重试失败项）；harness verify-promotion-wizard 39 / 39，见 D-074。"
+  - "阶段 2 批次 2-4 已产出待验收：导入向导（含 TEMPLATE / VALIDATE / EXECUTE 三个区块）、学生 / 教师 / 编班表三个模块导入向导、登录页与 403 / 404 / 500 三个异常页；harness verify-import-login 30 / 30；动作组 import_common（ACT-IMP-001 ~ 010、ACT-IO-001 ~ 002）、auth、error_page 已登记，见 D-075。"
+  - "新增 GAP-056（非阻塞，待裁决）：编班表导入模板的列清单未在班级 PRD 枚举，本批按推荐 4 列（学号 / 姓名 / 目标班级 / 班级类型）实现；建议按选项 A 立 CR 写进班级 PRD 4.6 节，与学生 / 教师模板列同口径。"
+  - "下一步：2-5（学生模块剩余：详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录）→ 2-6（学校 / 学年学期 / 学科与配置）→ 2-7（选科与教学班）→ 2-8（审计）→ 2-9（异步任务中心）；全部完成后合并 main，再进阶段 3 高保真。"

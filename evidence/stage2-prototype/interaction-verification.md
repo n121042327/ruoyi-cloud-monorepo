@@ -402,6 +402,44 @@ harness 用**第二个 iframe** 加载 `pages/class-detail.html`，验证「详�
 截图看起来"正常"，实际是没有外壳的原始 HTML，而且所有 `#` 深链接变体渲染完全相同（文件大小一模一样）。
 判据是「同一页不同深链接的截图字节数完全相同」，据此发现并重拍了 15 张截图。
 
+---
+
+## 15. 批次 2-4：导入向导 / 模块导入 / 登录 / 异常页
+
+新增 harness `evidence/stage2-prototype/verify-import-login.html`：8 个同源 iframe
+（`import-wizard` / `student-import` / `teacher-import` / `class-import-roster` / `login` / `403` / `404` / `500`），
+真实派发点击、下拉、切换、深链接，跑 `IMP` / `MS` / `MT` / `MC` / `LG` / `ER` / `ALL` 共 30 条断言。
+
+| 分组 | 覆盖 |
+|---|---|
+| 导入向导（`IMP-01` ~ `IMP-14`） | 第 1 步 14 列清单与模板版本（`BR-IMP-007`）；「过期仍可下载但强提示」（`IMP-Q-05`）；下载模板走 `downloadImportTemplate`；四步页内切换（1 → 2 → 3 → 4）与步骤条状态；第 2 步 5000 行 / 10 MB / 30 秒与并发配额（`IMP-Q-01` / `03`）；第 3 步 120 / 118 / 2 + 2 条失败明细；下载失败明细走 `downloadImportFailedRows` 与学号对照表说明（`BR-STU-019`）；第 4 步任务号 + 62% + 结果 7 天 / 元数据 90 天（`IMP-Q-02`）；「查看异步任务」指向 `PAGE-IMP-TASK-LIST`；「重新导入」回到第 1 步；任课教师与平台运营进无权限面板；五类状态齐全 |
+| 学生导入（`MS-01` / `MS-02`） | 14 列模板 + 「不含学号列」口径；校验结果与导入向导同两条失败明细（证件号重复 / 年级不存在） |
+| 教师导入（`MT-01`） | 9 列模板（`REQ-TCH-050`）+ 工号租户内唯一（`BR-TEACHER-002`） |
+| 编班表导入（`MC-01`） | 4 列含目标班级列（`REQ-CLS-035`）+ 失败明细含「已有行政班关系」（`REQ-CLS-029`） |
+| 登录（`LG-01` ~ `LG-06`） | 不套管理外壳（无侧边栏 / 演示面板）；空表单字段级校验且不发请求；密码错误给剩余次数（`NFR-SEC-04`）；三类动作齐备；登录走 `login` 且首登改密口径可见（`D-039`）；「忘记密码」给「联系管理员」口径 |
+| 异常页（`ER-01` ~ `ER-05`） | 403 写明 `DS-DENY-03` / `NFR-SEC-05` 并给两个入口；三页都不套外壳；404 指向页面注册表；500 给出请求编号 `REQ-20261001-000701` 与错误码 `EDU-SYS-5001`、写明异步任务不产生部分写入（`NFR-MQ-02`）；500 三个入口齐备 |
+| 动作登记（`ALL-01`） | 八个页面用到的动作编号全部落在 `import_common` / `auth` / `error_page` 已登记集合内 |
+
+| harness | 结果 |
+|---|---|
+| `verify-import-login.html` | 30 / 30 通过 |
+
+本批回归（修改了 `prototype-shell.js` 的 `MENUS.delivered` 与 `EXTRA_PAGES`）：
+
+| harness | 结果 |
+|---|---|
+| `verify-promotion-wizard.html` | 39 / 39 通过 |
+| `verify-promotion-create.html` | 22 / 22 通过 |
+| `verify-promotion-list.html` | 36 / 36 通过 |
+| `verify-class-list.html` | 39 / 39 通过 |
+| `verify-class-detail.html` | 20 / 20 通过 |
+| `verify-class-roster.html` | 34 / 34 通过 |
+| `verify-class-dialogs.html` | 36 / 36 通过 |
+| `verify-grade-list.html` | 38 / 38 通过 |
+| `verify-detail-entry.html` | 6 / 6 通过 |
+| `verify-carrier-change.html` | 14 / 14 通过 |
+| `python tools/check_docs.py` | 通过：未发现问题 |
+
 ### 11.3 `CR-011`（在读口径收敛）后的重跑
 
 高二 (1) 班样例数由 2 改为 1（`GAP-051` 取选项 A）后，7 个 harness 全部重跑，结果与上表一致：

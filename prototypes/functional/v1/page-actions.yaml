@@ -2031,6 +2031,198 @@ promotion_result:
       audit: 否
       batch: "2-3"
 
+# ---------------------------------------------------------------------------
+# 导入向导与三个模块导入向导的共用动作（PAGE-IMP-WIZARD / STU-IMPORT / TCH-IMPORT / CLS-ROSTER-IMPORT）——批次 2-4
+# ---------------------------------------------------------------------------
+import_common:
+  page: "PAGE-IMP-WIZARD / PAGE-STU-IMPORT / PAGE-TCH-IMPORT / PAGE-CLS-ROSTER-IMPORT"
+  actions:
+    - id: ACT-IMP-001
+      element: 下载模板
+      trigger: 点击
+      condition: 有 data.import:import 权限
+      permission: "data.import:import"
+      api: downloadImportTemplate
+      result: 下载当前模块当前版本的导入模板（含列名、必填标记、格式说明与示例行，REQ-IMP-002）；下载写审计；旧版模板仍可下载但强提示（IMP-Q-05）
+      audit: 是
+      batch: "2-4"
+    - id: ACT-IMP-002
+      element: 下一步
+      trigger: 点击
+      condition: 有 data.import:import 权限
+      permission: "data.import:import"
+      api: "-"
+      result: 进入下一步（上传并校验 → 校验结果 → 确认执行）；同步校验上限 5000 行 / 10 MB / 30 秒（IMP-Q-01 / NFR-PERF-06）
+      audit: 否
+      batch: "2-4"
+    - id: ACT-IMP-003
+      element: 上一步
+      trigger: 点击
+      condition: 有 data.import:import 权限
+      permission: "data.import:import"
+      api: "-"
+      result: 回到上一步；已上传文件与校验结果保留，不重复解析
+      audit: 否
+      batch: "2-4"
+    - id: ACT-IMP-005
+      element: 下载失败明细
+      trigger: 点击
+      condition: 有 data.import:import 权限；存在失败行
+      permission: "data.import:import"
+      api: downloadImportFailedRows
+      result: 下载失败明细（行号 + 对象 + 原因），逐条修正后重传（REQ-IMP-012）；临时文件有效期 7 天（IMP-Q-02）
+      audit: 是
+      batch: "2-4"
+    - id: ACT-IMP-006
+      element: 确认执行（异步）
+      trigger: 点击
+      condition: 有 data.import:import 权限；校验已完成且存在可执行行
+      permission: "data.import:import"
+      api: executeImport
+      confirm: 需要，文案写清"只导入可执行行，失败行不导入；同一批次重复提交幂等"
+      result: 异步执行导入并立即返回任务编号（REQ-IMP-015）；幂等（BR-IMP-002），并发配额同一用户 1 个 / 同一学校 3 个（IMP-Q-03）
+      audit: 是
+      batch: "2-4"
+    - id: ACT-IMP-007
+      element: 查看异步任务
+      trigger: 点击
+      condition: 有 data.async_task:read 权限
+      permission: "data.async_task:read"
+      api: "-"
+      result: 进入 PAGE-IMP-TASK-LIST 查看进度与结果文件（REQ-IMP-052）；该页在批次 2-9 交付，本批给批次提示
+      audit: 否
+      batch: "2-4"
+    - id: ACT-IMP-008
+      element: 下载结果摘要 / 学号对照表
+      trigger: 点击
+      condition: 有 data.import:import 权限
+      permission: "data.import:import"
+      api: downloadImportResult
+      result: 下载结果摘要与学号对照表（学生导入：学校自带学号 → 系统学号，仅对照不入库，REQ-IMP-021 ~ 023）；结果文件 7 天、任务元数据 90 天
+      audit: 是
+      batch: "2-4"
+    - id: ACT-IMP-009
+      element: 重新导入
+      trigger: 点击
+      condition: 有 data.import:import 权限
+      permission: "data.import:import"
+      api: "-"
+      result: 回到第 1 步重新选择模板与文件；上一批任务记录与结果文件保留
+      audit: 否
+      batch: "2-4"
+    - id: ACT-IMP-010
+      element: 去异步任务中心（无权限态的只读出口）
+      trigger: 点击
+      condition: 有 data.async_task:read 权限
+      permission: "data.async_task:read"
+      api: "-"
+      result: 进入 PAGE-IMP-TASK-LIST；无导入权限的角色只能看任务状态，不能发起导入
+      audit: 否
+      batch: "2-4"
+    - id: ACT-IO-001
+      element: 拖拽上传区
+      trigger: 拖入文件 / 点击
+      condition: 有 data.import:import 权限
+      permission: "data.import:import"
+      api: "-"
+      result: 接收单个 .xlsx / .xls 文件；超过 5000 行或 10 MB 时给「拆分后重新上传」提示，不做后台静默接收（REQ-IMP-010）
+      audit: 否
+      batch: "2-4"
+    - id: ACT-IO-002
+      element: 选择文件
+      trigger: 点击
+      condition: 有 data.import:import 权限
+      permission: "data.import:import"
+      api: "-"
+      result: 打开系统文件选择框（单文件）；选中后回填文件名与行数，再点「下一步」进入同步校验
+      audit: 否
+      batch: "2-4"
+
+# ---------------------------------------------------------------------------
+# 独立于管理后台的页面：登录与异常页（PAGE-LOGIN / 403 / 404 / 500）——批次 2-4
+# 载体决策：这四页不套管理外壳（与真实系统一致），因此不提供角色 / 状态演示面板；
+# 页面自身的状态（提交中 / 错误 / 锁定）在页内直接可见。
+# ---------------------------------------------------------------------------
+auth:
+  page: PAGE-LOGIN
+  actions:
+    - id: ACT-AUTH-001
+      element: 登录
+      trigger: 点击 / 回车
+      condition: 登录名与密码均已填写
+      permission: "-"
+      api: login
+      result: 校验账号密码并写审计（NFR-AUDIT-01）；连续 5 次错误锁定 5 分钟（NFR-SEC-04）；首次登录强制改密（D-039）
+      audit: 是
+      batch: "2-4"
+    - id: ACT-AUTH-002
+      element: 学校（多校账号切换）
+      trigger: 切换下拉
+      condition: 账号具备多校权限
+      permission: "-"
+      api: "-"
+      result: 切换登录入口对应的租户 / 学校；学校用户登录后该下拉不可切换
+      audit: 否
+      batch: "2-4"
+    - id: ACT-AUTH-003
+      element: 忘记密码
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 首轮不做自助找回，提示联系本校管理员重置；管理员重置后同样发放一次性凭据（D-039）
+      audit: 否
+      batch: "2-4"
+
+error_page:
+  page: "PAGE-403 / PAGE-404 / PAGE-500"
+  actions:
+    - id: ACT-ERR-001
+      element: 返回工作台
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 回到登录后的工作台首页（原型演示给轻提示）
+      audit: 否
+      batch: "2-4"
+    - id: ACT-ERR-002
+      element: 申请开通权限
+      trigger: 点击（403）
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 提示联系本校管理员或运营管理员开通；缺少权限的访问同样写审计（NFR-AUDIT-02）
+      audit: 否
+      batch: "2-4"
+    - id: ACT-ERR-003
+      element: 返回上一页
+      trigger: 点击（404）
+      condition: 存在历史记录
+      permission: "-"
+      api: "-"
+      result: 返回来源页面；地址若来自系统内跳转，需把来源与路径反馈给维护者
+      audit: 否
+      batch: "2-4"
+    - id: ACT-ERR-004
+      element: 重试
+      trigger: 点击（500）
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 重发上一个请求；批量类写操作走异步任务，失败整批记录原因可重试（NFR-MQ-02），不产生部分写入
+      audit: 否
+      batch: "2-4"
+    - id: ACT-ERR-005
+      element: 去异步任务中心
+      trigger: 点击（500）
+      condition: 有 data.async_task:read 权限
+      permission: "data.async_task:read"
+      api: "-"
+      result: 进入 PAGE-IMP-TASK-LIST 查看失败任务与重试入口（该页在批次 2-9 交付）
+      audit: 否
+      batch: "2-4"
+
 batches_pending:
   - { batch: "2-2", pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-CREATE, PAGE-TCH-EDIT, PAGE-TCH-LEAVE, PAGE-TCH-ROLE, PAGE-TCH-ASSIGN], status: "2-2a、2-2b-1 与 2-2b-2 教师部分已产出待验收（ACT-TCH-001 ~ 039 已登记）" }
   - { batch: "2-2b-2b", pages: [PAGE-GRD-LIST, PAGE-GRD-DETAIL, PAGE-GRD-CREATE, PAGE-GRD-BATCH, PAGE-GRD-LEADER, PAGE-GRD-ARCHIVE], status: "PAGE-GRD-LIST 样板页已产出待验收（ACT-GRD-001 ~ 011 已登记）；其余 5 页待样板验收后铺开" }
