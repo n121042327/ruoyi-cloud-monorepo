@@ -567,10 +567,80 @@ gaps:
     resolved_at: 2026-09-30
     status: closed
 
+  - id: GAP-023
+    title: 3+1+2 选科与教学班是否属于首轮交付范围，上游表述互相矛盾
+    discovered_at: 2026-09-30
+    discovered_by: 批次 1-3 撰写前核对，发现 class PRD 的表述与首轮范围定义冲突
+    evidence: |
+      AGENTS.md 第 1 节把"3+1+2 选科、教学班"列入首轮交付范围；
+      docs/10-prd/01-product-context.md 第 4.1 节"交付范围"同样包含"选科：3+1+2 选科、选科组合、变更申请与审批"。
+      但 docs/10-prd/modules/class/PRD.md 第 1.3 节与 4.6 节写的是
+      "教学班创建与成员维护界面 延后，成员来源是选科结果，而选科首轮不实现；首轮只交付表结构"，
+      即承认选科不在首轮。
+      用户的原始要求是"必须考虑学生升班的问题，或 3+1+2 的问题。纳入到设计中并实现"。
+    expected: 明确 3+1+2 选科与教学班在首轮是"设计与建表"还是"完整实现（含界面与接口）"
+    actual: 两份上游文档给出相反结论
+    impact: |
+      决定批次 1-3 的 stream 模块 PRD 是"完整 PRD"还是"仅表结构与规则设计"；
+      也决定阶段 5、6、7 的范围与工作量。
+      这是阶段 1 冻结前必须消除的矛盾。
+    options:
+      - A 选科与教学班都在首轮实现（界面 + 接口 + 表）；修正 class PRD 的表述
+      - B 选科首轮实现界面与接口；教学班只建表，界面与接口延后（成员来自选科结果，晚一轮交付代价小）；修正 class PRD 的延后理由
+      - C 选科与教学班首轮都只做设计与建表，不实现界面；需同步修正 AGENTS.md 第 1 节与 01-product-context 第 4.1 节
+    recommended: 已由用户裁决为 A
+    blocking: true
+    blocks_stages: [stage1, stage2, stage5]
+    owner: 用户
+    resolution: |
+      用户答复："属于，选 a"。
+      即 3+1+2 选科与教学班**都属于首轮实现范围**（表 + 界面 + 接口），
+      交付顺序为先选科、后教学班。
+      连带修正：
+        class/PRD.md 升至 v1.0.2，第 1.2 / 1.3 / 4.6 / 6.1 / 10 / 12 节同步改写，
+          删除"选科首轮不实现""教学班首轮只建表"的表述
+        class/acceptance.md 的 RV-CLS-06 结论改写
+        D-042 中"教学班首轮只建表"一条被 D-043 取代（该条与 AGENTS.md 首轮范围定义本就冲突）
+      裁决记录见 decisions.md D-043。
+      验证：python tools/check_docs.py 通过。
+    resolved_at: 2026-09-30
+    status: closed
+
+  - id: GAP-024
+    title: 02-personas-and-scenarios.md 的 SCN-GUARDIAN-02 残留"初始密码"与"根租户内唯一"表述
+    discovered_at: 2026-09-30
+    discovered_by: 批次 1-4 撰写前核对公共前置
+    evidence: |
+      SCN-GUARDIAN-02 第 2 步写"学生首次登录使用学校下发的初始密码，强制修改"，
+      与 BR-ACCOUNT-003、D-039 的"一次性激活码、不设长期初始密码"冲突；
+      成功标准写"同一根租户内登录名唯一"，与 BR-ACCOUNT-004、D-027 的"全平台唯一"冲突。
+      GAP-022 的修正清单只覆盖了 SCN-STU-01，未覆盖本场景。
+    expected: 与 D-027、D-039 一致
+    actual: 残留旧表述
+    impact: 阶段 2 / 3 按旧表述做登录原型会返工；学生登录流程的验收口径前后不一致
+    options:
+      - 按现行口径改写 SCN-GUARDIAN-02（推荐，属文档缺陷修正，不改业务决策）
+      - 保留原表述并改 BR-ACCOUNT-003 / D-039（推翻已确认决策，不建议）
+    recommended: 选项 1
+    blocking: false
+    blocks_stages: []
+    owner: 我方
+    resolution: |
+      已按现行口径改写 SCN-GUARDIAN-02：改为"生成一次性激活码 → 班主任分发或打印密码条 →
+      学生首登设密 → 丢码由班主任重置 → 低年级由班主任代激活"，
+      成功标准改为"登录名全平台唯一（与根租户无关）"。
+    resolved_at: 2026-09-30
+    status: closed
+
 open_questions_for_user:
-  - "批次 1-1 学生管理 PRD 样板 + 验收标准已产出，等待验收：docs/10-prd/modules/student/PRD.md、docs/10-prd/modules/student/acceptance.md。"
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
-  - "GAP-020 已关闭：证件号平台唯一、允许为空；上游表述待 GAP-022 一并修正。"
-  - "GAP-021 已关闭：学生初始凭据采用「一次性激活码」机制。（原待确认项）"
-  - "GAP-022 已关闭：10 个文件的旧租户模型表述已统一修正，核查通过。（原待确认项）"
-  - "待你验收批次 1-1：学生管理 PRD 与学生管理验收标准。"
+  - "GAP-020 已关闭：证件号平台唯一、允许为空。"
+  - "GAP-023 已关闭：选科与教学班均属首轮实现（用户裁决选 A），见 D-043。"
+  - "阶段 1 九个模块的需求验收已于 2026-09-30 全部通过（用户答复「RV-* 通过」），模块文档置为 frozen，见 D-045。"
+  - "GAP-024 已关闭：SCN-GUARDIAN-02 的残留旧表述已按 D-027、D-039 改写。"
+  - "批次 1-4 的 15 项需求验收已全部确认（RV-IMP-01 ~ 08、RV-AUD-01 ~ 07），见 decisions.md D-047、D-048、D-049。"
+  - "阶段 1（PRD）已全部闭环：11 个公共前置文件 + 11 个模块 PRD 与验收标准全部冻结，合计 625 条需求、819 条验收用例（见 D-049）。"
+  - "CR-001 已执行：修正 9 份已冻结 acceptance.md 中 RV-*-01 的章节引用（原写「4.1 / 4.2 / 4.3 节」），并把 18 份模块文档的头部状态字段由 review 更正为 frozen；9 份 acceptance.md 升为 1.0.1 并补修订记录表。"
+  - "公共前置本次有写入（已在冻结前完成）：docs/10-prd/02-personas-and-scenarios.md 新增 5 个场景（SCN-IMP-02、SCN-IMP-03、SCN-AUDIT-01 ~ 03）；docs/10-prd/04-business-rules.md 新增 BR-IMP-007 ~ 016、BR-AUDIT-006 ~ 012；docs/10-prd/05-permission-matrix.yaml 新增审计与异步任务的权限项；docs/10-prd/06-field-dictionary.yaml 新增 3 个枚举与 16 个字段。"
+  - "下一步：阶段 2 业务原型，批次 2-0 先出原型规范（layout-spec / page-actions / navigation / markup-contract / 样例数据），批次 2-1 出学生管理列表与新增编辑抽屉样板页。"
+  - "未提交：批次 1-2 / 1-3 的 8 个模块目录与 6 个治理文件、批次 1-4 的全部产出目前都在工作区，尚未 git commit。"

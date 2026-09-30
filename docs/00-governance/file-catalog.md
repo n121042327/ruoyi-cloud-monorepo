@@ -38,6 +38,7 @@
 | `docs/00-governance/gap-register.yaml` | 缺项登记 | `review` |
 | `docs/00-governance/decisions.md` | 决策与裁决记录 | `review` |
 | `docs/00-governance/change-control.md` | 变更流程 | `review` |
+| `docs/00-governance/change-requests/CR-001.md` | 变更申请：修正已冻结模块的范围划分章节引用（已批准并执行） | `review` |
 | `docs/00-governance/traceability.yaml` | 追踪矩阵骨架 | `review` |
 | `docs/00-governance/task-packet.md` | 任务包模板 | `review` |
 | `docs/00-governance/baseline-manifest.schema.json` | 冻结清单 Schema | `review` |
@@ -53,44 +54,44 @@
 
 | 路径 | 用途 | 状态 |
 |---|---|---|
-| `docs/10-prd/00-index.md` | PRD 索引与阅读顺序 | `review` |
-| `docs/10-prd/01-product-context.md` | 产品背景、目标、边界、成功指标 | `review` |
-| `docs/10-prd/02-personas-and-scenarios.md` | 角色画像与典型场景 | `review` |
-| `docs/10-prd/03-glossary.md` | 术语表（行政班 / 教学班 / 选科 / 学年学期 …） | `review` |
-| `docs/10-prd/04-business-rules.md` | 业务规则总表（编号 BR-xxx） | `review` |
-| `docs/10-prd/05-permission-matrix.yaml` | 角色 × 资源 × 操作 权限矩阵 | `review` |
-| `docs/10-prd/06-field-dictionary.yaml` | 全局字段字典（枚举、字典、复用字段） | `review` |
-| `docs/10-prd/07-non-functional-requirements.md` | 非功能需求（性能、并发、安全、审计、可用性） | `review` |
-| `docs/10-prd/08-data-scope-model.md` | 数据归属与数据权限模型 | `review` |
-| `docs/10-prd/09-guardian-and-onboarding.md` | 家长绑定与学生数据采集模型（含表结构草案） | `review` |
-| `docs/10-prd/10-data-permission-schema.md` | 数据权限表结构与关系（含范围解析与缓存失效） | `review` |
+| `docs/10-prd/00-index.md` | PRD 索引与阅读顺序 | `frozen` |
+| `docs/10-prd/01-product-context.md` | 产品背景、目标、边界、成功指标 | `frozen` |
+| `docs/10-prd/02-personas-and-scenarios.md` | 角色画像与典型场景 | `frozen` |
+| `docs/10-prd/03-glossary.md` | 术语表（行政班 / 教学班 / 选科 / 学年学期 …） | `frozen` |
+| `docs/10-prd/04-business-rules.md` | 业务规则总表（编号 BR-xxx） | `frozen` |
+| `docs/10-prd/05-permission-matrix.yaml` | 角色 × 资源 × 操作 权限矩阵 | `frozen` |
+| `docs/10-prd/06-field-dictionary.yaml` | 全局字段字典（枚举、字典、复用字段） | `frozen` |
+| `docs/10-prd/07-non-functional-requirements.md` | 非功能需求（性能、并发、安全、审计、可用性） | `frozen` |
+| `docs/10-prd/08-data-scope-model.md` | 数据归属与数据权限模型 | `frozen` |
+| `docs/10-prd/09-guardian-and-onboarding.md` | 家长绑定与学生数据采集模型（含表结构草案） | `frozen` |
+| `docs/10-prd/10-data-permission-schema.md` | 数据权限表结构与关系（含范围解析与缓存失效） | `frozen` |
 
 ### 模块 PRD（首轮）
 
 | 路径 | 用途 | 状态 |
 |---|---|---|
-| `docs/10-prd/modules/student/PRD.md` | 学生管理 PRD（**样板**，97 条需求，v1.0.2-draft） | `review` |
-| `docs/10-prd/modules/student/acceptance.md` | 学生管理验收标准（97 条功能用例 + 15 条越权用例 + 30 条审计 / 性能 / 兼容用例） | `review` |
-| `docs/10-prd/modules/teacher/PRD.md` | 教师管理 PRD | `planned` |
-| `docs/10-prd/modules/teacher/acceptance.md` | 教师管理验收标准 | `planned` |
-| `docs/10-prd/modules/class/PRD.md` | 班级管理 PRD | `planned` |
-| `docs/10-prd/modules/class/acceptance.md` | 班级管理验收标准 | `planned` |
-| `docs/10-prd/modules/grade/PRD.md` | 年级管理 PRD | `planned` |
-| `docs/10-prd/modules/grade/acceptance.md` | 年级管理验收标准 | `planned` |
-| `docs/10-prd/modules/school/PRD.md` | 学校管理 PRD | `planned` |
-| `docs/10-prd/modules/school/acceptance.md` | 学校管理验收标准 | `planned` |
-| `docs/10-prd/modules/term/PRD.md` | 学年学期管理 PRD | `planned` |
-| `docs/10-prd/modules/term/acceptance.md` | 学年学期管理验收标准 | `planned` |
-| `docs/10-prd/modules/subject/PRD.md` | 学科与学科配置 PRD | `planned` |
-| `docs/10-prd/modules/subject/acceptance.md` | 学科与学科配置验收标准 | `planned` |
-| `docs/10-prd/modules/promotion/PRD.md` | 升班 / 调班 / 留级 / 毕业 / 休复学 PRD | `planned` |
-| `docs/10-prd/modules/promotion/acceptance.md` | 升班与学籍异动验收标准 | `planned` |
-| `docs/10-prd/modules/stream/PRD.md` | 3+1+2 选科与教学班 PRD | `planned` |
-| `docs/10-prd/modules/stream/acceptance.md` | 选科与教学班验收标准 | `planned` |
-| `docs/10-prd/modules/import-export/PRD.md` | 导入导出与异步任务 PRD | `planned` |
-| `docs/10-prd/modules/import-export/acceptance.md` | 导入导出与异步任务验收标准 | `planned` |
-| `docs/10-prd/modules/audit/PRD.md` | 审计与操作日志 PRD | `planned` |
-| `docs/10-prd/modules/audit/acceptance.md` | 审计与操作日志验收标准 | `planned` |
+| `docs/10-prd/modules/student/PRD.md` | 学生管理 PRD（**样板**，97 条需求，v1.0.2-draft） | `frozen` |
+| `docs/10-prd/modules/student/acceptance.md` | 学生管理验收标准（97 条功能用例 + 15 条越权用例 + 30 条审计 / 性能 / 兼容用例） | `frozen` |
+| `docs/10-prd/modules/teacher/PRD.md` | 教师管理 PRD（70 条需求，v1.0.1-draft） | `frozen` |
+| `docs/10-prd/modules/teacher/acceptance.md` | 教师管理验收标准（84 条用例） | `frozen` |
+| `docs/10-prd/modules/class/PRD.md` | 班级管理 PRD（62 条需求，v1.0.2-draft） | `frozen` |
+| `docs/10-prd/modules/class/acceptance.md` | 班级管理验收标准（78 条用例） | `frozen` |
+| `docs/10-prd/modules/grade/PRD.md` | 年级管理 PRD（40 条需求，v1.0.0-draft） | `frozen` |
+| `docs/10-prd/modules/grade/acceptance.md` | 年级管理验收标准（54 条用例） | `frozen` |
+| `docs/10-prd/modules/school/PRD.md` | 学校管理 PRD（45 条需求，v1.0.0-draft） | `frozen` |
+| `docs/10-prd/modules/school/acceptance.md` | 学校管理验收标准（59 条用例） | `frozen` |
+| `docs/10-prd/modules/term/PRD.md` | 学年学期管理 PRD（42 条需求，v1.0.0-draft） | `frozen` |
+| `docs/10-prd/modules/term/acceptance.md` | 学年学期管理验收标准（54 条用例） | `frozen` |
+| `docs/10-prd/modules/subject/PRD.md` | 学科与学科配置 PRD（42 条需求，v1.0.0-draft） | `frozen` |
+| `docs/10-prd/modules/subject/acceptance.md` | 学科与学科配置验收标准（54 条用例） | `frozen` |
+| `docs/10-prd/modules/promotion/PRD.md` | 升班与学籍异动 PRD（66 条需求，v1.0.0-draft） | `frozen` |
+| `docs/10-prd/modules/promotion/acceptance.md` | 升班与学籍异动验收标准（82 条用例） | `frozen` |
+| `docs/10-prd/modules/stream/PRD.md` | 3+1+2 选科与教学班 PRD（69 条需求，v1.0.0-draft） | `frozen` |
+| `docs/10-prd/modules/stream/acceptance.md` | 3+1+2 选科与教学班验收标准（85 条用例） | `frozen` |
+| `docs/10-prd/modules/import-export/PRD.md` | 导入导出与异步任务 PRD（52 条需求，v1.0.0-draft） | `frozen` |
+| `docs/10-prd/modules/import-export/acceptance.md` | 导入导出与异步任务验收标准（78 条用例，v1.0.1） | `frozen` |
+| `docs/10-prd/modules/audit/PRD.md` | 审计与操作日志 PRD（40 条需求，v1.0.0-draft） | `frozen` |
+| `docs/10-prd/modules/audit/acceptance.md` | 审计与操作日志验收标准（59 条用例，v1.0.1） | `frozen` |
 
 ---
 

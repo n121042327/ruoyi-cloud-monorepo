@@ -43,10 +43,13 @@ stages:
         content: 学生管理 PRD 样板 + 验收标准
         pause_for_review: true
       - batch: 1-2
-        content: 教师 / 班级 / 年级 PRD
+        content: 学校 / 年级 / 班级 / 教师 PRD
         pause_for_review: true
       - batch: 1-3
-        content: 升班 / 选科 / 导入导出 / 审计 PRD
+        content: 学年学期 / 学科与学科配置 / 升班与学籍异动 / 3+1+2 选科与教学班 PRD
+        pause_for_review: true
+      - batch: 1-4
+        content: 导入导出与异步任务 / 审计与操作日志 PRD
         pause_for_review: true
 
   - id: stage2

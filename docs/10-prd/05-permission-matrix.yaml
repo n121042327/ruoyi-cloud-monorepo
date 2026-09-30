@@ -156,7 +156,7 @@ matrix:
       - { resource: person.teacher, actions: [read] }
       - { resource: data.export, actions: [export], condition: 需显式授予导出权限 }
       - { resource: data.async_task, actions: [read] }
-      - { resource: audit.log, actions: [read], condition: 平台自身的访问也需留痕 }
+      - { resource: audit.log, actions: [read, export], condition: 平台自身的访问也需留痕 }
     forbidden:
       - 无 person.student.update
       - 无 enrollment.transfer.update
@@ -175,6 +175,7 @@ matrix:
       - { resource: org.class, actions: [read] }
       - { resource: person.teacher, actions: [read, create, update] }
       - { resource: person.teaching_assignment, actions: [read, create, update] }
+      - { resource: audit.log, actions: [read, export], condition: 仅本租户被平台运营访问的记录 }
     forbidden:
       - 无 person.student.read（学校教学数据不属于租户管理员默认范围）
       - 无 org.class.update
@@ -199,7 +200,7 @@ matrix:
       - { resource: stream.change_request, actions: [read, approve] }
       - { resource: stream.config, actions: [read, update] }
       - { resource: data.export, actions: [export] }
-      - { resource: audit.log, actions: [read], condition: 仅本校范围 }
+      - { resource: audit.log, actions: [read, export], condition: 仅本校范围 }
     data_scope: school
 
   # 教务主任
@@ -221,6 +222,7 @@ matrix:
       - { resource: data.import, actions: [import] }
       - { resource: data.export, actions: [export] }
       - { resource: data.async_task, actions: [read] }
+      - { resource: audit.log, actions: [read, export], condition: 仅本校范围 }
     data_scope: school
 
   # 年级主任
@@ -235,6 +237,8 @@ matrix:
       - { resource: enrollment.transfer, actions: [read, create] }
       - { resource: stream.selection, actions: [read] }
       - { resource: data.export, actions: [export] }
+      - { resource: data.async_task, actions: [read], condition: 仅本人发起的任务 }
+      - { resource: audit.log, actions: [read], condition: 仅本年级范围 }
     data_scope: grade
     forbidden:
       - 无 person.student_guardian.update（班主任可改，年级主任只读）
@@ -248,6 +252,8 @@ matrix:
       - { resource: person.student_contact, actions: [read, update] }
       - { resource: stream.change_request, actions: [read, create] }
       - { resource: data.export, actions: [export], condition: 仅本班且仅授权字段 }
+      - { resource: data.async_task, actions: [read], condition: 仅本人发起的任务 }
+      - { resource: audit.log, actions: [read], condition: 仅本班范围 }
     data_scope: class
     field_rules:
       - resource: person.student

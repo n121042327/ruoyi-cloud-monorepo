@@ -203,6 +203,38 @@ enums:
       - { code: self, label: 本人, level: 6 }
       - { code: self_children, label: 本人子女, level: 6 }
 
+  - name: async_task_type
+    name_cn: 异步任务类型
+    entries:
+      - { code: import, label: 批量导入 }
+      - { code: export, label: 导出 }
+      - { code: promotion, label: 学年升级 }
+      - { code: audit_archive, label: 审计日志归档 }
+    note: 任务类型由发起模块声明；任务中心只负责调度、进度、结果与重试
+
+  - name: audit_action_type
+    name_cn: 操作类型（审计）
+    entries:
+      - { code: create, label: 新增 }
+      - { code: update, label: 修改 }
+      - { code: delete, label: 删除 }
+      - { code: import, label: 导入 }
+      - { code: execute, label: 执行 }
+      - { code: approve, label: 审批 }
+      - { code: grant, label: 授权 }
+      - { code: status_change, label: 状态变更 }
+      - { code: export, label: 导出 }
+      - { code: view_sensitive, label: 查看敏感字段全量 }
+      - { code: login, label: 登录与安全事件 }
+
+  - name: file_kind
+    name_cn: 文件类型
+    entries:
+      - { code: import_template, label: 导入模板 }
+      - { code: import_result, label: 导入结果 }
+      - { code: failed_rows, label: 失败明细 }
+      - { code: export_result, label: 导出结果 }
+
 fields:
   - { name: student_no, cn: 学号, type: varchar(32), required: true, unique_scope: platform, br: BR-STU-001, format: "入学年份(4) + 全局序号(6)", note: 系统统一发号；永不回收；导入时忽略源学号；修改需校级管理员且留审计 }
   - { name: national_student_no, cn: 全国学籍号, type: varchar(64), required: false, unique_scope: platform, br: BR-STU-022, note: 官方 G / L 开头号码，允许为空，非空时全平台唯一 }
@@ -247,6 +279,23 @@ fields:
   - { name: reason, cn: 原因, type: varchar(500), required: false }
   - { name: before_value, cn: 变更前值, type: json, required: false }
   - { name: after_value, cn: 变更后值, type: json, required: false }
+
+  - { name: task_no, cn: 任务编号, type: varchar(32), required: true, unique_scope: platform, br: BR-IMP-014, note: 异步任务对外标识，全局唯一 }
+  - { name: task_type, cn: 任务类型, type: varchar(30), required: true, enum_ref: async_task_type, br: BR-IMP-014 }
+  - { name: task_status, cn: 任务状态, type: varchar(20), required: true, enum_ref: async_task_status, br: BR-IMP-014 }
+  - { name: progress_percent, cn: 进度, type: tinyint, required: false, note: 0—100，仅在 running 状态有意义 }
+  - { name: batch_no, cn: 批次号, type: varchar(32), required: false, unique_scope: platform, br: BR-IMP-009, note: 导入批次幂等键，全局唯一 }
+  - { name: template_version, cn: 模板版本, type: varchar(20), required: false, br: BR-IMP-007 }
+  - { name: file_id, cn: 文件引用, type: bigint, required: false, note: 只存文件服务的引用，不存二进制 }
+  - { name: file_kind, cn: 文件类型, type: varchar(20), required: false, enum_ref: file_kind }
+  - { name: file_expire_time, cn: 文件有效期, type: datetime, required: false, br: BR-IMP-013, note: 到期后文件清理，访问链接失效 }
+  - { name: action_type, cn: 操作类型, type: varchar(30), required: true, enum_ref: audit_action_type, br: BR-AUDIT-006 }
+  - { name: object_type, cn: 对象类型, type: varchar(50), required: true, br: BR-AUDIT-008 }
+  - { name: object_id, cn: 对象标识, type: varchar(64), required: true, br: BR-AUDIT-008 }
+  - { name: client_ip, cn: 来源 IP, type: varchar(45), required: false, br: BR-AUDIT-002 }
+  - { name: request_id, cn: 请求标识, type: varchar(64), required: false, note: 与结构化日志串联，便于排障 }
+  - { name: operator_role, cn: 操作人角色, type: varchar(64), required: false, br: BR-AUDIT-001, note: 记录操作发生时的角色快照，不随角色变更而改变 }
+  - { name: change_diff, cn: 变更差异, type: json, required: false, br: BR-AUDIT-002, note: 只记录发生变化的字段，不记录全量快照 }
 
 unique_keys:
   - { table: edu_student, columns: [student_no], br: BR-STU-001, note: 学号全平台唯一，由系统统一发号，序号按年重置 }

@@ -34,6 +34,12 @@ nodes:
   - id: prd.stream
     path: docs/10-prd/modules/stream/PRD.md
     kind: spec
+  - id: prd.import_export
+    path: docs/10-prd/modules/import-export/PRD.md
+    kind: spec
+  - id: prd.audit
+    path: docs/10-prd/modules/audit/PRD.md
+    kind: spec
 
   - id: proto.functional
     path: prototypes/functional/v1
@@ -112,6 +118,12 @@ edges:
   - from: prd.stream
     to: dd.schema
     rule: 3+1+2 选科表结构由该 PRD 决定
+  - from: prd.import_export
+    to: dd.schema
+    rule: 导入批次、异步任务与文件表结构由该 PRD 决定
+  - from: prd.audit
+    to: dd.schema
+    rule: 操作日志与变更明细表结构由该 PRD 决定
   - from: proto.functional
     to: proto.hifi
     rule: 高保真必须覆盖业务原型的全部页面与状态，不得删减功能
@@ -152,5 +164,9 @@ impact_rules:
     must_recheck: [proto.hifi, fe.code]
   - when_changed: dd.schema
     must_recheck: [dd.migration, be.code, dd.domain_table_map]
+  - when_changed: prd.import_export
+    must_recheck: [dd.schema, fe.code, be.code]
+  - when_changed: prd.audit
+    must_recheck: [dd.schema, fe.code, be.code]
   - when_changed: any_frozen
     action: 走 change-control.md，产出新版本，不得就地覆盖
