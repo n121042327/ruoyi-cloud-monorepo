@@ -2272,5 +2272,118 @@
         { "action": "待处理", "object": "化学 · 高洪波 · 高一 (1) 班", "reason": "教师已离职，不允许复制到目标学期" }
       ]
     }
+  },
+  "promotion_create_samples": {
+    "purpose": "升班向导第一步（PAGE-PRM-CREATE，批次 2-3e-s2）的四档校验样例：齐备 / 缺年级与班级 / 同一源→目标学期已有未结束任务 / 在读超阈值。取值依据 REQ-PRM-005、REQ-PRM-007 ~ 012、NFR-PERF-07。",
+    "source_terms": [
+      { "term_id": 202502, "name": "2025-2026 学年 第二学期", "start_date": "2026-02-23", "term_status": "archived", "enrolled_count": 486, "note": "已归档的学年学期仍可作为源，用于补做历史升班；只在读口径计入（BR-STU-012）" },
+      { "term_id": 202601, "name": "2026-2027 学年 第一学期", "start_date": "2026-09-01", "term_status": "current", "enrolled_count": 512, "note": "当前学年学期，默认源学年学期" },
+      { "term_id": 202602, "name": "2026-2027 学年 第二学期", "start_date": "2027-02-22", "term_status": "planned", "enrolled_count": 0, "note": "尚未开始的学年学期：在读为 0，选中后进入空态（该校第二学期还没有在读名单）" }
+    ],
+    "target_terms": [
+      { "term_id": 202601, "name": "2026-2027 学年 第一学期", "start_date": "2026-09-01", "note": "与源 2026-2027 第二学期组合时触发 REQ-PRM-008（目标起始日期不得早于源）" },
+      { "term_id": 202602, "name": "2026-2027 学年 第二学期", "start_date": "2027-02-22" },
+      { "term_id": 202701, "name": "2027-2028 学年 第一学期", "start_date": "2027-09-01", "note": "默认目标学年学期" }
+    ],
+    "scope_samples": [
+      {
+        "key": "ready",
+        "label": "齐备",
+        "gate": "ok",
+        "source_term_id": 202601,
+        "target_term_id": 202701,
+        "enrolled_count": 512,
+        "preview_seconds": 25,
+        "execute_seconds": 120,
+        "stages": [
+          { "stage": "小学部", "grade_range": "一年级 — 六年级", "grade": "6 / 6", "class": "24 / 24" },
+          { "stage": "初中部", "grade_range": "一年级 — 三年级（初一 — 初三）", "grade": "3 / 3", "class": "12 / 12" },
+          { "stage": "高中部", "grade_range": "一年级 — 三年级（高一 — 高三）", "grade": "3 / 3", "class": "18 / 18" }
+        ],
+        "note": "无阻塞项、未超阈值：可以创建草稿任务（REQ-PRM-009 / 010）"
+      },
+      {
+        "key": "missing",
+        "label": "缺年级 / 班级",
+        "gate": "block",
+        "source_term_id": 202601,
+        "target_term_id": 202701,
+        "enrolled_count": 512,
+        "stages": [
+          { "stage": "小学部", "grade_range": "一年级 — 六年级", "grade": "6 / 6", "class": "24 / 24" },
+          { "stage": "初中部", "grade_range": "一年级 — 三年级（初一 — 初三）", "grade": "3 / 3", "class": "12 / 12" },
+          { "stage": "高中部", "grade_range": "缺 高二、高三 2 个年级；缺 高一 (4) 班 1 个班级", "grade": "1 / 3", "class": "5 / 6", "miss": true }
+        ],
+        "missing": ["高二", "高三", "高一 (4) 班"],
+        "note": "缺项未补齐前阻止创建（REQ-PRM-009），入口指向 PAGE-GRD-LIST 与 PAGE-CLS-LIST"
+      },
+      {
+        "key": "conflict",
+        "label": "已有未结束任务",
+        "gate": "block",
+        "source_term_id": 202601,
+        "target_term_id": 202701,
+        "enrolled_count": 512,
+        "conflict_task": { "task_no": "PRM-20260930-0012", "status": "previewed", "total_count": 512 },
+        "note": "同一源→目标学期只允许一个未结束任务（REQ-PRM-005 / BR-PROMO-003），入口指向 PAGE-PRM-LIST"
+      },
+      {
+        "key": "large",
+        "label": "超阈值",
+        "gate": "warn",
+        "source_term_id": 202601,
+        "target_term_id": 202701,
+        "enrolled_count": 10240,
+        "preview_seconds": 60,
+        "execute_seconds": 300,
+        "stages": [
+          { "stage": "小学部", "grade_range": "一年级 — 六年级", "grade": "6 / 6", "class": "24 / 24" },
+          { "stage": "初中部", "grade_range": "一年级 — 三年级（初一 — 初三）", "grade": "3 / 3", "class": "36 / 36" },
+          { "stage": "高中部", "grade_range": "一年级 — 三年级（高一 — 高三）", "grade": "3 / 3", "class": "54 / 54" }
+        ],
+        "note": "在读 10,240 人 > 阈值 10,000（NFR-PERF-07）：只提示耗时预估，不阻止创建（REQ-PRM-010）"
+      }
+    ],
+    "notes": [
+      "四档样例对应四个断言组：齐备可创建、缺项阻塞、已有未结束任务阻塞、超阈值只警告（REQ-PRM-005 / 009 / 010）。",
+      "在读人数口径为只有在读（enrolled）计入，休学 / 转入未报到 / 出国保留学籍都不计入（BR-STU-012，CR-011）。",
+      "源学年学期 2026-2027 学年 第二学期 的在读为 0，用于演示空态；该校该学期尚未开始。",
+      "耗时预估依据 NFR-PERF-07（1 万在读 ≈ 60 秒）：512 人按 25 秒、10,240 人按 60 秒以上估算。"
+    ]
+  },
+  "promotion_preview": {
+    "purpose": "升班向导第二步（PAGE-PRM-PREVIEW + PAGE-PRM-ADJUST，批次 2-3e-s3）的预览明细样例：任务 PRM-20261001-0022（源 2026-2027 学年 第一学期 → 目标 2027-2028 学年 第一学期）。行取自 students 与 classes 的既有样本，不新增学生。",
+    "task": {
+      "task_no": "PRM-20261001-0022",
+      "school_id": 201,
+      "source_term_id": 202601,
+      "target_term_id": 202701,
+      "status": "previewed",
+      "total_count": 7,
+      "source_class_count": 5,
+      "target_class_count": 4,
+      "generated_at": "2026-10-01 10:05"
+    },
+    "source_classes": [
+      { "class_id": 20260101, "class_name": "2026 级 高一 (1) 班", "enrolled": 2, "excluded": "另有 1 名休学（陈思远，BR-STU-012 不计入在读）", "default_target": "2027 级 高二 (1) 班" },
+      { "class_id": 20260102, "class_name": "2026 级 高一 (2) 班", "enrolled": 2, "default_target": "2027 级 高二 (2) 班" },
+      { "class_id": 20260103, "class_name": "2026 级 高一 (3) 班", "enrolled": 1, "default_target": "2027 级 高二 (3) 班" },
+      { "class_id": 20250101, "class_name": "2025 级 高二 (1) 班", "enrolled": 1, "excluded": "另有 1 名出国保留学籍（徐昊然，BR-STU-012 不计入在读）", "default_target": "2027 级 高三 (1) 班" },
+      { "class_id": 20240101, "class_name": "2024 级 高三 (1) 班", "enrolled": 1, "note": "毕业年级：学段内序号最大，结果为毕业，不生成下一学年班级关系（REQ-PRM-015 / BR-PROMO-005）" }
+    ],
+    "rows": [
+      { "student_no": "2026000001", "student_name": "王梓萱", "source_class": "2026 级 高一 (1) 班", "result_type": "upgrade", "target_class": "2027 级 高二 (1) 班", "status": "pending" },
+      { "student_no": "2026000002", "student_name": "李俊逸", "source_class": "2026 级 高一 (1) 班", "result_type": "upgrade", "target_class": "2027 级 高二 (1) 班", "status": "pending" },
+      { "student_no": "2026000004", "student_name": "赵一诺", "source_class": "2026 级 高一 (2) 班", "result_type": "transfer", "target_class": "2027 级 高二 (2) 班", "status": "pending", "note": "由默认的高二 (2) 班改为随选科调整后的班级（REQ-PRM-017 转班）" },
+      { "student_no": "2026000006", "student_name": "吴雨桐", "source_class": "2026 级 高一 (2) 班", "result_type": "repeat", "target_class": null, "status": "pending", "note": "留级：去向为目标学年学期的同学段同名年级，不写 target_class_id（BR-PROMO-006）" },
+      { "student_no": "2026000101", "student_name": "朱书瑶", "source_class": "2026 级 高一 (3) 班", "result_type": "upgrade", "target_class": "2027 级 高二 (3) 班", "status": "pending" },
+      { "student_no": "2025000002", "student_name": "孙悠然", "source_class": "2025 级 高二 (1) 班", "result_type": "upgrade", "target_class": "2027 级 高三 (1) 班", "status": "pending" },
+      { "student_no": "2024000001", "student_name": "马嘉懿", "source_class": "2024 级 高三 (1) 班", "result_type": "graduate", "target_class": null, "status": "pending", "note": "毕业年级：不参与「同学段序号 +1」（REQ-PRM-015）" }
+    ],
+    "notes": [
+      "预览只生成任务明细，不写入学生数据（REQ-PRM-020）；真正写入在第 4 步执行，且只新增下一学年关系（REQ-PRM-030）。",
+      "年级主任（DS-05）只能看到本人负责年级（2026 级 高一）的 5 行；高二 (1) 班与高三 (1) 班的 2 行对其不可见，与升班列表页的计数收窄口径一致。",
+      "「跳过」样例没有单列一行：跳过的语义与「不参与本次升班」相同，本页用左栏的休学 / 出国提示说明不参与者，避免多造一条与在读口径冲突的数据。"
+    ]
   }
 }

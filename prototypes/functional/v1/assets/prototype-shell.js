@@ -75,7 +75,12 @@
     'PAGE-TCH-ASSIGN': { path: 'pages/teacher-assign.html', name: '任教关系设置', batch: '2-2' },
     'PAGE-CLS-DETAIL': { path: 'pages/class-detail.html', name: '班级详情', batch: '2-3' },
     'PAGE-CLS-ROSTER-ADD': { path: 'pages/class-roster-add.html', name: '编班（添加学生）', batch: '2-3' },
-    'PAGE-CLS-MOVE': { path: 'pages/class-move-students.html', name: '批量迁学生', batch: '2-3' }
+    'PAGE-CLS-MOVE': { path: 'pages/class-move-students.html', name: '批量迁学生', batch: '2-3' },
+    'PAGE-PRM-CREATE': { path: 'pages/promotion-create.html', name: '新建升班任务', batch: '2-3' },
+    'PAGE-PRM-PREVIEW': { path: 'pages/promotion-preview.html', name: '升班预览与调整', batch: '2-3' },
+    'PAGE-PRM-VALIDATE': { path: 'pages/promotion-validate.html', name: '升班校验结果', batch: '2-3' },
+    'PAGE-PRM-EXECUTE': { path: 'pages/promotion-execute.html', name: '执行与进度', batch: '2-3' },
+    'PAGE-PRM-RESULT': { path: 'pages/promotion-result.html', name: '执行结果与重试', batch: '2-3' }
   };
   Object.keys(EXTRA_PAGES).forEach(function (id) {
     PAGE_NAME[id] = EXTRA_PAGES[id].name;
@@ -109,12 +114,7 @@
     'PAGE-CLS-LEADER': { name: '指定 / 变更班主任', batch: '2-3' },
     'PAGE-CLS-COPY': { name: '复制班级', batch: '2-3' },
     'PAGE-CLS-MOVE': { name: '批量迁学生', batch: '2-3' },
-    'PAGE-PRM-CREATE': { name: '新建升班任务', batch: '2-3' },
-    'PAGE-PRM-PREVIEW': { name: '升班预览与调整', batch: '2-3' },
     'PAGE-PRM-ADJUST': { name: '调整学生去向', batch: '2-3' },
-    'PAGE-PRM-VALIDATE': { name: '升班校验结果', batch: '2-3' },
-    'PAGE-PRM-EXECUTE': { name: '执行与进度', batch: '2-3' },
-    'PAGE-PRM-RESULT': { name: '执行结果与重试', batch: '2-3' },
     'PAGE-PRM-CHANGE': { name: '学籍异动登记', batch: '2-5' },
     'PAGE-PRM-TRANSFER': { name: '跨校转学', batch: '2-5' }
   };

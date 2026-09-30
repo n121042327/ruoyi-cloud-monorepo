@@ -1690,10 +1690,351 @@ promotion_list:
       audit: 是
       batch: "2-3"
 
+# ---------------------------------------------------------------------------
+# 升班向导第一步（PAGE-PRM-CREATE）——批次 2-3e-s2
+# ---------------------------------------------------------------------------
+promotion_create:
+  page: PAGE-PRM-CREATE
+  actions:
+    - id: ACT-PRM-011
+      element: 取消
+      trigger: 点击
+      condition: 有 promotion.batch:create 权限
+      permission: "academic_director / promotion.batch / create"
+      api: "-"
+      confirm: 已填写内容时提示"返回列表会丢弃当前填写的范围，任务不会被创建"
+      result: 返回 PAGE-PRM-LIST，保留列表的筛选条件与页码，不产生任何写入
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-012
+      element: 下一步：预览与调整
+      trigger: 点击
+      condition: 有 promotion.batch:create 权限；源与目标学年学期已选且目标起始日期晚于源；目标学年学期的年级与班级齐备；同一源→目标学期没有未结束任务
+      permission: "academic_director / promotion.batch / create"
+      api: addPromotionTask
+      result: 创建草稿任务（REQ-PRM-011）并写入审计（REQ-PRM-012），随后进入 PAGE-PRM-PREVIEW 生成升班预览；阻塞项存在时不发请求，只给字段级或页面级提示
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-013
+      element: 重新校验（目标学年学期的年级与班级齐备性）
+      trigger: 点击
+      condition: 有 promotion.batch:create 权限
+      permission: "academic_director / promotion.batch / create"
+      api: "-"
+      result: 重新解析目标学年学期的年级与班级清单与未结束任务，刷新阻塞项与耗时预估；前端校验不作为安全边界，后端在 addPromotionTask 内重复校验（NFR-SEC-05）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-014
+      element: 查看在读名单
+      trigger: 点击
+      condition: 有 person.student:read 权限
+      permission: "person.student / read"
+      api: "-"
+      result: 跳转 PAGE-STU-LIST，按源学年学期与"在读"口径查看参与升班的学生
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-015
+      element: 去创建年级
+      trigger: 点击
+      condition: 目标学年学期缺年级（REQ-PRM-009）
+      permission: "org.grade / read"
+      api: "-"
+      result: 跳转 PAGE-GRD-LIST，按目标学年学期新建缺失的年级（年级的唯一写入入口在年级模块）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-016
+      element: 去创建班级
+      trigger: 点击
+      condition: 目标学年学期缺班级（REQ-PRM-009）
+      permission: "org.class / read"
+      api: "-"
+      result: 跳转 PAGE-CLS-LIST，按目标学年学期补建缺失的班级
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-017
+      element: 查看已有任务
+      trigger: 点击
+      condition: 同一源→目标学期已存在未结束任务（REQ-PRM-005）
+      permission: "promotion.batch / read"
+      api: "-"
+      result: 跳转 PAGE-PRM-LIST，定位到该未结束任务，可继续执行或取消
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-018
+      element: 去学生管理核对学籍状态（空态主动作）
+      trigger: 点击
+      condition: 源学年学期的在读学生数为 0
+      permission: "person.student / read"
+      api: "-"
+      result: 跳转 PAGE-STU-LIST，核对学籍状态（休学 / 转入未报到 / 出国保留学籍都不计入在读名单，BR-STU-012）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-019
+      element: 返回任务列表（空态 / 错误态 / 无权限态的返回入口）
+      trigger: 点击
+      condition: 有 promotion.batch:read 权限
+      permission: "promotion.batch / read"
+      api: "-"
+      result: 返回 PAGE-PRM-LIST；只读角色看到的是列表的只读形态（CR-012）
+      audit: 否
+      batch: "2-3"
+
+# ---------------------------------------------------------------------------
+# 升班向导第二步：预览与调整（PAGE-PRM-PREVIEW）——批次 2-3e-s3
+# ---------------------------------------------------------------------------
+promotion_preview:
+  page: PAGE-PRM-PREVIEW
+  actions:
+    - id: ACT-PRM-020
+      element: 上一步：选择学年学期
+      trigger: 点击
+      condition: 有 promotion.batch:update 权限
+      permission: "academic_director / promotion.batch / update"
+      api: "-"
+      result: 返回 PAGE-PRM-CREATE 修改源 / 目标学年学期；已生成的预览明细保留，重新预览时才覆盖
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-021
+      element: 重新预览
+      trigger: 点击
+      condition: 有 promotion.batch:update 权限
+      permission: "academic_director / promotion.batch / update"
+      api: previewPromotionTask
+      confirm: 需要，提示"重新生成预览会覆盖旧明细"
+      result: 重新生成升班明细（仍不写入任何学生数据，REQ-PRM-020）；任务状态回到已预览待确认（REQ-PRM-021）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-022
+      element: 导出预览结果
+      trigger: 点击
+      condition: 有 data.export:export 权限
+      permission: "data.export:export"
+      api: exportPromotionPreview
+      result: 导出预览清单（源班级 / 目标班级 / 结果类型），供教务主任线下核对后再确认（REQ-PRM-019）；行数 ≤ 2000 直接下载，否则转异步
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-023
+      element: 应用到本班（按源班级整体指定目标班级）
+      trigger: 点击
+      condition: 有 promotion.batch:update 权限；该源班级至少 1 名在读学生
+      permission: "academic_director / promotion.batch / update"
+      api: batchUpdatePromotionItem
+      result: 该源班级的全部明细统一写入目标班级（REQ-PRM-018）；毕业年级不提供该入口；写入后仍可逐条调整
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-024
+      element: 行内「调整」
+      trigger: 点击明细行内按钮
+      condition: 有 promotion.batch:update 权限
+      permission: "academic_director / promotion.batch / update"
+      api: "-"
+      result: 打开 PAGE-PRM-ADJUST 弹窗并带入该学生、源班级与当前处理方式（REQ-PRM-017）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-025
+      element: 下一步：升班校验
+      trigger: 点击
+      condition: 有 promotion.batch:update 权限
+      permission: "academic_director / promotion.batch / update"
+      api: validatePromotionTask
+      result: 进入 PAGE-PRM-VALIDATE，按 REQ-PRM-022 的五个维度校验；存在错误项时不允许执行（REQ-PRM-025）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-026
+      element: 左栏源班级行（只看该班明细）
+      trigger: 点击
+      condition: 有 promotion.batch:read 权限
+      permission: "promotion.batch / read"
+      api: "-"
+      result: 右栏明细按该源班级过滤（REQ-PRM-013 的「源班级 → 目标班级」分组视角）；再点同一行回到全部
+      audit: 否
+      batch: "2-3"
+
+# ---------------------------------------------------------------------------
+# 升班向导第二步的调整弹窗（PAGE-PRM-ADJUST）——批次 2-3e-s3
+# ---------------------------------------------------------------------------
+promotion_adjust:
+  page: PAGE-PRM-ADJUST
+  actions:
+    - id: ACT-PRM-027
+      element: 取消
+      trigger: 点击取消或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭 PAGE-PRM-ADJUST，不写入任何明细字段
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-028
+      element: 保存调整
+      trigger: 点击保存
+      condition: 升级 / 转班必须指定目标班级；留级 / 跳过必须填写原因
+      permission: "academic_director / promotion.batch / update"
+      api: updatePromotionItem
+      result: 只写升班明细的 result_type / target_class_id / 原因（REQ-PRM-017），不改学生数据（REQ-PRM-020）；留级的去向是目标学年学期的同学段同名年级（BR-PROMO-006）
+      audit: 是
+      batch: "2-3"
+
+# ---------------------------------------------------------------------------
+# 升班模块的跨页通用动作（列表 / 预览 / 校验 / 执行 / 结果共用）
+# ---------------------------------------------------------------------------
+promotion_common:
+  page: "PAGE-PRM-LIST / PAGE-PRM-PREVIEW / PAGE-PRM-VALIDATE / PAGE-PRM-EXECUTE / PAGE-PRM-RESULT"
+  actions:
+    - id: ACT-PRM-043
+      element: 返回任务列表
+      trigger: 点击
+      condition: 有 promotion.batch:read 权限
+      permission: "promotion.batch / read"
+      api: "-"
+      result: 返回 PAGE-PRM-LIST（列表保留筛选与页码）；只读角色看到只读形态（CR-012）
+      audit: 否
+      batch: "2-3"
+
+# ---------------------------------------------------------------------------
+# 升班向导第三步：校验结果（PAGE-PRM-VALIDATE）——批次 2-3e-s4
+# ---------------------------------------------------------------------------
+promotion_validate:
+  page: PAGE-PRM-VALIDATE
+  actions:
+    - id: ACT-PRM-029
+      element: 上一步：预览与调整 / 回到预览修正
+      trigger: 点击
+      condition: 有 promotion.batch:update 权限
+      permission: "academic_director / promotion.batch / update"
+      api: "-"
+      result: 返回 PAGE-PRM-PREVIEW 修改去向；存在错误项时这是首选修正路径（REQ-PRM-025）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-030
+      element: 重新校验
+      trigger: 点击
+      condition: 有 promotion.batch:update 权限
+      permission: "academic_director / promotion.batch / update"
+      api: validatePromotionTask
+      result: 按 REQ-PRM-022 的五个维度重新校验，刷新通过 / 警告 / 错误三分类（REQ-PRM-023）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-031
+      element: 按维度下钻（全部 / 通过 / 警告 / 错误）
+      trigger: 点击
+      condition: 有 promotion.batch:read 权限
+      permission: "promotion.batch / read"
+      api: "-"
+      result: 明细清单按校验级别过滤，用于下钻到具体学生（REQ-PRM-026）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-032
+      element: 行内「标记跳过」
+      trigger: 点击行内按钮
+      condition: 有 promotion.batch:update 权限；该行不是「通过」
+      permission: "academic_director / promotion.batch / update"
+      api: updatePromotionItem
+      result: 把该学生的 result_type 置为 skip（本次不处理），用于放行错误项（REQ-PRM-025 / REQ-PRM-017）；不改学生数据
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-033
+      element: 确认执行（异步）
+      trigger: 点击
+      condition: 有 promotion.batch:update 权限；没有任何错误项（或错误项已标记跳过）
+      permission: "academic_director / promotion.batch / update"
+      api: executePromotionTask
+      confirm: 需要，文案写清"只新增下一学年的班级与学生关系，不改写源学年"
+      result: 异步执行并立即返回任务编号（REQ-PRM-027），按幂等键写入（REQ-PRM-029），进入 PAGE-PRM-EXECUTE
+      audit: 是
+      batch: "2-3"
+
+# ---------------------------------------------------------------------------
+# 升班向导第四步：执行与进度（PAGE-PRM-EXECUTE）——批次 2-3e-s4
+# ---------------------------------------------------------------------------
+promotion_execute:
+  page: PAGE-PRM-EXECUTE
+  actions:
+    - id: ACT-PRM-034
+      element: 刷新进度
+      trigger: 点击
+      condition: 有 promotion.batch:read 权限
+      permission: "promotion.batch / read"
+      api: getPromotionTask
+      result: 刷新已处理 / 总数与成功 / 失败计数（REQ-PRM-031）；离开页面不影响后台执行
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-035
+      element: 取消任务（去列表）
+      trigger: 点击
+      condition: 有 promotion.batch:update 权限；任务未结束
+      permission: "academic_director / promotion.batch / update"
+      api: "-"
+      result: 返回 PAGE-PRM-LIST 并在行内「取消」完成二次确认（原因必填）；取消后保留已完成部分、不做整批回滚（已确认 4 / ACT-PRM-010）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-036
+      element: 查看结果
+      trigger: 点击
+      condition: 有 promotion.batch:read 权限
+      permission: "promotion.batch / read"
+      api: "-"
+      result: 进入 PAGE-PRM-RESULT 查看成功 / 失败 / 留级 / 毕业四类清单（REQ-PRM-034）并重试失败项
+      audit: 否
+      batch: "2-3"
+
+# ---------------------------------------------------------------------------
+# 升班结果与重试（PAGE-PRM-RESULT）——批次 2-3e-s4
+# ---------------------------------------------------------------------------
+promotion_result:
+  page: PAGE-PRM-RESULT
+  actions:
+    - id: ACT-PRM-037
+      element: 只重试失败项
+      trigger: 点击
+      condition: 有 promotion.batch:update 权限；存在失败项
+      permission: "academic_director / promotion.batch / update"
+      api: retryPromotionTask
+      confirm: 需要，文案写清"只重新处理失败项，已成功的记录不重复执行"
+      result: 只重试失败项（REQ-PRM-032），按幂等键跳过已成功的关系（REQ-PRM-028 / REQ-PRM-029）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-038
+      element: 结果导出
+      trigger: 点击
+      condition: 有 data.export:export 权限
+      permission: "data.export:export"
+      api: exportPromotionResult
+      result: 下载结果报告（成功清单 / 失败清单 / 留级清单 / 毕业清单，REQ-PRM-034）；下载前重新解析数据范围（DS-DENY-04）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-039
+      element: 继续执行剩余项
+      trigger: 点击
+      condition: 有 promotion.batch:update 权限；任务为已取消或存在未处理项
+      permission: "academic_director / promotion.batch / update"
+      api: retryPromotionTask
+      result: 保留已完成的升班结果，只处理剩余未升班的学生（已确认 4）；已成功的关系不重复写入（REQ-PRM-028）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-040
+      element: 行内「查看学生」（失败清单）
+      trigger: 点击行内按钮
+      condition: 有 person.student:read 权限
+      permission: "person.student / read"
+      api: "-"
+      result: 跳转 PAGE-STU-LIST 核对该学生的学籍状态与班级关系（失败项定位用）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-041
+      element: 切换结果清单（成功 / 失败 / 留级 / 毕业）
+      trigger: 点击
+      condition: 有 promotion.batch:read 权限
+      permission: "promotion.batch / read"
+      api: "-"
+      result: 在四类清单之间切换（REQ-PRM-034）；数据范围仍按角色过滤（年级主任只看本人负责年级）
+      audit: 否
+      batch: "2-3"
+
 batches_pending:
   - { batch: "2-2", pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-CREATE, PAGE-TCH-EDIT, PAGE-TCH-LEAVE, PAGE-TCH-ROLE, PAGE-TCH-ASSIGN], status: "2-2a、2-2b-1 与 2-2b-2 教师部分已产出待验收（ACT-TCH-001 ~ 039 已登记）" }
   - { batch: "2-2b-2b", pages: [PAGE-GRD-LIST, PAGE-GRD-DETAIL, PAGE-GRD-CREATE, PAGE-GRD-BATCH, PAGE-GRD-LEADER, PAGE-GRD-ARCHIVE], status: "PAGE-GRD-LIST 样板页已产出待验收（ACT-GRD-001 ~ 011 已登记）；其余 5 页待样板验收后铺开" }
-  - { batch: "2-3", pages: [PAGE-CLS-LIST, PAGE-CLS-DETAIL, PAGE-CLS-CREATE, PAGE-CLS-BATCH, PAGE-CLS-ROSTER-ADD, PAGE-CLS-TRANSFER, PAGE-CLS-LEADER, PAGE-CLS-COPY, PAGE-CLS-MOVE, PAGE-PRM-LIST, PAGE-PRM-CREATE, PAGE-PRM-PREVIEW, PAGE-PRM-ADJUST, PAGE-PRM-VALIDATE, PAGE-PRM-EXECUTE, PAGE-PRM-RESULT], status: "2-3a（class_list，ACT-CLS-001 ~ 016）、2-3b（class_detail，ACT-CLS-017 ~ 029、048 ~ 052、064）、2-3c（class_create / class_batch / class_copy / class_leader，ACT-CLS-030 ~ 047）、2-3d（class_roster_add 053 ~ 058 / class_move_students 059 ~ 063）、2-3e-s1（promotion_list，ACT-PRM-001 ~ 010，含 DIALOG-PRM-CANCEL）已产出待验收；2-3e 剩余 6 页（CREATE / PREVIEW / ADJUST / VALIDATE / EXECUTE / RESULT）待样板确认后铺开" }
+  - { batch: "2-3", pages: [PAGE-CLS-LIST, PAGE-CLS-DETAIL, PAGE-CLS-CREATE, PAGE-CLS-BATCH, PAGE-CLS-ROSTER-ADD, PAGE-CLS-TRANSFER, PAGE-CLS-LEADER, PAGE-CLS-COPY, PAGE-CLS-MOVE, PAGE-PRM-LIST, PAGE-PRM-CREATE, PAGE-PRM-PREVIEW, PAGE-PRM-ADJUST, PAGE-PRM-VALIDATE, PAGE-PRM-EXECUTE, PAGE-PRM-RESULT], status: "2-3 全部产出待验收：2-3a class_list（ACT-CLS-001 ~ 016）、2-3b class_detail（017 ~ 029、048 ~ 052、064）、2-3c 四个班级弹窗（030 ~ 047）、2-3d 编班与批量迁学生（053 ~ 063）、2-3e 升班 6 页 + 1 确认片段（ACT-PRM-001 ~ 043：s1 001 ~ 010、s2 011 ~ 019、s3 020 ~ 028、s4 029 ~ 041、common 043）" }
   - { batch: "2-4", pages: [PAGE-IMP-WIZARD, PAGE-IMP-TEMPLATE, PAGE-IMP-VALIDATE, PAGE-IMP-EXECUTE, PAGE-STU-IMPORT, PAGE-TCH-IMPORT, PAGE-CLS-ROSTER-IMPORT, PAGE-LOGIN, PAGE-403, PAGE-404, PAGE-500], status: 待开始 }
 
 # ---------------------------------------------------------------------------

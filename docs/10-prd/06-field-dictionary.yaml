@@ -268,6 +268,47 @@ enums:
       「已合并」随班级合并功能（REQ-CLS-045，首轮延后）一并评估，本轮不登记。
     applied_by: CR-010
 
+  # ---- 升班模块的明细枚举（CR-014 / GAP-055 补登记，2026-10-01） ----
+  - name: promotion_result_type
+    name_cn: 升班结果类型
+    entries:
+      - { code: upgrade, label: 升级 }
+      - { code: repeat, label: 留级 }
+      - { code: transfer, label: 转班 }
+      - { code: graduate, label: 毕业 }
+      - { code: skip, label: 跳过 }
+    note: |
+      升班明细的处理结果（edu_promotion_task_item.result_type）。
+      取值依据升班 PRD 4.3：升级是默认结果（同年级序号 +1，REQ-PRM-014）；
+      留级、转班、毕业、跳过是预览阶段可逐条指定的调整方式（REQ-PRM-016 / 017）。
+      毕业只出现在学段内序号最大的年级（REQ-PRM-015 / BR-PROMO-005）；
+      留级的去向是目标学年学期的同学段同名年级（BR-PROMO-006），不改写源学年的任何记录（BR-PROMO-001）。
+    applied_by: CR-014
+  - name: promotion_item_status
+    name_cn: 升班明细状态
+    entries:
+      - { code: pending, label: 待处理 }
+      - { code: succeeded, label: 成功 }
+      - { code: failed, label: 失败 }
+      - { code: skipped, label: 跳过 }
+    note: |
+      升班明细的执行状态（edu_promotion_task_item.status）。
+      取值依据升班 PRD 4.3 / 4.5：预览只生成明细、不写学生数据（REQ-PRM-020），此时明细为待处理；
+      执行成功进「成功清单」、失败进「失败清单」（REQ-PRM-034）并逐条记录失败原因（REQ-PRM-032）；
+      被显式指定为「跳过（暂不处理）」的明细为跳过（REQ-PRM-017）。
+      与任务状态 promotion_task_status 是两个层次：任务状态描述整批，明细状态描述单个学生。
+    applied_by: CR-014
+  - name: promotion_validation_level
+    name_cn: 升班校验级别
+    entries:
+      - { code: passed, label: 通过 }
+      - { code: warning, label: 警告 }
+      - { code: error, label: 错误 }
+    note: |
+      升班校验结果的三分类（REQ-PRM-023）：通过 / 警告（如目标班级超容量）/ 错误（阻塞执行）。
+      容量超限只产生警告、不阻塞（REQ-PRM-024 / BR-CLASS-005）；存在错误项时必须先修正或标记跳过才能执行（REQ-PRM-025）。
+    applied_by: CR-014
+
 fields:
   - { name: student_no, cn: 学号, type: varchar(32), required: true, unique_scope: platform, br: BR-STU-001, format: "入学年份(4) + 全局序号(6)", note: 系统统一发号；永不回收；导入时忽略源学号；修改需校级管理员且留审计 }
   - { name: national_student_no, cn: 全国学籍号, type: varchar(64), required: false, unique_scope: platform, br: BR-STU-022, note: 官方 G / L 开头号码，允许为空，非空时全平台唯一 }
@@ -369,6 +410,13 @@ fields:
   - { name: total_count, cn: 学生总数, type: int, required: false, note: 统计值，受数据范围约束（DS-DENY-08）；草稿为 0 且前端显示「—」（REQ-PRM-011） }
   - { name: success_count, cn: 成功数, type: int, required: false, note: 统计值，受数据范围约束（DS-DENY-08）；重试只增加成功数，不重复处理已完成项（BR-PROMO-003） }
   - { name: failed_count, cn: 失败数, type: int, required: false, note: 统计值，受数据范围约束；与逐条失败原因成对出现（REQ-PRM-032） }
+  - { name: task_id, cn: 所属任务 ID, type: bigint, required: true, br: BR-PROMO-002, note: edu_promotion_task_item.task_id；与 student_id 组成唯一键 (task_id, student_id)，保证同一批任务的同一学生只出现一次（REQ-PRM-029 的幂等键组成部分） }
+  - { name: student_id, cn: 学生 ID, type: bigint, required: true, note: 平台级学生主体（不参与学校租户隔离，D-037）；明细与学生主体是多对一，学生档案本身不随升班迁移（BR-PROMO-011） }
+  - { name: source_class_id, cn: 源班级 ID, type: bigint, required: false, br: BR-PROMO-004, note: 引用 edu_class；毕业年级或源学年无行政班关系时为空（BR-PROMO-005） }
+  - { name: target_class_id, cn: 目标班级 ID, type: bigint, required: false, br: BR-PROMO-004, note: 引用 edu_class；必须属于目标学年学期（REQ-PRM-022）；留级 / 毕业 / 跳过时为空。目标班级的批量指定按源班级整体生效（REQ-PRM-018） }
+  - { name: result_type, cn: 升班结果类型, type: varchar(16), required: true, enum_ref: promotion_result_type, br: BR-PROMO-002, note: edu_promotion_task_item.result_type；默认升级，可在预览阶段逐条调整为留级 / 转班 / 毕业 / 跳过（REQ-PRM-014 / 017） }
+  - { name: status, cn: 明细状态, type: varchar(16), required: true, enum_ref: promotion_item_status, note: edu_promotion_task_item.status；与任务状态 promotion_task_status 分层，取值见枚举 promotion_item_status }
+  - { name: error_msg, cn: 失败原因, type: varchar(500), required: false, br: BR-PROMO-002, note: 逐条记录失败原因，支持只重试失败项（REQ-PRM-032）；执行结果报告按此列生成失败清单（REQ-PRM-034） }
 
 unique_keys:
   - { table: edu_student, columns: [student_no], br: BR-STU-001, note: 学号全平台唯一，由系统统一发号，序号按年重置 }

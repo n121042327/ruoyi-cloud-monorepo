@@ -1112,6 +1112,131 @@
 - 如果错了的代价：删掉新增的 6 个字段与 1 条部分唯一说明、把升班 PRD 的 6.1 / 6.3 两行与版本回滚、
   撤掉 `navigation.yaml` 的片段条目并把页数改回 16 即可，不涉及表结构、接口与已交付页面
 
+## D-072 交付批次 2-3e-s2：升班向导第一步 `PAGE-PRM-CREATE`
+
+- 日期：2026-10-01
+- 触发：用户对 2-3e-s1（升班任务列表样板）答复「继续」，按 `navigation.yaml` 的批次顺序进入 2-3e-s2
+- 上游依据：升班 PRD 6.2（四步向导第 1 步「选择学年学期」，校验目标年级班级是否齐备）、
+  `REQ-PRM-005` / `007` ~ `012` / `019` / `027` / `031`、`BR-PROMO-001` / `003` / `004`、`BR-TERM-005`、`BR-STU-012`、`NFR-PERF-07`
+- 决策：
+  1. **升班四步向导按「每步一个独立页」交付**（`promotion-create.html` / `promotion-preview.html` / `promotion-validate.html` /
+     `promotion-execute.html` / `promotion-result.html`），不合成一个 `promotion-wizard.html`。
+     理由：`navigation.yaml` 给每步都注册了独立 `route`，`jump_map` 也把「下一步」写成页面跳转；
+     合成单文件会让 `data-page` 与 `jump_map` 两个契约同时失真。`file-catalog.md` 里原来那条
+     `promotion-wizard.html`（`planned`）随之改为按页登记。
+  2. **步骤条可点**：第 2 ~ 4 步用 `data-role="nav"` + `data-nav` 指向各自页面，未交付时由外壳给出「批次 2-3 交付」提示，
+     既不打开空页，也不隐藏步骤进度。
+  3. **四档校验样例**（齐备 / 缺年级班级 / 同一源→目标已有未结束任务 / 在读超阈值）用一个可切换的样例组承载，
+     覆盖 `REQ-PRM-005` / `009` / `010` 三条前置校验，并让「下一步」在被阻止与可用两种形态下都可验收。
+  4. **阻塞项存在时不把主按钮置灰**：置灰后点击不再触发事件，用户拿不到「为什么不能建」的说明；
+     改为按钮可点 + `data-blocked` 标记 + 常驻阻塞条 + 点击给原因（与 2-3d「目标班级已停用点执行被拦」同口径）。
+  5. **底部操作条 sticky**：`TPL-WIZARD` 要求「底部固定操作条」，否则 900 高度窗口里主按钮会被挤到折叠线以下；
+     右对齐收窄宽度，避免压住左下角的「原型演示」浮面板。
+  6. **无 `promotion.batch:create` 的角色一律进无权限态**（含校领导 / 年级主任 / 平台运营 / 班主任 / 租户管理员 / 任课教师）：
+     本页是纯创建页，不存在只读形态；只读角色看列表与预览（`CR-012`）。
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/functional/v1/pages/promotion-create.html` | 新增：向导第一步（步骤条 + 表单 + 齐备性校验 + 规模预估 + sticky 操作条 + 五类状态） |
+| `prototypes/functional/v1/page-specs/promotion-create.md` | 新增：页面规格（结构 / 字段 / 动作 / 状态 / 跳转 / 权限 / 样例 / 自查） |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `promotion_create` 动作组（`ACT-PRM-011` ~ `ACT-PRM-019`）；批次 2-3 状态文本更新 |
+| `prototypes/functional/v1/navigation.yaml` | `PAGE-PRM-CREATE` 补 note（2-3e-s2 已交付）；批次 2-3 状态文本更新 |
+| `prototypes/functional/v1/content-samples.json` | 新增 `promotion_create_samples`（学年学期选项 + 四档校验样例 + 口径说明） |
+| `prototypes/functional/v1/assets/prototype-shell.js` | `EXTRA_PAGES` 登记 `PAGE-PRM-CREATE` → `pages/promotion-create.html`（从 `PENDING_PAGES` 移出） |
+| `prototypes/functional/v1/index.html` | 已交付页面表补 2-3b ~ 2-3e-s2 共 8 行；批次 2-3 行改为 17 页 / 2-3e-s2 待验收；补一条演示步骤与 `GAP-055` 提示 |
+| `evidence/stage2-prototype/verify-promotion-create.html` | 新增：交互 harness（`PC-01` ~ `PC-22`，真实事件派发） |
+| `evidence/stage2-prototype/promotion-create_*.png` | 11 张截图：3 个分辨率 + 3 档校验样例 + 1 种角色形态 + 3 类状态 + harness 结果 |
+
+- 关键设计：
+  1. **三类前置校验都在创建前落地**：目标学年学期的年级与班级齐备性（`REQ-PRM-009`）、
+     同一源→目标学期只允许一个未结束任务（`REQ-PRM-005` / `BR-PROMO-003`）、在读人数超过 1 万给耗时预估（`REQ-PRM-010` / `NFR-PERF-07`）
+  2. **字段级校验按 PRD 原文**：两项必填（`REQ-PRM-007`）+ 目标起始日期必须晚于源且不能相同（`REQ-PRM-008` / `BR-TERM-005`）
+  3. **在读口径写在页面上**：只有在读（`enrolled`）计入，休学 / 转入未报到 / 出国保留学籍都不计入（`BR-STU-012` / `CR-011`）
+  4. **每个可交互元素都有可回溯标记**：动作 `ACT-PRM-011` ~ `019` 均已登记，字段取自
+     `school_id` / `source_term_id` / `target_term_id` / `remark`（全部在字段字典内）
+- 验证证据：`verify-promotion-create.html` 22 / 22 通过；8 个已交付 harness 回归全绿
+  （promotion-list 36、class-list 39、class-detail 20、class-roster 34、class-dialogs 36、grade-list 38、detail-entry 6、carrier-change 14）；
+  `python tools/check_docs.py` 通过；11 张截图归档在 `evidence/stage2-prototype/`
+- 本批同时暴露一个**阻塞**缺项：`GAP-055` —— 升班明细的 7 个字段（`task_id` / `student_id` / `source_class_id` /
+  `target_class_id` / `result_type` / `status` / `error_msg`）与「调整方式」枚举未登记进 `06-field-dictionary.yaml`，
+  阻塞向导第 2 ~ 4 步的 `data-field` 回溯与阶段 5 的升班建表；建议按选项 A 立 `CR-014` 一次补全后再铺 2-3e-s3
+- 如果错了的代价：删除 `pages/promotion-create.html` 与 `page-specs/promotion-create.md`，
+  回滚 `page-actions.yaml` 的 `promotion_create` 动作组、`navigation.yaml` 的 note 与批次文本、
+  `prototype-shell.js` 的 `EXTRA_PAGES` 一行、`content-samples.json` 的 `promotion_create_samples` 节点即可；
+  不涉及 `promotion-list.html` 与班级模块的 4 个小批，也不涉及表结构与接口实现
+
+## D-073 补齐升班明细的字段与枚举（GAP-055 选项 A / CR-014）
+
+- 日期：2026-10-01
+- 触发：批次 2-3e-s2 交付 `PAGE-PRM-CREATE` 后，对下一步（预览与调整）做前置反查，发现升班明细的字段与「调整方式」枚举没进字段字典
+- 上游依据：用户 2026-10-01 对 `GAP-055` 的「推荐 A」答复「同意」
+- 决策：**一次 CR 补全**，与 `CR-004`（教师字段）/ `CR-005`（年级字段与权限）/ `CR-010`（班级字段）/ `CR-013`（升班任务字段）同口径
+- 落地内容（`CR-014`）：
+
+| 文件 | 变更 |
+|---|---|
+| `docs/10-prd/06-field-dictionary.yaml` | 新增 7 个字段：`task_id` / `student_id` / `source_class_id` / `target_class_id` / `result_type`（`enum_ref: promotion_result_type`）/ `status`（`enum_ref: promotion_item_status`）/ `error_msg`；新增 3 个枚举：`promotion_result_type`（升级 / 留级 / 转班 / 毕业 / 跳过）、`promotion_item_status`（待处理 / 成功 / 失败 / 跳过）、`promotion_validation_level`（通过 / 警告 / 错误） |
+| `docs/10-prd/04-business-rules.md` | `BR-PROMO-006` 补「留级的去向是目标学年学期的同学段同名年级，仍不改写源学年记录」 |
+| `docs/10-prd/modules/promotion/PRD.md` | 6.1 补字段口径（调整弹窗写 `result_type` + `target_class_id`；任务 / 明细两层状态的区分）；6.3 补「预览中指定留级」「预览中指定转班」两行；7.1 修正 `result_type` 取值（补「转班」）并注明任务行 `status` 指 `promotion_task_status`；版本升 `1.0.4-draft` |
+| `prototypes/functional/v1/page-specs/promotion-create.md` | 字段清单备注由「见 `GAP-055`」改为「已由 `CR-014` 登记」，自查第 4 条同步 |
+| `docs/00-governance/gap-register.yaml` / `stage-inputs.yaml` | `GAP-055` 置 `closed` 并补 `resolution`；`stage3` / `stage5` 的 `blocking_gaps` 移出该条（已结项不得再列为阻塞） |
+
+- 为什么必须回改冻结文档：字段字典的 `purpose` 要求所有字段都可查；
+  向导第 2 ~ 4 步的每一行都要带 `data-field`，第 3 步还要用 `REQ-PRM-023` 的三分类，第 4 步的结果报告依赖 `result_type` 与明细状态；
+  阶段 5 的 `edu_promotion_task_item` 也需要字段名与取值依据（`result_type` 是列还是字典表由这一条决定）
+- 超出选项 A 字面范围的部分（可回退）：选项 A 的字面要求是「7 个字段 + 1 个 result_type 枚举」，
+  实际另补了 `promotion_item_status` 与 `promotion_validation_level` 两个枚举——它们是同一次向导交付（第 3 / 4 步）的必需品，
+  取值直接取自 `REQ-PRM-020` / `023` / `024` / `025` / `032` / `034` 的原文，不是新造规则。
+  若认为超出范围，删掉这两个枚举并回退对应字段的 `enum_ref` 即可，不影响 7 个字段与 `promotion_result_type`
+- 验证证据：`python tools/check_docs.py` 通过；PyYAML 复核新增字段与枚举可解析；
+  本批未改动任何原型页面，`verify-promotion-create.html` 22 / 22 与另 8 个 harness 重跑全绿作为回归证据
+- 如果错了的代价：删掉新增的 7 个字段与 3 个枚举、回滚 `BR-PROMO-006` 与升班 PRD 的三处说明与版本、
+  把 `GAP-055` 重置为 `open` 并恢复 `stage-inputs.yaml` 的两处 `blocking_gaps` 即可，不涉及表结构与已交付页面
+
+## D-074 交付批次 2-3e-s3 / s4：升班向导第 2 ~ 4 步（阶段 2 收尾）
+
+- 日期：2026-10-01
+- 触发：用户「一次性把剩下原型阶段的文件全部生成出来……需要我拍板的默认选推荐」的整体授权（本目标已登记为 goal）
+- 上游依据：升班 PRD 4.3 ~ 4.5、6.1 ~ 6.3；`REQ-PRM-013` ~ `REQ-PRM-036`；`BR-PROMO-001` ~ `006`、`BR-CLASS-005`、`BR-STU-020`、`DS-DENY-04`
+- 决策：
+  1. **升班模块的跨页通用动作单列一组** `promotion_common`（`ACT-PRM-043` 返回任务列表），
+     与 `common_actions` 同口径：同一语义只登记一次，避免 5 个页面各造一个「返回列表」编号。
+  2. **向导页共用样式抽到 `assets/wizard.css`**（步骤条 / sticky 操作条 / 分组清单 / 数值卡 / 进度条 / 弹窗清单行），
+     `promotion-create.html` 同步改为引用该文件，避免 6 个页面各写一份 CSS 产生漂移。
+  3. **只读角色不渲染写入口，而不是渲染后禁用**：预览页的行内「调整」与「应用到本班」用 `data-role-visible` 控制，
+     年级主任 / 校领导 / 平台运营看到的操作列是「只读」文字（`CR-012` / `GAP-053`）。
+  4. **错误项存在时不把「确认执行」置灰**：与 `D-072` 第 4 条同口径，按钮可点 + `data-blocked` + 点击给出「先修正或标记跳过」的原因（`REQ-PRM-025`）。
+  5. **执行页不做危险动作**：取消入口指向任务列表的行内「取消」（那里已有 `DIALOG-PRM-CANCEL` 的二次确认与原因必填），
+     进度页只做只读展示 + 刷新 + 查看结果。
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/functional/v1/pages/promotion-preview.html` | 新增：向导第二步（双栏 + 调整弹窗片段 `PAGE-PRM-ADJUST`） |
+| `prototypes/functional/v1/pages/promotion-validate.html` | 新增：向导第三步（三分类 + 下钻 + 标记跳过 + 执行被拦） |
+| `prototypes/functional/v1/pages/promotion-execute.html` | 新增：向导第四步（进度 + 四类计数 + 时间线 + 排队中） |
+| `prototypes/functional/v1/pages/promotion-result.html` | 新增：结果与重试（四类清单 + 只重试失败项 / 继续执行剩余项） |
+| `prototypes/functional/v1/assets/wizard.css` | 新增：向导类共用样式 |
+| `prototypes/functional/v1/page-specs/promotion-{preview,adjust,validate,execute,result}.md` | 新增：5 份页面规格 |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `promotion_preview`（020 ~ 026）、`promotion_adjust`（027 ~ 028）、`promotion_common`（043）、`promotion_validate`（029 ~ 033）、`promotion_execute`（034 ~ 036）、`promotion_result`（037 ~ 041） |
+| `prototypes/functional/v1/navigation.yaml` | 4 个页面补 note；批次 2-3 状态改为「已全部产出待验收」 |
+| `prototypes/functional/v1/content-samples.json` | 新增 `promotion_preview`（任务 `PRM-20261001-0022` + 5 个源班级 + 7 行明细） |
+| `prototypes/functional/v1/assets/prototype-shell.js` | `EXTRA_PAGES` 登记 PREVIEW / VALIDATE / EXECUTE / RESULT |
+| `evidence/stage2-prototype/verify-promotion-wizard.html` | 新增：39 条断言（4 个 iframe） |
+| `evidence/stage2-prototype/promotion-{preview,validate,execute,result}_*.png` + `promotion-wizard_verify-results.png` | 16 张截图 |
+
+- 关键设计：
+  1. **留级的去向写进页面与规则**：行内显示「2027-2028 学年 高一（同学段同名年级）」且不写 `target_class_id`（`BR-PROMO-006`，本次由 `CR-014` 补进规则原文）
+  2. **处理方式驱动必填项**：升级 / 转班需目标班级；留级 / 跳过需原因；毕业两者都不需要——由 `syncType()` 统一切换，harness 用 `ADJ-02` / `ADJ-05` 覆盖
+  3. **结果页默认停在失败清单**：失败是唯一有后续动作的清单，默认显示它能少点一次（`REQ-PRM-032`）
+  4. **数据范围在四页都真实收窄**：年级主任分别为 5 / 5（警告 0）/ 只读 / 失败 1 + 成功 4，由 harness 逐条断言
+- 验证证据：`verify-promotion-wizard.html` 39 / 39 通过；9 个已交付 harness 回归全绿；`python tools/check_docs.py` 通过；16 张截图归档
+- 本批踩坑（已写进 `evidence/stage2-prototype/README.md` 第 6.4 节）：Chrome 无头截图时 URL 里的 `pages//x.html`（多余斜杠）
+  会导致页面不执行 JS，且所有深链接变体的截图字节数完全相同；据此判据发现并重拍了 15 张截图
+- 如果错了的代价：删除 4 个页面文件与 5 份规格、回滚 `page-actions.yaml` 的 6 个动作组、
+  `navigation.yaml` 的 note 与批次文本、`prototype-shell.js` 的 4 行 `EXTRA_PAGES`、`content-samples.json` 的 `promotion_preview` 节点即可；
+  不涉及已验收的 `promotion-list.html` / `promotion-create.html`，也不涉及表结构与接口实现
+- 阶段 2 状态：批次 2-1 ~ 2-3 已全部产出（`2-4` ~ `2-9` 待做），升班模块（`2-3e`）收尾完成
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |
@@ -1149,3 +1274,4 @@
 | R-031 | ~~升班任务的「预览 / 执行 / 重试 / 取消」用哪个权限动作承载~~ → 已定：选项 A，用现有 `update`（D-069 / CR-012） | GAP-052 | 已关闭 |
 | R-032 | ~~年级主任是否参与升班~~ → 已定：选项 A，补 `promotion.batch: read` + `DS-05` 范围，只读（D-069 / CR-012） | GAP-053 | 已关闭 |
 | R-033 | ~~升班任务的两个公共前置缺项（字段未进字段字典、取消确认片段未进 PRD 6.1）~~ → 已定：选项 A，立一次 CR 一起补（D-071 / CR-013） | GAP-054 | 已关闭 |
+| R-034 | ~~升班明细的 7 个字段与「调整方式」枚举是否一次 CR 补进 `06-field-dictionary.yaml`~~ → 已定：选项 A，一次 CR 补全（7 个字段 + 3 个枚举），并补 `BR-PROMO-006` 的留级去向与升班 PRD 的字段口径（D-073 / CR-014） | GAP-055 | 已关闭 |

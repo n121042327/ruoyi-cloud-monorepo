@@ -317,6 +317,91 @@ harness 用**第二个 iframe** 加载 `pages/class-detail.html`，验证「详�
 | `verify-carrier-change.html` | 14 / 14 通过 |
 | `python tools/check_docs.py` | 通过：未发现问题 |
 
+---
+
+## 13. 批次 2-3e-s2：升班向导第一步（`pages/promotion-create.html`）
+
+新增 harness `evidence/stage2-prototype/verify-promotion-create.html`（`PC-01` ~ `PC-22`，真实事件派发：
+点角色按钮 / 点样例 chip / 改下拉 / 点「下一步」/ 改 hash，全部走真实 DOM 事件）。
+
+| 分组 | 覆盖 |
+|---|---|
+| 结构与字段 | 四步向导第 1 步进行中、其余 3 步可点（`data-nav`）；学校只读、源 / 目标学年学期必填、范围说明选填（`REQ-PRM-007`） |
+| 字段级校验 | 未选学年学期点「下一步」→ 两个字段标红 + 校验汇总 + 不提交；源 2026-2027 第二学期 / 目标 2026-2027 第一学期 → 目标起始日期的字段级拦截（`REQ-PRM-008` / `BR-TERM-005`） |
+| 三类前置校验 | 缺年级与班级 → 阻塞条列 3 项并给「去创建年级 / 去创建班级」（`REQ-PRM-009`）；同一源→目标已有未结束任务 → 阻塞并指向 `PRM-20260930-0012`（`REQ-PRM-005`）；在读 10,240 → 只警告不阻塞（`REQ-PRM-010` / `NFR-PERF-07`） |
+| 阻塞时的点击行为 | 缺项样例下点「下一步」：`data-blocked=true`、给出「存在阻塞项」提示、按钮不进入 loading（不发请求） |
+| 角色形态 | 校领导 / 年级主任 / 平台运营 / 班主任 / 租户管理员（矩阵未授予 `promotion.batch:create`）→ 全部进无权限态且表单区不可见；超级管理员 → 正常态 + `BR-ORG-014` 强制留痕提示 |
+| 状态片段 | 加载中 / 空数据 / 校验失败 / 无权限 / 提交中五类齐全；无权限态写明「不降级为全量」（`DS-DENY-03` / `NFR-SEC-05`）；校验失败态含请求编号、错误码与「不会跳过校验继续」 |
+| 深链接与登记 | `#sample=large` 在已打开的页面上立即生效（hashchange 重放）；页面 9 个 `data-action-id` 全部落在 `common_actions` 与 `promotion_create` 已登记集合内 |
+
+| harness | 结果 |
+|---|---|
+| `verify-promotion-create.html` | 22 / 22 通过 |
+
+同一轮回归（本批改了 `prototype-shell.js` 的 `EXTRA_PAGES` 与 `PENDING_PAGES`，8 个已交付 harness 全部重跑）：
+
+| harness | 结果 |
+|---|---|
+| `verify-promotion-list.html` | 36 / 36 通过 |
+| `verify-class-list.html` | 39 / 39 通过 |
+| `verify-class-detail.html` | 20 / 20 通过 |
+| `verify-class-roster.html` | 34 / 34 通过 |
+| `verify-class-dialogs.html` | 36 / 36 通过 |
+| `verify-grade-list.html` | 38 / 38 通过 |
+| `verify-detail-entry.html` | 6 / 6 通过 |
+| `verify-carrier-change.html` | 14 / 14 通过 |
+| `python tools/check_docs.py` | 通过：未发现问题 |
+
+本批在 harness 写法上补了两条防呆（与页面缺陷无关，但会掩盖真实结果）：
+
+1. **异步断言必须返回 promise**：角色切换的断言用 `.then()` 串联，若不返回 promise，
+   一旦某步抛错整条链会在 await 处静默断掉，结果清单长期停在「运行中…」。
+   `run()` 现在会捕获 promise 的 rejection 并记为 `ERR-xx`，另加 30 秒看门狗兜底。
+2. **元素级监听 vs document 级监听**：外壳的托管点击监听挂在 `document` 上，
+   页面里同样挂 `document` 的拦截逻辑用 `stopPropagation()` 拦不住它（需要 `stopImmediatePropagation`）。
+   「下一步」的校验拦截因此改挂在按钮自身（先于 document 执行），`PC-06` 断言在缺项样例下点击不会发请求。
+
+---
+
+## 14. 批次 2-3e-s3 / s4：升班向导第 2 ~ 4 步（5 个页面）
+
+新增 harness `evidence/stage2-prototype/verify-promotion-wizard.html`：4 个同源 iframe
+（`promotion-preview` / `promotion-validate` / `promotion-execute` / `promotion-result`）里真实派发
+点击、下拉、单选、chip 与 hash 变更，跑 `PV` / `ADJ` / `VD` / `EX` / `RS` / `ALL` 共 39 条断言。
+
+| 分组 | 覆盖 |
+|---|---|
+| 预览（`PV-01` ~ `PV-12`） | 7 行明细 + 5 个源班级；结果类型统计 4 / 1 / 1 / 1；留级行的「同学段同名年级」与毕业行的「不生成下一学年关系」（`BR-PROMO-006` / `REQ-PRM-015`）；点左栏按 `REQ-PRM-013` 过滤并可回到全部；「应用到本班」批量写目标班级（`REQ-PRM-018`）；行内「调整」入口标记；年级主任 5 行只读且无批量入口；校领导 7 行只读；班主任无权限面板；五类状态；深链接 `#class=` |
+| 调整弹窗（`ADJ-01` ~ `ADJ-06`） | 打开并带入学生与当前处理方式；选「留级」→ 目标班级换成只读的同学段同名年级 + 原因必填；未填原因保存被字段级拦截且弹窗不关；保存走 `updatePromotionItem`；处理方式切换驱动必填项；弹窗内无表格 |
+| 校验（`VD-01` ~ `VD-07`） | 通过 5 / 警告 1 / 错误 1（`REQ-PRM-023`）；错误项存在时「确认执行」被拦（`REQ-PRM-025`）；按维度下钻 1 / 5 / 7（`REQ-PRM-026`）；「标记跳过」只对非通过行出现且走 `updatePromotionItem`；年级主任 5 行只读（错误 1、警告 0）；五类状态与 `DS-DENY-03`；确认执行登记 `executePromotionTask` 且 `data-blocked=true` |
+| 执行（`EX-01` ~ `EX-06`） | 进度 5 / 7 = 71% + 成功 4 + 时间线 5 条；深链接 `#processed=N` 生效；刷新走 `getPromotionTask`；「查看结果」指向 `PAGE-PRM-RESULT`；取消入口指向列表；六类状态（含排队中、部分失败） |
+| 结果（`RS-01` ~ `RS-07`） | 默认失败清单 + 重试块 + 「部分失败」标签；四类清单切换 6 / 1 / 1 / 1（`REQ-PRM-034`）；失败行「查看学生」带 `person.student:read`；只重试失败项与继续执行剩余项分别登记；结果导出走 `exportPromotionResult`；年级主任按 `DS-05` 收窄（失败 1 / 成功 4）且重试按钮隐藏；六类状态 |
+| 动作登记（`ALL-01`） | 四个页面用到的动作编号全部落在 `ACT-PRM-020` ~ `043` 已登记集合内 |
+
+| harness | 结果 |
+|---|---|
+| `verify-promotion-wizard.html` | 39 / 39 通过 |
+
+本批回归（同时改了 `prototype-shell.js` 的 `EXTRA_PAGES`）：
+
+| harness | 结果 |
+|---|---|
+| `verify-promotion-create.html` | 22 / 22 通过 |
+| `verify-promotion-list.html` | 36 / 36 通过 |
+| `verify-class-list.html` | 39 / 39 通过 |
+| `verify-class-detail.html` | 20 / 20 通过 |
+| `verify-class-roster.html` | 34 / 34 通过 |
+| `verify-class-dialogs.html` | 36 / 36 通过 |
+| `verify-grade-list.html` | 38 / 38 通过 |
+| `verify-detail-entry.html` | 6 / 6 通过 |
+| `verify-carrier-change.html` | 14 / 14 通过 |
+| `python tools/check_docs.py` | 通过：未发现问题 |
+
+本批踩到的一个坑（已写进 README 6.4）：用 Chrome 无头截图时把 URL 拼成
+`.../pages//promotion-preview.html#...`（变量末尾与文件名之间多了一个 `/`）会让页面**不执行 JS**——
+截图看起来"正常"，实际是没有外壳的原始 HTML，而且所有 `#` 深链接变体渲染完全相同（文件大小一模一样）。
+判据是「同一页不同深链接的截图字节数完全相同」，据此发现并重拍了 15 张截图。
+
 ### 11.3 `CR-011`（在读口径收敛）后的重跑
 
 高二 (1) 班样例数由 2 改为 1（`GAP-051` 取选项 A）后，7 个 harness 全部重跑，结果与上表一致：

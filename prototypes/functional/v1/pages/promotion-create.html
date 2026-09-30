@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>新建升班任务 — 业务原型 v1（批次 2-3e-s2）</title>
+<link rel="stylesheet" href="../assets/prototype-shell.css" />
+<link rel="stylesheet" href="../assets/wizard.css" />
+<script src="../assets/prototype-shell.js"></script>
+<style>
+  /* 本页私有样式：向导类通用样式在 assets/wizard.css */
+</style>
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-PRM-CREATE"
+  data-menu-page="PAGE-PRM-LIST"
+  data-breadcrumb="教育管理 / 升班与学籍 / 新建升班任务"
+  data-tab="新建升班任务"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-PRM-CREATE" data-role="page" data-sample="ready">
+
+  <!-- ============================================================ 页头 -->
+  <div class="page-head">
+    <h1>新建升班任务</h1>
+    <span class="scope-hint" data-role="scope-hint">数据范围：本校 · 2026-2027 学年 第一学期</span>
+    <span class="el-tag primary">向导 1 / 4</span>
+    <span class="el-tag info">升班按学年追加，不改写历史（BR-PROMO-001）</span>
+  </div>
+
+  <!-- ============================================================ 步骤条 -->
+  <section class="card" data-block="steps" data-role="wizard" data-component="el-steps">
+    <div class="card-body">
+      <div class="steps wizard-steps">
+        <div class="step on"><span class="idx">1</span><span>选择学年学期</span></div>
+        <div class="step-line"></div>
+        <div class="step" data-role="nav" data-nav="PAGE-PRM-PREVIEW" title="预览与调整（批次 2-3e-s3 交付）"><span class="idx">2</span><span>预览与调整</span></div>
+        <div class="step-line"></div>
+        <div class="step" data-role="nav" data-nav="PAGE-PRM-VALIDATE" title="升班校验（批次 2-3e-s4 交付）"><span class="idx">3</span><span>校验</span></div>
+        <div class="step-line"></div>
+        <div class="step" data-role="nav" data-nav="PAGE-PRM-EXECUTE" title="执行与结果（批次 2-3e-s4 交付）"><span class="idx">4</span><span>执行与结果</span></div>
+      </div>
+      <div class="legend" style="margin:0">
+        <span>四步向导：<b>选择学年学期</b> → 预览与调整 → 校验 → 执行与结果（本节对应 PRD 6.2 第 1 步，可返回上一步，本页即第一步）。</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ 角色形态提示 -->
+  <div data-normal-view>
+    <div class="alert warning state-hidden" data-role-visible="super_admin">
+      <span>超级管理员 · 不受组织与数据范围限制</span>
+      <span>本页面对该账号全部可见；创建任务会写入审计且不可关闭（<span class="mono">BR-ORG-014</span>）。升班只在升班模块执行，年级管理只提供只读视图。</span>
+    </div>
+    <div class="alert info state-hidden" data-role-visible="platform_ops">
+      <span>平台运营协助视图 · 只读</span>
+      <span>平台运营没有 <span class="mono">promotion.batch:create</span>，不能创建升班任务（<span class="mono">CR-012</span>）；协助排查请看任务列表（<span class="mono">PAGE-PRM-LIST</span>）。</span>
+    </div>
+
+    <!-- ============================================================ 步骤 1 表单 -->
+    <section class="card" data-block="form" data-role="section" data-component="el-card.hover">
+      <div class="card-header">
+        <h2>步骤 1 · 选择源与目标学年学期</h2>
+        <span class="el-tag info">必填项 2 个</span>
+        <div class="header-right">
+          <span class="footer-note">校验样例</span>
+          <span class="chip-group" id="sample-chips">
+            <button class="chip on" id="sample-ready" title="年级与班级齐备、在读 512 人">齐备</button>
+            <button class="chip" id="sample-missing" title="目标学年学期缺年级与班级">缺年级 / 班级</button>
+            <button class="chip" id="sample-conflict" title="同一源→目标学期已有未结束任务">已有未结束任务</button>
+            <button class="chip" id="sample-large" title="在读人数超过 10000 阈值">超阈值</button>
+          </span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="alert info">
+          <span>创建口径</span>
+          <span>必填：源学年学期、目标学年学期（<span class="mono">REQ-PRM-007</span>）；目标学年学期的起始日期必须晚于源学年学期且两者不能相同（<span class="mono">REQ-PRM-008</span>，<span class="mono">BR-TERM-005</span>）。
+            任务创建后状态为草稿，可修改范围后重新生成预览（<span class="mono">REQ-PRM-011</span>）；创建写入审计（<span class="mono">REQ-PRM-012</span>）。</span>
+        </div>
+
+        <div class="form-grid">
+          <div class="field" data-field="school_id">
+            <label>学校</label>
+            <select class="select" style="min-width:100%" id="f-school" data-component="el-select" disabled data-keep-enabled
+                    data-role-enabled="platform_ops">
+              <option value="201" selected>云溪实验学校（本校）</option>
+            </select>
+            <div class="readonly-hint">升班任务在本校范围内执行，不跨校共享（<span class="mono">BR-DATA-018</span>）；只有平台运营与超级管理员可以切换学校，且切换后同样不能创建。</div>
+          </div>
+
+          <div class="field" data-field="source_term_id" data-role-editable="academic_director">
+            <label>源学年学期<span class="required">*</span></label>
+            <select class="select" style="min-width:100%" id="f-source-term" data-component="el-select"
+                    data-required data-required-message="请选择源学年学期">
+              <option value="" selected>请选择源学年学期</option>
+              <option value="202502" data-start="2026-02-23" data-enrolled="486">2025-2026 学年 第二学期（已归档）</option>
+              <option value="202601" data-start="2026-09-01" data-enrolled="512">2026-2027 学年 第一学期（当前）</option>
+              <option value="202602" data-start="2027-02-22" data-enrolled="0">2026-2027 学年 第二学期（未开始）</option>
+            </select>
+            <div class="error-text"></div>
+            <div class="hint">源学年学期决定"从哪一批在读学生升班"：只有在读（<span class="mono">enrolled</span>）计入，休学 / 转入未报到 / 出国保留学籍都不计入在读名单（<span class="mono">BR-STU-012</span> / <span class="mono">CR-011</span>）。</div>
+          </div>
+
+          <div class="field" data-field="target_term_id" data-role-editable="academic_director">
+            <label>目标学年学期<span class="required">*</span></label>
+            <select class="select" style="min-width:100%" id="f-target-term" data-component="el-select"
+                    data-required data-required-message="请选择目标学年学期">
+              <option value="" selected>请选择目标学年学期</option>
+              <option value="202601" data-start="2026-09-01">2026-2027 学年 第一学期</option>
+              <option value="202602" data-start="2027-02-22">2026-2027 学年 第二学期</option>
+              <option value="202701" data-start="2027-09-01">2027-2028 学年 第一学期</option>
+            </select>
+            <div class="error-text"></div>
+            <div class="hint">目标学年学期的年级与班级必须已经建好，否则创建被阻止（<span class="mono">REQ-PRM-009</span>，<span class="mono">BR-PROMO-004</span>）。</div>
+          </div>
+
+          <div class="field" data-field="remark" data-role-editable="academic_director">
+            <label>范围说明</label>
+            <textarea class="input" rows="2" style="width:100%;min-width:100%" id="f-remark" data-component="el-input.textarea"
+                      placeholder="如：2021 级 小学六年级 毕业，其余年级按学段内序号 +1 升班"></textarea>
+            <div class="hint">选填，最长 500 字；会随任务台账一起导出，便于教务主任线下核对（<span class="mono">REQ-PRM-019</span>）。</div>
+          </div>
+        </div>
+
+        <div class="alert danger state-hidden" id="validate-summary">表单校验未通过：请修正下方标红的字段后重试。</div>
+      </div>
+    </section>
+
+    <!-- ============================================================ 齐备性校验（REQ-PRM-005 / 009） -->
+    <section class="card" data-block="validate" data-role="section" data-component="el-card.hover">
+      <div class="card-header">
+        <h2>目标学年学期的年级与班级齐备性</h2>
+        <span class="el-tag info" id="scope-tag">按学段核对</span>
+        <div class="header-right">
+          <button class="btn" data-role="action" data-action-id="ACT-PRM-013" data-component="el-button"
+                  data-permission="promotion.batch:create"
+                  data-demo-message="已重新解析目标学年学期的年级与班级（只读校验）。前端校验不作为安全边界，后端在 addPromotionTask 内重复校验（NFR-SEC-05）。">重新校验</button>
+        </div>
+      </div>
+      <div class="card-body">
+
+        <!-- 阻塞 / 警告 / 齐备三种结论放在清单之前：900 高度下也要第一眼看到"能不能建、缺什么、去哪补" -->
+        <div class="alert success" id="scope-gate-ok">
+          <span>可以创建</span>
+          <span>目标学年学期 <b>2027-2028 学年 第一学期</b> 的年级与班级已齐备，同一源→目标学期没有未结束任务（<span class="mono">REQ-PRM-009</span>）。</span>
+        </div>
+        <div class="alert danger state-hidden" id="scope-gate-block">
+          <span>创建被阻止</span>
+          <span id="scope-gate-text"></span>
+          <div class="alert-actions">
+            <button class="btn" data-role="action" data-action-id="ACT-PRM-015" data-component="el-button"
+                    data-permission="org.grade:read" data-nav="PAGE-GRD-LIST" data-role-visible="academic_director,super_admin">去创建年级</button>
+            <button class="btn" data-role="action" data-action-id="ACT-PRM-016" data-component="el-button"
+                    data-permission="org.class:read" data-nav="PAGE-CLS-LIST" data-role-visible="academic_director,super_admin">去创建班级</button>
+            <button class="btn" data-role="action" data-action-id="ACT-PRM-017" data-component="el-button"
+                    data-permission="promotion.batch:read" data-nav="PAGE-PRM-LIST" data-role-visible="academic_director,super_admin">查看已有任务</button>
+          </div>
+        </div>
+        <div class="alert warning state-hidden" id="scope-gate-warn">
+          <span>可以继续，但耗时偏长</span>
+          <span id="scope-gate-warn-text"></span>
+        </div>
+
+        <!-- 样例 A：齐备 -->
+        <div data-sample-panel="ready">
+          <div class="stage-list">
+            <div class="stage-row">
+              <div class="grow"><b>小学部</b> <span class="cell-secondary">一年级 — 六年级</span></div>
+              <div class="num">年级 6 / 6</div>
+              <div class="num">班级 24 / 24</div>
+              <div><span class="el-tag success">齐备</span></div>
+            </div>
+            <div class="stage-row">
+              <div class="grow"><b>初中部</b> <span class="cell-secondary">一年级 — 三年级（初一 — 初三）</span></div>
+              <div class="num">年级 3 / 3</div>
+              <div class="num">班级 12 / 12</div>
+              <div><span class="el-tag success">齐备</span></div>
+            </div>
+            <div class="stage-row">
+              <div class="grow"><b>高中部</b> <span class="cell-secondary">一年级 — 三年级（高一 — 高三）</span></div>
+              <div class="num">年级 3 / 3</div>
+              <div class="num">班级 18 / 18</div>
+              <div><span class="el-tag success">齐备</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 样例 B：缺年级与班级 -->
+        <div data-sample-panel="missing" class="state-hidden">
+          <div class="stage-list">
+            <div class="stage-row">
+              <div class="grow"><b>小学部</b> <span class="cell-secondary">一年级 — 六年级</span></div>
+              <div class="num">年级 6 / 6</div>
+              <div class="num">班级 24 / 24</div>
+              <div><span class="el-tag success">齐备</span></div>
+            </div>
+            <div class="stage-row">
+              <div class="grow"><b>初中部</b> <span class="cell-secondary">一年级 — 三年级（初一 — 初三）</span></div>
+              <div class="num">年级 3 / 3</div>
+              <div class="num">班级 12 / 12</div>
+              <div><span class="el-tag success">齐备</span></div>
+            </div>
+            <div class="stage-row miss">
+              <div class="grow"><b>高中部</b> <span class="cell-secondary">缺 高二、高三 2 个年级；缺 高一 (4) 班 1 个班级</span></div>
+              <div class="num">年级 1 / 3</div>
+              <div class="num">班级 5 / 6</div>
+              <div><span class="el-tag danger">缺 3 项</span></div>
+            </div>
+          </div>
+          <div class="legend" style="margin:8px 0 0">
+            <span>缺失的年级与班级必须先在「年级管理」「班级管理」建好：目标学年学期下缺年级时，对应学段的学生无法确定去向（<span class="mono">REQ-PRM-009</span>）。</span>
+          </div>
+        </div>
+
+        <!-- 样例 C：同一源→目标学期已有未结束任务 -->
+        <div data-sample-panel="conflict" class="state-hidden">
+          <div class="stage-list">
+            <div class="stage-row miss">
+              <div class="grow"><b class="mono">PRM-20260930-0012</b> · 源 2026-2027 学年 第一学期 → 目标 2027-2028 学年 第一学期</div>
+              <div><span class="el-tag primary">已预览待确认</span></div>
+              <div class="num">512 人</div>
+            </div>
+          </div>
+          <div class="legend" style="margin:8px 0 0">
+            <span>同一源学年学期到同一目标学年学期，同一时间只允许一个未结束的任务（<span class="mono">REQ-PRM-005</span> / <span class="mono">BR-PROMO-003</span>）。
+              请先执行或取消已有任务，再建新任务。</span>
+          </div>
+        </div>
+
+        <!-- 样例 D：齐备但超阈值 -->
+        <div data-sample-panel="large" class="state-hidden">
+          <div class="stage-list">
+            <div class="stage-row">
+              <div class="grow"><b>小学部</b> <span class="cell-secondary">一年级 — 六年级</span></div>
+              <div class="num">年级 6 / 6</div>
+              <div class="num">班级 24 / 24</div>
+              <div><span class="el-tag success">齐备</span></div>
+            </div>
+            <div class="stage-row">
+              <div class="grow"><b>初中部</b> <span class="cell-secondary">一年级 — 三年级（初一 — 初三）</span></div>
+              <div class="num">年级 3 / 3</div>
+              <div class="num">班级 36 / 36</div>
+              <div><span class="el-tag success">齐备</span></div>
+            </div>
+            <div class="stage-row">
+              <div class="grow"><b>高中部</b> <span class="cell-secondary">一年级 — 三年级（高一 — 高三）</span></div>
+              <div class="num">年级 3 / 3</div>
+              <div class="num">班级 54 / 54</div>
+              <div><span class="el-tag success">齐备</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================ 规模与耗时预估（REQ-PRM-010） -->
+    <section class="card" data-block="scale" data-role="section" data-component="el-card.hover">
+      <div class="card-header">
+        <h2>源学年学期的在读规模</h2>
+        <span class="el-tag info" id="scale-tag">在 10,000 人阈值内</span>
+        <div class="header-right">
+          <button class="btn" data-role="action" data-action-id="ACT-PRM-014" data-component="el-button"
+                  data-permission="person.student:read" data-nav="PAGE-STU-LIST">查看在读名单</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="split">
+          <div class="split-aside" style="flex:0 0 260px">
+            <div class="legend" style="margin:0 0 6px"><span>在读学生数（口径：只有在读 <span class="mono">enrolled</span> 计入）</span></div>
+            <div><span class="scale-value" id="scale-count">512</span><span class="scale-unit">人</span></div>
+          </div>
+          <div class="split-main">
+            <div class="legend" style="margin:0 0 6px"><span>耗时预估（<span class="mono">NFR-PERF-07</span>：1 万在读 ≈ 60 秒）</span></div>
+            <div id="scale-hint">预览预计 <b>约 25 秒</b>；执行预计 <b>约 2 分钟</b>。执行异步进行、界面不阻塞（<span class="mono">REQ-PRM-027</span>）。</div>
+            <div class="legend" style="margin:8px 0 0" id="scale-note">
+              <span>休学 / 转入未报到 / 出国保留学籍的学生不计入在读，也不参与默认升班（<span class="mono">BR-STU-012</span> / <span class="mono">BR-PROMO-006</span>）。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ 底部操作条 -->
+    <section class="card sticky-actions" data-block="footer" data-role="section">
+      <div class="footer-bar" data-demo-state-target="toolbar">
+        <button class="btn" data-role="action" data-action-id="ACT-PRM-011" data-component="el-button"
+                data-permission="promotion.batch:create" data-nav="PAGE-PRM-LIST">取消</button>
+        <div class="grow"></div>
+        <span class="footer-note" id="footer-note">下一步会创建草稿任务并生成升班预览。</span>
+        <button class="btn primary" data-role="action" data-action-id="ACT-PRM-012" data-component="el-button.primary"
+                data-permission="promotion.batch:create" data-api="addPromotionTask" id="btn-next"
+                data-demo-message="已创建草稿任务 PRM-20261001-0022（状态：草稿，源 2026-2027 学年 第一学期 → 目标 2027-2028 学年 第一学期，范围 512 人）。下一步进入「预览与调整」（批次 2-3e-s3 交付）。">下一步：预览与调整</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============================================================ 状态片段 -->
+  <div class="state-hidden" data-demo-state-panel="loading">
+    <section class="card">
+      <div class="card-body">
+        <div class="legend" style="margin:0 0 8px"><span>正在校验目标学年学期的年级与班级…（表格/列表内骨架，不用全屏遮罩）</span></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:120px"></div><div class="skeleton-bar" style="width:80px"></div><div class="skeleton-bar" style="width:60px"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:120px"></div><div class="skeleton-bar" style="width:80px"></div><div class="skeleton-bar" style="width:60px"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:120px"></div><div class="skeleton-bar" style="width:80px"></div><div class="skeleton-bar" style="width:60px"></div></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="state-hidden" data-demo-state-panel="empty">
+    <section class="card">
+      <div class="card-body">
+        <div class="state-block">
+          <div class="icon">📭</div>
+          <div class="title">该学年没有可升班的在读学生</div>
+          <div class="desc">源学年学期 <b>2026-2027 学年 第二学期</b> 的在读学生数为 <b>0</b>：只有在读（<span class="mono">enrolled</span>）计入升班范围，
+            休学 / 转入未报到 / 出国保留学籍都不计入（<span class="mono">BR-STU-012</span>）。</div>
+          <button class="btn primary-plain" data-role="action" data-action-id="ACT-PRM-018" data-component="el-button.primary.plain"
+                  data-permission="person.student:read" data-nav="PAGE-STU-LIST">去学生管理核对学籍状态</button>
+          <button class="btn" data-role="action" data-action-id="ACT-PRM-019" data-component="el-button"
+                  data-permission="promotion.batch:read" data-nav="PAGE-PRM-LIST">返回任务列表</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="state-hidden" data-demo-state-panel="error">
+    <section class="card">
+      <div class="card-body">
+        <div class="state-block error">
+          <div class="icon">⚠️</div>
+          <div class="title">年级与班级齐备性校验失败</div>
+          <div class="desc">无法读取目标学年学期的年级与班级清单，创建被阻止（不会以"跳过校验"的方式继续）。</div>
+          <div class="req-id">请求编号 REQ-20261001-000318 · 错误码 EDU-TERM-5031 · 数据截止 2026-10-01 09:20</div>
+          <button class="btn primary-plain" data-role="action" data-action-id="ACT-PRM-013" data-component="el-button.primary.plain"
+                  data-permission="promotion.batch:create"
+                  data-demo-message="已重新解析目标学年学期的年级与班级（只读校验）。前端校验不作为安全边界，后端在 addPromotionTask 内重复校验（NFR-SEC-05）。">重试校验</button>
+          <button class="btn" data-role="action" data-action-id="ACT-PRM-019" data-component="el-button"
+                  data-permission="promotion.batch:read" data-nav="PAGE-PRM-LIST">返回任务列表</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="state-hidden" data-demo-state-panel="forbidden">
+    <section class="card">
+      <div class="card-body">
+        <div class="state-block">
+          <div class="icon">🔒</div>
+          <div class="title">你没有创建升班任务的权限</div>
+          <div class="desc">
+            本页面需要 <span class="mono">promotion.batch:create</span>（教务主任）。当前角色只有
+            <span class="mono">promotion.batch:read</span>：校领导与年级主任可以查看任务与预览（只读），平台运营只读并留痕（<span class="mono">DS-01</span>）。
+            无权限时不会降级为全量可见，也不会显示可提交的表单（<span class="mono">DS-DENY-03</span> / <span class="mono">NFR-SEC-05</span>）。
+          </div>
+          <button class="btn primary-plain" data-role="action" data-action-id="ACT-PRM-019" data-component="el-button.primary.plain"
+                  data-permission="promotion.batch:read" data-nav="PAGE-PRM-LIST">返回任务列表（只读）</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="state-hidden" data-demo-state-panel="submitting">
+    <section class="card">
+      <div class="card-body">
+        <div class="state-block">
+          <div class="icon">⏳</div>
+          <div class="title">正在创建升班任务</div>
+          <div class="desc">「下一步 / 取消」已置 loading 并禁用，禁止重复提交；创建成功后任务状态为草稿（<span class="mono">REQ-PRM-011</span>）。</div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // 与 05-permission-matrix.yaml 的 promotion.batch 授权一致（CR-012）：
+  // create 只给教务主任与超级管理员；其余角色本页进入无权限态。
+  var CREATE_ROLES = ['super_admin', 'academic_director'];
+  var READ_ROLES = ['super_admin', 'academic_director', 'school_leader', 'grade_leader', 'platform_ops'];
+
+  function q(sel) { return document.querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function currentRole() { return window.PrototypeShell.currentRole(); }
+
+  /* ---------------- 1. 校验样例：齐备 / 缺项 / 已有未结束任务 / 超阈值 ---------------- */
+
+  var SAMPLES = {
+    ready: {
+      gate: 'ok',
+      tag: '在 10,000 人阈值内',
+      count: '512',
+      hint: '预览预计 <b>约 25 秒</b>；执行预计 <b>约 2 分钟</b>。执行异步进行、界面不阻塞（<span class="mono">REQ-PRM-027</span>）。',
+      next: true,
+      footer: '下一步会创建草稿任务并生成升班预览。'
+    },
+    missing: {
+      gate: 'block',
+      text: '目标学年学期 <b>2027-2028 学年 第一学期</b> 缺 <b>高二、高三</b> 2 个年级，缺 <b>高一 (4) 班</b> 1 个班级，共 3 项。缺项未补齐前不允许创建（<span class="mono">REQ-PRM-009</span>）。',
+      tag: '在 10,000 人阈值内',
+      count: '512',
+      hint: '缺项补齐后才会计算耗时预估（当前仅展示源学年学期的在读规模）。',
+      next: false,
+      footer: '缺年级或班级，创建被阻止（REQ-PRM-009）。',
+      source: '202601',
+      target: '202701'
+    },
+    conflict: {
+      gate: 'block',
+      text: '你已经有一个未结束的任务：<b class="mono">PRM-20260930-0012</b>（源 2026-2027 学年 第一学期 → 目标 2027-2028 学年 第一学期，状态 已预览待确认，512 人）。同一源→目标学期只允许一个未结束任务（<span class="mono">REQ-PRM-005</span> / <span class="mono">BR-PROMO-003</span>）。',
+      tag: '在 10,000 人阈值内',
+      count: '512',
+      hint: '可先执行或取消已有任务；取消后保留已完成部分，可继续执行剩余项（已确认 4）。',
+      next: false,
+      footer: '已有未结束任务，创建被阻止（REQ-PRM-005）。',
+      source: '202601',
+      target: '202701'
+    },
+    large: {
+      gate: 'warn',
+      text: '源学年学期在读 <b>10,240</b> 人，超过阈值 10,000（<span class="mono">NFR-PERF-07</span>）：预览预计 <b>60 秒以上</b>，执行预计 <b>5 分钟以上</b>。仍然可以创建，建议在非教学时段执行。',
+      tag: '超过 10,000 人阈值',
+      count: '10,240',
+      hint: '预览预计 <b>60 秒以上</b>；执行预计 <b>5 分钟以上</b>。执行异步进行，可离开页面后回列表看进度（<span class="mono">REQ-PRM-031</span>）。',
+      next: true,
+      footer: '超过阈值：给出耗时预估，不阻止创建（REQ-PRM-010）。',
+      source: '202601',
+      target: '202701'
+    }
+  };
+
+  function applySample(name) {
+    var sample = SAMPLES[name];
+    if (!sample) return;
+    var root = q('#page-root');
+    root.setAttribute('data-sample', name);
+
+    qa('#sample-chips .chip').forEach(function (chip) {
+      chip.classList.toggle('on', chip.id === 'sample-' + name);
+    });
+    qa('[data-sample-panel]').forEach(function (panel) {
+      panel.classList.toggle('state-hidden', panel.getAttribute('data-sample-panel') !== name);
+    });
+
+    q('#scope-gate-ok').classList.toggle('state-hidden', sample.gate !== 'ok');
+    q('#scope-gate-block').classList.toggle('state-hidden', sample.gate !== 'block');
+    q('#scope-gate-warn').classList.toggle('state-hidden', sample.gate !== 'warn');
+    if (sample.gate === 'block') q('#scope-gate-text').innerHTML = sample.text;
+    if (sample.gate === 'warn') q('#scope-gate-warn-text').innerHTML = sample.text;
+
+    q('#scope-tag').textContent = sample.gate === 'block' ? '存在阻塞项' : '按学段核对';
+    q('#scale-tag').textContent = sample.tag;
+    q('#scale-count').textContent = sample.count;
+    q('#scale-hint').innerHTML = sample.hint;
+    q('#footer-note').textContent = sample.footer;
+
+    // 阻塞项存在时不把主按钮置灰：置灰后点击不再触发事件，用户拿不到"为什么不能建"的说明。
+    // 与 2-3d「目标班级已停用点执行被拦」同口径：按钮可点，点了给明确原因，并由阻塞条常驻说明（REQ-PRM-009）。
+    var next = q('#btn-next');
+    next.setAttribute('data-blocked', String(!sample.next));
+    next.title = sample.next ? '' : '存在阻塞项：目标学年学期缺年级 / 班级或已有未结束任务，点击查看原因';
+
+    // 深链接 / 样例切换时可把学年学期一并带上，便于截图与演示
+    if (sample.source !== undefined) q('#f-source-term').value = sample.source;
+    if (sample.target !== undefined) q('#f-target-term').value = sample.target;
+  }
+
+  /* ---------------- 2. 步骤 1 的字段校验（REQ-PRM-007 / 008） ---------------- */
+
+  function setFieldError(select, message) {
+    var field = select.closest('.field');
+    field.classList.toggle('has-error', Boolean(message));
+    var err = field.querySelector('.error-text');
+    if (err) err.textContent = message || '';
+  }
+
+  function validateStep1() {
+    var source = q('#f-source-term');
+    var target = q('#f-target-term');
+    var ok = true;
+    var firstBad = null;
+
+    [source, target].forEach(function (select) {
+      var message = '';
+      if (!select.value) message = select.getAttribute('data-required-message') || '该项为必填';
+      setFieldError(select, message);
+      if (message) {
+        ok = false;
+        if (!firstBad) firstBad = select;
+      }
+    });
+
+    if (ok) {
+      // REQ-PRM-008 / BR-TERM-005：目标学年学期的起始日期必须晚于源学年学期，且两者不能相同
+      var s = source.options[source.selectedIndex];
+      var t = target.options[target.selectedIndex];
+      if (s.value === t.value) {
+        setFieldError(target, '源学年学期与目标学年学期不能相同（REQ-PRM-008）');
+        ok = false;
+        firstBad = target;
+      } else if (t.getAttribute('data-start') <= s.getAttribute('data-start')) {
+        setFieldError(target, '目标学年学期的起始日期必须晚于源学年学期（当前 '
+          + t.getAttribute('data-start') + ' ≤ ' + s.getAttribute('data-start') + '，BR-TERM-005）');
+        ok = false;
+        firstBad = target;
+      }
+    }
+
+    q('#validate-summary').classList.toggle('state-hidden', ok);
+    if (!ok && firstBad) firstBad.focus();
+    return ok;
+  }
+
+  function clearErrors() {
+    qa('#page-root .field').forEach(function (field) {
+      field.classList.remove('has-error');
+      var err = field.querySelector('.error-text');
+      if (err) err.textContent = '';
+    });
+    q('#validate-summary').classList.add('state-hidden');
+  }
+
+  /* ---------------- 3. 交互 ---------------- */
+
+  document.addEventListener('click', function (event) {
+    var chip = event.target.closest('#sample-chips .chip');
+    if (chip) applySample(chip.id.replace('sample-', ''));
+  });
+
+  // 「下一步」必须挂在按钮自身而不是 document 上：外壳的托管监听也挂在 document，
+  // 同节点上的 stopPropagation() 拦不住它（需要 stopImmediatePropagation），
+  // 挂在元素上则先于 document 执行，stopPropagation() 能真正阻止空提交。
+  q('#btn-next').addEventListener('click', function (event) {
+    var sample = q('#page-root').getAttribute('data-sample');
+    if (sample === 'missing' || sample === 'conflict') {
+      event.stopPropagation();
+      window.PrototypeShell.toast('目标学年学期存在阻塞项（缺年级 / 班级或已有未结束任务），请先处理后再创建。', 'warning');
+      return;
+    }
+    if (!validateStep1()) event.stopPropagation();
+  });
+
+  document.addEventListener('change', function (event) {
+    if (event.target.id === 'f-source-term' || event.target.id === 'f-target-term') {
+      clearErrors();
+    }
+  });
+
+  /* ---------------- 4. 角色形态：无 create 权限直接进无权限面板 ---------------- */
+
+  var lastRole = '';
+  function applyRoleState(role) {
+    if (role === lastRole) return;
+    lastRole = role;
+    if (role === 'super_admin') {
+      window.PrototypeShell.applyState('normal');
+      updateScopeHint(role);
+      return;
+    }
+    if (CREATE_ROLES.indexOf(role) !== -1) {
+      if (window.PrototypeShell.currentState() === 'forbidden') window.PrototypeShell.applyState('normal');
+    } else if (READ_ROLES.indexOf(role) !== -1 || role === 'homeroom' || role === 'tenant_admin' || role === 'subject_teacher') {
+      window.PrototypeShell.applyState('forbidden');
+    }
+    updateScopeHint(role);
+  }
+
+  function updateScopeHint(role) {
+    var hint = q('[data-role="scope-hint"]');
+    if (!hint) return;
+    if (role === 'super_admin') { hint.textContent = '数据范围：全平台 · 不受组织与数据范围限制 · 操作强制留痕（BR-ORG-014）'; return; }
+    if (role === 'academic_director') { hint.textContent = '数据范围：本校（DS-04）· 可以创建升班任务'; return; }
+    if (role === 'platform_ops') { hint.textContent = '数据范围：平台运营协助视图 · 只读（DS-01），没有 promotion.batch:create'; return; }
+    if (role === 'grade_leader') { hint.textContent = '数据范围：本人负责年级（DS-05）· 只读，不能创建任务（CR-012）'; return; }
+    if (role === 'school_leader') { hint.textContent = '数据范围：本校（DS-04）· 只读，升班无审批环节（CR-012）'; return; }
+    hint.textContent = '数据范围：无——当前角色没有 promotion.batch:create';
+  }
+
+  /* ---------------- 5. 深链接参数 ---------------- */
+
+  function applyPageParams(params) {
+    if (!params) return;
+    if (params.sample && SAMPLES[params.sample]) applySample(params.sample);
+    if (params.source) q('#f-source-term').value = params.source;
+    if (params.target) q('#f-target-term').value = params.target;
+    updateScopeHint(currentRole());
+  }
+  document.addEventListener('prototype:params', function (event) { applyPageParams(event.detail); });
+
+  applySample('ready');
+  applyRoleState(currentRole());
+  // 角色形态要同时对「点演示面板的角色按钮」与「外部直接调 PrototypeShell.applyRole」生效：
+  // 观察 data-current-role 属性变化，避免只挂在点击事件上导致脚本化切换（含验收 harness）不重算形态。
+  new MutationObserver(function () { applyRoleState(currentRole()); })
+    .observe(document.body, { attributes: true, attributeFilter: ['data-current-role'] });
+})();
+</script>
+</body>
+</html>

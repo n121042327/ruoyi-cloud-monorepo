@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>PAGE-PRM-CREATE 交互验证</title>
+<style>
+  body { margin: 14px; background: #fff; color: #24292f;
+         font: 13px/1.55 Consolas, "Microsoft YaHei", monospace; }
+  h1 { font-size: 17px; margin: 0 0 8px; }
+  ol { margin: 0 0 10px; padding-left: 22px; }
+  li.ok { color: #1a7f37; }
+  li.bad { color: #c0392b; font-weight: 700; }
+  p.sum { font-weight: 700; }
+  p.sum.bad { color: #c0392b; }
+  iframe { width: 1440px; height: 900px; border: 1px solid #dcdfe6; }
+</style>
+</head>
+<body>
+<h1>新建升班任务（PAGE-PRM-CREATE，向导第一步）交互验证（真实事件派发，非人工目视）</h1>
+<ol id="results"><li>运行中…</li></ol>
+<iframe id="frame" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/promotion-create.html"></iframe>
+<script>
+(function () {
+  'use strict';
+  var RESULTS = [];
+  var frame = document.getElementById('frame');
+
+  function rec(id, name, pass, detail) {
+    RESULTS.push({ id: id, name: name, pass: Boolean(pass), detail: detail || '' });
+  }
+  function doc() { return frame.contentDocument; }
+  function win() { return frame.contentWindow; }
+  function q(sel) { return doc().querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(doc().querySelectorAll(sel)); }
+  function textOf(sel) {
+    var n = q(sel);
+    return n ? n.textContent.replace(/\s+/g, ' ').trim() : '';
+  }
+  function panelState(id) {
+    var p = q('[data-demo-state-panel="' + id + '"]');
+    return p ? !p.classList.contains('state-hidden') : false;
+  }
+  function rootAttr(name) { return q('#page-root').getAttribute(name); }
+  function samplePanel(name) {
+    var p = q('[data-sample-panel="' + name + '"]');
+    return p ? !p.classList.contains('state-hidden') : false;
+  }
+  function gateState() {
+    if (!q('#scope-gate-ok').classList.contains('state-hidden')) return 'ok';
+    if (!q('#scope-gate-block').classList.contains('state-hidden')) return 'block';
+    if (!q('#scope-gate-warn').classList.contains('state-hidden')) return 'warn';
+    return 'none';
+  }
+  function clickSample(key) {
+    q('#sample-' + key).click();
+  }
+  function setVal(node, value) {
+    node.value = value;
+    node.dispatchEvent(new (win().Event)('change', { bubbles: true }));
+  }
+  function nextBtn() { return q('#btn-next'); }
+  function nextBlocked() { return nextBtn().getAttribute('data-blocked') === 'true'; }
+  function delay() {
+    return new Promise(function (resolve) { win().setTimeout(resolve, 40); });
+  }
+
+  // 优先点演示面板里的角色按钮（真实事件派发）；面板里没有的角色（如租户管理员）
+  // 直接调 PrototypeShell.applyRole，页面用 MutationObserver 观察 data-current-role 变化后重算形态。
+  function setRole(code, label) {
+    if (label) {
+      var buttons = qa('[data-demo="role-switcher"] .pbtn');
+      var target = buttons.filter(function (b) { return b.textContent.trim() === label; })[0];
+      if (target) { target.click(); return delay(); }
+    }
+    win().PrototypeShell.applyRole(code);
+    return delay();
+  }
+  function lastToast() {
+    var nodes = qa('.toast-host .toast');
+    var n = nodes[nodes.length - 1];
+    return n ? n.textContent.replace(/\s+/g, ' ').trim() : '';
+  }
+  function fieldHasError(sel) {
+    var field = q(sel).closest('.field');
+    return Boolean(field && field.classList.contains('has-error'));
+  }
+  function fieldErrorText(sel) {
+    var field = q(sel).closest('.field');
+    var err = field ? field.querySelector('.error-text') : null;
+    return err ? err.textContent.trim() : '';
+  }
+
+  // page-actions.yaml 已登记的编号（common_actions + promotion_create）
+  var REGISTERED = {
+    'ACT-COM-001': 1, 'ACT-COM-002': 1, 'ACT-COM-003': 1, 'ACT-COM-004': 1,
+    'ACT-COM-005': 1, 'ACT-COM-006': 1, 'ACT-COM-007': 1, 'ACT-COM-008': 1,
+    'ACT-PRM-011': 1, 'ACT-PRM-012': 1, 'ACT-PRM-013': 1, 'ACT-PRM-014': 1, 'ACT-PRM-015': 1,
+    'ACT-PRM-016': 1, 'ACT-PRM-017': 1, 'ACT-PRM-018': 1, 'ACT-PRM-019': 1
+  };
+
+  var steps = [
+    function (next) {
+      var stepTitles = qa('.steps .step').map(function (s) { return s.textContent.replace(/\s+/g, ''); });
+      var onIndex = qa('.steps .step').findIndex(function (s) { return s.classList.contains('on'); });
+      rec('PC-01', '默认（教务主任）渲染四步向导，第 1 步「选择学年学期」为进行中',
+        stepTitles.length === 4 && stepTitles[0] === '1选择学年学期' && onIndex === 0
+        && qa('.steps .step[data-nav]').length === 3,
+        stepTitles.join(' | '));
+      next();
+    },
+    function (next) {
+      var source = q('#f-source-term');
+      var target = q('#f-target-term');
+      rec('PC-02', '表单字段与 REQ-PRM-007 一致：学校只读 + 源 / 目标学年学期必填 + 范围说明选填',
+        q('#f-school').hasAttribute('disabled')
+        && source.hasAttribute('data-required') && target.hasAttribute('data-required')
+        && !q('#f-remark').hasAttribute('data-required'),
+        'school_id 只读=' + q('#f-school').hasAttribute('disabled')
+        + ' / 必填 = ' + source.hasAttribute('data-required') + ',' + target.hasAttribute('data-required'));
+      next();
+    },
+    function (next) {
+      nextBtn().click();
+      var summaryVisible = !q('#validate-summary').classList.contains('state-hidden');
+      rec('PC-03', '未选学年学期点「下一步」：字段级校验 + 校验汇总，不产生提交（按钮不进入处理中）',
+        fieldHasError('#f-source-term') && fieldHasError('#f-target-term') && summaryVisible
+        && !nextBtn().classList.contains('loading'),
+        '汇总=' + summaryVisible + ' / 源字段错误=' + fieldErrorText('#f-source-term'));
+      next();
+    },
+    function (next) {
+      setVal(q('#f-source-term'), '202602');
+      setVal(q('#f-target-term'), '202601');
+      nextBtn().click();
+      var message = fieldErrorText('#f-target-term');
+      rec('PC-04', '目标学年学期起始日期不晚于源（2026-09-01 ≤ 2027-02-22）：字段级拦截（REQ-PRM-008 / BR-TERM-005）',
+        message.indexOf('必须晚于') !== -1 && !nextBtn().classList.contains('loading'),
+        message || '（无错误文案）');
+      next();
+    },
+    function (next) {
+      clickSample('missing');
+      var hasEntry = Boolean(q('[data-action-id="ACT-PRM-015"]')) && Boolean(q('[data-action-id="ACT-PRM-016"]'));
+      rec('PC-05', '缺项样例：目标学年学期缺 2 个年级 + 1 个班级 → 阻塞块给出「去创建年级 / 去创建班级」入口（REQ-PRM-009）',
+        gateState() === 'block' && samplePanel('missing') && hasEntry
+        && textOf('#scope-gate-text').indexOf('3 项') !== -1,
+        'gate=' + gateState() + ' / 入口=' + hasEntry + ' / ' + textOf('#scope-gate-text').slice(0, 40));
+      next();
+    },
+    function (next) {
+      nextBtn().click();
+      var toast = lastToast();
+      rec('PC-06', '缺项样例下点「下一步」：被拦截并给出可操作提示，不发请求（按钮可点但标记 data-blocked，不置 loading）',
+        toast.indexOf('阻塞项') !== -1 && nextBlocked() && !nextBtn().classList.contains('loading'),
+        '提示=' + (toast || '（无提示）') + ' / blocked=' + nextBlocked());
+      next();
+    },
+    function (next) {
+      clickSample('conflict');
+      var text = textOf('#scope-gate-text');
+      rec('PC-07', '同一源→目标学期已有未结束任务：阻塞 + 指向该任务与列表页（REQ-PRM-005 / BR-PROMO-003）',
+        gateState() === 'block' && text.indexOf('PRM-20260930-0012') !== -1
+        && Boolean(q('[data-action-id="ACT-PRM-017"]')),
+        text.slice(0, 60));
+      next();
+    },
+    function (next) {
+      clickSample('large');
+      var warn = textOf('#scope-gate-warn-text');
+      rec('PC-08', '超阈值样例：在读 10,240 > 10,000 → 只警告不阻塞，下一步仍可用（REQ-PRM-010 / NFR-PERF-07）',
+        gateState() === 'warn' && textOf('#scale-count') === '10,240' && !nextBlocked()
+        && warn.indexOf('10,240') !== -1 && warn.indexOf('超过阈值') !== -1,
+        'gate=' + gateState() + ' / 在读=' + textOf('#scale-count') + ' / 下一步可用=' + !nextBlocked());
+      next();
+    },
+    function (next) {
+      clickSample('ready');
+      rec('PC-09', '齐备样例：gate=ok、在读 512、预览 25 秒、下一步可用；三个学段都标「齐备」',
+        gateState() === 'ok' && samplePanel('ready') && textOf('#scale-count') === '512'
+        && textOf('#scale-hint').indexOf('25 秒') !== -1 && !nextBlocked()
+        && qa('[data-sample-panel="ready"] .el-tag.success').length === 3,
+        'gate=' + gateState() + ' / 齐备标签 ' + qa('[data-sample-panel="ready"] .el-tag.success').length + ' 个');
+      next();
+    },
+    function (next) {
+      var btn = nextBtn();
+      rec('PC-10', '「下一步」登记为 addPromotionTask，权限点 promotion.batch:create（CR-012）',
+        btn.getAttribute('data-api') === 'addPromotionTask'
+        && btn.getAttribute('data-permission') === 'promotion.batch:create'
+        && btn.getAttribute('data-component') === 'el-button.primary',
+        btn.getAttribute('data-api') + ' / ' + btn.getAttribute('data-permission'));
+      next();
+    },
+    function (next) {
+      var blocked = Boolean(q('#validate-summary')) && Boolean(q('#scope-gate-block'));
+      var cancel = q('[data-action-id="ACT-PRM-011"]');
+      rec('PC-11', '取消按钮返回任务列表（data-nav=PAGE-PRM-LIST），阻塞与校验汇总块都存在',
+        cancel.getAttribute('data-nav') === 'PAGE-PRM-LIST' && blocked,
+        '取消 → ' + cancel.getAttribute('data-nav'));
+      next();
+    },
+    function (next) {
+      return setRole('school_leader', '校领导').then(function () {
+        rec('PC-12', '校领导（只有 read）：进入无权限面板，表单区不可见（CR-012）',
+          panelState('forbidden') && q('[data-normal-view]').classList.contains('state-hidden'),
+          '无权限面板=' + panelState('forbidden'));
+        next();
+      });
+    },
+    function (next) {
+      return setRole('grade_leader', '年级主任').then(function () {
+        rec('PC-13', '年级主任（read + DS-05 只读）：进入无权限面板',
+          panelState('forbidden'),
+          '无权限面板=' + panelState('forbidden') + ' / 提示=' + textOf('[data-role="scope-hint"]'));
+        next();
+      });
+    },
+    function (next) {
+      return setRole('platform_ops', '平台运营').then(function () {
+        var hint = textOf('[data-role="scope-hint"]');
+        rec('PC-14', '平台运营（DS-01 只读）：进入无权限面板，提示写明缺少 create 权限',
+          panelState('forbidden') && hint.indexOf('只读') !== -1,
+          hint);
+        next();
+      });
+    },
+    function (next) {
+      return setRole('homeroom', '班主任').then(function () { return setRole('tenant_admin'); }).then(function () {
+        rec('PC-15', '班主任与租户管理员（矩阵未授予 promotion.batch）：同样进入无权限面板',
+          panelState('forbidden'),
+          '无权限面板=' + panelState('forbidden'));
+        next();
+      });
+    },
+    function (next) {
+      return setRole('super_admin', '超级管理员').then(function () {
+        var alertText = textOf('[data-role-visible="super_admin"]');
+        rec('PC-16', '超级管理员：恢复正常态并提示全平台不受限、操作强制留痕（BR-ORG-014）',
+          !panelState('forbidden') && !q('[data-normal-view]').classList.contains('state-hidden')
+          && alertText.indexOf('BR-ORG-014') !== -1,
+          '提示命中=' + (alertText.indexOf('BR-ORG-014') !== -1));
+        next();
+      });
+    },
+    function (next) {
+      var codes = ['loading', 'empty', 'error', 'forbidden', 'submitting'];
+      var missing = codes.filter(function (c) { return !q('[data-demo-state-panel="' + c + '"]'); });
+      rec('PC-17', '五类页面状态片段齐全（加载中 / 空数据 / 校验失败 / 无权限 / 提交中）',
+        missing.length === 0, missing.length ? '缺 ' + missing.join(',') : '全部存在');
+      next();
+    },
+    function (next) {
+      var t = textOf('[data-demo-state-panel="forbidden"]');
+      rec('PC-18', '无权限态写明"不降级为全量"并给出返回入口（DS-DENY-03 / NFR-SEC-05）',
+        t.indexOf('DS-DENY-03') !== -1 && t.indexOf('NFR-SEC-05') !== -1 && t.indexOf('返回任务列表') !== -1,
+        t.slice(0, 70));
+      next();
+    },
+    function (next) {
+      var t = textOf('[data-demo-state-panel="error"]');
+      rec('PC-19', '校验失败态：请求编号 + 错误码 + 重试，并写明不会跳过校验继续',
+        t.indexOf('REQ-20261001-000318') !== -1 && t.indexOf('EDU-TERM-5031') !== -1
+        && t.indexOf('跳过校验') !== -1 && Boolean(q('[data-demo-state-panel="error"] [data-action-id="ACT-PRM-013"]')),
+        t.slice(0, 70));
+      next();
+    },
+    function (next) {
+      frame.contentWindow.location.hash = '#sample=large';
+      win().setTimeout(function () {
+        var largeApplied = rootAttr('data-sample') === 'large' && gateState() === 'warn';
+        frame.contentWindow.location.hash = '#sample=ready';
+        win().setTimeout(function () {
+          rec('PC-20', '深链接 #sample=large 在已打开的页面上立即生效（hashchange 重放样例切换）',
+            largeApplied && rootAttr('data-sample') === 'ready',
+            '生效时 data-sample=large → 还原后 ' + rootAttr('data-sample'));
+          next();
+        }, 120);
+      }, 120);
+    },
+    function (next) {
+      var used = {};
+      qa('[data-action-id]').forEach(function (n) { used[n.getAttribute('data-action-id')] = true; });
+      var unknown = Object.keys(used).filter(function (id) { return !REGISTERED[id]; });
+      rec('PC-21', '页面用到的动作编号全部落在 common_actions 与 promotion_create 已登记集合内',
+        unknown.length === 0, unknown.length ? '未登记 ' + unknown.join(',') : Object.keys(used).length + ' 个编号');
+      next();
+    },
+    function (next) {
+      return setRole('academic_director', '教务主任').then(function () {
+        var hint = textOf('[data-role="scope-hint"]');
+        rec('PC-22', '页头数据范围提示随角色变化（教务主任 DS-04 / 年级主任 DS-05 / 平台运营 DS-01）',
+          hint.indexOf('DS-04') !== -1 && hint.indexOf('创建') !== -1,
+          hint);
+        next();
+      });
+    }
+  ];
+
+  var EXPECTED = 22;
+  var rendered = false;
+
+  function render() {
+    rendered = true;
+    var ol = document.getElementById('results');
+    ol.innerHTML = '';
+    var pass = 0;
+    RESULTS.forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = r.pass ? 'ok' : 'bad';
+      li.textContent = (r.pass ? '通过  ' : '不通过 ') + r.id + '  ' + r.name + (r.detail ? '  —— ' + r.detail : '');
+      ol.appendChild(li);
+      if (r.pass) pass += 1;
+    });
+    var p = document.createElement('p');
+    p.className = pass === EXPECTED ? 'sum' : 'sum bad';
+    p.textContent = '合计 ' + RESULTS.length + ' / ' + EXPECTED + ' 条，通过 ' + pass + ' 条，不通过 '
+      + (RESULTS.length - pass) + ' 条' + (pass === EXPECTED && RESULTS.length === EXPECTED ? ' —— 全部通过' : '');
+    ol.appendChild(p);
+  }
+
+  function run(index) {
+    if (index >= steps.length) { render(); return; }
+    var called = false;
+    function next() {
+      if (called) return;
+      called = true;
+      run(index + 1);
+    }
+    var out;
+    try {
+      out = steps[index](next);
+    } catch (err) {
+      rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步抛异常（后续步骤已跳过）',
+        false, String((err && err.message) || err));
+      run(index + 1);
+      return;
+    }
+    // 异步步骤必须返回 promise，否则链路会在 await 处悄悄断掉、整份结果停在「运行中…」
+    if (out && typeof out.then === 'function') {
+      out.catch(function (err) {
+        rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步的异步断言失败',
+          false, String((err && err.message) || err));
+        next();
+      });
+    }
+  }
+
+  var started = false;
+  frame.addEventListener('load', function () {
+    if (started) return;
+    started = true;
+    window.setTimeout(function () { run(0); }, 500);
+    // 看门狗：任何一步卡住也要把已有结果落出来，避免出现「长期停在运行中」的证据文件
+    window.setTimeout(function () {
+      if (!rendered) {
+        rec('WATCHDOG', '运行超时：断言链未在 30 秒内跑完（上面是已完成的断言）', false, '请检查是否有未返回的异步步骤');
+        render();
+      }
+    }, 30000);
+  });
+})();
+</script>
+</body>
+</html>

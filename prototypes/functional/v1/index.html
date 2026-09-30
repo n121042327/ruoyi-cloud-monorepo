@@ -20,7 +20,7 @@
   </div>
 
   <section class="card">
-    <div class="card-header"><h3>已交付页面（批次 2-1、2-2a、2-2b-1、2-2b-2、2-2b-2b）</h3><span class="el-tag success">待人工验收</span></div>
+    <div class="card-header"><h3>已交付页面（批次 2-1 ~ 2-3e-s4）</h3><span class="el-tag success">待人工验收</span></div>
     <div class="card-body">
       <table class="el-table">
         <thead>
@@ -167,6 +167,97 @@
 <td><a href="pages/class-list.html#panel=DIALOG-CLS-DELETE">班级列表空班行内「更多 ▾」→「删除」</a></td>
 <td>只对在读人数为 0 的班级可用；原因必填；逻辑删除、不做物理删除（REQ-CLS-046）</td>
 </tr>
+<tr>
+<td class="mono">PAGE-CLS-DETAIL</td>
+<td>班级详情（批次 2-3b · 独立页 + 4 页签）</td>
+<td>详情页（TPL-DETAIL）</td>
+<td><a href="pages/class-detail.html">pages/class-detail.html</a></td>
+<td>页头 6 个操作、基本信息 8 字段、花名册默认只显示在读成员；页签含任课教师 / 班主任任职历史 / 变更记录；花名册新增勾选列，支撑批量移出与调班</td>
+</tr>
+<tr>
+<td class="mono">DIALOG-CLS-ROSTER-REMOVE</td>
+<td>移出学生（批次 2-3d · 二次确认）</td>
+<td>弹窗（TPL-OVERLAY · sm）</td>
+<td><a href="pages/class-detail.html#panel=DIALOG-CLS-ROSTER-REMOVE">班级详情花名册勾选后点「移出」</a></td>
+<td>列出将移出的成员；原因必填并写审计；未勾选时只提示、不开空弹窗</td>
+</tr>
+<tr>
+<td class="mono">PAGE-CLS-TRANSFER</td>
+<td>调班（批次 2-3d）</td>
+<td>弹窗（TPL-OVERLAY · sm）</td>
+<td><a href="pages/class-detail.html#panel=PAGE-CLS-TRANSFER">班级详情行内「调班」</a></td>
+<td>带入该生与源班级（源班级不可选）、目标班级必填；已停用班级不可选；必须走 transferClass</td>
+</tr>
+<tr>
+<td class="mono">PAGE-CLS-ROSTER-ADD</td>
+<td>编班（添加学生）（批次 2-3d · 独立页）</td>
+<td>独立页（左学生池 + 右待加入清单）</td>
+<td><a href="pages/class-roster-add.html">pages/class-roster-add.html</a></td>
+<td>仅列在读且无行政班的学生；允许勾选已有行政班的学生，提交时整体拒绝并列出冲突清单（REQ-CLS-029）</td>
+</tr>
+<tr>
+<td class="mono">PAGE-CLS-MOVE</td>
+<td>批量迁学生（批次 2-3d · 独立页）</td>
+<td>独立页（选学生 → 选目标班 → 影响预览）</td>
+<td><a href="pages/class-move-students.html">pages/class-move-students.html</a></td>
+<td>只允许「在读」成员迁移，休学 / 出国保留学籍显示但不可选；影响预览 5 列；目标班级已停用时拦截执行</td>
+</tr>
+<tr>
+<td class="mono">PAGE-PRM-LIST</td>
+<td>升班任务列表（批次 2-3e-s1 样板）</td>
+<td>列表页（TPL-LIST）</td>
+<td><a href="pages/promotion-list.html">pages/promotion-list.html</a></td>
+<td>8 个任务状态各一套行内动作（草稿 / 已预览待确认 / 校验中 / 执行中 / 已完成 / 部分失败 / 失败 / 已取消）；草稿的三个计数列显示「—」；列宽之和 = 表格 min-width = 1108px；只读角色无任何写入口（CR-012）</td>
+</tr>
+<tr>
+<td class="mono">DIALOG-PRM-CANCEL</td>
+<td>取消升班任务（批次 2-3e-s1 · 同页片段）</td>
+<td>弹窗（TPL-OVERLAY · sm）</td>
+<td><a href="pages/promotion-list.html#panel=DIALOG-PRM-CANCEL">任务列表行内「取消」</a></td>
+<td>绑定当前行任务编号；原因必填且写审计；写清「取消后保留已完成部分、不做整批回滚」（已确认 4）</td>
+</tr>
+<tr>
+<td class="mono">PAGE-PRM-CREATE</td>
+<td>新建升班任务（批次 2-3e-s2 · 向导第一步）</td>
+<td>向导页（TPL-WIZARD）</td>
+<td><a href="pages/promotion-create.html">pages/promotion-create.html</a></td>
+<td>四档校验样例（齐备 / 缺年级班级 / 同一源→目标已有未结束任务 / 在读超阈值）；目标起始日期必须晚于源（BR-TERM-005）；底部操作条 sticky，主按钮始终可见；无 promotion.batch:create 的角色进无权限态</td>
+</tr>
+<tr>
+<td class="mono">PAGE-PRM-PREVIEW</td>
+<td>升班预览与调整（批次 2-3e-s3 · 向导第二步）</td>
+<td>向导页（TPL-WIZARD · 双栏）</td>
+<td><a href="pages/promotion-preview.html">pages/promotion-preview.html</a></td>
+<td>左栏按源班级分组（REQ-PRM-013）+ 按班级整体指定目标班级（REQ-PRM-018）；右栏逐学生明细（升级 / 转班 / 留级 / 毕业）；留级显示「同学段同名年级」（BR-PROMO-006）；年级主任只看本年级 5 行且无写入口</td>
+</tr>
+<tr>
+<td class="mono">PAGE-PRM-ADJUST</td>
+<td>调整学生去向（批次 2-3e-s3 · 同页弹窗）</td>
+<td>弹窗（TPL-OVERLAY · md）</td>
+<td><a href="pages/promotion-preview.html#panel=PAGE-PRM-ADJUST&student=2026000004">预览页行内「调整」</a></td>
+<td>处理方式（升级 / 留级 / 转班 / 毕业 / 跳过）驱动必填项：升级 / 转班需目标班级，留级 / 跳过需原因；只改明细，不改学生数据（REQ-PRM-020）；弹窗内不放表格</td>
+</tr>
+<tr>
+<td class="mono">PAGE-PRM-VALIDATE</td>
+<td>升班校验结果（批次 2-3e-s4 · 向导第三步）</td>
+<td>向导页（TPL-WIZARD）</td>
+<td><a href="pages/promotion-validate.html">pages/promotion-validate.html</a></td>
+<td>通过 / 警告 / 错误三分类（REQ-PRM-023）；容量超限只警告（REQ-PRM-024）；错误项存在时「确认执行」被拦并给原因（REQ-PRM-025）；按维度下钻到学生并可「标记跳过」</td>
+</tr>
+<tr>
+<td class="mono">PAGE-PRM-EXECUTE</td>
+<td>执行与进度（批次 2-3e-s4 · 向导第四步）</td>
+<td>向导页（TPL-WIZARD）</td>
+<td><a href="pages/promotion-execute.html">pages/promotion-execute.html</a></td>
+<td>进度 5 / 7 = 71%、成功 4 / 失败 1 / 留级 1 / 毕业 1；处理时间线含失败原因与幂等说明；写明「可以离开页面」（REQ-PRM-031）；取消入口指向列表行内取消</td>
+</tr>
+<tr>
+<td class="mono">PAGE-PRM-RESULT</td>
+<td>执行结果与重试（批次 2-3e-s4）</td>
+<td>独立页（TPL-LIST）</td>
+<td><a href="pages/promotion-result.html">pages/promotion-result.html</a></td>
+<td>四类清单切换（成功 6 / 失败 1 / 留级 1 / 毕业 1，REQ-PRM-034）；失败原因逐条 + 只重试失败项（REQ-PRM-032）；已取消可「继续执行剩余项」；结果导出下载前重新解析范围（DS-DENY-04）</td>
+</tr>
         </tbody>
       </table>
       <div class="legend" style="margin-top:10px">
@@ -193,6 +284,7 @@
 <li>打开 <a href="pages/grade-list.html">年级管理列表</a>，点工具条「导出」上方的空年级行（也可直接用 <a href="pages/grade-list.html#enroll=2021">#enroll=2021</a> 只筛出它）：它是唯一带「删除」入口的行，点「删除」看二次确认，不填原因直接确认可看到字段级校验。</li>
 <li>打开 <a href="pages/class-list.html">班级管理列表</a>，先看默认形态：在读 / 容量是两列，「初中一年级 (1) 班」行有「超容量」提示但写操作仍然可用（只提示不拦截）。再切演示面板的角色：<code>班主任</code> 只剩 1 行、<code>任课教师</code> 只剩 3 行且禁止导出花名册、<code>年级主任</code> 4 行且菜单里没有「删除」。最后点任一行的「更多 ▾」：有在读学生的班没有「删除」，空班（高二 (2) 班）才有，点它看删除二次确认与字段级校验。</li>
         <li>在年级列表把角色切到「校领导」与「年级主任」：两者都看不到新增 / 批量生成，操作列显示「只读」；再切到「超级管理员」，页头出现全平台与强制留痕提示，且全部按钮与行内操作都可见。</li>
+        <li>打开 <a href="pages/promotion-list.html">升班任务列表</a>，点行内「取消」看二次确认（原因必填、保留已完成部分）；再点「新建任务」进入 <a href="pages/promotion-create.html">升班向导第一步</a>：分别切「齐备 / 缺年级·班级 / 已有未结束任务 / 超阈值」四个校验样例，看主按钮从可用变为被阻止（点它会给出原因）；把「源学年学期」设为第二学期、「目标」设为第一学期，可见目标起始日期的字段级拦截。</li>
       </ol>
     </div>
   </section>
@@ -227,7 +319,7 @@
           <tr><td>2-2b-1</td><td>教师详情 + 新增教师 + 编辑教师（含放弃确认弹窗）</td><td class="num">3</td><td><span class="el-tag warning">待验收</span></td></tr>
           <tr><td>2-2b-2</td><td>教育角色分配 + 任教关系设置（独立页）</td><td class="num">2</td><td><span class="el-tag warning">待验收</span></td></tr>
           <tr><td>2-2b-2b</td><td>年级管理 6 页（列表 + 详情 + 新建/编辑 + 批量生成 + 指定主任 + 归档确认）</td><td class="num">6</td><td><span class="el-tag warning">待验收</span></td></tr>
-<tr><td>2-3</td><td>班级管理 + 班级详情 + 升班向导（2-3a 班级列表样板已产出；2-3b ~ 2-3e 待铺开）</td><td class="num">16</td><td><span class="el-tag warning">2-3a 待验收</span></td></tr>
+<tr><td>2-3</td><td>班级管理 + 班级详情 + 升班向导 6 页（2-3a 列表 / 2-3b 详情 / 2-3c 四个弹窗 / 2-3d 编班与迁学生 / 2-3e 升班全流程：列表 → 新建 → 预览 → 校验 → 执行 → 结果）</td><td class="num">17</td><td><span class="el-tag warning">2-3 全部产出待验收</span></td></tr>
           <tr><td>2-4</td><td>导入向导 + 登录 + 异常页</td><td class="num">11</td><td><span class="el-tag info">待开始</span></td></tr>
           <tr><td>2-5</td><td>学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录）</td><td class="num">8</td><td><span class="el-tag info">待开始</span></td></tr>
           <tr><td>2-6</td><td>学校管理 + 学年学期 + 学科与配置</td><td class="num">19</td><td><span class="el-tag info">待开始</span></td></tr>
@@ -260,6 +352,7 @@
           <tr><td class="mono">GAP-039</td><td>已交付的学生 / 教师表单用的是抽屉，与 <span class="mono">apps/plus-ui</span> 的 dialog 习惯不一致；另有 5 份冻结 PRD 也写抽屉</td><td>阶段 3 与阶段 6：要么统一为弹窗（返工已交付页面 + 改 PRD），要么详情保留抽屉。推荐选项 B（表单改弹窗、详情保留）</td></tr>
           <tr><td class="mono">已关闭</td><td><span class="mono">GAP-039</span> 已按选项 B 执行（<span class="mono">CR-008</span> / <span class="mono">D-059</span>）：学生与教师的新增 / 编辑由抽屉改弹窗，教师 / 学生详情保留抽屉，校区管理与学期管理改独立页；同时修好弹窗内长内容被裁切、无法滚动的问题</td><td>回归验证 14 / 14 通过：<span class="mono">evidence/stage2-prototype/verify-carrier-change.html</span></td></tr>
           <tr><td class="mono">已裁决</td><td><span class="mono">GAP-034</span> 校领导对年级只读（选项 B） · <span class="mono">GAP-035</span> 三个角色补年级读权限（选项 A） · <span class="mono">GAP-036</span> 可删空年级（选项 B） · <span class="mono">GAP-037</span> 字段一次补全（选项 A）</td><td>见 <span class="mono">CR-005</span> 与 <span class="mono">decisions.md</span> D-056</td></tr>
+          <tr><td class="mono">已关闭</td><td><span class="mono">GAP-055</span>（升班明细的 7 个字段与「调整方式」枚举没进字段字典）已按选项 A 执行（<span class="mono">CR-014</span> / <span class="mono">D-073</span>）：补 7 个字段 + 3 个枚举、<span class="mono">BR-PROMO-006</span> 补留级去向、升班 PRD 6.1 / 6.3 / 7.1 补字段口径并升 1.0.4-draft</td><td>2-3e 剩余 5 页可以按同一标准铺开；阶段 5 的升班建表有字段与枚举依据</td></tr>
         </tbody>
       </table>
     </div>

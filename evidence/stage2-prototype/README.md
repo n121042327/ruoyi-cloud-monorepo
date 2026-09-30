@@ -1,10 +1,11 @@
-# 阶段 2 业务原型 · 验收证据（批次 2-1、2-2a、2-2b-1、2-2b-2、2-2b-2b、2-3a、2-3b、2-3c、2-3d）
+# 阶段 2 业务原型 · 验收证据（批次 2-1、2-2a、2-2b-1、2-2b-2、2-2b-2b、2-3a、2-3b、2-3c、2-3d、2-3e-s1、2-3e-s2）
 
 本目录保存批次 2-1（学生管理列表 + 新增/编辑抽屉样板页）、2-2a（教师管理列表样板页）、
 2-2b-1（教师详情 + 新增教师 + 编辑教师，含放弃确认弹窗）、2-2b-2（教育角色分配 + 任教关系设置独立页）、
 2-2b-2b（年级管理列表样板页 + 删除确认弹窗）、2-3a（班级管理列表样板页 + 停用/删除确认）、
 2-3b（班级详情与花名册）、2-3c（新建/编辑、批量生成、复制、指定班主任四个弹窗）、
-2-3d（编班、批量迁学生、移出确认与调班）的截图证据。
+2-3d（编班、批量迁学生、移出确认与调班）、2-3e-s1（升班任务列表样板 + 取消确认片段）、
+2-3e-s2（升班向导第一步）的截图证据。
 截图由本机 Chrome 无头模式生成，命令可复现，见文末。
 
 ## 1. 截图清单
@@ -503,3 +504,125 @@ $chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 
 原型的 `data-field="status"` 同步改为 `promotion_task_status`；`data-field` 不参与渲染，
 因此本目录的 14 张截图无需重拍，`verify-promotion-list.html` 重跑仍为 36 / 36。
+
+### 6.2 批次 2-3e-s2（升班向导第一步）的交付说明
+
+页面：`prototypes/functional/v1/pages/promotion-create.html`（`PAGE-PRM-CREATE`，骨架 `TPL-WIZARD`，独立页）。
+规格：`prototypes/functional/v1/page-specs/promotion-create.md`。
+动作组：`page-actions.yaml` 的 `promotion_create`（`ACT-PRM-011` ~ `ACT-PRM-019`）。
+样例数据：`content-samples.json` 的 `promotion_create_samples`（学年学期选项 + 四档校验样例）。
+harness：`verify-promotion-create.html`（`PC-01` ~ `PC-22`，22 / 22 通过）。
+
+| 截图 | 分辨率 | 场景 | 用于验证 |
+|---|---|---|---|
+| `promotion-create_1440x900.png` | 1440×900 | 默认（教务主任，齐备样例） | 设计基准分辨率；步骤条 1 / 4、表单两列、齐备性清单、底部 sticky 操作条可见 |
+| `promotion-create_1366x768.png` | 1366×768 | 默认（教务主任） | 最小分辨率无整页横向滚动、无文字截断；主按钮仍在视口内（sticky） |
+| `promotion-create_1920x1080.png` | 1920×1080 | 默认（教务主任） | 宽屏下主内容区不无限拉伸，表单两列不被拉长 |
+| `promotion-create_sample-missing_1440x900.png` | 1440×900 | 校验样例 = 缺年级 / 班级 | 高中部行标红「缺 3 项」（缺 高二、高三 + 高一 (4) 班）；阻塞条常驻，主按钮 `data-blocked=true` |
+| `promotion-create_sample-conflict_1440x900.png` | 1440×900 | 校验样例 = 已有未结束任务 | 指向 `PRM-20260930-0012`（与升班列表同一编号，两页可互相印证）；给「查看已有任务」入口 |
+| `promotion-create_sample-large_1440x900.png` | 1440×900 | 校验样例 = 超出 1 万阈值 | 在读 10,240 人只给耗时预估警告，不阻止创建（`REQ-PRM-010`） |
+| `promotion-create_role-school-leader-forbidden_1440x900.png` | 1440×900 | 角色 = 校领导 | 无 `promotion.batch:create` → 无权限面板；表单与步骤内容整体不可见（`DS-DENY-03`） |
+| `promotion-create_state-submitting_1440x900.png` | 1440×900 | 状态 = 提交中 | 主按钮置 loading 并禁用；说明「创建成功后任务状态为草稿」（`REQ-PRM-011`） |
+| `promotion-create_state-empty_1440x900.png` | 1440×900 | 状态 = 空数据 | 源学年学期在读 0 人：写明只有在读计入，给「去学生管理核对学籍状态」与「返回任务列表」 |
+| `promotion-create_state-error_1440x900.png` | 1440×900 | 状态 = 校验失败 | 请求编号 + 错误码 + 数据截止时间 + 重试；写明不会以跳过校验的方式继续 |
+| `promotion-create_verify-results.png` | 1500×1250 | harness 结果清单 | `合计 22 / 22 条，通过 22 条，不通过 0 条 —— 全部通过` |
+| `index_1440x1700.png` | 1440×2800（文件名沿用批次 2-1 的命名，未改名） | 原型入口页 | 已交付页面表 24 行（含 2-3b ~ 2-3e-s2）；批次 2-3 行 17 页 / 2-3e-s2 待验收；`GAP-055` 已关闭 |
+
+复现命令（`#sample=` / `#role=` / `#state=` 三个深链接参数都可用）：
+
+```powershell
+$chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+& $chrome --headless=new --disable-gpu --no-first-run --hide-scrollbars --allow-file-access-from-files `
+  --user-data-dir="$env:TEMP\codex-chrome-pc" --virtual-time-budget=9000 --window-size=1440,900 `
+  --screenshot="D:\work\person_work\ruoyi-cloud-monorepo\evidence\stage2-prototype\promotion-create_1440x900.png" `
+  "file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/promotion-create.html"
+```
+
+本批的两条工程决策（若不认可可回退）：
+
+| 事项 | 做法 | 理由 |
+|---|---|---|
+| 向导四步的载体 | 每步一个独立页（`promotion-create / preview / validate / execute / result`），不合成 `promotion-wizard.html` | `navigation.yaml` 给每步注册了独立 `route`，`jump_map` 也把「下一步」写成页面跳转；合成单文件会让 `data-page` 与 `jump_map` 两个契约同时失真 |
+| 阻塞项存在时的主按钮 | 不置灰，改为 `data-blocked=true` + 常驻阻塞条 + 点击给原因 | 置灰后点击不再触发事件，用户拿不到「为什么不能建」的说明；与 2-3d「目标班级已停用点执行被拦」同口径（harness `PC-06` 断言点击后仍有提示且不发请求） |
+
+本批暴露一个**阻塞**缺项：`GAP-055`（升班明细的 7 个字段与「调整方式」枚举未登记进 `06-field-dictionary.yaml`），
+阻塞向导第 2 ~ 4 步的 `data-field` 回溯与阶段 5 的升班建表；建议按选项 A 立 `CR-014` 一次补全后再铺 2-3e-s3。
+
+### 6.3 `CR-014`：升班明细的字段与枚举补齐（`GAP-055` 选项 A，`D-073`）
+
+用户 2026-10-01 对 `GAP-055` 的「推荐 A」答复「同意」后执行：
+
+| 变更 | 内容 |
+|---|---|
+| `06-field-dictionary.yaml` | 新增 7 个字段（`task_id` / `student_id` / `source_class_id` / `target_class_id` / `result_type` / `status` / `error_msg`）与 3 个枚举（`promotion_result_type` 升级/留级/转班/毕业/跳过、`promotion_item_status` 待处理/成功/失败/跳过、`promotion_validation_level` 通过/警告/错误）；字段总数 86 → 93 |
+| `04-business-rules.md` | `BR-PROMO-006` 补「留级的去向是目标学年学期的同学段同名年级，仍不改写源学年记录」 |
+| 升班 `PRD.md` | 6.1 补字段口径（调整弹窗写 `result_type` + `target_class_id`；任务 / 明细两层状态的区分）、6.3 补「指定留级」「指定转班」两行、7.1 修正 `result_type` 取值（补「转班」）；版本 `1.0.3-draft` → `1.0.4-draft` |
+| 治理文件 | `gap-register.yaml` 关闭 `GAP-055`、`stage-inputs.yaml` 从 `stage3` / `stage5` 的 `blocking_gaps` 移出、`decisions.md` 追加 `D-073` 并关闭 `R-034`、`file-catalog.md` 登记 `CR-014` |
+
+本批**不改动任何原型页面**，因此本目录的截图除入口页（`index_1440x1700.png`，`GAP-055` 一行由「待拍板」改为「已关闭」）
+以外都没有变化；9 个 harness 全部重跑作为回归证据：
+
+### 6.4 批次 2-3e-s3 / s4（升班向导第 2 ~ 4 步）的交付说明
+
+| 页面 | 文件 | 规格 | 说明 |
+|---|---|---|---|
+| `PAGE-PRM-PREVIEW` | `pages/promotion-preview.html` | `page-specs/promotion-preview.md` | 双栏：左源班级（按 `REQ-PRM-013` 分组、可整体指定目标班级 `REQ-PRM-018`）+ 右逐学生明细 |
+| `PAGE-PRM-ADJUST` | 同上（同页片段） | `page-specs/promotion-adjust.md` | 处理方式驱动必填项；留级去向＝同学段同名年级（`BR-PROMO-006`） |
+| `PAGE-PRM-VALIDATE` | `pages/promotion-validate.html` | `page-specs/promotion-validate.md` | 通过 / 警告 / 错误三分类 + 下钻 + 标记跳过 + 错误时执行被拦 |
+| `PAGE-PRM-EXECUTE` | `pages/promotion-execute.html` | `page-specs/promotion-execute.md` | 进度条 + 四类计数 + 处理时间线 + 排队中形态 |
+| `PAGE-PRM-RESULT` | `pages/promotion-result.html` | `page-specs/promotion-result.md` | 四类清单切换 + 只重试失败项 / 继续执行剩余项 + 结果导出 |
+
+harness：`verify-promotion-wizard.html`（`PV` / `ADJ` / `VD` / `EX` / `RS` / `ALL` 共 39 条，39 / 39 通过）。
+动作组：`page-actions.yaml` 的 `promotion_preview`（020 ~ 026）、`promotion_adjust`（027 ~ 028）、`promotion_common`（043）、
+`promotion_validate`（029 ~ 033）、`promotion_execute`（034 ~ 036）、`promotion_result`（037 ~ 041）。
+样例数据：`content-samples.json` 的 `promotion_preview`。
+
+| 截图 | 分辨率 | 场景 | 用于验证 |
+|---|---|---|---|
+| `promotion-preview_1440x900.png` | 1440×900 | 默认（教务主任） | 双栏布局、7 行明细、结果类型统计、sticky 操作条 |
+| `promotion-preview_1366x768.png` | 1366×768 | 最小分辨率 | 无整页横向滚动；左栏收窄后仍可读 |
+| `promotion-preview_dialog-adjust_1440x900.png` | 1440×900 | 调整弹窗（深链接带入赵一诺） | 处理方式 / 目标班级 / 调整原因；弹窗内不放表格 |
+| `promotion-preview_role-grade-leader_1440x900.png` | 1440×900 | 角色 = 年级主任 | 只剩本年级 5 行、无调整与批量入口（`DS-05` / `CR-012`） |
+| `promotion-preview_state-forbidden_1440x900.png` | 1440×900 | 角色 = 班主任 | 无权限面板，内容区整体隐藏（`DS-DENY-03`） |
+| `promotion-validate_1440x900.png` | 1440×900 | 默认 | 通过 5 / 警告 1 / 错误 1、错误阻塞条、下钻 chips |
+| `promotion-validate_filter-error_1440x900.png` | 1440×900 | 下钻 = 错误 | 只剩 1 行错误项，行内给「标记跳过」（`REQ-PRM-025`） |
+| `promotion-validate_state-error_1440x900.png` | 1440×900 | 状态 = 校验失败 | 请求编号 + 错误码 + 重试，写明不会跳过校验继续 |
+| `promotion-execute_1440x900.png` | 1440×900 | 默认 | 进度 5 / 7 = 71%、成功 4 / 失败 1、处理时间线 |
+| `promotion-execute_state-queued_1440x900.png` | 1440×900 | 状态 = 排队中 | 队列位置与并发上限口径（异步不阻塞） |
+| `promotion-execute_processed-0_1440x900.png` | 1440×900 | 深链接 `#processed=0` | 进度归零形态（用于演示刚受理） |
+| `promotion-result_1440x900.png` | 1440×900 | 默认（失败清单） | 四类计数、失败原因、只重试失败项 |
+| `promotion-result_list-succeeded_1440x900.png` | 1440×900 | 清单 = 成功 6 | 四类清单切换（`REQ-PRM-034`） |
+| `promotion-result_role-grade-leader_1440x900.png` | 1440×900 | 角色 = 年级主任 | 成功清单 4 行（高二 / 高三不可见）、重试按钮隐藏 |
+| `promotion-result_state-empty_1440x900.png` | 1440×900 | 状态 = 空数据 | 未执行 / 已取消任务给「继续执行剩余项」 |
+| `promotion-wizard_verify-results.png` | 1500×1700 | harness 结果清单 | `合计 39 / 39 条，通过 39 条，不通过 0 条 —— 全部通过` |
+
+**截图踩坑（值得记住）**：把 URL 拼成 `.../pages//promotion-preview.html#...`（变量末尾多一个 `/`）时，
+Chrome 无头模式会加载文件但**不执行 JS**：截图看起来"有内容"，实际是没有外壳的原始 HTML，
+而且同一页所有 `#` 深链接变体的截图字节数完全相同。判据就是「不同深链接的截图字节数一模一样」，
+发现后按单斜杠 URL 重拍了 15 张截图（本节的 16 张全部为单斜杠 URL 产物）。
+
+复现命令：
+
+```powershell
+$chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+$b = "file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages"
+& $chrome --headless=new --disable-gpu --no-first-run --hide-scrollbars --allow-file-access-from-files `
+  --user-data-dir="$env:TEMP\codex-wiz" --virtual-time-budget=9000 --window-size=1440,900 `
+  --screenshot="D:\work\person_work\ruoyi-cloud-monorepo\evidence\stage2-prototype\promotion-preview_1440x900.png" `
+  "$b/promotion-preview.html"
+```
+
+> 9 个 harness 的全部重跑结果见本文件下方（`CR-014` 一节）与 `interaction-verification.md` 第 14 节。
+
+| harness | 结果 |
+|---|---|
+| `verify-promotion-create.html` | 22 / 22 通过 |
+| `verify-promotion-list.html` | 36 / 36 通过 |
+| `verify-class-list.html` | 39 / 39 通过 |
+| `verify-class-detail.html` | 20 / 20 通过 |
+| `verify-class-roster.html` | 34 / 34 通过 |
+| `verify-class-dialogs.html` | 36 / 36 通过 |
+| `verify-grade-list.html` | 38 / 38 通过 |
+| `verify-detail-entry.html` | 6 / 6 通过 |
+| `verify-carrier-change.html` | 14 / 14 通过 |
+| `python tools/check_docs.py` | 通过：未发现问题 |

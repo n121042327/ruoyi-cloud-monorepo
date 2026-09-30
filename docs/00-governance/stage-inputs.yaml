@@ -112,6 +112,7 @@ stages:
       - 1366 / 1440 / 1920 三档截图无布局破裂
       - component-mapping.yaml 覆盖每个可交互元素
       - 样板页经用户验收并冻结视觉标准
+    blocking_gaps: []
     batch_plan:
       - batch: 3-0
         content: design-tokens + component-spec + component-mapping + visual-checklist

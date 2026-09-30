@@ -65,7 +65,7 @@
 | `docs/10-prd/03-glossary.md` | 术语表（行政班 / 教学班 / 选科 / 学年学期 …） | `frozen` |
 | `docs/10-prd/04-business-rules.md` | 业务规则总表（编号 BR-xxx） | `frozen` |
 | `docs/10-prd/05-permission-matrix.yaml` | 角色 × 资源 × 操作 权限矩阵 | `frozen` |
-| `docs/10-prd/06-field-dictionary.yaml` | 全局字段字典（枚举、字典、复用字段）；`CR-013` 补登记升班模块 6 个字段与 1 条部分唯一说明 | `frozen` |
+| `docs/10-prd/06-field-dictionary.yaml` | 全局字段字典（枚举、字典、复用字段）；`CR-013` 补登记升班任务 6 个字段与 1 条部分唯一说明，`CR-014` 补登记升班明细 7 个字段与 3 个枚举 | `frozen` |
 | `docs/10-prd/07-non-functional-requirements.md` | 非功能需求（性能、并发、安全、审计、可用性） | `frozen` |
 | `docs/10-prd/08-data-scope-model.md` | 数据归属与数据权限模型 | `frozen` |
 | `docs/10-prd/09-guardian-and-onboarding.md` | 家长绑定与学生数据采集模型（含表结构草案） | `frozen` |
@@ -150,6 +150,7 @@
 | `docs/00-governance/change-requests/CR-011.md` | 变更申请：把「在读名单」口径收敛为「只有在读状态计入」，并修正高二 (1) 班样例数（已批准并执行，关联 GAP-051 / D-068） | `review` |
 | `docs/00-governance/change-requests/CR-012.md` | 变更申请：升班任务的权限动作收敛为 update、校领导收回 approve、年级主任补只读参与（已批准并执行，关联 GAP-052 / GAP-053 / D-069） | `review` |
 | `docs/00-governance/change-requests/CR-013.md` | 变更申请：补齐升班模块的两项公共前置（6 个字段登记 + 取消确认片段登记）（已批准并执行，关联 GAP-054 / D-071） | `review` |
+| `docs/00-governance/change-requests/CR-014.md` | 变更申请：补齐升班明细的字段与枚举（7 个字段 + 3 个枚举 + `BR-PROMO-006` 的留级去向 + 升班 PRD 6.1 / 6.3 / 7.1 的字段口径）（已批准并执行，关联 GAP-055 / D-073） | `review` |
 | `evidence/stage2-prototype/verify-class-list.html` | 班级列表交互验证 harness（同源 iframe + 真实事件派发，39 条断言，CL-01 ~ CL-39；CL-34 已覆盖批次 2-3c 新增的 ACT-CLS-030 ~ 047） | `review` |
 | `prototypes/functional/v1/pages/class-detail.html` | 班级详情独立页（批次 2-3b：基本信息卡 + 花名册 / 任课教师 / 班主任任职历史 / 变更记录） | `review` |
 | `prototypes/functional/v1/page-specs/class-detail.md` | 班级详情页面规格（字段 / 动作 / 状态 / 权限 / 样例数据 / 自查） | `review` |
@@ -192,12 +193,27 @@
 | `evidence/stage2-prototype/class-list_*.png`（21 张，见 README 第 1 节） | `CR-011` 后按新口径重拍：页头汇总「在读 148 人」、高二 (1) 班在读 1；含 verify-results | `review` |
 | `evidence/stage2-prototype/verify-promotion-list.html` | 升班任务列表交互验证 harness（PRM-01 ~ PRM-36，36 条断言全部通过） | `review` |
 | `evidence/stage2-prototype/promotion-list_*.png`（14 张，见 README 第 6 节） | 升班任务列表截图：3 个分辨率 + 4 种角色形态 + 2 类筛选 + 取消确认片段 + 4 类状态 | `review` |
-| `evidence/stage2-prototype/interaction-verification.md` | 原型交互可点性验证报告（批次 2-2b-2b 的 GL-01 ~ GL-38、D-060 的 RD-01 ~ RD-06、批次 2-3e-s1 的 PRM-01 ~ PRM-36 实测结果） | `review` |
+| `evidence/stage2-prototype/interaction-verification.md` | 原型交互可点性验证报告（批次 2-2b-2b 的 GL-01 ~ GL-38、D-060 的 RD-01 ~ RD-06、批次 2-3e-s1 的 PRM-01 ~ PRM-36、批次 2-3e-s2 的 PC-01 ~ PC-22 实测结果） | `review` |
 | `prototypes/functional/v1/pages/class-list.html` | 班级管理列表 | `planned` |
 | `prototypes/functional/v1/pages/class-detail.html` | 班级详情与花名册 | `planned` |
 | `prototypes/functional/v1/pages/promotion-list.html` | 升班任务列表（批次 2-3e-s1 首件样板：12 行样例覆盖 8 个状态 + 同页确认片段 DIALOG-PRM-CANCEL） | `review` |
 | `prototypes/functional/v1/page-specs/promotion-list.md` | 升班任务列表页面规格（状态驱动的行内动作、权限与数据范围、样例数据、自查） | `review` |
-| `prototypes/functional/v1/pages/promotion-wizard.html` | 升班向导（四步向导与结果页，批次 2-3e 剩余 6 页） | `planned` |
+| `prototypes/functional/v1/pages/promotion-create.html` | 升班向导第一步：选择源 / 目标学年学期 + 目标年级班级齐备性 + 未结束任务冲突 + 在读规模与耗时预估（批次 2-3e-s2） | `review` |
+| `prototypes/functional/v1/page-specs/promotion-create.md` | 升班向导第一步页面规格（四档校验样例、三类前置校验、权限与数据范围、自查） | `review` |
+| `evidence/stage2-prototype/verify-promotion-create.html` | 升班向导第一步交互验证 harness（PC-01 ~ PC-22，22 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/promotion-create_*.png`（11 张，见 README 第 6.2 节） | 升班向导第一步截图：3 个分辨率 + 3 档校验样例 + 无权限形态 + 3 类状态 + harness 结果 | `review` |
+| `prototypes/functional/v1/pages/promotion-preview.html` | 升班向导第二步（预览与调整：双栏源班级 + 逐学生明细，含 PAGE-PRM-ADJUST 片段） | `review` |
+| `prototypes/functional/v1/pages/promotion-validate.html` | 升班向导第三步（通过 / 警告 / 错误三分类 + 下钻 + 标记跳过 + 执行被拦） | `review` |
+| `prototypes/functional/v1/pages/promotion-execute.html` | 升班向导第四步（进度条 + 四类计数 + 处理时间线 + 排队中形态） | `review` |
+| `prototypes/functional/v1/pages/promotion-result.html` | 升班结果与重试（四类清单 + 只重试失败项 / 继续执行剩余项 + 结果导出） | `review` |
+| `prototypes/functional/v1/page-specs/promotion-preview.md` | 升班向导第二步的页面规格（双栏结构、字段、动作、状态、权限、样例、自查） | `review` |
+| `prototypes/functional/v1/page-specs/promotion-adjust.md` | 调整学生去向弹窗的页面规格（处理方式驱动必填项、留级去向口径） | `review` |
+| `prototypes/functional/v1/page-specs/promotion-validate.md` | 升班校验结果页的页面规格（三分类、下钻、标记跳过） | `review` |
+| `prototypes/functional/v1/page-specs/promotion-execute.md` | 执行与进度页的页面规格（进度、计数、时间线、排队中） | `review` |
+| `prototypes/functional/v1/page-specs/promotion-result.md` | 执行结果与重试页的页面规格（四类清单、重试、导出） | `review` |
+| `prototypes/functional/v1/assets/wizard.css` | 向导类页面共用样式（步骤条、sticky 操作条、分组清单、数值卡、进度条、弹窗清单行） | `review` |
+| `evidence/stage2-prototype/verify-promotion-wizard.html` | 升班向导第 2 ~ 4 步交互验证 harness（PV / ADJ / VD / EX / RS / ALL 共 39 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/promotion-preview_*.png`（5 张）、`promotion-validate_*.png`（3 张）、`promotion-execute_*.png`（3 张）、`promotion-result_*.png`（4 张）、`evidence/stage2-prototype/promotion-wizard_verify-results.png` | 升班向导第 2 ~ 4 步截图（见 README 第 6.4 节）；含调整弹窗、只读角色、错误下钻与四类清单切换 | `review` |
 | `prototypes/functional/v1/pages/import-wizard.html` | 批量导入向导 | `planned` |
 | `prototypes/functional/v1/pages/login.html` | 登录 | `planned` |
 | `prototypes/functional/v1/pages/403.html` | 无权限页 | `planned` |
