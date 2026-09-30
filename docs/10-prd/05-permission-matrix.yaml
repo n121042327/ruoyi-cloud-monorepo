@@ -313,6 +313,7 @@ matrix:
   - role: subject_teacher
     entries:
       - { resource: org.grade, actions: [read], condition: 仅任教班级所属年级的年级摘要（DS-07） }
+      - { resource: org.class, actions: [read], condition: 仅任教班级的必要资料（DS-07）；不含班主任变更与编班，且禁止导出花名册（REQ-CLS-012 / REQ-CLS-034） }
       - { resource: person.student, actions: [read], condition: 仅任教班级的必要基本资料 }
       - { resource: org.teaching_class, actions: [read] }
       - { resource: person.student_contact, actions: [] }

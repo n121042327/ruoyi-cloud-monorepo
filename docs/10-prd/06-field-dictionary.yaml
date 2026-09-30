@@ -250,6 +250,20 @@ enums:
       - { code: archived, label: 已归档 }
     note: 年级状态。归档后不在新建班级的可选列表中，历史数据与统计仍可查（BR-GRADE-005、REQ-GRD-029）
 
+  - name: class_status
+    name_cn: 班级状态
+    entries:
+      - { code: studying, label: 在读 }
+      - { code: disabled, label: 已停用 }
+    note: |
+      班级状态。取值只保留「在读」与「已停用」两个（CR-010 / GAP-044）：
+      在读——班级正常使用，参与编班与班主任指定；
+      已停用——不再出现在新建学生与编班的可选班级中，历史花名册仍可查（REQ-CLS-044），
+      且不再接受编班、班主任变更与批量迁学生。
+      学年归档不改变班级状态（学年学期模块 REQ-TERM-030 只把归档学年移出新建班级的可选列表）；
+      「已合并」随班级合并功能（REQ-CLS-045，首轮延后）一并评估，本轮不登记。
+    applied_by: CR-010
+
 fields:
   - { name: student_no, cn: 学号, type: varchar(32), required: true, unique_scope: platform, br: BR-STU-001, format: "入学年份(4) + 全局序号(6)", note: 系统统一发号；永不回收；导入时忽略源学号；修改需校级管理员且留审计 }
   - { name: national_student_no, cn: 全国学籍号, type: varchar(64), required: false, unique_scope: platform, br: BR-STU-022, note: 官方 G / L 开头号码，允许为空，非空时全平台唯一 }
@@ -290,6 +304,9 @@ fields:
   - { name: class_name, cn: 班级名称, type: varchar(50), required: true, br: BR-CLASS-003 }
   - { name: class_capacity, cn: 班级容量, type: smallint, required: false, note: 仅提示，不强制校验，见 BR-CLASS-005 }
   - { name: head_teacher_id, cn: 班主任, type: bigint, required: false }
+  - { name: class_status, cn: 班级状态, type: varchar(16), required: true, enum_ref: class_status, br: BR-CLASS-006, note: 在读 / 已停用；停用后不在新建学生与编班的可选班级中，历史花名册仍可查（CR-010） }
+  - { name: campus_id, cn: 校区 ID, type: bigint, required: false, br: BR-ORG-009, note: 引用学校模块的 edu_campus；校区不参与数据权限判定，只用于组织与统计（CR-010 / GAP-045） }
+  - { name: classroom, cn: 教室, type: varchar(50), required: false, note: 自由文本（如「本部教学楼 A203」）；与容量一样只作参考信息，不参与权限或校验（CR-010 / GAP-045） }
 
   - { name: primary_subject_code, cn: 首选科目, type: varchar(20), required: true, enum_ref: subject_code, br: BR-STREAM-001 }
   - { name: secondary_subject_codes, cn: 再选科目, type: varchar(64), required: true, note: 两个编码以逗号分隔，需校验数量为 2，见 BR-STREAM-002 }

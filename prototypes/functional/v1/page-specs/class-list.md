@@ -44,13 +44,13 @@
 | `grade_id` | 年级 | `el-select` | 否 | — | 全部年级 | 只能选本校年级 | 年级属于数据范围解析的上一层（`DS-05`） |
 | `class_type` | 班级类型 | `el-select` | 否 | — | 全部类型 | 枚举 `class_type`：`administrative` / `teaching` | 行政班与教学班是两套独立关系（`BR-CLASS-001`） |
 | `head_teacher_id` | 班主任 | `el-select` | 否 | — | 全部 | 只能选本校在职教师 | 含「未指定班主任」选项（`BR-CLASS-004`） |
-| `campus_id` | 校区 | `el-select` | 否 | — | 全部校区 | 只能选本校校区 | 字段字典未登记，见 `GAP-045` |
+| `campus_id` | 校区 | `el-select` | 否 | — | 全部校区 | 只能选本校校区 | 校区不参与数据权限判定（`BR-ORG-009`），只用于组织与统计 |
 | `keyword` | 关键字 | `el-input` | 否 | — | 空 | 匹配班级名称与班主任姓名 | `REQ-CLS-003` |
 | `class_name` | 班级名称 | 文本列（可点） | — | — | — | 同校同学年学期同学段下唯一（`BR-CLASS-003`） | 超长名称省略并给 `title` |
 | `student_count` | 在读 | 数值列 | — | — | — | 只计"在读"成员，休学不计（`BR-STU-012`） | 超过容量时行内加 `el-tag.danger`「超容量」，仅提示不拦截（`REQ-CLS-007`） |
 | `class_capacity` | 容量 | 数值列 | — | — | — | 可空；教学班为空 | 只作参考（`BR-CLASS-005`） |
-| `classroom` | 教室 | 文本列 | — | — | — | 自由文本 | 字段字典未登记，见 `GAP-045`；长值省略并给 `title` |
-| `class_status` | 状态 | `el-tag` | — | — | 在读 | 本轮只用「在读」「已停用」 | 枚举未登记，见 `GAP-044`；已停用用 `el-tag.info` 且行内只留「详情」 |
+| `classroom` | 教室 | 文本列 | — | — | — | 自由文本 | 只作参考信息，不参与校验；长值省略并给 `title` |
+| `class_status` | 状态 | `el-tag` | — | — | 在读 | 枚举 `class_status`：`studying` / `disabled` | 已停用用 `el-tag.info` 且行内只留「详情」（`CR-010`） |
 
 ## 4. 动作清单
 
@@ -146,7 +146,7 @@
 - [x] 页面骨架属于四种模板之一（`TPL-LIST`）
 - [x] 每个可交互元素带 `data-page` / `data-role` / `data-action-id`（跳转类带 `data-nav`）
 - [x] 每个 `data-action-id` 已在 `page-actions.yaml` 登记（`ACT-CLS-001` ~ `016` 与 `ACT-COM-001` ~ `007`，`CL-34` 实测 18 个编号）
-- [ ] 每个 `data-field` 已在 `06-field-dictionary.yaml` 登记——**未满足**：`class_status` / `campus_id` / `classroom` 缺登记，见 `GAP-044` / `GAP-045`
+- [x] 每个 `data-field` 已在 `06-field-dictionary.yaml` 登记（`class_status` / `campus_id` / `classroom` 由 `CR-010` 补登记）
 - [x] 七类状态齐全（加载 / 空 / 失败 / 无权限 / 提交中 / 部分失败 / 排队中，`CL-30` 实测）
 - [x] 1366×768 与 1920×1080 下未出现整页横向滚动条与元素重叠（截图见 `evidence/stage2-prototype/`）
 - [x] 表格列宽之和 = `min-width` 1116px ≤ 1366 下可用宽度 1118px（`CL-37` 实测）

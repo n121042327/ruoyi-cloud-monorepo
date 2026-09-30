@@ -1241,7 +1241,9 @@ gaps:
     blocking: true
     blocks_stages: [stage6]
     owner: 用户
-    status: open
+    resolution: "裁决 A（2026-09-30 用户答复「1a2a3a」）：给 subject_teacher 补 `org.class` 的 `read`，条件写「仅任教班级的必要资料（DS-07）；不含班主任变更与编班，且禁止导出花名册」。经 CR-010 执行完毕：权限矩阵已改；批次 2-3a 的班级列表页在任课教师角色下实测只看到 3 行任教班级（verify-class-list 的 CL-14），与班级 PRD 2.1 和 DS-07 一致。"
+    resolved_at: "2026-09-30"
+    status: closed
 
   - id: GAP-044
     title: class_status 字段与状态枚举未登记进字段字典，且班级 PRD 7.1 的 status 没有取值
@@ -1274,7 +1276,9 @@ gaps:
     blocking: true
     blocks_stages: [stage5, stage6]
     owner: 用户
-    status: open
+    resolution: "裁决 A（2026-09-30 用户答复「1a2a3a」）：先只登记「在读 / 已停用」两个值。经 CR-010 执行：字段字典新增 `class_status` 枚举（studying / disabled）与 `class_status` 字段；班级 PRD 升 1.0.4-draft，7.1 的 `status` 改名为 `class_status`，新增 7.3 节写明两条口径——学年归档不改变班级状态（REQ-TERM-030 只把归档学年移出新建班级的可选列表）、「已合并」随班级合并（REQ-CLS-045，首轮延后）一并评估。"
+    resolved_at: "2026-09-30"
+    status: closed
 
   - id: GAP-045
     title: campus_id 与 classroom 未登记进字段字典（班级 PRD 7.1 已列出）
@@ -1301,6 +1305,45 @@ gaps:
       三项（GAP-043 ~ 045）都是班级模块的公共前置，一次 CR 补完可避免后续小批反复返工。
     blocking: true
     blocks_stages: [stage5, stage6]
+    owner: 用户
+    resolution: "裁决 A（2026-09-30 用户答复「1a2a3a」）：一次登记 `campus_id` 与 `classroom`。经 CR-010 执行：字段字典新增 `campus_id`（bigint，可空，引用 edu_campus，注明校区不参与权限判定 BR-ORG-009）与 `classroom`（varchar(50)，可空，自由文本）；班级 PRD 7.2 补「按校区列班级」的索引前缀（school_id, campus_id, class_status）；page-specs/class-list.md 的自查第 5 条由未满足改为满足。"
+    resolved_at: "2026-09-30"
+    status: closed
+
+  - id: GAP-046
+    title: 「按学校检索校区」缺少独立入口，且学校→校区→年级→班级→学生 的级联联动规则未定义
+    discovered_at: 2026-09-30
+    discovered_by: 用户提问「可以根据学校来检索校区，检索年级，检索班级，检索学生吗」
+    evidence: |
+      现状核对（按已冻结 PRD）：
+        - 年级列表（REQ-GRD-002）：筛选项含「学校」，已可按学校检索年级 ✅
+        - 班级列表（REQ-CLS-002）：筛选项含「年级、班级类型、班主任、校区」，学校是页面上下文
+          （平台运营与超级管理员可切学校）✅
+        - 学生列表（REQ-STU-002）：筛选项含「学校、学年学期、年级、班级、学籍状态、性别、入学年份、学段」✅
+        - 校区：学校 PRD 把校区定义为学校内的实体（edu_campus），唯一入口是
+          「学校管理 → 学校详情 → 校区管理」（PAGE-SCH-CAMPUS，批次 2-6），
+          接口是 `listCampus GET /edu/school/{id}/campus`，**没有跨校的校区清单/检索页** ❌
+      另外，三处列表的「学校」入口形态不一致：年级列表是筛选项、班级列表是页头上下文、
+      学生列表是筛选项；选学校后上级选项是否自动收窄（级联）没有统一规则。
+    impact: |
+      不定义：平台运营想"看某校有哪些校区"必须先学会"进学校管理 → 点学校行 → 校区管理"这条路径，
+      而班级与学生列表里选了某校后，年级/班级下拉仍显示全部选项（需要人为判断哪些属于该校），
+      在 65 校 / 10 万学生的目标规模下容易选错。
+      不影响批次 2-3a 的班级列表（它已经按 data-school 过滤行，只是下拉选项未联动收窄）。
+    options:
+      - A 统一级联规则 + 给校区补一个跨校清单入口（推荐）：定义「学校 → 校区 / 年级 / 班级 → 学生」
+        逐级收窄（选学校后，下级下拉只列该校数据）；学校管理列表补「校区数」可点入口，
+        跳转到校区管理页（复用 PAGE-SCH-CAMPUS，不新增页面）；跨校检索只对平台运营与超级管理员开放
+      - B 只统一级联规则，校区维持"只能从学校详情进"：不新增入口，但四个列表的下拉都按已选学校收窄
+      - C 维持现状：级联不联动，校区只能从学校详情进，全部靠用户自己判断
+    recommended: |
+      选项 A。理由：用户问的正是"能不能按学校检索"这四层，而校区是唯一没有检索入口的一层；
+      级联收窄在 65 校规模下是必需项，否则下拉里会出现几十所学校的年级与班级。
+      实现上不需要新页面：校区清单复用批次 2-6 的 PAGE-SCH-CAMPUS（学校详情下的独立页），
+      只在学校管理列表把"校区数"做成可点入口，并给四个列表补一条统一的级联规则（写进 layout-spec 与
+      page-actions.yaml 的 common_actions）。选 B 的代价是平台运营仍然要绕路。
+    blocking: false
+    blocks_stages: [stage3, stage6]
     owner: 用户
     status: open
 
@@ -1345,3 +1388,5 @@ open_questions_for_user:
   - "阶段 2 批次 2-3a 已产出待验收：prototypes/functional/v1/pages/class-list.html（12 行样例、10 列、8 种角色形态、2 个二次确认片段、7 类状态）、page-specs/class-list.md、page-actions.yaml 的 ACT-CLS-001 ~ 016、content-samples.json 的 class_edge_cases（5 条）与 list_totals.class_list_total（34）；截图与 harness（verify-class-list 37/37 通过）归档在 evidence/stage2-prototype/，见 D-062。"
   - "批次 2-3a 暴露 3 个班级模块的公共前置缺口，建议走一次 CR-010 一起补完：GAP-043（任课教师缺 org.class 读权限，与已关闭的 GAP-035 同类）、GAP-044（class_status 字段与状态枚举未登记，PRD 7.1 的 status 没有取值）、GAP-045（campus_id / classroom 未登记）。三项都属于「PRD 已要求、公共前置缺失」，不涉及新的业务规则；GAP-044 需要你先选定状态取值集合。"
   - "顺手修正：grade-list.html 的 5 处与 teacher-assign.html 的 1 处弹窗内样式钩子由 drawer-header 改回 dialog-header（CR-008 已定「弹窗内用 dialog-*」，这两处是遗漏）。"
+  - "GAP-043、GAP-044、GAP-045 已关闭（用户 2026-09-30 答复「1a2a3a」，三项均取推荐方案 A），经 CR-010 执行完毕：任课教师补 org.class 读权限、登记 class_status 枚举（在读 / 已停用）与 class_status / campus_id / classroom 三个字段、班级 PRD 升 1.0.4-draft，见 D-063。"
+  - "新增 GAP-046（用户提问「可以根据学校来检索校区、年级、班级、学生吗」触发）：年级 / 班级 / 学生三层已能按学校检索（REQ-GRD-002 / REQ-CLS-002 / REQ-STU-002），校区没有跨校清单入口（只能从学校详情进），且「选学校后下级下拉是否收窄」的级联规则未定义。推荐选项 A：统一级联规则 + 学校管理列表的「校区数」做成可点入口（复用 PAGE-SCH-CAMPUS，不新增页面）。"
