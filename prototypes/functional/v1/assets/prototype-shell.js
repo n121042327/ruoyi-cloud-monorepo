@@ -47,7 +47,7 @@
       items: [
         { id: 'PAGE-SCH-LIST', name: '学校管理', batch: '2-6' },
         { id: 'PAGE-TERM-LIST', name: '学年学期', batch: '2-6' },
-        { id: 'PAGE-SUB-LIST', name: '学科与配置', batch: '2-6' }
+        { id: 'PAGE-SUB-LIST', name: '学科与配置', batch: '2-6', delivered: 'pages/subject-list.html' }
       ]
     },
     {

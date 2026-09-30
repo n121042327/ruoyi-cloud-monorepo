@@ -744,3 +744,25 @@ harness：`verify-org-config.html`（4 个 iframe，`CP` / `SI` / `TL` / `TT` + 
 | `term-list_dialog-setcurrent_1440x900.png` / `term-list_dialog-archive_1440x900.png` | 1440×900 | 设为当前 / 归档弹窗 | 影响范围口径、引用检查结果、原因必填 |
 | `term-terms_1440x900.png` / `term-terms_role-school-leader_1440x900.png` | 1440×900 | 学期管理（租户管理员 / 校领导） | 学期表格、页内表单、删除二次确认与引用检查；角色写入口差异 |
 | `org-config_verify-results.png` | 1500×1400 | harness 结果清单 | `合计 23 / 23 条，通过 23 条，不通过 0 条 —— 全部通过` |
+
+### 6.9 批次 2-6c（学科与配置）的交付说明
+
+| 页面 | 文件 | 说明 |
+|---|---|---|
+| `PAGE-SUB-LIST` | `pages/subject-list.html` | 学科列表 8 列（编码 / 名称 / 启用学段 / 参与 3+1+2 / 选科角色 / 排序号 / 状态 / 操作），9 门样例；页面写明固定集合与三类引用检查（任教关系 / 教学班 / 学生选科） |
+| `PAGE-SUB-CREATE` / `EDIT` | 同上（弹窗） | 新建（名称 / 编码 / 学段多选 / 排序号，角色默认 `none`）与编辑（名称 / 学段可改、编码只读，变更走 `updateSubjectCode`） |
+| `PAGE-SUB-STREAM` | 同上（弹窗） | 选科角色：首选只允许物理 / 历史、再选只允许化学 / 生物 / 思想政治 / 地理；变更前校验已有选科数据（`REQ-SUB-022`）并失效缓存（`NFR-CACHE-02`） |
+| `PAGE-SUB-STAGE` | 同上（弹窗） | 学段启用多选（未开设学段置灰）+ 停用影响提示（`REQ-SUB-028`） |
+| `PAGE-SUB-BATCH` | 同上（弹窗） | 按学段批量初始化标准 9 学科清单，已存在项跳过（幂等），确认走 `batchInitSubject` |
+
+harness：`verify-subject.html`（`SB-01` ~ `SB-14`，14 / 14 通过）。动作组：`subject_list`（`ACT-SUB-001` ~ `018`）。
+
+| 截图 | 分辨率 | 场景 | 用于验证 |
+|---|---|---|---|
+| `subject-list_1440x900.png` / `subject-list_1366x768.png` | 1440×900 / 1366×768 | 学科列表（教务主任只读） | 8 列 + 列宽之和 = `min-width` = 1120；9 门样例；固定集合与引用检查口径 |
+| `subject-dialog-create_1440x900.png` | 1440×900 | 深链接 `#panel=PAGE-SUB-CREATE` | 弹窗载体（`CR-015`）、名称 / 编码必填、三个学段勾选 |
+| `subject-dialog-stream_1440x900.png` | 1440×900 | 深链接 `#panel=PAGE-SUB-STREAM` | 固定集合说明 + 只有首选 / 再选两个角色选项 |
+| `subject-dialog-stage_1440x900.png` | 1440×900 | 深链接 `#panel=PAGE-SUB-STAGE` | 学段多选 + 未开设学段置灰 + 影响提示 |
+| `subject-dialog-batch_1440x900.png` | 1440×900 | 深链接 `#panel=PAGE-SUB-BATCH` | 标准 9 学科清单预览 + 「已存在，跳过」 |
+| `subject-list_role-school-leader_1440x900.png` | 1440×900 | 角色 = 校领导 | 只读（与教务主任形态一致，新建 / 批量初始化隐藏） |
+| `subject_verify-results.png` | 1500×1200 | harness 结果清单 | `合计 14 / 14 条，通过 14 条，不通过 0 条 —— 全部通过` |

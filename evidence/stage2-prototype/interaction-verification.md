@@ -636,3 +636,48 @@ $chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 | `verify-grade-list.html` | 38 / 38 通过 |
 | `verify-carrier-change.html` | 14 / 14 通过 |
 | `python tools/check_docs.py` | 通过：未发现问题 |
+
+---
+
+## 19. 批次 2-6c：学科与配置（收尾批次 2-6）
+
+新增 harness `evidence/stage2-prototype/verify-subject.html`（单 iframe + 真实事件派发，`SB-01` ~ `SB-14`）。
+
+| 分组 | 覆盖 |
+|---|---|
+| 结构与口径（`SB-01` / `SB-02`） | 8 列 9 行、列宽之和 = `min-width` = 1120；固定集合（`BR-SUBJECT-003`）与三类引用检查（`REQ-SUB-034`）在页面上可见 |
+| 行内入口（`SB-03`） | 租户管理员行内 5 个入口（编辑 / 选科角色 / 学段启用 / 停用 / 删除），编号顺序与 `page-actions` 一致 |
+| 选科角色（`SB-04` / `SB-05`） | 打开弹窗并带入学科（物理 → 首选）；角色选项**只有** primary / secondary；文案写明「不可自由配置」；保存走 `saveSubjectStreamRole`，且写明变更前校验与缓存失效 |
+| 学段启用（`SB-06` / `SB-07`） | 打开弹窗并带入学科；三个学段复选框 + 未开设学段说明；保存走 `saveSubjectStage` 且含 `REQ-SUB-028` 影响提示 |
+| 编辑（`SB-08` / `SB-09`） | 带入名称与编码（编码只读 + `updateSubjectCode` 口径）；保存走 `updateSubject` |
+| 新建（`SB-10` / `SB-11`） | 名称 / 编码必填 + 三个学段勾选；未填编码被字段级拦截；保存走 `addSubject` |
+| 批量初始化（`SB-12`） | 标准清单预览含「已存在，跳过」与「思想政治」；确认走 `batchInitSubject` |
+| 停用 / 删除（`SB-13`） | 停用走 `disableSubject`；删除按钮写明「有引用时拒绝删除、只允许停用」 |
+| 角色（`SB-14`） | 校领导：9 行只读、新建与批量初始化隐藏；五类状态片段齐全 |
+
+| harness | 结果 |
+|---|---|
+| `verify-subject.html` | 14 / 14 通过 |
+
+本批回归（新增页面与动作组；`prototype-shell.js` 的菜单项登记为已交付）：
+
+| harness | 结果 |
+|---|---|
+| `verify-org-config.html` | 23 / 23 通过 |
+| `verify-school.html` | 16 / 16 通过 |
+| `verify-student-module.html` | 28 / 28 通过 |
+| `verify-detail-entry.html` | 6 / 6 通过 |
+| `verify-import-login.html` | 30 / 30 通过 |
+| `verify-promotion-wizard.html` | 39 / 39 通过 |
+| `verify-promotion-create.html` | 22 / 22 通过 |
+| `verify-promotion-list.html` | 36 / 36 通过 |
+| `verify-class-list.html` | 39 / 39 通过 |
+| `verify-class-detail.html` | 20 / 20 通过 |
+| `verify-class-roster.html` | 34 / 34 通过 |
+| `verify-class-dialogs.html` | 36 / 36 通过 |
+| `verify-grade-list.html` | 38 / 38 通过 |
+| `verify-carrier-change.html` | 14 / 14 通过 |
+| `python tools/check_docs.py` | 通过：未发现问题 |
+
+**批次 2-6 收尾**：2-6a（学校 6 页）+ 2-6b（校区 / 初始化 / 学年学期 4 页）+ 2-6c（学科 6 页）共 19 个页面编号全部产出；
+`CR-015` 的 9 条表单浮层载体修正也全部落地。

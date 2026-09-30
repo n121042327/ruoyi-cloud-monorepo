@@ -134,12 +134,12 @@ pages:
   - { id: PAGE-TERM-ARCHIVE, name: 学年归档, module: term, type: dialog, size: sm, parent: PAGE-TERM-LIST, batch: "2-6" }
 
   # ---- 学科与配置 ----
-  - { id: PAGE-SUB-LIST, name: 学科列表, module: subject, type: page, route: /edu/subject/list, template: TPL-LIST, batch: "2-6" }
-  - { id: PAGE-SUB-CREATE, name: 新建学科, module: subject, type: dialog, size: sm, parent: PAGE-SUB-LIST, batch: "2-6" }
-  - { id: PAGE-SUB-EDIT, name: 编辑学科, module: subject, type: dialog, size: sm, parent: PAGE-SUB-LIST, batch: "2-6" }
-  - { id: PAGE-SUB-STREAM, name: 选科角色配置, module: subject, type: dialog, size: sm, parent: PAGE-SUB-LIST, batch: "2-6" }
-  - { id: PAGE-SUB-STAGE, name: 学段启用配置, module: subject, type: dialog, size: sm, parent: PAGE-SUB-LIST, batch: "2-6" }
-  - { id: PAGE-SUB-BATCH, name: 按学段批量初始化, module: subject, type: dialog, size: sm, parent: PAGE-SUB-LIST, batch: "2-6" }
+  - { id: PAGE-SUB-LIST, name: 学科列表, module: subject, type: page, route: /edu/subject/list, template: TPL-LIST, batch: "2-6", note: "2-6c 已交付：学科列表 8 列（编码 / 名称 / 启用学段 / 参与 3+1+2 / 选科角色 / 排序号 / 状态 / 操作）+ 5 个弹窗；固定集合口径与三类引用检查（REQ-SUB-034）写在页面上" }
+  - { id: PAGE-SUB-CREATE, name: 新建学科, module: subject, type: dialog, size: sm, parent: PAGE-SUB-LIST, batch: "2-6", note: "2-6c 已交付：新建学科弹窗（名称 / 编码 / 启用学段多选 / 排序号）；选科角色默认 none（REQ-SUB-017）" }
+  - { id: PAGE-SUB-EDIT, name: 编辑学科, module: subject, type: dialog, size: sm, parent: PAGE-SUB-LIST, batch: "2-6", note: "2-6c 已交付：编辑学科弹窗（名称 / 学段可改、编码只读）；编码变更走 updateSubjectCode 并检查引用一致性" }
+  - { id: PAGE-SUB-STREAM, name: 选科角色配置, module: subject, type: dialog, size: sm, parent: PAGE-SUB-LIST, batch: "2-6", note: "2-6c 已交付：选科角色配置弹窗：首选只允许物理 / 历史、再选只允许化学 / 生物 / 思想政治 / 地理（REQ-SUB-019 / 020），变更前校验已有选科数据（REQ-SUB-022）" }
+  - { id: PAGE-SUB-STAGE, name: 学段启用配置, module: subject, type: dialog, size: sm, parent: PAGE-SUB-LIST, batch: "2-6", note: "2-6c 已交付：学段启用配置弹窗（多选，未开设学段置灰）；停用学段前给影响提示（REQ-SUB-028）" }
+  - { id: PAGE-SUB-BATCH, name: 按学段批量初始化, module: subject, type: dialog, size: sm, parent: PAGE-SUB-LIST, batch: "2-6", note: "2-6c 已交付：按学段批量初始化弹窗（标准 9 学科清单、已存在跳过，幂等）" }
 
   # ---- 选科与教学班 ----
   - { id: PAGE-STR-CONFIG, name: 选科配置, module: stream, type: page, route: /edu/stream/config, template: TPL-DETAIL, batch: "2-7" }
@@ -186,7 +186,7 @@ delivery_batches:
   - { batch: "2-3", content: 班级管理 + 班级详情 + 升班向导, pages: 17, status: "已全部产出待验收：2-3a 班级列表、2-3b 班级详情（含花名册）、2-3c 四个弹窗、2-3d 编班 / 批量迁学生 / 移出与调班、2-3e 升班 6 页（PAGE-PRM-LIST / CREATE / PREVIEW / VALIDATE / EXECUTE / RESULT）+ 2 个同页片段（DIALOG-PRM-CANCEL、PAGE-PRM-ADJUST）；动作 ACT-CLS-001 ~ 064、ACT-PRM-001 ~ 043 已登记" }
   - { batch: "2-4", content: 导入向导 + 登录 + 异常页, pages: 11, status: "已全部产出待验收：PAGE-IMP-WIZARD（含 TEMPLATE / VALIDATE / EXECUTE 三个区块）、PAGE-STU-IMPORT / PAGE-TCH-IMPORT / PAGE-CLS-ROSTER-IMPORT（模块快捷入口）、PAGE-LOGIN / PAGE-403 / PAGE-404 / PAGE-500（不套管理外壳）；动作 ACT-IMP-001 ~ 010、ACT-IO-001 ~ 002、ACT-AUTH-001 ~ 003、ACT-ERR-001 ~ 005 已登记" }
   - { batch: "2-5", content: 学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录）, pages: 8, status: "已全部产出待验收：PAGE-STU-DETAIL（抽屉，含 PAGE-STU-HISTORY 区块）与三个同页弹窗（PAGE-STU-STATUS / PAGE-STU-TRANSFER / PAGE-PRM-CHANGE）、PAGE-STU-CROSS-TRANSFER / PAGE-PRM-TRANSFER（转出校 / 转入校两侧向导）、PAGE-PRM-HISTORY（异动历史列表）；动作 ACT-STU-023 ~ 034、ACT-STU-040 ~ 043、ACT-PRM-044 ~ 048、ACT-PRM-050 ~ 054 已登记" }
-  - { batch: "2-6", content: 学校管理 + 学年学期 + 学科与配置, pages: 19, status: "2-6a 学校管理 6 页（ACT-SCH-001 ~ 018）、2-6b 校区管理 / 开通初始化 / 学年学期 4 页（ACT-SCH-030 ~ 042、ACT-TERM-001 ~ 021）已产出待验收；2-6c 学科与配置 6 页待铺开；本批 9 条表单浮层已按 CR-015 由抽屉改为弹窗" }
+  - { batch: "2-6", content: 学校管理 + 学年学期 + 学科与配置, pages: 19, status: "已全部产出待验收：2-6a 学校管理 6 页、2-6b 校区 / 开通初始化 / 学年学期 4 页、2-6c 学科与配置 6 页（ACT-SUB-001 ~ 018）；本批 9 条表单浮层已按 CR-015 由抽屉改为弹窗" }
   - { batch: "2-7", content: 选科与教学班, pages: 9, status: 已确认（D-050），待开始 }
   - { batch: "2-8", content: 审计与操作日志, pages: 7, status: 已确认（D-050），待开始 }
   - { batch: "2-9", content: 异步任务中心 + 死信 + 导出配置, pages: 4, status: 已确认（D-050），待开始 }

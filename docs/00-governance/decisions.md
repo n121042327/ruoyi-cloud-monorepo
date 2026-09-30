@@ -1376,6 +1376,36 @@
 - 如果错了的代价：删除 4 个新页面、回滚 `page-actions.yaml` 的三个动作组、`navigation.yaml` 的 4 条 note 与批次状态、
   `prototype-shell.js` 的 4 行 `EXTRA_PAGES` 即可
 
+
+## D-079 交付批次 2-6c：学科与配置（批次 2-6 收尾）
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要拍板的默认选推荐」）
+- 上游依据：学科 PRD 4.1 ~ 4.8 与 8 节接口清单；`BR-SUBJECT-001` ~ `004`、`BR-STREAM-001` / `002` / `007`、`BR-GRADE-001`、`NFR-DATA-02`、`NFR-CACHE-02`；已确认口径「一条学科主体 + 学段启用表」
+- 决策（全部取推荐方案）：
+  1. **选科角色弹窗只出现固定集合内的两个角色**（首选 / 再选），并在弹窗内写明「首选只允许物理 / 历史、再选只允许化学 / 生物 / 思想政治 / 地理」；
+     越界值在接口层拒绝（`REQ-SUB-019` / `020`），界面上不提供越界选项。
+  2. **学段启用用多选 + 未开设学段置灰**：未开设学段不出现在可选项里（`REQ-SUB-026`），停用前给影响提示（`REQ-SUB-028`）。
+  3. **删除与停用分开**：有引用时只允许停用、不允许删除（`BR-SUBJECT-004`），删除按钮的文案直接写明「有引用时拒绝删除并列出对象清单」；
+     学科禁止物理删除（`NFR-DATA-02`）。
+  4. **批量初始化幂等**：按学段预置标准 9 学科清单，已存在的学科只补该学段启用记录、不重复创建主体、不覆盖已有配置。
+  5. **`subject_teacher` 不在写角色内**：任课教师对学科配置只读；租户管理员与超级管理员可写，教务主任与校领导只读（与 `org.subject` 的权限矩阵一致）。
+- 关键设计：列表把「参与 3+1+2」与「选科角色」拆成两列（`REQ-SUB-002`），并在角色列用不同标签色区分首选 / 再选 / 不参与
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/functional/v1/pages/subject-list.html` | 新增：学科列表 + 5 个弹窗片段（列表 / 新建 / 编辑 / 选科角色 / 学段启用 / 批量初始化共 6 个页面编号） |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `subject_list` 动作组（`ACT-SUB-001` ~ `018`） |
+| `prototypes/functional/v1/navigation.yaml` | 6 个页面补 note；批次 2-6 状态改为「已全部产出待验收」 |
+| `prototypes/functional/v1/assets/prototype-shell.js` | 菜单「学科与配置」登记为已交付 |
+| `evidence/stage2-prototype/verify-subject.html` | 新增：14 条断言 |
+| `evidence/stage2-prototype/subject-*.png` + `subject_verify-results.png` | 8 张截图 |
+
+- 验证证据：`verify-subject.html` 14 / 14；14 个已交付 harness 回归全绿；`python tools/check_docs.py` 通过
+- 阶段 2 状态：批次 2-6 已收尾（19 个页面编号全部产出）；剩余 2-7 选科与教学班（9）、2-8 审计（7）、2-9 异步任务中心（4）
+- 如果错了的代价：删除 `subject-list.html`、回滚 `page-actions.yaml` 的 `subject_list` 组、`navigation.yaml` 的 6 条 note 与批次状态、
+  `prototype-shell.js` 的菜单登记即可
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |

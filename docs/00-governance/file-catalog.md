@@ -200,6 +200,9 @@
 | `prototypes/functional/v1/page-specs/promotion-list.md` | 升班任务列表页面规格（状态驱动的行内动作、权限与数据范围、样例数据、自查） | `review` |
 | `prototypes/functional/v1/pages/promotion-create.html` | 升班向导第一步：选择源 / 目标学年学期 + 目标年级班级齐备性 + 未结束任务冲突 + 在读规模与耗时预估（批次 2-3e-s2） | `review` |
 | `prototypes/functional/v1/page-specs/promotion-create.md` | 升班向导第一步页面规格（四档校验样例、三类前置校验、权限与数据范围、自查） | `review` |
+| `prototypes/functional/v1/pages/subject-list.html` | 学科与配置（列表 + 5 个弹窗：新建 / 编辑 / 选科角色 / 学段启用 / 批量初始化，批次 2-6c） | `review` |
+| `evidence/stage2-prototype/verify-subject.html` | 学科与配置交互验证 harness（SB-01 ~ SB-14 共 14 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/subject-list_*.png`、`evidence/stage2-prototype/subject-dialog-*_1440x900.png`、`evidence/stage2-prototype/subject_verify-results.png` | 批次 2-6c 截图（见 README 第 6.9 节） | `review` |
 | `prototypes/functional/v1/pages/school-campus.html` | 校区管理（列表 + 页内表单 + 停用二次确认，批次 2-6b） | `review` |
 | `prototypes/functional/v1/pages/school-init.html` | 开通初始化四步向导（`initSchoolBaseline` 幂等，批次 2-6b） | `review` |
 | `prototypes/functional/v1/pages/term-list.html` | 学年列表 + 新建学年 / 设为当前 / 归档三个弹窗（批次 2-6b） | `review` |

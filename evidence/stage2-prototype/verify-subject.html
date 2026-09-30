@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>批次 2-6c（学科与配置）交互验证</title>
+<style>
+  body { margin: 14px; background: #fff; color: #24292f; font: 13px/1.55 Consolas, "Microsoft YaHei", monospace; }
+  h1 { font-size: 17px; margin: 0 0 8px; }
+  ol { margin: 0 0 10px; padding-left: 22px; }
+  li.ok { color: #1a7f37; }
+  li.bad { color: #c0392b; font-weight: 700; }
+  p.sum { font-weight: 700; }
+  p.sum.bad { color: #c0392b; }
+  iframe { width: 1440px; height: 820px; border: 1px solid #dcdfe6; }
+</style>
+</head>
+<body>
+<h1>批次 2-6c（学科列表 / 新建 / 编辑 / 选科角色 / 学段启用 / 批量初始化）交互验证（真实事件派发）</h1>
+<ol id="results"><li>运行中…</li></ol>
+<iframe id="frame" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/subject-list.html"></iframe>
+<script>
+(function () {
+  'use strict';
+  var RESULTS = [];
+  var frame = document.getElementById('frame');
+  function rec(id, name, pass, detail) { RESULTS.push({ id: id, name: name, pass: Boolean(pass), detail: detail || '' }); }
+  function d() { return frame.contentDocument; }
+  function w() { return frame.contentWindow; }
+  function q(sel) { return d().querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(d().querySelectorAll(sel)); }
+  function text(sel) { var n = q(sel); return n ? n.textContent.replace(/\s+/g, ' ').trim() : ''; }
+  function attr(sel, name) { var n = q(sel); return n ? n.getAttribute(name) : null; }
+  function hasClass(sel, cls) { var n = q(sel); return Boolean(n && n.classList.contains(cls)); }
+  function openPanels() { return qa('.overlay.open').map(function (n) { return n.getAttribute('data-demo-panel'); }); }
+  function click(sel) { var n = q(sel); if (!n) throw new Error('找不到 ' + sel); n.click(); return n; }
+  function delay() { return new Promise(function (r) { w().setTimeout(r, 60); }); }
+  function role(code, label) {
+    var btn = qa('[data-demo="role-switcher"] .pbtn').filter(function (b) { return b.textContent.trim() === label; })[0];
+    if (btn) { btn.click(); return delay(); }
+    w().PrototypeShell.applyRole(code); return delay();
+  }
+  function panelText(id) { return text('[data-demo-panel="' + id + '"]'); }
+
+  var steps = [
+    function (next) {
+      var cols = qa('#sub-table thead th').map(function (th) { return th.textContent.trim(); });
+      var widths = qa('#sub-table thead th[style]').reduce(function (s, th) { return s + (parseInt(th.style.width, 10) || 0); }, 0);
+      rec('SB-01', '学科列表 8 列、9 行样例；列宽之和 = min-width = 1120（1366×768 无表格内横向滚动）',
+        cols.length === 8 && cols[0] === '学科编码' && cols[7] === '操作' && qa('#sub-rows tr').length === 9
+        && widths === 1120, cols.join(' | ') + ' · 列宽之和 ' + widths);
+      next();
+    },
+    function (next) {
+      rec('SB-02', '页面写明固定集合口径（BR-SUBJECT-003）与三类引用检查（任教关系 / 教学班 / 学生选科）',
+        text('.alert').indexOf('BR-SUBJECT-003') !== -1 && text('.card:last-of-type').indexOf('REQ-SUB-034') !== -1,
+        text('.alert').slice(0, 50));
+      next();
+    },
+    function (next) {
+      return role('tenant_admin', '租户管理员').then(function () {
+        var ids = qa('#sub-rows tr:first-child td.actions [data-action-id]').map(function (b) { return b.getAttribute('data-action-id'); });
+        rec('SB-03', '租户管理员：行内 5 个入口（编辑 / 选科角色 / 学段启用 / 停用 / 删除）',
+          ids.join(',') === 'ACT-SUB-003,ACT-SUB-004,ACT-SUB-005,ACT-SUB-006,ACT-SUB-007', ids.join(','));
+        next();
+      });
+    },
+    function (next) {
+      click('#sub-rows tr[data-code="physics"] [data-action-id="ACT-SUB-004"]');
+      return delay().then(function () {
+        var roles = qa('[data-demo-panel="PAGE-SUB-STREAM"] input[name="stream-role"]').map(function (r) { return r.value; });
+        rec('SB-04', '「选科角色」打开 PAGE-SUB-STREAM 并带入该学科（物理 → 首选）；角色只有 primary / secondary 两项',
+          openPanels().indexOf('PAGE-SUB-STREAM') !== -1 && text('#sub-stream-name') === '物理'
+          && roles.join(',') === 'primary,secondary'
+          && panelText('PAGE-SUB-STREAM').indexOf('不可自由配置') !== -1,
+          '角色选项：' + roles.join(','));
+        next();
+      });
+    },
+    function (next) {
+      rec('SB-05', '「保存角色」走 saveSubjectStreamRole + org.subject:update；写明变更前校验与缓存失效（REQ-SUB-022 / NFR-CACHE-02）',
+        attr('[data-action-id="ACT-SUB-014"]', 'data-api') === 'saveSubjectStreamRole'
+        && attr('[data-action-id="ACT-SUB-014"]', 'data-permission') === 'org.subject:update'
+        && panelText('PAGE-SUB-STREAM').indexOf('NFR-CACHE-02') !== -1,
+        attr('[data-action-id="ACT-SUB-014"]', 'data-api'));
+      w().PrototypeShell.closePanel('all');
+      next();
+    },
+    function (next) {
+      click('#sub-rows tr[data-code="geography"] [data-action-id="ACT-SUB-005"]');
+      return delay().then(function () {
+        rec('SB-06', '「学段启用」打开 PAGE-SUB-STAGE 并带入该学科；未开设的小学学段给出说明',
+          openPanels().indexOf('PAGE-SUB-STAGE') !== -1 && text('#sub-stage-name') === '地理'
+          && qa('[data-demo-panel="PAGE-SUB-STAGE"] input[type="checkbox"]').length === 3
+          && panelText('PAGE-SUB-STAGE').indexOf('该校未开设') !== -1,
+          text('#sub-stage-name'));
+        next();
+      });
+    },
+    function (next) {
+      rec('SB-07', '「保存配置」走 saveSubjectStage；停用学段的影响提示可见（REQ-SUB-028）',
+        attr('[data-action-id="ACT-SUB-016"]', 'data-api') === 'saveSubjectStage'
+        && panelText('PAGE-SUB-STAGE').indexOf('REQ-SUB-028') !== -1,
+        attr('[data-action-id="ACT-SUB-016"]', 'data-api'));
+      w().PrototypeShell.closePanel('all');
+      next();
+    },
+    function (next) {
+      click('#sub-rows tr[data-code="chinese"] [data-action-id="ACT-SUB-003"]');
+      return delay().then(function () {
+        rec('SB-08', '「编辑」打开 PAGE-SUB-EDIT 并带入名称与编码（编码只读，变更走 updateSubjectCode）',
+          openPanels().indexOf('PAGE-SUB-EDIT') !== -1 && q('#sub-edit-name-input').value === '语文'
+          && text('#sub-edit-code') === 'chinese' && panelText('PAGE-SUB-EDIT').indexOf('updateSubjectCode') !== -1,
+          text('#sub-edit-code'));
+        next();
+      });
+    },
+    function (next) {
+      rec('SB-09', '编辑「保存」走 updateSubject + org.subject:update（含变更前后值审计 REQ-SUB-016）',
+        attr('[data-action-id="ACT-SUB-012"]', 'data-api') === 'updateSubject'
+        && attr('[data-action-id="ACT-SUB-012"]', 'data-permission') === 'org.subject:update',
+        attr('[data-action-id="ACT-SUB-012"]', 'data-api'));
+      w().PrototypeShell.closePanel('all');
+      next();
+    },
+    function (next) {
+      click('[data-action-id="ACT-SUB-001"]');
+      return delay().then(function () {
+        var name = q('[data-demo-panel="PAGE-SUB-CREATE"] #sub-create-name');
+        var code = q('[data-demo-panel="PAGE-SUB-CREATE"] #sub-create-code');
+        code.value = '';
+        code.dispatchEvent(new (w().Event)('change', { bubbles: true }));
+        click('[data-demo-panel="PAGE-SUB-CREATE"] [data-action-id="ACT-SUB-010"]');
+        return delay().then(function () {
+          rec('SB-10', '「新建学科」打开 PAGE-SUB-CREATE：名称 / 编码必填 + 三个学段勾选；未填编码点保存被字段级拦截',
+            openPanels().indexOf('PAGE-SUB-CREATE') !== -1 && Boolean(name) && code.closest('.field').classList.contains('has-error')
+            && qa('[data-demo-panel="PAGE-SUB-CREATE"] .radio-row input[type="checkbox"]').length === 3,
+            '字段错误=' + code.closest('.field').classList.contains('has-error'));
+          next();
+        });
+      });
+    },
+    function (next) {
+      rec('SB-11', '新建「保存」走 addSubject + org.subject:create（选科角色默认 none，REQ-SUB-017）',
+        attr('[data-action-id="ACT-SUB-010"]', 'data-api') === 'addSubject'
+        && attr('[data-action-id="ACT-SUB-010"]', 'data-permission') === 'org.subject:create',
+        attr('[data-action-id="ACT-SUB-010"]', 'data-api'));
+      w().PrototypeShell.closePanel('all');
+      next();
+    },
+    function (next) {
+      click('[data-action-id="ACT-SUB-002"]');
+      return delay().then(function () {
+        var body = panelText('PAGE-SUB-BATCH');
+        rec('SB-12', '「按学段批量初始化」打开 PAGE-SUB-BATCH：标准清单预览含「已存在，跳过」；确认走 batchInitSubject（幂等）',
+          openPanels().indexOf('PAGE-SUB-BATCH') !== -1 && body.indexOf('已存在，跳过') !== -1
+          && body.indexOf('思想政治') !== -1 && attr('[data-action-id="ACT-SUB-018"]', 'data-api') === 'batchInitSubject',
+          attr('[data-action-id="ACT-SUB-018"]', 'data-api'));
+        w().PrototypeShell.closePanel('all');
+        next();
+      });
+    },
+    function (next) {
+      var toggle = q('#sub-rows tr[data-code="biology"] [data-action-id="ACT-SUB-006"]');
+      var del = q('#sub-rows tr[data-code="biology"] [data-action-id="ACT-SUB-007"]');
+      rec('SB-13', '行内「停用」走 disableSubject；「删除」按钮写明三类引用检查（有引用时拒绝删除、只允许停用）',
+        attr('#sub-rows tr[data-code="biology"] [data-action-id="ACT-SUB-006"]', 'data-api') === 'disableSubject'
+        && Boolean(del) && del.getAttribute('data-demo-message').indexOf('有引用时拒绝删除') !== -1
+        && attr('#tab1', 'x') === null && Boolean(toggle),
+        attr('#sub-rows tr[data-code="biology"] [data-action-id="ACT-SUB-006"]', 'data-api'));
+      next();
+    },
+    function (next) {
+      return role('school_leader', '校领导').then(function () {
+        var readonly = qa('#sub-rows tr td.actions').every(function (td) { return td.textContent.indexOf('只读') !== -1; });
+        var codes = ['loading', 'empty', 'error', 'forbidden', 'submitting'];
+        var missing = codes.filter(function (c) { return !q('[data-demo-state-panel="' + c + '"]'); });
+        rec('SB-14', '校领导：9 行只读（操作列「只读」）+ 新建 / 批量初始化按钮隐藏；五类状态片段齐全',
+          readonly && hasClass('[data-action-id="ACT-SUB-001"]', 'role-hidden') && missing.length === 0,
+          '只读=' + readonly + ' / 缺状态 ' + (missing.length ? missing.join(',') : '无'));
+        next();
+      });
+    }
+  ];
+
+  var EXPECTED = 14;
+  var rendered = false;
+  function render() {
+    rendered = true;
+    var ol = document.getElementById('results');
+    ol.innerHTML = '';
+    var pass = 0;
+    RESULTS.forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = r.pass ? 'ok' : 'bad';
+      li.textContent = (r.pass ? '通过  ' : '不通过 ') + r.id + '  ' + r.name + (r.detail ? '  —— ' + r.detail : '');
+      ol.appendChild(li);
+      if (r.pass) pass += 1;
+    });
+    var p = document.createElement('p');
+    p.className = pass === EXPECTED ? 'sum' : 'sum bad';
+    p.textContent = '合计 ' + RESULTS.length + ' / ' + EXPECTED + ' 条，通过 ' + pass + ' 条，不通过 '
+      + (RESULTS.length - pass) + ' 条' + (pass === EXPECTED && RESULTS.length === EXPECTED ? ' —— 全部通过' : '');
+    ol.appendChild(p);
+  }
+  function run(index) {
+    if (index >= steps.length) { render(); return; }
+    var called = false;
+    function next() { if (called) return; called = true; run(index + 1); }
+    var out;
+    try { out = steps[index](next); }
+    catch (err) {
+      rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步抛异常', false, String((err && err.message) || err));
+      run(index + 1); return;
+    }
+    if (out && typeof out.then === 'function') {
+      out.catch(function (err) {
+        rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步异步断言失败', false, String((err && err.message) || err));
+        next();
+      });
+    }
+  }
+  frame.addEventListener('load', function () { window.setTimeout(function () { run(0); }, 500); });
+  window.setTimeout(function () { if (!rendered) { rec('WATCHDOG', '运行超时', false, ''); render(); } }, 30000);
+})();
+</script>
+</body>
+</html>

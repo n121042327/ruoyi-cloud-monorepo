@@ -2952,6 +2952,166 @@ term_terms:
       audit: 否
       batch: "2-6"
 
+# ---------------------------------------------------------------------------
+# 学科与配置（PAGE-SUB-LIST / CREATE / EDIT / STREAM / STAGE / BATCH）——批次 2-6c
+# ---------------------------------------------------------------------------
+subject_list:
+  page: "PAGE-SUB-LIST / PAGE-SUB-CREATE / PAGE-SUB-EDIT / PAGE-SUB-STREAM / PAGE-SUB-STAGE / PAGE-SUB-BATCH"
+  actions:
+    - id: ACT-SUB-001
+      element: 新建学科
+      trigger: 点击
+      condition: 有 org.subject:create 权限（租户管理员 / 超级管理员）
+      permission: "tenant_admin / org.subject / create"
+      api: "-"
+      result: 打开 PAGE-SUB-CREATE 弹窗（CR-015：表单浮层用弹窗）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SUB-002
+      element: 按学段批量初始化
+      trigger: 点击
+      condition: 有 org.subject:create 权限
+      permission: "tenant_admin / org.subject / create"
+      api: "-"
+      result: 打开 PAGE-SUB-BATCH 弹窗：按学段预置标准学科清单（语文、数学、外语、物理、历史、化学、生物、思想政治、地理，REQ-SUB-011）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SUB-003
+      element: 行内「编辑」
+      trigger: 点击行内按钮
+      condition: 有 org.subject:update 权限
+      permission: "tenant_admin / org.subject / update"
+      api: "-"
+      result: 打开 PAGE-SUB-EDIT 弹窗并带入该学科（名称 / 排序 / 启用学段可改；编码只读）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SUB-004
+      element: 行内「选科角色」
+      trigger: 点击行内按钮
+      condition: 有 org.subject:update 权限
+      permission: "tenant_admin / org.subject / update"
+      api: "-"
+      result: 打开 PAGE-SUB-STREAM 弹窗：首选只允许物理 / 历史、再选只允许化学 / 生物 / 思想政治 / 地理（BR-SUBJECT-003）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SUB-005
+      element: 行内「学段启用」
+      trigger: 点击行内按钮
+      condition: 有 org.subject:update 权限
+      permission: "tenant_admin / org.subject / update"
+      api: "-"
+      result: 打开 PAGE-SUB-STAGE 弹窗：多选启用学段，未开设学段置灰（REQ-SUB-026）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SUB-006
+      element: 行内「停用 / 启用」
+      trigger: 点击行内按钮
+      condition: 有 org.subject:update 权限
+      permission: "tenant_admin / org.subject / update"
+      api: disableSubject
+      result: 停用后不再出现在新建任教关系与教学班的可选列表中（REQ-SUB-029）；再次点击走 enableSubject 恢复
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SUB-007
+      element: 行内「删除」
+      trigger: 点击行内按钮
+      condition: 有 org.subject:update 权限；三类引用检查通过（任教关系 / 教学班 / 学生选科）
+      permission: "tenant_admin / org.subject / update"
+      api: removeSubject
+      result: 有引用时拒绝删除并列出来源对象清单（REQ-SUB-030 / 034 / 036），只允许停用；学科禁止物理删除（NFR-DATA-02）
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SUB-009
+      element: 新建学科「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SUB-010
+      element: 新建学科「保存」
+      trigger: 点击
+      condition: 名称与编码必填、至少一个学段
+      permission: "tenant_admin / org.subject / create"
+      api: addSubject
+      result: 创建学科（编码校内唯一）并写审计（REQ-SUB-012）；选科角色默认 none（REQ-SUB-017）
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SUB-011
+      element: 编辑学科「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SUB-012
+      element: 编辑学科「保存」
+      trigger: 点击
+      condition: 名称必填
+      permission: "tenant_admin / org.subject / update"
+      api: updateSubject
+      result: 保存名称 / 排序 / 学段启用并写审计（含变更前后值，REQ-SUB-016）；编码变更走 updateSubjectCode
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SUB-013
+      element: 选科角色「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SUB-014
+      element: 选科角色「保存角色」
+      trigger: 点击
+      condition: 参与选科时必须选角色；角色必须在固定集合内
+      permission: "tenant_admin / org.subject / update"
+      api: saveSubjectStreamRole
+      result: 保存选科角色；变更前校验已有选科数据（REQ-SUB-022），变更后失效选科缓存（NFR-CACHE-02），写审计
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SUB-015
+      element: 学段启用「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SUB-016
+      element: 学段启用「保存配置」
+      trigger: 点击
+      condition: 至少一个学段；未开设学段不可选
+      permission: "tenant_admin / org.subject / update"
+      api: saveSubjectStage
+      result: 保存学段启用（只影响新建业务可选范围，历史引用保留）并写审计（REQ-SUB-027 / 028）
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SUB-017
+      element: 批量初始化「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SUB-018
+      element: 批量初始化「确认初始化」
+      trigger: 点击
+      condition: 已选目标学段
+      permission: "tenant_admin / org.subject / create"
+      api: batchInitSubject
+      result: 按学段创建缺失学科、为已存在学科补该学段启用记录；已存在项跳过（幂等），写审计
+      audit: 是
+      batch: "2-6"
+
 batches_pending:
   - { batch: "2-2", pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-CREATE, PAGE-TCH-EDIT, PAGE-TCH-LEAVE, PAGE-TCH-ROLE, PAGE-TCH-ASSIGN], status: "2-2a、2-2b-1 与 2-2b-2 教师部分已产出待验收（ACT-TCH-001 ~ 039 已登记）" }
   - { batch: "2-2b-2b", pages: [PAGE-GRD-LIST, PAGE-GRD-DETAIL, PAGE-GRD-CREATE, PAGE-GRD-BATCH, PAGE-GRD-LEADER, PAGE-GRD-ARCHIVE], status: "PAGE-GRD-LIST 样板页已产出待验收（ACT-GRD-001 ~ 011 已登记）；其余 5 页待样板验收后铺开" }
