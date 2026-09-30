@@ -599,3 +599,40 @@ $chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 | `verify-grade-list.html` | 38 / 38 通过 |
 | `verify-carrier-change.html` | 14 / 14 通过 |
 | `python tools/check_docs.py` | 通过：未发现问题 |
+
+---
+
+## 18. 批次 2-6b：校区管理 / 开通初始化 / 学年学期
+
+新增 harness `evidence/stage2-prototype/verify-org-config.html`（4 个 iframe，`CP` / `SI` / `TL` / `TT` 共 23 条断言）。
+
+| 分组 | 覆盖 |
+|---|---|
+| 校区（`CP-01` ~ `CP-07`） | 7 列与规格一致、列宽之和 = `min-width` = 1040、`BR-ORG-009` 口径可见；「新增校区」在页内展开表单；未填名称被字段级拦截（页内表单自带校验）；保存走 `saveCampus`；行内「停用」展开二次确认 + 原因必填 + `removeCampus`；校领导只读无写入口 |
+| 开通初始化（`SI-01` ~ `SI-05`） | 四步向导第 1 步；第 2 步年级预览含「已存在，跳过」（幂等）；第 3 步 `RV-TERM-08` 与「执行初始化」（`initSchoolBaseline` + `org.school:create`）；五类状态齐全且失败态写明不留半成品 |
+| 学年（`TL-01` ~ `TL-05`） | 7 列 3 行（未开始 / 进行中 / 已归档）；「设为当前」打开弹窗（`el-dialog`）且写明不改历史数据、走 `setCurrentTerm`；归档弹窗含影响范围 / 引用检查 / 原因必填与 `archiveAcademicYear`（已归档行按钮变「撤销归档」）；校领导只读 |
+| 学期（`TT-01` ~ `TT-05`） | 7 列 2 行 + `checkTermReference` 口径；行内「编辑」填入页内表单；行内「删除」展开二次确认，有引用的学期（34 班 / 137 人）确认删除按钮被禁用；保存 / 删除分别走 `saveTerm` / `removeTerm`；三页五类状态齐全 |
+| 角色（`ROLE-01`） | 学校 / 学年 / 学期都是租户级写权限：四个页面对租户管理员开放写入口 |
+
+| harness | 结果 |
+|---|---|
+| `verify-org-config.html` | 23 / 23 通过 |
+
+本批回归（新增页面与动作组，未改动既有页面；`school-init.html` 补了 `#step=` 深链接）：
+
+| harness | 结果 |
+|---|---|
+| `verify-school.html` | 16 / 16 通过 |
+| `verify-student-module.html` | 28 / 28 通过 |
+| `verify-detail-entry.html` | 6 / 6 通过 |
+| `verify-import-login.html` | 30 / 30 通过 |
+| `verify-promotion-wizard.html` | 39 / 39 通过 |
+| `verify-promotion-create.html` | 22 / 22 通过 |
+| `verify-promotion-list.html` | 36 / 36 通过 |
+| `verify-class-list.html` | 39 / 39 通过 |
+| `verify-class-detail.html` | 20 / 20 通过 |
+| `verify-class-roster.html` | 34 / 34 通过 |
+| `verify-class-dialogs.html` | 36 / 36 通过 |
+| `verify-grade-list.html` | 38 / 38 通过 |
+| `verify-carrier-change.html` | 14 / 14 通过 |
+| `python tools/check_docs.py` | 通过：未发现问题 |

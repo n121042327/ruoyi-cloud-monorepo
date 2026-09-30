@@ -1803,3 +1803,4 @@ open_questions_for_user:
   - "阶段 2 批次 2-5 已产出待验收：学生详情抽屉（含 PAGE-STU-HISTORY 变更记录区块）与三个同页弹窗（PAGE-STU-STATUS 学籍异动 / PAGE-STU-TRANSFER 调班 / PAGE-PRM-CHANGE 升班口径异动登记，后者与前者同字段同接口）、跨校转学两侧向导（PAGE-STU-CROSS-TRANSFER 转出校 / PAGE-PRM-TRANSFER 转入校）、PAGE-PRM-HISTORY 异动历史；harness verify-student-module 28 / 28，verify-detail-entry 的 RD-06 已按「详情已交付」更新为 6 / 6，见 D-076。"
   - "下一步：2-6（学校管理 / 学年学期 / 学科与配置，19 个页面与片段）→ 2-7（选科与教学班，9）→ 2-8（审计，7）→ 2-9（异步任务中心，4）；阶段 2 全部完成且无问题后合并本地 main，再进阶段 3 高保真。"
   - "阶段 2 批次 2-6a 已产出待验收：学校管理列表 + 详情抽屉 + 四个弹窗（新建 / 编辑 / 学段配置 / 停用），动作 ACT-SCH-001 ~ 018；harness verify-school 16 / 16；同时执行 CR-015（批次 2-6 的 9 条表单浮层由 drawer 改为 dialog，沿用 D-059 口径），见 D-077。"
+  - "阶段 2 批次 2-6b 已产出待验收：校区管理（页内表单 + 停用二次确认）、开通初始化四步向导（initSchoolBaseline 幂等）、学年列表 + 新建/设为当前/归档三个弹窗、学期管理（页内表单 + 删除引用检查）；harness verify-org-config 23 / 23；act ACT-SCH-030 ~ 042、ACT-TERM-001 ~ 021 已登记，见 D-078。"

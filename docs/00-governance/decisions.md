@@ -1344,6 +1344,38 @@
   `navigation.yaml` 的 6 条 note 与批次状态、`content-samples.json` 的 `school_module_notes`、
   `CR-015`（把 9 条 `type` 改回 `drawer`）即可
 
+
+## D-078 交付批次 2-6b：校区管理 / 开通初始化 / 学年学期
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要拍板的默认选推荐」）
+- 上游依据：学校 PRD（校区 / 开通初始化）、学年学期 PRD（学年 / 学期 / 当前学期 / 归档）；`BR-ORG-009`、`RV-TERM-08`（学年日期连续不重叠）、`REQ-TERM-030`（归档学年移出新建业务的可选列表）、`BR-IMP-002`（幂等，用于初始化）
+- 决策（全部取推荐方案）：
+  1. **校区与学期用「页内表单 + 页内二次确认」而不是再套一层浮层**：这两类对象字段少（校区 4 个、学期 3 个），
+     页内表单可以少一次浮层开合、也便于对照表格；危险动作（停用校区 / 删除学期）改用页内二次确认 + 原因必填 / 引用检查。
+  2. **学期删除前必须通过引用检查**：有年级 / 班级 / 学生关系引用时按钮禁用，并显示引用数量（`checkTermReference`）。
+  3. **开通初始化做成向导并强调幂等**：已存在的对象跳过不覆盖，失败态写明执行顺序（学校 → 学段 → 年级 → 学年 → 学期），
+     与导入的两阶段 / 幂等口径一致。
+  4. **学年归档与撤销归档共用同一个弹窗入口**：已归档行的行内按钮变为「撤销归档」，弹窗文案据此切换。
+  5. **页面级提交自带校验**：页内表单的保存 / 停用不经过外壳的 `validateForm`（外壳只校验 `[data-demo-panel]` 内的提交），
+     因此两页各带一个 `validateScope()` 做必填校验并在失败时 `stopPropagation`——这条已写进页内注释，避免后续页面再踩。
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/functional/v1/pages/school-campus.html` | 新增：校区管理（列表 + 页内表单 + 停用二次确认） |
+| `prototypes/functional/v1/pages/school-init.html` | 新增：开通初始化四步向导（含 `#step=` 深链接） |
+| `prototypes/functional/v1/pages/term-list.html` | 新增：学年列表 + 新建学年 / 设为当前 / 归档三个弹窗 |
+| `prototypes/functional/v1/pages/term-terms.html` | 新增：学期管理（表格 + 页内表单 + 删除二次确认） |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `school_campus` / `term_list` / `term_terms` 三个动作组 |
+| `prototypes/functional/v1/navigation.yaml` | 4 个页面补 note；批次 2-6 状态改为「2-6a / 2-6b 已产出、2-6c 待铺开」 |
+| `prototypes/functional/v1/assets/prototype-shell.js` | `EXTRA_PAGES` 增加 4 个页面 |
+| `evidence/stage2-prototype/verify-org-config.html` | 新增：23 条断言（4 个 iframe） |
+| `evidence/stage2-prototype/{school-campus,school-init,term-list,term-terms}_*.png` + `org-config_verify-results.png` | 10 张截图 |
+
+- 验证证据：`verify-org-config.html` 23 / 23 通过；13 个已交付 harness 回归全绿；`python tools/check_docs.py` 通过
+- 如果错了的代价：删除 4 个新页面、回滚 `page-actions.yaml` 的三个动作组、`navigation.yaml` 的 4 条 note 与批次状态、
+  `prototype-shell.js` 的 4 行 `EXTRA_PAGES` 即可
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |

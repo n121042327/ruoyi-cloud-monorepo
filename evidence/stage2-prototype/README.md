@@ -723,3 +723,24 @@ harness：`verify-school.html`（`SC-01` ~ `SC-16`，16 / 16 通过）。动作�
 | `school-list_role-school-leader_1440x900.png` | 1440×900 | 角色 = 校领导 | 只保留「详情」入口，新建 / 开通初始化隐藏 |
 | `school-list_state-empty_1440x900.png` | 1440×900 | 状态 = 空数据 | 「还没有任何学校」+ 新建入口 |
 | `school_verify-results.png` | 1500×1200 | harness 结果清单 | `合计 16 / 16 条，通过 16 条，不通过 0 条 —— 全部通过` |
+
+### 6.8 批次 2-6b（校区管理 / 开通初始化 / 学年学期）的交付说明
+
+| 页面 | 文件 | 说明 |
+|---|---|---|
+| `PAGE-SCH-CAMPUS` | `pages/school-campus.html` | 校区列表（7 列）+ 页内新增 / 编辑表单 + 停用二次确认（原因必填）；页面写明校区不参与权限判定（`BR-ORG-009`） |
+| `PAGE-SCH-INIT` | `pages/school-init.html` | 四步开通初始化：学校基本信息 → 学段与年级（已存在跳过）→ 学年学期（`RV-TERM-08`）→ 执行与结果；`initSchoolBaseline` 幂等 |
+| `PAGE-TERM-LIST` + `PAGE-TERM-CREATE` / `SETCURRENT` / `ARCHIVE` | `pages/term-list.html` | 学年列表（7 列）+ 三个弹窗：新建学年（日期连续不重叠）、设为当前（不改历史数据）、归档（引用检查 + 原因必填；已归档行按钮变「撤销归档」） |
+| `PAGE-TERM-TERMS` | `pages/term-terms.html` | 学期管理独立页：学期表格 + 页内新增 / 编辑表单 + 删除二次确认（`checkTermReference` 有引用时禁用删除） |
+
+harness：`verify-org-config.html`（4 个 iframe，`CP` / `SI` / `TL` / `TT` + `ROLE-01` 共 23 条断言，23 / 23 通过）。
+动作组：`school_campus`（`ACT-SCH-030` ~ `042`）、`term_list`（`ACT-TERM-001` ~ `010`）、`term_terms`（`ACT-TERM-013` ~ `021`）。
+
+| 截图 | 分辨率 | 场景 | 用于验证 |
+|---|---|---|---|
+| `school-campus_1440x900.png` / `school-campus_role-tenant-admin_1440x900.png` | 1440×900 | 校区列表（教务主任只读 / 租户管理员可写） | 7 列 + 行内编辑 / 停用入口的角色差异 |
+| `school-init_step-1_1440x900.png` / `school-init_step-3_1440x900.png` | 1440×900 | 初始化向导第 1 / 3 步（深链接 `#step=`） | 学段与年级预览、学年日期连续不重叠、执行初始化入口 |
+| `term-list_1440x900.png` | 1440×900 | 学年列表 | 3 行（未开始 / 进行中 / 已归档）+ 当前学年学期标记 |
+| `term-list_dialog-setcurrent_1440x900.png` / `term-list_dialog-archive_1440x900.png` | 1440×900 | 设为当前 / 归档弹窗 | 影响范围口径、引用检查结果、原因必填 |
+| `term-terms_1440x900.png` / `term-terms_role-school-leader_1440x900.png` | 1440×900 | 学期管理（租户管理员 / 校领导） | 学期表格、页内表单、删除二次确认与引用检查；角色写入口差异 |
+| `org-config_verify-results.png` | 1500×1400 | harness 结果清单 | `合计 23 / 23 条，通过 23 条，不通过 0 条 —— 全部通过` |

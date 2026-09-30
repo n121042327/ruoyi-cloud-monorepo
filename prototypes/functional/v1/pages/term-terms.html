@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>学期管理 — 业务原型 v1（批次 2-6b）</title>
+<link rel="stylesheet" href="../assets/prototype-shell.css" />
+<script src="../assets/prototype-shell.js"></script>
+<style>
+  #tt-table td.actions { white-space: nowrap; }
+</style>
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-TERM-TERMS"
+  data-menu-page="PAGE-TERM-LIST"
+  data-breadcrumb="组织与配置 / 学年学期 / 学期管理"
+  data-tab="学期管理"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-TERM-TERMS" data-role="page">
+
+  <div class="page-head">
+    <h1>学期管理 · 2026-2027 学年</h1>
+    <span class="scope-hint" data-role="scope-hint">数据范围：本校（DS-04）· 可写</span>
+    <span class="el-tag primary">共 2 个学期</span>
+    <span class="el-tag success">当前学期：第一学期</span>
+  </div>
+
+  <div class="alert info">
+    <span>学期口径</span>
+    <span>同一学年内的学期日期不能重叠；删除学期前会做<b>引用检查</b>（<span class="mono">checkTermReference</span>）：
+      有年级 / 班级 / 学生关系引用时不允许删除，只能修改或等学年归档。</span>
+  </div>
+
+  <section class="card" data-block="toolbar" data-role="toolbar" data-component="el-card.hover">
+    <div class="card-header">
+      <div class="toolbar" data-demo-state-target="toolbar">
+        <button class="btn primary-plain" id="btn-add-term" data-role="action" data-action-id="ACT-TERM-013" data-component="el-button.primary.plain"
+                data-permission="org.term:update" data-role-visible="tenant_admin,super_admin">新增学期</button>
+        <button class="btn" data-role="action" data-action-id="ACT-TERM-014" data-component="el-button"
+                data-permission="org.term:read" data-nav="PAGE-TERM-LIST">返回学年列表</button>
+      </div>
+      <div class="header-right">
+        <button class="btn" data-role="action" data-action-id="ACT-COM-005" data-component="el-button" data-api="listTerm"
+                data-demo-message="已刷新学期清单。">刷新</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div data-normal-view>
+        <div class="table-scroll">
+          <table class="el-table" id="tt-table" data-role="table" data-component="el-table" data-api="listTerm"
+                 style="min-width:1000px;table-layout:fixed">
+            <thead>
+              <tr>
+                <th data-role="column" data-field="term_name" style="width:150px">学期</th>
+                <th data-role="column" data-field="start_date" style="width:130px">开始日期</th>
+                <th data-role="column" data-field="end_date" style="width:130px">结束日期</th>
+                <th data-role="column" data-field="term_status" style="width:110px">状态</th>
+                <th data-role="column" data-field="class_count" style="width:100px">班级数</th>
+                <th data-role="column" data-field="student_count" style="width:110px">在读学生</th>
+                <th class="actions" style="width:210px">操作</th>
+              </tr>
+            </thead>
+            <tbody id="tt-rows">
+              <tr data-role="row" data-term="202601" data-status="current" data-ref="true">
+                <td>第一学期<span class="cell-secondary">（当前）</span></td><td>2026-09-01</td><td>2027-01-20</td>
+                <td><span class="el-tag success">进行中</span></td><td class="num">34</td><td class="num">137</td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-term="202602" data-status="planned" data-ref="false">
+                <td>第二学期</td><td>2027-02-22</td><td>2027-07-05</td>
+                <td><span class="el-tag info">未开始</span></td><td class="num">0</td><td class="num">0</td>
+                <td class="actions"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 内联表单：新增 / 编辑学期 -->
+      <section class="card state-hidden" id="tt-form" data-block="form" data-role="section" style="margin-top:12px">
+        <div class="card-header"><h3 id="tt-form-title">新增学期</h3><span class="el-tag info">saveTerm</span></div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="field" data-field="term_name">
+              <label>学期名称<span class="required">*</span></label>
+              <input class="input" style="min-width:100%" id="tt-name" data-component="el-input" data-required data-required-message="请填写学期名称" />
+              <div class="error-text"></div>
+            </div>
+            <div class="field" data-field="start_date">
+              <label>开始日期<span class="required">*</span></label>
+              <input class="input" style="min-width:100%" type="date" id="tt-start" data-component="el-date-picker" data-required data-required-message="请选择开始日期" />
+              <div class="error-text"></div>
+            </div>
+            <div class="field" data-field="end_date">
+              <label>结束日期<span class="required">*</span></label>
+              <input class="input" style="min-width:100%" type="date" id="tt-end" data-component="el-date-picker" data-required data-required-message="请选择结束日期" />
+              <div class="error-text"></div>
+              <div class="hint">同一学年内学期日期不能重叠，且必须落在学年区间内。</div>
+            </div>
+          </div>
+          <div class="alert danger state-hidden" data-validate-summary>表单校验未通过：请修正下方标红的字段后重试。</div>
+        </div>
+        <div class="card-body" style="border-top:1px solid var(--app-border-light)">
+          <button class="btn" id="btn-cancel-form" data-role="action" data-action-id="ACT-TERM-015" data-component="el-button">取消</button>
+          <button class="btn primary" id="btn-save-term" data-role="action" data-action-id="ACT-TERM-016" data-component="el-button.primary"
+                  data-permission="org.term:update" data-api="saveTerm" data-validate-on-submit
+                  data-demo-message="已保存学期：日期不能与同学年其它学期重叠。">保存学期</button>
+        </div>
+      </section>
+
+      <!-- 删除学期：页内二次确认 + 引用检查 -->
+      <section class="card state-hidden" id="tt-confirm" data-block="confirm" data-role="section">
+        <div class="card-body">
+          <div class="alert danger">
+            <span>确认删除学期</span>
+            <span id="tt-confirm-text">删除「第二学期」后不可恢复；若该学期已有年级 / 班级 / 学生关系引用，则不允许删除。</span>
+          </div>
+          <div class="alert info" id="tt-ref">
+            <span>引用检查结果</span>
+            <span id="tt-ref-text">第二学期：0 个班级、0 名在读学生 —— 可以删除（checkTermReference）。</span>
+          </div>
+          <button class="btn" id="btn-cancel-confirm" data-role="action" data-action-id="ACT-TERM-018" data-component="el-button">取消</button>
+          <button class="btn danger-plain" id="btn-do-delete" data-role="action" data-action-id="ACT-TERM-019" data-component="el-button.danger"
+                  data-permission="org.term:update" data-api="removeTerm"
+                  data-demo-message="已删除学期：无引用才允许删除；操作写审计。">确认删除</button>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <div class="state-hidden" data-demo-state-panel="loading">
+    <section class="card"><div class="card-body">
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:150px"></div><div class="skeleton-bar" style="width:200px"></div><div class="skeleton-bar" style="width:80px"></div></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:150px"></div><div class="skeleton-bar" style="width:200px"></div><div class="skeleton-bar" style="width:80px"></div></div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="empty">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">📭</div>
+        <div class="title">该学年还没有学期</div>
+        <div class="desc">新建学年时会按学期数一并生成学期；也可以在这里单独补充。</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-TERM-013" data-component="el-button.primary.plain" data-permission="org.term:update">新增学期</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="error">
+    <section class="card"><div class="card-body">
+      <div class="state-block error">
+        <div class="icon">⚠️</div>
+        <div class="title">查询失败</div>
+        <div class="desc">重试不会放宽数据范围。</div>
+        <div class="req-id">请求编号 REQ-20261001-001355 · 错误码 EDU-TERM-5004</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-COM-005" data-component="el-button.primary.plain" data-api="listTerm">重试</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="forbidden">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">🔒</div>
+        <div class="title">你没有学期管理的权限</div>
+        <div class="desc">需要 <span class="mono">org.term:read</span>；无权限时不降级为全量（<span class="mono">DS-DENY-03</span>）。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="submitting">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⏳</div>
+        <div class="title">正在提交</div>
+        <div class="desc">按钮已置 loading 并禁用。</div>
+      </div>
+    </div></section>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var WRITE_ROLES = ['super_admin', 'tenant_admin'];
+  function q(sel) { return document.querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function currentRole() { return window.PrototypeShell.currentRole(); }
+  function isWriter() { return WRITE_ROLES.indexOf(currentRole()) !== -1; }
+  var editing = null;
+
+  function rowActions() {
+    qa('#tt-rows tr').forEach(function (row) {
+      var box = row.querySelector('td.actions');
+      box.innerHTML = '';
+      box.style.color = '';
+      if (!isWriter()) {
+        box.textContent = '只读';
+        box.style.color = 'var(--app-text-secondary)';
+        box.style.fontSize = '12px';
+        return;
+      }
+      var edit = document.createElement('button');
+      edit.className = 'btn link';
+      edit.textContent = '编辑';
+      edit.setAttribute('data-role', 'row-action');
+      edit.setAttribute('data-action-id', 'ACT-TERM-020');
+      edit.setAttribute('data-component', 'el-button.link.primary');
+      edit.setAttribute('data-permission', 'org.term:update');
+      box.appendChild(edit);
+      var del = document.createElement('button');
+      del.className = 'btn link danger';
+      del.textContent = '删除';
+      del.setAttribute('data-role', 'row-action');
+      del.setAttribute('data-action-id', 'ACT-TERM-021');
+      del.setAttribute('data-component', 'el-button.link.danger');
+      del.setAttribute('data-permission', 'org.term:update');
+      del.setAttribute('data-term', row.getAttribute('data-term'));
+      box.appendChild(del);
+    });
+  }
+
+  function openForm(row) {
+    editing = row;
+    q('#tt-form').classList.remove('state-hidden');
+    q('#tt-form-title').textContent = row ? ('编辑学期 · ' + row.children[0].textContent.replace(/（.*?）/, '').trim()) : '新增学期';
+    q('#tt-name').value = row ? row.children[0].textContent.replace(/（.*?）/, '').trim() : '';
+    q('#tt-start').value = row ? row.children[1].textContent.trim() : '';
+    q('#tt-end').value = row ? row.children[2].textContent.trim() : '';
+  }
+
+
+  // 页内表单的必填校验（页面级提交不走外壳的 validateForm：外壳只对 [data-demo-panel] 内的提交做校验）
+  function validateScope(scopeSel) {
+    var ok = true;
+    var firstBad = null;
+    qa(scopeSel + ' [data-required]').forEach(function (input) {
+      var wrapper = input.closest('.field') || input.closest('.form-item');
+      var empty = !(input.value || '').trim();
+      if (wrapper) {
+        wrapper.classList.toggle('has-error', empty);
+        var err = wrapper.querySelector('.error-text');
+        if (err) err.textContent = empty ? (input.getAttribute('data-required-message') || '该项为必填') : '';
+      }
+      if (empty) { ok = false; if (!firstBad) firstBad = input; }
+    });
+    var scope = q(scopeSel);
+    var summary = scope ? scope.querySelector('[data-validate-summary]') : null;
+    if (summary) summary.classList.toggle('state-hidden', ok);
+    if (!ok && firstBad) firstBad.focus();
+    return ok;
+  }
+
+  document.addEventListener('click', function (event) {
+    var node = event.target;
+    var guard_ACTTERM016 = node.closest('[data-action-id="ACT-TERM-016"]');
+    if (guard_ACTTERM016 && !validateScope('#tt-form')) { event.stopPropagation(); return; }
+    if (node.closest('#btn-add-term') || node.closest('[data-action-id="ACT-TERM-013"]')) { openForm(null); return; }
+    if (node.closest('#btn-cancel-form') || node.closest('[data-action-id="ACT-TERM-015"]')) { q('#tt-form').classList.add('state-hidden'); return; }
+    var edit = node.closest('[data-action-id="ACT-TERM-020"]');
+    if (edit) { openForm(edit.closest('tr')); return; }
+    var del = node.closest('[data-action-id="ACT-TERM-021"]');
+    if (del) {
+      var row = del.closest('tr');
+      var name = row.children[0].textContent.replace(/（.*?）/, '').trim();
+      var hasRef = row.getAttribute('data-ref') === 'true';
+      q('#tt-confirm-text').textContent = '删除「' + name + '」后不可恢复；若该学期已有年级 / 班级 / 学生关系引用，则不允许删除。';
+      q('#tt-ref-text').textContent = hasRef
+        ? (name + '：' + row.children[4].textContent.trim() + ' 个班级、' + row.children[5].textContent.trim() + ' 名在读学生 —— 已有引用，不允许删除（checkTermReference）。')
+        : (name + '：0 个班级、0 名在读学生 —— 可以删除（checkTermReference）。');
+      q('#btn-do-delete').toggleAttribute('disabled', hasRef);
+      q('#tt-confirm').classList.remove('state-hidden');
+      return;
+    }
+    if (node.closest('#btn-cancel-confirm') || node.closest('[data-action-id="ACT-TERM-018"]')) { q('#tt-confirm').classList.add('state-hidden'); return; }
+  });
+
+  var lastRole = '';
+  function applyRoleState(role) {
+    if (role === lastRole) return;
+    lastRole = role;
+    rowActions();
+    if (['super_admin', 'tenant_admin', 'academic_director', 'school_leader', 'platform_ops'].indexOf(role) === -1) {
+      window.PrototypeShell.applyState('forbidden');
+    } else if (window.PrototypeShell.currentState() === 'forbidden') {
+      window.PrototypeShell.applyState('normal');
+    }
+  }
+
+  rowActions();
+  new MutationObserver(function () { applyRoleState(currentRole()); })
+    .observe(document.body, { attributes: true, attributeFilter: ['data-current-role'] });
+})();
+</script>
+</body>
+</html>

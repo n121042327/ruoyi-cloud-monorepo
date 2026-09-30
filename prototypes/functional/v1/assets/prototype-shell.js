@@ -90,7 +90,11 @@
     'PAGE-500': { path: 'pages/500.html', name: '服务异常', batch: '2-4' },
     'PAGE-STU-CROSS-TRANSFER': { path: 'pages/student-cross-transfer.html', name: '跨校转学（转出校）', batch: '2-5' },
     'PAGE-PRM-TRANSFER': { path: 'pages/promotion-transfer.html', name: '跨校转学（转入校）', batch: '2-5' },
-    'PAGE-PRM-HISTORY': { path: 'pages/promotion-history.html', name: '异动历史', batch: '2-5' }
+    'PAGE-PRM-HISTORY': { path: 'pages/promotion-history.html', name: '异动历史', batch: '2-5' },
+    'PAGE-SCH-CAMPUS': { path: 'pages/school-campus.html', name: '校区管理', batch: '2-6' },
+    'PAGE-SCH-INIT': { path: 'pages/school-init.html', name: '开通初始化', batch: '2-6' },
+    'PAGE-TERM-LIST': { path: 'pages/term-list.html', name: '学年学期', batch: '2-6' },
+    'PAGE-TERM-TERMS': { path: 'pages/term-terms.html', name: '学期管理', batch: '2-6' }
   };
   Object.keys(EXTRA_PAGES).forEach(function (id) {
     PAGE_NAME[id] = EXTRA_PAGES[id].name;

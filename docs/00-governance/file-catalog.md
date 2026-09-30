@@ -200,6 +200,12 @@
 | `prototypes/functional/v1/page-specs/promotion-list.md` | 升班任务列表页面规格（状态驱动的行内动作、权限与数据范围、样例数据、自查） | `review` |
 | `prototypes/functional/v1/pages/promotion-create.html` | 升班向导第一步：选择源 / 目标学年学期 + 目标年级班级齐备性 + 未结束任务冲突 + 在读规模与耗时预估（批次 2-3e-s2） | `review` |
 | `prototypes/functional/v1/page-specs/promotion-create.md` | 升班向导第一步页面规格（四档校验样例、三类前置校验、权限与数据范围、自查） | `review` |
+| `prototypes/functional/v1/pages/school-campus.html` | 校区管理（列表 + 页内表单 + 停用二次确认，批次 2-6b） | `review` |
+| `prototypes/functional/v1/pages/school-init.html` | 开通初始化四步向导（`initSchoolBaseline` 幂等，批次 2-6b） | `review` |
+| `prototypes/functional/v1/pages/term-list.html` | 学年列表 + 新建学年 / 设为当前 / 归档三个弹窗（批次 2-6b） | `review` |
+| `prototypes/functional/v1/pages/term-terms.html` | 学期管理（表格 + 页内表单 + 删除二次确认 + 引用检查，批次 2-6b） | `review` |
+| `evidence/stage2-prototype/verify-org-config.html` | 批次 2-6b 交互验证 harness（CP / SI / TL / TT 共 23 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/school-campus_*.png`、`evidence/stage2-prototype/school-init_*.png`、`evidence/stage2-prototype/term-list_*.png`、`evidence/stage2-prototype/term-terms_*.png`、`evidence/stage2-prototype/org-config_verify-results.png` | 批次 2-6b 截图（见 README 第 6.8 节） | `review` |
 | `prototypes/functional/v1/pages/school-list.html` | 学校管理列表 + 详情抽屉 + 4 个弹窗（批次 2-6a） | `review` |
 | `prototypes/functional/v1/page-specs/school.md` | 学校管理页面规格（覆盖 6 个页面编号） | `review` |
 | `docs/00-governance/change-requests/CR-015.md` | 变更申请：批次 2-6 的 9 条表单浮层由抽屉改为弹窗（已批准并执行，关联 D-077） | `review` |

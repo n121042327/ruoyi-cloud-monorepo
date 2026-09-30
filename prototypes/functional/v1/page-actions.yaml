@@ -2673,6 +2673,285 @@ school_list:
       audit: 是
       batch: "2-6"
 
+# ---------------------------------------------------------------------------
+# 校区管理（PAGE-SCH-CAMPUS）与开通初始化（PAGE-SCH-INIT）——批次 2-6b
+# ---------------------------------------------------------------------------
+school_campus:
+  page: "PAGE-SCH-CAMPUS / PAGE-SCH-INIT"
+  actions:
+    - id: ACT-SCH-030
+      element: 新增校区
+      trigger: 点击
+      condition: 有 org.school:update 权限
+      permission: "tenant_admin / org.school / update"
+      api: "-"
+      result: 展开页内校区表单（校区是轻量对象，用页内表单而不是再开一层浮层）；编码留空由系统生成
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-031
+      element: 返回学校列表
+      trigger: 点击
+      condition: 有 org.school:read 权限
+      permission: "org.school / read"
+      api: "-"
+      result: 返回 PAGE-SCH-LIST
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-032
+      element: 校区表单「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 收起页内表单，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-033
+      element: 校区表单「保存校区」
+      trigger: 点击
+      condition: 校区名称必填
+      permission: "tenant_admin / org.school / update"
+      api: saveCampus
+      result: 新增 / 保存校区；校区不参与权限判定（BR-ORG-009），只用于组织与统计
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SCH-034
+      element: 行内「编辑」（校区）
+      trigger: 点击行内按钮
+      condition: 有 org.school:update 权限
+      permission: "tenant_admin / org.school / update"
+      api: "-"
+      result: 把该行填入页内表单并切到编辑态
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-037
+      element: 行内「停用」（校区）
+      trigger: 点击行内按钮
+      condition: 有 org.school:update 权限；校区为启用中
+      permission: "tenant_admin / org.school / update"
+      api: "-"
+      result: 展开页内二次确认（写清影响范围）并显示原因必填
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-035
+      element: 停用相机确认「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 收起确认区，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-036
+      element: 停用校区「确认停用」
+      trigger: 点击
+      condition: 已填写停用原因（≥5 字）
+      permission: "tenant_admin / org.school / update"
+      api: removeCampus
+      result: 停用校区（不再出现在班级的可选校区中，历史班级保留原校区值）并写审计
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SCH-040
+      element: 开通初始化「下一步」
+      trigger: 点击
+      condition: 当前步骤必填项已完成
+      permission: "tenant_admin / org.school / create"
+      api: "-"
+      result: 进入下一步（学校基本信息 → 学段与年级 → 学年学期 → 执行与结果）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-041
+      element: 开通初始化「上一步」
+      trigger: 点击
+      condition: 有 org.school:create 权限
+      permission: "tenant_admin / org.school / create"
+      api: "-"
+      result: 回到上一步，已填内容保留
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-042
+      element: 开通初始化「执行初始化」
+      trigger: 点击
+      condition: 学校名称与首学年已选
+      permission: "tenant_admin / org.school / create"
+      api: initSchoolBaseline
+      result: 一次创建学校 / 学段 / 年级 / 学年 / 学期；已存在对象跳过、不覆盖（幂等，BR-IMP-002 同口径）
+      audit: 是
+      batch: "2-6"
+
+# ---------------------------------------------------------------------------
+# 学年列表（PAGE-TERM-LIST）与学期管理（PAGE-TERM-TERMS）——批次 2-6b
+# ---------------------------------------------------------------------------
+term_list:
+  page: "PAGE-TERM-LIST / PAGE-TERM-CREATE / PAGE-TERM-SETCURRENT / PAGE-TERM-ARCHIVE"
+  actions:
+    - id: ACT-TERM-001
+      element: 新建学年
+      trigger: 点击
+      condition: 有 org.term:create 权限
+      permission: "tenant_admin / org.term / create"
+      api: "-"
+      result: 打开 PAGE-TERM-CREATE 弹窗（CR-015：表单浮层用弹窗）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-TERM-002
+      element: 学期管理
+      trigger: 点击（工具条 / 行内）
+      condition: 有 org.term:read 权限
+      permission: "org.term / read"
+      api: "-"
+      result: 进入 PAGE-TERM-TERMS 查看与维护该学年的学期
+      audit: 否
+      batch: "2-6"
+    - id: ACT-TERM-003
+      element: 新建学年「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-TERM-004
+      element: 新建学年「保存」
+      trigger: 点击
+      condition: 学年、开始日期、结束日期必填；日期与相邻学年连续不重叠（RV-TERM-08）
+      permission: "tenant_admin / org.term / create"
+      api: addAcademicYear
+      result: 创建学年并生成学期；日期不连续 / 重叠时字段级拒绝
+      audit: 是
+      batch: "2-6"
+    - id: ACT-TERM-005
+      element: 设为当前「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-TERM-006
+      element: 设为当前「确认切换」
+      trigger: 点击
+      condition: 已选目标学年学期
+      permission: "tenant_admin / org.term / update"
+      api: setCurrentTerm
+      result: 切换当前学年学期（新业务默认落该学期，历史数据不变）并写审计
+      audit: 是
+      batch: "2-6"
+    - id: ACT-TERM-007
+      element: 归档「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-TERM-008
+      element: 归档「确认归档」
+      trigger: 点击
+      condition: 已填写归档原因（≥5 字）；引用检查已完成（checkTermReference）
+      permission: "tenant_admin / org.term / update"
+      api: archiveAcademicYear
+      result: 归档学年（移出新建业务可选列表，历史数据保留）并写审计；撤销归档走 revokeArchiveAcademicYear
+      audit: 是
+      batch: "2-6"
+    - id: ACT-TERM-009
+      element: 行内「设为当前」
+      trigger: 点击行内按钮
+      condition: 有 org.term:update 权限；学年未归档
+      permission: "tenant_admin / org.term / update"
+      api: "-"
+      result: 打开 PAGE-TERM-SETCURRENT 弹窗
+      audit: 否
+      batch: "2-6"
+    - id: ACT-TERM-010
+      element: 行内「归档」/「撤销归档」
+      trigger: 点击行内按钮
+      condition: 有 org.term:update 权限
+      permission: "tenant_admin / org.term / update"
+      api: "-"
+      result: 打开 PAGE-TERM-ARCHIVE 弹窗并带入该学年；已归档学年按钮变为「撤销归档」
+      audit: 否
+      batch: "2-6"
+
+term_terms:
+  page: PAGE-TERM-TERMS
+  actions:
+    - id: ACT-TERM-013
+      element: 新增学期
+      trigger: 点击
+      condition: 有 org.term:update 权限
+      permission: "tenant_admin / org.term / update"
+      api: "-"
+      result: 展开页内学期表单（新增态）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-TERM-014
+      element: 返回学年列表
+      trigger: 点击
+      condition: 有 org.term:read 权限
+      permission: "org.term / read"
+      api: "-"
+      result: 返回 PAGE-TERM-LIST
+      audit: 否
+      batch: "2-6"
+    - id: ACT-TERM-015
+      element: 学期表单「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 收起表单，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-TERM-016
+      element: 学期表单「保存学期」
+      trigger: 点击
+      condition: 学期名称、开始日期、结束日期必填；不与该学年其它学期重叠
+      permission: "tenant_admin / org.term / update"
+      api: saveTerm
+      result: 新增 / 保存学期（同一学年内日期不能重叠）
+      audit: 是
+      batch: "2-6"
+    - id: ACT-TERM-018
+      element: 删除学期「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 收起确认区，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-TERM-019
+      element: 删除学期「确认删除」
+      trigger: 点击
+      condition: 引用检查通过（没有年级 / 班级 / 学生关系引用）
+      permission: "tenant_admin / org.term / update"
+      api: removeTerm
+      result: 删除学期；有引用时按钮禁用并由 checkTermReference 给出引用数量
+      audit: 是
+      batch: "2-6"
+    - id: ACT-TERM-020
+      element: 行内「编辑」（学期）
+      trigger: 点击行内按钮
+      condition: 有 org.term:update 权限
+      permission: "tenant_admin / org.term / update"
+      api: "-"
+      result: 把该行填入页内表单并切到编辑态
+      audit: 否
+      batch: "2-6"
+    - id: ACT-TERM-021
+      element: 行内「删除」（学期）
+      trigger: 点击行内按钮
+      condition: 有 org.term:update 权限
+      permission: "tenant_admin / org.term / update"
+      api: "-"
+      result: 展开页内二次确认并显示引用检查结果（有引用时禁用确认删除）
+      audit: 否
+      batch: "2-6"
+
 batches_pending:
   - { batch: "2-2", pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-CREATE, PAGE-TCH-EDIT, PAGE-TCH-LEAVE, PAGE-TCH-ROLE, PAGE-TCH-ASSIGN], status: "2-2a、2-2b-1 与 2-2b-2 教师部分已产出待验收（ACT-TCH-001 ~ 039 已登记）" }
   - { batch: "2-2b-2b", pages: [PAGE-GRD-LIST, PAGE-GRD-DETAIL, PAGE-GRD-CREATE, PAGE-GRD-BATCH, PAGE-GRD-LEADER, PAGE-GRD-ARCHIVE], status: "PAGE-GRD-LIST 样板页已产出待验收（ACT-GRD-001 ~ 011 已登记）；其余 5 页待样板验收后铺开" }
