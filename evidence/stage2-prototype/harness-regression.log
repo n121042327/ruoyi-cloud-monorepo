@@ -1,0 +1,20 @@
+[PASS] verify-audit.html —— 合计 28/28 条，通过 28 条，不通过 0 条
+[PASS] verify-carrier-change.html —— 合计 14/14 条，通过 14 条，不通过 0 条
+[PASS] verify-class-detail.html —— 合计 20/20 条，通过 20 条，不通过 0 条
+[PASS] verify-class-dialogs.html —— 合计 36/36 条，通过 36 条，不通过 0 条
+[PASS] verify-class-list.html —— 合计 39/39 条，通过 39 条，不通过 0 条
+[PASS] verify-class-roster.html —— 合计 34/34 条，通过 34 条，不通过 0 条
+[PASS] verify-detail-entry.html —— 合计 6/6 条，通过 6 条，不通过 0 条
+[PASS] verify-grade-list.html —— 合计 38/38 条，通过 38 条，不通过 0 条
+[PASS] verify-import-login.html —— 合计 30/30 条，通过 30 条，不通过 0 条
+[PASS] verify-org-config.html —— 合计 23/23 条，通过 23 条，不通过 0 条
+[PASS] verify-promotion-create.html —— 合计 22/22 条，通过 22 条，不通过 0 条
+[PASS] verify-promotion-list.html —— 合计 36/36 条，通过 36 条，不通过 0 条
+[PASS] verify-promotion-wizard.html —— 合计 39/39 条，通过 39 条，不通过 0 条
+[PASS] verify-school.html —— 合计 16/16 条，通过 16 条，不通过 0 条
+[PASS] verify-stream-b.html —— 合计 37/37 条，通过 37 条，不通过 0 条
+[PASS] verify-stream.html —— 合计 26/26 条，通过 26 条，不通过 0 条
+[PASS] verify-student-module.html —— 合计 28/28 条，通过 28 条，不通过 0 条
+[PASS] verify-subject.html —— 合计 14/14 条，通过 14 条，不通过 0 条
+[PASS] verify-task.html —— 合计 22/22 条，通过 22 条，不通过 0 条
+harness 回归：19 / 19 通过；累计断言 508 条

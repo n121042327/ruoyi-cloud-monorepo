@@ -299,6 +299,8 @@
 | `prototypes/functional/v1/page-specs/login.md` | 登录页规格（三类账号形态、四类状态、D-039 口径） | `review` |
 | `evidence/stage2-prototype/verify-import-login.html` | 批次 2-4 交互验证 harness（IMP / MS / MT / MC / LG / ER / ALL 共 30 条断言全部通过） | `review` |
 | `evidence/stage2-prototype/import-wizard*.png`（5 张）、`evidence/stage2-prototype/student-import*.png`（2 张）、`evidence/stage2-prototype/teacher-import_1440x900.png`、`evidence/stage2-prototype/class-import-roster_1440x900.png`、`evidence/stage2-prototype/login_*.png`（2 张）、`evidence/stage2-prototype/error-403_1440x900.png`、`evidence/stage2-prototype/error-404_1440x900.png`、`evidence/stage2-prototype/error-500_1440x900.png`、`evidence/stage2-prototype/import-login_verify-results.png` | 批次 2-4 截图（见 README 第 6.5 节）；含四步向导、模块导入、登录页与三个异常页 | `review` |
+| `tools/run_harness.py` | 阶段 2 全量 harness 回归运行器（19 个 `verify-*.html`；兼容两种历史结果格式） | `review` |
+| `evidence/stage2-prototype/harness-regression.log` | 全量回归结果：19 / 19 通过，累计断言 508 条 | `review` |
 
 ---
 

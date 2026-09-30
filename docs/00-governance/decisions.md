@@ -1806,6 +1806,25 @@
 - 如果错了的代价：删除新增的 2 个文件、1 个脚本与 `screenshots/` 目录即可；
   `screenshots/` 是纯验收证据，不影响原型页面与阶段 5 的任何产物。
 
+## D-090 阶段 2 全量 harness 回归运行器与最终结果
+
+- 决策日期：2026-10-01
+- 背景：目标的验收口径要求「每批完成后跑 `check_docs.py` 与全部 harness 回归」。
+  此前批次是逐个手动跑 Chrome，没有可复现的一次性运行器，也没有一份覆盖全部 19 个 harness 的完整日志，
+  导致「全部 harness 回归通过」这句话缺少单一证据。
+- 新增 `tools/run_harness.py`：用 headless Chrome 的 `--dump-dom` 抓取每个 harness 的 `<p class="sum">`，
+  按「RESULTS == EXPECTED 且不通过 0 条」判定；两种历史结果格式都支持
+  （`合计 N / EXPECTED 条，通过 M 条，不通过 K 条` 与早期批次的 `合计 N 条，通过 M 条，不通过 K 条`）。
+- 修正记录：首次全量运行 18 / 19，`verify-carrier-change.html` 报「未找到结果行」。
+  排查后确认是**运行器正则**只支持带 `/ EXPECTED` 的格式，该 harness 用的是早期格式，属误报；
+  修正正则后该 harness 14 / 14 通过，全量 19 / 19 通过。
+- 最终结果：**19 / 19 通过，累计断言 508 条**，日志 `evidence/stage2-prototype/harness-regression.log`
+  （每条含 harness 名与断言数）。
+- 同批回归：`tools/make_hifi_coverage.py` 退出码 0（阶段 2 与阶段 3 的页面编号 / 动作编号 / 状态片段集合一致）；
+  `tools/check_docs.py` 通过。
+- 如果错了的代价：删除 `tools/run_harness.py` 与 `harness-regression.log` 即可；
+  不影响任何原型页面、截图与阶段 3 / 4 / 5 产物。
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |
