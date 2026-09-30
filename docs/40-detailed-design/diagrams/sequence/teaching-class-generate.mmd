@@ -1,0 +1,22 @@
+sequenceDiagram
+  autonumber
+  participant A as 教务主任
+  participant UI as 教学班生成页
+  participant API as ruoyi-edu
+  participant MQ as RabbitMQ
+  participant W as 教学班消费者
+  participant CLS as 班级模块
+  participant DB as MySQL
+
+  A->>UI: 选择学期 + 组合
+  UI->>API: POST previewTeachingClassGenerate
+  API-->>UI: 预览（组合 → 人数 → 建议班数）
+  A->>UI: 确认生成
+  UI->>API: POST executeTeachingClassGenerate
+  API->>MQ: edu.teaching-class.generate（generate_task_no 幂等）
+  MQ->>W: 投递
+  W->>CLS: 调用班级模块写入接口（唯一写入入口，DP-01）
+  CLS->>DB: INSERT edu_teaching_class + edu_teaching_class_member
+  Note over CLS,DB: uk_class_teaching / uk_tclass_member 保证幂等
+  W->>DB: 更新任务状态
+  API-->>A: 生成结果

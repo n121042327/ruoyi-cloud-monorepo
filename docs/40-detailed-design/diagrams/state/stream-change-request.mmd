@@ -1,0 +1,11 @@
+stateDiagram-v2
+  [*] --> pending : 学生提交变更申请
+  pending --> approved : 校级管理员 / 教务主任审批通过
+  pending --> rejected : 驳回（意见必填）
+  pending --> cancelled : 学生撤回（仅 pending）
+  rejected --> pending : 重新提交
+  approved --> [*]
+  cancelled --> [*]
+  note right of pending
+    同一学生同一学期同时只允许一条待审申请
+  end note

@@ -1,0 +1,9 @@
+stateDiagram-v2
+  [*] --> draft : 创建学年
+  draft --> active : 启用（设为当前）
+  active --> archived : 归档
+  archived --> active : 解除归档
+  active --> [*]
+  note right of archived
+    归档后不可新增学期
+  end note

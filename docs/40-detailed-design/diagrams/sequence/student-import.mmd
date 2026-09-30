@@ -1,0 +1,25 @@
+sequenceDiagram
+  autonumber
+  participant T as 教务老师
+  participant UI as 导入向导
+  participant API as ruoyi-edu
+  participant MQ as RabbitMQ
+  participant W as 导入消费者
+  participant DB as MySQL
+
+  T->>UI: 上传文件
+  UI->>API: POST importStudentValidate
+  API->>API: 结构校验 + 行数 / 大小 / 模板版本校验（≤5000 行 / 10MB / 30s）
+  API->>DB: INSERT edu_import_batch + edu_async_task
+  API-->>UI: 校验结果（通过行 / 失败行）
+  T->>UI: 确认执行
+  UI->>API: POST importStudentExecute
+  API->>MQ: edu.import.execute（task_no 幂等键）
+  MQ->>W: 投递
+  loop 每 500 行一个事务
+    W->>DB: 写入学生 / 在校记录
+    W->>DB: 失败行写 edu_import_error
+  end
+  W->>DB: 更新 edu_async_task（succeeded / partial_failed）
+  UI->>API: GET getAsyncTask
+  API-->>T: 进度 + 失败行下载入口

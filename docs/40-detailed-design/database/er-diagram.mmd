@@ -1,0 +1,480 @@
+%% ER 图（仅物理外键，与 V5__edu_foreign_keys.sql 一致）
+%% 生成工具 tools/gen_schema_artifacts.py；事实源 database/schema.yaml
+erDiagram
+  edu_academic_year {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    varchar20 academic_year_code
+    date start_date
+    date end_date
+    varchar16 academic_year_status
+    bigint_unsigned create_by
+    datetime create_time
+    bigint_unsigned update_by
+    datetime update_time
+  }
+  edu_activation_code {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    bigint_unsigned student_id
+    varchar64 code
+    varchar20 status
+    varchar32 issue_batch_no
+    datetime print_time
+    datetime used_time
+    varchar64 used_ip
+    bigint_unsigned reset_by
+    datetime reset_time
+  }
+  edu_async_task {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    varchar32 task_no
+    varchar30 task_type
+    varchar20 task_status
+    tinyint_unsigned progress_percent
+    bigint_unsigned owner_id
+    varchar30 owner_role
+    json params_summary
+    int total_count
+    int success_count
+  }
+  edu_async_task_retry {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    varchar32 task_no
+    tinyint_unsigned retry_no
+    varchar20 result
+    varchar500 error_msg
+    datetime create_time
+  }
+  edu_audit_change {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    bigint_unsigned log_id
+    varchar64 field_name
+    varchar1000 before_value
+    varchar1000 after_value
+  }
+  edu_audit_log {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    varchar30 action_type
+    varchar30 module_code
+    varchar50 object_type
+    varchar64 object_id
+    varchar200 object_name
+    bigint_unsigned operator_id
+    varchar30 operator_role
+    varchar64 client_ip
+    varchar64 request_id
+  }
+  edu_class {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    bigint_unsigned term_id
+    bigint_unsigned grade_id
+    varchar20 stage_code
+    varchar100 class_name
+    varchar20 class_type
+    int class_capacity
+    bigint_unsigned head_teacher_id
+    date head_teacher_start_date
+    date head_teacher_end_date
+  }
+  edu_class_member {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    bigint_unsigned term_id
+    bigint_unsigned class_id
+    varchar20 class_type
+    bigint_unsigned student_id
+    bigint_unsigned student_enrollment_id
+    date join_date
+    date leave_date
+    char1 status
+    char1 gender_snapshot
+  }
+  edu_data_grant {
+    bigint_unsigned id
+    varchar20 tenant_id
+    varchar32 grant_no
+    bigint_unsigned grantor_user_id
+    varchar20 grantee_type
+    varchar64 grantee_id
+    varchar200 title
+    varchar500 reason
+    varchar200 resource_types
+    json resource_scope
+    datetime effective_start
+    datetime effective_end
+  }
+  edu_data_grant_scope {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned grant_id
+    varchar20 scope_type
+    varchar64 scope_id
+    varchar64 resource_code
+    varchar20 access_level
+    datetime create_time
+  }
+  edu_enrollment_change {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    bigint_unsigned student_id
+    bigint_unsigned school_record_id
+    varchar30 change_type
+    varchar20 before_status
+    varchar20 after_status
+    date effective_date
+    varchar500 reason
+    varchar20 approval_status
+    bigint_unsigned approve_by
+  }
+  edu_grade {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    varchar20 stage_code
+    smallint enroll_year
+    tinyint grade_level
+    varchar50 grade_name
+    int class_count
+    int student_count
+    varchar20 grade_status
+    bigint_unsigned create_by
+    datetime create_time
+  }
+  edu_grade_leader {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    bigint_unsigned grade_id
+    bigint_unsigned term_id
+    bigint_unsigned user_id
+    bigint_unsigned teacher_id
+    char1 is_primary
+    char1 status
+    bigint_unsigned create_by
+    datetime create_time
+    bigint_unsigned update_by
+  }
+  edu_guardian {
+    bigint_unsigned id
+    varchar50 guardian_name
+    varchar20 guardian_phone
+    varchar64 id_card_no
+    bigint_unsigned user_id
+    char1 status
+    bigint_unsigned create_by
+    datetime create_time
+    bigint_unsigned update_by
+    datetime update_time
+    char1 del_flag
+  }
+  edu_import_batch {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    varchar32 batch_no
+    varchar30 module_code
+    varchar20 template_version
+    varchar32 async_task_no
+    bigint_unsigned source_file_id
+    bigint_unsigned result_file_id
+    bigint_unsigned failed_file_id
+    int row_total
+    int valid_count
+  }
+  edu_promotion_item {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    bigint_unsigned task_id
+    bigint_unsigned student_id
+    bigint_unsigned source_class_id
+    bigint_unsigned target_class_id
+    varchar20 result_type
+    varchar20 item_status
+    varchar500 error_msg
+    varchar20 adjust_mode
+    datetime create_time
+  }
+  edu_promotion_task {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    varchar32 task_no
+    bigint_unsigned source_term_id
+    bigint_unsigned target_term_id
+    varchar500 scope_note
+    varchar20 task_status
+    int total_count
+    int success_count
+    int failed_count
+    int repeat_count
+  }
+  edu_stream_change_request {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    varchar32 request_no
+    bigint_unsigned student_id
+    bigint_unsigned term_id
+    varchar64 before_combination
+    varchar64 after_combination
+    varchar20 primary_subject_code
+    varchar64 secondary_subject_codes
+    varchar20 request_status
+    varchar500 reason
+  }
+  edu_stream_config {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    bigint_unsigned term_id
+    datetime stream_open_from
+    datetime stream_deadline
+    tinyint1 overdue_requires_approval
+    varchar20 config_status
+    bigint_unsigned create_by
+    datetime create_time
+    bigint_unsigned update_by
+    datetime update_time
+  }
+  edu_stream_history {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    bigint_unsigned student_id
+    bigint_unsigned term_id
+    varchar64 before_combination
+    varchar64 after_combination
+    varchar20 change_type
+    varchar32 request_no
+    varchar500 reason
+    bigint_unsigned operator
+    datetime operate_time
+  }
+  edu_student {
+    bigint_unsigned id
+    varchar32 student_no
+    varchar64 national_student_no
+    varchar50 student_name
+    char1 gender
+    varchar20 id_type
+    varchar64 id_card_no
+    date birth_date
+    smallint enroll_year
+    date graduation_date
+    varchar255 photo_url
+    varchar500 remark
+  }
+  edu_student_enrollment {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    bigint_unsigned student_id
+    date enroll_date
+    varchar20 enrollment_status
+    date status_effective_date
+    date leave_date
+    bigint_unsigned campus_id
+    bigint_unsigned entry_grade_id
+    varchar500 remark
+    bigint_unsigned create_by
+  }
+  edu_student_field_change {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    bigint_unsigned student_id
+    varchar64 field_name
+    varchar500 old_value
+    varchar500 new_value
+    bigint_unsigned apply_by_user_id
+    varchar500 apply_reason
+    varchar20 status
+    bigint_unsigned audit_by
+    datetime audit_time
+  }
+  edu_student_guardian {
+    bigint_unsigned id
+    bigint_unsigned student_id
+    bigint_unsigned guardian_id
+    varchar20 relation
+    char1 is_primary
+    varchar20 bind_status
+    varchar20 source
+    bigint_unsigned audit_by
+    datetime audit_time
+    varchar500 audit_opinion
+    datetime bind_time
+    datetime unbind_time
+  }
+  edu_student_stream {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    bigint_unsigned term_id
+    bigint_unsigned student_id
+    varchar20 primary_subject_code
+    varchar64 secondary_subject_codes
+    datetime effective_time
+    varchar20 stream_status
+    bigint_unsigned create_by
+    datetime create_time
+    bigint_unsigned update_by
+  }
+  edu_subject {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    varchar32 subject_code
+    varchar50 subject_name
+    int sort_no
+    char1 stream_enabled
+    varchar20 stream_role
+    varchar16 subject_status
+    bigint_unsigned create_by
+    datetime create_time
+    bigint_unsigned update_by
+  }
+  edu_subject_stage {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    bigint_unsigned subject_id
+    varchar20 stage_code
+    char1 status
+    bigint_unsigned create_by
+    datetime create_time
+    bigint_unsigned update_by
+    datetime update_time
+  }
+  edu_teacher {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    varchar32 teacher_no
+    varchar50 teacher_name
+    char1 gender
+    varchar20 phone
+    varchar100 email
+    date hire_date
+    varchar20 employment_status
+    date leave_date
+    bigint_unsigned user_id
+  }
+  edu_teaching_assignment {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    bigint_unsigned term_id
+    bigint_unsigned teacher_id
+    bigint_unsigned subject_id
+    varchar20 class_type
+    bigint_unsigned class_id
+    char1 status
+    bigint_unsigned create_by
+    datetime create_time
+    bigint_unsigned update_by
+  }
+  edu_teaching_class {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    bigint_unsigned term_id
+    bigint_unsigned grade_id
+    varchar100 class_name
+    varchar64 combination
+    int member_count
+    varchar16 teaching_class_status
+    bigint_unsigned create_by
+    datetime create_time
+    bigint_unsigned update_by
+  }
+  edu_teaching_class_member {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    bigint_unsigned teaching_class_id
+    bigint_unsigned term_id
+    bigint_unsigned student_id
+    varchar20 source
+    varchar32 generate_task_no
+    date join_date
+    date leave_date
+    char1 status
+    bigint_unsigned create_by
+  }
+  edu_term {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    bigint_unsigned academic_year_id
+    varchar20 term_code
+    varchar50 term_name
+    date start_date
+    date end_date
+    char1 is_current
+    varchar16 term_status
+    bigint_unsigned create_by
+    datetime create_time
+  }
+  edu_transfer_order {
+    bigint_unsigned id
+    varchar20 tenant_id
+    bigint_unsigned school_id
+    varchar32 transfer_no
+    bigint_unsigned student_id
+    varchar20 from_tenant_id
+    bigint_unsigned from_school_id
+    bigint_unsigned from_grade_id
+    varchar20 to_tenant_id
+    bigint_unsigned to_school_id
+    bigint_unsigned to_grade_id
+    bigint_unsigned to_class_id
+  }
+  edu_student ||--o{ edu_student_enrollment : "fk_enrollment_student"
+  edu_student ||--o{ edu_student_guardian : "fk_sg_student"
+  edu_guardian ||--o{ edu_student_guardian : "fk_sg_guardian"
+  edu_student ||--o{ edu_student_field_change : "fk_sfc_student"
+  edu_student ||--o{ edu_activation_code : "fk_activation_student"
+  edu_grade ||--o{ edu_grade_leader : "fk_grade_leader_grade"
+  edu_teacher ||--o{ edu_teaching_assignment : "fk_assignment_teacher"
+  edu_subject ||--o{ edu_teaching_assignment : "fk_assignment_subject"
+  edu_grade ||--o{ edu_class : "fk_class_grade"
+  edu_term ||--o{ edu_class : "fk_class_term"
+  edu_teacher ||--o{ edu_class : "fk_class_head_teacher"
+  edu_class ||--o{ edu_class_member : "fk_member_class"
+  edu_student ||--o{ edu_class_member : "fk_member_student"
+  edu_term ||--o{ edu_teaching_class : "fk_tclass_term"
+  edu_teaching_class ||--o{ edu_teaching_class_member : "fk_tcm_class"
+  edu_student ||--o{ edu_teaching_class_member : "fk_tcm_student"
+  edu_term ||--o{ edu_promotion_task : "fk_promotion_source_term"
+  edu_term ||--o{ edu_promotion_task : "fk_promotion_target_term"
+  edu_promotion_task ||--o{ edu_promotion_item : "fk_promotion_item_task"
+  edu_student ||--o{ edu_promotion_item : "fk_promotion_item_student"
+  edu_student ||--o{ edu_enrollment_change : "fk_change_student"
+  edu_student ||--o{ edu_transfer_order : "fk_transfer_student"
+  edu_term ||--o{ edu_stream_config : "fk_stream_config_term"
+  edu_student ||--o{ edu_student_stream : "fk_student_stream_student"
+  edu_student ||--o{ edu_stream_change_request : "fk_stream_request_student"
+  edu_student ||--o{ edu_stream_history : "fk_stream_history_student"
+  edu_subject ||--o{ edu_subject_stage : "fk_subject_stage_subject"
+  edu_academic_year ||--o{ edu_term : "fk_term_year"
+  edu_async_task ||--o{ edu_import_batch : "fk_import_batch_task"
+  edu_async_task ||--o{ edu_async_task_retry : "fk_task_retry_task"
+  edu_audit_log ||--o{ edu_audit_change : "fk_audit_change_log"
+  edu_data_grant ||--o{ edu_data_grant_scope : "fk_grant_scope_grant"

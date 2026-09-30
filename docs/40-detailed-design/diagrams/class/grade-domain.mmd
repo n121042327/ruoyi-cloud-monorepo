@@ -1,0 +1,16 @@
+classDiagram
+  class EduGrade {
+    +Long id
+    +Long schoolId
+    +String stageCode
+    +String enrollYear
+    +Integer gradeLevel
+    +String gradeName
+    +String gradeStatus
+  }
+  class EduGradeLeader {
+    +Long termId
+    +Long gradeId
+    +Long userId
+  }
+  EduGrade "1" --> "n" EduGradeLeader : 年级主任

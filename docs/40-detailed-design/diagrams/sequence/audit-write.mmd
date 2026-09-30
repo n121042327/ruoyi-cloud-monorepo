@@ -1,0 +1,18 @@
+sequenceDiagram
+  autonumber
+  participant API as 业务服务
+  participant DB as MySQL
+  participant MQ as RabbitMQ
+  participant AC as 审计消费者
+
+  API->>DB: BEGIN 业务事务
+  API->>DB: 写业务表
+  API->>DB: INSERT edu_audit_log + edu_audit_change（同事务）
+  API->>DB: COMMIT
+  alt 日志写入失败
+    API->>MQ: edu.audit.compensate
+    MQ->>AC: 补偿写入
+    alt 持续失败
+      AC->>API: 触发只读降级（AUD-Q-05）
+    end
+  end

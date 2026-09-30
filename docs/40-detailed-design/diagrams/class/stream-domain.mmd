@@ -1,0 +1,26 @@
+classDiagram
+  class EduStreamConfig {
+    +Long schoolId
+    +Long termId
+    +DateTime deadline
+    +Boolean approvalOnOverdue
+  }
+  class EduStudentStream {
+    +Long termId
+    +Long studentId
+    +String primarySubjectCode
+    +String secondarySubjectCodes
+  }
+  class EduStreamChangeRequest {
+    +String requestNo
+    +Long studentId
+    +String requestStatus
+  }
+  class EduStreamHistory {
+    +Long studentId
+    +Long termId
+    +String action
+  }
+  EduStreamConfig "1" --> "n" EduStudentStream : 约束
+  EduStudentStream "1" --> "n" EduStreamHistory : 变更历史
+  EduStreamChangeRequest "1" --> "0..1" EduStudentStream : 审批后生效

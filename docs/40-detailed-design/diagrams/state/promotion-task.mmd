@@ -1,0 +1,15 @@
+stateDiagram-v2
+  [*] --> draft : 创建
+  draft --> previewed : 预览完成
+  previewed --> queued : 提交执行
+  queued --> running : 消费者取到任务
+  queued --> cancelled : 取消（仅 queued）
+  running --> succeeded : 全部成功
+  running --> partial_failed : 有跳过 / 失败项
+  running --> failed : 整体失败
+  partial_failed --> running : 重试失败项（复用 task_no）
+  failed --> running : 重试
+  failed --> dead : 超过最大重试
+  dead --> running : 运维重放
+  succeeded --> [*]
+  cancelled --> [*]

@@ -1,0 +1,26 @@
+=== K12 教育域 阶段 5 迁移脚本 MySQL 8 空库安装验证 ===
+验证时间：2026-10-01 03:31:19
+镜像：mysql:8（容器 edu-mysql-verify）
+MySQL 版本：8.4.11
+
+--- 1. 重建空库 ---
+  空库重建完成
+
+--- 2. 按序执行迁移脚本（V1 ~ V5）---
+  V1__edu_student_teacher.sql -> OK（无输出、退出码 0）
+  V2__edu_org_config.sql -> OK（无输出、退出码 0）
+  V3__edu_grade_class.sql -> OK（无输出、退出码 0）
+  V4__edu_promotion_stream_support.sql -> OK（无输出、退出码 0）
+  V5__edu_foreign_keys.sql -> OK（无输出、退出码 0）
+
+--- 3. 对象计数（information_schema）---
+表=43 视图=2 外键=32 唯一约束=49 索引对象=191
+
+--- 4. check-sql.sql 结构与不变式检查（期望 0 行输出）---
+  0 行输出 —— 22 条检查全部通过
+
+--- 5. 生成列唯一约束注册确认 ---
+edu_activation_code.uk_activation_active(active_guard)
+edu_student_field_change.uk_sfc_pending(pending_guard)
+
+结论：通过（43 张表含 1 张归档派生表 / 2 个视图 / 32 条外键；结构检查 0 行输出）

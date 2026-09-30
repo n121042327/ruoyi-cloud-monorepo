@@ -1,0 +1,46 @@
+领域对象,表名,模块,范围,批次,说明
+学生主体,edu_student,student,platform,5-0,平台级实体，**不设 tenant_id**（D-030 / D-037）。学校侧一律经 edu_student_enrollment 或
+在校记录,edu_student_enrollment,student,school,5-0,学校侧的学生身份。学籍状态的**唯一流转入口**是升班与学籍异动模块（DP-01）；
+监护人主体,edu_guardian,student,platform,5-0,平台级实体，**不设 tenant_id**（D-030 / GAP-015）。手机号是家长登录名候选且平台唯一，
+监护人与学生关联,edu_student_guardian,student,platform,5-0,跨租户多对多关系 + 学校侧审核。绑定上限 3（BR-ACCOUNT-018 同口径）；
+学生资料变更申请,edu_student_field_change,student,school,5-0,字段级可编辑性矩阵的落点：非班主任角色（如家长、学生本人）修改关键字段时走申请。
+一次性激活凭据,edu_activation_code,student,school,5-0,班主任打印密码条分发 → 学生首登即设密码 → 激活码用完即废 → 丢码由班主任重置（D-039 / GAP-021）。
+教师主体,edu_teacher,teacher,school,5-0,教师主体带所属学校（`school_id`）。跨校任教不复制教师记录：由 edu_teaching_assignment
+用户教育角色（学校级）,edu_user_role,teacher,school,5-0,只承载与具体班级、年级无关的学校级角色（校领导 / 教务主任）。
+年级主任任职,edu_grade_leader,teacher,school,5-0,按学年学期生效；一个年级可有多名主任（is_primary 标主要负责人）。数据范围 DS-05 的权威来源。
+任教关系,edu_teaching_assignment,teacher,school,5-0,"""某学期某学科某班由某教师授课""的稳定事实（不含上课时间与教室）。"
+年级,edu_grade,grade,school,5-1,年级与学段固定映射（学段内序号：小学 1–6、初中 / 高中 1–3，RV-GRD-03）；
+班级（行政班 / 教学班容器）,edu_class,class,school,5-1,行政班与教学班共用本表，由 class_type 区分：行政班设班主任（head_teacher_id）、参与 DS-06 解析；
+班级成员关系（花名册）,edu_class_member,class,school,5-1,本表只承载**行政班**花名册（class_type 恒为 administrative）。
+教学班,edu_teaching_class,class,school,5-1,教学班主体，与行政班完全独立（BR-CLASS-001）。不设班主任、不参与 DS-06 解析。
+教学班成员关系,edu_teaching_class_member,class,school,5-1,"归班级管理模块写入（唯一写入入口）：由""按组合生成""触发（REQ-STR-056），"
+升班任务,edu_promotion_task,promotion,school,5-2,升班按学年**追加**下一学年的班级与学生关系，不改写历史（BR-PROMO-001）。
+升班明细,edu_promotion_item,promotion,school,5-2,"逐学生结果。幂等键 = (task_id, student_id)（REQ-PRM-029）；"
+学籍异动记录,edu_enrollment_change,promotion,school,5-2,追加式，不更新不删除（BR-PROMO-012）。学籍状态的**唯一流转入口**（DP-01）：
+跨校转学单,edu_transfer_order,promotion,school,5-2,接收动作本身即审批（已确认 3）；接收前不计入在读数（REQ-PRM-053）；
+选科配置,edu_stream_config,stream,school,5-2,按学校 + 学年学期唯一（REQ-STR-004）。截止时间按当前时间**实时比较**，不依赖定时任务刷状态（REQ-STR-005）。
+学生选科,edu_student_stream,stream,school,5-2,学生当前生效的选科组合。同一学生同一学期唯一（BR-STREAM-007）。
+选科变更申请,edu_stream_change_request,stream,school,5-2,截止后的变更单，含审批轨迹。同一学生同一学期**同时只允许一条待审批**（REQ-STR-029 / BR-STREAM-007）。
+选科历史,edu_stream_history,stream,school,5-2,追加式，不可删除不可修改（REQ-STR-043）；跨学年学期保留（REQ-STR-044）。
+学科,edu_subject,subject,school,5-2,"""一条学科主体 + 学段启用表""（RV-SUB-04）：编码校内唯一，同一学科在不同学段启用只加启用记录，"
+学科与学段启用,edu_subject_stage,subject,school,5-2,"同一学科同一学段一条记录；(subject_id, stage_code) 唯一。"
+学校,edu_school,school,school,5-2,"""一个学校对应一个租户""（BR-ORG-002）：本表 `tenant_id` 唯一，且 `school_id = tenant_id` 的映射在接入时写入。"
+校区,edu_campus,school,school,5-2,校区不参与数据权限判定，只用于组织与统计（BR-ORG-009 / GAP-045）。
+学校开设学段,edu_school_stage,school,school,5-2,学校实际开设的学段；未开设的学段在学科与年级配置里置灰（REQ-SUB-026 同口径）。
+学年,edu_academic_year,term,school,5-2,学年日期必须连续不重叠：前一年结束日 = 后一年开始日 − 1 天（RV-TERM-08）。
+学期,edu_term,term,school,5-2,同一学校同一学年只能有一个当前学期（BR-TERM-002）；学年日期连续不重叠（RV-TERM-08）。
+导入模板,edu_import_template,importexport,tenant,5-2,模板声明与版本号；模板过期后仍可下载但强提示（IMP-Q-05 / BR-IMP-007）。
+导入批次,edu_import_batch,importexport,school,5-2,批次号是幂等键（BR-IMP-014）：同一批次重复执行不产生重复数据（BR-IMP-009）。
+导入行结果（失败与跳过明细）,edu_import_error,importexport,school,5-2,"逐行结果；`(batch_no, row_no)` 唯一。失败原因必须可直接指导修正（含行号 + 对象 + 原因）。"
+异步任务,edu_async_task,importexport,school,5-2,任务中心的主表。状态推进 queued → running → succeeded / partial_failed / failed（REQ-IMP-034）；
+任务重试记录,edu_async_task_retry,importexport,school,5-2,"每次重试一条记录；`(task_no, retry_no)` 唯一。与死信配合判定""是否超过最大重试次数""（REQ-IMP-039）。"
+死信任务,edu_dead_letter_task,importexport,school,5-2,超过最大重试次数的任务进入死信，运维查看与重放（REQ-IMP-038）；
+文件引用,edu_file_ref,importexport,school,5-2,数据库只保存文件引用，不保存二进制（REQ-IMP-041）。
+操作日志,edu_audit_log,audit,school,5-2,只允许追加，任何业务代码不得更新或删除（BR-AUDIT-003 / NFR-AUDIT-05）。
+日志变更明细,edu_audit_change,audit,school,5-2,只记录**发生变化的字段**（REQ-AUD-003）；日志本身不含敏感字段明文，
+日志归档批次,edu_audit_archive_batch,audit,tenant,5-2,超过在线保留窗口（默认 12 个月）的日志按时间归档，归档后仍可按时间范围检索（REQ-AUD-033）；
+数据共享授权（仅教学资源）,edu_data_grant,datascope,tenant,5-2,授权对象**仅限教学资源**（题库习题、试卷等）；学生、班级、年级、教师、成绩、学籍等业务数据一律不跨校共享
+授权范围明细,edu_data_grant_scope,datascope,tenant,5-2,一条授权可覆盖多个学校与多种资源；首轮只允许 read / export，不开放 write（BR-DATA-015）。
+归档落点：与在线表同构（含全部索引）。归档 = 按时间范围把行搬进本表并写 ed,edu_audit_log_archive,audit,—,5-2,派生表，依据 edu_audit_log
+运营访问记录（派生视图）,v_edu_audit_operator_access,audit,—,5-2,派生视图，来源 edu_audit_log，过滤 operator_role = 'platform_ops'
+登录与安全事件（派生视图）,v_edu_audit_security_event,audit,—,5-2,"派生视图，来源 edu_audit_log，过滤 action_type IN ('login','account_locked','activation_view','activation_reset','student_no_change','permission_change')"

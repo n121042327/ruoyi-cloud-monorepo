@@ -1,0 +1,18 @@
+sequenceDiagram
+  autonumber
+  participant S as 学生
+  participant UI as 选科页
+  participant API as ruoyi-edu
+  participant DB as MySQL
+  participant R as Redis
+
+  S->>UI: 选择 1 门首选 + 2 门再选
+  UI->>API: POST submitMyStream
+  API->>API: 校验固定集合（物理/历史 + 化学生物思想政治地理）
+  API->>API: 校验是否超过截止时间；逾期需审批
+  API->>DB: BEGIN
+  API->>DB: INSERT edu_student_stream（uk_student_stream）
+  API->>DB: INSERT edu_stream_history
+  API->>DB: COMMIT
+  API->>R: DEL edu:<tenant>:stream:stat:<term>:*
+  API-->>S: 提交成功

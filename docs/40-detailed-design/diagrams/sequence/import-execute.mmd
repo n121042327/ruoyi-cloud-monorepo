@@ -1,0 +1,24 @@
+sequenceDiagram
+  autonumber
+  participant U as 用户
+  participant API as ruoyi-edu
+  participant DB as MySQL
+  participant MQ as RabbitMQ
+  participant W as 消费者
+
+  U->>API: validateImportFile
+  API->>DB: INSERT edu_import_batch（batch_no 幂等）
+  API-->>U: 校验结果
+  U->>API: executeImport
+  API->>API: 并发配额校验（用户 1 / 学校 3）
+  API->>MQ: 投递 edu.import.execute
+  MQ->>W: 消费
+  W->>DB: 按批写业务表
+  alt 成功
+    W->>DB: 任务 succeeded
+  else 部分失败
+    W->>DB: 任务 partial_failed + edu_import_error
+  else 超过重试
+    W->>DB: 进 edu_dead_letter_task
+  end
+  U->>API: 查询任务 / 下载结果

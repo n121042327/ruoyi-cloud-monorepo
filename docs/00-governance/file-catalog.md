@@ -348,23 +348,25 @@
 
 | 路径 | 用途 | 状态 |
 |---|---|---|
-| `00-index.md` | 索引 | `planned` |
-| `modules/<module>/design.md` | 模块详细设计：事务边界、并发、校验、失败恢复 | `planned` |
-| `api/openapi.yaml` | OpenAPI 3 契约（全部首轮接口） | `planned` |
-| `api/error-codes.yaml` | 错误码表 | `planned` |
-| `diagrams/sequence/*.mmd` | 时序图 | `planned` |
-| `diagrams/state/*.mmd` | 状态机（学生学籍状态、升班任务状态…） | `planned` |
-| `diagrams/class/*.mmd` | 类图 / 领域模型图 | `planned` |
-| `frontend-page-tree.yaml` | 前端页面树、路由、组件归属 | `planned` |
-| `page-action-api-map.yaml` | 页面操作 → 组件 → API operationId 映射 | `planned` |
-| `database/physical-schema.md` | **逐表说明：字段、类型、可空、默认值、注释** | `planned` |
-| `database/er-diagram.mmd` | ER 图源文件 | `planned` |
-| `database/domain-table-map.csv` | 领域对象 → 表 映射表 | `planned` |
-| `database/keys-and-indexes.md` | 唯一键、外键、索引清单与理由 | `planned` |
-| `database/check-sql.sql` | 结构与数据一致性检查 SQL | `planned` |
-| `database/migration-plan.md` | 迁移顺序、回滚方案、存量升级路径 | `planned` |
-| `runtime-design.md` | 异步任务、消息、缓存、幂等的运行时设计 | `planned` |
-| `migrations/V1__edu_*.sql` | 教育域建表脚本 | `planned` |
+| `docs/40-detailed-design/00-index.md` | 索引 | `review` |
+| `docs/40-detailed-design/modules/*/design.md` | 模块详细设计：事务边界、并发、校验、失败恢复 | `review` |
+| `docs/40-detailed-design/api/openapi.yaml` | OpenAPI 3 契约（全部首轮接口） | `review` |
+| `docs/40-detailed-design/api/error-codes.yaml` | 错误码表 | `review` |
+| `docs/40-detailed-design/api/error-codes.md` | 错误码可读版（与 YAML 同源生成） | `review` |
+| `docs/40-detailed-design/diagrams/sequence/*.mmd` | 时序图 | `review` |
+| `docs/40-detailed-design/diagrams/state/*.mmd` | 状态机（学生学籍状态、升班任务状态…） | `review` |
+| `docs/40-detailed-design/diagrams/class/*.mmd` | 类图 / 领域模型图 | `review` |
+| `docs/40-detailed-design/frontend-page-tree.yaml` | 前端页面树、路由、组件归属 | `review` |
+| `docs/40-detailed-design/page-action-api-map.yaml` | 页面操作 → 组件 → API operationId 映射 | `review` |
+| `docs/40-detailed-design/database/schema.yaml` | **表结构事实源（生成物理表 / ER / 迁移脚本的唯一样本）** | `review` |
+| `docs/40-detailed-design/database/physical-schema.md` | **逐表说明：字段、类型、可空、默认值、注释** | `review` |
+| `docs/40-detailed-design/database/er-diagram.mmd` | ER 图源文件 | `review` |
+| `docs/40-detailed-design/database/domain-table-map.csv` | 领域对象 → 表 映射表 | `review` |
+| `docs/40-detailed-design/database/keys-and-indexes.md` | 唯一键、外键、索引清单与理由 | `review` |
+| `docs/40-detailed-design/database/check-sql.sql` | 结构与数据一致性检查 SQL | `review` |
+| `docs/40-detailed-design/database/migration-plan.md` | 迁移顺序、回滚方案、存量升级路径 | `review` |
+| `docs/40-detailed-design/runtime-design.md` | 异步任务、消息、缓存、幂等的运行时设计 | `review` |
+| `docs/40-detailed-design/migrations/V1__edu_*.sql` | 教育域建表脚本 | `review` |
 
 ---
 

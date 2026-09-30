@@ -1,0 +1,21 @@
+sequenceDiagram
+  autonumber
+  participant T as 班主任
+  participant UI as 学生管理页
+  participant API as ruoyi-edu
+  participant DB as MySQL
+  participant AUD as 审计
+
+  T->>UI: 填写学生基本信息 + 监护人
+  UI->>API: POST addStudent
+  API->>API: 校验学号 / 证件号平台唯一、学校上下文
+  API->>DB: BEGIN
+  API->>DB: INSERT edu_student（平台级，无 tenant_id）
+  API->>DB: INSERT edu_student_enrollment（school_id + 学籍状态）
+  API->>DB: INSERT edu_student_guardian（可选）
+  API->>AUD: 同事务写 edu_audit_log
+  API->>DB: COMMIT
+  API-->>UI: 学生编号 + 登录名 s+学号
+  UI->>API: POST 签发激活码（打印批次）
+  API->>DB: INSERT edu_activation_code（uk_activation_active 兜底）
+  API-->>T: 打印密码条

@@ -1885,6 +1885,94 @@ gaps:
       navigation.yaml 登记该片段并补 4 条跳转，批次 2-9 声明页数 4 → 5；
       page-actions.yaml 新增 2 组动作；verify-task 22 / 22 通过，18 个已交付 harness 全量回归通过。
 
+  - id: GAP-061
+    title: 学生资料变更申请「同一学生同一字段只允许一条待审核」缺少数据库级强约束
+    discovered_at: 2026-10-01
+    discovered_by: 阶段 5 建表脚本 MySQL 8 实证（表结构复核）
+    evidence: 'docs/10-prd/modules/student/PRD.md 与 GAP-018 已确认「审核未过能重提，但同一字段同时只允许一条待审核」；
+
+      docs/40-detailed-design/database/schema.yaml 的 edu_student_field_change 原本只有普通索引
+
+      `idx_sfc_pending(student_id, field_name, status)`，没有唯一约束。
+
+      MySQL 唯一索引无法表达「仅 status=pending 时唯一」，因此并发提交两条待审申请时存在被绕过的窗口。
+
+      '
+    expected: 同一学生同一字段同时最多一条待审核，且由数据库强制
+    actual: 只有普通索引，靠应用层保证
+    impact: '不补：并发或重试场景可能出现两条同字段待审，审批人看到重复申请，且「审核通过」会把同一字段写两次，
+
+      后续排查无法判断哪条是有效申请。
+
+      '
+    options:
+    - A 增加生成列 `pending_guard`（仅 pending 且未删除时取值）+ 唯一键 `uk_sfc_pending`（推荐）
+    - B 只用普通索引，靠应用层事务 + 行锁保证
+    - C 为待审记录单独建一张表
+    recommended: '选项 A。理由：不改查询语义，唯一性由数据库保证；生成列在 pending 之外取 NULL，
+
+      MySQL 唯一索引对多个 NULL 不判重，因此历史记录可以有多条。选项 B 在并发下不可靠；选项 C 增加一次同步成本。
+
+      '
+    blocking: false
+    blocks_stages:
+    - stage6
+    - stage7
+    owner: 用户
+    status: closed
+    resolution: '用户 2026-10-01 授权「需要拍板的默认取推荐」，取选项 A 并在阶段 5 落地：
+
+      schema.yaml 增加 generated_columns.pending_guard 与 uk_sfc_pending；tools/gen_schema_artifacts.py 增加生成列支持；
+
+      MySQL 8.4.11 实证 `Duplicate entry ''1:guardian_phone'' for key ''edu_student_field_change.uk_sfc_pending''`，
+
+      9 / 9 语义用例通过（见 evidence/stage5-detailed-design/2026-10-01_generated-column-guard.log 与 decisions.md D-088）。
+
+      '
+
+  - id: GAP-062
+    title: 激活码「同一学生同时只有一个未使用凭据」缺少数据库级强约束
+    discovered_at: 2026-10-01
+    discovered_by: 阶段 5 建表脚本 MySQL 8 实证（表结构复核）
+    evidence: 'D-039 / GAP-021 已确认一次性激活码机制；schema.yaml 的 edu_activation_code 原本只有
+
+      `uk_activation_code(code)` 与普通索引 `idx_activation_student(student_id, status)`，
+
+      schema 注释也写着「由业务层保证」，即缺少数据库约束。
+
+      '
+    expected: 同一学生同一时刻最多一个 status=unused 的激活码
+    actual: 靠业务层保证，并发签发 / 重试可产生两个未使用码
+    impact: '不补：班主任重复打印或接口重试会同时存在两个可用激活码，旧码无法确定是否失效，
+
+      存在被他人使用的风险。
+
+      '
+    options:
+    - A 增加生成列 `active_guard`（仅 unused 时取 student_id）+ 唯一键 `uk_activation_active`（推荐）
+    - B 保持业务层保证
+    - C 签发前先作废该学生全部旧码（会丢失「旧码何时作废」的痕迹）
+    recommended: '选项 A。理由：与 GAP-061 同一手法，把已确认的业务不变式下沉到数据库；
+
+      作废动作仍由业务显式执行（保留 reset_by / reset_time），两者不冲突。
+
+      '
+    blocking: false
+    blocks_stages:
+    - stage6
+    - stage7
+    owner: 用户
+    status: closed
+    resolution: '用户 2026-10-01 授权「需要拍板的默认取推荐」，取选项 A 并在阶段 5 落地：
+
+      schema.yaml 增加 generated_columns.active_guard 与 uk_activation_active；
+
+      MySQL 8.4.11 实证 `Duplicate entry ''2'' for key ''edu_activation_code.uk_activation_active''`，
+
+      状态置为 used 后可正常签发新码（见 evidence/stage5-detailed-design/2026-10-01_generated-column-guard.log 与 D-088）。
+
+      '
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"

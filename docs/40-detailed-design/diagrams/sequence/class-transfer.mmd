@@ -1,0 +1,18 @@
+sequenceDiagram
+  autonumber
+  participant T as 班主任
+  participant UI as 班级管理页
+  participant API as ruoyi-edu
+  participant DB as MySQL
+  participant R as Redis
+
+  T->>UI: 选择学生 → 调班
+  UI->>API: POST transferClass
+  API->>API: 数据范围校验（DS-06：只能操作本班）
+  API->>DB: BEGIN
+  API->>DB: UPDATE edu_class_member SET class_id = 目标班 WHERE term+student
+  API->>DB: 目标班容量只提示不拦截（BR-CLASS-005）
+  API->>DB: COMMIT
+  API->>R: DEL 相关名单缓存
+  API-->>T: 调班成功
+  Note over API,DB: 并发调班由 uk_class_member_admin + 行锁保证不出现双班
