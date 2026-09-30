@@ -1499,6 +1499,48 @@
 - 如果错了的代价：删除 4 个新页面、回滚 `page-actions.yaml` 的 4 个动作组、`navigation.yaml` 的片段与页数、
   两个 PRD 的版本行与新增段落、`prototype-shell.css` 与 `layout-spec.yaml` 的新增段即可
 
+## D-082 交付批次 2-8：审计与操作日志（含 CR-018）
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要拍板的默认选推荐，执行完以后没有任何问题提交合并」）
+- 上游依据：审计 PRD 4.1 ~ 4.8 / 5.1 ~ 5.4 / 6.1 ~ 6.4 / 8 节；
+  `BR-AUDIT-001` ~ `012`、`BR-STU-021`、`REQ-AUD-001` ~ `040`、`DS-07`、`DS-DENY-03` / `04` / `08`、`NFR-AUDIT-02` / `03` / `05`
+- 决策（全部取推荐方案，已落进 `CR-018`）：
+  1. **日志只追加、不给修改与删除入口**：列表与详情都不渲染删除 / 编辑入口，页面写明数据库账号层面同样回收更新与删除权限（`REQ-AUD-025` / `030` / `031`）。
+  2. **查询不写日志、导出必写日志**（`REQ-AUD-011`）：避免查询噪声，同时保住「谁导出过」这条线索。
+  3. **导出配置独立成弹窗**（`DIALOG-AUD-EXPORT`）：格式 / 50000 行上限 / 用途说明必填；导出前重新解析范围（`REQ-AUD-027` / `DS-DENY-04`），文件 7 天有效期（`REQ-AUD-029`）。审计 PRD 6.1 原本没登记该片段，按 `CR-018` 补登记。
+  4. **敏感字段只在「揭示明文」时留痕**：掩码展示不记录（`REQ-AUD-009`），日志本身不含明文（`REQ-AUD-010`），本页对租户侧可见（`REQ-AUD-012`）。
+  5. **归档 ≠ 删除**：超过 12 个月在线窗口的日志按时间归档，归档后仍可检索（`REQ-AUD-033`）；保留期内（≥ 3 年）不得清理（`REQ-AUD-032`）；归档与归档检索动作本身写日志（`REQ-AUD-034`）。
+  6. **六个页面的角色按审计 PRD 6.1 与 5.2 收敛**：操作日志四类角色按本校 / 本年级 / 本班收敛、任课教师无日志权限（`DS-07`）；
+     运营访问记录只给租户管理员与校领导；敏感数据访问记录只给校领导与教务主任；登录与安全事件只给校领导与平台运营；归档管理只给平台运营。
+- 关键设计：操作日志详情抽屉内同时给「变更明细 diff」与「该对象的全部变更」时间线（`PAGE-AUDIT-OBJECT-TIMELINE`）；
+  安全事件页把「激活码查看 / 重置」纳入事件类型（`BR-STU-021` / D-039）；归档页给写入失败与只读降级提醒（`REQ-AUD-037` / `038`）。
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/functional/v1/pages/audit-log-list.html` | 新增：操作日志 9 列 7 行 + `PAGE-AUDIT-LOG-DETAIL` 详情抽屉 + `PAGE-AUDIT-OBJECT-TIMELINE` 时间线区块 + `DIALOG-AUD-EXPORT` 导出配置 |
+| `prototypes/functional/v1/pages/audit-ops-access.html` | 新增：运营访问记录 7 列 4 行（租户侧自助查询与导出） |
+| `prototypes/functional/v1/pages/audit-sensitive-access.html` | 新增：敏感数据访问记录 7 列 4 行 |
+| `prototypes/functional/v1/pages/audit-security-event.html` | 新增：登录与安全事件 7 列 7 行（7 类事件） |
+| `prototypes/functional/v1/pages/audit-archive.html` | 新增：归档管理 7 列 4 行 + 运维统计卡与降级提醒 |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `audit_log`（ACT-AUD-001 ~ 020）/ `audit_ops_access`（030 ~ 035）/ `audit_sensitive_access`（040 ~ 044）/ `audit_security_event`（050 ~ 052）/ `audit_archive`（060 ~ 065） |
+| `prototypes/functional/v1/navigation.yaml` | 7 个页面补 note、登记 `DIALOG-AUD-EXPORT` 与 3 条跳转；批次 2-8 声明页数 7 → 8 并改为「已全部产出待验收」 |
+| `prototypes/functional/v1/assets/prototype-shell.js` | `EXTRA_PAGES` 补 5 个新页面 |
+| `prototypes/functional/v1/markup-contract.md` | 新增 11.1 节：角色形态必须在 `prototype:params` 之后再对齐一次（见下） |
+| `docs/10-prd/modules/audit/PRD.md` | 升 1.0.1-draft：6.1 补 `DIALOG-AUD-EXPORT` 登记 |
+| `docs/00-governance/change-requests/CR-018.md` | 新增：导出配置片段补登记 |
+| `evidence/stage2-prototype/verify-audit.html` | 新增：28 条断言 |
+| `evidence/stage2-prototype/audit-*.png` | 9 张截图 |
+
+- **本批修掉一个共享缺陷**：外壳 `init()` 的顺序是 `applyRole()` → `applyState('normal')` → `applyParams()`。
+  当页面的默认角色（教务主任）本来就没有权限时，`applyState('normal')` 会把页面在解析期设好的无权限形态冲掉，
+  表现为「默认角色加载后被放行」。受影响的正是审计模块的 4 个页面（运营访问 / 敏感访问 / 安全事件 / 归档），
+  三条断言 `AU-15` / `AU-23` / `AU-25` 首次运行即为不通过，属实证发现。修法是在 `prototype:params`（init 的最后一步）之后再对齐一次角色形态，并把约定写进 `markup-contract.md` 11.1 节，后续页面按同一写法。
+- 验证证据：`verify-audit.html` 28 / 28；17 个已交付 harness 全量回归；`python tools/check_docs.py` 通过
+- 阶段 2 状态：批次 2-8 已全部产出（8 个页面编号）；剩余 2-9 异步任务中心（4）
+- 如果错了的代价：删除 5 个页面、回滚 `page-actions.yaml` 的 5 个动作组、`navigation.yaml` 的片段与页数、
+  审计 PRD 的版本行与片段登记、`markup-contract.md` 的 11.1 节即可
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |
@@ -1539,3 +1581,4 @@
 | R-034 | ~~升班明细的 7 个字段与「调整方式」枚举是否一次 CR 补进 `06-field-dictionary.yaml`~~ → 已定：选项 A，一次 CR 补全（7 个字段 + 3 个枚举），并补 `BR-PROMO-006` 的留级去向与升班 PRD 的字段口径（D-073 / CR-014） | GAP-055 | 已关闭 |
 | R-035 | ~~选科模块的 3 个字段、权限码对齐与 `PAGE-STR-STAT` 载体是否一次 CR 补齐~~ → 已定：一次 CR 补全（3 个字段 + 9 条权限码 + 1 条页面载体）（D-080 / CR-016） | GAP-057 | 已关闭 |
 | R-036 | ~~教学班的「详情 / 停用 / 成员清单」缺 operationId，且教学班能否手工新增没有裁决~~ → 已定：补 3 个 operationId + 两个同页片段，创建入口唯一在生成向导（D-081 / CR-017） | GAP-058 | 已关闭 |
+| R-037 | ~~审计 PRD 6.3 要求「点击导出打开导出配置弹窗」，但 6.1 的页面清单没有登记该片段~~ → 已定：按选项 A 补登记 `DIALOG-AUD-EXPORT`（D-082 / CR-018） | GAP-059 | 已关闭 |

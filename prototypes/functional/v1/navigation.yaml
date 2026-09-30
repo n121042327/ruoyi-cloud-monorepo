@@ -165,13 +165,14 @@ pages:
   - { id: PAGE-IMP-DEADLETTER, name: 死信任务, module: import-export, type: page, route: /edu/async-task/dead-letter, template: TPL-LIST, batch: "2-9" }
 
   # ---- 审计与操作日志 ----
-  - { id: PAGE-AUDIT-LOG-LIST, name: 操作日志, module: audit, type: page, route: /edu/audit/log/list, template: TPL-LIST, batch: "2-8" }
-  - { id: PAGE-AUDIT-LOG-DETAIL, name: 日志详情, module: audit, type: detail, parent: PAGE-AUDIT-LOG-LIST, batch: "2-8" }
-  - { id: PAGE-AUDIT-OBJECT-TIMELINE, name: 对象变更时间线, module: audit, type: block, parent: PAGE-AUDIT-LOG-DETAIL, batch: "2-8" }
-  - { id: PAGE-AUDIT-OPS-ACCESS, name: 运营访问记录, module: audit, type: page, route: /edu/audit/operator-access, template: TPL-LIST, batch: "2-8" }
-  - { id: PAGE-AUDIT-SENSITIVE-ACCESS, name: 敏感数据访问记录, module: audit, type: page, route: /edu/audit/sensitive-access, template: TPL-LIST, batch: "2-8" }
-  - { id: PAGE-AUDIT-SECURITY-EVENT, name: 登录与安全事件, module: audit, type: page, route: /edu/audit/security-event, template: TPL-LIST, batch: "2-8" }
-  - { id: PAGE-AUDIT-ARCHIVE, name: 归档管理, module: audit, type: page, route: /edu/audit/archive, template: TPL-LIST, batch: "2-8" }
+  - { id: PAGE-AUDIT-LOG-LIST, name: 操作日志, module: audit, type: page, route: /edu/audit/log/list, template: TPL-LIST, batch: "2-8", note: "2-8 已交付：9 列日志列表（时间 / 操作人 / 角色 / 操作类型 / 对象类型 / 对象标识 / 结果 / 来源 IP / 操作）+ 5 个筛选器；默认最近 7 天、单次查询上限 90 天（REQ-AUD-020 / 021）；不可篡改（REQ-AUD-025 / 030 / 031）；查询不写日志但导出写（REQ-AUD-011）" }
+  - { id: PAGE-AUDIT-LOG-DETAIL, name: 日志详情, module: audit, type: detail, container: drawer, size: lg, parent: PAGE-AUDIT-LOG-LIST, batch: "2-8", note: "2-8 已交付：详情抽屉（8 个基本信息字段 + 变更明细 diff + 对象变更时间线区块）；变更前 / 后值按掩码展示（BR-AUDIT-007 / NFR-SEC-06）" }
+  - { id: PAGE-AUDIT-OBJECT-TIMELINE, name: 对象变更时间线, module: audit, type: block, parent: PAGE-AUDIT-LOG-DETAIL, batch: "2-8", note: "2-8 已交付：详情抽屉内的区块，按对象串联全部变更（追加式不可删除，REQ-AUD-023 / BR-AUDIT-003）" }
+  - { id: DIALOG-AUD-EXPORT, name: 日志导出配置, module: audit, type: dialog, size: md, parent: PAGE-AUDIT-LOG-LIST, batch: "2-8", note: "2-8 已交付：同页浮层片段（审计 PRD 6.3 要求「点击导出打开导出配置弹窗」）；格式 / 行数上限 50000 / 用途说明必填；导出前重新解析范围（REQ-AUD-026 ~ 029 / DS-DENY-04）" }
+  - { id: PAGE-AUDIT-OPS-ACCESS, name: 运营访问记录, module: audit, type: page, route: /edu/audit/operator-access, template: TPL-LIST, batch: "2-8", note: "2-8 已交付：7 列运营访问明细（访问时间 / 运营账号 / 对象类型 / 对象标识 / 访问动作 / 用途说明 / 来源 IP）+ 租户侧自助查询与导出；归属被访问租户（REQ-AUD-013 ~ 017）" }
+  - { id: PAGE-AUDIT-SENSITIVE-ACCESS, name: 敏感数据访问记录, module: audit, type: page, route: /edu/audit/sensitive-access, template: TPL-LIST, batch: "2-8", note: "2-8 已交付：7 列访问明细（查看人 / 角色 / 对象 / 敏感字段 / 访问方式 / 用途说明）；掩码不记录、只有揭示明文才记录（REQ-AUD-008 ~ 012）" }
+  - { id: PAGE-AUDIT-SECURITY-EVENT, name: 登录与安全事件, module: audit, type: page, route: /edu/audit/security-event, template: TPL-LIST, batch: "2-8", note: "2-8 已交付：7 列事件明细（时间 / 事件类型 / 账号 / 相关人 / 结果 / 来源 IP / 说明）；事件含登录失败、锁定、激活码查看与重置、学号变更、权限变更（REQ-AUD-007）" }
+  - { id: PAGE-AUDIT-ARCHIVE, name: 归档管理, module: audit, type: page, route: /edu/audit/archive, template: TPL-LIST, batch: "2-8", note: "2-8 已交付：7 列归档批次（批次 / 范围 / 行数 / 状态 / 操作人 / 归档时间 / 操作）+ 归档区间检索 + 写入失败与只读降级运维提醒；归档不删数据、仍可检索（REQ-AUD-032 ~ 038）" }
 
   # ---- 独立页（不属于任何模块菜单） ----
   - { id: PAGE-LOGIN, name: 登录, module: common, type: standalone, route: /login, batch: "2-4", note: "2-4 已交付：不套管理外壳（与真实系统一致）；多校切换、学生 s+学号（BR-ACCOUNT-002）、首次登录强制改密（D-039）、连续 5 次错误锁定 5 分钟（NFR-SEC-04）" }
@@ -191,7 +192,7 @@ delivery_batches:
   - { batch: "2-5", content: 学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录）, pages: 8, status: "已全部产出待验收：PAGE-STU-DETAIL（抽屉，含 PAGE-STU-HISTORY 区块）与三个同页弹窗（PAGE-STU-STATUS / PAGE-STU-TRANSFER / PAGE-PRM-CHANGE）、PAGE-STU-CROSS-TRANSFER / PAGE-PRM-TRANSFER（转出校 / 转入校两侧向导）、PAGE-PRM-HISTORY（异动历史列表）；动作 ACT-STU-023 ~ 034、ACT-STU-040 ~ 043、ACT-PRM-044 ~ 048、ACT-PRM-050 ~ 054 已登记" }
   - { batch: "2-6", content: 学校管理 + 学年学期 + 学科与配置, pages: 19, status: "已全部产出待验收：2-6a 学校管理 6 页、2-6b 校区 / 开通初始化 / 学年学期 4 页、2-6c 学科与配置 6 页（ACT-SUB-001 ~ 018）；本批 9 条表单浮层已按 CR-015 由抽屉改为弹窗" }
   - { batch: "2-7", content: 选科与教学班, pages: 12, status: "已全部产出待验收：2-7a 选科配置 / 学生选科 / 选科清单（含 PAGE-STR-CHANGE 与 PAGE-STR-HISTORY 片段）、2-7b 组合分布统计 / 变更审批待办 / 按组合生成教学班 / 教学班管理 + 3 个同页片段（DIALOG-STR-APPROVE / DRAWER-CLS-TEACHING / DIALOG-TCL-DISABLE）；动作 ACT-STR-001 ~ 058、ACT-TCL-001 ~ 012 已登记" }
-  - { batch: "2-8", content: 审计与操作日志, pages: 7, status: 已确认（D-050），待开始 }
+  - { batch: "2-8", content: 审计与操作日志, pages: 8, status: "已全部产出待验收：操作日志（含 PAGE-AUDIT-LOG-DETAIL 详情抽屉与 PAGE-AUDIT-OBJECT-TIMELINE 时间线区块）、日志导出配置片段 DIALOG-AUD-EXPORT、运营访问记录、敏感数据访问记录、登录与安全事件、归档管理（5 个页面文件）；动作 ACT-AUD-001 ~ 065 已登记" }
   - { batch: "2-9", content: 异步任务中心 + 死信 + 导出配置, pages: 4, status: 已确认（D-050），待开始 }
   - { batch: deferred, content: "已延后页面（PRD 标注本轮不做）", pages: 1, status: 已延后 }
 
@@ -258,6 +259,9 @@ jump_map:
   - { from: PAGE-CLS-TEACHING, trigger: 行内"详情", to: DRAWER-CLS-TEACHING, overlay: drawer }
   - { from: PAGE-CLS-TEACHING, trigger: 行内"停用", to: DIALOG-TCL-DISABLE, overlay: dialog }
   - { from: PAGE-CLS-TEACHING, trigger: "去生成教学班", to: PAGE-STR-GEN-CLASS, overlay: page }
+  - { from: PAGE-AUDIT-LOG-LIST, trigger: 点击行 / 行内"详情", to: PAGE-AUDIT-LOG-DETAIL, overlay: drawer, keep_filters: true }
+  - { from: PAGE-AUDIT-LOG-DETAIL, trigger: 锚点"该对象的全部变更", to: PAGE-AUDIT-OBJECT-TIMELINE, overlay: block }
+  - { from: PAGE-AUDIT-LOG-LIST, trigger: "导出", to: DIALOG-AUD-EXPORT, overlay: dialog }
   - { from: PAGE-AUDIT-LOG-LIST, trigger: 点击行, to: PAGE-AUDIT-LOG-DETAIL, overlay: detail }
   - { from: PAGE-AUDIT-LOG-DETAIL, trigger: "对象标识", to: PAGE-AUDIT-OBJECT-TIMELINE, overlay: block }
   - { from: PAGE-SCH-LIST, trigger: "行内「校区数」", to: PAGE-SCH-CAMPUS, overlay: page, note: "GAP-046 选项 A：校区检索入口复用学校详情下的校区管理页，不新增页面" }

@@ -20,7 +20,7 @@
   </div>
 
   <section class="card">
-    <div class="card-header"><h3>已交付页面（批次 2-1 ~ 2-7b）</h3><span class="el-tag success">待人工验收</span></div>
+    <div class="card-header"><h3>已交付页面（批次 2-1 ~ 2-8）</h3><span class="el-tag success">待人工验收</span></div>
     <div class="card-body">
       <table class="el-table">
         <thead>
@@ -440,6 +440,41 @@
 <td><a href="pages/teaching-class-list.html">pages/teaching-class-list.html</a></td>
 <td>8 列 5 行（名称 / 学年学期 / 年级 / 组合或学科 / 人数 / 任课教师 / 状态 / 操作），列宽之和 = min-width = 1140；详情抽屉含跨行政班成员；停用确认原因必填且写审计；行政班与教学班两套独立关系（BR-CLASS-001）、教学班不设班主任（REQ-CLS-039）、创建入口唯一（DP-01）</td>
 </tr>
+<tr>
+<td class="mono">PAGE-AUDIT-LOG-LIST + PAGE-AUDIT-LOG-DETAIL + PAGE-AUDIT-OBJECT-TIMELINE + DIALOG-AUD-EXPORT</td>
+<td>操作日志（批次 2-8）</td>
+<td>列表页 + 详情抽屉 + 时间线区块 + 导出配置弹窗</td>
+<td><a href="pages/audit-log-list.html">pages/audit-log-list.html</a></td>
+<td>9 列 7 行（时间 / 操作人 / 角色 / 操作类型 / 对象类型 / 对象标识 / 结果 / 来源 IP / 操作）+ 6 个筛选器；默认最近 7 天、单次上限 90 天；详情抽屉含变更明细 diff 与对象变更时间线；只追加、不提供修改与删除入口（REQ-AUD-025 / 030 / 031）；查询不写日志而导出必写（REQ-AUD-011）</td>
+</tr>
+<tr>
+<td class="mono">PAGE-AUDIT-OPS-ACCESS</td>
+<td>运营访问记录（批次 2-8）</td>
+<td>列表页</td>
+<td><a href="pages/audit-ops-access.html">pages/audit-ops-access.html</a></td>
+<td>7 列 4 行（访问时间 / 运营账号 / 对象类型 / 对象标识 / 访问动作 / 用途说明 / 来源 IP）；租户侧自助查询与导出，无需向平台发工单（REQ-AUD-015 / 016），归属被访问租户并保留 ≥ 3 年（REQ-AUD-013 / 017）</td>
+</tr>
+<tr>
+<td class="mono">PAGE-AUDIT-SENSITIVE-ACCESS</td>
+<td>敏感数据访问记录（批次 2-8）</td>
+<td>列表页</td>
+<td><a href="pages/audit-sensitive-access.html">pages/audit-sensitive-access.html</a></td>
+<td>7 列 4 行（访问时间 / 查看人 / 角色 / 对象 / 敏感字段 / 访问方式 / 用途说明）；掩码展示不记录、只有揭示明文或明文导出才记录（REQ-AUD-009），日志本身不含明文（REQ-AUD-010）</td>
+</tr>
+<tr>
+<td class="mono">PAGE-AUDIT-SECURITY-EVENT</td>
+<td>登录与安全事件（批次 2-8）</td>
+<td>列表页</td>
+<td><a href="pages/audit-security-event.html">pages/audit-security-event.html</a></td>
+<td>7 列 7 行（时间 / 事件类型 / 账号 / 相关人 / 结果 / 来源 IP / 说明）；覆盖登录失败、账号锁定、激活码查看与重置、学号变更、权限变更（REQ-AUD-007 / BR-STU-021）</td>
+</tr>
+<tr>
+<td class="mono">PAGE-AUDIT-ARCHIVE</td>
+<td>归档管理（批次 2-8）</td>
+<td>列表页（运维）</td>
+<td><a href="pages/audit-archive.html">pages/audit-archive.html</a></td>
+<td>7 列 4 行（归档批次 / 范围 / 行数 / 状态 / 操作人 / 归档时间 / 操作）+ 归档区间检索；归档 ≠ 删除、归档后仍可检索（REQ-AUD-033）、保留 ≥ 3 年（REQ-AUD-032）、归档动作写日志（REQ-AUD-034）；含写入失败与只读降级提醒（REQ-AUD-037 / 038）</td>
+</tr>
         </tbody>
       </table>
       <div class="legend" style="margin-top:10px">
@@ -474,6 +509,11 @@
         <li>打开 <a href="pages/stream-approve.html">变更审批待办</a>：默认角色是教务主任，待审批行只显示「只读」（不能自审，REQ-STR-034）；把演示面板角色切到「校领导」，两行待审批出现「审批」——点它看原 / 新组合对比，不填审批意见点「驳回」会被字段级拦截。</li>
         <li>打开 <a href="pages/stream-generate-class.html">按组合生成教学班</a>：第 1 步选「按完整组合」→ 下一步看生成预览（4 个新建 + 1 个「已存在」跳过，幂等）→ 下一步点「执行生成」，1 秒后自动进入第 4 步核对（4 行人数与统计一致）。也可直接用 <a href="pages/stream-generate-class.html#step=2">#step=2</a> / <a href="pages/stream-generate-class.html#step=4">#step=4</a> 深链接定位。</li>
         <li>打开 <a href="pages/teaching-class-list.html">教学班管理</a>：看 8 列与「教学班不设班主任」的口径；点行内「详情」打开抽屉（跨行政班的成员）；点「停用」看不填原因被拦截、填了才允许提交；已停用的那一行没有「停用」入口。</li>
+        <li>打开 <a href="pages/audit-log-list.html">操作日志</a>：先看 9 列与 6 个筛选器（默认最近 7 天）；点行内「详情」看变更明细 diff 与「该对象的全部变更」时间线；全页没有「删除」与日志编辑入口（不可篡改）。再点右上「导出」——不填用途说明直接点「开始导出」会被字段级拦截。</li>
+        <li>把角色切到「任课教师」：操作日志进入无权限形态（DS-07 无日志权限）；切到「年级主任」则只剩本年级范围且没有导出入口。</li>
+        <li>打开 <a href="pages/audit-ops-access.html">运营访问记录</a>：默认角色是教务主任，直接进入无权限形态（租户侧只有租户管理员与校领导可查）；把角色切到「租户管理员」即可看到平台运营看过什么、用什么用途说明。</li>
+        <li>打开 <a href="pages/audit-sensitive-access.html">敏感数据访问记录</a>：看「谁看过证件号 / 监护人手机号」；注意页面上写的是「掩码不记录、只有揭示明文才记录」。再打开 <a href="pages/audit-security-event.html">登录与安全事件</a>：默认角色无权限，切到「校领导」可看登录失败、锁定与激活码查看 / 重置。</li>
+        <li>打开 <a href="pages/audit-archive.html">归档管理</a>：默认角色无权限（运维页）；切到「平台运营」可见归档批次与「检索该批次」，失败批次提供「重试归档」；页面写明归档 ≠ 删除、归档后仍可检索。</li>
       </ol>
     </div>
   </section>
@@ -513,7 +553,7 @@
           <tr><td>2-5</td><td>学生模块剩余（详情 + 变更记录 / 学籍异动 / 调班 / 异动登记 / 跨校转学两侧向导 / 异动历史）</td><td class="num">8</td><td><span class="el-tag warning">2-5 待验收</span></td></tr>
           <tr><td>2-6</td><td>学校管理 + 学年学期 + 学科与配置（2-6a 学校 6 页、2-6b 校区/初始化/学年学期 4 页、2-6c 学科与配置 6 页）</td><td class="num">19</td><td><span class="el-tag warning">2-6 全部产出待验收</span></td></tr>
           <tr><td>2-7</td><td>选科与教学班（2-7a 选科配置 / 学生选科 / 选科清单；2-7b 组合分布统计 / 变更审批待办 / 按组合生成教学班 / 教学班管理 + 3 个同页片段）</td><td class="num">12</td><td><span class="el-tag warning">2-7 全部产出待验收</span></td></tr>
-          <tr><td>2-8</td><td>审计与操作日志</td><td class="num">7</td><td><span class="el-tag info">待开始</span></td></tr>
+          <tr><td>2-8</td><td>审计与操作日志（操作日志 / 详情抽屉 / 对象时间线 / 导出配置片段 / 运营访问 / 敏感访问 / 安全事件 / 归档）</td><td class="num">8</td><td><span class="el-tag warning">2-8 全部产出待验收</span></td></tr>
           <tr><td>2-9</td><td>异步任务中心 + 死信 + 导出配置</td><td class="num">4</td><td><span class="el-tag info">待开始</span></td></tr>
         </tbody>
       </table>
@@ -543,6 +583,8 @@
           <tr><td class="mono">已裁决</td><td><span class="mono">GAP-034</span> 校领导对年级只读（选项 B） · <span class="mono">GAP-035</span> 三个角色补年级读权限（选项 A） · <span class="mono">GAP-036</span> 可删空年级（选项 B） · <span class="mono">GAP-037</span> 字段一次补全（选项 A）</td><td>见 <span class="mono">CR-005</span> 与 <span class="mono">decisions.md</span> D-056</td></tr>
           <tr><td class="mono">已关闭</td><td><span class="mono">GAP-055</span>（升班明细的 7 个字段与「调整方式」枚举没进字段字典）已按选项 A 执行（<span class="mono">CR-014</span> / <span class="mono">D-073</span>）：补 7 个字段 + 3 个枚举、<span class="mono">BR-PROMO-006</span> 补留级去向、升班 PRD 6.1 / 6.3 / 7.1 补字段口径并升 1.0.4-draft</td><td>2-3e 剩余 5 页可以按同一标准铺开；阶段 5 的升班建表有字段与枚举依据</td></tr>
           <tr><td class="mono">GAP-056</td><td>编班表导入模板的列清单未在班级 PRD 枚举（本批按推荐 4 列实现：学号 / 姓名 / 目标班级 / 班级类型）</td><td>阶段 3 的模板截图与阶段 6 的模板下载接口各维护一份列定义的风险</td></tr>
+          <tr><td class="mono">已关闭</td><td><span class="mono">GAP-059</span>（审计 PRD 6.3 要求「点击导出打开导出配置弹窗」，6.1 未登记该片段）已按选项 A 执行（<span class="mono">CR-018</span> / <span class="mono">D-082</span>）：审计 PRD 升 1.0.1-draft 并补登记 <span class="mono">DIALOG-AUD-EXPORT</span>，批次 2-8 声明页数 7 → 8</td><td>阶段 6 前端的导出配置有明确载体；导出用途说明成为审计记录的一部分</td></tr>
+          <tr><td class="mono">已修复</td><td>共享缺陷：外壳 <span class="mono">init()</span> 的 <span class="mono">applyState('normal')</span> 会把「默认角色本来无权限」页面的 forbidden 形态冲掉（表现为加载后被放行）。审计 4 个页面实证命中（<span class="mono">AU-15</span> / <span class="mono">AU-23</span> / <span class="mono">AU-25</span> 首次运行不通过）</td><td>修法：在 <span class="mono">prototype:params</span> 之后再对齐一次角色形态；约定写进 <span class="mono">markup-contract.md</span> 11.1 节</td></tr>
           <tr><td class="mono">已关闭</td><td><span class="mono">GAP-057</span>（选科模块的 3 个字段没进字段字典、9 条权限码沿用邻近模块、<span class="mono">PAGE-STR-STAT</span> 载体与选科 PRD 6.1 不一致、租户管理员与校领导的选科角色口径与 PRD 2.1 / 5.1 冲突）已按选项 A 执行（<span class="mono">CR-016</span> / <span class="mono">D-080</span>）：补 <span class="mono">stream_open_from</span> / <span class="mono">overdue_requires_approval</span> / <span class="mono">subject_combination</span>，权限码改用 <span class="mono">stream.*</span>，统计页改独立页，选科配置可写角色改为教务主任 + 校领导</td><td>2-7b 的四个页面（统计 / 审批 / 生成教学班 / 教学班管理）可以直接开工；阶段 5 的选科建表有字段与权限依据</td></tr>
           <tr><td class="mono">已关闭</td><td><span class="mono">GAP-058</span>（教学班的详情 / 停用 / 成员清单缺 operationId，且教学班能否手工新增没有裁决）已按选项 A 执行（<span class="mono">CR-017</span> / <span class="mono">D-081</span>）：班级 PRD 升 1.0.5-draft（补 <span class="mono">DRAWER-CLS-TEACHING</span> / <span class="mono">DIALOG-TCL-DISABLE</span> 两个片段 + <span class="mono">getTeachingClass</span> / <span class="mono">disableTeachingClass</span> / <span class="mono">listTeachingClassRoster</span> 三个 operationId + 创建入口唯一），选科 PRD 升 1.0.1-draft</td><td>阶段 4 接口清单与阶段 6 前端对教学班有权威依据；同一份名单只有一条写入路径</td></tr>
         </tbody>

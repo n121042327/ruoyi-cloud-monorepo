@@ -1815,6 +1815,41 @@ gaps:
       navigation.yaml 登记 3 个片段并把批次 2-7 声明页数改为 12；
       verify-stream-b 37 / 37 通过，16 个已交付 harness 全量回归通过。
 
+  - id: GAP-059
+    title: 审计 PRD 6.3 要求「点击导出打开导出配置弹窗」，但 6.1 的页面清单没有登记该片段
+    discovered_at: 2026-10-01
+    discovered_by: 批次 2-8 开工前的公共前置反查（操作日志列表）
+    evidence: |
+      docs/10-prd/modules/audit/PRD.md 第 6.3 节的交互表写「点击‘导出’→ 打开导出配置弹窗」，
+      第 4.5 节又给这个弹窗规定了格式（xlsx / csv）、单次上限（50000 行）、文件有效期（7 天）与用途说明；
+      但第 6.1 节的页面清单只有 7 个页面，没有登记这个弹窗。
+      不补登记的话，原型要么把「导出」做成没有配置步骤的直出按钮（与 6.3 冲突），
+      要么给按钮写一个 navigation.yaml 里不存在的浮层编号。
+      同类问题此前已出现过三次：GAP-054（升班取消确认片段，CR-013 补登记）、
+      GAP-057（选科统计页载体，CR-016 修正）、GAP-058（教学班两个片段，CR-017 补登记）。
+    expected: PRD 6.3 提到的每个浮层都在 6.1 的页面清单里有编号
+    actual: 导出配置弹窗没有编号
+    impact: |
+      不补：阶段 2 原型与阶段 6 前端对「导出」这一步的形态不一致；
+      导出配置的四个约束（格式 / 行数上限 / 有效期 / 用途说明）没有画面承载。
+    options:
+      - A 按选项 A 补登记 `DIALOG-AUD-EXPORT`（dialog / md / parent `PAGE-AUDIT-LOG-LIST`），审计 PRD 6.1 同步补一条说明并升 1.0.1-draft（推荐）
+      - B 把「导出」实现为直出按钮，不加配置步骤（需要同时改 6.3 与 4.5）
+      - C 不改 PRD，由阶段 6 前端自行决定导出交互
+    recommended: |
+      选项 A。理由：6.3 与 4.5 已经把弹窗的内容与约束写清楚了，缺的只是一个编号；
+      补登记的成本最低，也与 CR-013 / CR-017 的做法一致。选项 B 会削弱「导出必写审计」的可核对性
+      （用途说明是审计记录的一部分）；选项 C 会让同一件事在两个阶段各定一次。
+    blocking: false
+    blocks_stages: [stage2, stage6]
+    owner: 用户
+    status: closed
+    resolution: |
+      用户 2026-10-01 授权「需要拍板的默认选推荐」，取选项 A，经 CR-018 执行完毕（见 decisions.md D-082）：
+      审计 PRD 升 1.0.1-draft 并在 6.1 补登记 `DIALOG-AUD-EXPORT`；
+      navigation.yaml 登记该片段并补 2 条跳转，批次 2-8 声明页数 7 → 8；
+      page-actions.yaml 新增 5 个审计动作组；verify-audit 28 / 28 通过，17 个已交付 harness 全量回归通过。
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"
@@ -1896,3 +1931,7 @@ open_questions_for_user:
   - "新增 GAP-058 并已关闭：教学班的详情 / 停用 / 成员清单缺 operationId，且教学班能否手工新增没有裁决。用户授权默认取推荐，按 CR-017 补齐（3 个 operationId + 2 个同页片段 + 创建入口唯一在生成向导），班级 PRD 升 1.0.5-draft、选科 PRD 升 1.0.1-draft，见 D-081。"
   - "本批顺带修掉两个共享层缺陷：①prototype-shell.css 一直缺少 .stat-row / .stat-card 样式（13 个页面在用），本批补齐并新增 .bar-chart 系列；②layout-spec.yaml 新增 charts 段（原型用纯 CSS 柱条、生产端映射 ECharts，并写明「图表必须与同页表格同源」的规则）。"
   - "下一步：2-8 审计与操作日志（7 页：操作日志列表 / 日志详情 / 对象变更时间线 / 运营访问记录 / 敏感数据访问记录 / 登录与安全事件 / 归档管理）→ 2-9 异步任务中心（4 页：任务列表 / 任务详情 / 导出配置 / 死信任务）；阶段 2 全部完成且无问题后合并本地 main，再进阶段 3 高保真。"
+  - "阶段 2 批次 2-8 已产出待验收：操作日志（9 列 7 行 + PAGE-AUDIT-LOG-DETAIL 详情抽屉 + PAGE-AUDIT-OBJECT-TIMELINE 时间线区块）、日志导出配置片段 DIALOG-AUD-EXPORT、运营访问记录（7 列）、敏感数据访问记录（7 列）、登录与安全事件（7 列 7 类事件）、归档管理（7 列 + 运维提醒）；动作 ACT-AUD-001 ~ 065 已登记；harness verify-audit 28 / 28 通过，见 D-082。"
+  - "新增 GAP-059 并已关闭：审计 PRD 6.3 要求「点击导出打开导出配置弹窗」但 6.1 未登记该片段。用户授权默认取推荐，按 CR-018 补登记 DIALOG-AUD-EXPORT，审计 PRD 升 1.0.1-draft，见 D-082。"
+  - "本批修掉一个共享缺陷（实证发现）：外壳 init() 的顺序是 applyRole → applyState('normal') → applyParams，当页面默认角色本来无权限时，那次复位会把 forbidden 形态冲掉（表现为「默认角色加载后被放行」）。审计 4 个页面受影响，三条断言 AU-15 / AU-23 / AU-25 首次运行即为不通过；修法是在 prototype:params 之后再对齐一次角色形态，并写进 markup-contract.md 11.1 节作为后续页面的统一写法。"
+  - "下一步：2-9 异步任务中心（4 页：任务列表 / 任务详情 / 导出配置 / 死信任务）；阶段 2 全部完成且无问题后合并本地 main，再进阶段 3 高保真。"

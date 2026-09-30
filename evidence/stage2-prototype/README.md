@@ -828,3 +828,31 @@ harness：`verify-stream-b.html`（4 个 iframe，`SB-01` ~ `SB-37` 共 37 条�
 | `teaching-class-list_drawer-detail_1440x900.png` | 1440×900 | 深链接 `#panel=DRAWER-CLS-TEACHING` | 详情抽屉：基本信息 + 跨行政班成员 + 未同步变更入口 |
 | `teaching-class-list_role-school-leader_1440x900.png` | 1440×900 | 角色 = 校领导 | 只读（无停用入口，详情仍可用） |
 | `stream-b_verify-results.png` | 1100×1800 | harness 结果清单 | `合计 37 / 37 条，通过 37 条，不通过 0 条 —— 全部通过` |
+
+### 6.12 批次 2-8（审计与操作日志）的交付说明
+
+| 页面 | 文件 | 说明 |
+|---|---|---|
+| `PAGE-AUDIT-LOG-LIST` + `PAGE-AUDIT-LOG-DETAIL` + `PAGE-AUDIT-OBJECT-TIMELINE` + `DIALOG-AUD-EXPORT` | `pages/audit-log-list.html` | 操作日志 9 列 7 行（时间 / 操作人 / 角色 / 操作类型 / 对象类型 / 对象标识 / 结果 / 来源 IP / 操作）+ 6 个筛选器 + 详情抽屉（8 个基本信息字段 + 变更明细 diff + 对象变更时间线区块）+ 导出配置弹窗（格式 / 50000 行上限 / 用途说明必填）；默认最近 7 天、单次上限 90 天，日志只追加不可篡改 |
+| `PAGE-AUDIT-OPS-ACCESS` | `pages/audit-ops-access.html` | 运营访问记录 7 列 4 行（访问时间 / 运营账号 / 对象类型 / 对象标识 / 访问动作 / 用途说明 / 来源 IP）；租户侧自助查询与导出，归属被访问租户，保留 ≥ 3 年 |
+| `PAGE-AUDIT-SENSITIVE-ACCESS` | `pages/audit-sensitive-access.html` | 敏感数据访问记录 7 列 4 行（查看人 / 角色 / 对象 / 敏感字段 / 访问方式 / 用途说明）；掩码不记录、只有揭示明文才记录，日志不含明文 |
+| `PAGE-AUDIT-SECURITY-EVENT` | `pages/audit-security-event.html` | 登录与安全事件 7 列 7 行，覆盖登录失败 / 账号锁定 / 激活码查看 / 激活码重置 / 学号变更 / 权限变更（`REQ-AUD-007` / `BR-STU-021`） |
+| `PAGE-AUDIT-ARCHIVE` | `pages/audit-archive.html` | 归档管理 7 列 4 行（批次 / 范围 / 行数 / 状态 / 操作人 / 归档时间 / 操作）+ 归档区间检索 + 运维统计卡与「写入失败 → 只读降级」提醒；归档不等于删除 |
+
+harness：`verify-audit.html`（5 个 iframe，`AU-01` ~ `AU-28` 共 28 条断言，28 / 28 通过）。
+动作组：`audit_log`（`ACT-AUD-001` ~ `020`）、`audit_ops_access`（`030` ~ `035`）、`audit_sensitive_access`（`040` ~ `044`）、
+`audit_security_event`（`050` ~ `052`）、`audit_archive`（`060` ~ `065`）。
+本批同时执行 `CR-018`：审计 PRD 升 1.0.1-draft 并补登记 `DIALOG-AUD-EXPORT`（6.3 要求「点击导出打开导出配置弹窗」，6.1 原本没有该片段）。
+`markup-contract.md` 新增 11.1 节，把「角色形态必须在 `prototype:params` 之后再对齐一次」写成统一约定。
+
+| 截图 | 分辨率 | 场景 | 用于验证 |
+|---|---|---|---|
+| `audit-log-list_1440x900.png` | 1440×900 | 操作日志（教务主任） | 9 列 7 行、6 个筛选器、只追加口径 |
+| `audit-log-list_drawer-detail_1440x900.png` | 1440×900 | 深链接 `#panel=PAGE-AUDIT-LOG-DETAIL` | 基本信息 + 变更明细 diff + 对象变更时间线 |
+| `audit-log-list_dialog-export_1440x900.png` | 1440×900 | 深链接 `#panel=DIALOG-AUD-EXPORT` | 导出配置（格式 / 行数上限 / 用途说明必填） |
+| `audit-ops-access_role-tenant-admin_1440x900.png` | 1440×900 | 角色 = 租户管理员 | 租户侧自助查询（`DS-02`）与导出入口 |
+| `audit-sensitive-access_1440x900.png` | 1440×900 | 敏感数据访问记录（教务主任） | 掩码不记录、只有揭示明文才记录 |
+| `audit-security-event_1440x900.png` | 1440×900 | 角色 = 校领导 | 7 类安全事件（含激活码查看 / 重置） |
+| `audit-archive_role-platform-ops_1440x900.png` | 1440×900 | 角色 = 平台运营 | 归档批次 + 检索该批次 / 重试归档 + 运维提醒 |
+| `audit-archive_state-forbidden_1440x900.png` | 1440×900 | 角色 = 教务主任 | 无权限形态（运维页仅平台运营），不进入空白页 |
+| `audit_verify-results.png` | 1100×1900 | harness 结果清单 | `合计 28 / 28 条，通过 28 条，不通过 0 条 —— 全部通过` |

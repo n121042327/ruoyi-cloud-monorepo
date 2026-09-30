@@ -250,3 +250,19 @@ apps/plus-ui/src/views/edu/student/index.vue 中的 handleAdd()
 | 角色差异只写一句"（无权限）" | 差异没有落在按钮与字段上，等于没画 | 按 `page-actions.yaml` 的权限逐项显隐 |
 | 状态靠注释掉 HTML 再截图 | 无法自动验收，交付物不自洽 | 用 `data-demo="state-switcher"` 真实切换 |
 | 列表页只画 3 行数据 | 看不出列宽、省略、分页的真实表现 | 不少于 10 行，并显示总条数 |
+
+### 11.1 角色形态必须在 `prototype:params` 之后再对齐一次（2026-10-01 补）
+
+外壳 `init()` 的顺序是 `applyRole()` → `applyState('normal')` → `applyParams()`。
+`applyState('normal')` 会把状态片段复位，因此**当页面的默认角色本来就没有权限时**（例如审计模块的运营访问记录 / 敏感数据访问记录 /
+登录与安全事件 / 归档管理，默认角色是教务主任但只允许租户管理员、校领导或平台运营），
+页面在解析期调用的一次 `applyRoleState()` 会被这次复位冲掉，表现为“加载后被放行”。
+
+统一写法（在页面内联脚本里）：
+
+```js
+document.addEventListener('prototype:params', function () { lastRole = ''; applyRoleState(currentRole()); });
+```
+
+`prototype:params` 是 `applyParams()` 的最后一步，也是外壳初始化的最后一步；在这里再对齐一次即可稳定住无权限形态。
+批 2-8 的 5 个审计页面已按此实现，并由 `verify-audit.html` 的 `AU-15` / `AU-23` / `AU-25` 三条断言看住。

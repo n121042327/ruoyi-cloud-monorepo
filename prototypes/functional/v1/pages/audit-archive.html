@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>归档管理 — 业务原型 v1（批次 2-8）</title>
+<link rel="stylesheet" href="../assets/prototype-shell.css" />
+<script src="../assets/prototype-shell.js"></script>
+<style>#arc-table td.actions { white-space: nowrap; }</style>
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-AUDIT-ARCHIVE"
+  data-menu-page="PAGE-AUDIT-LOG-LIST"
+  data-breadcrumb="平台与运维 / 审计日志 / 归档管理"
+  data-tab="归档管理"
+  data-tenant="平台运营 · 全平台">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-AUDIT-ARCHIVE" data-role="page">
+
+  <div data-normal-view>
+
+  <div class="page-head">
+    <h1>归档管理</h1>
+    <span class="scope-hint" data-role="scope-hint">数据范围：全平台（DS-01）· 只读（运维页）</span>
+    <span class="el-tag primary">在线 12 个月</span>
+    <span class="el-tag info">保留 ≥ 3 年</span>
+  </div>
+
+  <div class="alert info">
+    <span>归档 ≠ 删除</span>
+    <span>超过在线保留窗口（默认 12 个月）的日志按时间归档，<b>归档后仍可按时间范围检索</b>（<span class="mono">REQ-AUD-033</span>）；
+      保留期内（不少于 3 年）不得清理（<span class="mono">REQ-AUD-032</span>）；
+      归档与归档检索动作本身也写日志，记录批次、范围与操作人（<span class="mono">REQ-AUD-034</span>）。</span>
+  </div>
+
+  <section class="card" data-block="toolbar" data-role="toolbar" data-component="el-card.hover">
+    <div class="card-header">
+      <div class="toolbar" data-demo-state-target="toolbar">
+        <select class="select" data-role="filter" data-action-id="ACT-AUD-060" data-field="batch_status" data-default="">
+          <option value="">全部状态</option>
+          <option value="done">已完成</option>
+          <option value="running">进行中</option>
+          <option value="failed">失败</option>
+        </select>
+        <input class="input" type="search" placeholder="按归档批次号" data-role="filter" data-action-id="ACT-AUD-061" data-field="keyword" />
+      </div>
+      <div class="header-right">
+        <button class="btn" data-role="action" data-action-id="ACT-AUD-062" data-component="el-button"
+                data-permission="audit.log:read" data-api="searchArchivedLog"
+                data-demo-message="已提交归档区间检索：单次 P95 ≤ 30 秒，超出转异步任务（可在异步任务中心查看进度）。">归档区间检索</button>
+        <button class="btn" data-role="action" data-action-id="ACT-AUD-063" data-component="el-button"
+                data-permission="audit.log:read" data-api="listArchiveBatch" data-demo-message="已刷新归档批次列表。">刷新</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" data-block="list" data-role="section" data-component="el-card.hover">
+    <div class="card-header"><h2>归档批次</h2><span class="el-tag info">listArchiveBatch</span></div>
+    <div class="card-body">
+      <div class="table-scroll">
+        <table class="el-table" id="arc-table" data-role="table" data-component="el-table" data-api="listArchiveBatch"
+               style="min-width:1080px;table-layout:fixed">
+          <thead>
+            <tr>
+              <th data-role="column" data-field="batch_no" style="width:200px">归档批次</th>
+              <th data-role="column" data-field="archive_range" style="width:200px">归档范围</th>
+              <th data-role="column" data-field="row_count" style="width:110px">行数</th>
+              <th data-role="column" data-field="status" style="width:100px">状态</th>
+              <th data-role="column" data-field="operator" style="width:110px">操作人</th>
+              <th data-role="column" data-field="archive_time" style="width:150px">归档时间</th>
+              <th class="actions" style="width:210px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="arc-rows">
+            <tr data-role="row" data-batch="ARC-2026-01" data-status="已完成" data-range="2025-01-01 ~ 2025-06-30">
+              <td class="mono">ARC-2026-01</td><td>2025-01-01 ~ 2025-06-30</td><td class="num">1,284,502</td>
+              <td><span class="el-tag success">已完成</span></td><td>运维账号 A</td><td class="mono">2026-07-01 02:10:15</td><td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-batch="ARC-2026-02" data-status="已完成" data-range="2025-07-01 ~ 2025-12-31">
+              <td class="mono">ARC-2026-02</td><td>2025-07-01 ~ 2025-12-31</td><td class="num">1,431,776</td>
+              <td><span class="el-tag success">已完成</span></td><td>运维账号 A</td><td class="mono">2026-09-01 02:10:08</td><td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-batch="ARC-2026-03" data-status="进行中" data-range="2026-01-01 ~ 2026-06-30">
+              <td class="mono">ARC-2026-03</td><td>2026-01-01 ~ 2026-06-30</td><td class="num">—</td>
+              <td><span class="el-tag warning">进行中</span></td><td>运维账号 B</td><td class="mono">2026-10-01 02:10:41</td><td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-batch="ARC-2026-04" data-status="失败" data-range="2026-07-01 ~ 2026-09-30">
+              <td class="mono">ARC-2026-04</td><td>2026-07-01 ~ 2026-09-30</td><td class="num">0</td>
+              <td><span class="el-tag danger">失败</span></td><td>运维账号 A</td><td class="mono">2026-09-30 02:10:22</td><td class="actions"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination"><span class="total">共 4 个归档批次 · 归档总量 2,716,278 行</span></div>
+      <div class="legend" style="margin-top:8px"><span>失败批次（ARC-2026-04）保留失败原因与重试入口；归档不删数据，检索能力与在线数据一致（<span class="mono">REQ-AUD-033</span>）。</span></div>
+    </div>
+  </section>
+
+  <section class="card" data-block="note" data-role="section" data-component="el-card.hover">
+    <div class="card-header"><h2>运维提醒</h2><span class="el-tag info">NFR-OPS-05</span></div>
+    <div class="card-body">
+      <div class="alert warning">
+        <span>日志写入失败的告警</span>
+        <span>日志写入持续失败并超过阈值时，业务侧进入<b>只读降级</b>并告警，不允许“无日志继续写”（<span class="mono">REQ-AUD-037</span>）；
+          写入失败事件本身登记到系统告警记录，在本页可查（<span class="mono">REQ-AUD-038</span>）。</span>
+      </div>
+      <div class="stat-row" style="margin-top:10px">
+        <div class="stat-card"><div class="label">近 30 天日志写入失败</div><div class="value">0 次</div></div>
+        <div class="stat-card"><div class="label">只读降级触发</div><div class="value">0 次</div></div>
+        <div class="stat-card"><div class="label">补偿重试成功</div><div class="value">2 次</div></div>
+        <div class="stat-card"><div class="label">在线窗口</div><div class="value">12 个月</div></div>
+      </div>
+    </div>
+  </section>
+
+  </div>
+
+  <div class="state-hidden" data-demo-state-panel="loading">
+    <section class="card"><div class="card-body">
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:200px"></div><div class="skeleton-bar" style="width:200px"></div><div class="skeleton-bar" style="width:110px"></div></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:200px"></div><div class="skeleton-bar" style="width:200px"></div><div class="skeleton-bar" style="width:110px"></div></div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="empty">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">📭</div>
+        <div class="title">还没有归档批次</div>
+        <div class="desc">在线窗口内的日志不需要归档；首次归档会在日志量超过在线保留窗口后由定时任务创建批次（BR-AUDIT-011）。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="error">
+    <section class="card"><div class="card-body">
+      <div class="state-block error">
+        <div class="icon">⚠️</div>
+        <div class="title">归档批次读取失败</div>
+        <div class="desc">重试不会跳过校验；失败批次可以重试，归档过程不删除在线数据。</div>
+        <div class="req-id">请求编号 REQ-20261001-002460 · 错误码 EDU-AUD-5005</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-AUD-063" data-component="el-button.primary.plain" data-api="listArchiveBatch">重试</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="forbidden">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">🔒</div>
+        <div class="title">你没有归档管理的权限</div>
+        <div class="desc">归档管理是平台运营的运维页（PRD 6.1）；租户侧看「运营访问记录」，不需要也不应该看到归档批次。无权限时不进入空白页（<span class="mono">DS-DENY-03</span>）。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="partial">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⚠️</div>
+        <div class="title">归档部分失败</div>
+        <div class="desc">成功的分区已归档并保留检索能力；失败分区给出原因与重试入口，不做整批回滚。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="submitting">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⏳</div>
+        <div class="title">正在检索归档区间</div>
+        <div class="desc">单次检索 P95 ≤ 30 秒，超出转异步任务；该检索动作本身写入日志（REQ-AUD-034）。</div>
+      </div>
+    </div></section>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  // 审计 PRD 6.1：归档管理 = 平台运营（运维页）；超管全放行。
+  var READ_ROLES = ['super_admin', 'platform_ops'];
+  function q(sel) { return document.querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function currentRole() { return window.PrototypeShell.currentRole(); }
+
+  function rowActions() {
+    var canSearch = READ_ROLES.indexOf(currentRole()) !== -1;
+    qa('#arc-rows tr').forEach(function (row) {
+      var box = row.querySelector('td.actions');
+      box.innerHTML = '';
+      box.style.color = '';
+      box.style.fontSize = '';
+      if (!canSearch) { box.textContent = '只读'; box.style.color = 'var(--app-text-secondary)'; box.style.fontSize = '12px'; return; }
+      var b = document.createElement('button');
+      b.className = 'btn link';
+      b.textContent = row.getAttribute('data-status') === '失败' ? '重试归档' : '检索该批次';
+      b.setAttribute('data-role', 'row-action');
+      b.setAttribute('data-action-id', row.getAttribute('data-status') === '失败' ? 'ACT-AUD-065' : 'ACT-AUD-064');
+      b.setAttribute('data-component', 'el-button.link.primary');
+      b.setAttribute('data-permission', 'audit.log:read');
+      b.setAttribute('data-api', 'searchArchivedLog');
+      b.setAttribute('data-batch', row.getAttribute('data-batch'));
+      box.appendChild(b);
+    });
+  }
+
+  var lastRole = '';
+  function applyRoleState(role) {
+    if (role === lastRole) return;
+    lastRole = role;
+    rowActions();
+    if (READ_ROLES.indexOf(role) === -1) window.PrototypeShell.applyState('forbidden');
+    else if (window.PrototypeShell.currentState() === 'forbidden') window.PrototypeShell.applyState('normal');
+    var hint = q('[data-role="scope-hint"]');
+    if (role === 'platform_ops') hint.textContent = '数据范围：全平台（DS-01）· 只读（运维页）；检索动作本身写日志（REQ-AUD-034）';
+    else if (role === 'super_admin') hint.textContent = '数据范围：全平台 · 不受限制（BR-ORG-014）';
+    else hint.textContent = '数据范围：本校（DS-04）· 无归档管理权限（运维页仅平台运营）';
+  }
+
+  rowActions();
+  // 外壳 init 会在 applyRole 之后调用 applyState('normal')；若页面默认角色本来就无权限，
+  // 那次复位会把 forbidden 形态冲掉。这里在 prototype:params（init 的最后一步）之后再对齐一次。
+  document.addEventListener('prototype:params', function () { lastRole = ''; applyRoleState(currentRole()); });
+  new MutationObserver(function () { applyRoleState(currentRole()); })
+    .observe(document.body, { attributes: true, attributeFilter: ['data-current-role'] });
+  applyRoleState(currentRole());
+})();
+</script>
+</body>
+</html>

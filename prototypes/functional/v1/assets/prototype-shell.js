@@ -100,7 +100,12 @@
     'PAGE-STR-STAT': { path: 'pages/stream-stat.html', name: '组合分布统计', batch: '2-7' },
     'PAGE-STR-APPROVE': { path: 'pages/stream-approve.html', name: '变更审批待办', batch: '2-7' },
     'PAGE-STR-GEN-CLASS': { path: 'pages/stream-generate-class.html', name: '按组合生成教学班', batch: '2-7' },
-    'PAGE-CLS-TEACHING': { path: 'pages/teaching-class-list.html', name: '教学班管理', batch: '2-7' }
+    'PAGE-CLS-TEACHING': { path: 'pages/teaching-class-list.html', name: '教学班管理', batch: '2-7' },
+    'PAGE-AUDIT-LOG-LIST': { path: 'pages/audit-log-list.html', name: '操作日志', batch: '2-8' },
+    'PAGE-AUDIT-OPS-ACCESS': { path: 'pages/audit-ops-access.html', name: '运营访问记录', batch: '2-8' },
+    'PAGE-AUDIT-SENSITIVE-ACCESS': { path: 'pages/audit-sensitive-access.html', name: '敏感数据访问记录', batch: '2-8' },
+    'PAGE-AUDIT-SECURITY-EVENT': { path: 'pages/audit-security-event.html', name: '登录与安全事件', batch: '2-8' },
+    'PAGE-AUDIT-ARCHIVE': { path: 'pages/audit-archive.html', name: '归档管理', batch: '2-8' }
   };
   Object.keys(EXTRA_PAGES).forEach(function (id) {
     PAGE_NAME[id] = EXTRA_PAGES[id].name;

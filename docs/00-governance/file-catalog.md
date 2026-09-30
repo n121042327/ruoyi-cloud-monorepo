@@ -217,6 +217,14 @@
 | `evidence/stage2-prototype/verify-stream-b.html` | 批次 2-7b 交互验证 harness（SB-01 ~ SB-37 共 37 条断言全部通过） | `review` |
 | `evidence/stage2-prototype/stream-stat_*.png`、`evidence/stage2-prototype/stream-approve_*.png`、`evidence/stage2-prototype/stream-generate-class_*.png`、`evidence/stage2-prototype/teaching-class-list_*.png`、`evidence/stage2-prototype/stream-b_verify-results.png` | 批次 2-7b 截图（13 张，见 README 第 6.11 节） | `review` |
 | `docs/00-governance/change-requests/CR-017.md` | 变更申请：教学班管理的交付面补齐（片段登记 / 3 个 operationId / 创建入口唯一，已批准并执行，关联 D-081 / GAP-058） | `review` |
+| `prototypes/functional/v1/pages/audit-log-list.html` | 操作日志 + 详情抽屉 + 对象变更时间线区块 + 导出配置弹窗（批次 2-8） | `review` |
+| `prototypes/functional/v1/pages/audit-ops-access.html` | 运营访问记录（租户侧自助查询，批次 2-8） | `review` |
+| `prototypes/functional/v1/pages/audit-sensitive-access.html` | 敏感数据访问记录（批次 2-8） | `review` |
+| `prototypes/functional/v1/pages/audit-security-event.html` | 登录与安全事件（批次 2-8） | `review` |
+| `prototypes/functional/v1/pages/audit-archive.html` | 归档管理 + 运维提醒（批次 2-8） | `review` |
+| `evidence/stage2-prototype/verify-audit.html` | 批次 2-8 交互验证 harness（AU-01 ~ AU-28 共 28 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/audit-*.png` | 批次 2-8 截图（9 张，见 README 第 6.12 节） | `review` |
+| `docs/00-governance/change-requests/CR-018.md` | 变更申请：审计模块补登记日志导出配置片段（已批准并执行，关联 D-082 / GAP-059） | `review` |
 | `prototypes/functional/v1/pages/school-campus.html` | 校区管理（列表 + 页内表单 + 停用二次确认，批次 2-6b） | `review` |
 | `prototypes/functional/v1/pages/school-init.html` | 开通初始化四步向导（`initSchoolBaseline` 幂等，批次 2-6b） | `review` |
 | `prototypes/functional/v1/pages/term-list.html` | 学年列表 + 新建学年 / 设为当前 / 归档三个弹窗（批次 2-6b） | `review` |

@@ -3566,6 +3566,61 @@ teaching_class_list:
       audit: 否
       batch: "2-7"
 
+# ---------------------------------------------------------------------------
+# 审计与操作日志（批次 2-8）：操作日志 / 详情抽屉 / 导出配置 / 运营访问 / 敏感访问 / 安全事件 / 归档
+# ---------------------------------------------------------------------------
+audit_log:
+  page: "PAGE-AUDIT-LOG-LIST / PAGE-AUDIT-LOG-DETAIL / PAGE-AUDIT-OBJECT-TIMELINE / DIALOG-AUD-EXPORT"
+  actions:
+    - { id: ACT-AUD-001, element: 开始时间筛选, trigger: 变更, condition: 有 audit.log:read；默认最近 7 天, permission: "audit.log / read", api: listOperationLog, result: 收窄时间范围；单次跨度上限 90 天（REQ-AUD-021）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-002, element: 结束时间筛选, trigger: 变更, condition: 有 audit.log:read；起止跨度 ≤ 90 天, permission: "audit.log / read", api: listOperationLog, result: 超出上限时提示收窄范围并给建议区间（REQ-AUD-021）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-003, element: 操作人筛选, trigger: 变更, condition: 有 audit.log:read；选项按数据范围收窄, permission: "audit.log / read", api: listOperationLog, result: 按操作人筛选（REQ-AUD-018）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-004, element: 对象类型筛选, trigger: 变更, condition: 有 audit.log:read, permission: "audit.log / read", api: listOperationLog, result: 按对象类型筛选（REQ-AUD-018）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-005, element: 操作类型筛选, trigger: 变更, condition: 有 audit.log:read, permission: "audit.log / read", api: listOperationLog, result: 按操作类型筛选（新增 / 修改 / 删除 / 审批 / 导出）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-007, element: 关键字检索, trigger: 输入, condition: 有 audit.log:read, permission: "audit.log / read", api: listOperationLog, result: 按对象标识 / 操作人 / 请求标识检索（REQ-AUD-019）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-008, element: 刷新, trigger: 点击, condition: 有 audit.log:read, permission: "audit.log / read", api: listOperationLog, result: 按时间倒序刷新列表（REQ-AUD-020）；查询行为本身不写日志（REQ-AUD-011）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-010, element: 导出, trigger: 点击, condition: 有 audit.log:export（校领导 / 教务主任 / 平台运营）, permission: "audit.log / export", api: "-", result: 打开 DIALOG-AUD-EXPORT 导出配置弹窗（PRD 6.3）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-012, element: 导出配置「取消」, trigger: 点击, condition: 始终可用, permission: "-", api: "-", result: 关闭弹窗，不写入, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-013, element: 开始导出, trigger: 点击, condition: 有 audit.log:export；用途说明必填；行数 ≤ 50000（超出提示收窄或转异步）, permission: "audit.log / export", api: exportOperationLog, result: 按当前筛选与重新解析的范围导出 xlsx / csv；文件有效期 7 天；导出行为写审计（REQ-AUD-026 ~ 029 / DS-DENY-04）, audit: 是, batch: "2-8" }
+    - { id: ACT-AUD-014, element: 行内「详情」, trigger: 点击行内按钮, condition: 有 audit.log:read, permission: "audit.log / read", api: getOperationLog, result: 打开 PAGE-AUDIT-LOG-DETAIL 抽屉并带入该条日志（含 diff 与对象时间线）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-020, element: 详情「关闭」, trigger: 点击, condition: 始终可用, permission: "-", api: "-", result: 关闭抽屉，保留列表筛选条件（PRD 6.3）, audit: 否, batch: "2-8" }
+
+audit_ops_access:
+  page: PAGE-AUDIT-OPS-ACCESS
+  actions:
+    - { id: ACT-AUD-030, element: 运营账号筛选, trigger: 变更, condition: 有 audit.log:read（租户管理员 / 校领导 / 平台运营）, permission: "audit.log / read", api: listOperatorAccess, result: 按运营账号筛选（REQ-AUD-015）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-031, element: 访问动作筛选, trigger: 变更, condition: 有 audit.log:read, permission: "audit.log / read", api: listOperatorAccess, result: 按查看 / 导出筛选（REQ-AUD-014）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-032, element: 开始时间筛选, trigger: 变更, condition: 有 audit.log:read, permission: "audit.log / read", api: listOperatorAccess, result: 收窄时间范围, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-033, element: 结束时间筛选, trigger: 变更, condition: 有 audit.log:read, permission: "audit.log / read", api: listOperatorAccess, result: 收窄时间范围, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-034, element: 导出记录, trigger: 点击, condition: 有 audit.log:export；导出只含本租户数据, permission: "audit.log / export", api: exportOperatorAccess, result: 导出本租户的运营访问记录（REQ-AUD-016）；导出行为写审计, audit: 是, batch: "2-8" }
+    - { id: ACT-AUD-035, element: 刷新, trigger: 点击, condition: 有 audit.log:read, permission: "audit.log / read", api: listOperatorAccess, result: 刷新运营访问记录, audit: 否, batch: "2-8" }
+
+audit_sensitive_access:
+  page: PAGE-AUDIT-SENSITIVE-ACCESS
+  actions:
+    - { id: ACT-AUD-040, element: 敏感字段筛选, trigger: 变更, condition: 有 audit.log:read（校领导 / 教务主任）, permission: "audit.log / read", api: listSensitiveAccess, result: 按证件号 / 监护人手机号 / 学生联系电话筛选（REQ-AUD-008）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-041, element: 访问方式筛选, trigger: 变更, condition: 有 audit.log:read, permission: "audit.log / read", api: listSensitiveAccess, result: 按查看全量 / 明文导出筛选（REQ-AUD-009）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-042, element: 关键字检索, trigger: 输入, condition: 有 audit.log:read, permission: "audit.log / read", api: listSensitiveAccess, result: 按查看人 / 对象标识检索, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-043, element: 导出记录, trigger: 点击, condition: 有 audit.log:export, permission: "audit.log / export", api: exportOperationLog, result: 导出敏感数据访问记录；导出行为写审计（REQ-AUD-011 / NFR-AUDIT-03）, audit: 是, batch: "2-8" }
+    - { id: ACT-AUD-044, element: 刷新, trigger: 点击, condition: 有 audit.log:read, permission: "audit.log / read", api: listSensitiveAccess, result: 刷新敏感数据访问记录, audit: 否, batch: "2-8" }
+
+audit_security_event:
+  page: PAGE-AUDIT-SECURITY-EVENT
+  actions:
+    - { id: ACT-AUD-050, element: 事件类型筛选, trigger: 变更, condition: 有 audit.log:read（校领导 / 平台运营）, permission: "audit.log / read", api: listSecurityEvent, result: 按登录失败 / 锁定 / 激活码查看与重置 / 学号变更 / 权限变更筛选（REQ-AUD-007）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-051, element: 关键字检索, trigger: 输入, condition: 有 audit.log:read, permission: "audit.log / read", api: listSecurityEvent, result: 按账号 / 姓名 / 来源 IP 检索, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-052, element: 刷新, trigger: 点击, condition: 有 audit.log:read, permission: "audit.log / read", api: listSecurityEvent, result: 刷新登录与安全事件, audit: 否, batch: "2-8" }
+
+audit_archive:
+  page: PAGE-AUDIT-ARCHIVE
+  actions:
+    - { id: ACT-AUD-060, element: 批次状态筛选, trigger: 变更, condition: 有 audit.log:read（平台运营 / 超管）, permission: "audit.log / read", api: listArchiveBatch, result: 按已完成 / 进行中 / 失败筛选归档批次（REQ-AUD-033）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-061, element: 批次号检索, trigger: 输入, condition: 有 audit.log:read, permission: "audit.log / read", api: listArchiveBatch, result: 按归档批次号检索, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-062, element: 归档区间检索, trigger: 点击, condition: 有 audit.log:read；区间落在归档范围, permission: "audit.log / read", api: searchArchivedLog, result: 检索归档区间；单次 P95 ≤ 30 秒，超出转异步（REQ-AUD-033）；该动作本身写日志（REQ-AUD-034）, audit: 是, batch: "2-8" }
+    - { id: ACT-AUD-063, element: 刷新, trigger: 点击, condition: 有 audit.log:read, permission: "audit.log / read", api: listArchiveBatch, result: 刷新归档批次列表, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-064, element: 行内「检索该批次」, trigger: 点击行内按钮, condition: 有 audit.log:read；该批次状态为已完成, permission: "audit.log / read", api: searchArchivedLog, result: 按该批次范围检索归档日志（归档不删数据，检索能力与在线一致）, audit: 是, batch: "2-8" }
+    - { id: ACT-AUD-065, element: 行内「重试归档」, trigger: 点击行内按钮, condition: 有 audit.log:read；该批次状态为失败, permission: "audit.log / read", api: searchArchivedLog, result: 重试失败分区；成功分区不重复归档（不做整批回滚），重试动作写日志（REQ-AUD-034 / 036）, audit: 是, batch: "2-8" }
+
 batches_pending:
   - { batch: "2-2", pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-CREATE, PAGE-TCH-EDIT, PAGE-TCH-LEAVE, PAGE-TCH-ROLE, PAGE-TCH-ASSIGN], status: "2-2a、2-2b-1 与 2-2b-2 教师部分已产出待验收（ACT-TCH-001 ~ 039 已登记）" }
   - { batch: "2-2b-2b", pages: [PAGE-GRD-LIST, PAGE-GRD-DETAIL, PAGE-GRD-CREATE, PAGE-GRD-BATCH, PAGE-GRD-LEADER, PAGE-GRD-ARCHIVE], status: "PAGE-GRD-LIST 样板页已产出待验收（ACT-GRD-001 ~ 011 已登记）；其余 5 页待样板验收后铺开" }

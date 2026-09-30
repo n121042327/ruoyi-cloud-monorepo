@@ -781,3 +781,53 @@ $chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 
 **本批顺带修掉的共享层缺陷**：`.stat-row` / `.stat-card` 被 13 个页面使用却一直没有共享样式（统计卡渲染成裸 div），
 已在 `prototype-shell.css` 补齐并新增 `.bar-chart` 系列；`layout-spec.yaml` 新增 `charts` 段承载图表约定。
+
+## 22. 批次 2-8：审计与操作日志
+
+新增 harness `evidence/stage2-prototype/verify-audit.html`（5 个 iframe + 真实事件派发，`AU-01` ~ `AU-28`，共 28 条）。
+
+| 分组 | 覆盖 |
+|---|---|
+| 操作日志结构（`AU-01` / `AU-02`） | 9 列 7 行，列宽之和 = `min-width` = 1050；默认最近 7 天、单次跨度上限 90 天；查询不写日志而导出写（`REQ-AUD-011` / `020` / `021`） |
+| 不可篡改（`AU-03`） | 全页无「删除」与日志编辑入口，且写明 `REQ-AUD-025` / `030` / `031` |
+| 筛选与详情（`AU-04` ~ `AU-06`） | 6 个筛选器；7 行「详情」入口；点开抽屉带入时间 / 操作人 / 角色 / 对象 / IP / 请求标识 |
+| diff 与对象时间线（`AU-07` / `AU-08`） | 变更明细 3 行（只记变化字段 `REQ-AUD-003`、掩码 `BR-AUDIT-007`）；`PAGE-AUDIT-OBJECT-TIMELINE` 3 条追加式时间线（`REQ-AUD-023`） |
+| 导出配置（`AU-09` / `AU-10`） | 未填用途说明被字段级拦截且弹窗不关；走 `exportOperationLog` + `audit.log:export`；写明重新解析范围（`REQ-AUD-027`）与 7 天有效期（`REQ-AUD-029`） |
+| 日志角色与状态（`AU-11` ~ `AU-13`） | 年级主任收敛为 `DS-05` 且导出隐藏；任课教师无权限（`DS-07`）；六类状态片段齐全（含归档区间 `partial`） |
+| 运营访问记录（`AU-14` ~ `AU-17`） | 7 列 4 行、列宽之和 = 1040；默认角色无权限；租户管理员 `DS-02` + `exportOperatorAccess` 只含本租户（`REQ-AUD-016`）保留 ≥ 3 年（`REQ-AUD-017`）；五类状态齐全 |
+| 敏感数据访问（`AU-18` ~ `AU-20`） | 7 列 4 行、列宽之和 = 1080；掩码不记录只在揭示明文时记录（`REQ-AUD-009`）与日志不含明文（`REQ-AUD-010`）；年级主任无权限 |
+| 登录与安全事件（`AU-21` ~ `AU-23`） | 7 列 7 行、列宽之和 = 1060；覆盖 7 类事件含激活码查看 / 重置（`REQ-AUD-007` / `BR-STU-021`）；教务主任无权限 |
+| 归档管理（`AU-24` ~ `AU-28`） | 7 列 4 行、列宽之和 = 1080；默认无权限；平台运营下 3 个「检索该批次」+ 1 个「重试归档」；归档 ≠ 删除（`REQ-AUD-033`）/ 保留 ≥ 3 年（`REQ-AUD-032`）/ 归档动作写日志（`REQ-AUD-034`）/ 只读降级告警（`REQ-AUD-037` / `038`）；六类状态齐全 |
+
+| harness | 结果 |
+|---|---|
+| `verify-audit.html` | 28 / 28 通过 |
+
+本批回归（新增 5 个页面 + 1 个导出配置片段）：
+
+| harness | 结果 |
+|---|---|
+| `verify-stream.html` | 26 / 26 通过 |
+| `verify-stream-b.html` | 37 / 37 通过 |
+| `verify-subject.html` | 14 / 14 通过 |
+| `verify-org-config.html` | 23 / 23 通过 |
+| `verify-school.html` | 16 / 16 通过 |
+| `verify-student-module.html` | 28 / 28 通过 |
+| `verify-detail-entry.html` | 6 / 6 通过 |
+| `verify-import-login.html` | 30 / 30 通过 |
+| `verify-promotion-wizard.html` | 39 / 39 通过 |
+| `verify-promotion-create.html` | 22 / 22 通过 |
+| `verify-promotion-list.html` | 36 / 36 通过 |
+| `verify-class-list.html` | 39 / 39 通过 |
+| `verify-class-detail.html` | 20 / 20 通过 |
+| `verify-class-roster.html` | 34 / 34 通过 |
+| `verify-class-dialogs.html` | 36 / 36 通过 |
+| `verify-grade-list.html` | 38 / 38 通过 |
+| `verify-carrier-change.html` | 14 / 14 通过 |
+| `python tools/check_docs.py` | 通过：未发现问题 |
+
+**本批实证发现并已修掉的共享缺陷**：外壳 `init()` 的顺序是 `applyRole()` → `applyState('normal')` → `applyParams()`；
+当页面的默认角色（教务主任）本来就没有权限时，`applyState('normal')` 会把页面在解析期设好的无权限形态冲掉，
+表现为「默认角色加载后被放行」。审计模块的 4 个页面正好都是这种情况，`AU-15` / `AU-23` / `AU-25` 首次运行即为不通过。
+修法是在 `prototype:params`（init 的最后一步）之后再对齐一次角色形态；该写法已写进 `markup-contract.md` 11.1 节，
+后续页面按同一约定实现。
