@@ -1,0 +1,35 @@
+%% 部署视图（对应 02-architecture.md 第 3 节）
+flowchart TB
+  subgraph DMZ["DMZ 分区"]
+    NX["nginx<br/>:443"]
+  end
+  subgraph APP["应用区"]
+    GW["ruoyi-gateway"]
+    AUTH["ruoyi-auth"]
+    SYS["ruoyi-system"]
+    EDU["ruoyi-edu"]
+    JOB["ruoyi-job"]
+  end
+  subgraph DATA["数据区（不对外暴露端口）"]
+    MYSQL[("MySQL 8<br/>业务库")]
+    REDIS[("Redis<br/>缓存与令牌")]
+    RMQ[("RabbitMQ<br/>异步任务与死信")]
+  end
+  subgraph STORE["存储区"]
+    NAS["NAS / 本地卷<br/>上传与导出文件"]
+  end
+  USER["用户浏览器"] --> NX
+  NX --> GW
+  GW --> AUTH
+  GW --> SYS
+  GW --> EDU
+  AUTH --> REDIS
+  SYS --> MYSQL
+  EDU --> MYSQL
+  EDU --> REDIS
+  EDU --> RMQ
+  EDU --> NAS
+  JOB --> MYSQL
+  JOB --> RMQ
+  NOTE["首轮不启用：Seata / Elasticsearch"]
+  DATA -.- NOTE

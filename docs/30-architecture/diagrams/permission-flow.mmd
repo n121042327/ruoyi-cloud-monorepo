@@ -1,0 +1,15 @@
+%% 数据权限解析流程（对应 09-permission-architecture.md 第 3 节）
+flowchart TB
+  A["请求进入 ruoyi-edu"] --> B{"执行人上下文存在？<br/>user_id / tenant_id"}
+  B -- 否 --> R1["拒绝：401 / 403（DS-DENY-01 / 02）"]
+  B -- 是 --> C{"super_admin？"}
+  C -- 是 --> P1["跳过范围解析（DP-07）<br/>仍写访问审计"]
+  C -- 否 --> D{"租户类型 = operator？"}
+  D -- 是 --> P2["platform 范围（DS-01）"]
+  D -- 否 --> E["收集范围片段<br/>edu_user_role / edu_grade_leader /<br/>edu_class.head_teacher_id / edu_teaching_assignment"]
+  E --> F["叠加共享授权 edu_data_grant（生效中，只读）"]
+  F --> G{"解析结果为空集？"}
+  G -- 是 --> R2["返回空结果（DS-DENY-03）<br/>绝不退化为全量"]
+  G -- 否 --> H["按资源类型生成范围条件<br/>school_id / grade_id / class_id / student_id"]
+  H --> I["注入查询：列表 / 详情 / 统计 / 导出 / 文件 / 异步"]
+  H --> J["字段级裁剪：read_sensitive / read_contact<br/>揭示明文时写访问日志"]

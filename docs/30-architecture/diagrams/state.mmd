@@ -1,0 +1,14 @@
+%% 异步任务状态机（对应 07-sync-async-boundary.md 第 4 节）
+stateDiagram-v2
+  [*] --> queued
+  queued --> running : 消费者取到消息
+  queued --> cancelled : 用户取消（仅排队中可取消，REQ-IMP-034）
+  running --> succeeded : 全部成功
+  running --> partial_failed : 有失败行 / 失败项
+  running --> failed : 整体失败
+  partial_failed --> running : 重试失败项（沿用原幂等键）
+  failed --> running : 重试（沿用原幂等键）
+  failed --> dead : 超过最大重试次数
+  dead --> running : 运维重放（写审计，REQ-IMP-038）
+  succeeded --> [*]
+  cancelled --> [*]
