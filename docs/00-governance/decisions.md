@@ -1848,6 +1848,24 @@
   - `tools/make_hifi_coverage.py` 退出码 0（阶段 2 与阶段 3 的页面编号 / 动作编号 / 状态片段集合仍一致）；
   - `tools/check_docs.py` 通过；
   - 135 张三档截图按修复后的菜单重新生成。
+- 补充：真实点击验证（新增 `tools/verify_nav_links.py`，用 CDP 控制 headless Chrome，
+  点击后读 `location.href`，绕开 `--virtual-time-budget` 会把 setTimeout 快进、
+  多步异步跳转无法在 `--dump-dom` 下验证的限制）：
+  | 用例 | 场景 | 结果 |
+  |---|---|---|
+  | HF-01 | 高保真侧边菜单「异步任务」 | 跳到 `async-task-list.html` |
+  | HF-02 | 高保真侧边菜单「学科与配置」 | 跳到 `subject-list.html` |
+  | HF-03 | 高保真侧边菜单「审计日志」 | 跳到 `audit-log-list.html` |
+  | HF-04 | 高保真「查看任务中心」按钮 | 跳到 `async-task-list.html` |
+  | FN-01 | 业务原型侧边菜单「审计日志」 | 跳到 `audit-log-list.html` |
+  | FN-02 | 业务原型侧边菜单「学年学期」 | 跳到 `term-list.html` |
+  | FN-03 | 业务原型「查看任务中心」按钮 | 跳到 `async-task-list.html` |
+
+  **7 / 7 通过**，日志 `evidence/stage3-highfidelity/nav-click-verify.log`。
+  首轮跑出 4 / 7：高保真三个菜单用例报「找不到元素」—— 排查发现高保真外壳的菜单项只设了
+  `data-delivery`，没有业务原型外壳同名的 `data-page-nav`（不一致导致脚本选择器落空）。
+  已在 `hifi-shell.js` 补上 `data-page-nav`（保留 `data-delivery` 以兼容原有的 `data-nav` 回退逻辑），
+  重跑即 7 / 7。
 - 遗留（已知，不影响原型可用性）：阶段 2 的形态截图（约 200 张，按角色 / 状态 / 弹窗逐张抓取）
   本轮未重跑，其侧边菜单的批次标记与当前页面不一致；如需刷新需按形态逐个补抓。
 - 如果错了的代价：回滚 `hifi-shell.js` / `prototype-shell.js` 的 `MENUS` 与 14 处按钮即可；

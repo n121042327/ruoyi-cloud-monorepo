@@ -276,6 +276,7 @@
       menu.appendChild(el('div', 'hi-menu-group', g.group));
       g.items.forEach(function (item) {
         var node = el('div', 'hi-menu-item' + (item.id === activePage ? ' on' : ''));
+        node.setAttribute('data-page-nav', item.id);
         node.appendChild(el('span', null, item.name));
         node.appendChild(el('span', 'badge', item.delivered ? '高保真' : '3-2 起'));
         if (item.delivered) {
