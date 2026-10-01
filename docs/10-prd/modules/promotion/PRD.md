@@ -4,7 +4,7 @@
 |---|---|
 | 模块 | 升班与学籍异动（`promotion`） |
 | 文档路径 | `docs/10-prd/modules/promotion/PRD.md` |
-| 版本 | 1.0.0-draft |
+| 版本 | 1.0.4-draft |
 | 状态 | `frozen`（2026-09-30 冻结，见 D-045、CR-001） |
 | 批次 | 1-3（按学生管理 PRD 样板结构产出） |
 | 上游依赖 | 见 1.4 |
@@ -14,6 +14,10 @@
 | 版本 | 日期 | 变更 | 作者 |
 |---|---|---|---|
 | 1.0.0-draft | 2026-09-30 | 首版。结构与粒度对齐 `modules/student/PRD.md` v1.0.2 | Codex |
+| 1.0.1-draft | 2026-09-30 | 按 `CR-009` 补登记 6.1 的「调整学生去向」弹窗（`PAGE-PRM-ADJUST`）；依据为第 352 行 6.3 与 `REQ-PRM-017` / `018`，属"PRD 已要求但页面注册表遗漏"的补齐，不新增业务规则 | Codex |
+| 1.0.2-draft | 2026-09-30 | 按 `CR-012` / `D-069` 收敛升班任务的权限动作：校领导对升班任务只读（升班无审批环节）、教务主任补 `update` 承载预览 / 执行 / 重试 / 取消、年级主任补 `read` + `DS-05` 只读参与；不新增权限动作、不改状态机 | Codex |
+| 1.0.3-draft | 2026-10-01 | 按 `CR-013` / `D-071` 补齐两项公共前置：6.1 补登记取消确认片段 `DIALOG-PRM-CANCEL`（同页浮层片段），6.3 补「列表行内点击取消」的交互行；升班任务的 6 个业务字段同步登记进 `06-field-dictionary.yaml`。不新增业务规则 | Codex |
+| 1.0.4-draft | 2026-10-01 | 按 `CR-014` / `D-073` 补齐升班明细的字段口径：6.1 补「调整方式 = `result_type`、目标班级 = `target_class_id`」的字段口径与任务 / 明细两层状态的区分；6.3 补「指定留级」与「指定转班」两行；7.1 修正 `result_type` 的取值（补「转班」）并注明任务行 `status` 指 `promotion_task_status`。升班明细的 7 个字段与 3 个枚举同步登记进 `06-field-dictionary.yaml`。不新增业务规则 | Codex |
 
 ## 0. 怎么读这份文档
 
@@ -91,9 +95,9 @@
 | 角色 | 本模块数据范围 | 本模块关键限制 |
 |---|---|---|
 | `PER-PLATFORM-OPS` 平台运营 | 全平台（`DS-01`） | 只读，用于排查 |
-| `PER-SCHOOL-LEADER` 校领导 | 本校（`DS-04`） | 审批升班任务与学籍异动 |
+| `PER-SCHOOL-LEADER` 校领导 | 本校（`DS-04`） | 审批学籍异动；升班任务只读（升班无审批环节，`CR-012`） |
 | `PER-ACADEMIC-DIRECTOR` 教务主任 | 本校（`DS-04`） | 本模块主要操作者 |
-| `PER-GRADE-LEADER` 年级主任 | 所负责年级（`DS-05`） | 可发起本年级的异动，可参与升班预览调整 |
+| `PER-GRADE-LEADER` 年级主任 | 所负责年级（`DS-05`） | 可发起本年级的异动；升班任务只读，可参与预览核对但不可调整去向（`CR-012`） |
 | `PER-HOMEROOM` 班主任 | 所负责班级（`DS-06`） | 可发起本班学生的异动（休学、复学、转出），需上级审批 |
 | `PER-TENANT-ADMIN` 租户管理员 | 本租户组织配置（`DS-02`） | 无教学数据范围 |
 
@@ -110,7 +114,7 @@
 
 | 场景 | 平台运营 | 校领导 | 教务主任 | 年级主任 | 班主任 |
 |---|---|---|---|---|---|
-| SCN-PROMO-01 | 查看 | 审批 | 主 | 查看 + 调整 | 查看 |
+| SCN-PROMO-01 | 查看 | 查看 | 主 | 查看 | 查看 |
 | SCN-PROMO-02 | — | 审批 | 主 | 发起 | 发起 |
 
 ---
@@ -164,7 +168,7 @@ erDiagram
 | `REQ-PRM-003` | 任务状态按 `promotion_task_status` 枚举展示：草稿 / 已预览待确认 / 校验中 / 执行中 / 已完成 / 部分失败 / 失败 / 已取消 | `FD-promotion_task_status` | — |
 | `REQ-PRM-004` | 列表逐行通过数据范围过滤 | `DS-DENY-03` | — |
 | `REQ-PRM-005` | 同一源学年学期到同一目标学年学期，同一时间只允许一个未结束的任务 | `BR-PROMO-003` | — |
-| `REQ-PRM-006` | "新建任务""预览""执行""重试""取消"按钮按功能权限与任务状态动态显示 | `NFR-SEC-05` | `05-permission-matrix.yaml` |
+| `REQ-PRM-006` | "新建任务""预览""执行""重试""取消"按钮按功能权限与任务状态动态显示 | `NFR-SEC-05` | `promotion.batch`：`read` 决定列表可见性；新建任务 = `create`；预览 / 执行 / 重试 / 取消 = `update`（`CR-012`） |
 
 ### 4.2 创建升班任务
 
@@ -283,7 +287,7 @@ erDiagram
 
 | 资源 | 操作 | 说明 |
 |---|---|---|
-| `promotion.batch` | read / create / approve | 升班任务 |
+| `promotion.batch` | read / create / update | 升班任务；预览 / 执行 / 重试 / 取消统一映射到 `update`，升班无审批环节（`CR-012`） |
 | `enrollment.status` | read / update | 学籍状态 |
 | `enrollment.transfer` | read / create / approve | 学籍异动与跨校转学 |
 | `person.student` | read | 预览与异动需要读学生 |
@@ -325,15 +329,28 @@ erDiagram
 
 | 页面 ID | 页面名 | 类型 | 主要角色 |
 |---|---|---|---|
-| `PAGE-PRM-LIST` | 升班任务列表 | 列表页 | 教务主任、校领导 |
+| `PAGE-PRM-LIST` | 升班任务列表 | 列表页 | 教务主任、校领导、年级主任（只读） |
 | `PAGE-PRM-CREATE` | 新建升班任务 | 独立页（向导第一步） | 教务主任 |
-| `PAGE-PRM-PREVIEW` | 升班预览与调整 | 独立页（向导第二步，双栏） | 教务主任、年级主任 |
+| `PAGE-PRM-PREVIEW` | 升班预览与调整 | 独立页（向导第二步，双栏） | 教务主任；年级主任（只读） |
+| `PAGE-PRM-ADJUST` | 调整学生去向（留级 / 转班 / 毕业 / 跳过） | 弹窗（md） | 教务主任 |
 | `PAGE-PRM-VALIDATE` | 升班校验结果 | 独立页（向导第三步） | 教务主任 |
 | `PAGE-PRM-EXECUTE` | 执行与进度 | 独立页（向导第四步） | 教务主任 |
 | `PAGE-PRM-RESULT` | 执行结果与重试 | 独立页 | 教务主任 |
 | `PAGE-PRM-CHANGE` | 学籍异动登记 | 弹窗 | 教务主任、年级主任、班主任 |
 | `PAGE-PRM-TRANSFER` | 跨校转学 | 独立页（向导） | 教务主任 |
 | `PAGE-PRM-HISTORY` | 异动历史 | 详情页内区块 | 同上 |
+| `DIALOG-PRM-CANCEL` | 取消升班任务确认 | 同页浮层片段（不单独占页面编号） | 教务主任 |
+
+> **载体口径（2026-10-01，`CR-013`）**：升班任务的列表页用**独立页**；
+> 列表页内的取消二次确认按 `markup-contract.md` 登记为**同页浮层片段**（`DIALOG-PRM-CANCEL`），
+> 不单独占用页面编号，与班级模块的 `DIALOG-CLS-DISABLE` / `DIALOG-CLS-DELETE` 同口径。
+> 片段内原因必填，并写明「取消后保留已完成部分、不做整批回滚」（第 12 节已确认 4）。
+
+> **字段口径（2026-10-01，`CR-014`）**：向导第二步的调整弹窗（`PAGE-PRM-ADJUST`）写入的是**升班明细**的两个字段——
+> 「处理方式」= `result_type`（升级 / 留级 / 转班 / 毕业 / 跳过，见 `06-field-dictionary.yaml` 的枚举 `promotion_result_type`）；
+> 「目标班级」= `target_class_id`（`bigint`，留级 / 毕业 / 跳过时为空）。
+> 明细状态用 `status`（枚举 `promotion_item_status`：待处理 / 成功 / 失败 / 跳过），与任务状态 `promotion_task_status` 分层，
+> 避免「同一个 status 一页里指两个东西」；7.1 第 1 行的 `status` 指 `promotion_task_status`。
 
 ### 6.2 升班向导四步
 
@@ -354,6 +371,10 @@ erDiagram
 | 执行中离开页面 | 任务继续，可从列表回到进度页 |
 | 部分失败 | 结果页提供"只重试失败项" |
 | 从学生详情发起异动 | 跳转到异动登记弹窗，预填学生 |
+| 列表行内点击"取消" | 打开取消确认片段 `DIALOG-PRM-CANCEL`，原因必填；取消后保留已完成部分，可继续执行剩余项或逐条回滚（已确认 4 / `REQ-PRM-036`） |
+| 年级主任打开预览页 | 只读形态：可只看不能改，调整弹窗入口不渲染（`CR-012` / `GAP-053`） |
+| 预览中指定"留级" | 去向为**目标学年学期的同学段同名年级**（如 2026 级 高一 → 2027-2028 学年 高一），写 `result_type=repeat` 且 `target_class_id` 为空；仍不改写源学年的任何记录（`BR-PROMO-006` / `BR-PROMO-001`） |
+| 预览中指定"转班" | 必须选定属于目标学年学期的目标班级（`target_class_id`）；目标班级已停用或不属于目标学期时校验报错（`REQ-PRM-022` / `BR-CLASS-005` 只对容量给警告） |
 
 ### 6.4 页面状态
 
@@ -369,9 +390,14 @@ erDiagram
 | 实体 | 关键字段 | 唯一性要求 |
 |---|---|---|
 | 升班任务 | `tenant_id`、`school_id`、`source_term_id`、`target_term_id`、`status`、`total_count`、`success_count`、`failed_count`、`task_no` | `task_no` 唯一；同源同目标未结束任务唯一（`REQ-PRM-005`） |
-| 升班明细 | `task_id`、`student_id`、`source_class_id`、`target_class_id`、`result_type`（升班 / 留级 / 毕业 / 跳过）、`status`、`error_msg` | `(task_id, student_id)` 唯一；幂等键见 `REQ-PRM-029` |
+| 升班明细 | `task_id`、`student_id`、`source_class_id`、`target_class_id`、`result_type`（升级 / 留级 / 转班 / 毕业 / 跳过）、`status`、`error_msg` | `(task_id, student_id)` 唯一；幂等键见 `REQ-PRM-029` |
 | 学籍异动记录 | `tenant_id`、`school_id`、`student_id`、`school_record_id`、`change_type`、`before_status`、`after_status`、`effective_date`、`reason` | 追加式，不更新不删除（`BR-PROMO-012`） |
 | 跨校转学单 | `transfer_no`、`student_id`、`from_tenant_id`、`from_school_id`、`to_tenant_id`、`to_school_id`、`status`、`apply_time`、`accept_time`、`check_in_time` | `transfer_no` 唯一；同一学生未完成转学单唯一（`REQ-PRM-057`） |
+
+> **字段口径（2026-10-01，`CR-014`）**：升班任务与升班明细都有「状态」，本表第 1 行的 `status` 指任务状态
+> `promotion_task_status`（枚举 8 个值），第 2 行的 `status` 指明细状态 `promotion_item_status`（枚举 4 个值：待处理 / 成功 / 失败 / 跳过）。
+> 升班明细的 7 个字段与 `promotion_result_type` / `promotion_item_status` / `promotion_validation_level` 三个枚举已登记进 `06-field-dictionary.yaml`，
+> 阶段 5 建表与阶段 6 的 `data-field` 回溯以字段字典为准。
 
 ### 7.2 索引需求
 

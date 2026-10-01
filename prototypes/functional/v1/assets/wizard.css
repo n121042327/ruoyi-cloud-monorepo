@@ -1,0 +1,80 @@
+/* 向导类页面（TPL-WIZARD）与升班模块共用的样式。
+   依据：layout-spec.yaml 的 page_templates[TPL-WIZARD]（步骤条 + 内容卡片 + 底部固定操作条）、
+   markup-contract.md 的组件映射。只放跨页面复用的类，页面私有差异仍写在页面自己的 <style> 里。 */
+
+/* ------------------------------------------------------------------ 步骤条（可点） */
+.wizard-steps { margin-bottom: 0; }
+.wizard-steps .step { cursor: default; }
+.wizard-steps .step[data-nav] { cursor: pointer; }
+.wizard-steps .step[data-nav]:hover { color: var(--app-primary); }
+
+/* ------------------------------------------------------------------ 底部固定操作条 */
+.footer-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 16px;
+}
+.footer-bar .grow { flex: 1; }
+.footer-note { font-size: 12px; color: var(--app-text-secondary); max-width: 360px; }
+/* 内容区（.shell-content）滚动时主按钮始终可见；右对齐收窄宽度，避免压住左下角的「原型演示」浮面板 */
+.sticky-actions {
+  position: sticky; bottom: 12px;
+  margin-left: auto; width: fit-content; max-width: 100%;
+  z-index: 900;
+}
+
+/* ------------------------------------------------------------------ 分组清单（不用表格的地方） */
+.stage-list { display: flex; flex-direction: column; gap: 8px; }
+.stage-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--app-border-light);
+  border-radius: var(--app-radius-small);
+  background: #fafbfc;
+}
+.stage-row .grow { flex: 1; min-width: 0; }
+.stage-row .num { font-variant-numeric: tabular-nums; }
+.stage-row.miss { border-color: #fbc4c4; background: #fef0f0; }
+.stage-row.picker-row { cursor: pointer; }
+.stage-row.picker-row.on { border-color: var(--app-primary); background: #ecf5ff; }
+
+/* ------------------------------------------------------------------ 数值卡（规模 / 三分类统计） */
+.scale-value { font-size: 20px; font-weight: 600; color: var(--app-text-primary); }
+.scale-unit { font-size: 13px; color: var(--app-text-secondary); margin-left: 4px; }
+.stat-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.stat-card {
+  flex: 1 1 160px; min-width: 140px;
+  padding: 12px 14px;
+  border: 1px solid var(--app-border-light);
+  border-radius: var(--app-radius-small);
+  background: #fafbfc;
+}
+.stat-card .label { font-size: 13px; color: var(--app-text-secondary); }
+.stat-card .value { font-size: 22px; font-weight: 600; margin-top: 4px; }
+.stat-card .unit { font-size: 12px; color: var(--app-text-secondary); margin-left: 4px; }
+.stat-card.pass { border-color: #c2e7b0; background: #f0f9eb; }
+.stat-card.pass .value { color: #529b2e; }
+.stat-card.warn { border-color: #f5dab1; background: #fdf6ec; }
+.stat-card.warn .value { color: #b88230; }
+.stat-card.error { border-color: #fbc4c4; background: #fef0f0; }
+.stat-card.error .value { color: #c45656; }
+
+/* ------------------------------------------------------------------ 执行进度 */
+.progress-line { display: flex; align-items: center; gap: 10px; }
+.progress-track {
+  flex: 1; height: 10px; border-radius: 999px;
+  background: #e4e7ed; overflow: hidden;
+}
+.progress-track > i { display: block; height: 100%; background: var(--app-primary); }
+.progress-track.done > i { background: var(--app-success); }
+.progress-text { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--app-text-regular); }
+
+/* ------------------------------------------------------------------ 弹窗内的清单行（列表代替表格） */
+.list-rows { display: flex; flex-direction: column; gap: 8px; }
+.list-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--app-border-light);
+  border-radius: var(--app-radius-small);
+  background: #fafbfc;
+}
+.list-row .grow { flex: 1; min-width: 0; }

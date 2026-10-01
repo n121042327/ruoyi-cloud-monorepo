@@ -123,12 +123,14 @@ ruoyi-cloud-monorepo/
 
 - 租户 = 组织单元本身（学校 / 集团 / 运营方三类），**不是"下辖多校的集团"**；层级不超过三级
 - 教学数据落在学校租户上，学校数据各自维护；**跨校共享只能由运营方显式授权，且只读**
+- 跨校共享授权的**对象只有教学资源**（题库习题、试卷等）；学生、班级、年级、教师、成绩等业务数据不跨校共享，跨校查看业务数据只有平台运营的 `DS-01` 全平台范围（只读并留痕），它不叫共享授权
 - 学生主体与监护人主体是**平台级实体**，不参与学校租户隔离；学校侧读学生一律经在校记录 / 班级关系两段式取数
 - 集团**不看**下属学校的教学数据，不存在按租户树自动下钻的默认行为
-- 跨校数据共享由运营方创建**数据共享授权**实现，且**只读**（首轮仅 `read` / `export`），不设审批
+- 跨校数据共享由运营方创建**数据共享授权**实现，且**只读**（首轮仅 `read` / `export`），不设审批；授权对象仅限教学资源（`BR-DATA-018`）
 - 数据权限：校领导看本校全部；年级主任看负责年级；班主任看负责班级；任课教师看本人任教班级的必要资料与本人所授学科数据
 - 集团身份不自动获得学校教学数据的读取权；集团只能看集团自有数据
 - 平台运营方全平台可见，但"查看 / 修改 / 导出"分别授权、分别审计
+- 系统内置超级管理员（`super_admin`）是唯一不受数据范围与功能权限限制的账号，可执行全部功能、可视同任意角色；它的操作**强制留痕且不可关闭**，并禁止用于日常业务操作。它是「运营方三项独立授权」的唯一例外（`BR-ORG-014`）
 - 教育数据权限**不得被现有租户管理员的放行逻辑绕过**；缺少租户、学校或执行人上下文时必须拒绝执行
 - 列表、详情、批量操作、导出、文件访问、缓存、异步任务必须执行同一套权限规则
 - 升班新增下一学年的班级与学生关系，**按学年追加、不覆盖历史**；升班的执行只在升班模块，年级管理只提供只读视图
@@ -175,22 +177,39 @@ commit message 使用 Conventional Commits，scope 与描述用中文。
 
 ## 11. 常用命令
 
-前端（`apps/plus-ui`）：
+前端（**在仓库根执行**，pnpm workspace + Turbo 编排；`pnpm-workspace.yaml` 覆盖 `apps/*` 与 `packages/*`）：
 
 ```bash
-cd apps/plus-ui
-pnpm install
-pnpm dev
-pnpm lint:eslint
-pnpm build:prod
+pnpm install            # 只在根目录执行；lockfile 也只有根目录一份
+pnpm dev                # = turbo run dev        → apps/plus-ui 的 vite serve
+pnpm build              # = turbo run build:prod
+pnpm lint               # = turbo run lint:eslint
+pnpm typecheck          # = turbo run typecheck
+pnpm test               # = turbo run test（只覆盖前端，不等于后端测试通过）
 ```
 
-后端（`services/RuoYi-Cloud-Plus`）：
+只跑前端单个包（以后新增 Pad / 小程序端同样适用）：
+
+```bash
+pnpm --filter @edu/plus-ui dev
+pnpm --filter @edu/plus-ui typecheck
+pnpm --filter @edu/plus-ui preview      # turbo.json 未登记 preview 任务，只能用 --filter 形式
+pnpm turbo run build:prod --filter=@edu/plus-ui
+pnpm turbo run build:prod --dry=json    # 看缓存命中与任务图
+```
+
+后端（`services/**` 不在 pnpm workspace 内，Turbo 不参与编排，Java 侧一律走 Maven）：
 
 ```bash
 cd services/RuoYi-Cloud-Plus
-mvn -q -DskipTests=false -pl ruoyi-modules/ruoyi-edu -am test
+# 现状可用：ruoyi-modules/ruoyi-edu 尚未创建，先拿已有模块验证
+mvn -q -DskipTests=false -pl ruoyi-modules/ruoyi-system -am test
+# 阶段 7 建出 edu 服务后改用：
+# mvn -q -DskipTests=false -pl ruoyi-modules/ruoyi-edu -am test
 ```
+
+`services/RuoYi-Cloud-Plus/pom.xml` 默认 `<skipTests>true</skipTests>`，`mvn package` 不能作为测试通过的证据；
+必须显式加 `-DskipTests=false` 并核对实际执行的用例数量。
 
 ## 12. 文件地图
 

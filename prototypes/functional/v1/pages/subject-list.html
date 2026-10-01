@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>学科与配置 — 业务原型 v1（批次 2-6c）</title>
+<link rel="stylesheet" href="../assets/prototype-shell.css" />
+<script src="../assets/prototype-shell.js"></script>
+<style>
+  #sub-table td.actions { white-space: nowrap; }
+</style>
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-SUB-LIST"
+  data-menu-page="PAGE-SUB-LIST"
+  data-breadcrumb="组织与配置 / 学科与配置 / 学科列表"
+  data-tab="学科与配置"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-SUB-LIST" data-role="page">
+
+  <div class="page-head">
+    <h1>学科与配置</h1>
+    <span class="scope-hint" data-role="scope-hint">数据范围：本校（DS-04）· 可写</span>
+    <span class="el-tag primary">共 9 个学科</span>
+    <span class="el-tag info">首选 / 再选是固定集合（BR-SUBJECT-003）</span>
+  </div>
+
+  <div class="alert info">
+    <span>学科口径</span>
+    <span>学科采用「一条主体 + 学段启用表」：编码校内唯一，同一学科在不同学段启用只加启用记录，不拆成多条学科。
+      选科角色是固定集合：<b>首选只允许物理 / 历史，再选只允许化学 / 生物 / 思想政治 / 地理</b>（<span class="mono">BR-SUBJECT-003</span>）。</span>
+  </div>
+  <section class="card" data-block="filter" data-role="filter" data-component="el-card.hover">
+    <div class="card-body">
+      <div class="form-inline">
+        <div class="form-item">
+          <label for="sub-keyword">学科名称 / 编码</label>
+          <input class="input" id="sub-keyword" style="min-width:180px" placeholder="如：物理 / physics" data-role="field" data-field="subject_name" data-component="el-input" />
+        </div>
+        <div class="form-item">
+          <label for="sub-stage">学段</label>
+          <select class="select" id="sub-stage" style="min-width:150px" data-role="field" data-field="stage_code" data-component="el-select">
+            <option value="">全部学段</option>
+            <option value="primary">小学</option>
+            <option value="junior">初中</option>
+            <option value="senior">高中</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label for="sub-role">选科角色</label>
+          <select class="select" id="sub-role" style="min-width:160px" data-role="field" data-field="stream_role" data-component="el-select">
+            <option value="">全部角色</option>
+            <option value="primary">首选</option>
+            <option value="secondary">再选</option>
+            <option value="none">不参与选科</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label for="sub-status">状态</label>
+          <select class="select" id="sub-status" style="min-width:140px" data-role="field" data-field="subject_status" data-component="el-select">
+            <option value="">全部状态</option>
+            <option value="enabled">启用</option>
+            <option value="disabled">已停用</option>
+          </select>
+        </div>
+        <div class="form-item" style="margin-left:auto;min-width:auto">
+          <button class="btn primary" data-role="action" data-action-id="ACT-COM-001" data-component="el-button.primary" data-permission="org.subject:read">搜索</button>
+          <button class="btn" data-role="action" data-action-id="ACT-COM-002" data-component="el-button" data-permission="org.subject:read">重置</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" data-block="toolbar" data-role="toolbar" data-component="el-card.hover">
+    <div class="card-header">
+      <div class="toolbar" data-demo-state-target="toolbar">
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-SUB-001" data-component="el-button.primary.plain"
+                data-permission="org.subject:create" data-nav="PAGE-SUB-CREATE" data-overlay="dialog"
+                data-role-visible="tenant_admin,super_admin">新建学科</button>
+        <button class="btn" data-role="action" data-action-id="ACT-SUB-002" data-component="el-button"
+                data-permission="org.subject:create" data-nav="PAGE-SUB-BATCH" data-overlay="dialog"
+                data-role-visible="tenant_admin,super_admin">按学段批量初始化</button>
+      </div>
+      <div class="header-right">
+        <button class="btn" data-role="action" data-action-id="ACT-COM-003" data-component="el-button">隐藏搜索</button>
+        <button class="btn" data-role="action" data-action-id="ACT-COM-005" data-component="el-button" data-api="listSubject"
+                data-demo-message="已按当前条件刷新，未重置页码。">刷新</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div data-normal-view>
+        <div class="table-scroll">
+          <table class="el-table" id="sub-table" data-role="table" data-component="el-table" data-api="listSubject"
+                 style="min-width:1120px;table-layout:fixed">
+            <thead>
+              <tr>
+                <th data-role="column" data-field="subject_code" style="width:120px">学科编码</th>
+                <th data-role="column" data-field="subject_name" style="width:130px">学科名称</th>
+                <th data-role="column" data-field="enabled_stages" style="width:180px">启用学段</th>
+                <th data-role="column" data-field="stream_enabled" style="width:110px">参与 3+1+2</th>
+                <th data-role="column" data-field="stream_role" style="width:110px">选科角色</th>
+                <th data-role="column" data-field="sort_no" style="width:90px">排序号</th>
+                <th data-role="column" data-field="subject_status" style="width:96px">状态</th>
+                <th class="actions" style="width:284px">操作</th>
+              </tr>
+            </thead>
+            <tbody id="sub-rows">
+              <tr data-role="row" data-code="chinese" data-role-code="none" data-status="enabled" data-stages="junior senior">
+                <td class="mono">chinese</td><td>语文</td><td>初中 · 高中</td><td><span class="cell-empty">否</span></td>
+                <td><span class="el-tag info">—</span></td><td class="num">1</td><td><span class="el-tag success">启用</span></td><td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-code="math" data-role-code="none" data-status="enabled" data-stages="junior senior">
+                <td class="mono">math</td><td>数学</td><td>初中 · 高中</td><td><span class="cell-empty">否</span></td>
+                <td><span class="el-tag info">—</span></td><td class="num">2</td><td><span class="el-tag success">启用</span></td><td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-code="english" data-role-code="none" data-status="enabled" data-stages="junior senior">
+                <td class="mono">english</td><td>外语</td><td>初中 · 高中</td><td><span class="cell-empty">否</span></td>
+                <td><span class="el-tag info">—</span></td><td class="num">3</td><td><span class="el-tag success">启用</span></td><td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-code="physics" data-role-code="primary" data-status="enabled" data-stages="junior senior">
+                <td class="mono">physics</td><td>物理</td><td>初中 · 高中</td><td><span class="el-tag primary">是</span></td>
+                <td><span class="el-tag primary">首选</span></td><td class="num">4</td><td><span class="el-tag success">启用</span></td><td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-code="history" data-role-code="primary" data-status="enabled" data-stages="junior senior">
+                <td class="mono">history</td><td>历史</td><td>初中 · 高中</td><td><span class="el-tag primary">是</span></td>
+                <td><span class="el-tag primary">首选</span></td><td class="num">5</td><td><span class="el-tag success">启用</span></td><td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-code="chemistry" data-role-code="secondary" data-status="enabled" data-stages="junior senior">
+                <td class="mono">chemistry</td><td>化学</td><td>初中 · 高中</td><td><span class="el-tag primary">是</span></td>
+                <td><span class="el-tag warning">再选</span></td><td class="num">6</td><td><span class="el-tag success">启用</span></td><td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-code="biology" data-role-code="secondary" data-status="enabled" data-stages="junior senior">
+                <td class="mono">biology</td><td>生物</td><td>初中 · 高中</td><td><span class="el-tag primary">是</span></td>
+                <td><span class="el-tag warning">再选</span></td><td class="num">7</td><td><span class="el-tag success">启用</span></td><td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-code="politics" data-role-code="secondary" data-status="enabled" data-stages="junior senior">
+                <td class="mono">politics</td><td>思想政治</td><td>初中 · 高中</td><td><span class="el-tag primary">是</span></td>
+                <td><span class="el-tag warning">再选</span></td><td class="num">8</td><td><span class="el-tag success">启用</span></td><td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-code="geography" data-role-code="secondary" data-status="enabled" data-stages="junior senior">
+                <td class="mono">geography</td><td>地理</td><td>初中 · 高中</td><td><span class="el-tag primary">是</span></td>
+                <td><span class="el-tag warning">再选</span></td><td class="num">9</td><td><span class="el-tag success">启用</span></td><td class="actions"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination"><span class="total">共 9 个学科 · 当前第 1 页 · 每页 20 条</span></div>
+      </div>
+      <div class="legend" style="margin:8px 0 0">
+        <span>删除、停用与修改编码前必须检查三类引用：<b>任教关系 / 教学班 / 学生选科</b>（<span class="mono">REQ-SUB-034</span>）；
+          有引用时不允许删除、只允许停用（<span class="mono">BR-SUBJECT-004</span>）；学科禁止物理删除（<span class="mono">NFR-DATA-02</span>）。</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- 新建学科（PAGE-SUB-CREATE） -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-SUB-CREATE" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="sm" data-page="PAGE-SUB-CREATE" data-block="form">
+    <div class="dialog-header"><h2>新建学科</h2><button class="close-x" data-close-panel="PAGE-SUB-CREATE" title="关闭">✕</button></div>
+    <div class="dialog-body">
+      <div class="form-grid">
+        <div class="field" data-field="subject_name">
+          <label>学科名称<span class="required">*</span></label>
+          <input class="input" style="min-width:100%" id="sub-create-name" value="信息技术" data-component="el-input" data-required data-required-message="请填写学科名称" />
+          <div class="error-text"></div>
+        </div>
+        <div class="field" data-field="subject_code">
+          <label>学科编码<span class="required">*</span></label>
+          <input class="input" style="min-width:100%" id="sub-create-code" placeholder="小写字母，校内唯一" data-component="el-input" data-required data-required-message="请填写学科编码" />
+          <div class="error-text"></div>
+          <div class="hint">编码校内唯一（<span class="mono">BR-SUBJECT-001</span>）；修改编码需租户管理员权限并检查引用一致性（<span class="mono">REQ-SUB-014</span>）。</div>
+        </div>
+        <div class="field span-2" data-field="stage_code">
+          <label>启用学段<span class="required">*</span></label>
+          <div class="radio-row">
+            <label><input type="checkbox" /> 小学（该校未开设）</label>
+            <label><input type="checkbox" checked /> 初中</label>
+            <label><input type="checkbox" checked /> 高中</label>
+          </div>
+          <div class="hint">只有在学校开设的学段中才能启用（<span class="mono">REQ-SUB-026</span>）；未启用的学段不会出现在该学段的学科下拉中。</div>
+        </div>
+        <div class="field" data-field="sort_no">
+          <label>排序号</label>
+          <input class="input" style="max-width:120px" value="10" data-component="el-input-number" />
+        </div>
+      </div>
+      <div class="alert danger state-hidden" data-validate-summary>表单校验未通过：请修正下方标红的字段后重试。</div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-SUB-009" data-component="el-button" data-close-panel="PAGE-SUB-CREATE">取消</button>
+      <button class="btn primary" data-role="action" data-action-id="ACT-SUB-010" data-component="el-button.primary"
+              data-permission="org.subject:create" data-api="addSubject" data-validate-on-submit data-after-success="close-panel"
+              data-demo-message="已创建学科并写入审计（REQ-SUB-012）；选科角色默认为「不参与」（REQ-SUB-017）。">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑学科（PAGE-SUB-EDIT） -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-SUB-EDIT" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="sm" data-page="PAGE-SUB-EDIT" data-block="form">
+    <div class="dialog-header"><h2>编辑学科 · <span id="sub-edit-name">语文</span></h2><button class="close-x" data-close-panel="PAGE-SUB-EDIT" title="关闭">✕</button></div>
+    <div class="dialog-body">
+      <div class="form-grid">
+        <div class="field" data-field="subject_name">
+          <label>学科名称<span class="required">*</span></label>
+          <input class="input" style="min-width:100%" id="sub-edit-name-input" value="语文" data-component="el-input" data-required data-required-message="请填写学科名称" />
+          <div class="error-text"></div>
+        </div>
+        <div class="field" data-field="subject_code">
+          <label>学科编码</label>
+          <div class="readonly-value mono" id="sub-edit-code">chinese</div>
+          <div class="hint">编码修改需租户管理员权限并强制留审计（<span class="mono">updateSubjectCode</span>，<span class="mono">REQ-SUB-014</span>）。</div>
+        </div>
+        <div class="field span-2" data-field="stage_code">
+          <label>启用学段</label>
+          <div class="radio-row">
+            <label><input type="checkbox" /> 小学（未开设）</label>
+            <label><input type="checkbox" checked /> 初中</label>
+            <label><input type="checkbox" checked /> 高中</label>
+          </div>
+          <div class="alert warning" style="margin-top:8px">
+            <span>停用学段前的影响提示</span>
+            <span>该学段的任教关系或教学班已引用本学科时，停用前会给出影响提示并二次确认（<span class="mono">REQ-SUB-028</span>）。</span>
+          </div>
+        </div>
+      </div>
+      <div class="alert danger state-hidden" data-validate-summary>表单校验未通过：请修正下方标红的字段后重试。</div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-SUB-011" data-component="el-button" data-close-panel="PAGE-SUB-EDIT">取消</button>
+      <button class="btn primary" data-role="action" data-action-id="ACT-SUB-012" data-component="el-button.primary"
+              data-permission="org.subject:update" data-api="updateSubject" data-validate-on-submit data-after-success="close-panel"
+              data-demo-message="已保存学科并写入审计（含变更前后值，REQ-SUB-016）。">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 选科角色配置（PAGE-SUB-STREAM） -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-SUB-STREAM" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="sm" data-page="PAGE-SUB-STREAM" data-block="form">
+    <div class="dialog-header"><h2>选科角色配置 · <span id="sub-stream-name">物理</span></h2><button class="close-x" data-close-panel="PAGE-SUB-STREAM" title="关闭">✕</button></div>
+    <div class="dialog-body">
+      <div class="alert info">
+        <span>固定集合，不可自由配置</span>
+        <span>首选科目<b>只允许物理与历史</b>；再选科目<b>只允许化学、生物、思想政治、地理</b>（<span class="mono">BR-SUBJECT-003</span>）：
+          不在固定集合内的选项不会出现，接口层对越界值直接拒绝（<span class="mono">REQ-SUB-019</span> / <span class="mono">020</span>）。</span>
+      </div>
+      <div class="field" data-field="stream_enabled">
+        <label>是否参与 3+1+2 选科</label>
+        <div class="radio-row">
+          <label><input type="radio" name="stream-enabled" value="yes" checked /> 参与</label>
+          <label><input type="radio" name="stream-enabled" value="no" /> 不参与（角色必须为空）</label>
+        </div>
+        <div class="hint">默认不参与（<span class="mono">REQ-SUB-017</span>）；不参与时角色必须是 <span class="mono">none</span>（<span class="mono">REQ-SUB-021</span>）。</div>
+      </div>
+      <div class="field" data-field="stream_role">
+        <label>选科角色<span class="required">*</span></label>
+        <div class="radio-row">
+          <label><input type="radio" name="stream-role" value="primary" checked /> 首选</label>
+          <label><input type="radio" name="stream-role" value="secondary" /> 再选</label>
+        </div>
+        <div class="error-text"></div>
+        <div class="hint">本弹窗只出现两个角色：物理 / 历史之外不出现「首选」，化学 / 生物 / 思想政治 / 地理之外不出现「再选」。</div>
+      </div>
+      <div class="alert warning">
+        <span>变更前校验</span>
+        <span>角色变更后会校验已有选科数据是否仍合法：存在不合法数据时阻止变更并给出学生清单（<span class="mono">REQ-SUB-022</span> / <span class="mono">BR-STREAM-007</span>），随后失效选科相关缓存（<span class="mono">NFR-CACHE-02</span>）。</span>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-SUB-013" data-component="el-button" data-close-panel="PAGE-SUB-STREAM">取消</button>
+      <button class="btn primary" data-role="action" data-action-id="ACT-SUB-014" data-component="el-button.primary"
+              data-permission="org.subject:update" data-api="saveSubjectStreamRole" data-after-success="close-panel"
+              data-demo-message="已保存选科角色：角色在固定集合内，变更写审计并失效选科缓存（NFR-CACHE-02）。">保存角色</button>
+    </div>
+  </div>
+</div>
+
+<!-- 学段启用配置（PAGE-SUB-STAGE） -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-SUB-STAGE" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="sm" data-page="PAGE-SUB-STAGE" data-block="form">
+    <div class="dialog-header"><h2>学段启用配置 · <span id="sub-stage-name">语文</span></h2><button class="close-x" data-close-panel="PAGE-SUB-STAGE" title="关闭">✕</button></div>
+    <div class="dialog-body">
+      <div class="form-grid">
+        <div class="field span-2" data-field="stage_code">
+          <label>启用学段（多选）</label>
+          <div class="radio-row">
+            <label><input type="checkbox" id="sub-stage-primary" /> 小学<span class="cell-secondary">（该校未开设）</span></label>
+            <label><input type="checkbox" checked /> 初中</label>
+            <label><input type="checkbox" checked /> 高中</label>
+          </div>
+          <div class="hint">只有在学校开设的学段中才能启用（<span class="mono">REQ-SUB-026</span>）；未开设学段置灰；
+            停用某学段后，该学段新建的教学班与任教关系不再可选本学科（<span class="mono">REQ-SUB-027</span>）。</div>
+        </div>
+      </div>
+      <div class="alert warning">
+        <span>影响提示</span>
+        <span>若该学段的任教关系或教学班已引用本学科，停用前会给出影响提示并二次确认（<span class="mono">REQ-SUB-028</span>）；
+          已存在的引用不受影响，只是新建时不再可选。</span>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-SUB-015" data-component="el-button" data-close-panel="PAGE-SUB-STAGE">取消</button>
+      <button class="btn primary" data-role="action" data-action-id="ACT-SUB-016" data-component="el-button.primary"
+              data-permission="org.subject:update" data-api="saveSubjectStage" data-after-success="close-panel"
+              data-demo-message="已保存学段启用：只影响新建业务的可选范围，历史引用保留并写审计。">保存配置</button>
+    </div>
+  </div>
+</div>
+
+<!-- 按学段批量初始化（PAGE-SUB-BATCH） -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-SUB-BATCH" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="md" data-page="PAGE-SUB-BATCH" data-block="form">
+    <div class="dialog-header"><h2>按学段批量初始化</h2><span class="el-tag info">默认学科清单（REQ-SUB-011）</span><button class="close-x" data-close-panel="PAGE-SUB-BATCH" title="关闭">✕</button></div>
+    <div class="dialog-body">
+      <div class="form-grid">
+        <div class="field" data-field="stage_code">
+          <label>目标学段<span class="required">*</span></label>
+          <select class="select" style="min-width:100%" data-component="el-select" data-required data-required-message="请选择学段">
+            <option value="junior" selected>初中</option>
+            <option value="senior">高中</option>
+          </select>
+          <div class="error-text"></div>
+          <div class="hint">批量初始化使用标准学科清单：语文、数学、外语、物理、历史、化学、生物、思想政治、地理。</div>
+        </div>
+        <div class="field span-2">
+          <label>将初始化的学科（预览）</label>
+          <div class="list-rows">
+            <div class="list-row"><div class="grow">语文 · 数学 · 外语</div><div><span class="el-tag success">将创建 3 个</span></div></div>
+            <div class="list-row"><div class="grow">物理（首选）· 历史（首选）</div><div><span class="el-tag success">将创建 2 个</span></div></div>
+            <div class="list-row"><div class="grow">化学 · 生物 · 思想政治 · 地理（再选）</div><div><span class="el-tag success">将创建 4 个</span></div></div>
+            <div class="list-row"><div class="grow">物理（高中已存在）</div><div><span class="el-tag info">已存在，跳过</span></div></div>
+          </div>
+          <div class="legend" style="margin:8px 0 0"><span>批量初始化是幂等的：已存在的学科只补该学段的启用记录，不重复创建主体、不覆盖已有配置。</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-SUB-017" data-component="el-button" data-close-panel="PAGE-SUB-BATCH">取消</button>
+      <button class="btn primary" data-role="action" data-action-id="ACT-SUB-018" data-component="el-button.primary"
+              data-permission="org.subject:create" data-api="batchInitSubject" data-after-success="close-panel"
+              data-demo-message="已按学段批量初始化：新增缺失学科、为已存在学科补该学段启用记录；已存在项跳过（幂等）。">确认初始化</button>
+    </div>
+  </div>
+</div>
+
+  <div class="state-hidden" data-demo-state-panel="loading">
+    <section class="card"><div class="card-body">
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:120px"></div><div class="skeleton-bar" style="width:200px"></div><div class="skeleton-bar" style="width:90px"></div></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:120px"></div><div class="skeleton-bar" style="width:200px"></div><div class="skeleton-bar" style="width:90px"></div></div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="empty">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">📭</div>
+        <div class="title">还没有任何学科</div>
+        <div class="desc">可以逐个新建，也可以按学段批量初始化默认学科清单（语文、数学、外语、物理、历史、化学、生物、思想政治、地理）。</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-SUB-002" data-component="el-button.primary.plain"
+                data-permission="org.subject:create" data-nav="PAGE-SUB-BATCH" data-overlay="dialog">按学段批量初始化</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="error">
+    <section class="card"><div class="card-body">
+      <div class="state-block error">
+        <div class="icon">⚠️</div>
+        <div class="title">查询失败</div>
+        <div class="desc">重试不会放宽数据范围。</div>
+        <div class="req-id">请求编号 REQ-20261001-001470 · 错误码 EDU-SUB-5001</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-COM-005" data-component="el-button.primary.plain" data-api="listSubject">重试</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="forbidden">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">🔒</div>
+        <div class="title">你没有学科配置的权限</div>
+        <div class="desc">需要 <span class="mono">org.subject:read</span>；无权限时不降级为全量（<span class="mono">DS-DENY-03</span>）。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="submitting">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⏳</div>
+        <div class="title">正在提交</div>
+        <div class="desc">按钮已置 loading 并禁用。</div>
+      </div>
+    </div></section>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+  var WRITE_ROLES = ['super_admin', 'tenant_admin'];
+  function q(sel) { return document.querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function currentRole() { return window.PrototypeShell.currentRole(); }
+  function isWriter() { return WRITE_ROLES.indexOf(currentRole()) !== -1; }
+
+  function rowActions() {
+    qa('#sub-rows tr').forEach(function (row) {
+      var box = row.querySelector('td.actions');
+      box.innerHTML = '';
+      box.style.color = '';
+      if (!isWriter()) {
+        box.textContent = '只读';
+        box.style.color = 'var(--app-text-secondary)';
+        box.style.fontSize = '12px';
+        return;
+      }
+      [{ id: 'ACT-SUB-003', text: '编辑', nav: 'PAGE-SUB-EDIT' },
+       { id: 'ACT-SUB-004', text: '选科角色', nav: 'PAGE-SUB-STREAM' },
+       { id: 'ACT-SUB-005', text: '学段启用', nav: 'PAGE-SUB-STAGE' }].forEach(function (def) {
+        var b = document.createElement('button');
+        b.className = 'btn link';
+        b.textContent = def.text;
+        b.setAttribute('data-role', 'row-action');
+        b.setAttribute('data-action-id', def.id);
+        b.setAttribute('data-component', 'el-button.link.primary');
+        b.setAttribute('data-permission', 'org.subject:update');
+        b.setAttribute('data-nav', def.nav);
+        b.setAttribute('data-overlay', 'dialog');
+        box.appendChild(b);
+      });
+      var disabled = row.getAttribute('data-status') === 'disabled';
+      var toggle = document.createElement('button');
+      toggle.className = 'btn link';
+      toggle.textContent = disabled ? '启用' : '停用';
+      toggle.setAttribute('data-role', 'row-action');
+      toggle.setAttribute('data-action-id', 'ACT-SUB-006');
+      toggle.setAttribute('data-component', 'el-button.link.primary');
+      toggle.setAttribute('data-permission', 'org.subject:update');
+      toggle.setAttribute('data-api', disabled ? 'enableSubject' : 'disableSubject');
+      toggle.setAttribute('data-demo-message', disabled
+        ? '已启用该学科：重新出现在新建任教关系与教学班的可选列表中。'
+        : '已停用该学科：不再出现在新建任教关系与教学班的可选列表中；已被引用时不允许删除、只允许停用（BR-SUBJECT-004）。');
+      box.appendChild(toggle);
+      var del = document.createElement('button');
+      del.className = 'btn link danger';
+      del.textContent = '删除';
+      del.setAttribute('data-role', 'row-action');
+      del.setAttribute('data-action-id', 'ACT-SUB-007');
+      del.setAttribute('data-component', 'el-button.link.danger');
+      del.setAttribute('data-permission', 'org.subject:update');
+      del.setAttribute('data-demo-message', '删除前检查三类引用（任教关系 / 教学班 / 学生选科）：有引用时拒绝删除并列出对象清单（REQ-SUB-034 / 036）。');
+      del.setAttribute('data-code', row.getAttribute('data-code'));
+      box.appendChild(del);
+    });
+  }
+
+  function fillDialog(row) {
+    var name = row.children[1].textContent.trim();
+    q('#sub-edit-name').textContent = name;
+    q('#sub-edit-name-input').value = name;
+    q('#sub-edit-code').textContent = row.getAttribute('data-code');
+    q('#sub-stream-name').textContent = name;
+    q('#sub-stage-name').textContent = name;
+    var role = row.getAttribute('data-role-code');
+    qa('input[name="stream-role"]').forEach(function (r) { r.checked = r.value === role; });
+    qa('input[name="stream-enabled"]').forEach(function (r) { r.checked = r.value === (role === 'none' ? 'no' : 'yes'); });
+  }
+
+  document.addEventListener('click', function (event) {
+    var node = event.target;
+    if (node.closest('input, select, textarea, label')) return;
+    var rowNode = node.closest('#sub-rows tr');
+    if (!rowNode) return;
+    if (node.closest('[data-action-id="ACT-SUB-003"], [data-action-id="ACT-SUB-004"], [data-action-id="ACT-SUB-005"]')) fillDialog(rowNode);
+  });
+
+  var lastRole = '';
+  function applyRoleState(role) {
+    if (role === lastRole) return;
+    lastRole = role;
+    rowActions();
+    if (['super_admin', 'tenant_admin', 'academic_director', 'school_leader', 'platform_ops'].indexOf(role) === -1) {
+      window.PrototypeShell.applyState('forbidden');
+    } else if (window.PrototypeShell.currentState() === 'forbidden') {
+      window.PrototypeShell.applyState('normal');
+    }
+  }
+
+  rowActions();
+  new MutationObserver(function () { applyRoleState(currentRole()); })
+    .observe(document.body, { attributes: true, attributeFilter: ['data-current-role'] });
+})();
+</script>
+</body>
+</html>

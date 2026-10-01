@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>批次 2-8（审计与操作日志）交互验证</title>
+<style>
+  body { margin: 14px; background: #fff; color: #24292f; font: 13px/1.55 Consolas, "Microsoft YaHei", monospace; }
+  h1 { font-size: 17px; margin: 0 0 8px; }
+  ol { margin: 0 0 10px; padding-left: 22px; }
+  li.ok { color: #1a7f37; }
+  li.bad { color: #c0392b; font-weight: 700; }
+  p.sum { font-weight: 700; }
+  p.sum.bad { color: #c0392b; }
+  iframe { width: 1440px; height: 860px; border: 1px solid #dcdfe6; }
+  iframe.offscreen { display: none; }
+</style>
+</head>
+<body>
+<h1>批次 2-8（操作日志 / 日志详情 / 导出配置 / 运营访问 / 敏感访问 / 安全事件 / 归档）交互验证（真实事件派发）</h1>
+<ol id="results"><li>运行中…</li></ol>
+<iframe id="f-log" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/audit-log-list.html"></iframe>
+<iframe id="f-ops" class="offscreen" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/audit-ops-access.html"></iframe>
+<iframe id="f-sen" class="offscreen" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/audit-sensitive-access.html"></iframe>
+<iframe id="f-sec" class="offscreen" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/audit-security-event.html"></iframe>
+<iframe id="f-arc" class="offscreen" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/audit-archive.html"></iframe>
+<script>
+(function () {
+  'use strict';
+  var RESULTS = [];
+  var F = {
+    log: document.getElementById('f-log'),
+    ops: document.getElementById('f-ops'),
+    sen: document.getElementById('f-sen'),
+    sec: document.getElementById('f-sec'),
+    arc: document.getElementById('f-arc')
+  };
+
+  function rec(id, name, pass, detail) { RESULTS.push({ id: id, name: name, pass: Boolean(pass), detail: detail || '' }); }
+  function d(k) { return F[k].contentDocument; }
+  function w(k) { return F[k].contentWindow; }
+  function q(k, sel) { return d(k).querySelector(sel); }
+  function qa(k, sel) { return Array.prototype.slice.call(d(k).querySelectorAll(sel)); }
+  function text(k, sel) { var n = q(k, sel); return n ? n.textContent.replace(/\s+/g, ' ').trim() : ''; }
+  function attr(k, sel, name) { var n = q(k, sel); return n ? n.getAttribute(name) : null; }
+  function hasClass(k, sel, cls) { var n = q(k, sel); return Boolean(n && n.classList.contains(cls)); }
+  function widths(k, tableSel) {
+    return qa(k, tableSel + ' thead th[style]').reduce(function (s, th) { return s + (parseInt(th.style.width, 10) || 0); }, 0);
+  }
+  function click(k, sel) {
+    var n = q(k, sel);
+    if (!n) throw new Error('找不到元素 ' + sel);
+    n.click();
+    return n;
+  }
+  function setVal(k, sel, value) {
+    var n = q(k, sel);
+    if (!n) throw new Error('找不到元素 ' + sel);
+    n.value = value;
+    n.dispatchEvent(new (w(k).Event)('change', { bubbles: true }));
+    return n;
+  }
+  function delay(k) { return new Promise(function (r) { w(k).setTimeout(r, 80); }); }
+  function role(k, code, label) {
+    var btn = qa(k, '[data-demo="role-switcher"] .pbtn').filter(function (b) { return b.textContent.trim() === label; })[0];
+    if (btn) { btn.click(); return delay(k); }
+    w(k).PrototypeShell.applyRole(code);
+    return delay(k);
+  }
+  function panelOpen(k, id) { return Boolean(q(k, '[data-demo-panel="' + id + '"].open')); }
+  function statePanels(k, codes) {
+    codes = codes || ['loading', 'empty', 'error', 'forbidden', 'submitting'];
+    return codes.filter(function (c) { return !q(k, '[data-demo-state-panel="' + c + '"]'); });
+  }
+  function frameReady(k) {
+    return new Promise(function (resolve) {
+      if (d(k) && d(k).readyState === 'complete' && d(k).querySelector('#page-root')) { resolve(); return; }
+      F[k].addEventListener('load', function () { w(k).setTimeout(resolve, 250); });
+    });
+  }
+  function allReady() { return Promise.all(Object.keys(F).map(frameReady)); }
+
+  var steps = [
+    function (next) {
+      return allReady().then(function () {
+        var cols = qa('log', '#aud-table thead th').map(function (th) { return th.textContent.trim(); });
+        rec('AU-01', '操作日志：9 列 7 行；列宽之和 = 表格 min-width = 1050（1366×768 无表格内横向滚动）',
+          cols.length === 9 && cols[0] === '时间' && cols[8] === '操作'
+          && qa('log', '#aud-rows tr').length === 7
+          && widths('log', '#aud-table') === 1050 && q('log', '#aud-table').style.minWidth === '1050px',
+          cols.join(' | ') + ' · 列宽 ' + widths('log', '#aud-table'));
+        rec('AU-02', '操作日志：默认时间范围最近 7 天、单次查询跨度上限 90 天，且查询本身不写日志而导出写（REQ-AUD-011 / 020 / 021）',
+          text('log', '#page-root').indexOf('最近 7 天') !== -1
+          && text('log', '#page-root').indexOf('90 天') !== -1
+          && text('log', '.alert.info').indexOf('REQ-AUD-011') !== -1,
+          text('log', '.alert.info').slice(0, 28));
+        next();
+      });
+    },
+    function (next) {
+      var allBtns = qa('log', '#page-root button, #page-root a').map(function (b) { return b.textContent.trim(); });
+      var hasDelete = allBtns.some(function (t) { return /删除/.test(t); });
+      var hasEdit = allBtns.some(function (t) { return /修改(?!人)/.test(t) && t.indexOf('修改') === 0; });
+      rec('AU-03', '操作日志：不可篡改 —— 全页无「删除」入口、无日志编辑入口；页面写明 REQ-AUD-025 / 030 / 031',
+        !hasDelete && !hasEdit
+        && text('log', '.alert.info').indexOf('REQ-AUD-025') !== -1
+        && text('log', '.alert.info').indexOf('REQ-AUD-030') !== -1
+        && text('log', '.alert.info').indexOf('REQ-AUD-031') !== -1,
+        '删除 ' + (hasDelete ? '有' : '无') + ' / 编辑 ' + (hasEdit ? '有' : '无'));
+      rec('AU-04', '操作日志筛选区：6 个筛选器（起止时间 / 操作人 / 对象类型 / 操作类型 / 关键字，ACT-AUD-001 ~ 005、007）',
+        qa('log', '[data-role="filter"]').length === 6
+        && attr('log', '[data-action-id="ACT-AUD-007"]', 'data-field') === 'keyword',
+        '筛选 ' + qa('log', '[data-role="filter"]').length + ' 个');
+      next();
+    },
+    function (next) {
+      rec('AU-05', '教务主任：7 行都有「详情」入口（ACT-AUD-014 → PAGE-AUDIT-LOG-DETAIL），导出按钮可见',
+        qa('log', '[data-action-id="ACT-AUD-014"]').length === 7
+        && !hasClass('log', '[data-action-id="ACT-AUD-010"]', 'role-hidden'),
+        '详情 ' + qa('log', '[data-action-id="ACT-AUD-014"]').length + ' 个');
+      click('log', '#aud-rows tr:first-child [data-action-id="ACT-AUD-014"]');
+      return delay('log').then(function () {
+        rec('AU-06', '点行内「详情」打开 PAGE-AUDIT-LOG-DETAIL 并带入该条日志（时间 / 操作人 / 角色 / 操作类型 / 对象 / IP / 请求标识 / 结果）',
+          panelOpen('log', 'PAGE-AUDIT-LOG-DETAIL')
+          && text('log', '#aud-detail-time') === '2026-10-01 09:12:33'
+          && text('log', '#aud-d-operator') === '郑雅琴'
+          && text('log', '#aud-d-role') === '教务主任'
+          && text('log', '#aud-d-obj').indexOf('20260101') !== -1
+          && text('log', '#aud-d-req') === 'REQ-20261001-000418',
+          text('log', '#aud-detail-time') + ' / ' + text('log', '#aud-d-req'));
+        next();
+      });
+    },
+    function (next) {
+      rec('AU-07', '日志详情：变更明细 diff 3 行（只记发生变化的字段，REQ-AUD-003），且写明证件号 / 手机号按掩码展示（BR-AUDIT-007）',
+        qa('log', '#aud-diff tbody tr').length === 3
+        && text('log', '[data-block="diff"]').indexOf('REQ-AUD-003') !== -1
+        && text('log', '[data-block="diff"]').indexOf('BR-AUDIT-007') !== -1
+        && text('log', '#aud-diff').indexOf('136****7781') !== -1,
+        'diff ' + qa('log', '#aud-diff tbody tr').length + ' 行');
+      rec('AU-08', '日志详情含 PAGE-AUDIT-OBJECT-TIMELINE 对象变更时间线区块（3 条，追加式不可删除，REQ-AUD-023）',
+        qa('log', '[data-page="PAGE-AUDIT-OBJECT-TIMELINE"] .timeline li').length === 3
+        && text('log', '[data-page="PAGE-AUDIT-OBJECT-TIMELINE"]').indexOf('REQ-AUD-023') !== -1,
+        '时间线 ' + qa('log', '[data-page="PAGE-AUDIT-OBJECT-TIMELINE"] .timeline li').length + ' 条');
+      w('log').PrototypeShell.closePanel('all');
+      next();
+    },
+    function (next) {
+      click('log', '[data-action-id="ACT-AUD-010"]');
+      return delay('log').then(function () {
+        var opened = panelOpen('log', 'DIALOG-AUD-EXPORT');
+        setVal('log', '[data-field="export_reason"] .input, [data-field="export_reason"] input', '');
+        click('log', '[data-action-id="ACT-AUD-013"]');
+        return delay('log').then(function () {
+          rec('AU-09', '点「导出」打开 DIALOG-AUD-EXPORT；未填用途说明点「开始导出」被字段级拦截且弹窗不关闭（PRD 6.3）',
+            opened && hasClass('log', '[data-demo-panel="DIALOG-AUD-EXPORT"] [data-field="export_reason"]', 'has-error')
+            && !hasClass('log', '[data-demo-panel="DIALOG-AUD-EXPORT"] [data-validate-summary]', 'state-hidden')
+            && panelOpen('log', 'DIALOG-AUD-EXPORT'),
+            '打开 ' + opened);
+          rec('AU-10', '导出配置：走 exportOperationLog + audit.log:export；写明导出前重新解析范围（REQ-AUD-027）与文件 7 天有效期（REQ-AUD-029）',
+            attr('log', '[data-action-id="ACT-AUD-013"]', 'data-api') === 'exportOperationLog'
+            && attr('log', '[data-action-id="ACT-AUD-013"]', 'data-permission') === 'audit.log:export'
+            && text('log', '[data-demo-panel="DIALOG-AUD-EXPORT"]').indexOf('REQ-AUD-027') !== -1
+            && text('log', '[data-demo-panel="DIALOG-AUD-EXPORT"]').indexOf('7 天') !== -1,
+            attr('log', '[data-action-id="ACT-AUD-013"]', 'data-api'));
+          w('log').PrototypeShell.closePanel('all');
+          setVal('log', '[data-field="export_reason"] .input, [data-field="export_reason"] input', '');
+          next();
+        });
+      });
+    },
+    function (next) {
+      return role('log', 'grade_leader', '年级主任').then(function () {
+        rec('AU-11', '操作日志：年级主任数据范围收敛为 DS-05，导出入口隐藏（矩阵未授予年级主任 audit.log:export）',
+          text('log', '[data-role="scope-hint"]').indexOf('DS-05') !== -1
+          && hasClass('log', '[data-action-id="ACT-AUD-010"]', 'role-hidden'),
+          text('log', '[data-role="scope-hint"]'));
+        return role('log', 'subject_teacher', '任课教师');
+      }).then(function () {
+        rec('AU-12', '操作日志：任课教师进入无权限形态（DS-07 无日志权限），不进入空白页（DS-DENY-03）',
+          !hasClass('log', '[data-demo-state-panel="forbidden"]', 'state-hidden')
+          && text('log', '[data-demo-state-panel="forbidden"]').indexOf('DS-DENY-03') !== -1,
+          text('log', '[data-role="scope-hint"]'));
+        rec('AU-13', '操作日志六类状态片段齐全（五类 + 归档区间检索提示 partial）',
+          statePanels('log', ['loading', 'empty', 'error', 'forbidden', 'submitting', 'partial']).length === 0,
+          statePanels('log', ['loading', 'empty', 'error', 'forbidden', 'submitting', 'partial']).join(',') || '齐全');
+        return role('log', 'academic_director', '教务主任');
+      }).then(next);
+    },
+    function (next) {
+      var cols = qa('ops', '#ops-table thead th').map(function (th) { return th.textContent.trim(); });
+      rec('AU-14', '运营访问记录：7 列 4 行；列宽之和 = 表格 min-width = 1040',
+        cols.length === 7 && cols[0] === '访问时间' && cols[6] === '来源 IP'
+        && qa('ops', '#ops-table tbody tr').length === 4
+        && widths('ops', '#ops-table') === 1040 && q('ops', '#ops-table').style.minWidth === '1040px',
+        cols.join(' | ') + ' · 列宽 ' + widths('ops', '#ops-table'));
+      rec('AU-15', '运营访问记录：默认（教务主任）进入无权限形态 —— 租户侧只有租户管理员与校领导可查（PRD 6.1）',
+        !hasClass('ops', '[data-demo-state-panel="forbidden"]', 'state-hidden'),
+        text('ops', '[data-role="scope-hint"]'));
+      return role('ops', 'tenant_admin', '租户管理员').then(function () {
+        rec('AU-16', '运营访问记录：租户管理员范围为本租户（DS-02），导出走 exportOperatorAccess 且只含本租户数据（REQ-AUD-016），保留 ≥ 3 年（REQ-AUD-017）',
+          text('ops', '[data-role="scope-hint"]').indexOf('DS-02') !== -1
+          && attr('ops', '[data-action-id="ACT-AUD-034"]', 'data-api') === 'exportOperatorAccess'
+          && text('ops', '.alert.info').indexOf('REQ-AUD-016') !== -1
+          && text('ops', '.alert.info').indexOf('3 年') !== -1,
+          text('ops', '[data-role="scope-hint"]'));
+        rec('AU-17', '运营访问记录五类状态片段齐全', statePanels('ops').length === 0,
+          statePanels('ops').join(',') || '齐全');
+        next();
+      });
+    },
+    function (next) {
+      var cols = qa('sen', '#sen-table thead th').map(function (th) { return th.textContent.trim(); });
+      rec('AU-18', '敏感数据访问记录：7 列 4 行；列宽之和 = 表格 min-width = 1080',
+        cols.length === 7 && cols[0] === '访问时间' && cols[6] === '用途说明'
+        && qa('sen', '#sen-table tbody tr').length === 4
+        && widths('sen', '#sen-table') === 1080 && q('sen', '#sen-table').style.minWidth === '1080px',
+        cols.join(' | ') + ' · 列宽 ' + widths('sen', '#sen-table'));
+      rec('AU-19', '敏感数据访问记录：写明「掩码展示不记录、只有揭示明文才记录」（REQ-AUD-009）与「日志不含明文」（REQ-AUD-010）',
+        text('sen', '.alert.info').indexOf('REQ-AUD-009') !== -1
+        && text('sen', '.alert.info').indexOf('REQ-AUD-010') !== -1
+        && text('sen', '.alert.info').indexOf('REQ-AUD-012') !== -1,
+        text('sen', '.alert.info').slice(0, 30));
+      return role('sen', 'grade_leader', '年级主任').then(function () {
+        rec('AU-20', '敏感数据访问记录：年级主任进入无权限形态（PRD 6.1 只给校领导与教务主任），五类状态片段齐全',
+          !hasClass('sen', '[data-demo-state-panel="forbidden"]', 'state-hidden')
+          && statePanels('sen', ['loading', 'empty', 'error', 'forbidden', 'submitting']).length === 0,
+          text('sen', '[data-role="scope-hint"]'));
+        return role('sen', 'academic_director', '教务主任');
+      }).then(next);
+    },
+    function (next) {
+      var cols = qa('sec', '#sec-table thead th').map(function (th) { return th.textContent.trim(); });
+      var types = qa('sec', '#sec-table tbody tr td:nth-child(2)').map(function (td) { return td.textContent.trim(); });
+      rec('AU-21', '登录与安全事件：7 列 7 行；列宽之和 = 表格 min-width = 1060',
+        cols.length === 7 && cols[0] === '时间' && cols[6] === '说明'
+        && qa('sec', '#sec-table tbody tr').length === 7
+        && widths('sec', '#sec-table') === 1060 && q('sec', '#sec-table').style.minWidth === '1060px',
+        cols.join(' | ') + ' · 列宽 ' + widths('sec', '#sec-table'));
+      rec('AU-22', '安全事件覆盖 7 类：登录失败 / 账号锁定 / 激活码查看 / 激活码重置 / 学号变更 / 权限变更（REQ-AUD-007 / BR-STU-021）',
+        qa('sec', '#sec-table tbody tr').length === 7
+        && types.join(',').indexOf('激活码查看') !== -1
+        && types.join(',').indexOf('激活码重置') !== -1
+        && text('sec', '.alert.info').indexOf('REQ-AUD-007') !== -1
+        && text('sec', '.alert.info').indexOf('BR-STU-021') !== -1,
+        types.join(' / '));
+      return role('sec', 'academic_director', '教务主任').then(function () {
+        rec('AU-23', '安全事件：教务主任进入无权限形态（PRD 6.1 只给校领导与平台运营），五类状态片段齐全',
+          !hasClass('sec', '[data-demo-state-panel="forbidden"]', 'state-hidden')
+          && statePanels('sec').length === 0,
+          text('sec', '[data-role="scope-hint"]'));
+        return role('sec', 'platform_ops', '平台运营');
+      }).then(next);
+    },
+    function (next) {
+      var cols = qa('arc', '#arc-table thead th').map(function (th) { return th.textContent.trim(); });
+      rec('AU-24', '归档管理：7 列 4 行；列宽之和 = 表格 min-width = 1080',
+        cols.length === 7 && cols[0] === '归档批次' && cols[6] === '操作'
+        && qa('arc', '#arc-rows tr').length === 4
+        && widths('arc', '#arc-table') === 1080 && q('arc', '#arc-table').style.minWidth === '1080px',
+        cols.join(' | ') + ' · 列宽 ' + widths('arc', '#arc-table'));
+      rec('AU-25', '归档管理：默认（教务主任）进入无权限形态 —— 归档管理是平台运营的运维页（PRD 6.1），无权限时不进入空白页',
+        !hasClass('arc', '[data-demo-state-panel="forbidden"]', 'state-hidden'),
+        text('arc', '[data-role="scope-hint"]'));
+      return role('arc', 'platform_ops', '平台运营').then(function () {
+        rec('AU-26', '归档管理（平台运营）：3 个「检索该批次」+ 1 个失败批次「重试归档」；失败批次不整批回滚',
+          qa('arc', '[data-action-id="ACT-AUD-064"]').length === 3
+          && qa('arc', '[data-action-id="ACT-AUD-065"]').length === 1
+          && text('arc', '[data-block="list"]').indexOf('归档不删数据') !== -1,
+          '检索 ' + qa('arc', '[data-action-id="ACT-AUD-064"]').length + ' / 重试 ' + qa('arc', '[data-action-id="ACT-AUD-065"]').length);
+        rec('AU-27', '归档管理：写明「归档 ≠ 删除、归档后仍可检索」（REQ-AUD-033）、保留 ≥ 3 年（REQ-AUD-032）、归档动作本身写日志（REQ-AUD-034）、只读降级告警（REQ-AUD-037 / 038）',
+          text('arc', '.alert.info').indexOf('REQ-AUD-033') !== -1
+          && text('arc', '.alert.info').indexOf('REQ-AUD-032') !== -1
+          && text('arc', '.alert.info').indexOf('REQ-AUD-034') !== -1
+          && text('arc', '[data-block="note"]').indexOf('REQ-AUD-037') !== -1
+          && text('arc', '[data-block="note"]').indexOf('REQ-AUD-038') !== -1
+          && qa('arc', '[data-block="note"] .stat-card').length === 4,
+          text('arc', '[data-block="note"] .stat-card .value').replace(/\s+/g, ' '));
+        rec('AU-28', '归档管理：六类状态片段齐全（五类 + 部分失败 partial）',
+          statePanels('arc', ['loading', 'empty', 'error', 'forbidden', 'submitting', 'partial']).length === 0,
+          statePanels('arc', ['loading', 'empty', 'error', 'forbidden', 'submitting', 'partial']).join(',') || '齐全');
+        next();
+      });
+    }
+  ];
+
+  var EXPECTED = 28;
+  var rendered = false;
+  function render() {
+    rendered = true;
+    var ol = document.getElementById('results');
+    ol.innerHTML = '';
+    var pass = 0;
+    RESULTS.forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = r.pass ? 'ok' : 'bad';
+      li.textContent = (r.pass ? '通过  ' : '不通过 ') + r.id + '  ' + r.name + (r.detail ? '  —— ' + r.detail : '');
+      ol.appendChild(li);
+      if (r.pass) pass += 1;
+    });
+    var p = document.createElement('p');
+    p.className = pass === EXPECTED && RESULTS.length === EXPECTED ? 'sum' : 'sum bad';
+    p.textContent = '合计 ' + RESULTS.length + ' / ' + EXPECTED + ' 条，通过 ' + pass + ' 条，不通过 '
+      + (RESULTS.length - pass) + ' 条' + (pass === EXPECTED && RESULTS.length === EXPECTED ? ' —— 全部通过' : '');
+    ol.appendChild(p);
+  }
+  function run(index) {
+    if (index >= steps.length) { render(); return; }
+    var called = false;
+    function next() { if (called) return; called = true; run(index + 1); }
+    var out;
+    try { out = steps[index](next); }
+    catch (err) {
+      rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步抛异常', false, String((err && err.message) || err));
+      run(index + 1); return;
+    }
+    if (out && typeof out.then === 'function') {
+      out.catch(function (err) {
+        rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步异步断言失败', false, String((err && err.message) || err));
+        next();
+      });
+    }
+  }
+  window.addEventListener('load', function () { window.setTimeout(function () { run(0); }, 600); });
+  window.setTimeout(function () { if (!rendered) { rec('WATCHDOG', '运行超时', false, ''); render(); } }, 60000);
+})();
+</script>
+</body>
+</html>

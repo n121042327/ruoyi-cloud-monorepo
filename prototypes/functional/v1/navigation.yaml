@@ -1,0 +1,297 @@
+schema_version: "1.0"
+purpose: |
+  原型导航规范：菜单树、页面注册表、跳转关系、入口条件。
+  页面总数、类型与批次以本文件为准；页面看不到的入口，原型里也不允许出现。
+
+source_of_truth:
+  - "docs/10-prd/**（各模块 PRD 第 6 节「界面需求」定义了页面清单，本文件是它们的汇总）"
+  - "docs/10-prd/05-permission-matrix.yaml（入口条件取自功能权限）"
+
+# ---------------------------------------------------------------------------
+# 1. 模块索引
+# ---------------------------------------------------------------------------
+module_index:
+  student:       { name: 学生管理,       prd: docs/10-prd/modules/student/PRD.md }
+  teacher:       { name: 教师管理,       prd: docs/10-prd/modules/teacher/PRD.md }
+  class:         { name: 班级管理,       prd: docs/10-prd/modules/class/PRD.md }
+  grade:         { name: 年级管理,       prd: docs/10-prd/modules/grade/PRD.md }
+  school:        { name: 学校管理,       prd: docs/10-prd/modules/school/PRD.md }
+  term:          { name: 学年学期,       prd: docs/10-prd/modules/term/PRD.md }
+  subject:       { name: 学科与配置,     prd: docs/10-prd/modules/subject/PRD.md }
+  promotion:     { name: 升班与学籍异动, prd: docs/10-prd/modules/promotion/PRD.md }
+  stream:        { name: 选科与教学班,   prd: docs/10-prd/modules/stream/PRD.md }
+  import-export: { name: 导入导出与异步任务, prd: docs/10-prd/modules/import-export/PRD.md }
+  audit:         { name: 审计与操作日志, prd: docs/10-prd/modules/audit/PRD.md }
+
+# ---------------------------------------------------------------------------
+# 2. 菜单树（左侧导航，顺序即展示顺序）
+# ---------------------------------------------------------------------------
+menus:
+  - id: edu
+    name: 教育管理
+    children:
+      - { id: menu-student, name: 学生管理, route: /edu/student/list, permission: "person.student:read" }
+      - { id: menu-teacher, name: 教师管理, route: /edu/teacher/list, permission: "person.teacher:read" }
+      - { id: menu-class, name: 班级管理, route: /edu/class/list, permission: "org.class:read" }
+      - { id: menu-grade, name: 年级管理, route: /edu/grade/list, permission: "org.grade:read" }
+      - { id: menu-promotion, name: 升班与学籍, route: /edu/promotion/list, permission: "promotion.batch:read" }
+      - { id: menu-stream, name: 选科与教学班, route: /edu/stream/list, permission: "stream.selection:read" }
+  - id: org
+    name: 组织与配置
+    children:
+      - { id: menu-school, name: 学校管理, route: /edu/school/list, permission: "org.school:read" }
+      - { id: menu-term, name: 学年学期, route: /edu/term/list, permission: "org.term:read" }
+      - { id: menu-subject, name: 学科与配置, route: /edu/subject/list, permission: "org.subject:read" }
+  - id: ops
+    name: 平台与运维
+    children:
+      - { id: menu-import, name: 导入导出, route: /edu/import/wizard, permission: "data.import:import" }
+      - { id: menu-task, name: 异步任务, route: /edu/async-task/list, permission: "data.async_task:read" }
+      - { id: menu-audit, name: 审计日志, route: /edu/audit/log/list, permission: "audit.log:read" }
+
+menu_rules:
+  - 菜单项按功能权限显隐；无任一子项可见时隐藏整个分组
+  - 菜单顺序固定，不按使用频率动态排序
+  - 需要多校切换的角色（集团管理员 / 平台运营）在顶部导航切换学校，不在菜单里重复
+
+# ---------------------------------------------------------------------------
+# 3. 页面注册表（91 项，含页面 / 详情 / 抽屉 / 弹窗 / 向导 / 页面内区块）
+#    type: page 独立页 | detail 详情 | drawer 抽屉 | dialog 弹窗 | wizard 向导 | block 页面内区块 | standalone 独立于菜单
+#    batch: 见第 4 节 delivery_batches；deferred 表示本轮不做
+# ---------------------------------------------------------------------------
+pages:
+  # ---- 学生管理 ----
+  - { id: PAGE-STU-LIST, name: 学生管理列表, module: student, type: page, route: /edu/student/list, template: TPL-LIST, batch: "2-1" }
+  - { id: PAGE-STU-CREATE, name: 新增学生, module: student, type: dialog, size: md, parent: PAGE-STU-LIST, batch: "2-1", note: "CR-008 / D-059：表单类浮层统一用弹窗（与 apps/plus-ui 一致），三步仍在一个弹窗内" }
+  - { id: PAGE-STU-EDIT, name: 编辑学生, module: student, type: dialog, size: md, parent: PAGE-STU-LIST, batch: "2-1", note: "CR-008 / D-059：表单类浮层统一用弹窗" }
+  - { id: PAGE-STU-DETAIL, name: 学生详情, module: student, type: detail, container: drawer, size: lg, route: /edu/student/detail, parent: PAGE-STU-LIST, batch: "2-5", note: "2-5 已交付：抽屉三个分区（基本信息 / 监护人 / 变更记录）+ 操作条；敏感字段默认掩码，证件号需 read_sensitive、联系电话需 read_contact 并留痕；详情是只读视图（DP-01）" }
+  - { id: PAGE-STU-STATUS, name: 学籍异动, module: student, type: dialog, size: md, parent: PAGE-STU-DETAIL, batch: "2-5", note: "2-5 已交付：异动类型由当前状态决定（listEnrollmentStatusOption）、生效日期与原因必填、开除在义务教育阶段不可用且后端拒绝（REQ-PRM-043）、提交流转合法性与审计（BR-PROMO-012）" }
+  - { id: PAGE-STU-TRANSFER, name: 调班, module: student, type: dialog, size: sm, parent: PAGE-STU-DETAIL, batch: "2-5", note: "2-5 已交付：目标班级必填、已停用班级不可选、只改班级关系（学号与学籍状态不变，BR-STU-016）" }
+  - { id: PAGE-STU-HISTORY, name: 变更记录, module: student, type: block, parent: PAGE-STU-DETAIL, batch: "2-5", note: "2-5 已交付：时间线（班级变更 / 学籍状态 / 监护人变更）+「查看全部」跳审计日志；追加式不可删除（BR-AUDIT-003）" }
+  - { id: PAGE-STU-CROSS-TRANSFER, name: 跨校转学, module: student, type: wizard, route: /edu/student/cross-transfer, batch: "2-5", note: "2-5 已交付：转出校视角四步（选择学生 → 转入校与目标班级 → 确认提交 → 结果）；只暴露必要字段（REQ-PRM-055）、学号不变（BR-STU-020）、未完成转学单不允许再次发起（REQ-PRM-057）" }
+  - { id: PAGE-STU-IMPORT, name: 批量导入向导, module: student, type: wizard, route: /edu/student/import, batch: "2-4", note: "2-4 已交付：学生管理列表工具条「导入」的模块快捷入口；14 列模板（REQ-STU-052，不含学号列 BR-STU-019）、两阶段校验、导入后不给行政班（REQ-STU-062）、学号对照表（REQ-IMP-021 ~ 023）" }
+
+  # ---- 教师管理 ----
+  - { id: PAGE-TCH-LIST, name: 教师管理列表, module: teacher, type: page, route: /edu/teacher/list, template: TPL-LIST, batch: "2-2" }
+  - { id: PAGE-TCH-DETAIL, name: 教师详情, module: teacher, type: detail, container: drawer, size: lg, parent: PAGE-TCH-LIST, batch: "2-2", note: "PRD 6.1 写明详情页以抽屉承载；内含基本信息 / 教育角色 / 任教关系 / 班主任任职 / 账号 / 变更记录 6 个分区" }
+  - { id: PAGE-TCH-CREATE, name: 新增教师, module: teacher, type: dialog, size: md, parent: PAGE-TCH-LIST, batch: "2-2", note: "CR-008 / D-059：表单类浮层统一用弹窗，三步仍在同一个弹窗内" }
+  - { id: PAGE-TCH-EDIT, name: 编辑教师, module: teacher, type: dialog, size: md, parent: PAGE-TCH-LIST, batch: "2-2", note: "CR-008 / D-059：表单类浮层统一用弹窗" }
+  - { id: PAGE-TCH-ROLE, name: 教育角色分配, module: teacher, type: dialog, size: sm, parent: PAGE-TCH-LIST, batch: "2-2" }
+  - { id: PAGE-TCH-ASSIGN, name: 任教关系设置, module: teacher, type: page, route: /edu/teacher/assignment, parent: PAGE-TCH-LIST, batch: "2-2", note: "PRD 6.1 写明为独立页，双栏承载教师视角 / 班级视角；批次 2-2b-2 交付" }
+  - { id: PAGE-TCH-LEAVE, name: 离职与调离登记, module: teacher, type: dialog, size: sm, parent: PAGE-TCH-LIST, batch: "2-2" }
+  - { id: PAGE-TCH-IMPORT, name: 教师导入向导, module: teacher, type: wizard, route: /edu/teacher/import, batch: "2-4", note: "2-4 已交付：教师管理列表工具条「导入」的模块快捷入口；9 列模板（REQ-TCH-050）、工号租户内唯一（BR-TEACHER-002）、教育角色列可多值" }
+
+  # ---- 年级管理 ----
+  - { id: PAGE-GRD-LIST, name: 年级管理列表, module: grade, type: page, route: /edu/grade/list, template: TPL-LIST, batch: "2-2" }
+  - { id: PAGE-GRD-DETAIL, name: 年级详情, module: grade, type: detail, container: drawer, size: lg, parent: PAGE-GRD-LIST, batch: "2-2", note: "PRD 6.1 写明详情页以抽屉承载；内含基本信息 / 下辖班级 / 在读学生统计 / 年级主任任职历史 / 变更记录 5 个分区" }
+  - { id: PAGE-GRD-CREATE, name: 新建 / 编辑年级, module: grade, type: dialog, size: md, parent: PAGE-GRD-LIST, batch: "2-2", note: "PRD 6.1 写明为弹窗；编辑复用同一弹窗的编辑态，不另立页面（GAP-038 裁决 A / CR-007）" }
+  - { id: PAGE-GRD-BATCH, name: 按学段批量生成, module: grade, type: dialog, size: md, parent: PAGE-GRD-LIST, batch: "2-2", note: "PRD 6.1 写明为弹窗；预览用列表而非表格（layout-spec 禁止在弹窗内放表格）" }
+  - { id: PAGE-GRD-LEADER, name: 指定年级主任, module: grade, type: dialog, size: md, parent: PAGE-GRD-LIST, batch: "2-2", note: "PRD 6.1 写明为弹窗；任职清单用列表渲染，不在弹窗内放表格" }
+  - { id: PAGE-GRD-ARCHIVE, name: 归档确认, module: grade, type: dialog, size: sm, parent: PAGE-GRD-LIST, batch: "2-2" }
+
+  # ---- 班级管理 ----
+  - { id: PAGE-CLS-LIST, name: 班级管理列表, module: class, type: page, route: /edu/class/list, template: TPL-LIST, batch: "2-3" }
+  - { id: PAGE-CLS-DETAIL, name: 班级详情, module: class, type: detail, route: /edu/class/detail, parent: PAGE-CLS-LIST, batch: "2-3", note: "PRD 6.1 写明为详情页（独立页）；顶部基本信息卡 + 4 个页签（花名册 / 任课教师 / 班主任任职历史 / 变更记录）；已交付（2-3b），外壳登记在 EXTRA_PAGES" }
+  - { id: PAGE-CLS-CREATE, name: 新建班级, module: class, type: dialog, size: md, parent: PAGE-CLS-LIST, batch: "2-3", note: "CR-009 / D-059：表单类浮层用弹窗（原登记为 drawer，与 D-059 冲突）" }
+  - { id: PAGE-CLS-BATCH, name: 批量生成班级, module: class, type: dialog, size: md, parent: PAGE-CLS-LIST, batch: "2-3", note: "CR-009：PRD 6.1 写明为弹窗，原登记的 drawer 与 PRD 不一致，按上游优先修正" }
+  - { id: PAGE-CLS-ROSTER-ADD, name: 添加学生, module: class, type: page, route: /edu/class/roster/add, parent: PAGE-CLS-DETAIL, batch: "2-3", note: "CR-009 / D-059：含检索列表（等价含表格）用独立页，原登记为 drawer" }
+  - { id: PAGE-CLS-TRANSFER, name: 调班, module: class, type: dialog, size: sm, parent: PAGE-CLS-DETAIL, batch: "2-3" }
+  - { id: PAGE-CLS-LEADER, name: 指定 / 变更班主任, module: class, type: dialog, size: md, parent: PAGE-CLS-LIST, batch: "2-3", note: "CR-009 补登记：REQ-CLS-006 / 048 / 050 要求，班主任的唯一写入入口（DP-01）" }
+  - { id: PAGE-CLS-COPY, name: 复制班级, module: class, type: dialog, size: md, parent: PAGE-CLS-LIST, batch: "2-3", note: "CR-009 补登记：REQ-CLS-061，不复制花名册与班主任" }
+  - { id: PAGE-CLS-MOVE, name: 批量迁学生, module: class, type: page, route: /edu/class/move-students, parent: PAGE-CLS-LIST, batch: "2-3", note: "CR-009 补登记：REQ-CLS-062，含影响预览表格，按 D-059 用独立页" }
+  - { id: PAGE-CLS-ROSTER-IMPORT, name: 编班表导入向导, module: class, type: wizard, route: /edu/class/import-roster, batch: "2-4", note: "2-4 已交付：按班级列的编班表（一行一学生含目标班级列，REQ-CLS-035）、两阶段校验（REQ-CLS-036）、导入幂等（REQ-CLS-037）；模板 4 列见 GAP-056" }
+  - { id: PAGE-CLS-TEACHING, name: 教学班管理, module: class, type: page, route: /edu/class/teaching, template: TPL-LIST, batch: "2-7", note: "2-7b 已交付：8 列教学班列表（名称 / 学年学期 / 年级 / 组合或学科 / 人数 / 任课教师 / 状态 / 操作）+ 行内详情抽屉与停用确认；行政班与教学班两套独立关系（BR-CLASS-001）、教学班不设班主任（REQ-CLS-039）、创建入口统一在生成向导（DP-01）" }
+  - { id: DRAWER-CLS-TEACHING, name: 教学班详情抽屉, module: class, type: detail, container: drawer, size: md, parent: PAGE-CLS-TEACHING, batch: "2-7", note: "2-7b 已交付：同页浮层片段（详情类用抽屉）；基本信息 + 跨行政班的成员清单 + 未同步的选科变更入口（REQ-STR-060）" }
+  - { id: DIALOG-TCL-DISABLE, name: 停用教学班确认, module: class, type: dialog, size: sm, parent: PAGE-CLS-TEACHING, batch: "2-7", note: "2-7b 已交付：同页浮层片段；危险动作二次确认，原因必填、写审计（REQ-CLS-047）" }
+  - { id: PAGE-CLS-MERGE, name: 班级合并, module: class, type: wizard, route: /edu/class/merge, batch: deferred, note: "PRD 已标明延后，本轮不做" }
+
+  # ---- 升班与学籍异动 ----
+  - { id: PAGE-PRM-LIST, name: 升班任务列表, module: promotion, type: page, route: /edu/promotion/list, template: TPL-LIST, batch: "2-3", note: "2-3e 首件样板已交付（2-3e-s1）：列表页 + 同页确认片段 DIALOG-PRM-CANCEL；按钮与权限按 CR-012（新建 = create，预览 / 执行 / 重试 / 取消 = update，read 决定列表可见性）" }
+  - { id: DIALOG-PRM-CANCEL, name: 取消升班任务确认, module: promotion, type: dialog, size: sm, parent: PAGE-PRM-LIST, batch: "2-3", note: "CR-013 补登记：PRD 6.1 的同页浮层片段，原因必填；取消后保留已完成部分、不做整批回滚（已确认 4 / REQ-PRM-036）" }
+  - { id: PAGE-PRM-CREATE, name: 新建升班任务, module: promotion, type: wizard, route: /edu/promotion/create, batch: "2-3", note: "2-3e-s2 已交付：向导第一步（选择源 / 目标学年学期 + 目标年级班级齐备性校验 + 在读规模与耗时预估）；步骤条可点，第 2 ~ 4 步为后续小批，点击给批次提示" }
+  - { id: PAGE-PRM-PREVIEW, name: 升班预览与调整, module: promotion, type: wizard, route: /edu/promotion/preview, batch: "2-3", note: "2-3e-s3 已交付：双栏（左源班级按 REQ-PRM-013 分组 + 批量指定目标班级 REQ-PRM-018，右逐学生明细）；只读角色无调整入口；含调整弹窗片段 PAGE-PRM-ADJUST" }
+  - { id: PAGE-PRM-ADJUST, name: 调整学生去向, module: promotion, type: dialog, size: md, parent: PAGE-PRM-PREVIEW, batch: "2-3", note: "CR-009 补登记：promotion PRD 6.3 与 REQ-PRM-017 / 018 要求；留级 / 转班 / 毕业 / 跳过。2-3e-s3 已交付：处理方式决定结果类型与必填项（留级去向 = 同学段同名年级，BR-PROMO-006；转班必须指定目标班级）" }
+  - { id: PAGE-PRM-VALIDATE, name: 升班校验结果, module: promotion, type: wizard, route: /edu/promotion/validate, batch: "2-3", note: "2-3e-s4 已交付：通过 / 警告 / 错误三分类统计（REQ-PRM-023）+ 按维度下钻（REQ-PRM-026）+ 错误项「标记跳过」放行（REQ-PRM-025）+ 存在错误时确认执行被拦；容量超限只警告（REQ-PRM-024）" }
+  - { id: PAGE-PRM-EXECUTE, name: 执行与进度, module: promotion, type: wizard, route: /edu/promotion/execute, batch: "2-3", note: "2-3e-s4 已交付：进度条（已处理 / 总数 REQ-PRM-031）+ 成功 / 失败 / 留级 / 毕业计数 + 最近处理记录时间线 + 「可离开页面」口径 + 排队中形态；取消入口指向任务列表的行内取消" }
+  - { id: PAGE-PRM-RESULT, name: 执行结果与重试, module: promotion, type: page, route: /edu/promotion/result, batch: "2-3", note: "2-3e-s4 已交付：四类清单切换（成功 / 失败 / 留级 / 毕业 REQ-PRM-034）+ 失败原因逐条（REQ-PRM-032）+ 只重试失败项 / 继续执行剩余项 + 结果导出（DS-DENY-04 重新解析范围）" }
+  - { id: PAGE-PRM-CHANGE, name: 学籍异动登记, module: promotion, type: dialog, size: md, parent: PAGE-STU-DETAIL, batch: "2-5", note: "2-5 已交付：与 PAGE-STU-STATUS 同字段集、同接口 changeEnrollmentStatus（字段只有一个写入口，DP-01）；额外强制阶段限制（义务教育不得开除）与审批要求（退学 / 开除 / 死亡需校级管理员审批）" }
+  - { id: PAGE-PRM-TRANSFER, name: 跨校转学, module: promotion, type: wizard, route: /edu/promotion/transfer, batch: "2-5", note: "2-5 已交付：转入校视角四步（待接收清单 → 核对与接收 → 接收确认 → 报到）；接收动作本身即审批（已确认 3）、接收前不计入在读数（REQ-PRM-053）、未报到前可撤销接收（REQ-PRM-054）" }
+  - { id: PAGE-PRM-HISTORY, name: 异动历史, module: promotion, type: page, route: /edu/promotion/history, template: TPL-LIST, batch: "2-5", note: "2-5 已交付：筛选（类型 / 学年学期 / 年级 / 生效日期）+ 追加式记录表（类型·生效日期·原状态·新状态·操作人·原因）+ 行内「查看学生」+「异动登记」入口唯一（跳学生列表并由 data-panel-hash 打开 PAGE-PRM-CHANGE）" }
+
+  # ---- 学校管理 ----
+  - { id: PAGE-SCH-LIST, name: 学校管理列表, module: school, type: page, route: /edu/school/list, template: TPL-LIST, batch: "2-6" , note: "2-6a 已交付：学校列表（名称 / 编码 / 学段 / 校区数 / 班级数 / 在读学生 / 状态 / 所属租户）；校区数可点跳校区管理（GAP-046 选项 A）；空数据 / 加载中 / 查询失败 / 无权限 / 提交中五类状态" }
+  - { id: PAGE-SCH-DETAIL, name: 学校详情, module: school, type: detail, parent: PAGE-SCH-LIST, batch: "2-6" , note: "2-6a 已交付：详情抽屉三个分区（基本信息 / 规模概览 / 学段配置）+ 底部操作条（编辑 / 校区管理 / 学段配置 / 停用学校）" }
+  - { id: PAGE-SCH-CREATE, name: 新建学校, module: school, type: dialog, size: md, parent: PAGE-SCH-LIST, batch: "2-6" , note: "2-6a 已交付：新建学校弹窗（CR-015 由抽屉改为弹窗）：名称必填、所属租户必选、至少一个学段、编码系统生成" }
+  - { id: PAGE-SCH-EDIT, name: 编辑学校, module: school, type: dialog, size: md, parent: PAGE-SCH-LIST, batch: "2-6" , note: "2-6a 已交付：编辑学校弹窗；编码与所属租户只读（编码变更走 updateSchoolCode 并写审计）" }
+  - { id: PAGE-SCH-CAMPUS, name: 校区管理, module: school, type: page, route: /edu/school/campus, parent: PAGE-SCH-DETAIL, batch: "2-6", note: "CR-008 / D-059：含表格与分页的内容用独立页，不用抽屉或弹窗" }
+  - { id: PAGE-SCH-STAGE, name: 学段配置, module: school, type: dialog, size: sm, parent: PAGE-SCH-DETAIL, batch: "2-6" , note: "2-6a 已交付：学段配置弹窗；学段序号固定映射（小学 1–6、初中 / 高中 1–3，RV-GRD-03）" }
+  - { id: PAGE-SCH-INIT, name: 开通初始化向导, module: school, type: wizard, route: /edu/school/init, batch: "2-6", note: "2-6b 已交付：四步开通初始化（学校基本信息 → 学段与年级 → 学年学期 → 执行与结果）；initSchoolBaseline 幂等，已存在对象跳过不覆盖" }
+  - { id: PAGE-SCH-DISABLE, name: 停用确认, module: school, type: dialog, size: sm, parent: PAGE-SCH-LIST, batch: "2-6" , note: "2-6a 已交付：停用学校二次确认：影响范围（不再出现在业务选择项、历史保留）+ 原因必填写审计" }
+
+  # ---- 学年学期 ----
+  - { id: PAGE-TERM-LIST, name: 学年学期列表, module: term, type: page, route: /edu/term/list, template: TPL-LIST, batch: "2-6", note: "2-6b 已交付：学年列表（学年 / 起止日期 / 学期数 / 当前学年学期 / 状态）+ 新建学年、设为当前、归档三个弹窗；学年日期连续不重叠（RV-TERM-08）" }
+  - { id: PAGE-TERM-CREATE, name: 新建学年, module: term, type: dialog, size: sm, parent: PAGE-TERM-LIST, batch: "2-6" }
+  - { id: PAGE-TERM-TERMS, name: 学期管理, module: term, type: page, route: /edu/term/terms, parent: PAGE-TERM-LIST, batch: "2-6", note: "CR-008 / D-059：含表格的内容用独立页" }
+  - { id: PAGE-TERM-SETCURRENT, name: 设为当前学年学期, module: term, type: dialog, size: sm, parent: PAGE-TERM-LIST, batch: "2-6" }
+  - { id: PAGE-TERM-ARCHIVE, name: 学年归档, module: term, type: dialog, size: sm, parent: PAGE-TERM-LIST, batch: "2-6" }
+
+  # ---- 学科与配置 ----
+  - { id: PAGE-SUB-LIST, name: 学科列表, module: subject, type: page, route: /edu/subject/list, template: TPL-LIST, batch: "2-6", note: "2-6c 已交付：学科列表 8 列（编码 / 名称 / 启用学段 / 参与 3+1+2 / 选科角色 / 排序号 / 状态 / 操作）+ 5 个弹窗；固定集合口径与三类引用检查（REQ-SUB-034）写在页面上" }
+  - { id: PAGE-SUB-CREATE, name: 新建学科, module: subject, type: dialog, size: sm, parent: PAGE-SUB-LIST, batch: "2-6", note: "2-6c 已交付：新建学科弹窗（名称 / 编码 / 启用学段多选 / 排序号）；选科角色默认 none（REQ-SUB-017）" }
+  - { id: PAGE-SUB-EDIT, name: 编辑学科, module: subject, type: dialog, size: sm, parent: PAGE-SUB-LIST, batch: "2-6", note: "2-6c 已交付：编辑学科弹窗（名称 / 学段可改、编码只读）；编码变更走 updateSubjectCode 并检查引用一致性" }
+  - { id: PAGE-SUB-STREAM, name: 选科角色配置, module: subject, type: dialog, size: sm, parent: PAGE-SUB-LIST, batch: "2-6", note: "2-6c 已交付：选科角色配置弹窗：首选只允许物理 / 历史、再选只允许化学 / 生物 / 思想政治 / 地理（REQ-SUB-019 / 020），变更前校验已有选科数据（REQ-SUB-022）" }
+  - { id: PAGE-SUB-STAGE, name: 学段启用配置, module: subject, type: dialog, size: sm, parent: PAGE-SUB-LIST, batch: "2-6", note: "2-6c 已交付：学段启用配置弹窗（多选，未开设学段置灰）；停用学段前给影响提示（REQ-SUB-028）" }
+  - { id: PAGE-SUB-BATCH, name: 按学段批量初始化, module: subject, type: dialog, size: sm, parent: PAGE-SUB-LIST, batch: "2-6", note: "2-6c 已交付：按学段批量初始化弹窗（标准 9 学科清单、已存在跳过，幂等）" }
+
+  # ---- 选科与教学班 ----
+  - { id: PAGE-STR-CONFIG, name: 选科配置, module: stream, type: page, route: /edu/stream/config, template: TPL-DETAIL, batch: "2-7", note: "2-7a 已交付：开放期与截止时间（BR-STREAM-005 逾期需校级管理员审批）+ 固定规则卡片（首选物理 / 历史、再选 4 选 2、同一学生同时只允许一条待审批申请）；页内表单自带 validateScope" }
+  - { id: PAGE-STR-STUDENT, name: 学生选科, module: stream, type: page, route: /edu/stream/selection, template: TPL-DETAIL, batch: "2-7", note: "2-7a 已交付：首选卡片物理 / 历史二选一 + 再选卡片 4 选 2、即时计数与提交拦截（REQ-STR-004 / 005）、已选组合回显与修改入口（逾期转变更申请）" }
+  - { id: PAGE-STR-LIST, name: 选科清单, module: stream, type: page, route: /edu/stream/list, template: TPL-LIST, batch: "2-7", note: "2-7a 已交付：8 列 6 行清单（学号 / 姓名 / 行政班 / 首选 / 再选 / 组合 / 状态 / 操作）+ 页内 PAGE-STR-HISTORY 时间线区块 + PAGE-STR-CHANGE 变更申请弹窗；列宽合计 = 表格 min-width 1080" }
+  - { id: PAGE-STR-STAT, name: 组合分布统计, module: stream, type: page, route: /edu/stream/stat, template: TPL-DETAIL, batch: "2-7", note: "2-7b 已交付：总览五张统计卡 + 组合分布柱条（6 组合合计 12 人）+ 组合明细 6 列（可下钻「查看学生」）+ 各学科选择人数（首选 12 人 / 再选 24 人次）；待审批不计入分布（BR-STREAM-006）、统计与清单同口径（REQ-STR-050）、受范围约束（DS-DENY-08）" }
+  - { id: PAGE-STR-CHANGE, name: 发起变更申请, module: stream, type: dialog, size: sm, parent: PAGE-STR-LIST, batch: "2-7", note: "2-7a 已交付：逾期变更申请弹窗（新组合 / 变更原因必填）；同一学生同时只允许一条待审批申请（BR-STREAM-007）" }
+  - { id: PAGE-STR-APPROVE, name: 变更审批待办, module: stream, type: page, route: /edu/stream/approve, template: TPL-LIST, batch: "2-7", note: "2-7b 已交付：10 列审批待办（默认筛「待审批」、按提交时间升序）+ 行内「审批」打开 DIALOG-STR-APPROVE；审批人是校级管理员、教务主任不能自审（REQ-STR-034）、通过前保持原值（BR-STREAM-006）、驳回意见必填（REQ-STR-037）、弹窗同时展示原 / 新组合（REQ-STR-038）" }
+  - { id: PAGE-STR-HISTORY, name: 选科历史, module: stream, type: block, parent: PAGE-STR-LIST, batch: "2-7", note: "2-7a 已交付：追加式时间线（变更日期 / 原组合 → 新组合 / 操作人 / 原因），不提供删除（BR-AUDIT-003）" }
+  - { id: PAGE-STR-GEN-CLASS, name: 按组合生成教学班, module: stream, type: wizard, route: /edu/stream/generate-class, batch: "2-7", note: "2-7b 已交付：四步（选方式与范围 → 生成预览 → 执行与进度 → 核对结果）；支持按完整组合与按单学科两种粒度（REQ-STR-058）、幂等（REQ-STR-057）、写入由班级模块执行（REQ-STR-056）、核对人数与统计一致性并给差异清单（REQ-STR-059 / 060）" }
+  - { id: DIALOG-STR-APPROVE, name: 选科变更审批弹窗, module: stream, type: dialog, size: sm, parent: PAGE-STR-APPROVE, batch: "2-7", note: "2-7b 已交付：同页浮层片段（CR-008 / D-059 表单类浮层用弹窗）；原 / 新组合对比 + 审批意见 + 同意并生效 / 驳回" }
+
+  # ---- 导入导出与异步任务 ----
+  - { id: PAGE-IMP-WIZARD, name: 导入向导, module: import-export, type: wizard, route: /edu/import/wizard, batch: "2-4", note: "2-4 已交付：四步向导（选模板 → 上传并同步校验 → 校验结果 → 异步执行），页内含 PAGE-IMP-TEMPLATE / PAGE-IMP-VALIDATE / PAGE-IMP-EXECUTE 三个区块；5000 行 / 10 MB / 30 秒与并发配额按 IMP-Q-01 ~ 05 落地" }
+  - { id: PAGE-IMP-TEMPLATE, name: 模板下载与说明, module: import-export, type: block, parent: PAGE-IMP-WIZARD, batch: "2-4", note: "2-4 已交付：模板选择 + 版本口径（BR-IMP-007）+ 14 / 9 / 4 列清单 + 下载模板（downloadImportTemplate）" }
+  - { id: PAGE-IMP-VALIDATE, name: 校验结果, module: import-export, type: block, parent: PAGE-IMP-WIZARD, batch: "2-4", note: "2-4 已交付：总数 / 可执行 / 失败三档统计 + 失败明细（行号·对象·原因）+ 下载失败明细 + 失败行处理策略 + 学号对照表说明" }
+  - { id: PAGE-IMP-EXECUTE, name: 执行与进度, module: import-export, type: block, parent: PAGE-IMP-WIZARD, batch: "2-4", note: "2-4 已交付：异步任务编号 + 进度条 + 成功 / 失败计数 + 并发配额 + 结果文件 7 天 / 元数据 90 天口径" }
+  - { id: PAGE-IMP-TASK-LIST, name: 异步任务列表, module: import-export, type: page, route: /edu/async-task/list, template: TPL-LIST, batch: "2-9", note: "2-9 已交付：8 列任务列表（编号 / 类型 / 状态 / 进度 / 发起人 / 发起时间 / 耗时 / 操作）+ 5 个筛选器 + 自动刷新开关 + 导出任务清单；默认只看本人任务（REQ-IMP-032）、自动刷新失败降级手动（REQ-IMP-035）、结果下载重新解析范围（REQ-IMP-036）" }
+  - { id: PAGE-IMP-TASK-DETAIL, name: 任务详情, module: import-export, type: detail, container: drawer, size: md, parent: PAGE-IMP-TASK-LIST, batch: "2-9", note: "2-9 已交付：详情抽屉（任务类型 / 状态 / 批次号幂等键 / 耗时 / 发起人 / 参数摘要 + 进度与结果文件 + 重试与下载）；下载走短时签名且写审计（REQ-IMP-042 / 043）" }
+  - { id: PAGE-IMP-EXPORT, name: 导出配置, module: import-export, type: dialog, size: md, parent: PAGE-IMP-TASK-LIST, batch: "2-9", note: "2-9 已交付：导出配置弹窗（列选择 + 掩码 / 明文开关 + 格式）；行数 > 2000 转异步任务；明文导出额外写审计（BR-IMP-012 / NFR-AUDIT-03）" }
+  - { id: PAGE-IMP-DEADLETTER, name: 死信任务, module: import-export, type: page, route: /edu/async-task/dead-letter, template: TPL-LIST, batch: "2-9", note: "2-9 已交付：7 列死信明细（编号 / 类型 / 进入死信时间 / 重试次数 / 最后错误 / 原批次号 / 操作）+ 重试与并发配置可观测；超过最大重试次数进入死信，重放写审计（REQ-IMP-038 / 039 / 052）" }
+  - { id: DIALOG-DLQ-REPLAY, name: 死信重放确认, module: import-export, type: dialog, size: sm, parent: PAGE-IMP-DEADLETTER, batch: "2-9", note: "2-9 已交付：同页浮层片段；危险动作二次确认，重放原因必填，复用原批次号与幂等键（CR-019）" }
+
+  # ---- 审计与操作日志 ----
+  - { id: PAGE-AUDIT-LOG-LIST, name: 操作日志, module: audit, type: page, route: /edu/audit/log/list, template: TPL-LIST, batch: "2-8", note: "2-8 已交付：9 列日志列表（时间 / 操作人 / 角色 / 操作类型 / 对象类型 / 对象标识 / 结果 / 来源 IP / 操作）+ 5 个筛选器；默认最近 7 天、单次查询上限 90 天（REQ-AUD-020 / 021）；不可篡改（REQ-AUD-025 / 030 / 031）；查询不写日志但导出写（REQ-AUD-011）" }
+  - { id: PAGE-AUDIT-LOG-DETAIL, name: 日志详情, module: audit, type: detail, container: drawer, size: lg, parent: PAGE-AUDIT-LOG-LIST, batch: "2-8", note: "2-8 已交付：详情抽屉（8 个基本信息字段 + 变更明细 diff + 对象变更时间线区块）；变更前 / 后值按掩码展示（BR-AUDIT-007 / NFR-SEC-06）" }
+  - { id: PAGE-AUDIT-OBJECT-TIMELINE, name: 对象变更时间线, module: audit, type: block, parent: PAGE-AUDIT-LOG-DETAIL, batch: "2-8", note: "2-8 已交付：详情抽屉内的区块，按对象串联全部变更（追加式不可删除，REQ-AUD-023 / BR-AUDIT-003）" }
+  - { id: DIALOG-AUD-EXPORT, name: 日志导出配置, module: audit, type: dialog, size: md, parent: PAGE-AUDIT-LOG-LIST, batch: "2-8", note: "2-8 已交付：同页浮层片段（审计 PRD 6.3 要求「点击导出打开导出配置弹窗」）；格式 / 行数上限 50000 / 用途说明必填；导出前重新解析范围（REQ-AUD-026 ~ 029 / DS-DENY-04）" }
+  - { id: PAGE-AUDIT-OPS-ACCESS, name: 运营访问记录, module: audit, type: page, route: /edu/audit/operator-access, template: TPL-LIST, batch: "2-8", note: "2-8 已交付：7 列运营访问明细（访问时间 / 运营账号 / 对象类型 / 对象标识 / 访问动作 / 用途说明 / 来源 IP）+ 租户侧自助查询与导出；归属被访问租户（REQ-AUD-013 ~ 017）" }
+  - { id: PAGE-AUDIT-SENSITIVE-ACCESS, name: 敏感数据访问记录, module: audit, type: page, route: /edu/audit/sensitive-access, template: TPL-LIST, batch: "2-8", note: "2-8 已交付：7 列访问明细（查看人 / 角色 / 对象 / 敏感字段 / 访问方式 / 用途说明）；掩码不记录、只有揭示明文才记录（REQ-AUD-008 ~ 012）" }
+  - { id: PAGE-AUDIT-SECURITY-EVENT, name: 登录与安全事件, module: audit, type: page, route: /edu/audit/security-event, template: TPL-LIST, batch: "2-8", note: "2-8 已交付：7 列事件明细（时间 / 事件类型 / 账号 / 相关人 / 结果 / 来源 IP / 说明）；事件含登录失败、锁定、激活码查看与重置、学号变更、权限变更（REQ-AUD-007）" }
+  - { id: PAGE-AUDIT-ARCHIVE, name: 归档管理, module: audit, type: page, route: /edu/audit/archive, template: TPL-LIST, batch: "2-8", note: "2-8 已交付：7 列归档批次（批次 / 范围 / 行数 / 状态 / 操作人 / 归档时间 / 操作）+ 归档区间检索 + 写入失败与只读降级运维提醒；归档不删数据、仍可检索（REQ-AUD-032 ~ 038）" }
+
+  # ---- 独立页（不属于任何模块菜单） ----
+  - { id: PAGE-LOGIN, name: 登录, module: common, type: standalone, route: /login, batch: "2-4", note: "2-4 已交付：不套管理外壳（与真实系统一致）；多校切换、学生 s+学号（BR-ACCOUNT-002）、首次登录强制改密（D-039）、连续 5 次错误锁定 5 分钟（NFR-SEC-04）" }
+  - { id: PAGE-403, name: 无权限, module: common, type: standalone, route: /403, batch: "2-4", note: "2-4 已交付：说明功能权限或数据范围为空集时不降级为全量（DS-DENY-03 / NFR-SEC-05），给返回工作台与申请开通入口" }
+  - { id: PAGE-404, name: 页面不存在, module: common, type: standalone, route: /404, batch: "2-4", note: "2-4 已交付：指向 navigation.yaml 的页面注册表（看不到的入口原型里不允许出现），给返回上一页与返回工作台" }
+  - { id: PAGE-500, name: 服务异常, module: common, type: standalone, route: /500, batch: "2-4", note: "2-4 已交付：请求编号 + 错误码 + 已自动上报；写明批量写操作走异步任务、不产生部分写入（NFR-MQ-02）" }
+
+# ---------------------------------------------------------------------------
+# 4. 交付批次（页面总数与 README 的对照表必须一致）
+# ---------------------------------------------------------------------------
+delivery_batches:
+  - { batch: "2-0", content: 原型规范（layout-spec / navigation / page-actions / markup-contract / 样例数据）, pages: 0, status: 本批 }
+  - { batch: "2-1", content: 学生管理列表 + 新增/编辑抽屉（样板）, pages: 3, status: 待验收 }
+  - { batch: "2-2", content: "教师管理 + 年级管理（执行时拆为 2-2a 教师列表 1 页 / 2-2b-1 教师详情与新增编辑 3 项 / 2-2b-2 角色与任教 2 项 / 2-2b-2b 年级 6 页）", pages: 13, status: "2-2a、2-2b-1、2-2b-2 已产出待验收；2-2b-2b 的年级 6 页全部产出待验收（含删除确认浮层片段 DIALOG-GRD-DELETE 与 ACT-GRD-001 ~ 029）" }
+  - { batch: "2-3", content: 班级管理 + 班级详情 + 升班向导, pages: 17, status: "已全部产出待验收：2-3a 班级列表、2-3b 班级详情（含花名册）、2-3c 四个弹窗、2-3d 编班 / 批量迁学生 / 移出与调班、2-3e 升班 6 页（PAGE-PRM-LIST / CREATE / PREVIEW / VALIDATE / EXECUTE / RESULT）+ 2 个同页片段（DIALOG-PRM-CANCEL、PAGE-PRM-ADJUST）；动作 ACT-CLS-001 ~ 064、ACT-PRM-001 ~ 043 已登记" }
+  - { batch: "2-4", content: 导入向导 + 登录 + 异常页, pages: 11, status: "已全部产出待验收：PAGE-IMP-WIZARD（含 TEMPLATE / VALIDATE / EXECUTE 三个区块）、PAGE-STU-IMPORT / PAGE-TCH-IMPORT / PAGE-CLS-ROSTER-IMPORT（模块快捷入口）、PAGE-LOGIN / PAGE-403 / PAGE-404 / PAGE-500（不套管理外壳）；动作 ACT-IMP-001 ~ 010、ACT-IO-001 ~ 002、ACT-AUTH-001 ~ 003、ACT-ERR-001 ~ 005 已登记" }
+  - { batch: "2-5", content: 学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录）, pages: 8, status: "已全部产出待验收：PAGE-STU-DETAIL（抽屉，含 PAGE-STU-HISTORY 区块）与三个同页弹窗（PAGE-STU-STATUS / PAGE-STU-TRANSFER / PAGE-PRM-CHANGE）、PAGE-STU-CROSS-TRANSFER / PAGE-PRM-TRANSFER（转出校 / 转入校两侧向导）、PAGE-PRM-HISTORY（异动历史列表）；动作 ACT-STU-023 ~ 034、ACT-STU-040 ~ 043、ACT-PRM-044 ~ 048、ACT-PRM-050 ~ 054 已登记" }
+  - { batch: "2-6", content: 学校管理 + 学年学期 + 学科与配置, pages: 19, status: "已全部产出待验收：2-6a 学校管理 6 页、2-6b 校区 / 开通初始化 / 学年学期 4 页、2-6c 学科与配置 6 页（ACT-SUB-001 ~ 018）；本批 9 条表单浮层已按 CR-015 由抽屉改为弹窗" }
+  - { batch: "2-7", content: 选科与教学班, pages: 12, status: "已全部产出待验收：2-7a 选科配置 / 学生选科 / 选科清单（含 PAGE-STR-CHANGE 与 PAGE-STR-HISTORY 片段）、2-7b 组合分布统计 / 变更审批待办 / 按组合生成教学班 / 教学班管理 + 3 个同页片段（DIALOG-STR-APPROVE / DRAWER-CLS-TEACHING / DIALOG-TCL-DISABLE）；动作 ACT-STR-001 ~ 058、ACT-TCL-001 ~ 012 已登记" }
+  - { batch: "2-8", content: 审计与操作日志, pages: 8, status: "已全部产出待验收：操作日志（含 PAGE-AUDIT-LOG-DETAIL 详情抽屉与 PAGE-AUDIT-OBJECT-TIMELINE 时间线区块）、日志导出配置片段 DIALOG-AUD-EXPORT、运营访问记录、敏感数据访问记录、登录与安全事件、归档管理（5 个页面文件）；动作 ACT-AUD-001 ~ 065 已登记" }
+  - { batch: "2-9", content: 异步任务中心 + 死信 + 导出配置, pages: 5, status: "已全部产出待验收：异步任务列表（含 PAGE-IMP-TASK-DETAIL 详情抽屉与 PAGE-IMP-EXPORT 导出配置弹窗）、死信任务（含 DIALOG-DLQ-REPLAY 重放确认片段）；动作 ACT-TASK-001 ~ 051 已登记" }
+  - { batch: deferred, content: "已延后页面（PRD 标注本轮不做）", pages: 1, status: 已延后 }
+
+# ---------------------------------------------------------------------------
+# 5. 关键跳转关系（原型必须能按这些路径点通）
+# ---------------------------------------------------------------------------
+jump_map:
+  - { from: PAGE-STU-LIST, trigger: 点击行, to: PAGE-STU-DETAIL, keep_filters: true }
+  - { from: PAGE-TCH-LIST, trigger: 点击行, to: PAGE-TCH-DETAIL, overlay: drawer, keep_filters: true }
+  - { from: PAGE-TCH-LIST, trigger: 行内"编辑", to: PAGE-TCH-EDIT, overlay: dialog }
+  - { from: PAGE-TCH-LIST, trigger: 行内"角色", to: PAGE-TCH-ROLE, overlay: dialog }
+  - { from: PAGE-TCH-LIST, trigger: 行内"任教", to: PAGE-TCH-ASSIGN, overlay: page }
+  - { from: PAGE-TCH-LIST, trigger: 行内"离职", to: PAGE-TCH-LEAVE, overlay: dialog }
+  - { from: PAGE-TCH-LIST, trigger: 点击"导入", to: PAGE-TCH-IMPORT, overlay: page }
+  - { from: PAGE-TCH-DETAIL, trigger: 详情"编辑", to: PAGE-TCH-EDIT, overlay: dialog }
+  - { from: PAGE-TCH-DETAIL, trigger: 详情"分配角色", to: PAGE-TCH-ROLE, overlay: dialog }
+  - { from: PAGE-TCH-DETAIL, trigger: 详情"设置任教", to: PAGE-TCH-ASSIGN, overlay: page }
+  - { from: PAGE-TCH-DETAIL, trigger: 班主任任职"前往班级详情", to: PAGE-CLS-DETAIL, overlay: page }
+  - { from: PAGE-TCH-DETAIL, trigger: 变更记录"查看全部", to: PAGE-AUDIT-LOG-LIST, overlay: page }
+  - { from: PAGE-TCH-ASSIGN, trigger: 左侧列表选择班级 / 教师, to: PAGE-TCH-ASSIGN, overlay: block, note: 同页内切换主体，不跳页 }
+  - { from: PAGE-TCH-ASSIGN, trigger: 主体页头"前往班级详情", to: PAGE-CLS-DETAIL, overlay: page }
+  - { from: PAGE-TCH-ASSIGN, trigger: 工具条"复制上一学年", to: PAGE-TCH-ASSIGN, overlay: dialog, note: 就地打开复制预览弹窗 }
+  - { from: PAGE-STU-LIST, trigger: 点击"新增", to: PAGE-STU-CREATE, overlay: dialog }
+  - { from: PAGE-STU-LIST, trigger: 行内"编辑", to: PAGE-STU-EDIT, overlay: dialog }
+  - { from: PAGE-STU-LIST, trigger: 点击"导入", to: PAGE-STU-IMPORT, overlay: page }
+  - { from: PAGE-STU-DETAIL, trigger: 行内"异动", to: PAGE-STU-STATUS, overlay: dialog }
+  - { from: PAGE-STU-DETAIL, trigger: 行内"调班", to: PAGE-STU-TRANSFER, overlay: dialog }
+  - { from: PAGE-STU-DETAIL, trigger: 锚点"变更记录", to: PAGE-STU-HISTORY, overlay: block }
+  - { from: PAGE-STU-DETAIL, trigger: 顶部"跨校转学", to: PAGE-STU-CROSS-TRANSFER, overlay: page }
+  - { from: PAGE-CLS-LIST, trigger: 点击行, to: PAGE-CLS-DETAIL, keep_filters: true }
+  - { from: PAGE-CLS-LIST, trigger: 行内"指定班主任", to: PAGE-CLS-LEADER, overlay: dialog }
+  - { from: PAGE-CLS-LIST, trigger: 行内"复制班级", to: PAGE-CLS-COPY, overlay: dialog }
+  - { from: PAGE-CLS-LIST, trigger: 行内"批量迁学生", to: PAGE-CLS-MOVE, overlay: page }
+  - { from: PAGE-CLS-DETAIL, trigger: "添加学生", to: PAGE-CLS-ROSTER-ADD, overlay: page }
+  - { from: PAGE-CLS-DETAIL, trigger: 行内"调班", to: PAGE-CLS-TRANSFER, overlay: dialog }
+  - { from: PAGE-CLS-DETAIL, trigger: "指定班主任", to: PAGE-CLS-LEADER, overlay: dialog }
+  - { from: PAGE-CLS-DETAIL, trigger: "复制班级", to: PAGE-CLS-COPY, overlay: dialog }
+  - { from: PAGE-CLS-DETAIL, trigger: "批量迁学生", to: PAGE-CLS-MOVE, overlay: page }
+  - { from: PAGE-PRM-LIST, trigger: "新建升班任务", to: PAGE-PRM-CREATE, overlay: page }
+  - { from: PAGE-PRM-LIST, trigger: 行内"预览" / "重新预览", to: PAGE-PRM-PREVIEW, overlay: page }
+  - { from: PAGE-PRM-LIST, trigger: 行内"执行" / "查看校验", to: PAGE-PRM-VALIDATE, overlay: page }
+  - { from: PAGE-PRM-LIST, trigger: 行内"重试失败项" / "重试" / "继续执行剩余项", to: PAGE-PRM-RESULT, overlay: page }
+  - { from: PAGE-PRM-LIST, trigger: 行内"查看结果" / "查看进度", to: PAGE-PRM-RESULT, overlay: page }
+  - { from: PAGE-PRM-LIST, trigger: 行内"取消", to: DIALOG-PRM-CANCEL, overlay: dialog }
+  - { from: PAGE-PRM-CREATE, trigger: 下一步, to: PAGE-PRM-PREVIEW, overlay: page }
+  - { from: PAGE-PRM-PREVIEW, trigger: 点击某学生, to: PAGE-PRM-ADJUST, overlay: dialog }
+  - { from: PAGE-PRM-PREVIEW, trigger: 下一步, to: PAGE-PRM-VALIDATE, overlay: page }
+  - { from: PAGE-PRM-VALIDATE, trigger: 确认执行, to: PAGE-PRM-EXECUTE, overlay: page }
+  - { from: PAGE-PRM-EXECUTE, trigger: 执行完成, to: PAGE-PRM-RESULT, overlay: page }
+  - { from: PAGE-IMP-WIZARD, trigger: 步骤一, to: PAGE-IMP-TEMPLATE, overlay: block }
+  - { from: PAGE-IMP-WIZARD, trigger: 步骤三, to: PAGE-IMP-VALIDATE, overlay: block }
+  - { from: PAGE-IMP-WIZARD, trigger: 确认执行, to: PAGE-IMP-EXECUTE, overlay: block }
+  - { from: PAGE-IMP-TASK-LIST, trigger: 点击行, to: PAGE-IMP-TASK-DETAIL, overlay: detail }
+  - { from: PAGE-STR-CONFIG, trigger: "查看选科清单", to: PAGE-STR-LIST, overlay: page }
+  - { from: PAGE-STR-STUDENT, trigger: 锚点"查看选科历史", to: PAGE-STR-HISTORY, overlay: block }
+  - { from: PAGE-STR-LIST, trigger: "组合分布统计", to: PAGE-STR-STAT, overlay: page }
+  - { from: PAGE-STR-LIST, trigger: "选科配置", to: PAGE-STR-CONFIG, overlay: page }
+  - { from: PAGE-STR-LIST, trigger: 行内"发起变更", to: PAGE-STR-CHANGE, overlay: dialog }
+  - { from: PAGE-STR-STAT, trigger: 行内"查看学生", to: PAGE-STR-LIST, overlay: page, note: 带组合筛选下钻（REQ-STR-049） }
+  - { from: PAGE-STR-STAT, trigger: "按组合生成教学班", to: PAGE-STR-GEN-CLASS, overlay: page }
+  - { from: PAGE-STR-APPROVE, trigger: 行内"审批", to: DIALOG-STR-APPROVE, overlay: dialog }
+  - { from: PAGE-STR-GEN-CLASS, trigger: "去教学班管理", to: PAGE-CLS-TEACHING, overlay: page }
+  - { from: PAGE-STR-GEN-CLASS, trigger: "查看组合分布统计", to: PAGE-STR-STAT, overlay: page }
+  - { from: PAGE-CLS-TEACHING, trigger: 行内"详情", to: DRAWER-CLS-TEACHING, overlay: drawer }
+  - { from: PAGE-CLS-TEACHING, trigger: 行内"停用", to: DIALOG-TCL-DISABLE, overlay: dialog }
+  - { from: PAGE-CLS-TEACHING, trigger: "去生成教学班", to: PAGE-STR-GEN-CLASS, overlay: page }
+  - { from: PAGE-AUDIT-LOG-LIST, trigger: 点击行 / 行内"详情", to: PAGE-AUDIT-LOG-DETAIL, overlay: drawer, keep_filters: true }
+  - { from: PAGE-AUDIT-LOG-DETAIL, trigger: 锚点"该对象的全部变更", to: PAGE-AUDIT-OBJECT-TIMELINE, overlay: block }
+  - { from: PAGE-AUDIT-LOG-LIST, trigger: "导出", to: DIALOG-AUD-EXPORT, overlay: dialog }
+  - { from: PAGE-IMP-TASK-LIST, trigger: 点击行 / 行内"详情", to: PAGE-IMP-TASK-DETAIL, overlay: drawer, keep_filters: true }
+  - { from: PAGE-IMP-TASK-LIST, trigger: "导出任务清单", to: PAGE-IMP-EXPORT, overlay: dialog }
+  - { from: PAGE-IMP-TASK-LIST, trigger: 行内"下载", to: PAGE-IMP-TASK-DETAIL, overlay: drawer, note: 下载走短时签名，动作写审计 }
+  - { from: PAGE-IMP-DEADLETTER, trigger: 行内"重放", to: DIALOG-DLQ-REPLAY, overlay: dialog }
+  - { from: PAGE-AUDIT-LOG-LIST, trigger: 点击行, to: PAGE-AUDIT-LOG-DETAIL, overlay: detail }
+  - { from: PAGE-AUDIT-LOG-DETAIL, trigger: "对象标识", to: PAGE-AUDIT-OBJECT-TIMELINE, overlay: block }
+  - { from: PAGE-SCH-LIST, trigger: "行内「校区数」", to: PAGE-SCH-CAMPUS, overlay: page, note: "GAP-046 选项 A：校区检索入口复用学校详情下的校区管理页，不新增页面" }
+
+back_rules:
+  - 抽屉与弹窗关闭后回到来源页面，且保留筛选条件与分页位置
+  - 详情页返回列表时保留筛选条件、分页与列配置
+  - 向导页的"取消"需二次确认，确认后回到列表并丢弃草稿
+
+# ---------------------------------------------------------------------------
+# 6. 入口条件（谁能看到入口）
+# ---------------------------------------------------------------------------
+entry_rules:
+  - 无功能权限时不渲染入口，且后台接口同样拒绝（NFR-SEC-05）
+  - 无数据范围时页面显示"当前账号没有可查看的数据"状态，不显示空表格
+  - 教师模块的任课教师：只能看到本人任教相关入口，不出现导入按钮
+  - 学生模块的班主任：不出现"新增 / 导入"，出现"编辑监护人信息"
+  - 平台运营：默认只读，不出现任何写操作入口，导出需显式授权
+  - 集团用户：只出现集团自有数据入口，不出现下属学校教学数据入口
+
+# ---------------------------------------------------------------------------
+# 7. 自查清单
+# ---------------------------------------------------------------------------
+checks:
+  - 每个页面都能在 page-actions.yaml 中找到它的动作
+  - 每条 jump_map 的两个端点都在 pages 中注册
+  - 每个页面的 batch 都在 delivery_batches 中有定义
+  - 菜单项的 permission 都能在 05-permission-matrix.yaml 中找到

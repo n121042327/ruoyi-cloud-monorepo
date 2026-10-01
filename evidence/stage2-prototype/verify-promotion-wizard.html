@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>升班向导第 2 ~ 4 步交互验证</title>
+<style>
+  body { margin: 14px; background: #fff; color: #24292f;
+         font: 13px/1.55 Consolas, "Microsoft YaHei", monospace; }
+  h1 { font-size: 17px; margin: 0 0 8px; }
+  ol { margin: 0 0 10px; padding-left: 22px; }
+  li.ok { color: #1a7f37; }
+  li.bad { color: #c0392b; font-weight: 700; }
+  p.sum { font-weight: 700; }
+  p.sum.bad { color: #c0392b; }
+  .frames { display: flex; flex-wrap: wrap; gap: 10px; }
+  iframe { width: 700px; height: 460px; border: 1px solid #dcdfe6; }
+</style>
+</head>
+<body>
+<h1>升班向导第 2 ~ 4 步（PREVIEW / ADJUST / VALIDATE / EXECUTE / RESULT）交互验证（真实事件派发）</h1>
+<ol id="results"><li>运行中…</li></ol>
+<div class="frames">
+  <iframe id="f-pv" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/promotion-preview.html"></iframe>
+  <iframe id="f-vd" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/promotion-validate.html"></iframe>
+  <iframe id="f-ex" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/promotion-execute.html"></iframe>
+  <iframe id="f-rs" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/promotion-result.html"></iframe>
+</div>
+<script>
+(function () {
+  'use strict';
+  var RESULTS = [];
+  var F = {
+    pv: document.getElementById('f-pv'),
+    vd: document.getElementById('f-vd'),
+    ex: document.getElementById('f-ex'),
+    rs: document.getElementById('f-rs')
+  };
+
+  function rec(id, name, pass, detail) { RESULTS.push({ id: id, name: name, pass: Boolean(pass), detail: detail || '' }); }
+  function d(f) { return F[f].contentDocument; }
+  function w(f) { return F[f].contentWindow; }
+  function q(f, sel) { return d(f).querySelector(sel); }
+  function qa(f, sel) { return Array.prototype.slice.call(d(f).querySelectorAll(sel)); }
+  function text(f, sel) { var n = q(f, sel); return n ? n.textContent.replace(/\s+/g, ' ').trim() : ''; }
+  function attr(f, sel, name) { var n = q(f, sel); return n ? n.getAttribute(name) : null; }
+  function hasClass(f, sel, cls) { var n = q(f, sel); return Boolean(n && n.classList.contains(cls)); }
+  function panelState(f, id) { var p = q(f, '[data-demo-state-panel="' + id + '"]'); return p ? !p.classList.contains('state-hidden') : false; }
+  function panelOpen(f, id) { var p = q(f, '[data-demo-panel="' + id + '"]'); return Boolean(p && p.classList.contains('open')); }
+  function shown(f, sel) {
+    return qa(f, sel).filter(function (n) {
+      return !n.classList.contains('role-hidden') && !n.classList.contains('state-hidden');
+    });
+  }
+  function click(f, sel) {
+    var n = q(f, sel);
+    if (!n) throw new Error('找不到元素 ' + sel);
+    n.click();
+    return n;
+  }
+  function setVal(f, sel, value) {
+    var n = q(f, sel);
+    if (!n) throw new Error('找不到控件 ' + sel);
+    n.value = value;
+    n.dispatchEvent(new (w(f).Event)('change', { bubbles: true }));
+  }
+  function delay(f) { return new Promise(function (r) { w(f).setTimeout(r, 40); }); }
+  function role(f, code, label) {
+    if (label) {
+      var btn = qa(f, '[data-demo="role-switcher"] .pbtn').filter(function (b) { return b.textContent.trim() === label; })[0];
+      if (btn) { btn.click(); return delay(f); }
+    }
+    w(f).PrototypeShell.applyRole(code);
+    return delay(f);
+  }
+  function lastToast(f) {
+    var nodes = qa(f, '.toast-host .toast');
+    var n = nodes[nodes.length - 1];
+    return n ? n.textContent.replace(/\s+/g, ' ').trim() : '';
+  }
+  function frameReady(f) {
+    return new Promise(function (resolve) {
+      if (d(f) && d(f).readyState === 'complete' && d(f).querySelector('#page-root')) { resolve(); return; }
+      F[f].addEventListener('load', function () { w(f).setTimeout(resolve, 250); });
+    });
+  }
+  function allReady() { return Promise.all(['pv', 'vd', 'ex', 'rs'].map(frameReady)); }
+
+  var steps = [
+    function (next) {
+      return allReady().then(function () {
+        rec('PV-01', '预览页默认（教务主任）渲染 7 行明细 + 5 个源班级，步骤条第 2 步进行中',
+          shown('pv', '#pv-rows tr').length === 7 && qa('pv', '#src-classes .cls-row').length === 5
+          && text('pv', '.steps .step.on').indexOf('预览与调整') !== -1,
+          '明细 ' + shown('pv', '#pv-rows tr').length + ' 行 / 源班级 ' + qa('pv', '#src-classes .cls-row').length + ' 个');
+        next();
+      });
+    },
+    function (next) {
+      rec('PV-02', '页头参与人数与结果类型统计与样例一致：7 人，升级 4 / 转班 1 / 留级 1 / 毕业 1',
+        text('pv', '#pv-total') === '7' && text('pv', '#pv-tag-upgrade') === '升级 4'
+        && text('pv', '#pv-tag-transfer') === '转班 1' && text('pv', '#pv-tag-repeat') === '留级 1'
+        && text('pv', '#pv-tag-graduate') === '毕业 1',
+        [text('pv', '#pv-total'), text('pv', '#pv-tag-upgrade'), text('pv', '#pv-tag-transfer'), text('pv', '#pv-tag-repeat'), text('pv', '#pv-tag-graduate')].join(' / '));
+      next();
+    },
+    function (next) {
+      var repeat = text('pv', '#pv-rows tr[data-student="2026000006"] .c-target');
+      var grad = text('pv', '#pv-rows tr[data-student="2024000001"] .c-target');
+      rec('PV-03', '留级行的去向是「目标学年学期同学段同名年级」且不写目标班级（BR-PROMO-006）；毕业行不生成下一学年班级关系（REQ-PRM-015）',
+        repeat.indexOf('同学段同名年级') !== -1 && grad.indexOf('不生成下一学年班级关系') !== -1,
+        repeat + ' ｜ ' + grad);
+      next();
+    },
+    function (next) {
+      click('pv', '#src-classes .cls-row[data-src-class="202602"]');
+      var n1 = shown('pv', '#pv-rows tr').length;
+      var tag = text('pv', '#pv-class-tag');
+      click('pv', '#src-classes .cls-row[data-src-class="202602"]');
+      var n2 = shown('pv', '#pv-rows tr').length;
+      rec('PV-04', '点左栏源班级按 REQ-PRM-013 过滤明细（2 行），再点同一行回到全部（7 行）',
+        n1 === 2 && tag.indexOf('高一 (2) 班') !== -1 && n2 === 7, n1 + ' 行（' + tag + '）→ ' + n2 + ' 行');
+      next();
+    },
+    function (next) {
+      setVal('pv', '#src-classes .cls-row[data-src-class="202601"] select', '20270102');
+      click('pv', '[data-apply-class="202601"]');
+      var rows = qa('pv', '#pv-rows tr[data-src="202601"]');
+      var allApplied = rows.every(function (r) { return r.querySelector('.c-target').textContent.indexOf('高二 (2) 班') !== -1; });
+      rec('PV-05', '按源班级整体指定目标班级（REQ-PRM-018）：该班 2 行同时写入高二 (2) 班',
+        rows.length === 2 && allApplied, rows.length + ' 行，全部命中=' + allApplied);
+      next();
+    },
+    function (next) {
+      var btn = q('pv', '#pv-rows tr[data-student="2026000004"] td.actions [data-action-id="ACT-PRM-024"]');
+      rec('PV-06', '行内「调整」入口带 ACT-PRM-024 + data-overlay=dialog + promotion.batch:update',
+        Boolean(btn) && btn.getAttribute('data-overlay') === 'dialog' && btn.getAttribute('data-permission') === 'promotion.batch:update',
+        btn ? (btn.getAttribute('data-action-id') + ' / ' + btn.getAttribute('data-permission')) : '（缺失）');
+      next();
+    },
+    function (next) {
+      return role('pv', 'grade_leader', '年级主任').then(function () {
+        var rows = shown('pv', '#pv-rows tr');
+        var noApply = qa('pv', '#src-classes [data-apply-class]').every(function (b) { return b.classList.contains('role-hidden'); });
+        rec('PV-07', '年级主任（DS-05 只读）：只剩本年级 5 行、无「应用到本班」入口、下一步被隐藏（CR-012）',
+          rows.length === 5 && noApply && hasClass('pv', '#btn-next', 'role-hidden'),
+          '可见 ' + rows.length + ' 行 / 批量入口隐藏=' + noApply);
+        next();
+      });
+    },
+    function (next) {
+      return role('pv', 'school_leader', '校领导').then(function () {
+        var rows = shown('pv', '#pv-rows tr');
+        var readonly = rows.every(function (r) { return r.querySelector('td.actions').textContent.indexOf('只读') !== -1; });
+        rec('PV-08', '校领导：全部 7 行只读，操作列显示「只读」，无调整入口',
+          rows.length === 7 && readonly, '可见 ' + rows.length + ' 行 / 只读=' + readonly);
+        next();
+      });
+    },
+    function (next) {
+      return role('pv', 'homeroom', '班主任').then(function () {
+        rec('PV-09', '班主任没有 promotion.batch:read → 无权限面板且内容区整体隐藏（DS-DENY-03）',
+          panelState('pv', 'forbidden') && hasClass('pv', '[data-normal-view]', 'state-hidden'),
+          '无权限面板=' + panelState('pv', 'forbidden') + ' / 内容区隐藏=' + hasClass('pv', '[data-normal-view]', 'state-hidden'));
+        next();
+      });
+    },
+    function (next) {
+      return role('pv', 'academic_director', '教务主任').then(function () {
+        rec('PV-10', '切回教务主任：恢复 7 行与写入口',
+          shown('pv', '#pv-rows tr').length === 7 && !hasClass('pv', '#btn-next', 'role-hidden'),
+          '可见 ' + shown('pv', '#pv-rows tr').length + ' 行');
+        next();
+      });
+    },
+    function (next) {
+      var codes = ['loading', 'empty', 'error', 'forbidden', 'submitting'];
+      var missing = codes.filter(function (c) { return !q('pv', '[data-demo-state-panel="' + c + '"]'); });
+      rec('PV-11', '预览页五类状态片段齐全', missing.length === 0, missing.length ? '缺 ' + missing.join(',') : '全部存在');
+      next();
+    },
+    function (next) {
+      w('pv').location.hash = '#class=202603';
+      return delay('pv').then(function () {
+        var n = shown('pv', '#pv-rows tr').length;
+        w('pv').location.hash = '#class=all';
+        return delay('pv').then(function () {
+          rec('PV-12', '深链接 #class=202603 在已打开的页面上生效（只看该班 1 行），#class=all 还原 7 行',
+            n === 1 && shown('pv', '#pv-rows tr').length === 7, n + ' 行 → ' + shown('pv', '#pv-rows tr').length + ' 行');
+          next();
+        });
+      });
+    },
+    function (next) {
+      click('pv', '#pv-rows tr[data-student="2026000004"] td.actions [data-action-id="ACT-PRM-024"]');
+      return delay('pv').then(function () {
+        rec('ADJ-01', '点行内「调整」打开 PAGE-PRM-ADJUST，带入该学生（赵一诺）与当前处理方式（转班）',
+          panelOpen('pv', 'PAGE-PRM-ADJUST') && text('pv', '#adjust-student') === '赵一诺'
+          && q('pv', 'input[name="adjust-type"][value="transfer"]').checked,
+          '打开=' + panelOpen('pv', 'PAGE-PRM-ADJUST') + ' / 学生=' + text('pv', '#adjust-student'));
+        next();
+      });
+    },
+    function (next) {
+      click('pv', 'input[name="adjust-type"][value="repeat"]');
+      return delay('pv').then(function () {
+        rec('ADJ-02', '处理方式选「留级」：目标班级换成只读的「同学段同名年级」，调整原因变为必填（BR-PROMO-006 / REQ-PRM-017）',
+          hasClass('pv', '#adjust-target-wrap', 'state-hidden') && !hasClass('pv', '#adjust-target-readonly', 'state-hidden')
+          && q('pv', '#adjust-reason').hasAttribute('data-required'),
+          '目标下拉隐藏=' + hasClass('pv', '#adjust-target-wrap', 'state-hidden') + ' / 原因必填=' + q('pv', '#adjust-reason').hasAttribute('data-required'));
+        next();
+      });
+    },
+    function (next) {
+      click('pv', '[data-action-id="ACT-PRM-028"]');
+      return delay('pv').then(function () {
+        var reasonField = q('pv', '#adjust-reason').closest('.field');
+        rec('ADJ-03', '留级未填原因点「保存调整」：字段级校验拦截（字段容器 has-error），弹窗不关闭、不发请求',
+          reasonField.classList.contains('has-error') && panelOpen('pv', 'PAGE-PRM-ADJUST'),
+          '字段错误=' + reasonField.classList.contains('has-error') + ' / 仍打开=' + panelOpen('pv', 'PAGE-PRM-ADJUST'));
+        next();
+      });
+    },
+    function (next) {
+      var btn = q('pv', '[data-action-id="ACT-PRM-028"]');
+      rec('ADJ-04', '「保存调整」登记为 updatePromotionItem，权限点 promotion.batch:update（只改明细，不改学生数据）',
+        btn.getAttribute('data-api') === 'updatePromotionItem' && btn.getAttribute('data-permission') === 'promotion.batch:update'
+        && btn.hasAttribute('data-validate-on-submit'),
+        btn.getAttribute('data-api') + ' / ' + btn.getAttribute('data-permission'));
+      next();
+    },
+    function (next) {
+      click('pv', 'input[name="adjust-type"][value="graduate"]');
+      return delay('pv').then(function () {
+        var gradOk = hasClass('pv', '#adjust-target-wrap', 'state-hidden') && !q('pv', '#adjust-reason').hasAttribute('data-required');
+        click('pv', 'input[name="adjust-type"][value="transfer"]');
+        return delay('pv').then(function () {
+          rec('ADJ-05', '处理方式切换驱动必填项：毕业不要求目标班级与原因；转班要求目标班级',
+            gradOk && !hasClass('pv', '#adjust-target-wrap', 'state-hidden') && q('pv', '#adjust-target').hasAttribute('data-required'),
+            '毕业不需要目标班级=' + gradOk);
+          next();
+        });
+      });
+    },
+    function (next) {
+      var tables = d('pv').querySelectorAll('[data-demo-panel="PAGE-PRM-ADJUST"] table').length;
+      rec('ADJ-06', '调整弹窗内不放表格（用 form-grid + 只读值展示）',
+        tables === 0, '弹窗内 table 数=' + tables);
+      w('pv').PrototypeShell.closePanel('all');
+      next();
+    },
+    function (next) {
+      rec('VD-01', '校验页默认：通过 5 / 警告 1 / 错误 1，错误阻塞条可见（REQ-PRM-023 / 025）',
+        text('vd', '#vd-pass') === '5' && text('vd', '#vd-warn') === '1' && text('vd', '#vd-error') === '1'
+        && !hasClass('vd', '#vd-block-alert', 'state-hidden'),
+        text('vd', '#vd-pass') + ' / ' + text('vd', '#vd-warn') + ' / ' + text('vd', '#vd-error'));
+      next();
+    },
+    function (next) {
+      click('vd', '#btn-execute');
+      return delay('vd').then(function () {
+        var toast = lastToast('vd');
+        rec('VD-02', '存在错误项时点「确认执行」：被拦并给出原因，不发请求（按钮不置 loading）',
+          toast.indexOf('错误项') !== -1 && !q('vd', '#btn-execute').classList.contains('loading'),
+          toast || '（无提示）');
+        next();
+      });
+    },
+    function (next) {
+      click('vd', '#vd-chips .chip[data-filter-level="error"]');
+      var nErr = shown('vd', '#vd-rows tr').length;
+      click('vd', '#vd-chips .chip[data-filter-level="passed"]');
+      var nPass = shown('vd', '#vd-rows tr').length;
+      click('vd', '#vd-chips .chip[data-filter-level="all"]');
+      var nAll = shown('vd', '#vd-rows tr').length;
+      rec('VD-03', '按维度下钻（REQ-PRM-026）：错误 1 / 通过 5 / 全部 7',
+        nErr === 1 && nPass === 5 && nAll === 7, nErr + ' / ' + nPass + ' / ' + nAll);
+      next();
+    },
+    function (next) {
+      var errBtn = q('vd', '#vd-rows tr[data-level="error"] td.actions [data-action-id="ACT-PRM-032"]');
+      var passBtn = q('vd', '#vd-rows tr[data-level="passed"] td.actions [data-action-id]');
+      rec('VD-04', '「标记跳过」只对错误 / 警告行出现，走 updatePromotionItem；通过行不给入口（REQ-PRM-025）',
+        Boolean(errBtn) && errBtn.getAttribute('data-api') === 'updatePromotionItem' && !passBtn,
+        errBtn ? errBtn.getAttribute('data-api') : '（缺错误行入口）');
+      next();
+    },
+    function (next) {
+      return role('vd', 'grade_leader', '年级主任').then(function () {
+        rec('VD-05', '年级主任（DS-05 只读）：只看本年级 5 行，错误 1（朱书瑶属 2026 级 高一）、警告 0，无写入口',
+          shown('vd', '#vd-rows tr').length === 5 && text('vd', '#vd-error') === '1' && text('vd', '#vd-warn') === '0'
+          && hasClass('vd', '#btn-execute', 'role-hidden'),
+          '行数 ' + shown('vd', '#vd-rows tr').length + ' / 错误 ' + text('vd', '#vd-error') + ' / 警告 ' + text('vd', '#vd-warn'));
+        next();
+      });
+    },
+    function (next) {
+      return role('vd', 'super_admin', '超级管理员').then(function () {
+        var codes = ['loading', 'empty', 'error', 'forbidden', 'submitting'];
+        var missing = codes.filter(function (c) { return !q('vd', '[data-demo-state-panel="' + c + '"]'); });
+        var forbiddenText = text('vd', '[data-demo-state-panel="forbidden"]');
+        rec('VD-06', '超管恢复全部 7 行；五类状态齐全；无权限态写明不降级为全量（DS-DENY-03）',
+          shown('vd', '#vd-rows tr').length === 7 && missing.length === 0 && forbiddenText.indexOf('DS-DENY-03') !== -1,
+          '行数 ' + shown('vd', '#vd-rows tr').length + ' / 缺状态 ' + (missing.length ? missing.join(',') : '无'));
+        next();
+      });
+    },
+    function (next) {
+      return role('vd', 'academic_director', '教务主任').then(function () {
+        rec('VD-07', '底部操作条：确认执行登记为 executePromotionTask + promotion.batch:update，且错误存在时 data-blocked=true',
+          attr('vd', '#btn-execute', 'data-api') === 'executePromotionTask'
+          && attr('vd', '#btn-execute', 'data-permission') === 'promotion.batch:update'
+          && attr('vd', '#btn-execute', 'data-blocked') === 'true',
+          attr('vd', '#btn-execute', 'data-api') + ' / blocked=' + attr('vd', '#btn-execute', 'data-blocked'));
+        next();
+      });
+    },
+    function (next) {
+      rec('EX-01', '执行页默认：进度 5 / 7 = 71%、成功 4、失败 1，最近处理记录 5 条（REQ-PRM-031）',
+        text('ex', '#ex-processed') === '5' && text('ex', '#ex-total') === '7' && text('ex', '#ex-percent') === '71%'
+        && text('ex', '#ex-success') === '4' && qa('ex', '.timeline > li').length === 5,
+        text('ex', '#ex-processed') + '/' + text('ex', '#ex-total') + ' ' + text('ex', '#ex-percent'));
+      next();
+    },
+    function (next) {
+      w('ex').location.hash = '#processed=0';
+      return delay('ex').then(function () {
+        var zero = text('ex', '#ex-processed') === '0' && text('ex', '#ex-percent') === '0%';
+        w('ex').location.hash = '#processed=5';
+        return delay('ex').then(function () {
+          rec('EX-02', '深链接 #processed=N 生效（0 → 0%，回到 5 → 5）', zero && text('ex', '#ex-processed') === '5',
+            '0% 生效=' + zero);
+          next();
+        });
+      });
+    },
+    function (next) {
+      var refresh = q('ex', '[data-action-id="ACT-PRM-034"]');
+      var resultBtn = q('ex', '[data-action-id="ACT-PRM-036"]');
+      rec('EX-03', '刷新进度走 getPromotionTask；「查看结果」指向 PAGE-PRM-RESULT',
+        refresh.getAttribute('data-api') === 'getPromotionTask' && resultBtn.getAttribute('data-nav') === 'PAGE-PRM-RESULT',
+        refresh.getAttribute('data-api') + ' / ' + resultBtn.getAttribute('data-nav'));
+      next();
+    },
+    function (next) {
+      rec('EX-04', '取消入口不放在进度页做危险动作：指向 PAGE-PRM-LIST 的行内取消（原因必填、保留已完成部分）',
+        attr('ex', '[data-action-id="ACT-PRM-035"]', 'data-nav') === 'PAGE-PRM-LIST'
+        && attr('ex', '[data-action-id="ACT-PRM-035"]', 'data-role-visible') === 'academic_director,super_admin',
+        attr('ex', '[data-action-id="ACT-PRM-035"]', 'data-nav'));
+      next();
+    },
+    function (next) {
+      return role('ex', 'grade_leader', '年级主任').then(function () {
+        var codes = ['loading', 'queued', 'partial', 'error', 'forbidden', 'submitting'];
+        var missing = codes.filter(function (c) { return !q('ex', '[data-demo-state-panel="' + c + '"]'); });
+        rec('EX-05', '年级主任：取消入口隐藏；执行页六类状态片段齐全（含排队中与部分失败）',
+          hasClass('ex', '[data-action-id="ACT-PRM-035"]', 'role-hidden') && missing.length === 0,
+          '隐藏=' + hasClass('ex', '[data-action-id="ACT-PRM-035"]', 'role-hidden') + ' / 缺状态 ' + (missing.length ? missing.join(',') : '无'));
+        next();
+      });
+    },
+    function (next) {
+      return role('ex', 'academic_director', '教务主任').then(function () {
+        rec('EX-06', '切回教务主任：取消入口恢复可见', !hasClass('ex', '[data-action-id="ACT-PRM-035"]', 'role-hidden'),
+          '可见=' + !hasClass('ex', '[data-action-id="ACT-PRM-035"]', 'role-hidden'));
+        next();
+      });
+    },
+    function (next) {
+      rec('RS-01', '结果页默认停在失败清单：1 行 + 重试块可见 + 状态标签「部分失败」（REQ-PRM-032 / 034）',
+        shown('rs', '#rs-rows tr[data-list="failed"]').length === 1 && !hasClass('rs', '#rs-retry-alert', 'state-hidden')
+        && text('rs', '#rs-status-tag') === '部分失败',
+        shown('rs', '#rs-rows tr[data-list="failed"]').length + ' 行 / ' + text('rs', '#rs-status-tag'));
+      next();
+    },
+    function (next) {
+      click('rs', '#rs-chips .chip[data-list-name="succeeded"]');
+      var nOk = shown('rs', '#rs-rows tr').length;
+      click('rs', '#rs-chips .chip[data-list-name="repeat"]');
+      var nRepeat = shown('rs', '#rs-rows tr').length;
+      click('rs', '#rs-chips .chip[data-list-name="graduate"]');
+      var nGrad = shown('rs', '#rs-rows tr').length;
+      click('rs', '#rs-chips .chip[data-list-name="failed"]');
+      var nFail = shown('rs', '#rs-rows tr').length;
+      rec('RS-02', '四类清单切换（REQ-PRM-034）：成功 6 / 留级 1 / 毕业 1 / 失败 1',
+        nOk === 6 && nRepeat === 1 && nGrad === 1 && nFail === 1, [nOk, nRepeat, nGrad, nFail].join(' / '));
+      next();
+    },
+    function (next) {
+      var view = q('rs', '#rs-rows tr[data-list="failed"] td.actions [data-action-id="ACT-PRM-040"]');
+      rec('RS-03', '失败清单行内「查看学生」带 ACT-PRM-040 + person.student:read + 跳 PAGE-STU-LIST',
+        Boolean(view) && view.getAttribute('data-nav') === 'PAGE-STU-LIST'
+        && view.getAttribute('data-permission') === 'person.student:read',
+        view ? (view.getAttribute('data-nav') + ' / ' + view.getAttribute('data-permission')) : '（缺失）');
+      next();
+    },
+    function (next) {
+      rec('RS-04', '「只重试失败项」走 retryPromotionTask + promotion.batch:update；「继续执行剩余项」走同一接口但独立动作编号',
+        attr('rs', '#btn-retry', 'data-api') === 'retryPromotionTask'
+        && attr('rs', '#btn-retry', 'data-permission') === 'promotion.batch:update'
+        && attr('rs', '[data-action-id="ACT-PRM-039"]', 'data-api') === 'retryPromotionTask',
+        attr('rs', '#btn-retry', 'data-api') + ' / ' + attr('rs', '[data-action-id="ACT-PRM-039"]', 'data-api'));
+      next();
+    },
+    function (next) {
+      rec('RS-05', '「结果导出」走 exportPromotionResult + data.export:export（下载前重新解析数据范围 DS-DENY-04）',
+        attr('rs', '[data-action-id="ACT-PRM-038"]', 'data-api') === 'exportPromotionResult'
+        && attr('rs', '[data-action-id="ACT-PRM-038"]', 'data-permission') === 'data.export:export',
+        attr('rs', '[data-action-id="ACT-PRM-038"]', 'data-api'));
+      next();
+    },
+    function (next) {
+      return role('rs', 'grade_leader', '年级主任').then(function () {
+        click('rs', '#rs-chips .chip[data-list-name="failed"]');
+        var failed = shown('rs', '#rs-rows tr[data-list="failed"]').length;
+        click('rs', '#rs-chips .chip[data-list-name="succeeded"]');
+        var ok = shown('rs', '#rs-rows tr[data-list="succeeded"]').length;
+        rec('RS-06', '年级主任（DS-05）：失败清单 1 行（朱书瑶属本年级）、成功清单 4 行（高二 / 高三两行不可见），重试按钮隐藏',
+          failed === 1 && ok === 4 && hasClass('rs', '#btn-retry', 'role-hidden'),
+          '失败 ' + failed + ' / 成功 ' + ok + ' / 成功清单可见：'
+          + shown('rs', '#rs-rows tr[data-list="succeeded"]').map(function (r) { return r.getAttribute('data-student'); }).join(','));
+        next();
+      });
+    },
+    function (next) {
+      return role('rs', 'academic_director', '教务主任').then(function () {
+        var codes = ['loading', 'empty', 'partial', 'error', 'forbidden', 'submitting'];
+        var missing = codes.filter(function (c) { return !q('rs', '[data-demo-state-panel="' + c + '"]'); });
+        rec('RS-07', '结果页六类状态片段齐全（含部分失败与空数据）；切回教务主任后重试入口恢复',
+          missing.length === 0 && !hasClass('rs', '#btn-retry', 'role-hidden'),
+          missing.length ? '缺 ' + missing.join(',') : '全部存在');
+        next();
+      });
+    },
+    function (next) {
+      var used = {};
+      ['pv', 'vd', 'ex', 'rs'].forEach(function (f) {
+        qa(f, '[data-action-id]').forEach(function (n) { used[n.getAttribute('data-action-id')] = true; });
+      });
+      var registered = {
+        'ACT-PRM-020': 1, 'ACT-PRM-021': 1, 'ACT-PRM-022': 1, 'ACT-PRM-023': 1, 'ACT-PRM-024': 1,
+        'ACT-PRM-025': 1, 'ACT-PRM-026': 1, 'ACT-PRM-027': 1, 'ACT-PRM-028': 1, 'ACT-PRM-029': 1,
+        'ACT-PRM-030': 1, 'ACT-PRM-031': 1, 'ACT-PRM-032': 1, 'ACT-PRM-033': 1, 'ACT-PRM-034': 1,
+        'ACT-PRM-035': 1, 'ACT-PRM-036': 1, 'ACT-PRM-037': 1, 'ACT-PRM-038': 1, 'ACT-PRM-039': 1,
+        'ACT-PRM-040': 1, 'ACT-PRM-041': 1, 'ACT-PRM-043': 1
+      };
+      var unknown = Object.keys(used).filter(function (id) { return !registered[id]; });
+      rec('ALL-01', '四个页面用到的动作编号全部落在已登记集合内（ACT-PRM-020 ~ 043）',
+        unknown.length === 0, unknown.length ? '未登记 ' + unknown.join(',') : Object.keys(used).length + ' 个编号');
+      next();
+    }
+  ];
+
+  var EXPECTED = 39;
+  var rendered = false;
+
+  function render() {
+    rendered = true;
+    var ol = document.getElementById('results');
+    ol.innerHTML = '';
+    var pass = 0;
+    RESULTS.forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = r.pass ? 'ok' : 'bad';
+      li.textContent = (r.pass ? '通过  ' : '不通过 ') + r.id + '  ' + r.name + (r.detail ? '  —— ' + r.detail : '');
+      ol.appendChild(li);
+      if (r.pass) pass += 1;
+    });
+    var p = document.createElement('p');
+    p.className = pass === EXPECTED ? 'sum' : 'sum bad';
+    p.textContent = '合计 ' + RESULTS.length + ' / ' + EXPECTED + ' 条，通过 ' + pass + ' 条，不通过 '
+      + (RESULTS.length - pass) + ' 条' + (pass === EXPECTED && RESULTS.length === EXPECTED ? ' —— 全部通过' : '');
+    ol.appendChild(p);
+  }
+
+  function run(index) {
+    if (index >= steps.length) { render(); return; }
+    var called = false;
+    function next() {
+      if (called) return;
+      called = true;
+      run(index + 1);
+    }
+    var out;
+    try {
+      out = steps[index](next);
+    } catch (err) {
+      rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步抛异常（后续步骤已跳过）',
+        false, String((err && err.message) || err));
+      run(index + 1);
+      return;
+    }
+    if (out && typeof out.then === 'function') {
+      out.catch(function (err) {
+        rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步的异步断言失败',
+          false, String((err && err.message) || err));
+        next();
+      });
+    }
+  }
+
+  var started = false;
+  window.addEventListener('load', function () {
+    if (started) return;
+    started = true;
+    window.setTimeout(function () { run(0); }, 600);
+    window.setTimeout(function () {
+      if (!rendered) {
+        rec('WATCHDOG', '运行超时：断言链未在 40 秒内跑完（上面是已完成的断言）', false, '请检查是否有未返回的异步步骤');
+        render();
+      }
+    }, 40000);
+  });
+})();
+</script>
+</body>
+</html>

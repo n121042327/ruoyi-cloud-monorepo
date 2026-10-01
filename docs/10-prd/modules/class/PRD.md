@@ -4,7 +4,7 @@
 |---|---|
 | 模块 | 班级管理（`class`） |
 | 文档路径 | `docs/10-prd/modules/class/PRD.md` |
-| 版本 | 1.0.1-draft |
+| 版本 | 1.0.5-draft |
 | 状态 | `frozen`（2026-09-30 冻结，见 D-045、CR-001） |
 | 批次 | 1-2（按学生管理 PRD 样板结构产出） |
 | 上游依赖 | 见 1.4 |
@@ -16,6 +16,9 @@
 | 1.0.0-draft | 2026-09-30 | 首版。结构与粒度对齐 `modules/student/PRD.md` v1.0.2 | Codex |
 | 1.0.1-draft | 2026-09-30 | 按验收意见收窄首轮范围：教学班**只建表**、班级合并**延后**；新增 `REQ-CLS-061` / `062`（复制班级、批量迁学生）；第 12 节四项设计选择标记为已确认 | Codex |
 | 1.0.2-draft | 2026-09-30 | 按 `GAP-023` 裁决（选 A）**恢复教学班为首轮实现**：第 1.2 / 1.3 / 4.6 / 6.1 / 10 节与第 12 节第 4 项同步改写；仅交付顺序排在选科之后，不再属于范围外 | Codex |
+| 1.0.3-draft | 2026-09-30 | 按 `CR-009` 落地两项裁决：新建班级由抽屉改**弹窗**、添加学生由抽屉改**独立页**（对齐 `D-059`）；6.1 补登记指定班主任、复制班级、批量迁学生 3 个页面与停用 / 删除 2 个确认浮层片段；6.3 交互表同步 | Codex |
+| 1.0.4-draft | 2026-09-30 | 按 `CR-010` 补齐模块公共前置：第 7.1 节的班级 `status` 明确为「在读 / 已停用」两个取值（`FD-class_status`），`campus_id` 与 `classroom` 登记进字段字典；7.1 的字段列表补注唯一性与权限口径 | Codex |
+| 1.0.5-draft | 2026-10-01 | 按 `CR-017` 补齐教学班管理的交付面：6.1 登记 `DRAWER-CLS-TEACHING`（详情抽屉）与 `DIALOG-TCL-DISABLE`（停用确认）两个同页片段；8 节补 `getTeachingClass` / `disableTeachingClass` / `listTeachingClassRoster` 三个 operationId；明确教学班的**创建入口唯一**（统一在 `PAGE-STR-GEN-CLASS`，本页不提供手工新增成员） | Codex |
 
 ## 0. 怎么读这份文档
 
@@ -333,13 +336,27 @@ erDiagram
 |---|---|---|---|
 | `PAGE-CLS-LIST` | 班级管理列表 | 列表页 | 教务主任、年级主任、校领导 |
 | `PAGE-CLS-DETAIL` | 班级详情（含花名册） | 详情页（独立页） | 教务主任、年级主任、班主任 |
-| `PAGE-CLS-CREATE` | 新建班级 | 抽屉 | 教务主任、年级主任 |
+| `PAGE-CLS-CREATE` | 新建班级 | 弹窗（md） | 教务主任、年级主任 |
 | `PAGE-CLS-BATCH` | 批量生成班级 | 弹窗 | 教务主任 |
-| `PAGE-CLS-ROSTER-ADD` | 添加学生 | 抽屉（左侧学生池 + 右侧待加入） | 教务主任、年级主任 |
+| `PAGE-CLS-ROSTER-ADD` | 添加学生 | 独立页（左学生池 + 右待加入） | 教务主任、年级主任 |
 | `PAGE-CLS-TRANSFER` | 调班 | 弹窗 | 教务主任、年级主任 |
+| `PAGE-CLS-LEADER` | 指定 / 变更班主任 | 弹窗（md） | 教务主任、年级主任 |
+| `PAGE-CLS-COPY` | 复制班级 | 弹窗（md） | 教务主任、年级主任 |
+| `PAGE-CLS-MOVE` | 批量迁学生 | 独立页（含影响预览） | 教务主任、年级主任 |
 | `PAGE-CLS-MERGE` | 班级合并**（延后）** | 弹窗（含影响预览） | 教务主任 |
 | `PAGE-CLS-ROSTER-IMPORT` | 编班表导入向导 | 独立页 | 教务主任 |
 | `PAGE-CLS-TEACHING` | 教学班管理 | 列表页 + 抽屉 | 教务主任、年级主任 |
+
+> **教学班管理的两个同页片段（`CR-017` 补登记）**：
+> `DRAWER-CLS-TEACHING`（教学班详情抽屉：基本信息 + 跨行政班的成员清单 + 未同步的选科变更入口）与
+> `DIALOG-TCL-DISABLE`（停用教学班确认：写清影响范围、原因必填、写审计）。
+> **创建入口唯一**：教学班主体与成员的创建统一走 `PAGE-STR-GEN-CLASS`（按组合生成教学班），
+> 本页不提供「手工新增教学班 / 手工增删成员」——同一份名单只允许一条写入路径（`DP-01`、`REQ-STR-056`）。
+
+> **载体口径（2026-09-30，`CR-009` / `D-059`）**：表单类浮层统一用**弹窗**；
+> 详情类用**抽屉**；含表格或分页的内容用**独立页**。
+> 停用与删除的二次确认按 `markup-contract.md` 登记为**同页浮层片段**（`DIALOG-CLS-DISABLE` / `DIALOG-CLS-DELETE`），
+> 不单独占用页面编号。
 
 ### 6.2 班级详情布局
 
@@ -352,10 +369,14 @@ erDiagram
 | 触发 | 结果 |
 |---|---|
 | 点击班级行 | 进入班级详情独立页 |
-| 点击"添加学生" | 打开学生选择抽屉，选中后校验唯一行政班 |
+| 点击"添加学生" | 进入「添加学生」独立页（左学生池 + 右待加入），选中后校验唯一行政班 |
 | 冲突时点击"调班" | 直接进入调班弹窗，预填目标班级 |
 | 点击花名册中的学生 | 打开学生详情（学生模块），返回时保留班级上下文 |
 | 点击"班主任" | 打开班主任指定弹窗，支持选择生效日期 |
+| 点击"复制班级" | 打开复制班级弹窗，选择目标学年学期与年级；不复制花名册与班主任（`REQ-CLS-061`） |
+| 点击"批量迁学生" | 进入批量迁学生独立页，先展示影响预览再执行（`REQ-CLS-062`） |
+| 点击"停用" | 打开停用二次确认片段 `DIALOG-CLS-DISABLE`，原因必填 |
+| 点击"删除" | 打开删除二次确认片段 `DIALOG-CLS-DELETE`；有在读学生时接口拒绝并提示改用停用（`REQ-CLS-043`） |
 | 点击"导出" | 行数 ≤ 2000 直接下载，否则转异步 |
 
 ### 6.4 页面状态
@@ -371,7 +392,7 @@ erDiagram
 
 | 实体 | 关键字段 | 唯一性要求 |
 |---|---|---|
-| 班级 | `tenant_id`、`school_id`、`term_id`、`grade_id`、`stage_code`、`class_name`、`class_type`、`class_capacity`、`head_teacher_id`、`campus_id`、`classroom`、`status` | `(school_id, term_id, stage_code, class_name)` 唯一（`BR-CLASS-003`） |
+| 班级 | `tenant_id`、`school_id`、`term_id`、`grade_id`、`stage_code`、`class_name`、`class_type`、`class_capacity`、`head_teacher_id`、`campus_id`、`classroom`、`class_status` | `(school_id, term_id, stage_code, class_name)` 唯一（`BR-CLASS-003`） |
 | 花名册关系 | `tenant_id`、`school_id`、`term_id`、`class_id`、`student_id`、`class_type`、`join_date`、`leave_date` | 行政班：(term_id, student_id, class_type=administrative) 唯一（`BR-STU-003`） |
 | 任教关系（只读） | `term_id`、`teacher_id`、`subject_id`、`class_type`、`class_id` | 见教师模块 |
 
@@ -379,13 +400,31 @@ erDiagram
 
 | 查询场景 | 需要的索引前缀 |
 |---|---|
-| 按学校 + 学期列班级 | `(school_id, term_id, status)` |
+| 按学校 + 学期列班级 | `(school_id, term_id, class_status)` |
 | 按年级列班级 | `(school_id, grade_id)` |
-| 按班主任查班级 | `(head_teacher_id, status)` |
+| 按校区列班级 | `(school_id, campus_id, class_status)` |
+| 按班主任查班级 | `(head_teacher_id, class_status)` |
 | 花名册按班级分页 | `(class_id, class_type, student_id)` |
 | 按学生查当前行政班 | `(term_id, student_id, class_type)` |
 
-### 7.3 审计要求
+### 7.3 状态取值与字段登记（`CR-010`）
+
+班级 `class_status` 只有两个取值（`FD-class_status`）：
+
+| 取值 | 标签 | 业务含义 | 约束 |
+|---|---|---|---|
+| `studying` | 在读 | 班级正常使用 | 参与编班、班主任指定、批量迁学生 |
+| `disabled` | 已停用 | 班级不再使用 | 不在新建学生与编班的可选班级中；历史花名册仍可查；不再接受编班、班主任变更与批量迁学生（`REQ-CLS-044`） |
+
+两条口径说明：
+
+- **学年归档不改变班级状态**：学年学期模块 `REQ-TERM-030` 只把已归档学年移出"新建班级"的可选列表，
+  班级本身保持 `studying`，历史数据与统计照常可查（`REQ-TERM-031`）。
+- **「已合并」暂不登记**：班级合并（`REQ-CLS-045`）首轮延后，合并引入的终态等到启用该功能时一并评估。
+
+同期登记的字段：`campus_id`（引用校区，`BR-ORG-009`：校区不参与权限判定）与 `classroom`（自由文本）。
+
+### 7.4 审计要求
 
 | 事件 | 记录内容 |
 |---|---|
@@ -420,6 +459,9 @@ erDiagram
 | `exportClassRoster` | POST | `/edu/class/{id}/roster/export` | 花名册导出 |
 | `listTeachingClass` | GET | `/edu/teaching-class/list` | 教学班列表 |
 | `addTeachingClass` | POST | `/edu/teaching-class` | 新建教学班 |
+| `getTeachingClass` | GET | `/edu/teaching-class/{id}` | 教学班详情（`CR-017` 补登记：详情抽屉的数据来源） |
+| `disableTeachingClass` | POST | `/edu/teaching-class/{id}/disable` | 停用教学班（`CR-017` 补登记：原因必填、写审计、历史成员保留） |
+| `listTeachingClassRoster` | GET | `/edu/teaching-class/{id}/roster` | 教学班成员清单（`CR-017` 补登记：只读，成员写入仍由生成流程触发） |
 
 ---
 

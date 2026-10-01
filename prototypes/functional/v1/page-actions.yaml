@@ -1,0 +1,3715 @@
+schema_version: "1.0"
+purpose: |
+  动作清单：把每个页面上的按钮、链接、行操作、表单提交，翻译成"触发 → 条件 → 结果 → 权限 → 接口"。
+  原型里出现的任何可点击元素都必须在这里登记；这里没有登记的元素不允许出现在原型中。
+
+naming:
+  action_id: "ACT-<模块缩写>-<三位序号>，一经登记不得重排"
+  api: "建议 operationId，阶段 4 概要设计定稿后才算权威值"
+  status_values: [待开始, 待验收, 已验收, 已实现]
+
+fields:
+  id: 动作编号
+  page: 所属页面（对应 navigation.yaml 的 pages.id）
+  element: 页面上显示的文字或图标
+  trigger: 触发方式
+  condition: 显示或可用条件
+  permission: 所需功能权限（05-permission-matrix.yaml 的「角色 / 资源 / 操作」）
+  confirm: 是否需要二次确认，需要时写清文案要素
+  api: 建议接口
+  result: 触发后的结果（含跳转与提示）
+  audit: 是否写入审计
+  batch: 归属批次
+
+# ---------------------------------------------------------------------------
+# 1. 通用动作（所有列表页共用，原型中按同一形态实现）
+# ---------------------------------------------------------------------------
+common_actions:
+  - { id: ACT-COM-001, element: 搜索, trigger: 点击 / 回车, condition: 有查询权限, permission: "继承当前页面 read", api: "当前页面 list 接口", result: 按筛选条件重新查询并回到第 1 页, batch: "2-1" }
+  - { id: ACT-COM-002, element: 重置, trigger: 点击, condition: 始终可用, permission: "继承当前页面 read", api: "-", result: 清空筛选条件并重新查询, batch: "2-1" }
+  - { id: ACT-COM-003, element: 显示搜索 / 隐藏搜索, trigger: 点击, condition: 始终可用, permission: "-", api: "-", result: 折叠或展开搜索卡片，状态写入用户偏好, batch: "2-1" }
+  - { id: ACT-COM-004, element: 列配置, trigger: 点击, condition: 始终可用, permission: "-", api: "-", result: 打开列选择浮层，勾选后立即生效并写入用户偏好, batch: "2-1" }
+  - { id: ACT-COM-005, element: 刷新, trigger: 点击, condition: 始终可用, permission: "-", api: "当前页面 list 接口", result: 按当前条件重新查询，不重置页码, batch: "2-1" }
+  - { id: ACT-COM-006, element: 分页器, trigger: 翻页 / 改每页条数 / 跳页, condition: 总数大于 0, permission: "继承当前页面 read", api: "当前页面 list 接口", result: 加载对应页数据，保留筛选条件, batch: "2-1" }
+  - { id: ACT-COM-007, element: 导出, trigger: 点击, condition: 有导出权限, permission: "data.export:export", confirm: "导出行数超过 2000 时提示转异步", api: "exportData", result: "少于等于 2000 行直接下载，否则转异步任务并提示任务编号", audit: 是, batch: "2-1" }
+  - { id: ACT-COM-008, element: 批量选择, trigger: 勾选行 / 全选, condition: 页面启用批量操作, permission: "-", api: "-", result: "批量按钮由禁用变为可用；单选限制时只有一个勾选才可用", batch: "2-1" }
+
+# ---------------------------------------------------------------------------
+# 2. 学生管理列表（PAGE-STU-LIST）——批次 2-1 样板页
+# ---------------------------------------------------------------------------
+student_list:
+  page: PAGE-STU-LIST
+  actions:
+    - id: ACT-STU-001
+      element: 新增
+      trigger: 点击
+      condition: 有新增权限
+      permission: "academic_director / person.student / create"
+      api: "-"
+      result: 打开 PAGE-STU-CREATE 抽屉，重置为默认值
+      audit: 否
+      batch: "2-1"
+    - id: ACT-STU-002
+      element: 导入
+      trigger: 点击
+      condition: 有导入权限
+      permission: "data.import:import"
+      api: "-"
+      result: 打开 PAGE-STU-IMPORT 导入向导
+      audit: 否
+      batch: "2-1"
+    - id: ACT-STU-003
+      element: 导出
+      trigger: 点击
+      condition: 有导出权限
+      permission: "data.export:export"
+      confirm: 需要，提示"将按当前筛选条件导出，超出 2000 行转后台任务"
+      api: exportStudent
+      result: 下载文件或返回任务编号
+      audit: 是
+      batch: "2-1"
+    - id: ACT-STU-004
+      element: 下载模板
+      trigger: 点击
+      condition: 有导入权限
+      permission: "data.import:import"
+      api: downloadStudentImportTemplate
+      result: 下载当前版本的导入模板，版本号在文件内可见
+      audit: 是
+      batch: "2-1"
+    - id: ACT-STU-005
+      element: 行内编辑
+      trigger: 点击行内按钮
+      condition: 有编辑权限且行在数据范围内
+      permission: "homeroom / person.student_contact / update；academic_director / person.student / update"
+      api: "-"
+      result: 打开 PAGE-STU-EDIT 抽屉，按字段级权限渲染只读与可写
+      audit: 否
+      batch: "2-1"
+    - id: ACT-STU-006
+      element: 行内异动
+      trigger: 点击行内按钮
+      condition: 当前学籍状态存在可选流转
+      permission: "enrollment.transfer:create"
+      api: "-"
+      result: 打开 PAGE-STU-STATUS 弹窗，选项按当前状态动态计算；终态学生该按钮不出现
+      audit: 否
+      batch: "2-5"
+    - id: ACT-STU-007
+      element: 行内调班
+      trigger: 点击行内按钮
+      condition: 当前学年学期且行在数据范围内
+      permission: "academic_director / org.class / update"
+      api: "-"
+      result: 打开 PAGE-STU-TRANSFER 弹窗
+      audit: 否
+      batch: "2-5"
+    - id: ACT-STU-008
+      element: 点击行
+      trigger: 单击数据行
+      condition: 有读取权限
+      permission: "person.student:read"
+      api: getStudent
+      result: 打开 PAGE-STU-DETAIL 详情，关闭后回到列表并保留筛选与页码
+      audit: 否
+      batch: "2-1"
+    - id: ACT-STU-009
+      element: 证件号后四位
+      trigger: 输入并回车
+      condition: 具备敏感字段读取权限
+      permission: "read_sensitive"
+      api: listStudent
+      result: 精确匹配证件号后四位；无该权限时该筛选项整体不出现
+      audit: 否
+      batch: "2-1"
+    - id: ACT-STU-010
+      element: 查看完整证件号
+      trigger: 点击掩码旁图标
+      condition: 具备敏感字段读取权限
+      permission: "read_sensitive"
+      confirm: 需要，提示"查看完整证件号将记录访问日志"
+      api: "-"
+      result: 就地展示完整值，并写入访问日志
+      audit: 是
+      pages: [PAGE-STU-LIST, PAGE-STU-EDIT, PAGE-STU-DETAIL]
+      note: 该动作在列表、编辑抽屉与详情页三处复用；角色归属（read_sensitive）待确认，见 GAP-026
+      batch: "2-1"
+
+# ---------------------------------------------------------------------------
+# 3. 学生新增 / 编辑抽屉（PAGE-STU-CREATE / PAGE-STU-EDIT）——批次 2-1 样板
+# ---------------------------------------------------------------------------
+student_form:
+  page: [PAGE-STU-CREATE, PAGE-STU-EDIT]
+  actions:
+    - id: ACT-STU-011
+      element: 下一步
+      trigger: 点击
+      condition: 当前步骤校验通过
+      permission: "继承当前页面"
+      api: "-"
+      result: 进入下一步；校验失败时停留并高亮错误字段
+      audit: 否
+      batch: "2-1"
+    - id: ACT-STU-012
+      element: 上一步
+      trigger: 点击
+      condition: 非第一步
+      permission: "继承当前页面"
+      api: "-"
+      result: 返回上一步，已填内容保留
+      audit: 否
+      batch: "2-1"
+    - id: ACT-STU-013
+      element: 保存
+      trigger: 点击
+      condition: 必填与唯一性校验通过
+      permission: "academic_director / person.student / create 或 update"
+      confirm: 否
+      api: addStudent / updateStudent
+      result: 保存成功；新增时展示系统发号结果与"继续新增 / 查看详情"两个后续动作
+      audit: 是
+      batch: "2-1"
+    - id: ACT-STU-014
+      element: 取消 / 关闭
+      trigger: 点击
+      condition: 始终可用
+      permission: "继承当前页面"
+      confirm: 需要，提示"已填写的内容不会保存"
+      api: "-"
+      result: 关闭抽屉，不保存任何数据
+      audit: 否
+      batch: "2-1"
+    - id: ACT-STU-015
+      element: 添加监护人
+      trigger: 点击
+      condition: 已填监护人数少于上限
+      permission: "homeroom / person.student_guardian / update"
+      api: saveStudentGuardian
+      result: 新增一行监护人录入项；达到上限时按钮禁用并说明上限来源
+      audit: 是
+      batch: "2-1"
+    - id: ACT-STU-016
+      element: 删除监护人
+      trigger: 点击行内删除
+      condition: 至少保留一行或允许全空
+      permission: "homeroom / person.student_guardian / update"
+      confirm: 需要，提示"删除后需保存才生效"
+      api: saveStudentGuardian
+      result: 移除该行
+      audit: 是
+      batch: "2-1"
+    - id: ACT-STU-017
+      element: 设为主要联系人
+      trigger: 点击单选
+      condition: 监护人至少一行
+      permission: "homeroom / person.student_guardian / update"
+      api: saveStudentGuardian
+      result: 同一学生只允许一个主要联系人，选中后其余自动取消
+      audit: 是
+      batch: "2-1"
+    - id: ACT-STU-018
+      element: 修改学号（首轮不提供）
+      trigger: 抽屉内"高级操作"菜单
+      condition: 首轮不渲染该入口；学号一经发出不可改（GAP-030 裁决 B，2026-09-30 用户确认）
+      permission: "-"
+      api: "-"
+      result: 首轮任何角色都看不到修改学号入口；确需更正时由平台运营创建工单处理
+      audit: 是
+      batch: "deferred"
+      note: 学号是登录名来源（s + 学号），改号会导致学生无法登录；延后实现，见 CR-003
+    - id: ACT-STU-019
+      element: 批量导出
+      trigger: 勾选多行后点击
+      condition: 已勾选至少 1 行且有 data.export:export 权限
+      permission: "data.export:export"
+      confirm: 需要，提示"将导出当前筛选条件下的 N 行；超出 2000 行转后台任务"
+      api: exportStudent
+      result: 少于等于 2000 行直接下载，否则转异步并提示任务编号
+      audit: 是
+      batch: "2-1"
+    - id: ACT-STU-020
+      element: 批量调班
+      trigger: 勾选多行后点击
+      condition: 当前学年学期且在数据范围内
+      permission: "academic_director / org.class / update"
+      confirm: 需要，提示"将把 N 名学生调整到 X 班；逐条校验范围，任一条越权则整体拒绝"
+      api: batchTransferStudent
+      result: 打开批量调班弹窗（目标班级 + 生效日期 + 原因），确认后执行并写审计
+      audit: 是
+      batch: "2-1"
+    - id: ACT-STU-021
+      element: 上传 / 更换学生照片
+      trigger: 抽屉内点击
+      condition: 有 person.student 的 create 或 update 权限
+      permission: "person.student:create / update"
+      api: uploadStudentPhoto
+      result: 单张上传；保存后只展示缩略图；格式与大小限制由文件服务统一校验
+      audit: 是
+      batch: "2-1"
+    - id: ACT-STU-022
+      element: 查看照片原图
+      trigger: 点击缩略图
+      condition: 具备 read_sensitive
+      permission: "read_sensitive"
+      api: getStudentPhoto
+      result: 展示原图并写入访问日志（查看人、对象、字段、时间、用途说明）
+      audit: 是
+      batch: "2-1"
+
+# ---------------------------------------------------------------------------
+# 3.1 教师管理列表（PAGE-TCH-LIST）——批次 2-2a 样板页
+# ---------------------------------------------------------------------------
+teacher_list:
+  page: PAGE-TCH-LIST
+  actions:
+    - id: ACT-TCH-001
+      element: 新增
+      trigger: 点击
+      condition: 有 person.teacher:create 权限
+      permission: "academic_director / tenant_admin / person.teacher / create"
+      api: "-"
+      result: 打开 PAGE-TCH-CREATE 三步抽屉（基本信息 → 联系方式 → 任职信息），重置为默认值
+      audit: 否
+      batch: "2-2"
+    - id: ACT-TCH-002
+      element: 导入
+      trigger: 点击
+      condition: 有 data.import:import 权限
+      permission: "data.import:import"
+      api: "-"
+      result: 打开 PAGE-TCH-IMPORT 导入向导（批次 2-4）
+      audit: 否
+      batch: "2-4"
+      pages: [PAGE-TCH-LIST]
+    - id: ACT-TCH-003
+      element: 导出
+      trigger: 点击
+      condition: 有 data.export:export 权限
+      permission: "data.export:export"
+      confirm: 需要，提示"将按当前筛选条件导出，超出 2000 行转后台任务"
+      api: exportTeacher
+      result: 直接下载或返回任务编号
+      audit: 是
+      batch: "2-2"
+    - id: ACT-TCH-004
+      element: 下载模板
+      trigger: 点击
+      condition: 有 data.import:import 权限
+      permission: "data.import:import"
+      api: downloadTeacherImportTemplate
+      result: 下载当前版本的教师导入模板
+      audit: 是
+      batch: "2-2"
+    - id: ACT-TCH-005
+      element: 批量设置任教
+      trigger: 勾选多行后点击
+      condition: 已勾选至少 1 行且有 person.teaching_assignment:create 权限
+      permission: "academic_director / grade_leader / person.teaching_assignment / create"
+      confirm: 需要，提示"将为 N 名教师设置任教关系；逐条校验数据范围，任一条越权则整体拒绝（DS-DENY-06）"
+      api: batchSaveTeachingAssignment
+      result: 打开 PAGE-TCH-ASSIGN 任教关系页并带入已选教师（批次 2-2b）
+      audit: 是
+      batch: "2-2"
+    - id: ACT-TCH-006
+      element: 行内编辑
+      trigger: 点击行内按钮
+      condition: 有 person.teacher:update 且行在数据范围内
+      permission: "academic_director / tenant_admin / person.teacher / update"
+      api: "-"
+      result: 打开 PAGE-TCH-EDIT 抽屉，按字段级权限渲染只读与可写；详情页内的"编辑"复用同一动作
+      audit: 否
+      batch: "2-2"
+      pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL]
+    - id: ACT-TCH-007
+      element: 行内角色
+      trigger: 点击行内按钮
+      condition: 有 person.teacher:update 权限
+      permission: "academic_director / tenant_admin / person.teacher / update"
+      api: "-"
+      result: 打开 PAGE-TCH-ROLE 弹窗；选年级主任时必须选学年学期与年级
+      audit: 是
+      batch: "2-2"
+      pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-ROLE]
+      pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL]
+    - id: ACT-TCH-008
+      element: 行内任教
+      trigger: 点击行内按钮
+      condition: 有 person.teaching_assignment 的 read 权限
+      permission: "person.teaching_assignment:read"
+      api: "-"
+      result: 打开 PAGE-TCH-ASSIGN 任教关系页，默认按当前学年学期加载
+      audit: 否
+      batch: "2-2"
+      pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-ASSIGN]
+      pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL]
+    - id: ACT-TCH-009
+      element: 行内离职 / 调离
+      trigger: 点击行内按钮
+      condition: 有 person.teacher:update 且当前状态为在职
+      permission: "academic_director / tenant_admin / person.teacher / update"
+      confirm: 需要，提示"登记离职后该教师不再出现在任教关系选择项中，历史关系保留"
+      api: "-"
+      result: 打开 PAGE-TCH-LEAVE 弹窗，登记类型、生效日期与原因（批次 2-2b）
+      audit: 是
+      batch: "2-2"
+      pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL]
+    - id: ACT-TCH-010
+      element: 点击行
+      trigger: 单击数据行
+      condition: 有 person.teacher:read 权限
+      permission: "person.teacher:read"
+      api: getTeacher
+      result: 打开 PAGE-TCH-DETAIL 详情抽屉（基本信息 / 教育角色 / 任教关系 / 班主任任职 / 账号 / 变更记录），关闭后回到列表并保留筛选
+      audit: 否
+      batch: "2-2"
+    - id: ACT-TCH-011
+      element: 查看完整手机号
+      trigger: 点击掩码旁图标
+      condition: 具备 read_contact
+      permission: "read_contact"
+      confirm: 需要，提示"查看完整手机号将记录访问日志"
+      api: "-"
+      result: 就地展示完整值并写访问日志
+      audit: 是
+      batch: "2-2"
+      pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-EDIT]
+
+# ---------------------------------------------------------------------------
+# 3.2 教师详情（PAGE-TCH-DETAIL）——批次 2-2b-1
+# ---------------------------------------------------------------------------
+teacher_detail:
+  page: PAGE-TCH-DETAIL
+  actions:
+    - id: ACT-TCH-012
+      element: 解除教育角色
+      trigger: 点击教育角色行内"解除"
+      condition: 有 person.teacher:update 权限且该角色在操作人管理范围内
+      permission: "academic_director / tenant_admin / person.teacher / update"
+      confirm: 需要，提示"解除 {role_name} 后立即失效该用户的数据范围缓存，历史任职记录保留"
+      api: removeTeacherEduRole
+      result: 角色解除并写审计；随后刷新详情与列表的"教育角色"列
+      audit: 是
+      batch: "2-2"
+      pages: [PAGE-TCH-DETAIL, PAGE-TCH-ROLE]
+    - id: ACT-TCH-013
+      element: 停用 / 启用账号
+      trigger: 点击
+      condition: 有 person.teacher:update 权限
+      permission: "academic_director / tenant_admin / person.teacher / update"
+      confirm: 需要，提示"停用后该教师登录被拒绝；历史任教关系与审计记录保留"
+      api: changeTeacherAccountStatus
+      result: 账号状态切换并写审计；离职登记会自动停用账号（REQ-TCH-061）
+      audit: 是
+      batch: "2-2"
+    - id: ACT-TCH-014
+      element: 重置密码
+      trigger: 点击
+      condition: 有 person.teacher:update 权限
+      permission: "academic_director / tenant_admin / person.teacher / update"
+      confirm: 需要，提示"旧凭据立即失效；新的一次性凭据由学校分发，首次登录强制修改"
+      api: resetTeacherPassword
+      result: 生成一次性初始凭据并写审计；任何位置都不展示明文密码
+      audit: 是
+      batch: "2-2"
+    - id: ACT-TCH-015
+      element: 复制上一学年的任教关系
+      trigger: 点击
+      condition: 有 person.teaching_assignment:create 权限且存在可复制的历史学年学期
+      permission: "academic_director / person.teaching_assignment / create"
+      confirm: 需要，提示"将按 教师 + 学科 + 班级 整体复制到目标学年学期；目标已存在的有效关系跳过"
+      api: copyTeachingAssignment
+      result: 展示源与目标学年学期、冲突清单预览；确认后异步执行并返回任务编号（REQ-TCH-070）
+      audit: 是
+      batch: "2-2"
+      pages: [PAGE-TCH-DETAIL, PAGE-TCH-ASSIGN]
+    - id: ACT-TCH-016
+      element: 前往班级详情
+      trigger: 点击班主任任职分组内的链接
+      condition: 有 org.class:read 权限且该班级在数据范围内
+      permission: "org.class:read"
+      api: getClass
+      result: 跳转 PAGE-CLS-DETAIL（批次 2-3）；班主任关系只读，修改入口在班级模块
+      audit: 否
+      batch: "2-3"
+      pages: [PAGE-TCH-DETAIL, PAGE-TCH-ASSIGN]
+    - id: ACT-TCH-017
+      element: 展开 / 收起学年学期分组
+      trigger: 点击分组标题右侧链接
+      condition: 任教关系分组存在
+      permission: "person.teaching_assignment:read"
+      api: "-"
+      result: 折叠或展开该学年学期的任教关系；当前学年学期默认展开，折叠状态写入用户偏好
+      audit: 否
+      batch: "2-2"
+      pages: [PAGE-TCH-DETAIL, PAGE-TCH-ASSIGN]
+    - id: ACT-TCH-018
+      element: 关闭详情
+      trigger: 点击
+      condition: 始终可用
+      permission: "person.teacher:read"
+      api: "-"
+      result: 关闭详情抽屉并回到列表，保留筛选条件、页码与列配置
+      audit: 否
+      batch: "2-2"
+    - id: ACT-TCH-029
+      element: 查看全部变更记录
+      trigger: 点击变更记录分组内"查看全部"
+      condition: 有 audit.log:read 权限
+      permission: "audit.log:read"
+      api: listAuditLog
+      result: 跳转 PAGE-AUDIT-LOG-LIST（批次 2-8）并按当前教师对象预置筛选条件
+      audit: 是
+      batch: "2-8"
+      note: 详情页内只展示近 5 条时间线形态，全量查询在审计模块
+
+# ---------------------------------------------------------------------------
+# 3.3 教师新增 / 编辑抽屉（PAGE-TCH-CREATE / PAGE-TCH-EDIT）——批次 2-2b-1
+# ---------------------------------------------------------------------------
+teacher_form:
+  page: [PAGE-TCH-CREATE, PAGE-TCH-EDIT]
+  actions:
+    - id: ACT-TCH-019
+      element: 下一步
+      trigger: 点击
+      condition: 当前步骤校验通过（新增抽屉三步）
+      permission: "继承当前页面"
+      api: "-"
+      result: 进入下一步；校验失败时停留、字段标红并显示顶部汇总
+      audit: 否
+      batch: "2-2"
+    - id: ACT-TCH-020
+      element: 上一步
+      trigger: 点击
+      condition: 非第一步
+      permission: "继承当前页面"
+      api: "-"
+      result: 返回上一步，已填内容保留
+      audit: 否
+      batch: "2-2"
+    - id: ACT-TCH-021
+      element: 保存
+      trigger: 点击
+      condition: 必填、格式与唯一性校验通过；编辑时字段级权限允许
+      permission: "academic_director / tenant_admin / person.teacher / create 或 update"
+      confirm: 否
+      api: addTeacher / updateTeacher
+      result: 新增成功后展示登录名与一次性凭据说明，并给出"继续新增 / 查看详情 / 立即设置任教"；编辑成功后就地刷新详情与列表
+      audit: 是
+      batch: "2-2"
+    - id: ACT-TCH-022
+      element: 取消 / 关闭
+      trigger: 点击
+      condition: 始终可用
+      permission: "继承当前页面"
+      confirm: 需要，打开 DIALOG-TCH-DISCARD 确认"已填写的内容不会保存"
+      api: "-"
+      result: 打开放弃确认弹窗；确认后关闭抽屉且不保存任何数据
+      audit: 否
+      batch: "2-2"
+      pages: [PAGE-TCH-CREATE, PAGE-TCH-EDIT, PAGE-TCH-ROLE]
+    - id: ACT-TCH-023
+      element: 修改工号
+      trigger: 编辑抽屉内修改工号并保存
+      condition: 具备校级管理员权限（矩阵中 person.teacher:update，当前为租户管理员）
+      permission: "tenant_admin / person.teacher / update"
+      confirm: 需要，提示"修改工号将写入审计，记录变更前后值与授权角色；工号变更后登录名不自动跟随"
+      api: updateTeacher
+      result: 工号变更并强制留审计
+      audit: 是
+      batch: "2-2"
+      note: 教师 PRD 4.4 的字段级矩阵把"校领导"列为可改工号与部分字段，与 05-permission-matrix.yaml 中校领导对 person.teacher 仅有 read 冲突，见 GAP-032
+    - id: ACT-TCH-024
+      element: 继续新增
+      trigger: 新增成功提示条内点击
+      condition: 有 person.teacher:create 权限
+      permission: "academic_director / tenant_admin / person.teacher / create"
+      api: "-"
+      result: 关闭结果提示并重置表单为空白，停留在新增抽屉
+      audit: 否
+      batch: "2-2"
+    - id: ACT-TCH-025
+      element: 查看详情
+      trigger: 新增成功提示条内点击
+      condition: 有 person.teacher:read 权限
+      permission: "person.teacher:read"
+      api: getTeacher
+      result: 关闭新增抽屉并打开刚创建教师的 PAGE-TCH-DETAIL
+      audit: 否
+      batch: "2-2"
+    - id: ACT-TCH-026
+      element: 立即设置任教
+      trigger: 新增成功提示条内点击
+      condition: 有 person.teaching_assignment:create 权限
+      permission: "person.teaching_assignment:create"
+      api: "-"
+      result: 关闭新增抽屉并进入 PAGE-TCH-ASSIGN（批次 2-2b-2），带入刚创建的教师
+      audit: 否
+      batch: "2-2b-2"
+    - id: ACT-TCH-027
+      element: 放弃并关闭
+      trigger: 点击
+      condition: 放弃确认弹窗已打开
+      permission: "继承当前页面"
+      api: "-"
+      result: 关闭表单抽屉与确认弹窗，不保存任何数据
+      audit: 否
+      batch: "2-2"
+    - id: ACT-TCH-028
+      element: 继续填写
+      trigger: 点击
+      condition: 放弃确认弹窗已打开
+      permission: "继承当前页面"
+      api: "-"
+      result: 关闭确认弹窗并回到表单抽屉，已填内容保留
+      audit: 否
+      batch: "2-2"
+
+# ---------------------------------------------------------------------------
+# 3.4 教育角色分配（PAGE-TCH-ROLE）——批次 2-2b-2
+# ---------------------------------------------------------------------------
+teacher_role:
+  page: PAGE-TCH-ROLE
+  actions:
+    - id: ACT-TCH-030
+      element: 新增年级主任任职 / 收起
+      trigger: 点击
+      condition: 有 person.teacher:update 权限
+      permission: "academic_director / tenant_admin / person.teacher / update"
+      api: "-"
+      result: 展开或收起「年级主任任职」录入表单；年级主任必须绑定学年学期与年级（REQ-TCH-027）
+      audit: 否
+      batch: "2-2"
+    - id: ACT-TCH-031
+      element: 加入待保存
+      trigger: 点击
+      condition: 学年学期与年级已选、有 person.teacher:update 权限
+      permission: "academic_director / tenant_admin / person.teacher / update"
+      api: "-"
+      result: 把该条年级主任任职加入待保存列表；点「保存」后统一提交，唯一性由服务端判定（REQ-TCH-030）
+      audit: 否
+      batch: "2-2"
+    - id: ACT-TCH-032
+      element: 保存
+      trigger: 点击
+      condition: 有 person.teacher:update 权限，且任职范围在操作人管理范围内
+      permission: "academic_director / tenant_admin / person.teacher / update"
+      confirm: 需要，提示"角色变更后立即失效该用户的数据范围缓存，并写入审计（原角色、新角色、生效日期）"
+      api: saveTeacherEduRole
+      result: 保存学校级角色与年级主任任职；随后刷新详情页的教育角色分区与列表的教育角色列
+      audit: 是
+      batch: "2-2"
+
+# ---------------------------------------------------------------------------
+# 3.5 任教关系设置（PAGE-TCH-ASSIGN，独立页）——批次 2-2b-2
+# ---------------------------------------------------------------------------
+teacher_assign:
+  page: PAGE-TCH-ASSIGN
+  actions:
+    - id: ACT-TCH-033
+      element: 切换视角（班级视角 / 教师视角）
+      trigger: 点击
+      condition: 有 person.teaching_assignment:read 权限
+      permission: "person.teaching_assignment:read"
+      api: "-"
+      result: 切换左侧选择器与右侧主体的组织方式；学年学期与筛选条件保留（REQ-TCH-044）
+      audit: 否
+      batch: "2-2"
+    - id: ACT-TCH-034
+      element: 选择主体
+      trigger: 点击左侧列表中的班级或教师
+      condition: 该主体在当前数据范围内
+      permission: "person.teaching_assignment:read"
+      api: listTeachingAssignment
+      result: 右侧加载该班级 / 教师的任教关系，页头显示主体、类型与班主任或教育角色
+      audit: 否
+      batch: "2-2"
+    - id: ACT-TCH-035
+      element: 打开「新增任教关系」表单
+      trigger: 点击工具条、空态或"待补充"行的"指定教师"
+      condition: 有 person.teaching_assignment:create 权限且当前不是历史学年学期
+      permission: "academic_director / grade_leader / person.teaching_assignment / create"
+      api: "-"
+      result: 定位到新增任教关系表单；历史学年学期只读，不提供该入口（REQ-TCH-043）
+      audit: 否
+      batch: "2-2"
+    - id: ACT-TCH-036
+      element: 失效任教关系
+      trigger: 点击行内"失效"
+      condition: 有 person.teaching_assignment:update 权限且该行在数据范围内、状态为生效中
+      permission: "academic_director / grade_leader / person.teaching_assignment / update"
+      confirm: 需要，提示"失效后保留历史记录，不再参与教学数据统计；相关教师与学生的数据范围缓存立即失效"
+      api: disableTeachingAssignment
+      result: 该条任教关系置为失效并写审计；列表刷新（REQ-TCH-040 / REQ-TCH-041）
+      audit: 是
+      batch: "2-2"
+    - id: ACT-TCH-037
+      element: 导出任教关系
+      trigger: 点击
+      condition: 有 data.export:export 权限
+      permission: "data.export:export"
+      confirm: 需要，提示"导出范围按当前视角与数据范围解析；年级主任限本年级，任课教师与班主任禁止导出"
+      api: exportTeachingAssignment
+      result: 直接下载或转异步任务；写入导出审计（REQ-TCH-056 ~ REQ-TCH-058）
+      audit: 是
+      batch: "2-2"
+    - id: ACT-TCH-038
+      element: 确认复制任教关系
+      trigger: 点击复制弹窗内"确认复制"
+      condition: 有 person.teaching_assignment:create 权限且已完成冲突预览
+      permission: "academic_director / person.teaching_assignment / create"
+      confirm: 需要，提示"目标学期已存在的有效关系跳过；待处理项不会写入"
+      api: copyTeachingAssignment
+      result: 异步执行并返回任务编号；重复提交不产生重复记录（REQ-TCH-070 / NFR-MQ-01）
+      audit: 是
+      batch: "2-2"
+    - id: ACT-TCH-039
+      element: 保存任教关系
+      trigger: 点击
+      condition: 学年学期、学科、任教教师、班级均合法且在数据范围内
+      permission: "academic_director / grade_leader / person.teaching_assignment / create"
+      api: saveTeachingAssignment
+      result: 按"教师 + 学科 + 班级"逐条写入；已存在的有效关系跳过；任一条越权则整体拒绝（DS-DENY-06）
+      audit: 是
+      batch: "2-2"
+
+# ---------------------------------------------------------------------------
+# 4. 年级管理列表（PAGE-GRD-LIST）——批次 2-2b-2b 样板页
+# ---------------------------------------------------------------------------
+grade_list:
+  page: PAGE-GRD-LIST
+  actions:
+    - id: ACT-GRD-001
+      element: 新增
+      trigger: 点击
+      condition: 有 org.grade:create 权限
+      permission: "academic_director / tenant_admin / org.grade / create"
+      api: "-"
+      result: 打开 PAGE-GRD-CREATE 抽屉，重置为默认值；年级名称按"入学年份 + 学段 + 学段内序号"预生成且允许微调
+      audit: 否
+      batch: "2-2"
+    - id: ACT-GRD-002
+      element: 按学段批量生成
+      trigger: 点击
+      condition: 有 org.grade:create 权限
+      permission: "academic_director / tenant_admin / org.grade / create"
+      api: "-"
+      result: 打开 PAGE-GRD-BATCH 抽屉，选择学段与入学年份后一次生成该学段全部年级；已存在的年级列出冲突并跳过
+      audit: 否
+      batch: "2-2"
+    - id: ACT-GRD-003
+      element: 导出
+      trigger: 点击
+      condition: 有 data.export:export 权限
+      permission: "data.export:export"
+      confirm: 需要，提示"将按当前筛选条件导出；年级主任导出限本人负责的年级"
+      api: exportGrade
+      result: 直接下载或转异步任务；写入导出审计
+      audit: 是
+      batch: "2-2"
+    - id: ACT-GRD-004
+      element: 行内编辑
+      trigger: 点击行内按钮
+      condition: 有 org.grade:update 权限，且该年级不是已归档
+      permission: "academic_director / tenant_admin / org.grade / update"
+      api: "-"
+      result: 打开年级表单的编辑态；学段与学段内序号只读，入学年份在有班级时只读（REQ-GRD-018 / REQ-GRD-019）
+      audit: 否
+      batch: "2-2"
+      pending: "承载方式待 GAP-038 裁决：当前复用 PAGE-GRD-CREATE 的编辑态"
+    - id: ACT-GRD-005
+      element: 行内指定年级主任
+      trigger: 点击行内按钮
+      condition: 有 org.grade:update 权限，且该年级不是已归档
+      permission: "academic_director / tenant_admin / org.grade / update"
+      api: "-"
+      result: 打开 PAGE-GRD-LEADER 弹窗，必须选择学年学期，可添加多条任职并标记一名主要负责人（REQ-GRD-022 / REQ-GRD-023）
+      audit: 否
+      batch: "2-2"
+    - id: ACT-GRD-006
+      element: 行内归档
+      trigger: 点击行内按钮
+      condition: 有 org.grade:update 权限，且该年级不是已归档
+      permission: "academic_director / tenant_admin / org.grade / update"
+      confirm: 需要，提示"归档后该年级不在新建班级的可选列表中，历史数据与统计仍可查"
+      api: "-"
+      result: 打开 PAGE-GRD-ARCHIVE 弹窗，二次确认并填写原因；归档写审计
+      audit: 是
+      batch: "2-2"
+    - id: ACT-GRD-007
+      element: 行内删除
+      trigger: 点击行内按钮
+      condition: 有 org.grade:delete 权限；仅当年级下无班级且无学生关系时该入口才渲染，接口同样校验
+      permission: "academic_director / tenant_admin / org.grade / delete"
+      api: "-"
+      result: 打开 DIALOG-GRD-DELETE 二次确认弹窗；存在班级或学生关系时接口拒绝并提示改用归档（BR-GRADE-005）
+      audit: 否
+      batch: "2-2"
+    - id: ACT-GRD-008
+      element: 点击班级数
+      trigger: 点击单元格内的数字
+      condition: 有 org.class:read 权限且该年级在本次数据范围内
+      permission: "org.class:read"
+      api: "-"
+      result: 跳转班级列表并带入该年级筛选，返回时保留年级上下文（REQ-GRD-008、AC-GRD-008）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-GRD-009
+      element: 点击数据行 / 年级名称 / 操作列「详情」
+      trigger: 单击行
+      condition: 有 org.grade:read 权限且该年级在本次数据范围内
+      permission: "org.grade:read"
+      api: getGrade
+      result: 打开 PAGE-GRD-DETAIL 详情抽屉；关闭后回到列表并保留筛选与页码
+      audit: 否
+      batch: "2-2"
+    - id: ACT-GRD-010
+      element: 确认删除
+      trigger: 点击确认删除
+      condition: 已填写删除原因（至少 5 个字）；调接口前再次校验是否无班级无学生关系
+      permission: "academic_director / tenant_admin / org.grade / delete"
+      confirm: 需要，弹窗内已写明对象、影响范围与不可物理删除的说明
+      api: removeGrade
+      result: 逻辑删除该年级，写入审计；「学校 + 学段 + 入学年份 + 学段内序号」组合被释放
+      audit: 是
+      batch: "2-2"
+    - id: ACT-GRD-011
+      element: 取消删除
+      trigger: 点击取消或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭确认弹窗，不产生任何写入
+      audit: 否
+      batch: "2-2"
+
+# ---------------------------------------------------------------------------
+# 5. 其余页面
+#     规则：每个批次开始时，把该批页面的动作追加到下面，并按本文件的字段定义登记。
+#     批次 2-0 只定词汇与样板页；后续批次逐批补齐，未登记的动作不得出现在原型中。
+# ---------------------------------------------------------------------------
+grade_detail:
+    page: PAGE-GRD-DETAIL
+    actions:
+      - id: ACT-GRD-012
+        element: 详情内「编辑」
+        trigger: 点击
+        condition: 有 org.grade:update 权限且该年级未归档
+        permission: "academic_director / tenant_admin / org.grade / update"
+        api: "-"
+        result: 打开 PAGE-GRD-CREATE 弹窗的编辑态；学段、学段内序号只读，有班级时入学年份只读
+        audit: 否
+        batch: "2-2"
+      - id: ACT-GRD-013
+        element: 详情内「指定年级主任」
+        trigger: 点击
+        condition: 有 org.grade:update 权限
+        permission: "academic_director / tenant_admin / org.grade / update"
+        api: "-"
+        result: 打开 PAGE-GRD-LEADER 弹窗，带入当前年级
+        audit: 否
+        batch: "2-2"
+      - id: ACT-GRD-014
+        element: 详情内「查看全部班级」
+        trigger: 点击
+        condition: 有 org.class:read 权限
+        permission: "org.class:read"
+        api: "-"
+        result: 跳转班级管理并带入该年级筛选；返回时保留年级上下文（REQ-GRD-008）
+        audit: 否
+        batch: "2-3"
+      - id: ACT-GRD-015
+        element: 详情内「关闭」
+        trigger: 点击标题栏关闭或点「关闭」
+        condition: 始终可用
+        permission: "-"
+        api: "-"
+        result: 关闭详情抽屉，回到列表并保留筛选与页码
+        audit: 否
+        batch: "2-2"
+
+grade_form:
+    page: PAGE-GRD-CREATE
+    actions:
+      - id: ACT-GRD-016
+        element: 按规则重新生成年级名称
+        trigger: 点击
+        condition: 始终可用
+        permission: "-"
+        api: "-"
+        result: 按「入学年份 + 学段 + 学段内序号」重算名称，仍允许人工微调（REQ-GRD-011）
+        audit: 否
+        batch: "2-2"
+      - id: ACT-GRD-017
+        element: 取消
+        trigger: 点击
+        condition: 始终可用
+        permission: "-"
+        api: "-"
+        result: 关闭弹窗，不写入；已填内容不保留
+        audit: 否
+        batch: "2-2"
+      - id: ACT-GRD-018
+        element: 保存
+        trigger: 点击
+        condition: 必填项齐全，且「学校 + 学段 + 年级名称」不重名
+        permission: "academic_director / tenant_admin / org.grade / create"
+        confirm: 否
+        api: addGrade
+        result: 前端先拦重名，接口再校验「学校 + 学段 + 入学年份 + 学段内序号」唯一；成功后写审计并刷新列表
+        audit: 是
+        batch: "2-2"
+
+grade_batch:
+    page: PAGE-GRD-BATCH
+    actions:
+      - id: ACT-GRD-019
+        element: 选择学段 / 入学年份
+        trigger: 选择
+        condition: 有 org.grade:create 权限
+        permission: "academic_director / tenant_admin / org.grade / create"
+        api: "-"
+        result: 按学段与入学年份重算「将生成的年级」清单，并标出已存在、将被跳过的年级
+        audit: 否
+        batch: "2-2"
+      - id: ACT-GRD-020
+        element: 取消
+        trigger: 点击
+        condition: 始终可用
+        permission: "-"
+        api: "-"
+        result: 关闭弹窗，不生成任何年级
+        audit: 否
+        batch: "2-2"
+      - id: ACT-GRD-021
+        element: 确认生成
+        trigger: 点击
+        condition: 学段与入学年份已选
+        permission: "academic_director / tenant_admin / org.grade / create"
+        confirm: 需要，弹窗内已列出将生成的年级与冲突项
+        api: batchAddGrade
+        result: 一次生成该学段全部年级；已存在的跳过并列入结果，不覆盖不改名（AC-GRD-015）
+        audit: 是
+        batch: "2-2"
+
+grade_leader:
+    page: PAGE-GRD-LEADER
+    actions:
+      - id: ACT-GRD-022
+        element: 选择学年学期
+        trigger: 选择
+        condition: 有 org.grade:update 权限
+        permission: "academic_director / tenant_admin / org.grade / update"
+        api: listGradeLeader
+        result: 切换到该学年学期的任职清单；历史学年学期只读，不提供新增入口（REQ-GRD-022）
+        audit: 否
+        batch: "2-2"
+      - id: ACT-GRD-023
+        element: 填写待添加的年级主任
+        trigger: 选择教师 / 勾选主要负责人 / 选生效日期
+        condition: 当前学年学期不是历史学期
+        permission: "academic_director / tenant_admin / org.grade / update"
+        api: "-"
+        result: 只加入待保存清单；重复的「同一学年学期 + 同一年级 + 同一人」在添加时即被拒绝（REQ-GRD-024）
+        audit: 否
+        batch: "2-2"
+      - id: ACT-GRD-024
+        element: 添加
+        trigger: 点击
+        condition: 已选教师；同一学期同一年级同一人未存在
+        permission: "academic_director / tenant_admin / org.grade / update"
+        api: "-"
+        result: 加入待保存清单；勾选「主要负责人」时把原有主要负责人的标记取消（一人一名主要负责人）
+        audit: 否
+        batch: "2-2"
+      - id: ACT-GRD-025
+        element: 取消
+        trigger: 点击
+        condition: 始终可用
+        permission: "-"
+        api: "-"
+        result: 关闭弹窗，不保存
+        audit: 否
+        batch: "2-2"
+      - id: ACT-GRD-026
+        element: 保存
+        trigger: 点击
+        condition: 学年学期已选
+        permission: "academic_director / tenant_admin / org.grade / update"
+        confirm: 需要，保存前四条检查写在弹窗内
+        api: saveGradeLeader
+        result: 写入 edu_grade_leader；生效与解除都写审计，并立即失效相关用户的数据范围缓存（REQ-GRD-027）
+        audit: 是
+        batch: "2-2"
+      - id: ACT-GRD-027
+        element: 移除
+        trigger: 点击清单行内「移除」
+        condition: 有 org.grade:update 权限
+        permission: "academic_director / tenant_admin / org.grade / update"
+        api: "-"
+        result: 只从待保存清单移除；点「保存」后才真正解除任职并写审计
+        audit: 否
+        batch: "2-2"
+
+grade_archive:
+    page: PAGE-GRD-ARCHIVE
+    actions:
+      - id: ACT-GRD-028
+        element: 取消
+        trigger: 点击
+        condition: 始终可用
+        permission: "-"
+        api: "-"
+        result: 关闭弹窗，不归档
+        audit: 否
+        batch: "2-2"
+      - id: ACT-GRD-029
+        element: 确认归档
+        trigger: 点击
+        condition: 已填写归档原因（至少 5 个字）
+        permission: "academic_director / tenant_admin / org.grade / update"
+        confirm: 需要，弹窗内已写明对象、引用情况与影响范围
+        api: archiveGrade
+        result: 年级状态置为已归档并写审计；历史班级关系与统计仍可查，新建班级下拉中不再出现（REQ-GRD-029）
+        audit: 是
+        batch: "2-2"
+
+class_list:
+  page: PAGE-CLS-LIST
+  actions:
+    - id: ACT-CLS-001
+      element: 新建
+      trigger: 点击
+      condition: 有 org.class:create 权限
+      permission: "academic_director / grade_leader / org.class / create"
+      api: "-"
+      result: 打开 PAGE-CLS-CREATE 弹窗；学年学期默认当前，班级名称在同校同学年学期同学段下唯一
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-002
+      element: 批量生成
+      trigger: 点击
+      condition: 有 org.class:create 权限
+      permission: "academic_director / org.class / create"
+      api: "-"
+      result: 打开 PAGE-CLS-BATCH 弹窗，按年级与班级序号区间一次生成多个班级；已存在的名称列出冲突并跳过
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-003
+      element: 导出
+      trigger: 点击
+      condition: 有 data.export:export 权限
+      permission: "data.export:export"
+      confirm: 需要，提示"将按当前筛选条件导出台账；年级主任导出限本人负责年级"
+      api: exportClass
+      result: 行数 ≤ 2000 直接下载，否则转异步任务；写入导出审计（REQ-CLS-054）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-CLS-004
+      element: 行内「详情」
+      trigger: 点击行内按钮或班级名称
+      condition: 有 org.class:read 权限且该班级在本次数据范围内
+      permission: "org.class:read"
+      api: getClass
+      result: 进入 PAGE-CLS-DETAIL 独立页；返回列表时保留筛选与页码
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-005
+      element: 行内「编辑」
+      trigger: 点击行内按钮
+      condition: 有 org.class:update 权限，且该班级不是已停用
+      permission: "academic_director / grade_leader / org.class / update"
+      api: "-"
+      result: 打开班级表单的编辑态（复用 PAGE-CLS-CREATE 弹窗）；学年学期与年级只读（REQ-CLS-022），有花名册后班级类型只读（REQ-CLS-023）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-006
+      element: 行内「指定班主任」
+      trigger: 点击行内按钮
+      condition: 有 org.class:update 权限，且该班级不是已停用与教学班
+      permission: "academic_director / grade_leader / org.class / update"
+      api: "-"
+      result: 打开 PAGE-CLS-LEADER 弹窗，选择教师与生效日期；变更后原班主任立即失去本班范围（REQ-CLS-025 / 051）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-007
+      element: 行内「编班」
+      trigger: 点击行内按钮
+      condition: 有 org.class:update 权限且班级所属学年学期不是已归档学年
+      permission: "academic_director / grade_leader / org.class / update"
+      api: "-"
+      result: 进入 PAGE-CLS-ROSTER-ADD 独立页，从本校学生池检索并批量加入；逐条校验唯一行政班（REQ-CLS-027 / 029）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-008
+      element: 行内「复制班级」
+      trigger: 点击行内按钮
+      condition: 有 org.class:create 权限
+      permission: "academic_director / org.class / create"
+      api: "-"
+      result: 打开 PAGE-CLS-COPY 弹窗，选择目标学年学期与年级；复制类型、容量、校区、教室，不复制花名册与班主任（REQ-CLS-061）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-009
+      element: 行内「批量迁学生」
+      trigger: 点击行内按钮
+      condition: 有 org.class:update 权限，且该班在读人数大于 0
+      permission: "academic_director / grade_leader / org.class / update"
+      api: "-"
+      result: 进入 PAGE-CLS-MOVE 独立页，选目标班级并展示影响预览；原关系保留历史（REQ-CLS-062）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-010
+      element: 行内「停用」
+      trigger: 点击行内按钮
+      condition: 有 org.class:update 权限，且该班级不是已停用
+      permission: "academic_director / grade_leader / org.class / update"
+      confirm: 需要，打开 DIALOG-CLS-DISABLE；文案写清班级、在读人数与"仅停用不删除"
+      api: "-"
+      result: 打开停用二次确认片段，原因必填；停用后不在新建学生的可选班级中，历史花名册仍可查（REQ-CLS-044）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-011
+      element: 确认停用
+      trigger: 点击确认
+      condition: 已填写停用原因（至少 5 个字）
+      permission: "academic_director / grade_leader / org.class / update"
+      api: disableClass
+      result: 班级状态置为已停用并写审计；列表行内写操作收敛为「详情」
+      audit: 是
+      batch: "2-3"
+    - id: ACT-CLS-012
+      element: 取消停用
+      trigger: 点击取消或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭确认片段，不产生任何写入
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-013
+      element: 行内「删除」
+      trigger: 点击行内按钮
+      condition: 有 org.class:delete 权限；仅当在读人数为 0 时该入口才渲染，接口同样二次校验
+      permission: "academic_director / org.class / delete"
+      confirm: 需要，打开 DIALOG-CLS-DELETE；文案写清"有在读学生时不可删除，只能停用"
+      api: "-"
+      result: 打开删除二次确认片段，原因必填；有在读学生时接口拒绝并提示改用停用（REQ-CLS-043 / BR-CLASS-006）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-014
+      element: 确认删除
+      trigger: 点击确认删除
+      condition: 已填写删除原因（至少 5 个字）
+      permission: "academic_director / org.class / delete"
+      api: removeClass
+      result: 逻辑删除该班级并写审计；数据库层不开放物理删除（REQ-CLS-046）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-CLS-015
+      element: 取消删除
+      trigger: 点击取消或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭确认片段，不产生任何写入
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-016
+      element: 行内「更多」
+      trigger: 点击
+      condition: 该行至少有一个可用的低频行内操作
+      permission: "-"
+      api: "-"
+      result: 展开行内操作下拉（编班 / 复制班级 / 批量迁学生 / 停用 / 删除）；下拉项按各自权限与条件显隐
+      audit: 否
+      batch: "2-3"
+
+class_detail:
+  page: PAGE-CLS-DETAIL
+  actions:
+    - id: ACT-CLS-017
+      element: 返回列表
+      trigger: 点击
+      condition: 始终可用
+      permission: "org.class:read"
+      api: "-"
+      result: 回到 PAGE-CLS-LIST，保留进入前的筛选条件与页码
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-018
+      element: 页签（花名册 / 任课教师 / 班主任任职历史 / 变更记录）
+      trigger: 点击
+      condition: 始终可用
+      permission: "org.class:read"
+      api: "-"
+      result: 切换详情内的四个区域，不跳页；花名册默认选中
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-019
+      element: 编辑班级
+      trigger: 点击
+      condition: 有 org.class:update 权限，且不是历史学年学期
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: "-"
+      result: 打开班级表单的编辑态（批次 2-3c，PAGE-CLS-CREATE 编辑态）；学年学期与年级只读（REQ-CLS-022）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-020
+      element: 指定班主任
+      trigger: 点击
+      condition: 有 org.class:update 权限，且不是历史学年学期、不是教学班
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: "-"
+      result: 打开 PAGE-CLS-LEADER 弹窗（批次 2-3c）；变更后写审计并失效数据范围缓存（REQ-CLS-025）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-021
+      element: 编班（添加学生）
+      trigger: 点击
+      condition: 有 org.class:update 权限，且不是历史学年学期
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: "-"
+      result: 进入 PAGE-CLS-ROSTER-ADD 独立页并带 class=<本班> 参数；加入前校验唯一行政班（REQ-CLS-028）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-022
+      element: 复制班级
+      trigger: 点击
+      condition: 有 org.class:create 权限
+      permission: "academic_director / super_admin / org.class / create"
+      api: "-"
+      result: 打开 PAGE-CLS-COPY 弹窗（批次 2-3c）；不复制花名册与班主任（REQ-CLS-061）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-023
+      element: 批量迁学生
+      trigger: 点击
+      condition: 有 org.class:update 权限，且不是历史学年学期、在读人数大于 0
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: "-"
+      result: 进入 PAGE-CLS-MOVE 独立页（批次 2-3d），先展示影响预览（REQ-CLS-062）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-024
+      element: 导出花名册
+      trigger: 点击
+      condition: 有 data.export:export 权限；任课教师禁止导出（REQ-CLS-034）
+      permission: "academic_director / grade_leader / school_leader / homeroom / super_admin / data.export / export"
+      confirm: 需要，提示"按当前成员范围与筛选条件导出，行数与条件写入审计"
+      api: exportClassRoster
+      result: 行数 ≤ 2000 直接下载，否则转异步任务；写入导出审计（REQ-CLS-033 / 054）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-CLS-025
+      element: 成员范围切换（在读成员 / 全部成员）
+      trigger: 点击
+      condition: 始终可用
+      permission: "org.class:read"
+      api: listClassRoster
+      result: 在读成员只含在读学生；全部成员含休学等保留关系的成员（BR-STU-012）；默认在读成员（REQ-CLS-010）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-026
+      element: 移出（批量移出所选 / 行内移出）
+      trigger: 点击
+      condition: 有 org.class:update 权限，且不是历史学年学期；「移出所选」需要先在花名册勾选成员
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      confirm: 需要，写清"移出后保留原关系历史，不删除学生主体"
+      api: "-"
+      result: 打开移出二次确认片段 DIALOG-CLS-ROSTER-REMOVE（批次 2-3d）；未勾选时提示先勾选，不打开弹窗；真正写入见 ACT-CLS-048
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-027
+      element: 查看全部变更记录
+      trigger: 点击
+      condition: 有 audit.log:read 权限
+      permission: "audit.log:read"
+      api: "-"
+      result: 跳转操作日志页并按本班对象过滤（批次 2-8，PAGE-AUDIT-LOG-LIST）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-028
+      element: 花名册行内「详情」
+      trigger: 点击行内按钮或学生行
+      condition: 有 person.student:read 权限且该学生在数据范围内
+      permission: "person.student:read"
+      result: 打开学生详情（学生模块，批次 2-5，PAGE-STU-DETAIL）；返回时保留班级上下文
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-029
+      element: 花名册行内「调班」
+      trigger: 点击行内按钮
+      condition: 有 org.class:update 权限，且不是历史学年学期
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: "-"
+      result: 打开调班弹窗（PAGE-CLS-TRANSFER，本页片段），预填该生与源班级并禁用源班级选项；原关系保留历史（REQ-CLS-031）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-064
+      element: 花名册勾选待移出成员
+      trigger: 勾选 / 取消勾选
+      condition: 有 org.class:update 权限，且不是历史学年学期；只读角色不可勾选
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: "-"
+      result: 只维护本地勾选集合，供工具条「移出所选」使用；不写库
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-048
+      element: 确认移出
+      trigger: 点击
+      condition: 确认片段内已列出至少一名成员
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: removeClassRoster
+      confirm: 弹窗内已写明对象与影响范围（保留原关系历史、不删除学生主体）
+      result: 移出学生在读关系并写审计；批量时逐条校验，任一条失败列出失败清单（DS-DENY-06）；原关系保留历史（REQ-CLS-030）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-CLS-049
+      element: 取消移出
+      trigger: 点击或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭确认片段，不产生任何写入
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-050
+      element: 选择目标班级 / 生效日期
+      trigger: 选择
+      condition: 有 org.class:update 权限
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: "-"
+      result: 目标班级下拉排除源班级自身，已停用班级列出但不可选（REQ-CLS-044）；生效日期默认当前学年学期开始日
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-051
+      element: 取消调班
+      trigger: 点击或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，学生归属不变
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-052
+      element: 确认调班
+      trigger: 点击
+      condition: 目标班级与生效日期齐全，且目标班级不是已停用班级
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: transferClass
+      result: 结束原班关系并新增目标班关系（唯一行政班，BR-STU-003），写审计；原关系保留历史（REQ-CLS-031 / BR-PROMO-007）
+      audit: 是
+      batch: "2-3"
+
+class_create:
+  page: PAGE-CLS-CREATE
+  actions:
+    - id: ACT-CLS-030
+      element: 班级类型
+      trigger: 选择
+      condition: 新建态始终可选；编辑态有花名册后只读（REQ-CLS-023）
+      permission: "-"
+      api: "-"
+      result: 本弹窗只建行政班（接口 addClass）；「教学班」选项列出但不可选，指向批次 2-7 的教学班管理页（接口 addTeachingClass，BR-CLASS-007 / REQ-CLS-038 / D-043）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-031
+      element: 按规则生成班级名称
+      trigger: 点击
+      condition: 已选年级
+      permission: "-"
+      api: "-"
+      result: 按「年级短名 + 该年级本学年学期已有序号 + 1」重算班级名称，仍可人工微调；重名时前端先拦一次（BR-CLASS-003）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-032
+      element: 取消 / 右上角关闭
+      trigger: 点击或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，本次填写内容不保存；表单字段多于 5 个但没有草稿，故不做「放弃编辑」二次确认
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-033
+      element: 保存
+      trigger: 点击
+      condition: 必填齐全（学年学期 / 年级 / 班级类型 / 班级名称）且名称在同校同学年学期同学段下不冲突
+      permission: "academic_director / grade_leader / super_admin / org.class / create"
+      api: addClass
+      result: 写入班级主体并写审计（REQ-CLS-019）；学年学期与年级只读口径见 REQ-CLS-022；成功后弹窗内出现三个后续动作
+      audit: 是
+      batch: "2-3"
+    - id: ACT-CLS-034
+      element: 保存后「继续新增」
+      trigger: 点击
+      condition: 上一次保存已成功
+      permission: "org.class:create"
+      api: "-"
+      result: 在同一个弹窗内清空名称与班主任，保留学年学期 / 年级 / 类型 / 容量 / 校区，便于连续建班（REQ-CLS-018）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-035
+      element: 保存后「进入班级详情」
+      trigger: 点击
+      condition: 上一次保存已成功
+      permission: "org.class:read"
+      api: getClass
+      result: 关闭弹窗并进入 PAGE-CLS-DETAIL 独立页（REQ-CLS-018）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-036
+      element: 保存后「立即编班」
+      trigger: 点击
+      condition: 上一次保存已成功，且类型为行政班
+      permission: "org.class:update"
+      api: "-"
+      result: 关闭弹窗并进入 PAGE-CLS-ROSTER-ADD 独立页（批次 2-3d，REQ-CLS-018 / 027）
+      audit: 否
+      batch: "2-3"
+
+class_batch:
+  page: PAGE-CLS-BATCH
+  actions:
+    - id: ACT-CLS-037
+      element: 选择年级 / 序号区间 / 容量 / 校区
+      trigger: 选择或输入
+      condition: 有 org.class:create 权限
+      permission: "academic_director / super_admin / org.class / create"
+      api: "-"
+      result: 实时重算生成预览；已存在的班级名称标记为「已存在，跳过」，不覆盖也不改名（REQ-CLS-020）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-038
+      element: 取消 / 右上角关闭
+      trigger: 点击或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不生成任何班级
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-039
+      element: 确认生成
+      trigger: 点击
+      condition: 学年学期与年级已选，且起始序号 ≤ 结束序号（无冲突项时仍可提交，全部冲突则按钮置灰语义）
+      permission: "academic_director / super_admin / org.class / create"
+      api: batchAddClass
+      result: 一次生成区间内的全部班级并写审计；冲突项跳过并在结果里列出（REQ-CLS-020）；接口若返回异步任务编号，弹窗内给出任务中心入口
+      audit: 是
+      batch: "2-3"
+
+class_copy:
+  page: PAGE-CLS-COPY
+  actions:
+    - id: ACT-CLS-040
+      element: 选择目标学年学期 / 目标年级
+      trigger: 选择
+      condition: 有 org.class:create 权限
+      permission: "academic_director / super_admin / org.class / create"
+      api: "-"
+      result: 重算新班级名称与冲突提示；目标年级默认取源班级的年级，目标学期默认当前学年学期
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-041
+      element: 按规则生成班级名称
+      trigger: 点击
+      condition: 已选目标年级
+      permission: "-"
+      api: "-"
+      result: 按目标年级重算名称；仍可人工微调（BR-CLASS-003 同口径）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-042
+      element: 取消 / 右上角关闭
+      trigger: 点击或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不创建新班级
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-043
+      element: 确认复制
+      trigger: 点击
+      condition: 目标学年学期、目标年级、新名称齐全且名称不冲突
+      permission: "academic_director / super_admin / org.class / create"
+      api: addClass
+      result: 以源班级为模板生成新班级，复制班级类型 / 容量 / 校区 / 教室，**不复制花名册与班主任**（REQ-CLS-061）；提交复用 addClass（PRD 第 8 节未列 copyClass），是否新增独立 operationId 由阶段 4 接口清单定稿（GAP-049）
+      audit: 是
+      batch: "2-3"
+
+class_leader:
+  page: PAGE-CLS-LEADER
+  actions:
+    - id: ACT-CLS-044
+      element: 选择学年学期 / 新任班主任 / 生效日期
+      trigger: 选择或输入
+      condition: 有 org.class:update 权限；已停用班级与教学班无本入口（REQ-CLS-044 / REQ-CLS-039）
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: "-"
+      result: 切换任职历史清单并校验候选人资格；历史学年学期只读，不提供保存（REQ-CLS-050）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-045
+      element: 取消 / 右上角关闭
+      trigger: 点击或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，班主任不变更
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-046
+      element: 保存
+      trigger: 点击
+      condition: 学年学期、新任班主任、生效日期齐全，且该教师在本校在职、非离职 / 调离
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: assignHeadTeacher
+      result: 原班主任自动产生结束日期（同一时间只允许一名在任，REQ-CLS-049），历史保留（REQ-CLS-024 / 050）；立即失效原与新班主任的数据范围缓存（REQ-CLS-025 / 051）；写审计
+      audit: 是
+      batch: "2-3"
+    - id: ACT-CLS-047
+      element: 查看全部任职历史
+      trigger: 点击
+      condition: 有 org.class:read 权限
+      permission: "org.class:read"
+      api: getClass
+      result: 关闭弹窗并跳到 PAGE-CLS-DETAIL 的「班主任任职历史」页签（批次 2-3b 已交付），保留班级上下文
+      audit: 否
+      batch: "2-3"
+
+class_roster_add:
+  page: PAGE-CLS-ROSTER-ADD
+  actions:
+    - id: ACT-CLS-058
+      element: 返回班级详情 / 取消
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 回到 PAGE-CLS-DETAIL，保留班级上下文（DP-01：编班入口只在班级模块）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-053
+      element: 学生池检索与筛选（姓名 / 学号、只看可加入、搜索 / 重置 / 清空清单）
+      trigger: 输入或点击
+      condition: 有 person.student:read 权限
+      permission: "person.student:read"
+      api: listStudent
+      result: 按关键字与视图收窄学生池；「只看可加入」只留校验通过的学生，清空清单不写库
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-054
+      element: 勾选 / 取消勾选学生
+      trigger: 勾选
+      condition: 该生不是终态、且不在本班；只读角色与历史学年学期不可勾选
+      permission: "org.class:update"
+      api: "-"
+      result: 加入 / 移出待加入清单；勾选到有冲突的学生时立即提示，提交时会被整体拒绝（REQ-CLS-028）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-055
+      element: 待加入清单行内「移除」
+      trigger: 点击
+      condition: 始终可用
+      permission: "org.class:update"
+      api: "-"
+      result: 从待加入清单移除该生，不写库
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-056
+      element: 冲突行「调班」入口
+      trigger: 点击
+      condition: 该生已有行政班（REQ-CLS-028）
+      permission: "org.class:update"
+      api: "-"
+      result: 跳到 PAGE-CLS-DETAIL 的调班弹窗，带 student / from / to 三个参数并预填（PRD 6.3「冲突时点击调班 → 直接进入调班弹窗，预填目标班级」）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-057
+      element: 加入班级
+      trigger: 点击
+      condition: 待加入清单非空，且所选学生在本学年学期都没有行政班（逐条校验）
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: addClassRoster
+      confirm: 需要，弹窗与页面提示都写明"任一条冲突则整体拒绝并列出冲突清单"
+      result: 任一条冲突则整体拒绝并列出冲突清单（REQ-CLS-029 / DS-DENY-06）；全部通过时追加行政班关系并写审计
+      audit: 是
+      batch: "2-3"
+
+class_move_students:
+  page: PAGE-CLS-MOVE
+  actions:
+    - id: ACT-CLS-063
+      element: 返回班级列表 / 取消
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 回到 PAGE-CLS-LIST，不产生任何写入
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-059
+      element: 勾选 / 全选 / 清空源班级在读成员
+      trigger: 勾选或点击
+      condition: 成员处于在读状态；休学等保留关系的成员不可选（BR-STU-012）
+      permission: "org.class:update"
+      api: "-"
+      result: 只维护本地勾选集合，影响预览随之重算；不写库
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-060
+      element: 选择目标班级 / 填写迁移说明
+      trigger: 选择或输入
+      condition: 有 org.class:update 权限
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: "-"
+      result: 目标班级只列本校同学年学期的行政班，已停用班级列出但不可选（REQ-CLS-044）；跨年级时给确认提示（BR-CLASS-008）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-061
+      element: 刷新影响预览
+      trigger: 点击
+      condition: 有 org.class:read 权限
+      permission: "org.class:read"
+      api: listClassRoster
+      result: 按最新勾选与目标班级重算影响预览；预览只读，不写库
+      audit: 否
+      batch: "2-3"
+    - id: ACT-CLS-062
+      element: 执行迁移
+      trigger: 点击
+      condition: 至少一名在读成员被勾选，且目标班级存在且未停用
+      permission: "academic_director / grade_leader / super_admin / org.class / update"
+      api: transferClass
+      confirm: 需要，预览表格已展示每条影响；逐条校验、任一条失败列出失败清单
+      result: 批量结束原班关系并写入目标班关系（唯一行政班，BR-STU-003），原关系保留历史（BR-PROMO-007）；逐条校验，任一条失败列出失败清单（REQ-CLS-062 / DS-DENY-06）
+      audit: 是
+      batch: "2-3"
+
+# ---------------------------------------------------------------------------
+# 5.1 升班任务列表（PAGE-PRM-LIST）——批次 2-3e 首件样板
+#     权限口径见 CR-012：新建 = create；预览 / 执行 / 重试 / 取消 = update；read 决定列表可见性
+# ---------------------------------------------------------------------------
+promotion_list:
+  page: PAGE-PRM-LIST
+  actions:
+    - id: ACT-PRM-001
+      element: 新建任务
+      trigger: 点击
+      condition: 有 promotion.batch:create 权限
+      permission: "academic_director / promotion.batch / create"
+      api: "-"
+      result: 进入 PAGE-PRM-CREATE 四步向导第一步；创建前校验目标学年学期的年级与班级是否齐备（REQ-PRM-009）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-002
+      element: 行内「预览」/「重新预览」
+      trigger: 点击行内按钮
+      condition: 有 promotion.batch:update 权限；任务状态为草稿或已预览待确认
+      permission: "academic_director / promotion.batch / update"
+      api: previewPromotionTask
+      confirm: 重新预览会覆盖旧明细时提示"重新生成预览会覆盖旧明细"（REQ-PRM-021）
+      result: 生成升班预览（不写入任何学生数据，REQ-PRM-020）；完成后状态转为已预览待确认，进入 PAGE-PRM-PREVIEW
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-003
+      element: 行内「执行」/「查看校验」
+      trigger: 点击行内按钮
+      condition: 有 promotion.batch:update 权限；任务状态为已预览待确认或校验中
+      permission: "academic_director / promotion.batch / update"
+      api: executePromotionTask
+      confirm: 需要，先进入 PAGE-PRM-VALIDATE 展示通过 / 警告 / 错误；存在错误项时必须先修正或跳过（REQ-PRM-025）
+      result: 异步执行升班，立即返回任务编号（REQ-PRM-027）；执行按学年追加、幂等（BR-PROMO-001 / 003）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-004
+      element: 行内「重试失败项」/「重试」/「继续执行剩余项」
+      trigger: 点击行内按钮
+      condition: 有 promotion.batch:update 权限；任务状态为部分失败、失败或已取消
+      permission: "academic_director / promotion.batch / update"
+      api: retryPromotionTask
+      confirm: 需要，文案写清"只重新处理失败项 / 剩余项，已成功的记录不重复执行"
+      result: 只重试失败项或继续执行剩余项（REQ-PRM-032 / 已确认 4）；幂等键为"任务编号 + 学生 + 目标学年学期"
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-005
+      element: 行内「取消」
+      trigger: 点击行内按钮
+      condition: 有 promotion.batch:update 权限；任务未结束（草稿 / 已预览待确认 / 校验中 / 执行中）
+      permission: "academic_director / promotion.batch / update"
+      api: "-"
+      result: 打开同页确认片段 DIALOG-PRM-CANCEL，原因必填；文案写清"保留已完成部分，可继续执行剩余项或逐条回滚"
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-006
+      element: 行内「查看结果」/「查看进度」
+      trigger: 点击行内按钮
+      condition: 有 promotion.batch:read 权限
+      permission: "promotion.batch / read"
+      api: getPromotionTask
+      result: 进入 PAGE-PRM-RESULT 查看执行进度与结果报告（成功 / 失败 / 留级 / 毕业清单）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-007
+      element: 导出（任务台账）
+      trigger: 点击
+      condition: 有 data.export:export 权限
+      permission: "data.export:export"
+      confirm: 需要，提示"年级主任导出限本人负责年级"
+      api: exportPromotionTask
+      result: 行数 ≤ 2000 直接下载，否则转异步任务；导出写入审计（REQ-PRM-019 / NFR-AUDIT-01）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-008
+      element: 行内「结果导出」
+      trigger: 点击行内按钮
+      condition: 有 data.export:export 权限；任务已完成或部分失败
+      permission: "data.export:export"
+      api: exportPromotionResult
+      result: 下载结果报告（成功清单、失败清单、留级清单、毕业清单，REQ-PRM-034）；下载前重新解析数据范围（DS-DENY-04）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-009
+      element: 取消任务确认片段「返回」
+      trigger: 点击返回或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭 DIALOG-PRM-CANCEL，不产生任何写入
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-010
+      element: 确认取消任务
+      trigger: 点击确认取消
+      condition: 已填写取消原因（至少 5 个字）
+      permission: "academic_director / promotion.batch / update"
+      api: cancelPromotionTask
+      result: 任务状态置为已取消，保留已完成部分；写审计且不可删除（REQ-PRM-036 / REQ-PRM-058）
+      audit: 是
+      batch: "2-3"
+
+# ---------------------------------------------------------------------------
+# 升班向导第一步（PAGE-PRM-CREATE）——批次 2-3e-s2
+# ---------------------------------------------------------------------------
+promotion_create:
+  page: PAGE-PRM-CREATE
+  actions:
+    - id: ACT-PRM-011
+      element: 取消
+      trigger: 点击
+      condition: 有 promotion.batch:create 权限
+      permission: "academic_director / promotion.batch / create"
+      api: "-"
+      confirm: 已填写内容时提示"返回列表会丢弃当前填写的范围，任务不会被创建"
+      result: 返回 PAGE-PRM-LIST，保留列表的筛选条件与页码，不产生任何写入
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-012
+      element: 下一步：预览与调整
+      trigger: 点击
+      condition: 有 promotion.batch:create 权限；源与目标学年学期已选且目标起始日期晚于源；目标学年学期的年级与班级齐备；同一源→目标学期没有未结束任务
+      permission: "academic_director / promotion.batch / create"
+      api: addPromotionTask
+      result: 创建草稿任务（REQ-PRM-011）并写入审计（REQ-PRM-012），随后进入 PAGE-PRM-PREVIEW 生成升班预览；阻塞项存在时不发请求，只给字段级或页面级提示
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-013
+      element: 重新校验（目标学年学期的年级与班级齐备性）
+      trigger: 点击
+      condition: 有 promotion.batch:create 权限
+      permission: "academic_director / promotion.batch / create"
+      api: "-"
+      result: 重新解析目标学年学期的年级与班级清单与未结束任务，刷新阻塞项与耗时预估；前端校验不作为安全边界，后端在 addPromotionTask 内重复校验（NFR-SEC-05）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-014
+      element: 查看在读名单
+      trigger: 点击
+      condition: 有 person.student:read 权限
+      permission: "person.student / read"
+      api: "-"
+      result: 跳转 PAGE-STU-LIST，按源学年学期与"在读"口径查看参与升班的学生
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-015
+      element: 去创建年级
+      trigger: 点击
+      condition: 目标学年学期缺年级（REQ-PRM-009）
+      permission: "org.grade / read"
+      api: "-"
+      result: 跳转 PAGE-GRD-LIST，按目标学年学期新建缺失的年级（年级的唯一写入入口在年级模块）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-016
+      element: 去创建班级
+      trigger: 点击
+      condition: 目标学年学期缺班级（REQ-PRM-009）
+      permission: "org.class / read"
+      api: "-"
+      result: 跳转 PAGE-CLS-LIST，按目标学年学期补建缺失的班级
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-017
+      element: 查看已有任务
+      trigger: 点击
+      condition: 同一源→目标学期已存在未结束任务（REQ-PRM-005）
+      permission: "promotion.batch / read"
+      api: "-"
+      result: 跳转 PAGE-PRM-LIST，定位到该未结束任务，可继续执行或取消
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-018
+      element: 去学生管理核对学籍状态（空态主动作）
+      trigger: 点击
+      condition: 源学年学期的在读学生数为 0
+      permission: "person.student / read"
+      api: "-"
+      result: 跳转 PAGE-STU-LIST，核对学籍状态（休学 / 转入未报到 / 出国保留学籍都不计入在读名单，BR-STU-012）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-019
+      element: 返回任务列表（空态 / 错误态 / 无权限态的返回入口）
+      trigger: 点击
+      condition: 有 promotion.batch:read 权限
+      permission: "promotion.batch / read"
+      api: "-"
+      result: 返回 PAGE-PRM-LIST；只读角色看到的是列表的只读形态（CR-012）
+      audit: 否
+      batch: "2-3"
+
+# ---------------------------------------------------------------------------
+# 升班向导第二步：预览与调整（PAGE-PRM-PREVIEW）——批次 2-3e-s3
+# ---------------------------------------------------------------------------
+promotion_preview:
+  page: PAGE-PRM-PREVIEW
+  actions:
+    - id: ACT-PRM-020
+      element: 上一步：选择学年学期
+      trigger: 点击
+      condition: 有 promotion.batch:update 权限
+      permission: "academic_director / promotion.batch / update"
+      api: "-"
+      result: 返回 PAGE-PRM-CREATE 修改源 / 目标学年学期；已生成的预览明细保留，重新预览时才覆盖
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-021
+      element: 重新预览
+      trigger: 点击
+      condition: 有 promotion.batch:update 权限
+      permission: "academic_director / promotion.batch / update"
+      api: previewPromotionTask
+      confirm: 需要，提示"重新生成预览会覆盖旧明细"
+      result: 重新生成升班明细（仍不写入任何学生数据，REQ-PRM-020）；任务状态回到已预览待确认（REQ-PRM-021）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-022
+      element: 导出预览结果
+      trigger: 点击
+      condition: 有 data.export:export 权限
+      permission: "data.export:export"
+      api: exportPromotionPreview
+      result: 导出预览清单（源班级 / 目标班级 / 结果类型），供教务主任线下核对后再确认（REQ-PRM-019）；行数 ≤ 2000 直接下载，否则转异步
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-023
+      element: 应用到本班（按源班级整体指定目标班级）
+      trigger: 点击
+      condition: 有 promotion.batch:update 权限；该源班级至少 1 名在读学生
+      permission: "academic_director / promotion.batch / update"
+      api: batchUpdatePromotionItem
+      result: 该源班级的全部明细统一写入目标班级（REQ-PRM-018）；毕业年级不提供该入口；写入后仍可逐条调整
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-024
+      element: 行内「调整」
+      trigger: 点击明细行内按钮
+      condition: 有 promotion.batch:update 权限
+      permission: "academic_director / promotion.batch / update"
+      api: "-"
+      result: 打开 PAGE-PRM-ADJUST 弹窗并带入该学生、源班级与当前处理方式（REQ-PRM-017）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-025
+      element: 下一步：升班校验
+      trigger: 点击
+      condition: 有 promotion.batch:update 权限
+      permission: "academic_director / promotion.batch / update"
+      api: validatePromotionTask
+      result: 进入 PAGE-PRM-VALIDATE，按 REQ-PRM-022 的五个维度校验；存在错误项时不允许执行（REQ-PRM-025）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-026
+      element: 左栏源班级行（只看该班明细）
+      trigger: 点击
+      condition: 有 promotion.batch:read 权限
+      permission: "promotion.batch / read"
+      api: "-"
+      result: 右栏明细按该源班级过滤（REQ-PRM-013 的「源班级 → 目标班级」分组视角）；再点同一行回到全部
+      audit: 否
+      batch: "2-3"
+
+# ---------------------------------------------------------------------------
+# 升班向导第二步的调整弹窗（PAGE-PRM-ADJUST）——批次 2-3e-s3
+# ---------------------------------------------------------------------------
+promotion_adjust:
+  page: PAGE-PRM-ADJUST
+  actions:
+    - id: ACT-PRM-027
+      element: 取消
+      trigger: 点击取消或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭 PAGE-PRM-ADJUST，不写入任何明细字段
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-028
+      element: 保存调整
+      trigger: 点击保存
+      condition: 升级 / 转班必须指定目标班级；留级 / 跳过必须填写原因
+      permission: "academic_director / promotion.batch / update"
+      api: updatePromotionItem
+      result: 只写升班明细的 result_type / target_class_id / 原因（REQ-PRM-017），不改学生数据（REQ-PRM-020）；留级的去向是目标学年学期的同学段同名年级（BR-PROMO-006）
+      audit: 是
+      batch: "2-3"
+
+# ---------------------------------------------------------------------------
+# 升班模块的跨页通用动作（列表 / 预览 / 校验 / 执行 / 结果共用）
+# ---------------------------------------------------------------------------
+promotion_common:
+  page: "PAGE-PRM-LIST / PAGE-PRM-PREVIEW / PAGE-PRM-VALIDATE / PAGE-PRM-EXECUTE / PAGE-PRM-RESULT"
+  actions:
+    - id: ACT-PRM-043
+      element: 返回任务列表
+      trigger: 点击
+      condition: 有 promotion.batch:read 权限
+      permission: "promotion.batch / read"
+      api: "-"
+      result: 返回 PAGE-PRM-LIST（列表保留筛选与页码）；只读角色看到只读形态（CR-012）
+      audit: 否
+      batch: "2-3"
+
+# ---------------------------------------------------------------------------
+# 升班向导第三步：校验结果（PAGE-PRM-VALIDATE）——批次 2-3e-s4
+# ---------------------------------------------------------------------------
+promotion_validate:
+  page: PAGE-PRM-VALIDATE
+  actions:
+    - id: ACT-PRM-029
+      element: 上一步：预览与调整 / 回到预览修正
+      trigger: 点击
+      condition: 有 promotion.batch:update 权限
+      permission: "academic_director / promotion.batch / update"
+      api: "-"
+      result: 返回 PAGE-PRM-PREVIEW 修改去向；存在错误项时这是首选修正路径（REQ-PRM-025）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-030
+      element: 重新校验
+      trigger: 点击
+      condition: 有 promotion.batch:update 权限
+      permission: "academic_director / promotion.batch / update"
+      api: validatePromotionTask
+      result: 按 REQ-PRM-022 的五个维度重新校验，刷新通过 / 警告 / 错误三分类（REQ-PRM-023）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-031
+      element: 按维度下钻（全部 / 通过 / 警告 / 错误）
+      trigger: 点击
+      condition: 有 promotion.batch:read 权限
+      permission: "promotion.batch / read"
+      api: "-"
+      result: 明细清单按校验级别过滤，用于下钻到具体学生（REQ-PRM-026）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-032
+      element: 行内「标记跳过」
+      trigger: 点击行内按钮
+      condition: 有 promotion.batch:update 权限；该行不是「通过」
+      permission: "academic_director / promotion.batch / update"
+      api: updatePromotionItem
+      result: 把该学生的 result_type 置为 skip（本次不处理），用于放行错误项（REQ-PRM-025 / REQ-PRM-017）；不改学生数据
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-033
+      element: 确认执行（异步）
+      trigger: 点击
+      condition: 有 promotion.batch:update 权限；没有任何错误项（或错误项已标记跳过）
+      permission: "academic_director / promotion.batch / update"
+      api: executePromotionTask
+      confirm: 需要，文案写清"只新增下一学年的班级与学生关系，不改写源学年"
+      result: 异步执行并立即返回任务编号（REQ-PRM-027），按幂等键写入（REQ-PRM-029），进入 PAGE-PRM-EXECUTE
+      audit: 是
+      batch: "2-3"
+
+# ---------------------------------------------------------------------------
+# 升班向导第四步：执行与进度（PAGE-PRM-EXECUTE）——批次 2-3e-s4
+# ---------------------------------------------------------------------------
+promotion_execute:
+  page: PAGE-PRM-EXECUTE
+  actions:
+    - id: ACT-PRM-034
+      element: 刷新进度
+      trigger: 点击
+      condition: 有 promotion.batch:read 权限
+      permission: "promotion.batch / read"
+      api: getPromotionTask
+      result: 刷新已处理 / 总数与成功 / 失败计数（REQ-PRM-031）；离开页面不影响后台执行
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-035
+      element: 取消任务（去列表）
+      trigger: 点击
+      condition: 有 promotion.batch:update 权限；任务未结束
+      permission: "academic_director / promotion.batch / update"
+      api: "-"
+      result: 返回 PAGE-PRM-LIST 并在行内「取消」完成二次确认（原因必填）；取消后保留已完成部分、不做整批回滚（已确认 4 / ACT-PRM-010）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-036
+      element: 查看结果
+      trigger: 点击
+      condition: 有 promotion.batch:read 权限
+      permission: "promotion.batch / read"
+      api: "-"
+      result: 进入 PAGE-PRM-RESULT 查看成功 / 失败 / 留级 / 毕业四类清单（REQ-PRM-034）并重试失败项
+      audit: 否
+      batch: "2-3"
+
+# ---------------------------------------------------------------------------
+# 升班结果与重试（PAGE-PRM-RESULT）——批次 2-3e-s4
+# ---------------------------------------------------------------------------
+promotion_result:
+  page: PAGE-PRM-RESULT
+  actions:
+    - id: ACT-PRM-037
+      element: 只重试失败项
+      trigger: 点击
+      condition: 有 promotion.batch:update 权限；存在失败项
+      permission: "academic_director / promotion.batch / update"
+      api: retryPromotionTask
+      confirm: 需要，文案写清"只重新处理失败项，已成功的记录不重复执行"
+      result: 只重试失败项（REQ-PRM-032），按幂等键跳过已成功的关系（REQ-PRM-028 / REQ-PRM-029）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-038
+      element: 结果导出
+      trigger: 点击
+      condition: 有 data.export:export 权限
+      permission: "data.export:export"
+      api: exportPromotionResult
+      result: 下载结果报告（成功清单 / 失败清单 / 留级清单 / 毕业清单，REQ-PRM-034）；下载前重新解析数据范围（DS-DENY-04）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-039
+      element: 继续执行剩余项
+      trigger: 点击
+      condition: 有 promotion.batch:update 权限；任务为已取消或存在未处理项
+      permission: "academic_director / promotion.batch / update"
+      api: retryPromotionTask
+      result: 保留已完成的升班结果，只处理剩余未升班的学生（已确认 4）；已成功的关系不重复写入（REQ-PRM-028）
+      audit: 是
+      batch: "2-3"
+    - id: ACT-PRM-040
+      element: 行内「查看学生」（失败清单）
+      trigger: 点击行内按钮
+      condition: 有 person.student:read 权限
+      permission: "person.student / read"
+      api: "-"
+      result: 跳转 PAGE-STU-LIST 核对该学生的学籍状态与班级关系（失败项定位用）
+      audit: 否
+      batch: "2-3"
+    - id: ACT-PRM-041
+      element: 切换结果清单（成功 / 失败 / 留级 / 毕业）
+      trigger: 点击
+      condition: 有 promotion.batch:read 权限
+      permission: "promotion.batch / read"
+      api: "-"
+      result: 在四类清单之间切换（REQ-PRM-034）；数据范围仍按角色过滤（年级主任只看本人负责年级）
+      audit: 否
+      batch: "2-3"
+
+# ---------------------------------------------------------------------------
+# 导入向导与三个模块导入向导的共用动作（PAGE-IMP-WIZARD / STU-IMPORT / TCH-IMPORT / CLS-ROSTER-IMPORT）——批次 2-4
+# ---------------------------------------------------------------------------
+import_common:
+  page: "PAGE-IMP-WIZARD / PAGE-STU-IMPORT / PAGE-TCH-IMPORT / PAGE-CLS-ROSTER-IMPORT"
+  actions:
+    - id: ACT-IMP-001
+      element: 下载模板
+      trigger: 点击
+      condition: 有 data.import:import 权限
+      permission: "data.import:import"
+      api: downloadImportTemplate
+      result: 下载当前模块当前版本的导入模板（含列名、必填标记、格式说明与示例行，REQ-IMP-002）；下载写审计；旧版模板仍可下载但强提示（IMP-Q-05）
+      audit: 是
+      batch: "2-4"
+    - id: ACT-IMP-002
+      element: 下一步
+      trigger: 点击
+      condition: 有 data.import:import 权限
+      permission: "data.import:import"
+      api: "-"
+      result: 进入下一步（上传并校验 → 校验结果 → 确认执行）；同步校验上限 5000 行 / 10 MB / 30 秒（IMP-Q-01 / NFR-PERF-06）
+      audit: 否
+      batch: "2-4"
+    - id: ACT-IMP-003
+      element: 上一步
+      trigger: 点击
+      condition: 有 data.import:import 权限
+      permission: "data.import:import"
+      api: "-"
+      result: 回到上一步；已上传文件与校验结果保留，不重复解析
+      audit: 否
+      batch: "2-4"
+    - id: ACT-IMP-005
+      element: 下载失败明细
+      trigger: 点击
+      condition: 有 data.import:import 权限；存在失败行
+      permission: "data.import:import"
+      api: downloadImportFailedRows
+      result: 下载失败明细（行号 + 对象 + 原因），逐条修正后重传（REQ-IMP-012）；临时文件有效期 7 天（IMP-Q-02）
+      audit: 是
+      batch: "2-4"
+    - id: ACT-IMP-006
+      element: 确认执行（异步）
+      trigger: 点击
+      condition: 有 data.import:import 权限；校验已完成且存在可执行行
+      permission: "data.import:import"
+      api: executeImport
+      confirm: 需要，文案写清"只导入可执行行，失败行不导入；同一批次重复提交幂等"
+      result: 异步执行导入并立即返回任务编号（REQ-IMP-015）；幂等（BR-IMP-002），并发配额同一用户 1 个 / 同一学校 3 个（IMP-Q-03）
+      audit: 是
+      batch: "2-4"
+    - id: ACT-IMP-007
+      element: 查看异步任务
+      trigger: 点击
+      condition: 有 data.async_task:read 权限
+      permission: "data.async_task:read"
+      api: "-"
+      result: 进入 PAGE-IMP-TASK-LIST 查看进度与结果文件（REQ-IMP-052）；该页在批次 2-9 交付，本批给批次提示
+      audit: 否
+      batch: "2-4"
+    - id: ACT-IMP-008
+      element: 下载结果摘要 / 学号对照表
+      trigger: 点击
+      condition: 有 data.import:import 权限
+      permission: "data.import:import"
+      api: downloadImportResult
+      result: 下载结果摘要与学号对照表（学生导入：学校自带学号 → 系统学号，仅对照不入库，REQ-IMP-021 ~ 023）；结果文件 7 天、任务元数据 90 天
+      audit: 是
+      batch: "2-4"
+    - id: ACT-IMP-009
+      element: 重新导入
+      trigger: 点击
+      condition: 有 data.import:import 权限
+      permission: "data.import:import"
+      api: "-"
+      result: 回到第 1 步重新选择模板与文件；上一批任务记录与结果文件保留
+      audit: 否
+      batch: "2-4"
+    - id: ACT-IMP-010
+      element: 去异步任务中心（无权限态的只读出口）
+      trigger: 点击
+      condition: 有 data.async_task:read 权限
+      permission: "data.async_task:read"
+      api: "-"
+      result: 进入 PAGE-IMP-TASK-LIST；无导入权限的角色只能看任务状态，不能发起导入
+      audit: 否
+      batch: "2-4"
+    - id: ACT-IO-001
+      element: 拖拽上传区
+      trigger: 拖入文件 / 点击
+      condition: 有 data.import:import 权限
+      permission: "data.import:import"
+      api: "-"
+      result: 接收单个 .xlsx / .xls 文件；超过 5000 行或 10 MB 时给「拆分后重新上传」提示，不做后台静默接收（REQ-IMP-010）
+      audit: 否
+      batch: "2-4"
+    - id: ACT-IO-002
+      element: 选择文件
+      trigger: 点击
+      condition: 有 data.import:import 权限
+      permission: "data.import:import"
+      api: "-"
+      result: 打开系统文件选择框（单文件）；选中后回填文件名与行数，再点「下一步」进入同步校验
+      audit: 否
+      batch: "2-4"
+
+# ---------------------------------------------------------------------------
+# 独立于管理后台的页面：登录与异常页（PAGE-LOGIN / 403 / 404 / 500）——批次 2-4
+# 载体决策：这四页不套管理外壳（与真实系统一致），因此不提供角色 / 状态演示面板；
+# 页面自身的状态（提交中 / 错误 / 锁定）在页内直接可见。
+# ---------------------------------------------------------------------------
+auth:
+  page: PAGE-LOGIN
+  actions:
+    - id: ACT-AUTH-001
+      element: 登录
+      trigger: 点击 / 回车
+      condition: 登录名与密码均已填写
+      permission: "-"
+      api: login
+      result: 校验账号密码并写审计（NFR-AUDIT-01）；连续 5 次错误锁定 5 分钟（NFR-SEC-04）；首次登录强制改密（D-039）
+      audit: 是
+      batch: "2-4"
+    - id: ACT-AUTH-002
+      element: 学校（多校账号切换）
+      trigger: 切换下拉
+      condition: 账号具备多校权限
+      permission: "-"
+      api: "-"
+      result: 切换登录入口对应的租户 / 学校；学校用户登录后该下拉不可切换
+      audit: 否
+      batch: "2-4"
+    - id: ACT-AUTH-003
+      element: 忘记密码
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 首轮不做自助找回，提示联系本校管理员重置；管理员重置后同样发放一次性凭据（D-039）
+      audit: 否
+      batch: "2-4"
+
+error_page:
+  page: "PAGE-403 / PAGE-404 / PAGE-500"
+  actions:
+    - id: ACT-ERR-001
+      element: 返回工作台
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 回到登录后的工作台首页（原型演示给轻提示）
+      audit: 否
+      batch: "2-4"
+    - id: ACT-ERR-002
+      element: 申请开通权限
+      trigger: 点击（403）
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 提示联系本校管理员或运营管理员开通；缺少权限的访问同样写审计（NFR-AUDIT-02）
+      audit: 否
+      batch: "2-4"
+    - id: ACT-ERR-003
+      element: 返回上一页
+      trigger: 点击（404）
+      condition: 存在历史记录
+      permission: "-"
+      api: "-"
+      result: 返回来源页面；地址若来自系统内跳转，需把来源与路径反馈给维护者
+      audit: 否
+      batch: "2-4"
+    - id: ACT-ERR-004
+      element: 重试
+      trigger: 点击（500）
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 重发上一个请求；批量类写操作走异步任务，失败整批记录原因可重试（NFR-MQ-02），不产生部分写入
+      audit: 否
+      batch: "2-4"
+    - id: ACT-ERR-005
+      element: 去异步任务中心
+      trigger: 点击（500）
+      condition: 有 data.async_task:read 权限
+      permission: "data.async_task:read"
+      api: "-"
+      result: 进入 PAGE-IMP-TASK-LIST 查看失败任务与重试入口（该页在批次 2-9 交付）
+      audit: 否
+      batch: "2-4"
+
+# ---------------------------------------------------------------------------
+# 学生详情抽屉与变更记录区块（PAGE-STU-DETAIL / PAGE-STU-HISTORY）——批次 2-5
+# ---------------------------------------------------------------------------
+student_detail:
+  page: "PAGE-STU-DETAIL / PAGE-STU-HISTORY"
+  actions:
+    - id: ACT-STU-023
+      element: 查看完整（证件号 / 联系电话）
+      trigger: 点击
+      condition: 证件号需要 person.student:read_sensitive；联系电话需要 person.student_contact:read_contact
+      permission: "person.student:read_sensitive / person.student_contact:read_contact"
+      api: "-"
+      result: 展示完整值并写入敏感数据访问日志（访问人、对象、字段、时间、用途）；租户侧可见（NFR-AUDIT-03 / DS-DENY-09）
+      audit: 是
+      batch: "2-5"
+    - id: ACT-STU-024
+      element: 编辑监护人信息
+      trigger: 点击
+      condition: 有 person.student_guardian:update 权限（教务主任 / 班主任；年级主任只读）
+      permission: "person.student_guardian / update"
+      api: saveStudentGuardian
+      result: 保存监护人信息（班主任为唯一写入口）；一个家长可关联多个孩子，绑定上限 3（GAP-015）
+      audit: 是
+      batch: "2-5"
+    - id: ACT-STU-034
+      element: 监护人「解绑」
+      trigger: 点击行内按钮
+      condition: 有 person.student_guardian:update 权限
+      permission: "person.student_guardian / update"
+      api: unbindStudentGuardian
+      result: 提交解绑申请（需班主任确认）；未通过可重提，同一字段同时只允许一条待审核（GAP-018）
+      audit: 是
+      batch: "2-5"
+    - id: ACT-STU-025
+      element: 详情「学籍异动」
+      trigger: 点击
+      condition: 有 enrollment.status:update 权限；学生不是终态
+      permission: "enrollment.status / update"
+      api: "-"
+      result: 打开 PAGE-STU-STATUS，带入该学生与当前状态；可执行异动由 listEnrollmentStatusOption 计算
+      audit: 否
+      batch: "2-5"
+    - id: ACT-STU-026
+      element: 详情「调班」
+      trigger: 点击
+      condition: 有 org.class:update 权限；学生有行政班关系
+      permission: "org.class / update"
+      api: "-"
+      result: 打开 PAGE-STU-TRANSFER，带入该学生与当前班级（源班级不可选）
+      audit: 否
+      batch: "2-5"
+    - id: ACT-STU-027
+      element: 详情「跨校转学」
+      trigger: 点击
+      condition: 有 enrollment.transfer:create 权限（教务主任）
+      permission: "enrollment.transfer / create"
+      api: "-"
+      result: 进入 PAGE-STU-CROSS-TRANSFER 跨校转学向导（转出校发起）
+      audit: 否
+      batch: "2-5"
+    - id: ACT-STU-028
+      element: 详情「异动登记（升班口径）」
+      trigger: 点击
+      condition: 有 enrollment.status:update 权限
+      permission: "enrollment.status / update"
+      api: "-"
+      result: 打开 PAGE-PRM-CHANGE（与 PAGE-STU-STATUS 同字段、同接口，额外强制阶段与审批约束）
+      audit: 否
+      batch: "2-5"
+    - id: ACT-STU-029
+      element: 变更记录「查看全部」
+      trigger: 点击
+      condition: 有 audit.log:read 权限
+      permission: "audit.log / read"
+      api: "-"
+      result: 跳转 PAGE-AUDIT-LOG-LIST，按对象筛选该学生的全部变更（该页在批次 2-8 交付）
+      audit: 否
+      batch: "2-5"
+
+# ---------------------------------------------------------------------------
+# 学籍异动（PAGE-STU-STATUS）与调班（PAGE-STU-TRANSFER）——批次 2-5
+# ---------------------------------------------------------------------------
+student_status:
+  page: PAGE-STU-STATUS
+  actions:
+    - id: ACT-STU-030
+      element: 提交异动
+      trigger: 点击
+      condition: 异动类型与生效日期、原因均已填；流转合法（FD-enrollment_status.transitions）
+      permission: "enrollment.status / update"
+      api: changeEnrollmentStatus
+      confirm: 需要，文案写清「原状态 → 新状态、生效日期、是否保留班级关系与在读口径」
+      result: 按状态机流转并写审计（BR-PROMO-012）；生效后立即更新数据范围缓存（DP-06）；非法流转直接拒绝
+      audit: 是
+      batch: "2-5"
+    - id: ACT-STU-031
+      element: 取消（异动弹窗）
+      trigger: 点击取消或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭 PAGE-STU-STATUS，不写入
+      audit: 否
+      batch: "2-5"
+
+student_transfer:
+  page: PAGE-STU-TRANSFER
+  actions:
+    - id: ACT-STU-032
+      element: 确认调班
+      trigger: 点击
+      condition: 已选目标班级；目标班级未停用且与源班级不同
+      permission: "org.class / update"
+      api: transferStudentClass
+      result: 更新学生的行政班关系并写审计；学号与学籍状态不变（BR-STU-016）；同一学年学期只保留一条行政班关系
+      audit: 是
+      batch: "2-5"
+    - id: ACT-STU-033
+      element: 取消（调班弹窗）
+      trigger: 点击取消或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭 PAGE-STU-TRANSFER，不写入
+      audit: 否
+      batch: "2-5"
+
+# ---------------------------------------------------------------------------
+# 异动登记（PAGE-PRM-CHANGE，升班与学籍异动模块口径）——批次 2-5
+# ---------------------------------------------------------------------------
+promotion_change:
+  page: PAGE-PRM-CHANGE
+  actions:
+    - id: ACT-PRM-044
+      element: 提交登记
+      trigger: 点击
+      condition: 异动类型、生效日期、原因均已填；阶段与审批约束满足（义务教育不得开除；退学 / 开除 / 死亡需校级管理员审批）
+      permission: "enrollment.status / update"
+      api: changeEnrollmentStatus
+      confirm: 需要，文案写清「需要审批的异动在审批通过前不生效」
+      result: 与 PAGE-STU-STATUS 同一接口与同一字段集；额外校验阶段限制与审批要求（REQ-PRM-043 / 044），并更新数据范围缓存（DP-06）
+      audit: 是
+      batch: "2-5"
+    - id: ACT-PRM-045
+      element: 取消（异动登记弹窗）
+      trigger: 点击取消或按 Esc
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭 PAGE-PRM-CHANGE，不写入
+      audit: 否
+      batch: "2-5"
+
+# ---------------------------------------------------------------------------
+# 跨校转学：转出校向导（PAGE-STU-CROSS-TRANSFER）与转入校向导（PAGE-PRM-TRANSFER）——批次 2-5
+# ---------------------------------------------------------------------------
+student_cross_transfer:
+  page: PAGE-STU-CROSS-TRANSFER
+  actions:
+    - id: ACT-STU-040
+      element: 下一步
+      trigger: 点击
+      condition: 当前步骤必填项已完成
+      permission: "enrollment.transfer / create"
+      api: "-"
+      result: 进入下一步（选择学生 → 转入校与目标班级 → 确认提交 → 结果）
+      audit: 否
+      batch: "2-5"
+    - id: ACT-STU-041
+      element: 上一步
+      trigger: 点击
+      condition: 有 enrollment.transfer:create 权限
+      permission: "enrollment.transfer / create"
+      api: "-"
+      result: 回到上一步；已填内容保留
+      audit: 否
+      batch: "2-5"
+    - id: ACT-STU-042
+      element: 提交转学申请
+      trigger: 点击
+      condition: 学生无未完成转学单（REQ-PRM-057）；已选转入校与目标年级班级
+      permission: "enrollment.transfer / create"
+      api: addTransfer
+      confirm: 需要，文案写清「提交后学生在本校置为已转出、转入校收到待报到记录；学号保持不变」
+      result: 生成转学单（status=待接收），原在校记录置为已转出，转入校新建「转入未报到」记录；两侧都写审计（REQ-PRM-051 / 056）
+      audit: 是
+      batch: "2-5"
+    - id: ACT-STU-043
+      element: 撤销转学申请
+      trigger: 点击（结果步骤）
+      condition: 转入校尚未接收
+      permission: "enrollment.transfer / create"
+      api: cancelTransfer
+      result: 撤销转学单（记录逻辑删除并留痕），不产生转出记录（REQ-PRM-054）
+      audit: 是
+      batch: "2-5"
+
+promotion_transfer:
+  page: PAGE-PRM-TRANSFER
+  actions:
+    - id: ACT-PRM-050
+      element: 接收
+      trigger: 点击待接收转学单
+      condition: 有 enrollment.transfer 的 approve 权限（转入校教务主任）
+      permission: "enrollment.transfer / approve"
+      api: acceptTransfer
+      confirm: 需要，文案写清「接收后学生在转入校建立待报到记录，接收前不计入转入校任何在读数与花名册」
+      result: 接收动作本身即审批（REQ-PRM-051 / 已确认 3）；转入校可撤销接收（REQ-PRM-054）
+      audit: 是
+      batch: "2-5"
+    - id: ACT-PRM-051
+      element: 报到
+      trigger: 点击
+      condition: 转学单已接收且学生到校
+      permission: "enrollment.status / update"
+      api: checkInTransfer
+      result: 学生状态由「转入未报到」转为「在读」，进入转入校在读名单与花名册（REQ-PRM-051 / BR-STU-023）
+      audit: 是
+      batch: "2-5"
+    - id: ACT-PRM-052
+      element: 下一步
+      trigger: 点击
+      condition: 当前步骤已选转学单
+      permission: "enrollment.transfer / read"
+      api: "-"
+      result: 进入下一步（待接收清单 → 核对信息 → 接收 / 撤销 → 报到）
+      audit: 否
+      batch: "2-5"
+    - id: ACT-PRM-053
+      element: 上一步
+      trigger: 点击
+      condition: 有 enrollment.transfer:read 权限
+      permission: "enrollment.transfer / read"
+      api: "-"
+      result: 回到上一步
+      audit: 否
+      batch: "2-5"
+    - id: ACT-PRM-054
+      element: 撤销接收
+      trigger: 点击
+      condition: 转学单已接收但学生未报到
+      permission: "enrollment.transfer / approve"
+      api: cancelTransfer
+      result: 撤销接收：转入记录逻辑删除并留痕，此时不产生转出记录（REQ-PRM-054）
+      audit: 是
+      batch: "2-5"
+
+# ---------------------------------------------------------------------------
+# 异动历史（PAGE-PRM-HISTORY）——批次 2-5
+# ---------------------------------------------------------------------------
+promotion_history:
+  page: PAGE-PRM-HISTORY
+  actions:
+    - id: ACT-PRM-046
+      element: 异动登记
+      trigger: 点击
+      condition: 有 enrollment.status:update 权限
+      permission: "enrollment.status / update"
+      api: "-"
+      result: 跳转 pages/student-list.html 并打开 PAGE-PRM-CHANGE 异动登记弹窗（登记入口唯一，避免两套规则）
+      audit: 否
+      batch: "2-5"
+    - id: ACT-PRM-047
+      element: 行内「查看学生」
+      trigger: 点击行内按钮
+      condition: 有 person.student:read 权限
+      permission: "person.student / read"
+      api: "-"
+      result: 跳转 PAGE-STU-LIST 并定位该学生（用于核对学籍状态与班级关系）
+      audit: 否
+      batch: "2-5"
+    - id: ACT-PRM-048
+      element: 导出异动历史
+      trigger: 点击
+      condition: 有 data.export:export 权限
+      permission: "data.export:export"
+      api: exportData
+      result: 按当前筛选导出异动历史（≤2000 行直接下载，否则转异步）；下载前重新解析数据范围（DS-DENY-04）
+      audit: 是
+      batch: "2-5"
+
+# ---------------------------------------------------------------------------
+# 学校管理（PAGE-SCH-LIST / DETAIL / CREATE / EDIT / STAGE / DISABLE）——批次 2-6a
+# ---------------------------------------------------------------------------
+school_list:
+  page: "PAGE-SCH-LIST / PAGE-SCH-DETAIL / PAGE-SCH-CREATE / PAGE-SCH-EDIT / PAGE-SCH-STAGE / PAGE-SCH-DISABLE"
+  actions:
+    - id: ACT-SCH-001
+      element: 新建学校
+      trigger: 点击
+      condition: 有 org.school:create 权限（租户管理员 / 超级管理员）
+      permission: "tenant_admin / org.school / create"
+      api: "-"
+      result: 打开 PAGE-SCH-CREATE 弹窗（CR-015：表单类浮层统一用弹窗）；学校编码由系统生成
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-002
+      element: 开通初始化
+      trigger: 点击
+      condition: 有 org.school:create 权限
+      permission: "tenant_admin / org.school / create"
+      api: "-"
+      result: 进入 PAGE-SCH-INIT 开通初始化向导（学校基本信息 → 学段与年级 → 学年学期 → 执行）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-003
+      element: 导出
+      trigger: 点击
+      condition: 有 data.export:export 权限
+      permission: "data.export:export"
+      api: exportSchool
+      result: 导出学校台账（集团与运营方需逐次授权并留痕，与 IMP-Q-04 同口径）；超 2000 行转异步
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SCH-004
+      element: 行内「校区数」
+      trigger: 点击
+      condition: 有 org.school:read 权限
+      permission: "org.school / read"
+      api: "-"
+      result: 跳转 PAGE-SCH-CAMPUS 校区管理页（GAP-046 选项 A：不新增页面，复用详情下的校区管理）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-018
+      element: 行内「详情」
+      trigger: 点击
+      condition: 有 org.school:read 权限
+      permission: "org.school / read"
+      api: getSchool
+      result: 打开 PAGE-SCH-DETAIL 抽屉，带入该学校（基本信息 / 规模概览 / 学段配置）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-005
+      element: 详情「配置学段」
+      trigger: 点击
+      condition: 有 org.school:update 权限
+      permission: "tenant_admin / org.school / update"
+      api: "-"
+      result: 打开 PAGE-SCH-STAGE 弹窗（学段序号固定映射：小学 1–6、初中 / 高中 1–3）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-006
+      element: 详情 / 行内「编辑学校」
+      trigger: 点击
+      condition: 有 org.school:update 权限；学校未停用
+      permission: "tenant_admin / org.school / update"
+      api: "-"
+      result: 打开 PAGE-SCH-EDIT 弹窗；学校编码只读（变更需单独申请 updateSchoolCode 并写审计）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-007
+      element: 详情「校区管理」
+      trigger: 点击
+      condition: 有 org.school:read 权限
+      permission: "org.school / read"
+      api: "-"
+      result: 跳转 PAGE-SCH-CAMPUS（含新增 / 编辑 / 停用校区）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-008
+      element: 详情「学段配置」
+      trigger: 点击
+      condition: 有 org.school:update 权限
+      permission: "tenant_admin / org.school / update"
+      api: "-"
+      result: 同 ACT-SCH-005（详情底部的第二个入口）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-009
+      element: 详情「停用学校」
+      trigger: 点击
+      condition: 有 org.school:update 权限
+      permission: "tenant_admin / org.school / update"
+      api: "-"
+      result: 打开 PAGE-SCH-DISABLE 二次确认弹窗；原因必填并写审计
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-010
+      element: 新建学校「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭 PAGE-SCH-CREATE，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-011
+      element: 新建学校「保存」
+      trigger: 点击
+      condition: 学校名称与所属租户必填、至少一个学段
+      permission: "tenant_admin / org.school / create"
+      api: addSchool
+      result: 创建学校（编码系统生成、默认启用）并写审计；可在详情里继续配置学段与校区
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SCH-012
+      element: 编辑学校「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭 PAGE-SCH-EDIT，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-013
+      element: 编辑学校「保存」
+      trigger: 点击
+      condition: 学校名称必填
+      permission: "tenant_admin / org.school / update"
+      api: updateSchool
+      result: 保存学校信息并写审计；编码与所属租户只读（编码变更走 updateSchoolCode）
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SCH-014
+      element: 学段配置「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭 PAGE-SCH-STAGE，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-015
+      element: 学段配置「保存配置」
+      trigger: 点击
+      condition: 已选学段
+      permission: "tenant_admin / org.school / update"
+      api: saveSchoolStage
+      result: 保存学段启用配置（小学 1–6、初中 / 高中 1–3）；新增学段后可创建对应年级（BR-GRADE-006）
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SCH-016
+      element: 停用学校「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭 PAGE-SCH-DISABLE，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-017
+      element: 停用学校「确认停用」
+      trigger: 点击
+      condition: 已填写停用原因（≥5 字）
+      permission: "tenant_admin / org.school / update"
+      api: disableSchool
+      result: 停用学校（不再出现在业务选择项，历史数据保留）并写审计；可再启用（enableSchool）
+      audit: 是
+      batch: "2-6"
+
+# ---------------------------------------------------------------------------
+# 校区管理（PAGE-SCH-CAMPUS）与开通初始化（PAGE-SCH-INIT）——批次 2-6b
+# ---------------------------------------------------------------------------
+school_campus:
+  page: "PAGE-SCH-CAMPUS / PAGE-SCH-INIT"
+  actions:
+    - id: ACT-SCH-030
+      element: 新增校区
+      trigger: 点击
+      condition: 有 org.school:update 权限
+      permission: "tenant_admin / org.school / update"
+      api: "-"
+      result: 展开页内校区表单（校区是轻量对象，用页内表单而不是再开一层浮层）；编码留空由系统生成
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-031
+      element: 返回学校列表
+      trigger: 点击
+      condition: 有 org.school:read 权限
+      permission: "org.school / read"
+      api: "-"
+      result: 返回 PAGE-SCH-LIST
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-032
+      element: 校区表单「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 收起页内表单，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-033
+      element: 校区表单「保存校区」
+      trigger: 点击
+      condition: 校区名称必填
+      permission: "tenant_admin / org.school / update"
+      api: saveCampus
+      result: 新增 / 保存校区；校区不参与权限判定（BR-ORG-009），只用于组织与统计
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SCH-034
+      element: 行内「编辑」（校区）
+      trigger: 点击行内按钮
+      condition: 有 org.school:update 权限
+      permission: "tenant_admin / org.school / update"
+      api: "-"
+      result: 把该行填入页内表单并切到编辑态
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-037
+      element: 行内「停用」（校区）
+      trigger: 点击行内按钮
+      condition: 有 org.school:update 权限；校区为启用中
+      permission: "tenant_admin / org.school / update"
+      api: "-"
+      result: 展开页内二次确认（写清影响范围）并显示原因必填
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-035
+      element: 停用相机确认「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 收起确认区，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-036
+      element: 停用校区「确认停用」
+      trigger: 点击
+      condition: 已填写停用原因（≥5 字）
+      permission: "tenant_admin / org.school / update"
+      api: removeCampus
+      result: 停用校区（不再出现在班级的可选校区中，历史班级保留原校区值）并写审计
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SCH-040
+      element: 开通初始化「下一步」
+      trigger: 点击
+      condition: 当前步骤必填项已完成
+      permission: "tenant_admin / org.school / create"
+      api: "-"
+      result: 进入下一步（学校基本信息 → 学段与年级 → 学年学期 → 执行与结果）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-041
+      element: 开通初始化「上一步」
+      trigger: 点击
+      condition: 有 org.school:create 权限
+      permission: "tenant_admin / org.school / create"
+      api: "-"
+      result: 回到上一步，已填内容保留
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SCH-042
+      element: 开通初始化「执行初始化」
+      trigger: 点击
+      condition: 学校名称与首学年已选
+      permission: "tenant_admin / org.school / create"
+      api: initSchoolBaseline
+      result: 一次创建学校 / 学段 / 年级 / 学年 / 学期；已存在对象跳过、不覆盖（幂等，BR-IMP-002 同口径）
+      audit: 是
+      batch: "2-6"
+
+# ---------------------------------------------------------------------------
+# 学年列表（PAGE-TERM-LIST）与学期管理（PAGE-TERM-TERMS）——批次 2-6b
+# ---------------------------------------------------------------------------
+term_list:
+  page: "PAGE-TERM-LIST / PAGE-TERM-CREATE / PAGE-TERM-SETCURRENT / PAGE-TERM-ARCHIVE"
+  actions:
+    - id: ACT-TERM-001
+      element: 新建学年
+      trigger: 点击
+      condition: 有 org.term:create 权限
+      permission: "tenant_admin / org.term / create"
+      api: "-"
+      result: 打开 PAGE-TERM-CREATE 弹窗（CR-015：表单浮层用弹窗）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-TERM-002
+      element: 学期管理
+      trigger: 点击（工具条 / 行内）
+      condition: 有 org.term:read 权限
+      permission: "org.term / read"
+      api: "-"
+      result: 进入 PAGE-TERM-TERMS 查看与维护该学年的学期
+      audit: 否
+      batch: "2-6"
+    - id: ACT-TERM-003
+      element: 新建学年「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-TERM-004
+      element: 新建学年「保存」
+      trigger: 点击
+      condition: 学年、开始日期、结束日期必填；日期与相邻学年连续不重叠（RV-TERM-08）
+      permission: "tenant_admin / org.term / create"
+      api: addAcademicYear
+      result: 创建学年并生成学期；日期不连续 / 重叠时字段级拒绝
+      audit: 是
+      batch: "2-6"
+    - id: ACT-TERM-005
+      element: 设为当前「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-TERM-006
+      element: 设为当前「确认切换」
+      trigger: 点击
+      condition: 已选目标学年学期
+      permission: "tenant_admin / org.term / update"
+      api: setCurrentTerm
+      result: 切换当前学年学期（新业务默认落该学期，历史数据不变）并写审计
+      audit: 是
+      batch: "2-6"
+    - id: ACT-TERM-007
+      element: 归档「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-TERM-008
+      element: 归档「确认归档」
+      trigger: 点击
+      condition: 已填写归档原因（≥5 字）；引用检查已完成（checkTermReference）
+      permission: "tenant_admin / org.term / update"
+      api: archiveAcademicYear
+      result: 归档学年（移出新建业务可选列表，历史数据保留）并写审计；撤销归档走 revokeArchiveAcademicYear
+      audit: 是
+      batch: "2-6"
+    - id: ACT-TERM-009
+      element: 行内「设为当前」
+      trigger: 点击行内按钮
+      condition: 有 org.term:update 权限；学年未归档
+      permission: "tenant_admin / org.term / update"
+      api: "-"
+      result: 打开 PAGE-TERM-SETCURRENT 弹窗
+      audit: 否
+      batch: "2-6"
+    - id: ACT-TERM-010
+      element: 行内「归档」/「撤销归档」
+      trigger: 点击行内按钮
+      condition: 有 org.term:update 权限
+      permission: "tenant_admin / org.term / update"
+      api: "-"
+      result: 打开 PAGE-TERM-ARCHIVE 弹窗并带入该学年；已归档学年按钮变为「撤销归档」
+      audit: 否
+      batch: "2-6"
+
+term_terms:
+  page: PAGE-TERM-TERMS
+  actions:
+    - id: ACT-TERM-013
+      element: 新增学期
+      trigger: 点击
+      condition: 有 org.term:update 权限
+      permission: "tenant_admin / org.term / update"
+      api: "-"
+      result: 展开页内学期表单（新增态）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-TERM-014
+      element: 返回学年列表
+      trigger: 点击
+      condition: 有 org.term:read 权限
+      permission: "org.term / read"
+      api: "-"
+      result: 返回 PAGE-TERM-LIST
+      audit: 否
+      batch: "2-6"
+    - id: ACT-TERM-015
+      element: 学期表单「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 收起表单，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-TERM-016
+      element: 学期表单「保存学期」
+      trigger: 点击
+      condition: 学期名称、开始日期、结束日期必填；不与该学年其它学期重叠
+      permission: "tenant_admin / org.term / update"
+      api: saveTerm
+      result: 新增 / 保存学期（同一学年内日期不能重叠）
+      audit: 是
+      batch: "2-6"
+    - id: ACT-TERM-018
+      element: 删除学期「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 收起确认区，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-TERM-019
+      element: 删除学期「确认删除」
+      trigger: 点击
+      condition: 引用检查通过（没有年级 / 班级 / 学生关系引用）
+      permission: "tenant_admin / org.term / update"
+      api: removeTerm
+      result: 删除学期；有引用时按钮禁用并由 checkTermReference 给出引用数量
+      audit: 是
+      batch: "2-6"
+    - id: ACT-TERM-020
+      element: 行内「编辑」（学期）
+      trigger: 点击行内按钮
+      condition: 有 org.term:update 权限
+      permission: "tenant_admin / org.term / update"
+      api: "-"
+      result: 把该行填入页内表单并切到编辑态
+      audit: 否
+      batch: "2-6"
+    - id: ACT-TERM-021
+      element: 行内「删除」（学期）
+      trigger: 点击行内按钮
+      condition: 有 org.term:update 权限
+      permission: "tenant_admin / org.term / update"
+      api: "-"
+      result: 展开页内二次确认并显示引用检查结果（有引用时禁用确认删除）
+      audit: 否
+      batch: "2-6"
+
+# ---------------------------------------------------------------------------
+# 学科与配置（PAGE-SUB-LIST / CREATE / EDIT / STREAM / STAGE / BATCH）——批次 2-6c
+# ---------------------------------------------------------------------------
+subject_list:
+  page: "PAGE-SUB-LIST / PAGE-SUB-CREATE / PAGE-SUB-EDIT / PAGE-SUB-STREAM / PAGE-SUB-STAGE / PAGE-SUB-BATCH"
+  actions:
+    - id: ACT-SUB-001
+      element: 新建学科
+      trigger: 点击
+      condition: 有 org.subject:create 权限（租户管理员 / 超级管理员）
+      permission: "tenant_admin / org.subject / create"
+      api: "-"
+      result: 打开 PAGE-SUB-CREATE 弹窗（CR-015：表单浮层用弹窗）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SUB-002
+      element: 按学段批量初始化
+      trigger: 点击
+      condition: 有 org.subject:create 权限
+      permission: "tenant_admin / org.subject / create"
+      api: "-"
+      result: 打开 PAGE-SUB-BATCH 弹窗：按学段预置标准学科清单（语文、数学、外语、物理、历史、化学、生物、思想政治、地理，REQ-SUB-011）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SUB-003
+      element: 行内「编辑」
+      trigger: 点击行内按钮
+      condition: 有 org.subject:update 权限
+      permission: "tenant_admin / org.subject / update"
+      api: "-"
+      result: 打开 PAGE-SUB-EDIT 弹窗并带入该学科（名称 / 排序 / 启用学段可改；编码只读）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SUB-004
+      element: 行内「选科角色」
+      trigger: 点击行内按钮
+      condition: 有 org.subject:update 权限
+      permission: "tenant_admin / org.subject / update"
+      api: "-"
+      result: 打开 PAGE-SUB-STREAM 弹窗：首选只允许物理 / 历史、再选只允许化学 / 生物 / 思想政治 / 地理（BR-SUBJECT-003）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SUB-005
+      element: 行内「学段启用」
+      trigger: 点击行内按钮
+      condition: 有 org.subject:update 权限
+      permission: "tenant_admin / org.subject / update"
+      api: "-"
+      result: 打开 PAGE-SUB-STAGE 弹窗：多选启用学段，未开设学段置灰（REQ-SUB-026）
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SUB-006
+      element: 行内「停用 / 启用」
+      trigger: 点击行内按钮
+      condition: 有 org.subject:update 权限
+      permission: "tenant_admin / org.subject / update"
+      api: disableSubject
+      result: 停用后不再出现在新建任教关系与教学班的可选列表中（REQ-SUB-029）；再次点击走 enableSubject 恢复
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SUB-007
+      element: 行内「删除」
+      trigger: 点击行内按钮
+      condition: 有 org.subject:update 权限；三类引用检查通过（任教关系 / 教学班 / 学生选科）
+      permission: "tenant_admin / org.subject / update"
+      api: removeSubject
+      result: 有引用时拒绝删除并列出来源对象清单（REQ-SUB-030 / 034 / 036），只允许停用；学科禁止物理删除（NFR-DATA-02）
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SUB-009
+      element: 新建学科「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SUB-010
+      element: 新建学科「保存」
+      trigger: 点击
+      condition: 名称与编码必填、至少一个学段
+      permission: "tenant_admin / org.subject / create"
+      api: addSubject
+      result: 创建学科（编码校内唯一）并写审计（REQ-SUB-012）；选科角色默认 none（REQ-SUB-017）
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SUB-011
+      element: 编辑学科「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SUB-012
+      element: 编辑学科「保存」
+      trigger: 点击
+      condition: 名称必填
+      permission: "tenant_admin / org.subject / update"
+      api: updateSubject
+      result: 保存名称 / 排序 / 学段启用并写审计（含变更前后值，REQ-SUB-016）；编码变更走 updateSubjectCode
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SUB-013
+      element: 选科角色「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SUB-014
+      element: 选科角色「保存角色」
+      trigger: 点击
+      condition: 参与选科时必须选角色；角色必须在固定集合内
+      permission: "tenant_admin / org.subject / update"
+      api: saveSubjectStreamRole
+      result: 保存选科角色；变更前校验已有选科数据（REQ-SUB-022），变更后失效选科缓存（NFR-CACHE-02），写审计
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SUB-015
+      element: 学段启用「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SUB-016
+      element: 学段启用「保存配置」
+      trigger: 点击
+      condition: 至少一个学段；未开设学段不可选
+      permission: "tenant_admin / org.subject / update"
+      api: saveSubjectStage
+      result: 保存学段启用（只影响新建业务可选范围，历史引用保留）并写审计（REQ-SUB-027 / 028）
+      audit: 是
+      batch: "2-6"
+    - id: ACT-SUB-017
+      element: 批量初始化「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不写入
+      audit: 否
+      batch: "2-6"
+    - id: ACT-SUB-018
+      element: 批量初始化「确认初始化」
+      trigger: 点击
+      condition: 已选目标学段
+      permission: "tenant_admin / org.subject / create"
+      api: batchInitSubject
+      result: 按学段创建缺失学科、为已存在学科补该学段启用记录；已存在项跳过（幂等），写审计
+      audit: 是
+      batch: "2-6"
+
+# ---------------------------------------------------------------------------
+# 选科配置（PAGE-STR-CONFIG）——批次 2-7a
+# ---------------------------------------------------------------------------
+stream_config:
+  page: PAGE-STR-CONFIG
+  actions:
+    - id: ACT-STR-001
+      element: 保存配置
+      trigger: 点击
+      condition: 有 stream.config:update 权限；开放日期与截止时间必填且开放 ≤ 截止
+      permission: "stream.config / update"
+      api: saveStreamConfig
+      result: 保存选科开放期与逾期审批口径并写审计；逾期变更默认需校级管理员审批（BR-STREAM-005）
+      audit: 是
+      batch: "2-7"
+    - id: ACT-STR-002
+      element: 查看选科清单
+      trigger: 点击
+      condition: 有 stream.selection:read 权限
+      permission: "stream.selection / read"
+      api: "-"
+      result: 跳转 PAGE-STR-LIST
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-003
+      element: 查看未选科学生
+      trigger: 点击
+      condition: 有 stream.selection:read 权限；范围按当前角色（REQ-STR-051）
+      permission: "stream.selection / read"
+      api: listUnselectedStudent
+      result: 导出未选科学生清单（按年级 / 班级分组）用于催办
+      audit: 是
+      batch: "2-7"
+
+# ---------------------------------------------------------------------------
+# 学生选科（PAGE-STR-STUDENT）——批次 2-7a
+# ---------------------------------------------------------------------------
+stream_student:
+  page: PAGE-STR-STUDENT
+  actions:
+    - id: ACT-STR-010
+      element: 首选科目卡片（物理 / 历史）
+      trigger: 点击
+      condition: 学生本人（DS-08 仅本人）
+      permission: "-"
+      api: "-"
+      result: 选中首选科目；首选固定为物理 / 历史，页面上不提供其它选项（BR-STREAM-001 / BV-STREAM-001）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-011
+      element: 再选科目卡片（4 选 2）
+      trigger: 点击
+      condition: 学生本人
+      permission: "-"
+      api: "-"
+      result: 勾选 / 取消再选科目；必须恰好 2 门，超过 2 门时不允许继续勾选，不足时提交被拦（BR-STREAM-002）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-012
+      element: 查看选科历史
+      trigger: 点击
+      condition: 学生本人 / 班主任 / 教务主任
+      permission: "-"
+      api: listStreamHistory
+      result: 打开 / 跳转选科历史区块（PAGE-STR-HISTORY，追加式记录）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-013
+      element: 恢复当前结果
+      trigger: 点击
+      condition: 学生本人
+      permission: "-"
+      api: "-"
+      result: 把表单恢复到已生效的选科结果，丢弃未提交的改动
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-014
+      element: 提交选科
+      trigger: 点击
+      condition: 首选已选 + 再选恰好 2 门；在开放期内
+      permission: "stream.selection / update"
+      api: updateMyStream
+      result: 开放期内直接生效（首次用 submitMyStream、修改用 updateMyStream）；截止后作为变更申请进审批待办（BR-STREAM-005）
+      audit: 是
+      batch: "2-7"
+
+# ---------------------------------------------------------------------------
+# 选科清单（PAGE-STR-LIST）与变更申请（PAGE-STR-CHANGE）——批次 2-7a
+# ---------------------------------------------------------------------------
+stream_list:
+  page: "PAGE-STR-LIST / PAGE-STR-HISTORY / PAGE-STR-CHANGE"
+  actions:
+    - id: ACT-STR-020
+      element: 组合分布统计
+      trigger: 点击
+      condition: 有 stream.selection:read 权限
+      permission: "stream.selection / read"
+      api: "-"
+      result: 跳转 PAGE-STR-STAT（独立页：图表 + 表格，CR-016）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-021
+      element: 选科配置
+      trigger: 点击
+      condition: 有 stream.config:read 权限
+      permission: "stream.config / read"
+      api: "-"
+      result: 跳转 PAGE-STR-CONFIG
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-022
+      element: 导出
+      trigger: 点击
+      condition: 有 data.export:export 权限
+      permission: "data.export:export"
+      api: exportStreamSelection
+      result: 导出选科清单与组合分布；超 2000 行转异步，导出前重新解析数据范围（DS-DENY-04）
+      audit: 是
+      batch: "2-7"
+    - id: ACT-STR-023
+      element: 变更申请「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不写入
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-024
+      element: 变更申请「提交变更申请」
+      trigger: 点击
+      condition: 新的首选 + 新的再选恰好 2 门 + 原因必填；同一学生无待审批申请
+      permission: "stream.change_request / create"
+      api: addStreamChangeRequest
+      result: 生成变更申请（status=待审批）进入 PAGE-STR-APPROVE；审批通过前保持原组合不变（BR-STREAM-005 / 007）
+      audit: 是
+      batch: "2-7"
+    - id: ACT-STR-025
+      element: 行内「发起变更」
+      trigger: 点击行内按钮
+      condition: 有 stream.change_request:create 权限（班主任 / 教务主任）；该行不是待审批状态
+      permission: "stream.change_request / create"
+      api: "-"
+      result: 打开 PAGE-STR-CHANGE 并带入该学生；待审批行显示「审批中」不提供入口
+      audit: 否
+      batch: "2-7"
+
+# ---------------------------------------------------------------------------
+# 组合分布统计（PAGE-STR-STAT）——批次 2-7b
+# ---------------------------------------------------------------------------
+stream_stat:
+  page: PAGE-STR-STAT
+  actions:
+    - id: ACT-STR-030
+      element: 导出统计
+      trigger: 点击
+      condition: 有 data.export:export 权限；导出前重新解析数据范围
+      permission: "data.export / export"
+      api: exportStreamSelection
+      result: 导出组合分布与逐生明细；超 2000 行转异步，导出行数 / 条件 / 耗时写审计（DS-DENY-04）
+      audit: 是
+      batch: "2-7"
+    - id: ACT-STR-031
+      element: 返回选科清单
+      trigger: 点击
+      condition: 有 stream.selection:read 权限
+      permission: "stream.selection / read"
+      api: "-"
+      result: 跳转 PAGE-STR-LIST
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-032
+      element: 查看未选科学生
+      trigger: 点击
+      condition: 有 stream.selection:read 权限；范围按当前角色（REQ-STR-051）
+      permission: "stream.selection / read"
+      api: listUnselectedStudent
+      result: 导出未选科学生清单（按年级 / 班级分组）用于催办
+      audit: 是
+      batch: "2-7"
+    - id: ACT-STR-033
+      element: 按组合生成教学班
+      trigger: 点击
+      condition: 有 stream.selection:read 权限
+      permission: "stream.selection / read"
+      api: "-"
+      result: 跳转 PAGE-STR-GEN-CLASS
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-034
+      element: 行内「查看学生」
+      trigger: 点击行内按钮
+      condition: 有 stream.selection:read 权限
+      permission: "stream.selection / read"
+      api: "-"
+      result: 按该组合下钻到选科清单并带上组合筛选（REQ-STR-049 的统计下钻）
+      audit: 否
+      batch: "2-7"
+
+# ---------------------------------------------------------------------------
+# 变更审批待办（PAGE-STR-APPROVE）与审批弹窗（DIALOG-STR-APPROVE）——批次 2-7b
+# ---------------------------------------------------------------------------
+stream_approve:
+  page: "PAGE-STR-APPROVE / DIALOG-STR-APPROVE"
+  actions:
+    - id: ACT-STR-040
+      element: 行内「审批」
+      trigger: 点击行内按钮
+      condition: 有 stream.change_request:approve 权限（校级管理员）；该行状态为待审批
+      permission: "stream.change_request / approve"
+      api: "-"
+      result: 打开 DIALOG-STR-APPROVE 并带入该申请；弹窗同时展示原组合与新组合（REQ-STR-038）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-041
+      element: 同意并生效
+      trigger: 点击
+      condition: 有 stream.change_request:approve 权限；审批意见可留空或补充说明
+      permission: "stream.change_request / approve"
+      api: approveStreamChangeRequest
+      result: 学生选科立即更新为新组合并记录生效时间与审批人（REQ-STR-036）；失效相关缓存（REQ-STR-040）；教学班名单不自动同步（REQ-STR-060）
+      audit: 是
+      batch: "2-7"
+    - id: ACT-STR-042
+      element: 驳回
+      trigger: 点击
+      condition: 有 stream.change_request:approve 权限；审批意见必填（至少 5 个字）
+      permission: "stream.change_request / approve"
+      api: approveStreamChangeRequest
+      result: 状态转已驳回，学生选科保持原值（REQ-STR-037）；驳回意见写入审计并通知申请人
+      audit: 是
+      batch: "2-7"
+    - id: ACT-STR-043
+      element: 审批「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不写入
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-045
+      element: 状态筛选
+      trigger: 变更
+      condition: 有 stream.change_request:read 权限
+      permission: "stream.change_request / read"
+      api: listStreamChangeRequest
+      result: 按状态筛选（默认「待审批」；待审批按提交时间升序，REQ-STR-035）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-046
+      element: 年级筛选
+      trigger: 变更
+      condition: 有 stream.change_request:read 权限；选项按数据范围收窄（filter_cascade）
+      permission: "stream.change_request / read"
+      api: listStreamChangeRequest
+      result: 按年级筛选待办（REQ-STR-035）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-047
+      element: 关键字检索
+      trigger: 输入
+      condition: 有 stream.change_request:read 权限
+      permission: "stream.change_request / read"
+      api: listStreamChangeRequest
+      result: 按申请单号 / 姓名 / 学号检索
+      audit: 否
+      batch: "2-7"
+
+# ---------------------------------------------------------------------------
+# 按组合生成教学班（PAGE-STR-GEN-CLASS）——批次 2-7b
+# ---------------------------------------------------------------------------
+stream_generate_class:
+  page: PAGE-STR-GEN-CLASS
+  actions:
+    - id: ACT-STR-050
+      element: 生成方式「按完整组合」
+      trigger: 点击
+      condition: 教务主任（触发者）；有 stream.selection:read 权限
+      permission: "stream.selection / read"
+      api: "-"
+      result: 预览按完整组合（如物理 + 化学 + 生物）生成教学班（REQ-STR-058）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-051
+      element: 生成方式「按单学科」
+      trigger: 点击
+      condition: 教务主任（触发者）
+      permission: "stream.selection / read"
+      api: "-"
+      result: 预览按单学科（如全体选物理的学生）生成教学班（REQ-STR-058）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-052
+      element: 年级范围
+      trigger: 变更
+      condition: 必选；跨年级不会合并教学班
+      permission: "stream.selection / read"
+      api: previewTeachingClassGenerate
+      result: 决定预览里出现的教学班集合
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-053
+      element: 增量生成并核对
+      trigger: 点击
+      condition: 教务主任；核对页发现差异时可用
+      permission: "stream.selection / read"
+      api: previewTeachingClassGenerate
+      result: 按当前选科重新计算差异（REQ-STR-060 不自动同步，需人工触发并展示差异清单）
+      audit: 是
+      batch: "2-7"
+    - id: ACT-STR-054
+      element: 去教学班管理
+      trigger: 点击
+      condition: 有 org.teaching_class:read 权限
+      permission: "org.teaching_class / read"
+      api: "-"
+      result: 跳转 PAGE-CLS-TEACHING
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-055
+      element: 查看组合分布统计
+      trigger: 点击
+      condition: 有 stream.selection:read 权限
+      permission: "stream.selection / read"
+      api: "-"
+      result: 跳转 PAGE-STR-STAT（用于核对人数口径，REQ-STR-050）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-056
+      element: 向导「下一步」
+      trigger: 点击
+      condition: 当前步骤必填项通过；第 1 步需选年级范围
+      permission: "stream.selection / read"
+      api: previewTeachingClassGenerate
+      result: 进入下一步；预览阶段不写库（REQ-STR-055）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-STR-057
+      element: 执行生成
+      trigger: 点击
+      condition: 教务主任；已完成预览
+      permission: "stream.selection / read"
+      api: executeTeachingClassGenerate
+      result: 触发按组合生成教学班；写入由班级管理模块执行（REQ-STR-056），幂等不重复建班不重复写成员（REQ-STR-057）
+      audit: 是
+      batch: "2-7"
+    - id: ACT-STR-058
+      element: 向导「上一步」
+      trigger: 点击
+      condition: 当前步骤 > 1
+      permission: "stream.selection / read"
+      api: "-"
+      result: 回到上一步，已填内容保留
+      audit: 否
+      batch: "2-7"
+
+# ---------------------------------------------------------------------------
+# 教学班管理（PAGE-CLS-TEACHING）与两个片段——批次 2-7b
+# ---------------------------------------------------------------------------
+teaching_class_list:
+  page: "PAGE-CLS-TEACHING / DRAWER-CLS-TEACHING / DIALOG-TCL-DISABLE"
+  actions:
+    - id: ACT-TCL-001
+      element: 去生成教学班
+      trigger: 点击
+      condition: 有 org.teaching_class:create 权限（教务主任）
+      permission: "org.teaching_class / create"
+      api: "-"
+      result: 跳转 PAGE-STR-GEN-CLASS；教学班创建入口统一在生成向导（DP-01 只有一条写入路径）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-TCL-002
+      element: 行内「详情」
+      trigger: 点击行内按钮
+      condition: 有 org.teaching_class:read 权限
+      permission: "org.teaching_class / read"
+      api: getTeachingClass
+      result: 打开 DRAWER-CLS-TEACHING 并带入该教学班（含成员与未同步变更说明）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-TCL-003
+      element: 去增量生成并核对
+      trigger: 点击
+      condition: 有 org.teaching_class:read 权限（发起增量生成需教务主任）
+      permission: "org.teaching_class / read"
+      api: "-"
+      result: 跳转 PAGE-STR-GEN-CLASS（REQ-STR-060 不自动同步名单）
+      audit: 否
+      batch: "2-7"
+    - id: ACT-TCL-004
+      element: 详情「关闭」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭抽屉，不写入
+      audit: 否
+      batch: "2-7"
+    - id: ACT-TCL-005
+      element: 行内「停用」
+      trigger: 点击行内按钮
+      condition: 有 org.teaching_class:update 权限（教务主任）；该行不是已停用状态
+      permission: "org.teaching_class / update"
+      api: "-"
+      result: 打开 DIALOG-TCL-DISABLE 二次确认并带入该教学班；已停用行显示「已停用」无入口
+      audit: 否
+      batch: "2-7"
+    - id: ACT-TCL-006
+      element: 停用「取消」
+      trigger: 点击
+      condition: 始终可用
+      permission: "-"
+      api: "-"
+      result: 关闭弹窗，不写入
+      audit: 否
+      batch: "2-7"
+    - id: ACT-TCL-007
+      element: 确认停用
+      trigger: 点击
+      condition: 有 org.teaching_class:update 权限；停用原因必填（至少 5 个字）
+      permission: "org.teaching_class / update"
+      api: disableTeachingClass
+      result: 教学班转已停用，不再出现在可选列表；历史成员保留；原因写审计（REQ-CLS-047）
+      audit: 是
+      batch: "2-7"
+    - id: ACT-TCL-010
+      element: 年级筛选
+      trigger: 变更
+      condition: 有 org.teaching_class:read 权限；选项按 DS-05 收窄
+      permission: "org.teaching_class / read"
+      api: listTeachingClass
+      result: 按年级筛选教学班
+      audit: 否
+      batch: "2-7"
+    - id: ACT-TCL-011
+      element: 组合筛选
+      trigger: 变更
+      condition: 有 org.teaching_class:read 权限
+      permission: "org.teaching_class / read"
+      api: listTeachingClass
+      result: 按组合或单学科筛选教学班
+      audit: 否
+      batch: "2-7"
+    - id: ACT-TCL-012
+      element: 状态筛选
+      trigger: 变更
+      condition: 有 org.teaching_class:read 权限
+      permission: "org.teaching_class / read"
+      api: listTeachingClass
+      result: 按正常 / 已停用筛选
+      audit: 否
+      batch: "2-7"
+
+# ---------------------------------------------------------------------------
+# 审计与操作日志（批次 2-8）：操作日志 / 详情抽屉 / 导出配置 / 运营访问 / 敏感访问 / 安全事件 / 归档
+# ---------------------------------------------------------------------------
+audit_log:
+  page: "PAGE-AUDIT-LOG-LIST / PAGE-AUDIT-LOG-DETAIL / PAGE-AUDIT-OBJECT-TIMELINE / DIALOG-AUD-EXPORT"
+  actions:
+    - { id: ACT-AUD-001, element: 开始时间筛选, trigger: 变更, condition: 有 audit.log:read；默认最近 7 天, permission: "audit.log / read", api: listOperationLog, result: 收窄时间范围；单次跨度上限 90 天（REQ-AUD-021）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-002, element: 结束时间筛选, trigger: 变更, condition: 有 audit.log:read；起止跨度 ≤ 90 天, permission: "audit.log / read", api: listOperationLog, result: 超出上限时提示收窄范围并给建议区间（REQ-AUD-021）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-003, element: 操作人筛选, trigger: 变更, condition: 有 audit.log:read；选项按数据范围收窄, permission: "audit.log / read", api: listOperationLog, result: 按操作人筛选（REQ-AUD-018）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-004, element: 对象类型筛选, trigger: 变更, condition: 有 audit.log:read, permission: "audit.log / read", api: listOperationLog, result: 按对象类型筛选（REQ-AUD-018）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-005, element: 操作类型筛选, trigger: 变更, condition: 有 audit.log:read, permission: "audit.log / read", api: listOperationLog, result: 按操作类型筛选（新增 / 修改 / 删除 / 审批 / 导出）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-007, element: 关键字检索, trigger: 输入, condition: 有 audit.log:read, permission: "audit.log / read", api: listOperationLog, result: 按对象标识 / 操作人 / 请求标识检索（REQ-AUD-019）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-008, element: 刷新, trigger: 点击, condition: 有 audit.log:read, permission: "audit.log / read", api: listOperationLog, result: 按时间倒序刷新列表（REQ-AUD-020）；查询行为本身不写日志（REQ-AUD-011）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-010, element: 导出, trigger: 点击, condition: 有 audit.log:export（校领导 / 教务主任 / 平台运营）, permission: "audit.log / export", api: "-", result: 打开 DIALOG-AUD-EXPORT 导出配置弹窗（PRD 6.3）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-012, element: 导出配置「取消」, trigger: 点击, condition: 始终可用, permission: "-", api: "-", result: 关闭弹窗，不写入, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-013, element: 开始导出, trigger: 点击, condition: 有 audit.log:export；用途说明必填；行数 ≤ 50000（超出提示收窄或转异步）, permission: "audit.log / export", api: exportOperationLog, result: 按当前筛选与重新解析的范围导出 xlsx / csv；文件有效期 7 天；导出行为写审计（REQ-AUD-026 ~ 029 / DS-DENY-04）, audit: 是, batch: "2-8" }
+    - { id: ACT-AUD-014, element: 行内「详情」, trigger: 点击行内按钮, condition: 有 audit.log:read, permission: "audit.log / read", api: getOperationLog, result: 打开 PAGE-AUDIT-LOG-DETAIL 抽屉并带入该条日志（含 diff 与对象时间线）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-020, element: 详情「关闭」, trigger: 点击, condition: 始终可用, permission: "-", api: "-", result: 关闭抽屉，保留列表筛选条件（PRD 6.3）, audit: 否, batch: "2-8" }
+
+audit_ops_access:
+  page: PAGE-AUDIT-OPS-ACCESS
+  actions:
+    - { id: ACT-AUD-030, element: 运营账号筛选, trigger: 变更, condition: 有 audit.log:read（租户管理员 / 校领导 / 平台运营）, permission: "audit.log / read", api: listOperatorAccess, result: 按运营账号筛选（REQ-AUD-015）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-031, element: 访问动作筛选, trigger: 变更, condition: 有 audit.log:read, permission: "audit.log / read", api: listOperatorAccess, result: 按查看 / 导出筛选（REQ-AUD-014）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-032, element: 开始时间筛选, trigger: 变更, condition: 有 audit.log:read, permission: "audit.log / read", api: listOperatorAccess, result: 收窄时间范围, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-033, element: 结束时间筛选, trigger: 变更, condition: 有 audit.log:read, permission: "audit.log / read", api: listOperatorAccess, result: 收窄时间范围, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-034, element: 导出记录, trigger: 点击, condition: 有 audit.log:export；导出只含本租户数据, permission: "audit.log / export", api: exportOperatorAccess, result: 导出本租户的运营访问记录（REQ-AUD-016）；导出行为写审计, audit: 是, batch: "2-8" }
+    - { id: ACT-AUD-035, element: 刷新, trigger: 点击, condition: 有 audit.log:read, permission: "audit.log / read", api: listOperatorAccess, result: 刷新运营访问记录, audit: 否, batch: "2-8" }
+
+audit_sensitive_access:
+  page: PAGE-AUDIT-SENSITIVE-ACCESS
+  actions:
+    - { id: ACT-AUD-040, element: 敏感字段筛选, trigger: 变更, condition: 有 audit.log:read（校领导 / 教务主任）, permission: "audit.log / read", api: listSensitiveAccess, result: 按证件号 / 监护人手机号 / 学生联系电话筛选（REQ-AUD-008）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-041, element: 访问方式筛选, trigger: 变更, condition: 有 audit.log:read, permission: "audit.log / read", api: listSensitiveAccess, result: 按查看全量 / 明文导出筛选（REQ-AUD-009）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-042, element: 关键字检索, trigger: 输入, condition: 有 audit.log:read, permission: "audit.log / read", api: listSensitiveAccess, result: 按查看人 / 对象标识检索, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-043, element: 导出记录, trigger: 点击, condition: 有 audit.log:export, permission: "audit.log / export", api: exportOperationLog, result: 导出敏感数据访问记录；导出行为写审计（REQ-AUD-011 / NFR-AUDIT-03）, audit: 是, batch: "2-8" }
+    - { id: ACT-AUD-044, element: 刷新, trigger: 点击, condition: 有 audit.log:read, permission: "audit.log / read", api: listSensitiveAccess, result: 刷新敏感数据访问记录, audit: 否, batch: "2-8" }
+
+audit_security_event:
+  page: PAGE-AUDIT-SECURITY-EVENT
+  actions:
+    - { id: ACT-AUD-050, element: 事件类型筛选, trigger: 变更, condition: 有 audit.log:read（校领导 / 平台运营）, permission: "audit.log / read", api: listSecurityEvent, result: 按登录失败 / 锁定 / 激活码查看与重置 / 学号变更 / 权限变更筛选（REQ-AUD-007）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-051, element: 关键字检索, trigger: 输入, condition: 有 audit.log:read, permission: "audit.log / read", api: listSecurityEvent, result: 按账号 / 姓名 / 来源 IP 检索, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-052, element: 刷新, trigger: 点击, condition: 有 audit.log:read, permission: "audit.log / read", api: listSecurityEvent, result: 刷新登录与安全事件, audit: 否, batch: "2-8" }
+
+audit_archive:
+  page: PAGE-AUDIT-ARCHIVE
+  actions:
+    - { id: ACT-AUD-060, element: 批次状态筛选, trigger: 变更, condition: 有 audit.log:read（平台运营 / 超管）, permission: "audit.log / read", api: listArchiveBatch, result: 按已完成 / 进行中 / 失败筛选归档批次（REQ-AUD-033）, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-061, element: 批次号检索, trigger: 输入, condition: 有 audit.log:read, permission: "audit.log / read", api: listArchiveBatch, result: 按归档批次号检索, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-062, element: 归档区间检索, trigger: 点击, condition: 有 audit.log:read；区间落在归档范围, permission: "audit.log / read", api: searchArchivedLog, result: 检索归档区间；单次 P95 ≤ 30 秒，超出转异步（REQ-AUD-033）；该动作本身写日志（REQ-AUD-034）, audit: 是, batch: "2-8" }
+    - { id: ACT-AUD-063, element: 刷新, trigger: 点击, condition: 有 audit.log:read, permission: "audit.log / read", api: listArchiveBatch, result: 刷新归档批次列表, audit: 否, batch: "2-8" }
+    - { id: ACT-AUD-064, element: 行内「检索该批次」, trigger: 点击行内按钮, condition: 有 audit.log:read；该批次状态为已完成, permission: "audit.log / read", api: searchArchivedLog, result: 按该批次范围检索归档日志（归档不删数据，检索能力与在线一致）, audit: 是, batch: "2-8" }
+    - { id: ACT-AUD-065, element: 行内「重试归档」, trigger: 点击行内按钮, condition: 有 audit.log:read；该批次状态为失败, permission: "audit.log / read", api: searchArchivedLog, result: 重试失败分区；成功分区不重复归档（不做整批回滚），重试动作写日志（REQ-AUD-034 / 036）, audit: 是, batch: "2-8" }
+
+# ---------------------------------------------------------------------------
+# 异步任务中心（批次 2-9）：任务列表 / 详情抽屉 / 导出配置
+# ---------------------------------------------------------------------------
+async_task_center:
+  page: "PAGE-IMP-TASK-LIST / PAGE-IMP-TASK-DETAIL / PAGE-IMP-EXPORT"
+  actions:
+    - { id: ACT-TASK-001, element: 任务类型筛选, trigger: 变更, condition: 有 data.async_task:read；默认只看本人任务, permission: "data.async_task / read", api: listAsyncTask, result: 按导入 / 导出 / 升班筛选（REQ-IMP-032）, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-002, element: 状态筛选, trigger: 变更, condition: 有 data.async_task:read, permission: "data.async_task / read", api: listAsyncTask, result: 按 queued / running / succeeded / partial_failed / failed / cancelled 筛选（REQ-IMP-034）, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-003, element: 开始时间筛选, trigger: 变更, condition: 有 data.async_task:read, permission: "data.async_task / read", api: listAsyncTask, result: 收窄时间范围, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-004, element: 结束时间筛选, trigger: 变更, condition: 有 data.async_task:read, permission: "data.async_task / read", api: listAsyncTask, result: 收窄时间范围, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-005, element: 任务编号检索, trigger: 输入, condition: 有 data.async_task:read, permission: "data.async_task / read", api: listAsyncTask, result: 按任务编号检索（PRD 6.2）, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-006, element: 自动刷新开关, trigger: 点击, condition: 有 data.async_task:read, permission: "data.async_task / read", api: listAsyncTask, result: 开启后每 10 秒刷新；刷新失败降级为手动刷新并提示（REQ-IMP-035）, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-007, element: 导出任务清单, trigger: 点击, condition: 有 data.export:export, permission: "data.export / export", api: "-", result: 打开 PAGE-IMP-EXPORT 导出配置弹窗（PRD 6.2 / 6.3）, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-008, element: 刷新, trigger: 点击, condition: 有 data.async_task:read, permission: "data.async_task / read", api: listAsyncTask, result: 刷新任务列表（默认只看本人任务）, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-010, element: 导出配置「取消」, trigger: 点击, condition: 始终可用, permission: "-", api: "-", result: 关闭弹窗，不写入, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-011, element: 开始导出, trigger: 点击, condition: 有 data.export:export；至少选择一列；明文导出需 read_sensitive + 明文导出授权, permission: "data.export / export", api: exportData, result: 行数 ≤ 2000 同步下载、超出转异步任务；明文导出额外写审计（BR-IMP-012 / NFR-AUDIT-03）, audit: 是, batch: "2-9" }
+    - { id: ACT-TASK-020, element: 详情「关闭」, trigger: 点击, condition: 始终可用, permission: "-", api: "-", result: 关闭抽屉，保留列表筛选条件, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-021, element: 详情「重试」, trigger: 点击, condition: 有 data.async_task:read；任务状态为 failed / partial_failed；二次确认, permission: "data.async_task / read", api: retryAsyncTask, result: 重新入队，沿用原批次号与幂等键，不产生重复数据（REQ-IMP-037）, audit: 是, batch: "2-9" }
+    - { id: ACT-TASK-022, element: 详情「下载结果文件」, trigger: 点击, condition: 有 data.async_task:read；结果文件未过期, permission: "data.async_task / read", api: downloadTaskResult, result: 返回短时签名链接（与登录态绑定，过期或跨账号一律拒绝）；下载写审计（REQ-IMP-036 / 042 / 043）, audit: 是, batch: "2-9" }
+    - { id: ACT-TASK-023, element: 行内「详情」, trigger: 点击行内按钮, condition: 有 data.async_task:read, permission: "data.async_task / read", api: getAsyncTask, result: 打开 PAGE-IMP-TASK-DETAIL 抽屉并带入该任务（REQ-IMP-033）, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-024, element: 行内「重试」, trigger: 点击行内按钮, condition: 有 data.async_task:read；状态为 failed / partial_failed, permission: "data.async_task / read", api: retryAsyncTask, result: 重新入队并沿用原批次号（REQ-IMP-037）, audit: 是, batch: "2-9" }
+    - { id: ACT-TASK-025, element: 行内「取消」, trigger: 点击行内按钮, condition: 有 data.async_task:read；状态为 queued（只有排队中可取消）, permission: "data.async_task / read", api: cancelAsyncTask, result: 取消排队中的任务，不产生部分写入（REQ-IMP-034）, audit: 是, batch: "2-9" }
+    - { id: ACT-TASK-026, element: 行内「下载」, trigger: 点击行内按钮, condition: 有 data.async_task:read；状态为 succeeded / partial_failed, permission: "data.async_task / read", api: downloadTaskResult, result: 下载结果文件或失败明细（短时签名 + 写审计，REQ-IMP-042 / 043）, audit: 是, batch: "2-9" }
+    - { id: ACT-TASK-030, element: 空态「去发起导入」, trigger: 点击, condition: 有 data.import:import, permission: "data.import / import", api: "-", result: 跳转 PAGE-IMP-WIZARD（保留来源列表的筛选条件）, audit: 否, batch: "2-9" }
+
+# ---------------------------------------------------------------------------
+# 死信任务（PAGE-IMP-DEADLETTER）与重放确认（DIALOG-DLQ-REPLAY）——批次 2-9
+# ---------------------------------------------------------------------------
+dead_letter:
+  page: "PAGE-IMP-DEADLETTER / DIALOG-DLQ-REPLAY"
+  actions:
+    - { id: ACT-TASK-040, element: 任务类型筛选, trigger: 变更, condition: 有 data.async_task:read（平台运营 / 超管）, permission: "data.async_task / read", api: listDeadLetterTask, result: 按导入 / 导出 / 升班筛选死信, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-041, element: 关键字检索, trigger: 输入, condition: 有 data.async_task:read, permission: "data.async_task / read", api: listDeadLetterTask, result: 按任务编号 / 原批次号检索, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-042, element: 刷新, trigger: 点击, condition: 有 data.async_task:read, permission: "data.async_task / read", api: listDeadLetterTask, result: 刷新死信列表, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-045, element: 行内「重放」, trigger: 点击行内按钮, condition: 有 data.async_task:read；重试次数已达上限且未重放成功, permission: "data.async_task / read", api: "-", result: 打开 DIALOG-DLQ-REPLAY 二次确认并带入该任务（REQ-IMP-038）, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-046, element: 行内「已重放」, trigger: 点击行内按钮, condition: 有 data.async_task:read；该条已重放成功, permission: "data.async_task / read", api: "-", result: 打开任务详情抽屉查看重放后的执行结果（死信记录保留用于追溯）, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-050, element: 重放「取消」, trigger: 点击, condition: 始终可用, permission: "-", api: "-", result: 关闭弹窗，不写入, audit: 否, batch: "2-9" }
+    - { id: ACT-TASK-051, element: 确认重放, trigger: 点击, condition: 有 data.async_task:read；重放原因必填（至少 5 个字）, permission: "data.async_task / read", api: replayDeadLetterTask, result: 复用原批次号与幂等键重新入队；重放动作写入审计（REQ-IMP-037 / 038）, audit: 是, batch: "2-9" }
+
+batches_pending:
+  - { batch: "2-2", pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL, PAGE-TCH-CREATE, PAGE-TCH-EDIT, PAGE-TCH-LEAVE, PAGE-TCH-ROLE, PAGE-TCH-ASSIGN], status: "2-2a、2-2b-1 与 2-2b-2 教师部分已产出待验收（ACT-TCH-001 ~ 039 已登记）" }
+  - { batch: "2-2b-2b", pages: [PAGE-GRD-LIST, PAGE-GRD-DETAIL, PAGE-GRD-CREATE, PAGE-GRD-BATCH, PAGE-GRD-LEADER, PAGE-GRD-ARCHIVE], status: "PAGE-GRD-LIST 样板页已产出待验收（ACT-GRD-001 ~ 011 已登记）；其余 5 页待样板验收后铺开" }
+  - { batch: "2-3", pages: [PAGE-CLS-LIST, PAGE-CLS-DETAIL, PAGE-CLS-CREATE, PAGE-CLS-BATCH, PAGE-CLS-ROSTER-ADD, PAGE-CLS-TRANSFER, PAGE-CLS-LEADER, PAGE-CLS-COPY, PAGE-CLS-MOVE, PAGE-PRM-LIST, PAGE-PRM-CREATE, PAGE-PRM-PREVIEW, PAGE-PRM-ADJUST, PAGE-PRM-VALIDATE, PAGE-PRM-EXECUTE, PAGE-PRM-RESULT], status: "2-3 全部产出待验收：2-3a class_list（ACT-CLS-001 ~ 016）、2-3b class_detail（017 ~ 029、048 ~ 052、064）、2-3c 四个班级弹窗（030 ~ 047）、2-3d 编班与批量迁学生（053 ~ 063）、2-3e 升班 6 页 + 1 确认片段（ACT-PRM-001 ~ 043：s1 001 ~ 010、s2 011 ~ 019、s3 020 ~ 028、s4 029 ~ 041、common 043）" }
+  - { batch: "2-4", pages: [PAGE-IMP-WIZARD, PAGE-IMP-TEMPLATE, PAGE-IMP-VALIDATE, PAGE-IMP-EXECUTE, PAGE-STU-IMPORT, PAGE-TCH-IMPORT, PAGE-CLS-ROSTER-IMPORT, PAGE-LOGIN, PAGE-403, PAGE-404, PAGE-500], status: 待开始 }
+
+# ---------------------------------------------------------------------------
+# 6. 动作的通用状态规则
+# ---------------------------------------------------------------------------
+state_rules:
+  - 提交类动作在请求中必须置 loading 并禁用，禁止重复提交
+  - 危险动作（删除 / 停用 / 归档 / 覆盖）必须二次确认，且文案写清对象与影响范围
+  - 任何写操作成功后，必须刷新受影响的列表或详情，不依赖前端本地拼接
+  - 任何失败都要给出可操作的提示（原因 + 下一步），不只显示"操作失败"
+  - 无权限时不渲染入口；绕过前端直接调接口必须被后端拒绝
+  - 筛选级联：上级（学校）变化后，下级（校区 / 年级 / 班级 / 班主任）下拉只列该上级范围内的数据，失效值清空为「全部」（GAP-046 选项 A，规则见 layout-spec.yaml 的 filter_cascade）
+
+# ---------------------------------------------------------------------------
+# 7. 反馈文案模板（原型与生产共用）
+#    禁止出现"操作成功""操作失败""数据不存在"这类不含信息的文案。
+#    每条文案必须包含：发生了什么 + 对象是谁 + 下一步能做什么。
+#    变量用 {snake_case} 占位，变量名必须是字段字典中的字段或接口返回字段。
+# ---------------------------------------------------------------------------
+feedback_templates:
+  success:
+    - { scene: 新增学生成功, template: "已保存，学号为 {student_no}。可继续新增或查看详情。", channel: 页面内提示条 + 两个后续动作 }
+    - { scene: 编辑成功, template: "已保存。", channel: 顶部轻提示 }
+    - { scene: 导入校验通过, template: "共 {row_total} 行，可执行 {valid_count} 行，失败 {invalid_count} 行。确认后开始导入。", channel: 校验结果区 }
+    - { scene: 导入提交成功, template: "已开始执行，任务编号 {task_no}，可在异步任务中查看进度。", channel: 顶部轻提示 + 跳转链接 }
+    - { scene: 导出同步成功, template: "已生成 {row_count} 行，开始下载。", channel: 顶部轻提示 }
+    - { scene: 导出转异步, template: "本次导出共 {row_count} 行，已转后台任务（{task_no}）。", channel: 顶部轻提示 }
+    - { scene: 删除成功, template: "已删除 {object_name}。", channel: 顶部轻提示 }
+    - { scene: 重置激活码成功, template: "已为 {student_name} 生成新的激活码，旧码立即失效。", channel: 顶部轻提示 }
+  error:
+    - { scene: 无权限, template: "你没有该操作的权限（{permission}）。如需开通，请联系本校管理员。", channel: 页面内提示 }
+    - { scene: 唯一性冲突, template: "{field_label} 已存在（{conflict_value}），请核对后重新提交。", channel: 字段级红字 }
+    - { scene: 引用不存在, template: "第 {row_no} 行引用的 {field_label} 不存在，请先在对应模块创建。", channel: 失败明细行 }
+    - { scene: 并发冲突, template: "该记录已被 {operator} 于 {time} 更新，请刷新后重试。", channel: 弹窗 }
+    - { scene: 导入部分失败, template: "共 {row_total} 行，成功 {success_count} 行，失败 {failed_count} 行。失败明细可下载。", channel: 结果区 + 下载按钮 }
+    - { scene: 超限, template: "单次最多 {limit} 行，当前 {row_count} 行，请拆分后重新上传。", channel: 页面内提示 }
+    - { scene: 服务异常, template: "处理失败，请稍后重试。请求编号 {request_id}。", channel: 页面内提示 + 重试按钮 }
+  confirm:
+    - { scene: 删除, template: "确定删除 {object_name}？删除后不可恢复。" }
+    - { scene: 停用, template: "停用 {object_name} 后，该对象不再出现在业务选择项中，历史数据保留。" }
+    - { scene: 归档, template: "归档 {object_name} 后业务上不再可编辑，仍可查询。" }
+    - { scene: 导入执行, template: "将对 {row_total} 行执行导入；引用的学年学期、年级、班级必须已存在。" }
+    - { scene: 逾期变更, template: "已超过选科截止日期（{deadline}），提交后需校级管理员审批。" }
+    - { scene: 学号修改, template: "修改学号后，学生登录名将同步变更，旧会话失效，操作会写入审计。" }
+  rules:
+    - 成功提示必须包含"下一步能做什么"，不能只有"已保存"
+    - 失败提示必须包含原因或请求编号，并给出可执行的下一步
+    - 确认文案必须写清"对谁、做什么、影响范围"
+    - 敏感信息（证件号、完整手机号）不得出现在提示文案中

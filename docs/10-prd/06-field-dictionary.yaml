@@ -64,18 +64,18 @@ enums:
   - name: enrollment_status
     name_cn: 学籍状态（描述一条在校记录的状态，不是学生主体）
     entries:
-      - { code: pending_enroll, label: 转入未报到, terminal: false }
-      - { code: enrolled, label: 在读, terminal: false }
-      - { code: suspended, label: 休学, terminal: false }
-      - { code: studying_abroad, label: 出国, terminal: false }
-      - { code: missing, label: 失踪, terminal: false }
-      - { code: transferred_out, label: 已转出, terminal: true }
-      - { code: graduated, label: 毕业, terminal: true }
-      - { code: course_completed, label: 结业, terminal: true }
-      - { code: course_incomplete, label: 肄业, terminal: true }
-      - { code: expelled, label: 开除, terminal: true }
-      - { code: withdrawn, label: 退学, terminal: true }
-      - { code: deceased, label: 死亡, terminal: true }
+      - { code: pending_enroll, label: 转入未报到, terminal: false, counts_as_enrolled: false }
+      - { code: enrolled, label: 在读, terminal: false, counts_as_enrolled: true }
+      - { code: suspended, label: 休学, terminal: false, counts_as_enrolled: false }
+      - { code: studying_abroad, label: 出国, terminal: false, counts_as_enrolled: false }
+      - { code: missing, label: 失踪, terminal: false, counts_as_enrolled: false }
+      - { code: transferred_out, label: 已转出, terminal: true, counts_as_enrolled: false }
+      - { code: graduated, label: 毕业, terminal: true, counts_as_enrolled: false }
+      - { code: course_completed, label: 结业, terminal: true, counts_as_enrolled: false }
+      - { code: course_incomplete, label: 肄业, terminal: true, counts_as_enrolled: false }
+      - { code: expelled, label: 开除, terminal: true, counts_as_enrolled: false }
+      - { code: withdrawn, label: 退学, terminal: true, counts_as_enrolled: false }
+      - { code: deceased, label: 死亡, terminal: true, counts_as_enrolled: false }
     note: |
       跨校转入不在原学校记录上变更状态，而是在目标学校新建一条在校记录：
       转入校接收时初始状态为 pending_enroll（转入未报到），学生实际报到后转为 enrolled。
@@ -83,6 +83,10 @@ enums:
       共 12 个状态，其中 7 个为终态：已转出、毕业、结业、肄业、开除、退学、死亡。终态互不可转（BR-PROMO-010）。
       学段限制：义务教育阶段（小学、初中）不得开除，也不适用结业与肄业，见 BR-STU-024 与 BR-STU-027。
       死亡状态涉及隐私，见 BR-STU-028。
+      counts_as_enrolled 是「是否计入在读名单」的机器可读口径（BR-STU-012，CR-011）：
+      只有 enrolled 为 true，其余 11 个状态都保留或终结班级关系但不计入在读名单。
+      班级的「在读人数」、班级详情的「在读成员」、年级详情的在读统计与升班的学生范围都用这一个条件，
+      不要按状态标签逐个硬编码。
     transitions:
       - { from: "（转入接收）", to: pending_enroll, action: transfer_in_accept }
       - { from: pending_enroll, to: enrolled, action: check_in }
@@ -235,6 +239,76 @@ enums:
       - { code: failed_rows, label: 失败明细 }
       - { code: export_result, label: 导出结果 }
 
+  - name: employment_status
+    name_cn: 在职状态
+    entries:
+      - { code: on_duty, label: 在职 }
+      - { code: resigned, label: 离职 }
+      - { code: transferred_out, label: 调离 }
+    note: 教师在职状态。离职与调离必须填写生效日期与原因，且不再出现在任教关系选择项中（BR-TEACHER-006）
+
+  - name: grade_status
+    name_cn: 年级状态
+    entries:
+      - { code: studying, label: 在读 }
+      - { code: archived, label: 已归档 }
+    note: 年级状态。归档后不在新建班级的可选列表中，历史数据与统计仍可查（BR-GRADE-005、REQ-GRD-029）
+
+  - name: class_status
+    name_cn: 班级状态
+    entries:
+      - { code: studying, label: 在读 }
+      - { code: disabled, label: 已停用 }
+    note: |
+      班级状态。取值只保留「在读」与「已停用」两个（CR-010 / GAP-044）：
+      在读——班级正常使用，参与编班与班主任指定；
+      已停用——不再出现在新建学生与编班的可选班级中，历史花名册仍可查（REQ-CLS-044），
+      且不再接受编班、班主任变更与批量迁学生。
+      学年归档不改变班级状态（学年学期模块 REQ-TERM-030 只把归档学年移出新建班级的可选列表）；
+      「已合并」随班级合并功能（REQ-CLS-045，首轮延后）一并评估，本轮不登记。
+    applied_by: CR-010
+
+  # ---- 升班模块的明细枚举（CR-014 / GAP-055 补登记，2026-10-01） ----
+  - name: promotion_result_type
+    name_cn: 升班结果类型
+    entries:
+      - { code: upgrade, label: 升级 }
+      - { code: repeat, label: 留级 }
+      - { code: transfer, label: 转班 }
+      - { code: graduate, label: 毕业 }
+      - { code: skip, label: 跳过 }
+    note: |
+      升班明细的处理结果（edu_promotion_task_item.result_type）。
+      取值依据升班 PRD 4.3：升级是默认结果（同年级序号 +1，REQ-PRM-014）；
+      留级、转班、毕业、跳过是预览阶段可逐条指定的调整方式（REQ-PRM-016 / 017）。
+      毕业只出现在学段内序号最大的年级（REQ-PRM-015 / BR-PROMO-005）；
+      留级的去向是目标学年学期的同学段同名年级（BR-PROMO-006），不改写源学年的任何记录（BR-PROMO-001）。
+    applied_by: CR-014
+  - name: promotion_item_status
+    name_cn: 升班明细状态
+    entries:
+      - { code: pending, label: 待处理 }
+      - { code: succeeded, label: 成功 }
+      - { code: failed, label: 失败 }
+      - { code: skipped, label: 跳过 }
+    note: |
+      升班明细的执行状态（edu_promotion_task_item.status）。
+      取值依据升班 PRD 4.3 / 4.5：预览只生成明细、不写学生数据（REQ-PRM-020），此时明细为待处理；
+      执行成功进「成功清单」、失败进「失败清单」（REQ-PRM-034）并逐条记录失败原因（REQ-PRM-032）；
+      被显式指定为「跳过（暂不处理）」的明细为跳过（REQ-PRM-017）。
+      与任务状态 promotion_task_status 是两个层次：任务状态描述整批，明细状态描述单个学生。
+    applied_by: CR-014
+  - name: promotion_validation_level
+    name_cn: 升班校验级别
+    entries:
+      - { code: passed, label: 通过 }
+      - { code: warning, label: 警告 }
+      - { code: error, label: 错误 }
+    note: |
+      升班校验结果的三分类（REQ-PRM-023）：通过 / 警告（如目标班级超容量）/ 错误（阻塞执行）。
+      容量超限只产生警告、不阻塞（REQ-PRM-024 / BR-CLASS-005）；存在错误项时必须先修正或标记跳过才能执行（REQ-PRM-025）。
+    applied_by: CR-014
+
 fields:
   - { name: student_no, cn: 学号, type: varchar(32), required: true, unique_scope: platform, br: BR-STU-001, format: "入学年份(4) + 全局序号(6)", note: 系统统一发号；永不回收；导入时忽略源学号；修改需校级管理员且留审计 }
   - { name: national_student_no, cn: 全国学籍号, type: varchar(64), required: false, unique_scope: platform, br: BR-STU-022, note: 官方 G / L 开头号码，允许为空，非空时全平台唯一 }
@@ -256,6 +330,12 @@ fields:
   - { name: relation, cn: 与监护人关系, type: varchar(20), required: true }
   - { name: guardian_phone, cn: 监护人电话, type: varchar(20), required: false, sensitive: true }
   - { name: student_phone, cn: 学生电话, type: varchar(20), required: false, sensitive: true }
+  - { name: photo_file_id, cn: 学生照片, type: bigint, required: false, sensitive: true, note: 只存文件服务引用；列表与详情默认展示缩略图，查看原图需 read_sensitive 并写访问日志；单张，支持上传与导入（CR-003 / GAP-027） }
+  - { name: is_primary, cn: 是否主要联系人, type: tinyint, required: true, default: "0", note: 同一学生最多一条为 1；与 relation 同在 edu_guardian_student（CR-003 / GAP-029） }
+  - { name: bind_status, cn: 监护人绑定状态, type: varchar(20), required: true, note: 待审核 / 已通过 / 已驳回 / 已解绑（CR-003 / GAP-029） }
+  - { name: remark, cn: 备注, type: varchar(500), required: false, note: 通用备注字段；监护人、联系方式、离职登记共用（CR-003 / GAP-029） }
+  - { name: enroll_date, cn: 入学日期, type: date, required: false, note: 默认取学年开始日期（CR-003 / GAP-029） }
+  - { name: field_name, cn: 变更字段名, type: varchar(64), required: true, note: 学生资料变更申请的字段标识（CR-003 / GAP-029） }
   - { name: address, cn: 联系地址, type: varchar(200), required: false, sensitive: true }
 
   - { name: academic_year_code, cn: 学年编码, type: varchar(9), required: true, format: "YYYY-YYYY", br: BR-TERM-003 }
@@ -269,10 +349,16 @@ fields:
   - { name: class_name, cn: 班级名称, type: varchar(50), required: true, br: BR-CLASS-003 }
   - { name: class_capacity, cn: 班级容量, type: smallint, required: false, note: 仅提示，不强制校验，见 BR-CLASS-005 }
   - { name: head_teacher_id, cn: 班主任, type: bigint, required: false }
+  - { name: class_status, cn: 班级状态, type: varchar(16), required: true, enum_ref: class_status, br: BR-CLASS-006, note: 在读 / 已停用；停用后不在新建学生与编班的可选班级中，历史花名册仍可查（CR-010） }
+  - { name: campus_id, cn: 校区 ID, type: bigint, required: false, br: BR-ORG-009, note: 引用学校模块的 edu_campus；校区不参与数据权限判定，只用于组织与统计（CR-010 / GAP-045） }
+  - { name: classroom, cn: 教室, type: varchar(50), required: false, note: 自由文本（如「本部教学楼 A203」）；与容量一样只作参考信息，不参与权限或校验（CR-010 / GAP-045） }
 
   - { name: primary_subject_code, cn: 首选科目, type: varchar(20), required: true, enum_ref: subject_code, br: BR-STREAM-001 }
   - { name: secondary_subject_codes, cn: 再选科目, type: varchar(64), required: true, note: 两个编码以逗号分隔，需校验数量为 2，见 BR-STREAM-002 }
   - { name: stream_deadline, cn: 选科截止日期, type: datetime, required: false, br: BR-STREAM-004 }
+  - { name: stream_open_from, cn: 选科开放日期, type: datetime, required: false, br: BR-STREAM-004, note: 开放期起点，与 stream_deadline 组成开放期；截止后提交转为变更申请（CR-016） }
+  - { name: overdue_requires_approval, cn: 逾期变更需审批, type: tinyint(1), required: true, default: "1", br: BR-STREAM-005, note: 逾期变更是否需校级管理员审批；默认 1（需审批），见「选科逾期变更」口径（CR-016） }
+  - { name: subject_combination, cn: 选科组合, type: varchar(64), required: false, note: 首选 + 再选两门的展示用组合（如「物理 + 化学 + 生物」），由 primary_subject_code 与 secondary_subject_codes 派生，不单独落库（CR-016） }
 
   - { name: change_type, cn: 变更类型, type: varchar(30), required: true }
   - { name: effective_date, cn: 生效日期, type: date, required: true }
@@ -297,6 +383,44 @@ fields:
   - { name: operator_role, cn: 操作人角色, type: varchar(64), required: false, br: BR-AUDIT-001, note: 记录操作发生时的角色快照，不随角色变更而改变 }
   - { name: change_diff, cn: 变更差异, type: json, required: false, br: BR-AUDIT-002, note: 只记录发生变化的字段，不记录全量快照 }
 
+  # ---- 教师模块（CR-004 / GAP-033 补登记，2026-09-30） ----
+  - { name: teacher_id, cn: 教师 ID, type: bigint, required: true, br: BR-TEACHER-007, note: 教师主体主键；跨校任教时同一 teacher_id 出现在多校的任教关系中 }
+  - { name: school_id, cn: 所属学校, type: bigint, required: true, br: BR-TEACHER-002, note: 教师归属校；数据范围按任教学校判定，跨校任教时与 class_school_id 不同 }
+  - { name: teacher_phone, cn: 教师联系电话, type: varchar(20), required: false, sensitive: true, br: BR-TEACHER-005, note: 敏感字段，默认掩码（中间 4 位）；全量展示需 read_contact 且写访问日志 }
+  - { name: email, cn: 邮箱, type: varchar(64), required: false, note: 账号找回渠道，不作为登录名（REQ-TCH-045） }
+  - { name: hire_date, cn: 入职日期, type: date, required: false, note: 校级管理员专属字段；影响工龄与任教关系有效期默认值（REQ-TCH-022） }
+  - { name: employment_status, cn: 在职状态, type: varchar(16), required: true, enum_ref: employment_status, br: BR-TEACHER-006, note: 离职与调离走独立登记入口，不在编辑表单里直接切换 }
+  - { name: grade_id, cn: 年级 ID, type: bigint, required: false, br: BR-GRADE-004, note: 年级主任任职与任教年级筛选使用 }
+  - { name: term_id, cn: 学年学期 ID, type: bigint, required: false, br: BR-TEACHER-003, note: 任教关系与年级主任任职必须绑定学年学期 }
+  - { name: subject_id, cn: 学科 ID, type: bigint, required: false, br: BR-TEACHER-003, note: 任教关系必须绑定学科 }
+  - { name: class_id, cn: 班级 ID, type: bigint, required: false, br: BR-TEACHER-003, note: 行政班或教学班；任教关系唯一键的组成部分 }
+  - { name: class_school_id, cn: 任教所在学校, type: bigint, required: false, br: BR-TEACHER-002, note: 跨校任教时与 school_id 不同；两校各自只看到本校范围内的任教明细 }
+  - { name: weekly_hours, cn: 周课时, type: decimal(4,1), required: false, note: 任教工作量；用于任课班级数与课时统计 }
+  - { name: teaching_assignment_id, cn: 任教关系 ID, type: bigint, required: false, br: BR-TEACHER-003, note: edu_teaching_assignment 主键；失效后保留历史，不做物理删除 }
+
+  # ---- 年级模块（CR-005 / GAP-037 补登记，2026-09-30） ----
+  - { name: grade_status, cn: 年级状态, type: varchar(16), required: true, enum_ref: grade_status, br: BR-GRADE-005, note: 归档后为已归档；年级禁止物理删除（REQ-GRD-030） }
+  - { name: class_count, cn: 班级数, type: int, required: false, note: 统计值，受数据范围约束（REQ-GRD-006、DS-DENY-08） }
+  - { name: student_count, cn: 在读学生数, type: int, required: false, note: 统计值，口径与班级模块的在读人数一致（REQ-GRD-009） }
+  - { name: leader_user_id, cn: 年级主任用户 ID, type: bigint, required: false, br: BR-GRADE-004, note: edu_grade_leader.user_id；同一学年学期同一年级同一人只允许一条任职 }
+  - { name: leader_status, cn: 年级主任任职状态, type: varchar(16), required: false, note: 生效中 / 已解除；解除后保留历史记录，不做物理删除 }
+  - { name: expire_date, cn: 任职失效日期, type: date, required: false, note: 学年切换时写入；与 effective_date 组成任职区间（REQ-GRD-027） }
+
+  # ---- 升班与学籍异动模块（CR-013 / GAP-054 补登记，2026-10-01） ----
+  - { name: source_term_id, cn: 源学年学期, type: bigint, required: true, br: BR-PROMO-001, note: 引用 edu_term；从该学年学期取在读学生，升班只按学年追加，不改写源学年任何记录 }
+  - { name: target_term_id, cn: 目标学年学期, type: bigint, required: true, br: BR-PROMO-001, note: 引用 edu_term；目标学期必须晚于源学期（REQ-PRM-008），且创建前校验目标年级与班级齐备（REQ-PRM-009） }
+  - { name: promotion_task_status, cn: 升班任务状态, type: varchar(20), required: true, enum_ref: promotion_task_status, br: BR-PROMO-002, note: edu_promotion_task.status；草稿 / 已预览待确认 / 校验中 / 执行中 / 已完成 / 部分失败 / 失败 / 已取消（REQ-PRM-003）；草稿没有升班明细（REQ-PRM-011） }
+  - { name: total_count, cn: 学生总数, type: int, required: false, note: 统计值，受数据范围约束（DS-DENY-08）；草稿为 0 且前端显示「—」（REQ-PRM-011） }
+  - { name: success_count, cn: 成功数, type: int, required: false, note: 统计值，受数据范围约束（DS-DENY-08）；重试只增加成功数，不重复处理已完成项（BR-PROMO-003） }
+  - { name: failed_count, cn: 失败数, type: int, required: false, note: 统计值，受数据范围约束；与逐条失败原因成对出现（REQ-PRM-032） }
+  - { name: task_id, cn: 所属任务 ID, type: bigint, required: true, br: BR-PROMO-002, note: edu_promotion_task_item.task_id；与 student_id 组成唯一键 (task_id, student_id)，保证同一批任务的同一学生只出现一次（REQ-PRM-029 的幂等键组成部分） }
+  - { name: student_id, cn: 学生 ID, type: bigint, required: true, note: 平台级学生主体（不参与学校租户隔离，D-037）；明细与学生主体是多对一，学生档案本身不随升班迁移（BR-PROMO-011） }
+  - { name: source_class_id, cn: 源班级 ID, type: bigint, required: false, br: BR-PROMO-004, note: 引用 edu_class；毕业年级或源学年无行政班关系时为空（BR-PROMO-005） }
+  - { name: target_class_id, cn: 目标班级 ID, type: bigint, required: false, br: BR-PROMO-004, note: 引用 edu_class；必须属于目标学年学期（REQ-PRM-022）；留级 / 毕业 / 跳过时为空。目标班级的批量指定按源班级整体生效（REQ-PRM-018） }
+  - { name: result_type, cn: 升班结果类型, type: varchar(16), required: true, enum_ref: promotion_result_type, br: BR-PROMO-002, note: edu_promotion_task_item.result_type；默认升级，可在预览阶段逐条调整为留级 / 转班 / 毕业 / 跳过（REQ-PRM-014 / 017） }
+  - { name: status, cn: 明细状态, type: varchar(16), required: true, enum_ref: promotion_item_status, note: edu_promotion_task_item.status；与任务状态 promotion_task_status 分层，取值见枚举 promotion_item_status }
+  - { name: error_msg, cn: 失败原因, type: varchar(500), required: false, br: BR-PROMO-002, note: 逐条记录失败原因，支持只重试失败项（REQ-PRM-032）；执行结果报告按此列生成失败清单（REQ-PRM-034） }
+
 unique_keys:
   - { table: edu_student, columns: [student_no], br: BR-STU-001, note: 学号全平台唯一，由系统统一发号，序号按年重置 }
   - { table: edu_student, columns: [id_card_no], br: BR-STU-008, note: 允许为空，非空时全平台唯一 }
@@ -310,6 +434,7 @@ unique_keys:
   - { table: edu_class, columns: [school_id, term_id, stage_code, class_name], br: BR-CLASS-003 }
   - { table: edu_student_class, columns: [term_id, student_id, class_type], note: 仅对行政班生效，见 BR-STU-003 }
   - { table: edu_student_stream, columns: [term_id, student_id], br: BR-STREAM-007 }
+  - { table: edu_promotion_task, columns: [school_id, source_term_id, target_term_id], br: BR-PROMO-003, note: 部分唯一：只对未结束任务生效（REQ-PRM-005）；落地方式（业务唯一 + 应用层校验或带条件的唯一索引）在详细设计阶段确定，不按普通唯一索引直接建 }
 
 index_conventions:
   - rule: 所有教育表的主查询条件第一列必须带 tenant_id 或 school_id 作为前缀索引

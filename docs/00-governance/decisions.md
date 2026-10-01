@@ -588,6 +588,999 @@
 - 如果错了的代价：若阶段 2 发现 PRD 需要调整，必须走 CR 产出新版本并重新核对受影响的
   原型与验收用例，代价高于冻结前修改
 
+## D-050 阶段 2 原型批次扩展至 2-5 ~ 2-9
+
+- 状态：已确认（2026-09-30）
+- 背景：批次 2-0 编制 `prototypes/functional/v1/navigation.yaml` 时汇总各模块 PRD 的页面清单，
+  发现原阶段 2 批次计划（2-1 ~ 2-4）只覆盖约 20 个页面，而 11 个模块 PRD 共定义 83 个页面/区块，
+  加登录与 3 个异常页共 87 项，扣除 PRD 已标注延后的"班级合并"（`PAGE-CLS-MERGE`），仍需交付 86 项。
+  登记为 `GAP-025`，用户答复"同意"
+- 决策：采用**选项 A**，阶段 2 追加批次 2-5 ~ 2-9，共 10 批
+  | 批次 | 内容 | 页面数 |
+  |---|---|---|
+  | 2-0 | 原型规范 | 0（已产出，待验收） |
+  | 2-1 | 学生管理列表 + 新增/编辑抽屉（样板） | 3 |
+  | 2-2 | 教师管理 + 年级管理 | 13 |
+  | 2-3 | 班级管理 + 班级详情 + 升班向导 | 12 |
+  | 2-4 | 导入向导 + 登录 + 异常页 | 11 |
+  | 2-5 | 学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 变更记录） | 8 |
+  | 2-6 | 学校管理 + 学年学期 + 学科与配置 | 19 |
+  | 2-7 | 选科与教学班（含教学班管理） | 9 |
+  | 2-8 | 审计与操作日志 | 7 |
+  | 2-9 | 异步任务中心 + 死信 + 导出配置 | 4 |
+  | 合计 | | **86** |
+- 落地：`docs/00-governance/stage-inputs.yaml` 的 stage2 `batch_plan` 补齐 2-5 ~ 2-9；
+  `prototypes/functional/v1/navigation.yaml` 的 `delivery_batches` 状态由"待确认"改为"已确认"；
+  `prototypes/functional/v1/README.md` 的批次对照表同步
+- 理由：原 2-1 ~ 2-4 的内容与顺序不变，只做追加；每批 3 ~ 19 个页面，仍可分批人工验收
+- 如果错了的代价：若某批页数偏多导致验收吃力，可把该批再拆分，
+  只需改 `stage-inputs.yaml` 与 `navigation.yaml` 的批次字段，不影响已交付页面
+
+## D-051 数据共享授权的对象限定为教学资源（题库习题、试卷）
+
+- 状态：已确认（2026-09-30 用户澄清）
+- 背景：批次 2-1 编制学生管理列表原型时，把"跨校共享"实现成了"跨校只读学生列表"，
+  并据此在 `content-samples.json` 造了一条 `DG-2026-0007` 只读授权样例。
+  用户澄清：**跨校共享的是题库习题、试卷这类资源，不是学生等业务数据。**
+- 决策：
+  1. 数据共享授权（`edu_data_grant` / `edu_data_grant_scope`）的对象只有教学资源——
+     题库习题（`question_bank_item`）、试卷（`exam_paper`）等；**学生、班级、年级、教师、成绩、学籍等业务数据一律不跨校共享**。
+  2. 学生、班级、年级、教师等页面上不出现任何共享授权入口与标识；"学校"筛选只有平台运营可切换。
+  3. 平台运营跨校查看业务数据属于 `DS-01` 全平台范围，不叫"共享授权"，要显示"平台运营协助视图 · 只读"并留痕。
+  4. 首轮题库与试卷不在交付范围，因此首轮**没有可授权对象**：只保留表结构，不实现授权界面。
+- 落地：非冻结产物已先行修正（原型 2-0 / 2-1、样例数据、页面规格、原型质量规范、目录清单）；
+  冻结的 PRD 与 `AGENTS.md` 的同步修改走 `docs/00-governance/change-requests/CR-002.md`，待批准。
+- 如果错了的代价：若将来确实需要跨校共享学生数据，需要重新开启授权模型并补一组越权用例；
+  本次只删语义与页面、保留表结构，回滚成本低。
+
+## D-052 GAP-026 ~ GAP-030 五项裁决（用户"按推荐来"）
+
+- 状态：已确认（2026-09-30）
+- 背景：批次 2-1 原型暴露 5 个缺口，登记 `GAP-026` ~ `GAP-030`，用户答复"按推荐来"
+- 决策：
+
+| 缺口 | 裁决 | 落地 |
+|---|---|---|
+| `GAP-026` 敏感字段权限点 | 选项 A：`read_sensitive` → 教务主任 / 校领导 / 平台运营；`read_contact` → 教务主任 / 班主任 / 校领导 | `05-permission-matrix.yaml` 的 `sensitive_fields.granted_roles` + 新增 `field_level_permissions`；出生日期补进敏感字段 |
+| `GAP-027` 学生照片 | 选项 A：首轮纳入 | 字段字典加 `photo_file_id`（sensitive）；student PRD 4.3 加照片字段；原型 `ACT-STU-021` / `022`；验收 `AC-STU-133` |
+| `GAP-028` 批量操作 | 选项 A：只做批量导出与批量调班 | `page-actions.yaml` 加 `ACT-STU-019` / `020`；student PRD 6.2 / 6.3 同步；验收 `AC-STU-134` / `135` |
+| `GAP-029` 字段字典缺字段 | 选项 A：补登记 | 加 `photo_file_id`、`is_primary`、`bind_status`、`remark`、`enroll_date`、`field_name` |
+| `GAP-030` 学号修改权限 | 选项 B：首轮不提供入口 | `REQ-STU-027` 改写；`ACT-STU-018` 置 deferred；编辑抽屉移除入口 |
+
+- 执行：`docs/00-governance/change-requests/CR-003.md`（已批准并执行）
+- 如果错了的代价：照片可删、学号修改入口可后补，均为增量改动，不涉及数据迁移
+
+## D-053 阶段 2 批次 2-2b-1：教师详情与新增/编辑抽屉交付，并按上游 PRD 修正两处原型规范
+
+- 日期：2026-09-30
+- 背景：批次 2-2a 的教师列表样板已产出一页，按小步约定继续拆批。本批只做教师模块的读取与主体维护三件套：
+  `PAGE-TCH-DETAIL` 教师详情抽屉、`PAGE-TCH-CREATE` 新增教师三步抽屉、`PAGE-TCH-EDIT` 编辑教师抽屉；
+  角色分配、任教关系设置与年级模块留在 2-2b-2。
+- 决策：
+
+| 事项 | 裁决 | 落地 |
+|---|---|---|
+| 教师详情的承载方式 | 按教师 PRD 6.1 / 6.3 与 `ACT-TCH-010`：详情页以**抽屉**承载，6 个分区 | `navigation.yaml` 的 `PAGE-TCH-DETAIL` 加 `container: drawer`、`size: lg`；原型实现在 `pages/teacher-list.html` 内的 `data-demo-panel` 片段 |
+| 任教关系设置的承载方式 | 按教师 PRD 6.1：**独立页**，双栏教师视角 / 班级视角 | `navigation.yaml` 的 `PAGE-TCH-ASSIGN` 由 `drawer` 改为 `page` 并补 `route: /edu/teacher/assignment`（页面本体在批次 2-2b-2 交付） |
+| 编辑表单的可写角色 | 以 `05-permission-matrix.yaml` 为准：`person.teacher` 有 `update` 的只有教务主任与租户管理员 | `PAGE-TCH-EDIT` 的 `data-role-editable` 只列这两个角色；工号与入职日期仅租户管理员可改；所属学校永久只读（`REQ-TCH-023`） |
+| 详情页的形态演示 | 用两条真实样本覆盖两种形态：苏睿（跨校任教）、邓丽娟（班主任 + 任课，且无学校级教育角色） | `content-samples.json` 新增 `teacher_detail_samples`；无专属样本的教师复用形态 A 并在页面内给出「样本说明」提示，不允许静默错配 |
+| 新增保存后的结果 | 按 `REQ-TCH-019` 给三个后续动作 | 成功结果条 + `ACT-TCH-024` ~ `ACT-TCH-026`；登录名口径取自 `content-samples.json` 的 `teacher_create_sample` |
+| 表单关闭 | 取消必须二次确认，避免误丢已填内容 | 新增 `DIALOG-TCH-DISCARD` 与 `ACT-TCH-027` / `ACT-TCH-028` |
+| 2-2a 遗留的两个缺陷 | 本批一并修 | 原型外壳登记 `PAGE-TCH-LIST` 为已交付（菜单可跳转）；行内复选框 `stopPropagation`，勾选不再误开详情 |
+
+- 执行：`prototypes/functional/v1/` 下 `pages/teacher-list.html`、`page-actions.yaml`、`navigation.yaml`、`content-samples.json`、
+  `assets/prototype-shell.js`、`assets/prototype-shell.css`、`page-specs/teacher-detail.md`、`page-specs/teacher-create.md`、`page-specs/teacher-edit.md`
+- 新增待裁决缺项：`GAP-032`（教师 PRD 4.4 字段级矩阵与权限矩阵对校领导的口径冲突）、
+  `GAP-033`（教师模块业务字段未登记进字段字典，涉及 5 个已在原型使用的 `data-field`）
+- 如果错了的代价：两处承载方式若最终要与 PRD 不同，改的是原型规范与页面容器，不涉及数据迁移；
+  可写角色若最终要给校领导，补一次权限矩阵与验收用例即可
+
+## D-054 CR-004：补齐教师模块字段字典，并统一「校领导」对教师主体只读口径
+
+- 日期：2026-09-30
+- 背景：批次 2-2b-1 做公共前置反查时暴露两个缺项（`GAP-032`、`GAP-033`），用户对两项均回复"同意"推荐方案 A
+- 决策：
+
+| 事项 | 裁决 | 落地 |
+|---|---|---|
+| `GAP-032` 校领导对教师主体是否可写 | 以 `05-permission-matrix.yaml` 为准：校领导只读。改教师 PRD 4.4，不改权限矩阵 | 教师 PRD 4.4 矩阵校领导整列改为「—」，并补「校领导对本模块只读」的口径说明；`REQ-TCH-022` 的「校级管理员」映射为 `tenant_admin` |
+| `GAP-032` 配套 | 把"校级管理员专属字段"写进权限矩阵，而不是留在 PRD 正文 | `05-permission-matrix.yaml` 新增 `field_level_permissions.write_field_admin`（`granted_roles: [tenant_admin]`，`applies_to: person.teacher.teacher_no / person.teacher.hire_date`） |
+| `GAP-033` 教师模块字段未登记 | 一次补全：新增 `employment_status` 枚举与 13 个字段 | `06-field-dictionary.yaml` 新增 `teacher_id`、`school_id`、`teacher_phone`、`email`、`hire_date`、`employment_status`、`grade_id`、`term_id`、`subject_id`、`class_id`、`class_school_id`、`weekly_hours`、`teaching_assignment_id` |
+| `GAP-033` 敏感字段 | 教师手机号按敏感字段管理 | `sensitive_fields` 新增 `person.teacher.teacher_phone`（掩码中间 4 位，`read_contact`，教务主任 / 班主任 / 校领导）；`read_contact.applies_to` 同步 |
+| 原型字段名对齐 | 把原型里的 `data-field="status"` 改为 `employment_status`，避免与学籍状态 `enrollment_status` 混淆 | `pages/teacher-list.html` 与四份教师页面规格同步 |
+
+- 执行：`docs/00-governance/change-requests/CR-004.md`（已批准并执行）
+- 如果错了的代价：校领导若日后需要写权限，改回一行矩阵并补验收用例即可；字段名若需调整，此时尚未建表，改一行字典 + 一处 `data-field` 即可
+
+## D-055 阶段 2 批次 2-2b-2：教师模块收口（教育角色分配 + 任教关系设置）与外壳约定补充
+
+- 日期：2026-09-30
+- 背景：用户对上一条汇报中的 2-2b-2 回复"执行"。本批交付教师模块最后两项：`PAGE-TCH-ROLE` 教育角色分配弹窗、`PAGE-TCH-ASSIGN` 任教关系设置独立页；年级 6 页顺延为 2-2b-2b
+- 决策：
+
+| 事项 | 裁决 | 落地 |
+|---|---|---|
+| 任教关系设置的承载 | 按教师 PRD 6.1：**独立页**，双栏（班级视角 / 教师视角） | 新增 `pages/teacher-assign.html`（`data-page-id="PAGE-TCH-ASSIGN"`，`data-menu-page="PAGE-TCH-LIST"`） |
+| 非菜单页的交付登记 | 外壳新增 `EXTRA_PAGES`（页面编号 → 路径 + 名称 + 批次），跳转分支优先查它 | `assets/prototype-shell.js`；未登记的页面仍给"后续批次交付"提示 |
+| 行内按钮的浮层与跳页语义 | 写了 `data-overlay` 打开同页浮层；不写则跳独立页 | 教师列表行内按钮：编辑 `drawer`、角色 `dialog`、任教（无）、离职 `dialog`；`link()` helper 同步收口 |
+| 双栏与弹窗高度 | 外壳样式表新增 `.split` 系列；`.dialog` 增加 `max-height: 84vh` 与内部滚动 | `assets/prototype-shell.css` |
+
+- 执行：`prototypes/functional/v1/` 下 `pages/teacher-assign.html`（新增）、`pages/teacher-list.html`、`page-actions.yaml`（`ACT-TCH-030` ~ `039`）、`navigation.yaml`、`content-samples.json`（`teacher_role_samples`、`teaching_assignment_board`）、`page-specs/teacher-role.md`、`page-specs/teacher-assign.md`
+- 证据：`evidence/stage2-prototype/` 新增 9 张截图，`interaction-verification.md` 追加 ROLE-01 ~ 07、AS-01 ~ 08 共 15 条用例实测结果
+- 如果错了的代价：独立页若最终要并入教师详情，改路由与入口即可；`EXTRA_PAGES` 与 `.split` 都是外壳级增量约定，不影响已交付页面
+
+## D-056 阶段 2 批次 2-2b-2b：年级模块开工前的四项权限与字段裁决
+
+- 日期：2026-09-30
+- 背景：年级管理 6 页开工前做公共前置反查，发现 4 处上游文档之间对不上（`GAP-034` ~ `GAP-037`），
+  其中 3 处直接决定原型上的按钮、菜单与字段名。登记缺项并请用户裁决，四项均答复「同意」
+- 决策：
+
+| 事项 | 裁决 | 落地 |
+|---|---|---|
+| `GAP-034` 校领导对年级的写权限 | 选项 B：以年级 PRD 为准，校领导对 `org.grade` **只读**；年级主任任职的变更走审批 | `05-permission-matrix.yaml` 的 `school_leader` 收为 `[read]` + 条件说明；年级 PRD 2.1 补口径说明 |
+| `GAP-035` 三个角色对年级的读权限 | 选项 A：`grade_leader` / `homeroom` / `subject_teacher` 各补 `org.grade` 的 `read`，范围按 `DS-05` / `DS-06` / `DS-07` 收窄 | `05-permission-matrix.yaml` 三个角色各加一行；`AC-GRD-005` 期望结果补入校领导只读 |
+| `GAP-036` 建错的空年级能否删 | 选项 B：教务主任与租户管理员可删**无班级且无学生关系**的年级；逻辑删除 + 二次确认 + 必填原因 | 两个角色补 `org.grade` 的 `delete` + 条件；年级 PRD 4.6 补权限与前置、6.1 加 `DIALOG-GRD-DELETE`、6.3 加删除交互 |
+| `GAP-037` 年级模块字段 | 选项 A：一次补全 | `06-field-dictionary.yaml` 新增 `grade_status` 枚举与 6 个字段（`grade_status`、`class_count`、`student_count`、`leader_user_id`、`leader_status`、`expire_date`） |
+
+- 附带修正：`navigation.yaml` 的 `PAGE-GRD-DETAIL` 补 `container: drawer` 与 `size: lg`（年级 PRD 6.1 写明详情以抽屉承载）
+- 执行：`docs/00-governance/change-requests/CR-005.md`（已批准并执行）
+- 如果错了的代价：`GAP-034` / `GAP-035` 各改一行矩阵并同步验收用例；`GAP-036` 收回删除权限点即可（软删数据无需回滚）；`GAP-037` 此时尚未建表，改字段字典一行加一处 `data-field` 即可
+
+## D-057 新增系统超级管理员角色（`super_admin`）
+
+- 日期：2026-09-30
+- 背景：用户指示「补充进 PRD 中系统增加超级管理员用户，可以做任意事。所有权限。所有功能。所有角色」
+- 决策：新增系统内置角色 `super_admin`（系统超级管理员），并按 `BR-ORG-014` 收口边界
+
+| 事项 | 裁决 | 落地 |
+|---|---|---|
+| 能力边界 | 全部资源、全部操作、全平台数据范围；可视同任意角色 | `05-permission-matrix.yaml` 新增 `super_admin` 角色与 22 条资源授权（不写通配符，逐条列出便于评审与实现） |
+| 数据范围 | 数据范围解析直接放行，是唯一例外 | `10-data-permission-schema.md` 新增 `DP-07`，范围解析流程新增第 0 步 |
+| 留痕 | **强制写审计且不可关闭**（访问留痕 + 写操作变更前后值） | `BR-ORG-014`；矩阵 note 与 `PM-Q-008` 记录同一口径 |
+| 与平台运营的关系 | 两类主体：`super_admin` 是系统账号，`platform_ops` 是运营方租户的运营人员，后者仍按查看 / 修改 / 导出分别授权 | `BR-ORG-014` 明确它是 `BR-ORG-005` 的唯一例外 |
+| 使用限制 | 禁止用于日常业务操作，定位是部署初始化、应急处理、跨租户排障 | `BR-ORG-014`；`02-personas-and-scenarios.md` 新增 `SCN-ORG-04` 并在覆盖矩阵处说明它不占业务角色列 |
+
+- 执行：`docs/00-governance/change-requests/CR-006.md`
+- 待确认（不阻塞当前批次）：审计是「强制留痕」还是「连审计也可关闭」；当前按**强制留痕**实现，
+  因为审计是不可关闭的底线而不是权限。若要连审计也跳过，改动只在日志层，不影响原型与表结构
+- 如果错了的代价：收回 `super_admin` 的授权行即可；审计记录已经产生，属于不可撤销的正常代价
+
+## D-058 浮层载体统一：表单与二次确认用弹窗（与 apps/plus-ui 一致）
+
+- 日期：2026-09-30
+- 背景：`GAP-038`（年级表单的承载方式与「编辑年级」的页面登记）用户裁决「选 A」，并追加口径
+  「plus-ui 中的页面是 dialog 还是 drawer，跟保持一致」
+- 核查证据：扫描 `apps/plus-ui/src/views` 与 `apps/plus-ui/src/components` 下全部 `.vue`，
+  `<el-dialog>` **40 处**、`<el-drawer>` **0 处**；dialog 宽度以 500px（13 次）为主
+- 决策：
+
+| 事项 | 裁决 | 落地 |
+|---|---|---|
+| 结构 | 新建与编辑共用同一表单，编辑复用编辑态，不另立 `PAGE-GRD-EDIT` | `navigation.yaml` 的 `PAGE-GRD-CREATE` 改名为「新建 / 编辑年级」 |
+| 载体 | 按 plus-ui 现状取**弹窗**：`PAGE-GRD-CREATE` / `PAGE-GRD-BATCH` / `PAGE-GRD-LEADER` 由 `drawer` 改为 `dialog` | `navigation.yaml`；`layout-spec.yaml` 新增 `dialog.carrier_rule` 与宽度映射 sm→500px / md→600px / lg→800px |
+| 详情例外 | 抽屉只用于上游 PRD 显式写明的详情页（年级 / 教师 / 学生 / 日志 / 任务详情） | `PAGE-GRD-DETAIL` 保持 `detail + container: drawer` |
+| 弹窗内不放表格 | 批量生成的预览与年级主任任职清单改用列表渲染 | 年级 PRD 6.1 已写明这两个浮层是弹窗，`layout-spec` 禁止弹窗内放表格 |
+
+- 执行：`docs/00-governance/change-requests/CR-007.md`
+- 遗留：`GAP-039` —— 已交付的学生 / 教师表单用的是抽屉，与 plus-ui 的 dialog 习惯不一致；
+  推荐选项 B（表单类改弹窗、详情类保留抽屉）。该缺口不阻塞年级批次，但阻塞阶段 3 与阶段 6
+- 如果错了的代价：年级表单改回抽屉只需改 `navigation.yaml` 三行与原型三个 `data-overlay`，此时尚未进入阶段 6
+
+## D-059 统一浮层载体：表单→弹窗、详情→抽屉、含表格→独立页
+
+- 日期：2026-09-30
+- 背景：`GAP-039`（已交付的学生 / 教师表单用抽屉，与 `apps/plus-ui` 的 dialog 习惯不一致）用户裁决「同意」，
+  即选项 B「表单类改弹窗、详情类保留抽屉」
+- 证据：`apps/plus-ui` 全库 `<el-dialog>` 40 处、`<el-drawer>` 0 处（统计命令见 `evidence/stage2-prototype/README.md` 第 4 节）
+- 决策：
+
+| 事项 | 裁决 | 落地 |
+|---|---|---|
+| 表单类浮层 | 统一用**弹窗**（`el-dialog`） | 学生新增 / 编辑、教师新增 / 编辑四个已交付浮层由抽屉改弹窗；学校编辑、学年新建、学科新建 / 编辑在 PRD 层同步 |
+| 详情类 | 保留**抽屉**（`el-drawer`） | 教师详情（6 分区）、学生详情（批次 2-5）、日志详情、任务详情 |
+| 含表格或分页的内容 | 用**独立页** | 校区管理、学期管理由「抽屉内含表格」改为独立页（PRD 与 `navigation.yaml` 同步） |
+| 弹窗内长内容 | 必须能内部滚动、footer 固定 | `prototype-shell.css` 新增 `.dialog-header`；`.dialog-body` 改 `flex:1 1 auto; min-height:0`（原实现会把三步表单裁掉且无法滚动） |
+| 样式钩子 | 与容器类型一致 | 弹窗内的 `drawer-header` / `drawer-body` / `drawer-footer` 统一改名 `dialog-*`；抽屉保留原名 |
+
+- 执行：`docs/00-governance/change-requests/CR-008.md`
+- 回归证据：`evidence/stage2-prototype/verify-carrier-change.html`（14 条断言全部通过），截图 `carrier-change_verify-results.png`
+- 旧截图处理：`student-list_drawer-create` / `student-list_drawer-edit-homeroom` 两张保留在目录中并标注"已失效（载体已由抽屉改为弹窗）"，
+  新增 `student-list_dialog-create` / `student-list_dialog-edit-homeroom` 两张；教师相关截图直接重拍覆盖
+- 如果错了的代价：把四个浮层与五份 PRD 的对应行改回 `drawer` 即可，此时尚未进入阶段 3 / 6
+
+## D-060 详情浮层入口缺陷修复：外壳按「当前页是否已有该片段」自动判定浮层
+
+- 日期：2026-09-30
+- 触发：用户验收年级批次时问「怎么打开抽屉」——列表行看起来可点（`table.el-table tbody tr[data-role="row"] { cursor: pointer }`），
+  但点了只弹「「年级详情」在批次 2-2 交付（PAGE-GRD-DETAIL），本批只验证入口与权限显隐」，抽屉打不开
+- 根因：数据行只写了 `data-nav="PAGE-GRD-DETAIL"`，没写 `data-overlay="drawer"`；
+  `prototype-shell.js` 的点击委托因此走「跳独立页」分支，命中「该页未交付」提示。
+  同一缺陷存在于**学生列表**（`PAGE-STU-DETAIL`）与**教师列表**（`PAGE-TCH-DETAIL`）的数据行
+- 修复（外壳，一次修三类页面）：`prototypes/functional/v1/assets/prototype-shell.js` 的点击委托中，
+  未显式标注 `data-overlay` 时，若当前文档存在 `[data-demo-panel="<data-nav>"]` 就按浮层打开；
+  显式 `data-overlay` 的优先级不变（教师「编辑」仍开弹窗，不被抽屉规则覆盖）
+- 修复（年级列表补可见入口）：
+
+| 事项 | 落地 |
+|---|---|
+| 操作列入口 | 新增只读「详情」（复用 `ACT-GRD-009`，`data-overlay="drawer"`），所有可读角色可见 |
+| 年级名称列 | 加链接色 `#grade-rows tr[data-role="row"] td:first-child { color: var(--app-primary) }`，明确「这一行可以点开」 |
+| 动作登记 | `page-actions.yaml` 的 `ACT-GRD-009` element 补为「点击数据行 / 年级名称 / 操作列「详情」」 |
+| 列宽 | 操作列 216 → 280px、年级名称 264 → 200px，表格 `min-width` 保持 1122px（1440 下仍不横向滚动） |
+| 未交付的详情 | 学生详情（批次 2-5）仍走「批次交付」提示，不打开空抽屉；`PENDING_PAGES` 补学生 / 教师浮层页中文名 |
+
+- 回归证据：`evidence/stage2-prototype/verify-grade-list.html`（GL-01 ~ GL-38 全部通过，截图 `grade-list_verify-results.png`）、
+  `evidence/stage2-prototype/verify-detail-entry.html`（RD-01 ~ RD-06 全部通过，截图 `detail-entry_verify-results.png`）
+- 截图复拍：年级列表 18 张 + 6 张浮层截图重拍；补拍 `grade-list_platform-ops-school-switch_1440x900.png`（README 曾登记但目录里没有）
+- 如果错了的代价：三个列表页的点行行为回退成「只弹提示」，改回逐行显式写 `data-overlay` 即可，此时尚未进入阶段 6
+
+## D-061 班级模块载体按 D-059 修正，并补齐 5 个 PRD 要求的页面登记（CR-009）
+
+- 日期：2026-09-30
+- 触发：批次 2-3 开工前的公共前置反查暴露 `GAP-040`（班级三个浮层的载体与 D-059 冲突）与
+  `GAP-041`（5 个 PRD 要求的页面未登记进 `navigation.yaml`）；用户对两项均答复「同意」（推荐方案都是选项 A）
+- 裁决：按 `D-059` 修正载体（表单用弹窗、含表格用独立页），并一次补齐 5 项页面登记
+- 落地（`CR-009`）：
+
+| 事项 | 落地 |
+|---|---|
+| `PAGE-CLS-CREATE` | 抽屉 → **弹窗（md）**；编辑复用同一弹窗的编辑态（与年级模块 `D-058` 一致） |
+| `PAGE-CLS-BATCH` | 抽屉 → **弹窗（md）**；`navigation.yaml` 原先写成 `drawer`，与 class PRD 第 337 行冲突，按上游 PRD 修正 |
+| `PAGE-CLS-ROSTER-ADD` | 抽屉 → **独立页**（`route: /edu/class/roster/add`）；左学生池 + 右待加入含检索列表，按 `D-059` 用独立页 |
+| `PAGE-CLS-LEADER` | 新增（弹窗 md）：指定 / 变更班主任，班主任的唯一写入入口（`DP-01`、`REQ-CLS-048` / `050`） |
+| `PAGE-CLS-COPY` | 新增（弹窗 md）：复制班级，不复制花名册与班主任（`REQ-CLS-061`） |
+| `PAGE-CLS-MOVE` | 新增（独立页，`route: /edu/class/move-students`）：批量迁学生，含影响预览（`REQ-CLS-062`） |
+| `PAGE-PRM-ADJUST` | 新增（弹窗 md，父页面 `PAGE-PRM-PREVIEW`）：升班预览中调整学生去向（promotion PRD 6.3、`REQ-PRM-017` / `018`） |
+| 停用 / 删除确认 | 登记为同页浮层片段 `DIALOG-CLS-DISABLE` / `DIALOG-CLS-DELETE`，不单独占页面编号 |
+| `jump_map` | 「添加学生」的 `overlay` 由 `drawer` 改 `page`；新增班级列表与升班预览的 4 条跳转 |
+| 动作清单 | `page-actions.yaml` 新增 `class_list` 动作组 `ACT-CLS-001` ~ `016`（`GAP-042` 选项 A：其余页面动作随小批登记） |
+
+- 文档版本：class PRD 1.0.2-draft → **1.0.3-draft**；promotion PRD 1.0.0-draft → **1.0.1-draft**
+- 页面数：批次 2-3 由 12 页 → **16 页**（页面注册表 87 项 → 91 项；需交付 86 → 90）
+- 如果错了的代价：把三个载体改回 `drawer`、删掉 4 个页面登记即可；此时尚未进入阶段 3 / 6
+
+## D-062 批次 2-3a 交付：班级管理列表样板页（含停用 / 删除二次确认）
+
+- 日期：2026-09-30
+- 触发：`D-061` 完成后的第一个小批；按用户"先生成一个页面，验收通过后用同一标准铺开"的要求
+- 交付物：`prototypes/functional/v1/pages/class-list.html`（1 页 + 2 个同页确认片段）、
+  `page-specs/class-list.md`、`page-actions.yaml` 的 `class_list` 组、
+  `content-samples.json` 的 `class_edge_cases`（5 条）与 `list_totals.class_list_total`（34）
+- 页面形态：6 个筛选 + 关键字、10 列（在读与容量各自独立）、行内高频 3 个入口 + 「更多 ▾」下拉、
+  8 种角色形态、7 类页面状态、12 行样例（空班 / 已停用 / 超容量 / 超长名称 / 未指定班主任 / 教学班 / 毕业年级 / 他校）
+- 关键工程决策：
+
+| 事项 | 决定 | 依据 |
+|---|---|---|
+| 行内操作超过 3 个 | 高频 3 个直出，其余进「更多 ▾」；下拉挂 `body` 做 fixed 定位并右对齐 | 表格滚动区 `overflow-x:auto` 会裁掉单元格内下拉；`markup-contract.md` 已补 `el-dropdown` 映射 |
+| 班级状态取值 | 只用「在读」「已停用」两个可由已冻结 PRD 文本推出的值 | PRD 7.1 的 `status` 无取值、字段字典无 `class_status` 枚举；补造属于新增业务规则 → `GAP-044` |
+| 任课教师的班级可见性 | 按上游 PRD 实现只读 + 限任教班级 + 字段裁剪 + 禁止导出花名册 | 矩阵未授 `org.class: read` → `GAP-043`（与 `GAP-035` 同类） |
+| 数据范围 | 原型里真实收窄：教务主任 11 行 / 年级主任 4 行 / 班主任 1 行 / 任课教师 3 行 / 校领导 11 行只读 | 只画按钮显隐看不出越权，`DS-04` ~ `07` 必须可实测 |
+| 顺手修正 | `grade-list.html`（5 处）与 `teacher-assign.html`（1 处）弹窗内钩子 `drawer-header` → `dialog-header` | `CR-008` 已定"弹窗内用 `dialog-*`"，这两处是遗漏 |
+
+- 验证证据：`evidence/stage2-prototype/verify-class-list.html`（CL-01 ~ CL-37 **37/37 全部通过**）、
+  截图 20 张（3 档分辨率 + 8 个角色形态 + 7 类状态 + 2 个二次确认 + 「更多」下拉 + harness 结果），
+  `python tools/check_docs.py` 通过
+- 待用户裁决：`GAP-043`（任课教师班级读权限）、`GAP-044`（班级状态取值集合）、`GAP-045`（`campus_id` / `classroom` 字段登记）
+  —— 建议走一次 `CR-010` 一起补完，与 `GAP-037` → `CR-005` 的做法一致
+- 下一批建议：2-3b 班级详情与花名册（独立页，5 个页签、`DS-06` / `DS-07` 的字段裁剪）
+- 如果错了的代价：本页是原型，改列宽 / 调整行内入口 / 换状态取值都只是页面内改动，不涉及后端与数据
+
+## D-063 补齐班级模块的三项公共前置（CR-010）
+
+- 日期：2026-09-30
+- 触发：批次 2-3a 的公共前置反查暴露 `GAP-043`（任课教师缺班级读权限）、`GAP-044`（班级状态无取值、字段未登记）、
+  `GAP-045`（校区与教室字段未登记）；用户答复「1a2a3a」，三项均取推荐方案 A
+- 落地（`CR-010`）：
+
+| 事项 | 落地 |
+|---|---|
+| 任课教师的班级读权限 | 权限矩阵的 `subject_teacher` 增加 `org.class: read`，条件为"仅任教班级的必要资料（`DS-07`）；不含班主任变更与编班，且禁止导出花名册" |
+| 班级状态枚举 | 字段字典新增 `class_status`：`studying`（在读）/ `disabled`（已停用）；并写明"学年归档不改变班级状态"与"已合并随合并功能延期"两条口径 |
+| 字段登记 | 新增 `class_status`（varchar(16)、必填、`BR-CLASS-006`）、`campus_id`（bigint、引用 `edu_campus`、`BR-ORG-009` 校区不参与权限判定）、`classroom`（varchar(50)、自由文本） |
+| 班级 PRD | 升 **1.0.4-draft**：7.1 的 `status` 改名 `class_status`，7.2 索引前缀同步并补"按校区列班级"，新增 7.3 节给取值表与两条口径 |
+| 页面规格 | `page-specs/class-list.md` 的自查第 5 条（`data-field` 可回溯字段字典）由"未满足"改为"满足" |
+
+- 与其他模块的口径一致性：`DS-07` 的读权限在年级模块（`GAP-035`）与班级模块（`GAP-043`）现在都按"只读 + 范围收窄"处理，
+  不会再出现"年级能看到、班级看不到"
+- 验证证据：`python tools/check_docs.py` 通过（字段字典 / 权限矩阵 / 交叉引用一致性均已核查）
+- 如果错了的代价：删掉矩阵那一行与 3 个字段登记即可，此时尚未进入阶段 4 / 5
+
+## D-064 统一筛选级联规则，并给校区补跨校检索入口（GAP-046 选项 A）
+
+- 日期：2026-09-30
+- 触发：用户提问「可以根据学校来检索校区，检索年级，检索班级，检索学生吗」。
+  反查结论：年级（`REQ-GRD-002`）、班级（`REQ-CLS-002`）、学生（`REQ-STU-002`）三层已能按学校检索；
+  校区是唯一没有检索入口的一层（只能从「学校详情 → 校区管理」进），且「选学校后下级下拉是否收窄」没有统一规则
+- 裁决：用户对「就按 A 改」答复「同意」→ 统一级联规则 + 校区补检索入口
+- 落地：
+
+| 事项 | 落地 |
+|---|---|
+| 级联规则 | `prototypes/functional/v1/layout-spec.yaml` 新增 `filter_cascade`：链路 `学校 → 校区 / 年级 / 班级 → 学生`（学生按在校记录两段式取数）、四条规则（只列上级范围内选项、失效值清空为「全部」、级联不替代后端数据范围校验、只有平台运营与超管能切学校） |
+| 规则的第二处落点 | `page-actions.yaml` 的 `state_rules` 增加一条，让阶段 6 从动作清单也能读到同一规则 |
+| 参考实现 | `pages/class-list.html`：学校第 1 级，校区 / 年级 / 班主任第 2 级；切学校后下拉只列该校选项、失效值清空；页头「共 N 个班级」与分页总数同步（本校 34 / 他校 6） |
+| 验证 | `verify-class-list.html` 增加 `CL-38`（他校：年级 2 项 / 校区 2 项 / 班主任 2 项 + 共 6 个班级）与 `CL-39`（本校：6 / 3 / 10 项），**39 / 39 全部通过** |
+| 校区检索入口 | `navigation.yaml` 的 `jump_map` 新增 `PAGE-SCH-LIST` 行内「校区数」→ `PAGE-SCH-CAMPUS`；复用批次 2-6 的校区管理页，**不新增页面**；跨校检索只对平台运营与超级管理员开放 |
+| 待对齐 | 已交付的学生 / 年级 / 教师列表的级联在各自下一批对齐（`GAP-047`，Codex 自有非阻塞项；不因缺级联而产生功能错误，只是下拉选项偏多） |
+
+- 顺带修正：班级列表页头的「共 34 个班级」由静态标签改为随学校动态刷新，避免与分页的「共 N 条」不一致
+- 如果错了的代价：删掉 `filter_cascade` 段与班级列表里的 `rebuildFilterOptions()` 即可，其余页面未受影响
+
+## D-065 批次 2-3b 交付：班级详情与花名册（独立页）
+
+- 日期：2026-09-30
+- 触发：`D-061` / `D-063` / `D-064` 之后的第二个小批；按用户「继续」推进
+- 交付物：`prototypes/functional/v1/pages/class-detail.html`（独立页 `PAGE-CLS-DETAIL`）、
+  `page-specs/class-detail.md`、`page-actions.yaml` 的 `class_detail` 组（`ACT-CLS-017` ~ `ACT-CLS-029`）、
+  外壳 `EXTRA_PAGES` 登记（班级列表行内「详情」由"只弹提示"改为真实跳转）
+- 页面形态：顶部基本信息卡 8 字段 + 4 个页签（花名册 / 任课教师 / 班主任任职历史 / 变更记录）；
+  花名册支持「在读成员（默认）/ 全部成员」与姓名 / 学号检索；7 类状态；8 种角色形态
+- 关键工程决策：
+
+| 事项 | 决定 | 依据 |
+|---|---|---|
+| 承载方式 | 独立页（不是抽屉） | 班级 PRD 6.1 / 6.3 写明"进入班级详情独立页"；四个页签 + 方表装不下抽屉 |
+| 页头操作按钮 | 6 个按钮放页头第二行、整体右对齐；标题与标签不折行 | 第一版同排布置时 1440 下标题与标签被压成两行（见 `class-detail_1440x900.png` 的重拍记录） |
+| 写操作的入口 | 详情页只给入口，写入仍走 `PAGE-CLS-ROSTER-ADD` / `TRANSFER` / `LEADER` | `DP-01`：每个字段只有一个写入入口 |
+| 字段裁剪 | 监护人 / 联系电话用 `data-role-visible` 整列隐藏（任课教师） | `REQ-CLS-012`；留空列会被误读成加载失败 |
+| 历史学年只读 | `term != 202601` 时出现只读提示条并隐藏全部写入口 | `REQ-CLS-032` |
+| 样例口径修正 | 高一 (1) 班「在读」3 → **2**（陈思远休学，`BR-STU-012` 不计入在读）；班级列表、年级详情样本、`content-samples.json` 三处同步，受影响截图重拍 | 原三处写着 3，与 `student_class_relations` 的"休学（保留关系）"矛盾；花名册默认只显示在读成员，口径必须一次对齐 |
+
+- 验证证据：`evidence/stage2-prototype/verify-class-detail.html`（CD-01 ~ CD-20 **20/20 通过**）、
+  `verify-class-list.html`（**39/39 通过**，CL-36 改为断言真实跳转）、截图 9 张（详情页）+ 重拍 8 张（受样例口径修正影响）；
+  `python tools/check_docs.py` 通过
+- 下一批建议：2-3c 新建 / 批量生成 / 复制 / 指定班主任（4 个弹窗）→ 2-3d 添加学生与调班 / 批量迁学生 →
+  2-3e 升班四步向导与结果页
+- 如果错了的代价：本页是原型，改页头排布 / 增删页签 / 换样例都只是页面内改动
+
+## D-066 批次 2-3c 交付：班级四个弹窗，并裁决 GAP-048 / GAP-049
+
+- 日期：2026-09-30
+- 触发：`D-064` 之后的第三个小批；按用户「继续」推进，用户随后对两项缺项答复「1a2a」
+- 交付物：`prototypes/functional/v1/pages/class-list.html` 内的四个弹窗片段
+  （`PAGE-CLS-CREATE` 一窗两态 / `PAGE-CLS-BATCH` / `PAGE-CLS-COPY` / `PAGE-CLS-LEADER`）、
+  `page-specs/class-create.md` / `class-batch.md` / `class-copy.md` / `class-leader.md`、
+  `page-actions.yaml` 的 `class_create` / `class_batch` / `class_copy` / `class_leader` 四组
+  （`ACT-CLS-030` ~ `ACT-CLS-047`，共 18 条）
+- 关键工程决策：
+
+| 事项 | 决定 | 依据 |
+|---|---|---|
+| 班级类型的可选范围（`GAP-048`） | **选项 A**：本弹窗只建行政班（`addClass`）；「教学班」选项列出但置灰，指向批次 2-7 的教学班管理页（`addTeachingClass`） | 接口清单已把两类拆成两个 operationId；`D-043` 把教学班管理排在选科之后。一个界面只对应一个接口，权限点与校验规则不分叉 |
+| 复制班级的接口（`GAP-049`） | **选项 A**：复用 `addClass`（复制 = 以源班级预填 + 新建），不新增 `copyClass` | `REQ-CLS-061` 原文即"以某班级为模板……生成新班级"；`addClass` 已有名称唯一与数据范围校验。若阶段 4 认为需要服务端原子性再切 B |
+| 班主任在编辑态的写权限 | 编辑态**只读**，变更走行内「指定班主任」 | `REQ-CLS-024` 要求记录起止日期并保留任职历史，班级表单装不下这两个字段；`DP-01` 保证写入入口仍只有一处 |
+| 表单布局 | 四个弹窗改用两列 `form-grid` | 第一版单列时 1440×900 下 8 个字段必须滚动才能看到容量 / 校区 / 教室；两列后一屏可见 |
+| 详情页的写入口 | 班级详情的「编辑班级 / 指定班主任 / 复制班级」改为跨页深链接 `class-list.html#panel=…&class=<班级名称>` | 弹窗载体只在列表页；`DP-01` 要求写入入口集中在班级模块，`CDL-36` 用第二个 iframe 实测跑通 |
+| 教学班的维护入口 | 列表行内「编辑」对教学班只给批次 2-7 提示，不打开行政班表单 | `BR-CLASS-007` 教学班不设班主任；其界面与接口属批次 2-7 |
+
+- 顺带修掉的两处上批遗留（都不是本批引入）：
+  1. `verify-class-list.html` 的 `CL-34` 原来只允许 `ACT-CLS-001 ~ 016`，本页新增弹窗后必然失败 →
+     按「`common_actions` + `class_*` 各动作组」扩到 001 ~ 047，断言语义不变。
+  2. `verify-grade-list.html` 的 `GL-15` 断言在 `D-064` 之后过期（「班级数」由只弹提示改为真实跨页跳转），
+     且该 harness 的 `load` 监听缺启动守卫，跳转触发的第二次 load 重启一条链并在 `GL-04` 抛异常，
+     页面长期停在「运行中…」——**即 `D-064` 之后 evidence 里的"GL 38/38 通过"无法复现**。
+     已按当前形态改断言 + 补 `FRAME_SRC` 与守卫 + 4 秒兜底，回归 38/38，见 `GAP-050`。
+- 验证证据：`evidence/stage2-prototype/verify-class-dialogs.html`（`CDL-01` ~ `CDL-36` **36/36 通过**，
+  含用第二个 iframe 验证班级详情 → 列表页的跨页带入）；全量回归 class-list 39/39、class-detail 20/20、
+  grade-list 38/38、detail-entry 6/6、carrier-change 14/14；截图 7 张；`python tools/check_docs.py` 通过
+- 下一批建议：2-3d 添加学生（`PAGE-CLS-ROSTER-ADD`）/ 调班（`PAGE-CLS-TRANSFER`）/ 批量迁学生（`PAGE-CLS-MOVE`）→
+  2-3e 升班四步向导与结果页
+- 如果错了的代价：四项都是原型内的弹窗，回退只需改 `class-list.html` 与对应页面规格；
+  `GAP-049` 若切选项 B，代价是多一次 CR 与一个接口，不影响已交付的页面结构
+
+## D-067 批次 2-3d 交付：编班、批量迁学生、移出确认与调班
+
+- 日期：2026-09-30
+- 触发：`D-066` 之后的第四个小批；按用户「1a2a 提交。继续」推进
+- 交付物：
+  - `prototypes/functional/v1/pages/class-roster-add.html`（`PAGE-CLS-ROSTER-ADD`，独立页：左学生池 + 右待加入清单）
+  - `prototypes/functional/v1/pages/class-move-students.html`（`PAGE-CLS-MOVE`，独立页：选学生 → 选目标班 → 影响预览 → 执行）
+  - `pages/class-detail.html` 新增两块片段：`DIALOG-CLS-ROSTER-REMOVE`（移出确认）与 `PAGE-CLS-TRANSFER`（调班），并给花名册加勾选列
+  - `page-specs/class-roster-add.md` / `class-move-students.md` / `class-transfer.md`
+  - `page-actions.yaml`：`class_roster_add`（`ACT-CLS-053` ~ `058`）、`class_move_students`（`ACT-CLS-059` ~ `063`）、`class_detail` 补 `048` ~ `052` 与 `064`
+- 关键工程决策：
+
+| 事项 | 决定 | 依据 |
+|---|---|---|
+| 编班的载体 | 独立页，双栏（左学生池 + 右待加入） | `CR-009` / `D-059` 已裁决"含检索列表改独立页"；双栏来自 class PRD 6.1 原文 |
+| 冲突处理 | 允许勾选冲突学生 → 提交时**整体拒绝并列出冲突清单**，每个冲突行给「调班」入口 | `REQ-CLS-028` / `029` 的原文；若直接禁用冲突行，就演示不了"整体拒绝"这条需求 |
+| 编班页的「调班」入口 | 跳 `class-detail.html#panel=PAGE-CLS-TRANSFER&student=…&from=…&to=…`，由详情页的弹窗承载 | PRD 6.3「冲突时点击调班 → 直接进入调班弹窗，预填目标班级」；弹窗片段只维护一份，避免两页漂移 |
+| 调班与移出的承载页 | 都放在班级详情页（父页面就是 `PAGE-CLS-DETAIL`） | `DP-01`：花名册关系变更只有班级模块一个写入入口 |
+| 花名册勾选列 | 班级详情花名册加一列复选框（表格 min-width 1080 → 1122） | 工具条「移出所选」需要一个选择控件；`verify-class-detail` 用属性选择器断言，加列不影响既有 20 条用例 |
+| 批量迁学生可迁移范围 | 只列「学籍状态 = 在读」的成员可迁移；休学 / 出国留学等保留关系成员显示但不可选 | `BR-STU-012` 的口径；同时把「出国留学是否计入在读」登记为 `GAP-051` 待裁决 |
+| 批量迁学生的接口 | 复用 `transferClass`（单条 = 调班，多条 = 批量迁移） | class PRD 第 8 节没有为批量迁移单列 operationId；与 `GAP-049` 同一处理原则 |
+| 样例数据补充 | `content-samples.json` 新增 2 条「在读但无行政班」学生（潘思彤 / 蒋知远） | 原有 15 条样本里没有任何可编班的学生，编班页无法演示成功路径；新增样本已在 `notes` 说明 |
+
+- 验证证据：`evidence/stage2-prototype/verify-class-roster.html`（`RA-01` ~ `RA-13`、`MV-01` ~ `MV-10`、`TR-01` ~ `TR-11`，**34/34 通过**，
+  用三个 iframe 分别加载编班页、批量迁学生页、班级详情页）；全量回归 class-list 39/39、class-detail 20/20、
+  class-dialogs 36/36、grade-list 38/38、detail-entry 6/6、carrier-change 14/14；截图 7 张；`python tools/check_docs.py` 通过
+- 待用户拍板：`GAP-051`（出国留学是否计入在读，推荐选项 A）
+- 下一批建议：2-3e 升班四步向导（`PAGE-PRM-LIST` / `CREATE` / `PREVIEW` / `VALIDATE` / `EXECUTE` / `RESULT`）
+  与预览中的「调整学生去向」弹窗（`ACT` / `PAGE-PRM-ADJUST`）
+- 如果错了的代价：三块都是原型页；`GAP-051` 若切选项 B，只需改批量迁学生页的可迁移判定与样例统计
+
+## D-068 「在读名单」口径收敛为「只有在读状态计入」（GAP-051 选项 A / CR-011）
+
+- 日期：2026-09-30
+- 触发：批次 2-3d 交付批量迁学生页时，按学籍状态推导「在读」人数，发现样例数据与本平台口径不一致
+- 上游依据：用户对「推荐 A」答复「同意」
+- 决策：**只有在读（`enrolled`）计入在读名单**；休学（`suspended`）、转入未报到（`pending_enroll`）、
+  出国（`studying_abroad`，保留学籍）等非在读状态保留行政班关系，但都不计入在读名单；
+  复学 / 回国 / 报到后回到在读
+- 落地内容（`CR-011`）：
+
+| 文件 | 变更 |
+|---|---|
+| `docs/10-prd/04-business-rules.md` | `BR-STU-012` 由「休学不计入在读」扩写为在读口径总原则 + 状态清单 |
+| `docs/10-prd/06-field-dictionary.yaml` | `enrollment_status` 12 个枚举项各补 `counts_as_enrolled`（只有 `enrolled` 为 true），枚举 note 写明这条口径是统计与前端标签的唯一依据 |
+| `docs/10-prd/modules/student/PRD.md` | 第 153 行维度说明与 `REQ-STU-037` 扩写；学籍状态表上方补口径说明；验收矩阵引用 `AC-STU-408` |
+| `docs/10-prd/modules/student/acceptance.md` | 新增 `AC-STU-408`（出国后班级关系仍在、在读名单与在读人数都不含该生、批量迁学生时不可选） |
+| `prototypes/functional/v1/content-samples.json` | 高二 (1) 班 `student_count` 2 → 1，并补 notes 说明口径 |
+| `prototypes/functional/v1/pages/class-list.html` | 高二 (1) 班行的 `data-enrolled` 与「在读」单元格同步改为 1 |
+| `evidence/stage2-prototype/class-list_*.png` | 20 张截图重拍（页头汇总「在读 149 人」→ 148 人、高二 (1) 班在读 2 → 1） |
+
+- 为什么必须回改 PRD 而不是只改样例：同一口径会出现在班级列表的「在读」列、班级详情的在读成员、
+  年级详情的在读统计、以及升班（`BR-PROMO-005` 按在读学生推进）四处；
+  只改样例不写规则，实现者会各自理解，同一个学生可能一处算在读、一处不算
+- 验证证据：`python tools/check_docs.py` 通过；7 个原型 harness 全部重跑通过
+  （class-list 39/39、class-detail 20/20、class-roster 34/34、class-dialogs 36/36、
+  grade-list 38/38、detail-entry 6/6、carrier-change 14/14）
+- 如果错了的代价：把 `BR-STU-012` 的扩写回退为原句、删掉 `counts_as_enrolled`、
+  高二 (1) 班样例数改回 2 并重拍同一批截图即可；不涉及代码与表结构
+
+## D-069 升班任务的权限动作收敛为 update，年级主任只读参与（GAP-052 / GAP-053 选项 A / CR-012）
+
+- 日期：2026-09-30
+- 触发：批次 2-3e 开工前的公共前置反查——升班 PRD 要求 5 个按钮，但权限矩阵里只有 `create` 与一个没有落点的 `approve`
+- 上游依据：用户对 `GAP-052` / `GAP-053` 的两项「推荐 A」答复「1.a 2.a」
+- 决策一（`GAP-052`）：**升班任务没有审批环节**，「预览 / 执行 / 重试 / 取消」四个写动作统一由
+  `promotion.batch:update` 承载；`academic_director` 补 `update`，`school_leader` 收回 `approve`、保留 `read`。
+  不新增 `execute` / `retry` / `cancel` 动作，不改任务状态机（8 个状态不变）
+- 决策二（`GAP-053`）：**年级主任只读参与升班**——补 `promotion.batch:read` + `DS-05` 范围，
+  可在预览页核对本人负责年级的去向，但调整去向仍只归教务主任
+- 落地内容（`CR-012`）：
+
+| 文件 | 变更 |
+|---|---|
+| `docs/10-prd/05-permission-matrix.yaml` | `school_leader` 的 `promotion.batch` 由 `read + approve` 收为 `read`；`academic_director` 补 `update`；`grade_leader` 新增 `read` + `DS-05` 条件 |
+| `docs/10-prd/modules/promotion/PRD.md` | 头部升 `1.0.2-draft`；2.1 校领导改「审批学籍异动；升班任务只读」、年级主任改「只读参与预览核对」；2.3 的 `SCN-PROMO-01` 校领导与年级主任都改「查看」；`REQ-PRM-006` 写明五个按钮的动作映射；5.1 收敛为 `read / create / update`；6.1 的 `PAGE-PRM-LIST` 补年级主任（只读）、`PAGE-PRM-ADJUST` 收敛为教务主任；6.3 补「年级主任打开预览页 = 只读形态」 |
+| `docs/00-governance/gap-register.yaml` | `GAP-052` / `GAP-053` 置 `closed`、`blocking: false`，补 `resolution` |
+| `docs/00-governance/file-catalog.md` | 升班 PRD 版本由 `v1.0.0-draft` 更正为 `v1.0.2-draft`，登记 `CR-012` |
+
+- 为什么选 A 而不是新增 `execute` 动作：矩阵已把写类动作统一为 `update`，升班四个动作都是「改本任务状态与明细」，
+  语义就是 `update`；新增动作要改公共前置的 `actions` 集合与全部角色条目，收益与成本不成比例
+- 为什么收回校领导的 `approve`：升班 PRD 1.2 范围内没有审批环节，保留一个永远点不到的按钮会让阶段 4 / 6 / 8 各自造一套答案
+- 验证证据：`python tools/check_docs.py` 通过；PyYAML 解析权限矩阵通过；7 个原型 harness 重跑通过（本次不改原型，作为回归证据）
+- 如果错了的代价：把矩阵两行改回 `read/approve` 与 `read/create`、删掉 `grade_leader` 的 `promotion.batch` 条目，
+  并把 PRD 的 2.1 / 2.3 / `REQ-PRM-006` / 5.1 / 6.1 / 6.3 回滚即可，不涉及表结构与已交付原型
+
+## D-070 批次 2-3e 首件样板：升班任务列表（`PAGE-PRM-LIST`）
+
+- 日期：2026-10-01
+- 触发：`GAP-052` / `GAP-053` 按选项 A 关闭并执行 `CR-012` 后，批次 2-3e 开工
+- 范围：按"先生成一个页面、验收通过后再铺开"的约定，本小批（`2-3e-s1`）只交付 **1 页 + 1 个同页确认片段**，
+  四步向导（`PAGE-PRM-CREATE` / `PREVIEW` / `VALIDATE` / `EXECUTE`）、`PAGE-PRM-RESULT`、`PAGE-PRM-ADJUST` 等样板确认后铺开
+- 产物：
+
+| 文件 | 内容 |
+|---|---|
+| `prototypes/functional/v1/pages/promotion-list.html` | 升班任务列表：12 行样例覆盖 8 个状态 + 跨学段 + 超阈值 + 他校；含同页确认片段 `DIALOG-PRM-CANCEL` |
+| `prototypes/functional/v1/page-specs/promotion-list.md` | 页面规格：状态驱动的行内动作、字段 / 动作 / 状态 / 跳转 / 权限 / 样例数据 / 自查 |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `promotion_list` 动作组（`ACT-PRM-001` ~ `ACT-PRM-010`） |
+| `prototypes/functional/v1/content-samples.json` | 新增 `promotion_tasks`（12 条）与 `promotion_tasks_notes`（4 条），`list_totals` 补 `promotion_list_total = 17` |
+| `prototypes/functional/v1/navigation.yaml` / `assets/prototype-shell.js` | `PAGE-PRM-LIST` 登记为已交付；补齐升班其余页面的中文名（`PENDING_PAGES`） |
+| `evidence/stage2-prototype/verify-promotion-list.html` | 交互 harness：`PRM-01` ~ `PRM-36` 全部通过 |
+| `evidence/stage2-prototype/promotion-list_*.png` | 14 张截图：3 个分辨率 + 4 种角色形态 + 2 类筛选 + 取消确认 + 4 类状态 |
+
+- 关键设计：
+  1. **状态驱动的行内动作**：8 个状态各一套按钮集合（草稿 = 预览 / 取消 … 已取消 = 继续执行剩余项 / 查看结果），
+     只读角色（校领导 / 年级主任 / 平台运营）不渲染任何写入口，班主任与租户管理员直接进入无权限面板
+  2. **年级主任按 `DS-05` 收窄**：每行带 `data-g-*` 子集计数，只读角色看到的是本年级口径（512 → 128），
+     本年级为 0 的任务不出现；依据 `DS-DENY-08`
+  3. **草稿行没有明细**：三个计数列显示「—」而不是 0（`REQ-PRM-011` / `REQ-PRM-020`）
+  4. **取消的口径写进确认片段**：保留已完成部分、可继续执行剩余项、可逐条回滚，不做整批回滚（已确认 4）
+- 验证证据：`verify-promotion-list.html` 36 / 36 通过；7 个已交付 harness 回归全绿
+  （class-list 39、class-detail 20、class-roster 34、class-dialogs 36、grade-list 38、detail-entry 6、carrier-change 14）；
+  `python tools/check_docs.py` 通过；14 张截图归档在 `evidence/stage2-prototype/`
+- 遗留：`GAP-054`（升班任务 5 个业务字段未进字段字典、`DIALOG-PRM-CANCEL` 未进 PRD 6.1），不阻塞本批，建议按选项 A 立一次 CR
+- 如果错了的代价：删除 `pages/promotion-list.html` 与 `page-specs/promotion-list.md`，
+  回滚 `page-actions.yaml` 的 `promotion_list` 动作组与 `navigation.yaml` / `prototype-shell.js` 的登记即可；
+  不触碰已交付的班级 4 个小批，也不涉及表结构与接口实现
+
+## D-071 补齐升班模块的两项公共前置（GAP-054 选项 A / CR-013）
+
+- 日期：2026-10-01
+- 触发：批次 2-3e-s1 交付 `PAGE-PRM-LIST` 时按 `prototype-quality-spec` 的自查，发现字段字典缺 6 条、取消确认片段没进 PRD 6.1
+- 上游依据：用户对 `GAP-054` 的「推荐 A」答复「选 a」
+- 决策：**一次 CR 补齐两项**，与 `CR-004`（教师字段）/ `CR-005`（年级字段与权限）/ `CR-010`（班级字段）同口径
+- 落地内容（`CR-013`）：
+
+| 文件 | 变更 |
+|---|---|
+| `docs/10-prd/06-field-dictionary.yaml` | 新增 `source_term_id` / `target_term_id` / `promotion_task_status`（`enum_ref: promotion_task_status`）/ `total_count` / `success_count` / `failed_count`；`unique_keys` 补 `edu_promotion_task` 的部分唯一说明（只对未结束任务生效，`REQ-PRM-005`） |
+| `docs/10-prd/modules/promotion/PRD.md` | 6.1 补登记同页浮层片段 `DIALOG-PRM-CANCEL` + 载体口径说明；6.3 补「列表行内点击取消」一行；版本升 `1.0.3-draft` |
+| `prototypes/functional/v1/navigation.yaml` | 登记 `DIALOG-PRM-CANCEL`（`type: dialog` / `parent: PAGE-PRM-LIST`）+ 取消跳转；批次 2-3 声明页数 16 → 17 |
+| `prototypes/functional/v1/pages/promotion-list.html` | `data-field="status"` → `data-field="promotion_task_status"`（两处），与字典条目对齐 |
+| `prototypes/functional/v1/page-specs/promotion-list.md` | 字段清单同步改名；自查「每个 `data-field` 已在字段字典登记」由未满足改为已满足 |
+
+- 为什么必须回改冻结文档：字段字典的 `purpose` 要求所有字段都可查（阶段 5 建表 / 阶段 6 映射都以它为准）；
+  取消属于危险动作，其「保留已完成部分、不做整批回滚」的口径（已确认 4）必须落在 PRD，否则实现者可能按「取消 = 回滚」实现
+- 验证证据：`python tools/check_docs.py` 通过；PyYAML 复核字段字典可解析；
+  `verify-promotion-list.html` 重跑 36 / 36 通过（`data-field` 改名不影响断言，截图无需重拍）
+- 如果错了的代价：删掉新增的 6 个字段与 1 条部分唯一说明、把升班 PRD 的 6.1 / 6.3 两行与版本回滚、
+  撤掉 `navigation.yaml` 的片段条目并把页数改回 16 即可，不涉及表结构、接口与已交付页面
+
+## D-072 交付批次 2-3e-s2：升班向导第一步 `PAGE-PRM-CREATE`
+
+- 日期：2026-10-01
+- 触发：用户对 2-3e-s1（升班任务列表样板）答复「继续」，按 `navigation.yaml` 的批次顺序进入 2-3e-s2
+- 上游依据：升班 PRD 6.2（四步向导第 1 步「选择学年学期」，校验目标年级班级是否齐备）、
+  `REQ-PRM-005` / `007` ~ `012` / `019` / `027` / `031`、`BR-PROMO-001` / `003` / `004`、`BR-TERM-005`、`BR-STU-012`、`NFR-PERF-07`
+- 决策：
+  1. **升班四步向导按「每步一个独立页」交付**（`promotion-create.html` / `promotion-preview.html` / `promotion-validate.html` /
+     `promotion-execute.html` / `promotion-result.html`），不合成一个 `promotion-wizard.html`。
+     理由：`navigation.yaml` 给每步都注册了独立 `route`，`jump_map` 也把「下一步」写成页面跳转；
+     合成单文件会让 `data-page` 与 `jump_map` 两个契约同时失真。`file-catalog.md` 里原来那条
+     `promotion-wizard.html`（`planned`）随之改为按页登记。
+  2. **步骤条可点**：第 2 ~ 4 步用 `data-role="nav"` + `data-nav` 指向各自页面，未交付时由外壳给出「批次 2-3 交付」提示，
+     既不打开空页，也不隐藏步骤进度。
+  3. **四档校验样例**（齐备 / 缺年级班级 / 同一源→目标已有未结束任务 / 在读超阈值）用一个可切换的样例组承载，
+     覆盖 `REQ-PRM-005` / `009` / `010` 三条前置校验，并让「下一步」在被阻止与可用两种形态下都可验收。
+  4. **阻塞项存在时不把主按钮置灰**：置灰后点击不再触发事件，用户拿不到「为什么不能建」的说明；
+     改为按钮可点 + `data-blocked` 标记 + 常驻阻塞条 + 点击给原因（与 2-3d「目标班级已停用点执行被拦」同口径）。
+  5. **底部操作条 sticky**：`TPL-WIZARD` 要求「底部固定操作条」，否则 900 高度窗口里主按钮会被挤到折叠线以下；
+     右对齐收窄宽度，避免压住左下角的「原型演示」浮面板。
+  6. **无 `promotion.batch:create` 的角色一律进无权限态**（含校领导 / 年级主任 / 平台运营 / 班主任 / 租户管理员 / 任课教师）：
+     本页是纯创建页，不存在只读形态；只读角色看列表与预览（`CR-012`）。
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/functional/v1/pages/promotion-create.html` | 新增：向导第一步（步骤条 + 表单 + 齐备性校验 + 规模预估 + sticky 操作条 + 五类状态） |
+| `prototypes/functional/v1/page-specs/promotion-create.md` | 新增：页面规格（结构 / 字段 / 动作 / 状态 / 跳转 / 权限 / 样例 / 自查） |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `promotion_create` 动作组（`ACT-PRM-011` ~ `ACT-PRM-019`）；批次 2-3 状态文本更新 |
+| `prototypes/functional/v1/navigation.yaml` | `PAGE-PRM-CREATE` 补 note（2-3e-s2 已交付）；批次 2-3 状态文本更新 |
+| `prototypes/functional/v1/content-samples.json` | 新增 `promotion_create_samples`（学年学期选项 + 四档校验样例 + 口径说明） |
+| `prototypes/functional/v1/assets/prototype-shell.js` | `EXTRA_PAGES` 登记 `PAGE-PRM-CREATE` → `pages/promotion-create.html`（从 `PENDING_PAGES` 移出） |
+| `prototypes/functional/v1/index.html` | 已交付页面表补 2-3b ~ 2-3e-s2 共 8 行；批次 2-3 行改为 17 页 / 2-3e-s2 待验收；补一条演示步骤与 `GAP-055` 提示 |
+| `evidence/stage2-prototype/verify-promotion-create.html` | 新增：交互 harness（`PC-01` ~ `PC-22`，真实事件派发） |
+| `evidence/stage2-prototype/promotion-create_*.png` | 11 张截图：3 个分辨率 + 3 档校验样例 + 1 种角色形态 + 3 类状态 + harness 结果 |
+
+- 关键设计：
+  1. **三类前置校验都在创建前落地**：目标学年学期的年级与班级齐备性（`REQ-PRM-009`）、
+     同一源→目标学期只允许一个未结束任务（`REQ-PRM-005` / `BR-PROMO-003`）、在读人数超过 1 万给耗时预估（`REQ-PRM-010` / `NFR-PERF-07`）
+  2. **字段级校验按 PRD 原文**：两项必填（`REQ-PRM-007`）+ 目标起始日期必须晚于源且不能相同（`REQ-PRM-008` / `BR-TERM-005`）
+  3. **在读口径写在页面上**：只有在读（`enrolled`）计入，休学 / 转入未报到 / 出国保留学籍都不计入（`BR-STU-012` / `CR-011`）
+  4. **每个可交互元素都有可回溯标记**：动作 `ACT-PRM-011` ~ `019` 均已登记，字段取自
+     `school_id` / `source_term_id` / `target_term_id` / `remark`（全部在字段字典内）
+- 验证证据：`verify-promotion-create.html` 22 / 22 通过；8 个已交付 harness 回归全绿
+  （promotion-list 36、class-list 39、class-detail 20、class-roster 34、class-dialogs 36、grade-list 38、detail-entry 6、carrier-change 14）；
+  `python tools/check_docs.py` 通过；11 张截图归档在 `evidence/stage2-prototype/`
+- 本批同时暴露一个**阻塞**缺项：`GAP-055` —— 升班明细的 7 个字段（`task_id` / `student_id` / `source_class_id` /
+  `target_class_id` / `result_type` / `status` / `error_msg`）与「调整方式」枚举未登记进 `06-field-dictionary.yaml`，
+  阻塞向导第 2 ~ 4 步的 `data-field` 回溯与阶段 5 的升班建表；建议按选项 A 立 `CR-014` 一次补全后再铺 2-3e-s3
+- 如果错了的代价：删除 `pages/promotion-create.html` 与 `page-specs/promotion-create.md`，
+  回滚 `page-actions.yaml` 的 `promotion_create` 动作组、`navigation.yaml` 的 note 与批次文本、
+  `prototype-shell.js` 的 `EXTRA_PAGES` 一行、`content-samples.json` 的 `promotion_create_samples` 节点即可；
+  不涉及 `promotion-list.html` 与班级模块的 4 个小批，也不涉及表结构与接口实现
+
+## D-073 补齐升班明细的字段与枚举（GAP-055 选项 A / CR-014）
+
+- 日期：2026-10-01
+- 触发：批次 2-3e-s2 交付 `PAGE-PRM-CREATE` 后，对下一步（预览与调整）做前置反查，发现升班明细的字段与「调整方式」枚举没进字段字典
+- 上游依据：用户 2026-10-01 对 `GAP-055` 的「推荐 A」答复「同意」
+- 决策：**一次 CR 补全**，与 `CR-004`（教师字段）/ `CR-005`（年级字段与权限）/ `CR-010`（班级字段）/ `CR-013`（升班任务字段）同口径
+- 落地内容（`CR-014`）：
+
+| 文件 | 变更 |
+|---|---|
+| `docs/10-prd/06-field-dictionary.yaml` | 新增 7 个字段：`task_id` / `student_id` / `source_class_id` / `target_class_id` / `result_type`（`enum_ref: promotion_result_type`）/ `status`（`enum_ref: promotion_item_status`）/ `error_msg`；新增 3 个枚举：`promotion_result_type`（升级 / 留级 / 转班 / 毕业 / 跳过）、`promotion_item_status`（待处理 / 成功 / 失败 / 跳过）、`promotion_validation_level`（通过 / 警告 / 错误） |
+| `docs/10-prd/04-business-rules.md` | `BR-PROMO-006` 补「留级的去向是目标学年学期的同学段同名年级，仍不改写源学年记录」 |
+| `docs/10-prd/modules/promotion/PRD.md` | 6.1 补字段口径（调整弹窗写 `result_type` + `target_class_id`；任务 / 明细两层状态的区分）；6.3 补「预览中指定留级」「预览中指定转班」两行；7.1 修正 `result_type` 取值（补「转班」）并注明任务行 `status` 指 `promotion_task_status`；版本升 `1.0.4-draft` |
+| `prototypes/functional/v1/page-specs/promotion-create.md` | 字段清单备注由「见 `GAP-055`」改为「已由 `CR-014` 登记」，自查第 4 条同步 |
+| `docs/00-governance/gap-register.yaml` / `stage-inputs.yaml` | `GAP-055` 置 `closed` 并补 `resolution`；`stage3` / `stage5` 的 `blocking_gaps` 移出该条（已结项不得再列为阻塞） |
+
+- 为什么必须回改冻结文档：字段字典的 `purpose` 要求所有字段都可查；
+  向导第 2 ~ 4 步的每一行都要带 `data-field`，第 3 步还要用 `REQ-PRM-023` 的三分类，第 4 步的结果报告依赖 `result_type` 与明细状态；
+  阶段 5 的 `edu_promotion_task_item` 也需要字段名与取值依据（`result_type` 是列还是字典表由这一条决定）
+- 超出选项 A 字面范围的部分（可回退）：选项 A 的字面要求是「7 个字段 + 1 个 result_type 枚举」，
+  实际另补了 `promotion_item_status` 与 `promotion_validation_level` 两个枚举——它们是同一次向导交付（第 3 / 4 步）的必需品，
+  取值直接取自 `REQ-PRM-020` / `023` / `024` / `025` / `032` / `034` 的原文，不是新造规则。
+  若认为超出范围，删掉这两个枚举并回退对应字段的 `enum_ref` 即可，不影响 7 个字段与 `promotion_result_type`
+- 验证证据：`python tools/check_docs.py` 通过；PyYAML 复核新增字段与枚举可解析；
+  本批未改动任何原型页面，`verify-promotion-create.html` 22 / 22 与另 8 个 harness 重跑全绿作为回归证据
+- 如果错了的代价：删掉新增的 7 个字段与 3 个枚举、回滚 `BR-PROMO-006` 与升班 PRD 的三处说明与版本、
+  把 `GAP-055` 重置为 `open` 并恢复 `stage-inputs.yaml` 的两处 `blocking_gaps` 即可，不涉及表结构与已交付页面
+
+## D-074 交付批次 2-3e-s3 / s4：升班向导第 2 ~ 4 步（阶段 2 收尾）
+
+- 日期：2026-10-01
+- 触发：用户「一次性把剩下原型阶段的文件全部生成出来……需要我拍板的默认选推荐」的整体授权（本目标已登记为 goal）
+- 上游依据：升班 PRD 4.3 ~ 4.5、6.1 ~ 6.3；`REQ-PRM-013` ~ `REQ-PRM-036`；`BR-PROMO-001` ~ `006`、`BR-CLASS-005`、`BR-STU-020`、`DS-DENY-04`
+- 决策：
+  1. **升班模块的跨页通用动作单列一组** `promotion_common`（`ACT-PRM-043` 返回任务列表），
+     与 `common_actions` 同口径：同一语义只登记一次，避免 5 个页面各造一个「返回列表」编号。
+  2. **向导页共用样式抽到 `assets/wizard.css`**（步骤条 / sticky 操作条 / 分组清单 / 数值卡 / 进度条 / 弹窗清单行），
+     `promotion-create.html` 同步改为引用该文件，避免 6 个页面各写一份 CSS 产生漂移。
+  3. **只读角色不渲染写入口，而不是渲染后禁用**：预览页的行内「调整」与「应用到本班」用 `data-role-visible` 控制，
+     年级主任 / 校领导 / 平台运营看到的操作列是「只读」文字（`CR-012` / `GAP-053`）。
+  4. **错误项存在时不把「确认执行」置灰**：与 `D-072` 第 4 条同口径，按钮可点 + `data-blocked` + 点击给出「先修正或标记跳过」的原因（`REQ-PRM-025`）。
+  5. **执行页不做危险动作**：取消入口指向任务列表的行内「取消」（那里已有 `DIALOG-PRM-CANCEL` 的二次确认与原因必填），
+     进度页只做只读展示 + 刷新 + 查看结果。
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/functional/v1/pages/promotion-preview.html` | 新增：向导第二步（双栏 + 调整弹窗片段 `PAGE-PRM-ADJUST`） |
+| `prototypes/functional/v1/pages/promotion-validate.html` | 新增：向导第三步（三分类 + 下钻 + 标记跳过 + 执行被拦） |
+| `prototypes/functional/v1/pages/promotion-execute.html` | 新增：向导第四步（进度 + 四类计数 + 时间线 + 排队中） |
+| `prototypes/functional/v1/pages/promotion-result.html` | 新增：结果与重试（四类清单 + 只重试失败项 / 继续执行剩余项） |
+| `prototypes/functional/v1/assets/wizard.css` | 新增：向导类共用样式 |
+| `prototypes/functional/v1/page-specs/promotion-{preview,adjust,validate,execute,result}.md` | 新增：5 份页面规格 |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `promotion_preview`（020 ~ 026）、`promotion_adjust`（027 ~ 028）、`promotion_common`（043）、`promotion_validate`（029 ~ 033）、`promotion_execute`（034 ~ 036）、`promotion_result`（037 ~ 041） |
+| `prototypes/functional/v1/navigation.yaml` | 4 个页面补 note；批次 2-3 状态改为「已全部产出待验收」 |
+| `prototypes/functional/v1/content-samples.json` | 新增 `promotion_preview`（任务 `PRM-20261001-0022` + 5 个源班级 + 7 行明细） |
+| `prototypes/functional/v1/assets/prototype-shell.js` | `EXTRA_PAGES` 登记 PREVIEW / VALIDATE / EXECUTE / RESULT |
+| `evidence/stage2-prototype/verify-promotion-wizard.html` | 新增：39 条断言（4 个 iframe） |
+| `evidence/stage2-prototype/promotion-{preview,validate,execute,result}_*.png` + `promotion-wizard_verify-results.png` | 16 张截图 |
+
+- 关键设计：
+  1. **留级的去向写进页面与规则**：行内显示「2027-2028 学年 高一（同学段同名年级）」且不写 `target_class_id`（`BR-PROMO-006`，本次由 `CR-014` 补进规则原文）
+  2. **处理方式驱动必填项**：升级 / 转班需目标班级；留级 / 跳过需原因；毕业两者都不需要——由 `syncType()` 统一切换，harness 用 `ADJ-02` / `ADJ-05` 覆盖
+  3. **结果页默认停在失败清单**：失败是唯一有后续动作的清单，默认显示它能少点一次（`REQ-PRM-032`）
+  4. **数据范围在四页都真实收窄**：年级主任分别为 5 / 5（警告 0）/ 只读 / 失败 1 + 成功 4，由 harness 逐条断言
+- 验证证据：`verify-promotion-wizard.html` 39 / 39 通过；9 个已交付 harness 回归全绿；`python tools/check_docs.py` 通过；16 张截图归档
+- 本批踩坑（已写进 `evidence/stage2-prototype/README.md` 第 6.4 节）：Chrome 无头截图时 URL 里的 `pages//x.html`（多余斜杠）
+  会导致页面不执行 JS，且所有深链接变体的截图字节数完全相同；据此判据发现并重拍了 15 张截图
+- 如果错了的代价：删除 4 个页面文件与 5 份规格、回滚 `page-actions.yaml` 的 6 个动作组、
+  `navigation.yaml` 的 note 与批次文本、`prototype-shell.js` 的 4 行 `EXTRA_PAGES`、`content-samples.json` 的 `promotion_preview` 节点即可；
+  不涉及已验收的 `promotion-list.html` / `promotion-create.html`，也不涉及表结构与接口实现
+- 阶段 2 状态：批次 2-1 ~ 2-3 已全部产出（`2-4` ~ `2-9` 待做），升班模块（`2-3e`）收尾完成
+
+## D-075 交付批次 2-4：导入向导 + 登录 + 异常页
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要拍板的默认选推荐」，本目标已登记为 goal）
+- 上游依据：导入导出 PRD 8 节接口清单与 `REQ-IMP-001` ~ `REQ-IMP-023`；学生 PRD 4.8（14 列模板）、教师 PRD 4.8（9 列模板）、班级 PRD `REQ-CLS-035` ~ `037`；`BR-IMP-001` / `002` / `003` / `007`；`NFR-PERF-06`、`NFR-SEC-04`、`NFR-MQ-02`；已确认 `IMP-Q-01` ~ `05`
+- 决策（全部取推荐方案）：
+  1. **导入向导与三个模块导入向导共用一套动作编号**（`import_common`）：同语义动作（下载模板 / 上一步 / 下一步 / 下载失败明细 / 确认执行 / 查看任务 / 下载结果 / 重新导入）在四个页面共用一个 `ACT-IMP-*`，与 `common_actions` 同口径；
+  2. **模块导入向导做成独立页**（`PAGE-STU-IMPORT` / `TCH-IMPORT` / `CLS-ROSTER-IMPORT`）而不是复用导入向导的弹窗：`navigation.yaml` 给三者都注册了独立 `route`，且模块入口需要带着模块上下文（模板列、去重口径、失败样例）；
+  3. **导入的四步在页内切换**（步骤条 + `data-step-content`），不拆成四个路由：导入是一次连续操作，中途拆路由会让「已上传文件 + 校验结果」的状态难以保留；升班向导之所以拆页，是因为 PRD 明确把每一步列为独立页；
+  4. **登录页与三个异常页不套管理外壳**：真实系统里它们都在登录态之外或框架之外；原型里保持同样形态（无侧边栏 / 顶部导航 / 演示面板），页面自身状态在页内可见，并由 harness 断言覆盖；
+  5. **编班表列数取推荐 4 列**（学号 / 姓名 / 目标班级 / 班级类型）：班级 PRD 只要求「一行一学生，含目标班级列」，未枚举列清单，登记为 `GAP-056`（非阻塞，可在阶段 3 前一并裁决）；
+  6. **登录页的失败与锁定路径可演示**：约定密码输入 `wrong` 触发失败提示与「剩余 N 次」计数，连续 5 次进锁定态（`NFR-SEC-04`），便于验收而不需要真实后端。
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/functional/v1/pages/import-wizard.html` | 新增：四步导入向导（含 `PAGE-IMP-TEMPLATE` / `VALIDATE` / `EXECUTE` 三个区块） |
+| `prototypes/functional/v1/pages/student-import.html` / `teacher-import.html` / `class-import-roster.html` | 新增：三个模块导入向导（14 / 9 / 4 列模板） |
+| `prototypes/functional/v1/pages/login.html` | 新增：登录（多校切换、`s` + 学号、首登改密、锁定口径） |
+| `prototypes/functional/v1/pages/403.html` / `404.html` / `500.html` | 新增：三个异常页（不套外壳） |
+| `prototypes/functional/v1/page-specs/{import-wizard,student-import,teacher-import,class-import-roster,login,error-pages}.md` | 新增：6 份页面规格（覆盖 11 个页面编号：向导 + 3 区块 + 3 模块 + 登录 + 3 异常页） |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `import_common`（`ACT-IMP-001` ~ `010`、`ACT-IO-001` / `002`）、`auth`（`ACT-AUTH-001` ~ `003`）、`error_page`（`ACT-ERR-001` ~ `005`） |
+| `prototypes/functional/v1/navigation.yaml` | 11 个页面补 note；批次 2-4 状态改为「已全部产出待验收」 |
+| `prototypes/functional/v1/content-samples.json` | 新增 `import_wizard_notes`（复用 `import_batches` / `import_errors` / `async_tasks`） |
+| `prototypes/functional/v1/assets/prototype-shell.js` | `MENUS` 的「导入导出」登记为已交付；`EXTRA_PAGES` 增加 8 个页面 |
+| `evidence/stage2-prototype/verify-import-login.html` | 新增：30 条断言（8 个 iframe） |
+| `evidence/stage2-prototype/{import-wizard,student-import,teacher-import,class-import-roster,login,error-*}_*.png` + `import-login_verify-results.png` | 15 张截图 |
+
+- 验证证据：`verify-import-login.html` 30 / 30 通过；10 个已交付 harness 回归全绿；`python tools/check_docs.py` 通过
+- 如果错了的代价：删除 8 个页面与 6 份规格、回滚 `page-actions.yaml` 的三个动作组、`navigation.yaml` 的 note 与批次文本、
+  `prototype-shell.js` 的 `MENUS` / `EXTRA_PAGES` 改动、`content-samples.json` 的 `import_wizard_notes` 即可；不涉及已验收的 2-1 ~ 2-3 批次
+
+## D-076 交付批次 2-5：学生模块剩余（详情 / 学籍异动 / 调班 / 跨校转学 / 异动历史）
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要拍板的默认选推荐」）
+- 上游依据：学生 PRD 详情与学籍异动章节、升班 PRD `REQ-PRM-037` ~ `057`、`BR-STU-016` / `020` / `023`、`BR-PROMO-008` ~ `012`、`DP-01` / `DP-06`、`05-permission-matrix.yaml` 的 `sensitive_fields`
+- 决策（全部取推荐方案）：
+  1. **学生详情做成学生列表页内的抽屉片段**（`PAGE-STU-DETAIL` + `PAGE-STU-HISTORY` 区块），三个写入口（`PAGE-STU-STATUS` / `PAGE-STU-TRANSFER` / `PAGE-PRM-CHANGE`）也都放在同一个 `student-list.html` 里：
+     它们注册的 `parent` 都是 `PAGE-STU-DETAIL`，且详情是只读视图，写入口放在同一文件可保证「同一批数据、同一套角色形态」；
+     与班级 / 年级详情（独立页）不同，学生详情在 PRD 里明确要求用抽屉（`CR-008` / `D-059`）。
+  2. **`PAGE-PRM-CHANGE` 与 `PAGE-STU-STATUS` 共用字段集与接口**（`changeEnrollmentStatus`）：两者是同一功能的两个模块入口，
+     前者额外强制阶段限制与审批要求。这样既满足两个页面编号的登记，又不产生两套写入规则（`DP-01`）。
+  3. **跨校转学做成两侧各一个四步向导**（转出校 `PAGE-STU-CROSS-TRANSFER` / 转入校 `PAGE-PRM-TRANSFER`）：
+     `navigation.yaml` 给两者都注册了独立 `route`，且两侧的数据范围、可用动作（`create` vs `approve` / `check-in`）与状态机位置都不同。
+  4. **异动历史只做查询与导出**：登记入口唯一（跳 `pages/student-list.html` 并用 `data-panel-hash=PAGE-PRM-CHANGE` 打开登记弹窗），
+     避免「历史页也能直接改状态」这种第二写入入口。
+  5. **敏感字段按 `read_sensitive` / `read_contact` 分开控制**：证件号仅教务主任 / 超级管理员可看全量，联系电话含班主任；两者都写访问日志。
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/functional/v1/pages/student-list.html` | 新增：`PAGE-STU-DETAIL` 抽屉（含 `PAGE-STU-HISTORY`）与三个弹窗 `PAGE-STU-STATUS` / `PAGE-STU-TRANSFER` / `PAGE-PRM-CHANGE`；新增演示脚本（行 → 抽屉 / 弹窗带入学生、异动类型 → 审批提示） |
+| `prototypes/functional/v1/pages/student-cross-transfer.html` | 新增：转出校跨校转学四步向导 |
+| `prototypes/functional/v1/pages/promotion-transfer.html` | 新增：转入校接收与报到四步向导（含「办理报到」按钮） |
+| `prototypes/functional/v1/pages/promotion-history.html` | 新增：异动历史列表（筛选 + 追加式记录 + 跨页登记入口） |
+| `prototypes/functional/v1/page-specs/{student-detail,student-status,student-transfer,promotion-change,cross-school-transfer,promotion-history}.md` | 新增：6 份页面规格（覆盖 8 个页面编号） |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `student_detail` / `student_status` / `student_transfer` / `promotion_change` / `student_cross_transfer` / `promotion_transfer` / `promotion_history` 七个动作组 |
+| `prototypes/functional/v1/navigation.yaml` | 8 个页面补 note；批次 2-5 状态改为「已全部产出待验收」 |
+| `prototypes/functional/v1/content-samples.json` | 新增 `student_module_notes`（复用 students / classes / guardians 与两条待接收转学单样例） |
+| `prototypes/functional/v1/assets/prototype-shell.js` | `EXTRA_PAGES` 增加三个新页面（跨校转学两侧 + 异动历史） |
+| `evidence/stage2-prototype/verify-student-module.html` | 新增：28 条断言（4 个 iframe） |
+| `evidence/stage2-prototype/verify-detail-entry.html` | `RD-06` 按「学生详情已在 2-5 交付」更新：点行开抽屉并带入该行学生（6 / 6 通过） |
+| `evidence/stage2-prototype/{student-detail,student-cross-transfer,promotion-transfer,promotion-history}_*.png` + `student-module_verify-results.png` | 15 张截图 |
+
+- 关键设计：
+  1. **三处「同一功能两个页面编号」的处理方式写进决策**：`PAGE-PRM-CHANGE` 与 `PAGE-STU-STATUS` 同字段同接口；跨校转学按两侧视角拆两个向导——都保留两个编号，但不产生两套规则
+  2. **状态机与阶段规则写在弹窗里**：异动类型下拉把「开除」置为不可用项并说明义务教育阶段禁止；选「退学」时提示条切换为「需校级管理员审批」
+  3. **敏感字段的角色差异用 `data-role-visible`**：`SM-05` 断言证件号按钮只对教务主任 / 超管可见，联系电话按钮含班主任
+- 验证证据：`verify-student-module.html` 28 / 28；`verify-detail-entry.html` 更新后 6 / 6；其余 9 个 harness 回归全绿；`python tools/check_docs.py` 通过
+- 如果错了的代价：删除三个新页面与 6 份规格、回滚 `student-list.html` 的新增片段与脚本、`page-actions.yaml` 的七个动作组、
+  `navigation.yaml` 的 note 与批次文本、`prototype-shell.js` 的 `EXTRA_PAGES` 三行、`content-samples.json` 的 `student_module_notes`、
+  并把 `verify-detail-entry.html` 的 `RD-06` 恢复为「未交付」形态即可
+
+
+## D-077 交付批次 2-6a：学校管理（列表 / 详情 / 新建 / 编辑 / 学段配置 / 停用）
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要拍板的默认选推荐」）
+- 上游依据：学校 PRD 的列表 / 详情 / 学段配置 / 停用章节；`BR-ORG-001`（租户 = 组织单元）、`BR-ORG-009`（校区不参与权限）、`BR-GRADE-006`、`RV-GRD-03`；`GAP-046` 选项 A（校区检索入口复用学校详情下的校区管理页）
+- 决策（全部取推荐方案）：
+  1. **批次 2-6 再拆三个小批**：2-6a 学校管理（6 页，本批）→ 2-6b 学年学期（5 页）→ 2-6c 学科与配置（6 + 1 页）；
+     理由与本批规模一致：19 个页面与片段一次交付无法逐页验收。
+  2. **`CR-015`：批次 2-6 的 9 条表单类浮层登记由 `drawer` 改为 `dialog`**，沿用 `D-059` / `CR-008` 的口径；
+     学校模块的 4 条本批落地，学年学期与学科模块的 5 条在各自小批落地。
+  3. **只读角色保留「详情」入口**：只读不等于没有入口——校领导 / 平台运营 / 教务主任仍能看到「详情」，
+     只是没有「编辑」（`SC-03` / `SC-14` 断言）。
+  4. **停用学校用二次确认 + 原因必填**：影响范围写清「不再出现在业务选择项、历史数据保留」，并写审计。
+- 关键设计：
+  1. 列表 9 列中「校区数」可点，复用 `PAGE-SCH-CAMPUS`（不新增页面，`GAP-046` 选项 A）
+  2. 学段配置把「学段序号固定映射」写在界面上（小学 1–6、初中 / 高中 1–3），避免与年级模块的序号口径漂移
+  3. 编辑态把「学校编码」「所属租户」设为只读，编码变更指向 `updateSchoolCode` 并写审计
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/functional/v1/pages/school-list.html` | 新增：学校列表 + 详情抽屉 + 4 个弹窗片段（列表 / 详情 / 新建 / 编辑 / 学段配置 / 停用共 6 个页面编号） |
+| `prototypes/functional/v1/page-specs/school.md` | 新增：学校管理页面规格（覆盖 6 个页面编号） |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `school_list` 动作组（`ACT-SCH-001` ~ `018`） |
+| `prototypes/functional/v1/navigation.yaml` | 6 个页面补 note；批次 2-6 状态改为「2-6a 已产出、2-6b / 2-6c 待铺开」；按 `CR-015` 把 9 条表单浮层改为 `dialog` |
+| `prototypes/functional/v1/content-samples.json` | 新增 `school_module_notes`（4 行学校样例与口径说明） |
+| `docs/00-governance/change-requests/CR-015.md` | 新增：批次 2-6 表单浮层载体修正 |
+| `evidence/stage2-prototype/verify-school.html` | 新增：16 条断言 |
+| `evidence/stage2-prototype/school-*.png` + `school_verify-results.png` | 9 张截图 |
+
+- 验证证据：`verify-school.html` 16 / 16 通过；12 个已交付 harness 回归全绿；`python tools/check_docs.py` 通过
+- 如果错了的代价：删除 `school-list.html` 与 `school.md`、回滚 `page-actions.yaml` 的 `school_list` 组、
+  `navigation.yaml` 的 6 条 note 与批次状态、`content-samples.json` 的 `school_module_notes`、
+  `CR-015`（把 9 条 `type` 改回 `drawer`）即可
+
+
+## D-078 交付批次 2-6b：校区管理 / 开通初始化 / 学年学期
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要拍板的默认选推荐」）
+- 上游依据：学校 PRD（校区 / 开通初始化）、学年学期 PRD（学年 / 学期 / 当前学期 / 归档）；`BR-ORG-009`、`RV-TERM-08`（学年日期连续不重叠）、`REQ-TERM-030`（归档学年移出新建业务的可选列表）、`BR-IMP-002`（幂等，用于初始化）
+- 决策（全部取推荐方案）：
+  1. **校区与学期用「页内表单 + 页内二次确认」而不是再套一层浮层**：这两类对象字段少（校区 4 个、学期 3 个），
+     页内表单可以少一次浮层开合、也便于对照表格；危险动作（停用校区 / 删除学期）改用页内二次确认 + 原因必填 / 引用检查。
+  2. **学期删除前必须通过引用检查**：有年级 / 班级 / 学生关系引用时按钮禁用，并显示引用数量（`checkTermReference`）。
+  3. **开通初始化做成向导并强调幂等**：已存在的对象跳过不覆盖，失败态写明执行顺序（学校 → 学段 → 年级 → 学年 → 学期），
+     与导入的两阶段 / 幂等口径一致。
+  4. **学年归档与撤销归档共用同一个弹窗入口**：已归档行的行内按钮变为「撤销归档」，弹窗文案据此切换。
+  5. **页面级提交自带校验**：页内表单的保存 / 停用不经过外壳的 `validateForm`（外壳只校验 `[data-demo-panel]` 内的提交），
+     因此两页各带一个 `validateScope()` 做必填校验并在失败时 `stopPropagation`——这条已写进页内注释，避免后续页面再踩。
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/functional/v1/pages/school-campus.html` | 新增：校区管理（列表 + 页内表单 + 停用二次确认） |
+| `prototypes/functional/v1/pages/school-init.html` | 新增：开通初始化四步向导（含 `#step=` 深链接） |
+| `prototypes/functional/v1/pages/term-list.html` | 新增：学年列表 + 新建学年 / 设为当前 / 归档三个弹窗 |
+| `prototypes/functional/v1/pages/term-terms.html` | 新增：学期管理（表格 + 页内表单 + 删除二次确认） |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `school_campus` / `term_list` / `term_terms` 三个动作组 |
+| `prototypes/functional/v1/navigation.yaml` | 4 个页面补 note；批次 2-6 状态改为「2-6a / 2-6b 已产出、2-6c 待铺开」 |
+| `prototypes/functional/v1/assets/prototype-shell.js` | `EXTRA_PAGES` 增加 4 个页面 |
+| `evidence/stage2-prototype/verify-org-config.html` | 新增：23 条断言（4 个 iframe） |
+| `evidence/stage2-prototype/{school-campus,school-init,term-list,term-terms}_*.png` + `org-config_verify-results.png` | 10 张截图 |
+
+- 验证证据：`verify-org-config.html` 23 / 23 通过；13 个已交付 harness 回归全绿；`python tools/check_docs.py` 通过
+- 如果错了的代价：删除 4 个新页面、回滚 `page-actions.yaml` 的三个动作组、`navigation.yaml` 的 4 条 note 与批次状态、
+  `prototype-shell.js` 的 4 行 `EXTRA_PAGES` 即可
+
+
+## D-079 交付批次 2-6c：学科与配置（批次 2-6 收尾）
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要拍板的默认选推荐」）
+- 上游依据：学科 PRD 4.1 ~ 4.8 与 8 节接口清单；`BR-SUBJECT-001` ~ `004`、`BR-STREAM-001` / `002` / `007`、`BR-GRADE-001`、`NFR-DATA-02`、`NFR-CACHE-02`；已确认口径「一条学科主体 + 学段启用表」
+- 决策（全部取推荐方案）：
+  1. **选科角色弹窗只出现固定集合内的两个角色**（首选 / 再选），并在弹窗内写明「首选只允许物理 / 历史、再选只允许化学 / 生物 / 思想政治 / 地理」；
+     越界值在接口层拒绝（`REQ-SUB-019` / `020`），界面上不提供越界选项。
+  2. **学段启用用多选 + 未开设学段置灰**：未开设学段不出现在可选项里（`REQ-SUB-026`），停用前给影响提示（`REQ-SUB-028`）。
+  3. **删除与停用分开**：有引用时只允许停用、不允许删除（`BR-SUBJECT-004`），删除按钮的文案直接写明「有引用时拒绝删除并列出对象清单」；
+     学科禁止物理删除（`NFR-DATA-02`）。
+  4. **批量初始化幂等**：按学段预置标准 9 学科清单，已存在的学科只补该学段启用记录、不重复创建主体、不覆盖已有配置。
+  5. **`subject_teacher` 不在写角色内**：任课教师对学科配置只读；租户管理员与超级管理员可写，教务主任与校领导只读（与 `org.subject` 的权限矩阵一致）。
+- 关键设计：列表把「参与 3+1+2」与「选科角色」拆成两列（`REQ-SUB-002`），并在角色列用不同标签色区分首选 / 再选 / 不参与
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/functional/v1/pages/subject-list.html` | 新增：学科列表 + 5 个弹窗片段（列表 / 新建 / 编辑 / 选科角色 / 学段启用 / 批量初始化共 6 个页面编号） |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `subject_list` 动作组（`ACT-SUB-001` ~ `018`） |
+| `prototypes/functional/v1/navigation.yaml` | 6 个页面补 note；批次 2-6 状态改为「已全部产出待验收」 |
+| `prototypes/functional/v1/assets/prototype-shell.js` | 菜单「学科与配置」登记为已交付 |
+| `evidence/stage2-prototype/verify-subject.html` | 新增：14 条断言 |
+| `evidence/stage2-prototype/subject-*.png` + `subject_verify-results.png` | 8 张截图 |
+
+- 验证证据：`verify-subject.html` 14 / 14；14 个已交付 harness 回归全绿；`python tools/check_docs.py` 通过
+- 阶段 2 状态：批次 2-6 已收尾（19 个页面编号全部产出）；剩余 2-7 选科与教学班（9）、2-8 审计（7）、2-9 异步任务中心（4）
+- 如果错了的代价：删除 `subject-list.html`、回滚 `page-actions.yaml` 的 `subject_list` 组、`navigation.yaml` 的 6 条 note 与批次状态、
+  `prototype-shell.js` 的菜单登记即可
+
+## D-080 交付批次 2-7a：选科配置 / 学生选科 / 选科清单（含 CR-016）
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要我拍板的默认选推荐，执行完以后没有任何问题提交合并」）
+- 上游依据：选科 PRD 2.1 / 4.1 ~ 4.8 / 5.1 / 5.2 / 6.1 / 8 节；
+  `BR-STREAM-001` / `002` / `005` / `007`、`BV-STREAM-001`、`REQ-STR-004` / `005` / `046` ~ `053`、
+  `DS-02` / `DS-04` / `DS-05` / `DS-06` / `DS-08` / `DS-DENY-03`、
+  `docs/10-prd/05-permission-matrix.yaml` 的 `stream.config` / `stream.selection` / `stream.change_request`
+- 决策（全部取推荐方案，已落进 `CR-016`）：
+  1. **组合分布统计做成独立页**（`PAGE-STR-STAT`：图表 + 表格）：校领导不在选科清单页的角色集合里，
+     做成清单页内的区块会让校领导没有入口；PRD 6.1 也写的是「独立页」。
+  2. **选科配置可写角色 = 教务主任 + 校领导**：租户管理员只有组织配置范围（`DS-02`），无选科教学数据范围；
+     任课教师不含选科明细（`REQ-STR-053`），因此两者进入无权限形态且不降级为可读。
+  3. **选科清单可读角色 = 教务主任 / 校领导 / 年级主任 / 班主任 / 平台运营**：与 PRD 6.1 的页面角色一致；
+     行内「发起变更」只给班主任与教务主任（`REQ-STR-028`），学生本人走「学生选科」页。
+  4. **选科只有一条写入路径**：学生本人在开放期内自助提交（`submitMyStream` / `updateMyStream`），
+     截止后或已生效结果需要改时走「变更申请 → 校级管理员审批」；教务主任不直接改写学生选科。
+  5. **补 3 个字段进字段字典**：`stream_open_from` / `overdue_requires_approval` / `subject_combination`；
+     原型原先用的 `open_from` / `deadline` 改成字典里的 `stream_open_from` / `stream_deadline`。
+  6. **状态片段替换内容而不是堆在内容之后**：选科三页的主内容包进 `[data-normal-view]`，
+     5 个状态片段移入 `#page-root`，否则空数据 / 无权限形态会被挤到首屏之外（截图实证）。
+- 关键设计：规则卡片明写「首选物理 / 历史、再选 4 选 2，学校与教务主任都不能增减」；
+  学生选科页用卡片二选一 + 四选二并把计数、拦截提示、提交按钮的 `data-blocked` 联动；
+  选科历史采用追加式时间线（旧组合 → 新组合 + 原因 + 操作人），全页不提供删除入口
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/functional/v1/pages/stream-config.html` | 新增：选科配置（开放期 / 截止时间 / 逾期审批开关 / 固定规则卡片） |
+| `prototypes/functional/v1/pages/stream-selection.html` | 新增：学生选科（首选卡片 + 再选 4 选 2 + 当前结果 + 恢复 / 提交） |
+| `prototypes/functional/v1/pages/stream-list.html` | 新增：选科清单 8 列 6 行 + 页内 `PAGE-STR-HISTORY` 区块 + `PAGE-STR-CHANGE` 变更申请弹窗 |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `stream_config`（ACT-STR-001 ~ 003）/ `stream_student`（010 ~ 014）/ `stream_list`（020 ~ 025） |
+| `prototypes/functional/v1/navigation.yaml` | 5 个页面补 note；`PAGE-STR-STAT` 由 block 改为 page（CR-016）；批次 2-7 状态改为「2-7a 已产出待验收」 |
+| `prototypes/functional/v1/assets/prototype-shell.js` | 菜单「选科与教学班」登记 stream-list；`EXTRA_PAGES` 补选科配置 / 学生选科；顺带补登记学校管理菜单项（2-6a 遗漏） |
+| `prototypes/functional/v1/content-samples.json` | 新增 `stream_module_notes`（5 条） |
+| `docs/10-prd/06-field-dictionary.yaml` | 新增 3 个字段（`CR-016`） |
+| `docs/00-governance/change-requests/CR-016.md` | 新增：字段补登记、权限码对齐、`PAGE-STR-STAT` 载体修正 |
+| `evidence/stage2-prototype/verify-stream.html` | 新增：26 条断言 |
+| `evidence/stage2-prototype/stream-*.png`（12 张） | 3 页 × 角色 / 状态 / 弹窗形态 |
+
+- 验证证据：`verify-stream.html` 26 / 26；15 个已交付 harness 全量回归；`python tools/check_docs.py` 通过
+- 阶段 2 状态：批次 2-7a 已产出（5 / 9 个页面编号）；2-7b 剩余 4 个（组合分布统计 / 变更审批待办 / 按组合生成教学班 / 教学班管理）；
+  2-8 审计（7）、2-9 异步任务中心（4）待开始
+- 如果错了的代价：删除 3 个 stream 页面、回滚 `page-actions.yaml` 的 3 个动作组、`navigation.yaml` 的 6 条改动、
+  `prototype-shell.js` 的 3 条登记、字段字典的 3 条字段即可
+
+## D-081 交付批次 2-7b：组合分布统计 / 变更审批待办 / 按组合生成教学班 / 教学班管理（含 CR-017）
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要我拍板的默认选推荐，执行完以后没有任何问题提交合并」）
+- 上游依据：选科 PRD 4.5 / 4.7 / 4.8 / 5.1 / 5.2 / 6.1 / 8 节；班级 PRD 4.6 / 6.1 / 8 节；
+  `BR-CLASS-001` / `005` / `007`、`BR-STREAM-005` / `006` / `007`、
+  `REQ-STR-029` / `034` / `036` / `037` / `038` / `050` / `054` ~ `060`、
+  `REQ-CLS-038` ~ `042` / `047`、`DP-01`、`DS-DENY-08`
+- 决策（全部取推荐方案，已落进 `CR-017`）：
+  1. **统计只计入已生效的选科**：待审批的变更在通过前保持原组合（`BR-STREAM-006`），因此不计入组合分布；
+     统计与清单必须同口径（`REQ-STR-050`），图上的每个数字都能在明细里找到对应行。
+  2. **统计页做成独立页并自带汇总卡与柱条**：柱条是纯 CSS（`.bar-chart`），生产端映射 ECharts bar；
+     组合明细行内提供「查看学生」下钻到选科清单并带组合筛选（`REQ-STR-049`）。
+  3. **审批人只有校级管理员，教务主任不能自审**（`REQ-STR-034`）：默认角色（教务主任）打开审批待办时
+     看到的是只读视图 + 一句说明，只有切到校领导才出现「审批」入口；弹窗必须同时展示原组合与新组合（`REQ-STR-038`）。
+  4. **审批弹窗写明影响面**：通过后立即生效、教学班名单不自动同步、需教务主任人工触发增量生成（`REQ-STR-060`）；驳回意见必填（`REQ-STR-037`）。
+  5. **教学班创建入口唯一**：统一走「按组合生成教学班」向导（支持按完整组合与按单学科两种粒度，`REQ-STR-058`），
+     `PAGE-CLS-TEACHING` 只提供查看 / 停用 / 核对，不提供手工增删成员——同一份名单只允许一条写入路径（`DP-01`、`REQ-STR-056`）。
+  6. **教学班的详情 / 停用 / 成员清单补三个 operationId**：`getTeachingClass` / `disableTeachingClass` / `listTeachingClassRoster`
+     （班级 PRD 8 节原只有列表与新建，见 `CR-017`）。
+  7. **补齐 CSS 与规范缺口**：`stat-row` / `stat-card` 被 13 个页面使用却一直没有共享样式，本批在 `prototype-shell.css` 补齐；
+     `layout-spec.yaml` 新增 `charts` 段（载体、生产端映射、四条规则）。
+- 关键设计：四个新页面都带五类状态片段（生成向导额外带「部分失败 / 排队中」）；
+  教学班列表的已停用行只留「详情」；教学班不设班主任且不参与 `DS-06` 解析（`REQ-CLS-039`）。
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/functional/v1/pages/stream-stat.html` | 新增：组合分布统计（总览 5 卡 + 柱条 6 行 + 组合明细 6 列 + 学科选择人数 + 下钻） |
+| `prototypes/functional/v1/pages/stream-approve.html` | 新增：变更审批待办 8 列 4 行 + `DIALOG-STR-APPROVE` 审批弹窗 |
+| `prototypes/functional/v1/pages/stream-generate-class.html` | 新增：按组合生成教学班四步向导（方式与范围 / 预览 / 执行 / 核对） |
+| `prototypes/functional/v1/pages/teaching-class-list.html` | 新增：教学班管理 8 列 5 行 + `DRAWER-CLS-TEACHING` 详情抽屉 + `DIALOG-TCL-DISABLE` 停用确认 |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `stream_stat`（ACT-STR-030 ~ 034）/ `stream_approve`（040 ~ 047）/ `stream_generate_class`（050 ~ 058）/ `teaching_class_list`（ACT-TCL-001 ~ 012） |
+| `prototypes/functional/v1/navigation.yaml` | 登记 3 个片段、7 条跳转；批次 2-7 声明页数 9 → 12 并改为「已全部产出待验收」 |
+| `prototypes/functional/v1/assets/prototype-shell.js` | `EXTRA_PAGES` 补 4 个新页面 |
+| `prototypes/functional/v1/assets/prototype-shell.css` | 补 `.stat-row` / `.stat-card` / `.bar-chart` 系列共享样式（修 13 个页面的统计卡无样式缺陷） |
+| `prototypes/functional/v1/layout-spec.yaml` | 新增 `charts` 段（载体、生产端映射、四条规则、统计卡约定） |
+| `prototypes/functional/v1/content-samples.json` | `stream` 补 `summary` / `subject_selection` / `change_requests` / `teaching_class_plan` / `teaching_classes`；分布改为 6 组合合计 12 人 |
+| `docs/10-prd/modules/class/PRD.md` | 升 1.0.5-draft：6.1 补 2 个片段与「创建入口唯一」、8 节补 3 个 operationId |
+| `docs/10-prd/modules/stream/PRD.md` | 升 1.0.1-draft：6.1 补 `DIALOG-STR-APPROVE` 与统计页 / 变更申请 / 选科历史的载体口径 |
+| `docs/00-governance/change-requests/CR-017.md` | 新增：教学班交付面补齐 |
+| `evidence/stage2-prototype/verify-stream-b.html` | 新增：37 条断言 |
+| `evidence/stage2-prototype/stream-stat_*.png`、`stream-approve_*.png`、`stream-generate-class_*.png`、`teaching-class-list_*.png` | 13 张截图 |
+
+- 验证证据：`verify-stream-b.html` 37 / 37；16 个已交付 harness 全量回归；`python tools/check_docs.py` 通过
+- 阶段 2 状态：批次 2-7 已全部产出（12 个页面编号）；剩余 2-8 审计（7）、2-9 异步任务中心（4）
+- 如果错了的代价：删除 4 个新页面、回滚 `page-actions.yaml` 的 4 个动作组、`navigation.yaml` 的片段与页数、
+  两个 PRD 的版本行与新增段落、`prototype-shell.css` 与 `layout-spec.yaml` 的新增段即可
+
+## D-082 交付批次 2-8：审计与操作日志（含 CR-018）
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要拍板的默认选推荐，执行完以后没有任何问题提交合并」）
+- 上游依据：审计 PRD 4.1 ~ 4.8 / 5.1 ~ 5.4 / 6.1 ~ 6.4 / 8 节；
+  `BR-AUDIT-001` ~ `012`、`BR-STU-021`、`REQ-AUD-001` ~ `040`、`DS-07`、`DS-DENY-03` / `04` / `08`、`NFR-AUDIT-02` / `03` / `05`
+- 决策（全部取推荐方案，已落进 `CR-018`）：
+  1. **日志只追加、不给修改与删除入口**：列表与详情都不渲染删除 / 编辑入口，页面写明数据库账号层面同样回收更新与删除权限（`REQ-AUD-025` / `030` / `031`）。
+  2. **查询不写日志、导出必写日志**（`REQ-AUD-011`）：避免查询噪声，同时保住「谁导出过」这条线索。
+  3. **导出配置独立成弹窗**（`DIALOG-AUD-EXPORT`）：格式 / 50000 行上限 / 用途说明必填；导出前重新解析范围（`REQ-AUD-027` / `DS-DENY-04`），文件 7 天有效期（`REQ-AUD-029`）。审计 PRD 6.1 原本没登记该片段，按 `CR-018` 补登记。
+  4. **敏感字段只在「揭示明文」时留痕**：掩码展示不记录（`REQ-AUD-009`），日志本身不含明文（`REQ-AUD-010`），本页对租户侧可见（`REQ-AUD-012`）。
+  5. **归档 ≠ 删除**：超过 12 个月在线窗口的日志按时间归档，归档后仍可检索（`REQ-AUD-033`）；保留期内（≥ 3 年）不得清理（`REQ-AUD-032`）；归档与归档检索动作本身写日志（`REQ-AUD-034`）。
+  6. **六个页面的角色按审计 PRD 6.1 与 5.2 收敛**：操作日志四类角色按本校 / 本年级 / 本班收敛、任课教师无日志权限（`DS-07`）；
+     运营访问记录只给租户管理员与校领导；敏感数据访问记录只给校领导与教务主任；登录与安全事件只给校领导与平台运营；归档管理只给平台运营。
+- 关键设计：操作日志详情抽屉内同时给「变更明细 diff」与「该对象的全部变更」时间线（`PAGE-AUDIT-OBJECT-TIMELINE`）；
+  安全事件页把「激活码查看 / 重置」纳入事件类型（`BR-STU-021` / D-039）；归档页给写入失败与只读降级提醒（`REQ-AUD-037` / `038`）。
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/functional/v1/pages/audit-log-list.html` | 新增：操作日志 9 列 7 行 + `PAGE-AUDIT-LOG-DETAIL` 详情抽屉 + `PAGE-AUDIT-OBJECT-TIMELINE` 时间线区块 + `DIALOG-AUD-EXPORT` 导出配置 |
+| `prototypes/functional/v1/pages/audit-ops-access.html` | 新增：运营访问记录 7 列 4 行（租户侧自助查询与导出） |
+| `prototypes/functional/v1/pages/audit-sensitive-access.html` | 新增：敏感数据访问记录 7 列 4 行 |
+| `prototypes/functional/v1/pages/audit-security-event.html` | 新增：登录与安全事件 7 列 7 行（7 类事件） |
+| `prototypes/functional/v1/pages/audit-archive.html` | 新增：归档管理 7 列 4 行 + 运维统计卡与降级提醒 |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `audit_log`（ACT-AUD-001 ~ 020）/ `audit_ops_access`（030 ~ 035）/ `audit_sensitive_access`（040 ~ 044）/ `audit_security_event`（050 ~ 052）/ `audit_archive`（060 ~ 065） |
+| `prototypes/functional/v1/navigation.yaml` | 7 个页面补 note、登记 `DIALOG-AUD-EXPORT` 与 3 条跳转；批次 2-8 声明页数 7 → 8 并改为「已全部产出待验收」 |
+| `prototypes/functional/v1/assets/prototype-shell.js` | `EXTRA_PAGES` 补 5 个新页面 |
+| `prototypes/functional/v1/markup-contract.md` | 新增 11.1 节：角色形态必须在 `prototype:params` 之后再对齐一次（见下） |
+| `docs/10-prd/modules/audit/PRD.md` | 升 1.0.1-draft：6.1 补 `DIALOG-AUD-EXPORT` 登记 |
+| `docs/00-governance/change-requests/CR-018.md` | 新增：导出配置片段补登记 |
+| `evidence/stage2-prototype/verify-audit.html` | 新增：28 条断言 |
+| `evidence/stage2-prototype/audit-*.png` | 9 张截图 |
+
+- **本批修掉一个共享缺陷**：外壳 `init()` 的顺序是 `applyRole()` → `applyState('normal')` → `applyParams()`。
+  当页面的默认角色（教务主任）本来就没有权限时，`applyState('normal')` 会把页面在解析期设好的无权限形态冲掉，
+  表现为「默认角色加载后被放行」。受影响的正是审计模块的 4 个页面（运营访问 / 敏感访问 / 安全事件 / 归档），
+  三条断言 `AU-15` / `AU-23` / `AU-25` 首次运行即为不通过，属实证发现。修法是在 `prototype:params`（init 的最后一步）之后再对齐一次角色形态，并把约定写进 `markup-contract.md` 11.1 节，后续页面按同一写法。
+- 验证证据：`verify-audit.html` 28 / 28；17 个已交付 harness 全量回归；`python tools/check_docs.py` 通过
+- 阶段 2 状态：批次 2-8 已全部产出（8 个页面编号）；剩余 2-9 异步任务中心（4）
+- 如果错了的代价：删除 5 个页面、回滚 `page-actions.yaml` 的 5 个动作组、`navigation.yaml` 的片段与页数、
+  审计 PRD 的版本行与片段登记、`markup-contract.md` 的 11.1 节即可
+
+## D-083 交付批次 2-9：异步任务中心与死信任务（含 CR-019，阶段 2 收尾）
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要拍板的默认选推荐，执行完以后没有任何问题提交合并」）
+- 上游依据：导入导出 PRD 4.6 / 4.7 / 4.8 / 5.1 / 5.2 / 6.1 ~ 6.4 / 8 节；
+  `BR-IMP-009` / `012` / `013` / `014` / `015`、`REQ-IMP-032` ~ `043` / `047` ~ `052`、
+  `DS-07`、`DS-DENY-03` / `04`、`NFR-MQ-02` / `03` / `04`、`NFR-AUDIT-03`
+- 决策（全部取推荐方案，已落进 `CR-019`）：
+  1. **默认只看本人任务**（`REQ-IMP-032`）：任务列表不提供「看全平台」的开关，平台运营除外（`DS-01`）。
+  2. **行内动作严格由状态驱动**：`queued` 详情 + 取消（`REQ-IMP-034` 只有排队中可取消）、`running` 仅详情、
+     `succeeded` 详情 + 下载、`partial_failed` 详情 + 重试 + 下载、`failed` 详情 + 重试、`cancelled` 仅详情。
+  3. **结果查询与下载重新解析范围**（`REQ-IMP-036` / `DS-DENY-04`）：不复用发起时的判定，详情页明写这条口径。
+  4. **下载走短时签名且写审计**（`REQ-IMP-042` / `043`）：链接与登录态绑定，过期或跨账号一律拒绝。
+  5. **导出配置弹窗做同步 / 异步分流**：行数 ≤ 2000 同步下载、超过 2000 转异步任务；列选择至少一列，掩码为默认、明文需 `read_sensitive` + 明文导出授权（`BR-IMP-012`）。
+  6. **死信重放必须二次确认且原因必填**（`REQ-IMP-038` + `layout-spec` 的 `state_rules`）：重放复用原批次号与幂等键，
+     已成功的行不重复写入；死信记录只追加与重放、不提供删除（删除死信等于丢掉排障线索）。
+  7. **重试 / 退避 / 并发配置对租户可观测**（`REQ-IMP-039` / `052`）：死信页用 5 张统计卡展示最大重试、退避间隔、同校与同用户并发、当前排队。
+  8. **补登记 `DIALOG-DLQ-REPLAY`**：4.6 的需求 + `layout-spec` 的危险动作规则共同推出这个浮层，但 6.1 没有编号，按 `CR-019` 补登记（沿用 `GAP-059` 的判定口径）。
+- 关键设计：两个新页面都用 `[data-normal-view]` 承载主内容（沿用 D-080 的载体口径）；
+  任务列表额外带 `queued` 与 `partial` 两类状态片段，死信页的空态用正向文案「当前没有死信任务」而不是错误提示。
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/functional/v1/pages/async-task-list.html` | 新增：异步任务列表 8 列 7 行 + `PAGE-IMP-TASK-DETAIL` 详情抽屉 + `PAGE-IMP-EXPORT` 导出配置弹窗 |
+| `prototypes/functional/v1/pages/dead-letter-task.html` | 新增：死信任务 7 列 3 行 + 重试与并发配置统计卡 + `DIALOG-DLQ-REPLAY` 重放确认 |
+| `prototypes/functional/v1/page-actions.yaml` | 新增 `async_task_center`（`ACT-TASK-001` ~ `030`）与 `dead_letter`（`ACT-TASK-040` ~ `051`） |
+| `prototypes/functional/v1/navigation.yaml` | 4 个页面补 note、登记 `DIALOG-DLQ-REPLAY` 与 4 条跳转；批次 2-9 声明页数 4 → 5 并改为「已全部产出待验收」 |
+| `prototypes/functional/v1/assets/prototype-shell.js` | 菜单「异步任务」登记为已交付；`EXTRA_PAGES` 补死信任务页 |
+| `docs/10-prd/modules/import-export/PRD.md` | 升 1.0.1-draft：6.1 补 `DIALOG-DLQ-REPLAY` 登记与口径 |
+| `docs/00-governance/change-requests/CR-019.md` | 新增：死信重放确认片段补登记 |
+| `evidence/stage2-prototype/verify-task.html` | 新增：22 条断言 |
+| `evidence/stage2-prototype/async-task-list_*.png`、`dead-letter-task_*.png`、`task_verify-results.png` | 9 张截图 |
+
+- 验证证据：`verify-task.html` 22 / 22；19 个已交付 harness 全量回归；`python tools/check_docs.py` 通过
+- **阶段 2 收尾**：2-1 ~ 2-9 共 9 批全部产出。累计 **45 个页面文件**（`prototypes/functional/v1/pages/*.html`）
+  承载 **96 个页面编号**（2-1 3、2-2 13、2-3 17、2-4 11、2-5 8、2-6 19、2-7 12、2-8 8、2-9 5，见 `navigation.yaml` 的 `delivery_batches`），
+  **19 个 harness 全绿**（14 + 16 + 20 + 22 + 23 + 26 + 28 + 28 + 30 + 34 + 36 + 36 + 37 + 38 + 39 + 39 + 6 + 14 + 22 = 508 条断言）
+- 如果错了的代价：删除 2 个页面、回滚 `page-actions.yaml` 的 2 个动作组、`navigation.yaml` 的片段与页数、
+  导入导出 PRD 的版本行与片段登记即可
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |
@@ -601,3 +1594,32 @@
 | R-007 | ~~公共前置是否立即冻结~~ → 已定：等批次 1-4 完成后一次性冻结（D-046） | — | 已关闭 |
 | R-008 | ~~批次 1-4 的 `RV-IMP-01`、`RV-AUD-01` 待答复~~ → 已定：用户在验收文件中标记"确认"，15 项全部闭环（D-049） | D-047、D-048、D-049 | 已关闭 |
 | R-009 | ~~已冻结的 9 个模块 `RV-*-01` 章节引用是否修正~~ → 已定：需要改，按 `CR-001` 执行 | D-048 | 已关闭 |
+| R-010 | ~~阶段 2 批次计划是否扩展到 2-5 ~ 2-9~~ → 已定：同意扩展（D-050） | GAP-025 | 已关闭 |
+| R-011 | ~~`CR-002`：共享授权对象限定为教学资源~~ → 已定：批准并执行（D-051） | GAP-031 | 已关闭 |
+| R-012 | ~~`CR-003`：GAP-026 ~ GAP-030 五项裁决~~ → 已定：用户"按推荐来"，已批准并执行（D-052） | GAP-026 ~ 030 | 已关闭 |
+| R-013 | ~~校领导对教师主体是否可写~~ → 已定：选项 A，校领导只读，改教师 PRD 4.4（D-054 / CR-004） | GAP-032 | 已关闭 |
+| R-014 | ~~是否立 CR 把教师模块业务字段补进 `06-field-dictionary.yaml`~~ → 已定：选项 A，一次补全 13 个字段 + `employment_status` 枚举（D-054 / CR-004） | GAP-033 | 已关闭 |
+| R-015 | ~~校领导对年级是否可写~~ → 已定：选项 B，校领导对 `org.grade` 只读（D-056 / CR-005） | GAP-034 | 已关闭 |
+| R-016 | ~~年级主任 / 班主任 / 任课教师是否有年级读权限~~ → 已定：选项 A，三者各补 `org.grade` 的 `read`，范围按 `DS-05` / `DS-06` / `DS-07` 收窄（D-056 / CR-005） | GAP-035 | 已关闭 |
+| R-017 | ~~建错的空年级能否删除~~ → 已定：选项 B，教务主任与租户管理员可删无班级无学生关系的年级（D-056 / CR-005） | GAP-036 | 已关闭 |
+| R-018 | ~~年级模块业务字段是否补进字段字典~~ → 已定：选项 A，一次补全 `grade_status` 枚举与 6 个字段（D-056 / CR-005） | GAP-037 | 已关闭 |
+| R-019 | ~~是否新增不受数据范围限制的超级管理员~~ → 已定：新增 `super_admin`，强制留痕且禁止日常业务操作（D-057 / CR-006） | — | 已关闭 |
+| R-020 | ~~年级表单用抽屉还是弹窗、编辑是否独立页面~~ → 已定：选项 A + 载体按 plus-ui 取弹窗（D-058 / CR-007） | GAP-038 | 已关闭 |
+| R-021 | ~~已交付的学生 / 教师表单用抽屉、plus-ui 全用 dialog，是否统一~~ → 已定：选项 B，表单改弹窗、详情保留抽屉（D-059 / CR-008） | GAP-039 | 已关闭 |
+| R-022 | ~~班级模块三个浮层的载体是否按 D-059 修正~~ → 已定：选项 A，新建 / 批量生成改弹窗、添加学生改独立页（D-061 / CR-009） | GAP-040 | 已关闭 |
+| R-023 | ~~5 个 PRD 要求的班级 / 升班页面是否一次补齐登记~~ → 已定：选项 A，一次性补齐 5 项并登记 2 个确认片段（D-061 / CR-009） | GAP-041 | 已关闭 |
+| R-024 | ~~任课教师是否补 `org.class` 的 `read` 权限~~ → 已定：选项 A，补 read（仅任教班级），与 `GAP-035` 同口径（D-063 / CR-010） | GAP-043 | 已关闭 |
+| R-025 | ~~班级状态取值集合（先用 2 值 / 补 4 值 / 补 6 值）~~ → 已定：选项 A，先落「在读 / 已停用」两个值（D-063 / CR-010） | GAP-044 | 已关闭 |
+| R-026 | ~~`campus_id` 与 `classroom` 是否补进字段字典~~ → 已定：选项 A，一次登记两个字段（D-063 / CR-010） | GAP-045 | 已关闭 |
+| R-027 | ~~「按学校检索校区」是否补入口，以及学校 → 校区 → 年级 → 班级 → 学生 的级联联动规则~~ → 已定：选项 A，统一级联规则 + 校区检索入口复用校区管理页（D-064） | GAP-046 | 已关闭 |
+| R-028 | ~~新建班级弹窗里「班级类型」的可选范围~~ → 已定：选项 A，只建行政班，教学班创建留在批次 2-7（D-066） | GAP-048 | 已关闭 |
+| R-029 | ~~复制班级是否新增独立 operationId~~ → 已定：选项 A，复用 `addClass`，不新增 `copyClass`（D-066） | GAP-049 | 已关闭 |
+| R-030 | ~~出国留学（保留学籍）是否计入班级在读人数~~ → 已定：选项 A，与休学同口径不计入，并把高二 (1) 班样例数 2 → 1（D-068 / CR-011） | GAP-051 | 已关闭 |
+| R-031 | ~~升班任务的「预览 / 执行 / 重试 / 取消」用哪个权限动作承载~~ → 已定：选项 A，用现有 `update`（D-069 / CR-012） | GAP-052 | 已关闭 |
+| R-032 | ~~年级主任是否参与升班~~ → 已定：选项 A，补 `promotion.batch: read` + `DS-05` 范围，只读（D-069 / CR-012） | GAP-053 | 已关闭 |
+| R-033 | ~~升班任务的两个公共前置缺项（字段未进字段字典、取消确认片段未进 PRD 6.1）~~ → 已定：选项 A，立一次 CR 一起补（D-071 / CR-013） | GAP-054 | 已关闭 |
+| R-034 | ~~升班明细的 7 个字段与「调整方式」枚举是否一次 CR 补进 `06-field-dictionary.yaml`~~ → 已定：选项 A，一次 CR 补全（7 个字段 + 3 个枚举），并补 `BR-PROMO-006` 的留级去向与升班 PRD 的字段口径（D-073 / CR-014） | GAP-055 | 已关闭 |
+| R-035 | ~~选科模块的 3 个字段、权限码对齐与 `PAGE-STR-STAT` 载体是否一次 CR 补齐~~ → 已定：一次 CR 补全（3 个字段 + 9 条权限码 + 1 条页面载体）（D-080 / CR-016） | GAP-057 | 已关闭 |
+| R-036 | ~~教学班的「详情 / 停用 / 成员清单」缺 operationId，且教学班能否手工新增没有裁决~~ → 已定：补 3 个 operationId + 两个同页片段，创建入口唯一在生成向导（D-081 / CR-017） | GAP-058 | 已关闭 |
+| R-037 | ~~审计 PRD 6.3 要求「点击导出打开导出配置弹窗」，但 6.1 的页面清单没有登记该片段~~ → 已定：按选项 A 补登记 `DIALOG-AUD-EXPORT`（D-082 / CR-018） | GAP-059 | 已关闭 |
+| R-038 | ~~`REQ-IMP-038` 要求重放写审计 + `layout-spec` 要求危险动作二次确认，但导入导出 PRD 6.1 没有登记重放确认片段~~ → 已定：按选项 A 补登记 `DIALOG-DLQ-REPLAY`（D-083 / CR-019） | GAP-060 | 已关闭 |

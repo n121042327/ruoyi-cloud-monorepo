@@ -1,0 +1,344 @@
+schema_version: "1.0"
+purpose: |
+  业务原型的布局与尺寸规范。阶段 2、3、6 的页面必须遵守本文件；
+  阶段 3 的高保真原型可以覆盖颜色与字体，但不得改变栅格、区域划分与主内容区规则。
+
+约束来源:
+  - "docs/10-prd/07-non-functional-requirements.md（NFR-COMPAT-01 ~ 03：分辨率与浏览器）"
+  - "apps/plus-ui/src/assets/styles/variables.module.scss（侧边栏宽度、圆角、阴影、页面底色）"
+  - "apps/plus-ui/src/layout/index.vue（侧边栏 + 主容器 + 固定头部结构）"
+  - "apps/plus-ui/src/layout/components/AppMain.vue（navbar 50px、tags-view 34px）"
+  - "apps/plus-ui/src/views/system/user/index.vue（列表页参考实现：p-2 + el-row gutter 20 + 搜索卡片 + 工具条 + 表格 + 分页）"
+
+视觉说明: |
+  本目录是业务原型：颜色沿用 Element Plus 默认值与 apps/plus-ui 既有变量
+  （主色 #409eff、页面底色 #f5f7fb、菜单底色 #1f2d3d），不追求视觉精修。
+  配色、字体、间距精修与动效统一在阶段 3 由
+  prototypes/high-fidelity/v1/design-tokens.json 覆盖。
+
+viewports:
+  design_basis: { width: 1440, height: 900, note: 主设计基准，页面截图以本档为准 }
+  minimum: { width: 1366, height: 768, note: 起可用，不得出现横向滚动条、元素重叠、文字截断 }
+  wide: { width: 1920, height: 1080, note: 主内容区不得无限拉伸，表格列按列宽分配、剩余留白 }
+  browsers: "Chrome >= 87 / Edge >= 88 / Safari >= 14 / Firefox >= 78（NFR-COMPAT-01）"
+
+regions:
+  - id: sidebar
+    name: 左侧菜单
+    width_expanded: 200px
+    width_collapsed: 64px
+    background: "#1f2d3d"
+    sticky: true
+    note: 折叠按钮位于顶部导航左侧
+  - id: navbar
+    name: 顶部导航
+    height: 50px
+    background: "#ffffff"
+    includes: [折叠按钮, 面包屑, 租户切换, 消息通知, 全屏, 用户菜单]
+    sticky: true
+  - id: tags_view
+    name: 页签栏
+    height: 34px
+    background: "#ffffff"
+    note: 打开过的页面以页签常驻，支持右键"关闭其他 / 关闭全部"
+  - id: app_main
+    name: 主内容区
+    padding: 8px
+    background: "#f5f7fb"
+    note: 页面自身不再重复设置外边距；页面内卡片之间用 10px 竖向间距
+  - id: overlay
+    name: 浮层（抽屉 / 弹窗 / 下拉）
+    note: 抽屉与弹窗挂到 body，不随主内容区滚动
+
+fixed_header:
+  enabled: true
+  note: 顶部导航与页签栏固定；主内容区滚动，滚动条宽 6px、圆角 999px
+
+system_shell:
+  required_on_every_page: true
+  note: 原型页面不得只画内容区而省略外壳；外壳缺失会直接判为"像孤岛的 demo"
+  elements:
+    - { id: sidebar, note: 左侧菜单，当前页所在分组保持展开，当前项高亮 }
+    - { id: navbar, note: 含折叠按钮、面包屑、租户与学校切换、消息通知、全屏、用户菜单 }
+    - { id: tags_view, note: 每个打开的页面一个页签，当前页签高亮，右键可"关闭其他 / 关闭全部" }
+    - { id: breadcrumb, note: "形如 教育管理 / 学生管理 / 学生详情，最后一级不加链接" }
+  rules:
+    - 租户与学校切换只在具备多校权限的角色下出现
+    - 从列表进详情时新增页签，不替换列表页签
+    - 面包屑层级与 navigation.yaml 的菜单树保持一致
+
+typography:
+  font_family: "系统字体栈：-apple-system / PingFang SC / Microsoft YaHei / Arial"
+  scale:
+    - { token: page-title, size: 18px, weight: 600, line_height: 26px, usage: 页面标题 }
+    - { token: card-title, size: 16px, weight: 600, line_height: 24px, usage: 区块标题与卡片标题 }
+    - { token: body, size: 14px, weight: 400, line_height: 22px, usage: 正文、表格内容、表单项 }
+    - { token: caption, size: 13px, weight: 400, line_height: 20px, usage: 辅助说明、次要信息 }
+    - { token: footnote, size: 12px, weight: 400, line_height: 18px, usage: 表格内标签、时间戳、单位 }
+  text_colors:
+    - { role: primary, value: "#303133", usage: 标题与主要值 }
+    - { role: regular, value: "#606266", usage: 正文与表格内容 }
+    - { role: secondary, value: "#909399", usage: 说明文字、占位、空值 }
+    - { role: disabled, value: "#c0c4cc", usage: 禁用态 }
+  rules:
+    - 同一页面同时出现的字号不超过 3 级，超过说明层级没有收敛
+    - 数值列右对齐，文本列左对齐，状态列居中
+    - 中文与英文数字之间留 1 个空格
+
+spacing_scale: [4px, 8px, 12px, 16px, 20px, 24px, 32px, 40px]
+
+spacing_usage:
+  page_padding: 8px
+  card_gap_vertical: 10px
+  card_inner_padding: 16px
+  search_form_item_gap: 12px
+  toolbar_button_gap: 8px
+  table_cell_padding: "10px 12px"
+  section_title_margin_bottom: 12px
+  drawer_body_padding: 20px
+
+radius:
+  base: 8px
+  small: 5px
+  round: 999px
+  note: 取自 --app-radius-base，卡片、按钮、输入框、标签统一使用
+
+shadow:
+  card: "--app-shadow-sm"
+  drawer_dialog: "--app-shadow-md"
+  note: 卡片用 shadow="hover"；抽屉与弹窗用 shadow-md
+
+grid:
+  system: "Element Plus 24 栅格（el-row + el-col）"
+  gutter: 20
+  list_page_columns:
+    - { block: 左侧树（年级 / 学科 / 校区）, span_lg: 4, span_xs: 24, note: 只有需要树形导航的页面才有 }
+    - { block: 右侧主区, span_lg: 20, span_xs: 24 }
+  no_tree_list_page: { span: 24, note: 无树形导航时主区占满 24 列 }
+  toolbar_buttons: "每个按钮占 el-col :span=1.5；右侧工具区固定右对齐"
+  form_grid:
+    inline_search: "el-form :inline=true，宽度自适应换行，单项最小宽 200px"
+    drawer_form: "单列表单，label-width 100px；字段超过 12 个时用 el-divider 分区块"
+    dialog_form: "单列表单，label-width 80px"
+
+page_templates:
+  - id: TPL-LIST
+    name: 列表页模板
+    order:
+      - 搜索区：el-card shadow="hover"，内部为 el-form inline；可折叠，默认展开
+      - 主区：el-card shadow="hover"，header 为工具条（左按钮组 + 右工具区），body 为 el-table
+      - 分页：pagination 组件，右对齐，仅 total > 0 时显示
+    variants:
+      - 带左侧树形导航（年级 / 学科 / 校区）：左 4 列 + 右 20 列
+      - 带批量选择：表格首列为 type="selection" width="50"
+    used_by: [学生管理列表, 教师管理列表, 班级管理列表, 年级管理列表, 学校管理列表, 学年学期列表, 学科列表, 选科清单, 操作日志, 异步任务列表]
+
+  - id: TPL-DETAIL
+    name: 详情页模板
+    order:
+      - 页头操作条：左侧返回 + 标题 + 状态标签；右侧操作按钮
+      - 内容区：多个 el-card 分组区块（基本信息 / 归属信息 / 关联信息 / 变更记录）
+      - 区块内优先用 el-descriptions（只读展示）；可编辑字段用 el-form
+    used_by: [学生详情, 教师详情, 班级详情, 年级详情, 学校详情, 任务详情, 日志详情]
+
+  - id: TPL-WIZARD
+    name: 向导页模板
+    order:
+      - 步骤条：el-steps，横向，位于内容卡片顶部
+      - 步骤内容：el-card，每步一个卡片，步骤之间不跳页
+      - 底部固定操作条：上一步 / 下一步 / 确认执行 / 取消
+    used_by: [批量导入向导, 编班表导入向导, 升班向导, 开通初始化向导, 跨校转学, 导出配置]
+
+  - id: TPL-OVERLAY
+    name: 浮层模板（抽屉 / 弹窗）
+    note: 抽屉用于表单录入与详情补充；弹窗只用于短表单与二次确认，禁止在弹窗里放表格
+    used_by: [新增学生, 编辑学生, 学籍异动, 调班, 新建班级, 新建年级, 新建学科, 变更审批]
+
+filter_cascade:
+  note: |
+    筛选级联规则（GAP-046 裁决选项 A，2026-09-30 用户答复「同意」）：
+    **上级选中后，下级下拉只列该上级范围内的数据；上级变化使当前值失效时，下级回到「全部」。**
+    本规则解决两个具体问题：65 校规模下选完学校仍看到几十所学校的年级与班级；
+    平台运营要「看某校有哪些校区」只能绕进学校详情。
+  chain:
+    - { level: 1, field: school_id, source: 数据范围（DS-01 平台运营与超级管理员可切学校；学校用户只有一个学校，下拉禁用） }
+    - { level: 2, field: "campus_id / grade_id / class_id", source: "当前学校的校区、年级、班级（同一层并列，互相不约束）" }
+    - { level: 3, field: student_id, source: "当前学校的在校记录（学生主体是平台级实体，按在校记录两段式取数）" }
+  rules:
+    - 下级下拉的选项来源是"当前数据范围内、且属于已选上级"的数据；不是全量选项
+    - 上级切换后，下级中不再存在的选项自动清空为「全部」，不保留失效值
+    - 级联只影响"可选项"，不改变数据范围判定：即使前端选项被改，后端仍按 DS-* 过滤（NFR-SEC-05）
+    - 能切学校的角色只有平台运营（DS-01）与超级管理员（DP-07）；学校用户与集团用户的学校下拉禁用或不存在
+    - 校区不参与权限判定（BR-ORG-009），级联里的校区只用于组织与统计
+  entry_points:
+    - { from: PAGE-SCH-LIST, element: 校区数（可点）, to: PAGE-SCH-CAMPUS, note: "平台运营与租户管理员都可点；校区清单复用学校详情下的校区管理页，不新增页面" }
+    - { from: 年级列表, element: 学校筛选, to: 学段 / 入学年份 / 年级主任 下拉, note: "仅平台运营与超级管理员切换时可见差异" }
+    - { from: 班级列表, element: 学校上下文, to: 年级 / 班级类型 / 班主任 / 校区 下拉, note: "参考实现：pages/class-list.html，断言 CL-38 / CL-39" }
+    - { from: 学生列表, element: 学校筛选, to: 学年学期 / 年级 / 班级 / 学段 下拉, note: "待对齐（GAP-047）" }
+  status: |
+    参考实现已落在批次 2-3a 的班级列表页；学生列表、年级列表、教师列表的筛选级联
+    在各自下一批对齐（GAP-047，Codex 自有非阻塞项）。
+
+components:
+  breadcrumb:
+    height: 50px
+    rule: 由框架渲染，页面内不重复写面包屑
+
+  search_card:
+    collapsible: true
+    default_expanded: true
+    collapse_trigger: 右侧工具区的"显示搜索 / 隐藏搜索"
+    item_min_width: 200px
+    date_range_width: 308px
+
+  toolbar:
+    button_col_span: 1.5
+    right_tools: [显示搜索开关, 列配置, 刷新]
+    rule: 新增与导入类按钮用 type="primary" plain；删除类用 type="danger" plain；其余用 plain
+
+  table:
+    border: true
+    selection_column_width: 50px
+    action_column_width: 180px
+    action_column_fixed: right
+    row_height: 48px
+    header_height: 48px
+    header_background: "#f8f8f9"
+    header_text_color: "#515a6e"
+    loading: "v-loading 覆盖在表格上，不用全屏遮罩"
+    rules:
+      - 长文本列必须 show-overflow-tooltip="true"
+      - 时间列固定宽 160px
+      - 操作列按钮用 link 类型 + icon，并配 el-tooltip
+      - 敏感字段默认掩码，掩码值直接渲染为文本，不提供复制
+
+  pagination:
+    position: 右对齐，表格下方 8px
+    default_page_size: 20
+    page_sizes: [10, 20, 30, 50, 100, 200]
+    show_total: true
+    show_jumper: true
+    note: "NFR-PERF-05：默认每页 20 条，最大 200 条"
+
+  form:
+    label_position: right
+    label_width_drawer: 100px
+    label_width_dialog: 80px
+    item_margin_bottom: 18px
+    input_width_default: 240px
+    required_marker: "红色星号；必填校验在失焦时提示，提交时汇总"
+    rules:
+      - 下拉选择、日期、级联一律给出 placeholder
+      - 只读字段用 disabled 加灰底，不用纯文本，避免看起来像可改
+
+  drawer:
+    sizes: { sm: 480px, md: 640px, lg: 800px, xl: 960px }
+    default_size: md
+    placement: right
+    footer: 固定底部操作条，高 64px（取消 / 保存）
+    close_on_click_modal: false
+    rule: 表单校验失败时不得关闭抽屉
+
+  dialog:
+    sizes: { sm: 480px, md: 600px, lg: 800px }
+    default_size: md
+    destructive_size: sm
+    footer: "取消（plain）+ 确认（primary / danger）"
+    rule: 二次确认文案必须写清"对谁、做什么、影响范围"
+    carrier_rule: |
+      表单类浮层的载体以**现有代码库**为准：apps/plus-ui 全库 40 处 el-dialog、0 处 el-drawer
+      （统计命令见 evidence/stage2-prototype/README.md 第 4 节），因此本项目的表单与二次确认统一用 **el-dialog**，
+      抽屉只用于 PRD 显式要求的详情页（如教师 / 学生 / 日志详情）。
+      落地到 apps/plus-ui 时的宽度映射：sm → 500px（plus-ui 出现 13 次，最常用）、md → 600px、lg → 800px。
+      决策依据见 docs/00-governance/decisions.md 的 D-058 与 change-requests/CR-007.md。
+
+  steps:
+    height: 72px
+    direction: horizontal
+    state: "已完成 / 进行中 / 待进行 / 已失败，四种样式都要画"
+
+  empty:
+    structure: 插画 + 一句话说明 + 主动作按钮
+    rule: 说明里要写清为什么空（无数据 / 筛选无结果 / 无权限），不给同一句文案
+
+density:
+  list_page_minimum:
+    filter_items: 4
+    table_columns: 6
+    row_actions: 2
+    table_rows_in_prototype: 10
+    pagination: 必须显示总条数
+  form_page:
+    fields_per_section: "3 ~ 8 个；超过 8 个必须用 el-divider 或 el-tabs 分组"
+    required_ratio: 必填字段不超过总字段数的 60%，否则说明默认值设计缺失
+  detail_page:
+    sections: "2 ~ 5 个分组区块"
+    fields_per_section: "4 ~ 12 个"
+  rules:
+    - 列表页在 1440×900 下不含滚动至少能看到 8 行表格数据
+      （批次 2-1 在 1366×768 / 1440×900 / 1920×1080 三档实测：7 / 8 / 13 行。
+       固定占比：顶栏 50px + 页签栏 34px + 页头 36px + 筛选区约 170px + 卡片头 48px +
+       表格头 48px + 分页器与说明约 60px，行高 48px 时 900 高度上限约 8—9 行；
+       原值 12 行只有在行高 40px 以下或去掉页头与分页器说明时才可能达到，
+       与 table.row_height 48px 及 TPL-LIST 的区块顺序冲突，故按实测修正。）
+    - 筛选区默认展开时不超过 2 行；超过 8 个筛选项按高频与低频分两行
+    - 表格每行必须有至少 1 个状态或标识类字段（标签、图标、徽标），整行纯文本说明密度不足
+
+text_format:
+  date: "YYYY-MM-DD（如 2026-09-30）"
+  datetime: "YYYY-MM-DD HH:mm（如 2026-09-30 10:12）"
+  time_range: "YYYY-MM-DD ~ YYYY-MM-DD"
+  academic_year: "YYYY-YYYY（如 2026-2027）"
+  number: "千分位分隔（如 1,280）"
+  percent: "保留 1 位小数（如 33.3%）"
+  phone: "掩码形如 138****2210；完整值只在有权限时展示"
+  id_card: "掩码形如 330102********1234"
+  empty_value: "统一用 —（中文长横），不用 null、空字符串或半角减号"
+  long_text: "表格内超长文本省略号加悬浮完整；详情页不截断"
+  student_no: "10 位，入学年份 4 位加全局序号 6 位，如 2026000001"
+  rules:
+    - 同一页面内日期格式必须一致，不允许混用 2026/9/30 与 2026-09-30
+    - 数值与单位之间是否加空格同一页面必须统一
+    - 筛选控件与排序控件中的日期使用同一格式
+
+required_states:
+  - { id: loading, marker: 'data-state="loading"', form: 骨架屏或表格 loading，不用全屏遮罩 }
+  - { id: empty, marker: 'data-state="empty"', form: 插画 + 说明 + 主动作按钮 }
+  - { id: error, marker: 'data-state="error"', form: 错误提示 + 请求 ID + 重试按钮 }
+  - { id: forbidden, marker: 'data-state="forbidden"', form: 无权限说明 + 返回入口，不显示空表格 }
+  - { id: submitting, marker: 'data-state="submitting"', form: 按钮 loading 且禁用，禁止重复提交 }
+
+charts:
+  carrier: 原型内一律用纯 CSS 柱条（.bar-chart / .bar-row / .bar-track / .bar-fill），不引入 JS 图表库
+  production_mapping: 阶段 6 由 ECharts 承接：柱状图用 bar、饼图用 pie；数据接口与原型一致（如 getStreamStat）
+  rules:
+    - 图表必须与同页表格同源：图上的每个数字都要能在表格里找到对应行（REQ-STR-050 同口径）
+    - 每个柱条 / 扇区可下钻时必须登记 data-action-id（点击 → 下钻清单）
+    - 数值标签用等宽数字（font-variant-numeric: tabular-nums），百分比保留 1 位小数
+    - 空数据不画空坐标系，走页面的 empty 状态片段
+  stats_card:
+    - 统计卡统一用 .stat-row + .stat-card（label / value 两层），不使用自由排版
+
+z_index:
+  drawer_backdrop: 1000
+  dialog: 2000
+  dropdown: 3000
+  message: 4000
+  loading_fullscreen: 5000
+  rule: 不得使用 z-index 99999 之类的魔数，超过 5000 的浮层必须在本表登记
+
+responsive:
+  breakpoint_mobile: 992px
+  behavior:
+    - 窗口宽度小于 992px：侧边栏收起为抽屉，主内容区占满宽度
+    - 首轮不做移动端适配；宽度小于 768px 时显示"请在 PC 端使用"提示态，仍可浏览只读内容
+  horizontal_scroll: 1366×768 及以上不得出现整页横向滚动条；仅表格内部可按需横向滚动
+
+checks:
+  - 页面骨架是否属于四种模板之一
+  - 1366×768 截图无横向滚动条、无重叠、无文字截断
+  - 1920×1080 截图主内容区未无限拉伸
+  - 五类状态是否齐全
+  - 每个可交互元素是否带 markup-contract 要求的 data-* 标记
+  - 间距是否只使用 spacing_scale 中的值
+  - 抽屉与弹窗尺寸是否取自本文件的枚举值

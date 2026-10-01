@@ -39,6 +39,11 @@
 | `docs/00-governance/decisions.md` | 决策与裁决记录 | `review` |
 | `docs/00-governance/change-control.md` | 变更流程 | `review` |
 | `docs/00-governance/change-requests/CR-001.md` | 变更申请：修正已冻结模块的范围划分章节引用（已批准并执行） | `review` |
+| `docs/00-governance/change-requests/CR-002.md` | 变更申请：把数据共享授权的对象限定为教学资源（题库习题、试卷），同步改写 2 条验收用例 | `review` |
+| `docs/00-governance/change-requests/CR-003.md` | 变更申请：补齐敏感字段权限点归属、学生照片、批量导出与批量调班、字段字典补登记、学号修改口径（用户已批准） | `review` |
+| `docs/00-governance/change-requests/CR-004.md` | 变更申请：补齐教师模块字段字典并统一「校领导」对教师主体只读口径（已批准并执行） | `review` |
+| `docs/00-governance/change-requests/CR-005.md` | 变更申请：补齐年级模块的权限口径与字段字典（待批准，关联 GAP-034 ~ GAP-037） | `review` |
+| `docs/00-governance/change-requests/CR-006.md` | 变更申请：新增系统超级管理员角色 `super_admin`（已批准并执行，关联 D-057 / BR-ORG-014） | `review` |
 | `docs/00-governance/traceability.yaml` | 追踪矩阵骨架 | `review` |
 | `docs/00-governance/task-packet.md` | 任务包模板 | `review` |
 | `docs/00-governance/baseline-manifest.schema.json` | 冻结清单 Schema | `review` |
@@ -60,7 +65,7 @@
 | `docs/10-prd/03-glossary.md` | 术语表（行政班 / 教学班 / 选科 / 学年学期 …） | `frozen` |
 | `docs/10-prd/04-business-rules.md` | 业务规则总表（编号 BR-xxx） | `frozen` |
 | `docs/10-prd/05-permission-matrix.yaml` | 角色 × 资源 × 操作 权限矩阵 | `frozen` |
-| `docs/10-prd/06-field-dictionary.yaml` | 全局字段字典（枚举、字典、复用字段） | `frozen` |
+| `docs/10-prd/06-field-dictionary.yaml` | 全局字段字典（枚举、字典、复用字段）；`CR-013` 补登记升班任务 6 个字段与 1 条部分唯一说明，`CR-014` 补登记升班明细 7 个字段与 3 个枚举 | `frozen` |
 | `docs/10-prd/07-non-functional-requirements.md` | 非功能需求（性能、并发、安全、审计、可用性） | `frozen` |
 | `docs/10-prd/08-data-scope-model.md` | 数据归属与数据权限模型 | `frozen` |
 | `docs/10-prd/09-guardian-and-onboarding.md` | 家长绑定与学生数据采集模型（含表结构草案） | `frozen` |
@@ -84,7 +89,7 @@
 | `docs/10-prd/modules/term/acceptance.md` | 学年学期管理验收标准（54 条用例） | `frozen` |
 | `docs/10-prd/modules/subject/PRD.md` | 学科与学科配置 PRD（42 条需求，v1.0.0-draft） | `frozen` |
 | `docs/10-prd/modules/subject/acceptance.md` | 学科与学科配置验收标准（54 条用例） | `frozen` |
-| `docs/10-prd/modules/promotion/PRD.md` | 升班与学籍异动 PRD（66 条需求，v1.0.0-draft） | `frozen` |
+| `docs/10-prd/modules/promotion/PRD.md` | 升班与学籍异动 PRD（66 条需求，v1.0.3-draft；CR-009 补登记调整弹窗、CR-012 收敛升班权限动作、CR-013 补登记取消确认片段） | `frozen` |
 | `docs/10-prd/modules/promotion/acceptance.md` | 升班与学籍异动验收标准（82 条用例） | `frozen` |
 | `docs/10-prd/modules/stream/PRD.md` | 3+1+2 选科与教学班 PRD（69 条需求，v1.0.0-draft） | `frozen` |
 | `docs/10-prd/modules/stream/acceptance.md` | 3+1+2 选科与教学班验收标准（85 条用例） | `frozen` |
@@ -101,24 +106,182 @@
 
 | 路径 | 用途 | 状态 |
 |---|---|---|
-| `index.html` | 原型入口与导航 | `planned` |
-| `README.md` | 原型说明、运行方式、与 PRD 的对应关系 | `planned` |
-| `navigation.yaml` | 菜单树、页面跳转关系、入口条件 | `planned` |
-| `page-specs/<page>.md` | 每个页面的规格：元素、状态、交互、跳转 | `planned` |
-| `layout-spec.yaml` | 栅格、区域划分、主内容区宽度规则 | `planned` |
-| `page-actions.yaml` | 动作清单：按钮 → 触发 → 结果 → 权限 | `planned` |
-| `content-samples.json` | 原型演示数据（真实感中文样例） | `planned` |
-| `markup-contract.md` | 原型 HTML 必须携带的 `data-*` 语义标记约定 | `planned` |
-| `pages/student-list.html` | 学生管理列表（**样板**） | `planned` |
-| `pages/student-form.html` | 学生新增 / 编辑抽屉（**样板**） | `planned` |
-| `pages/teacher-list.html` | 教师管理列表 | `planned` |
-| `pages/class-list.html` | 班级管理列表 | `planned` |
-| `pages/class-detail.html` | 班级详情与花名册 | `planned` |
-| `pages/grade-list.html` | 年级管理列表 | `planned` |
-| `pages/promotion-wizard.html` | 升班向导 | `planned` |
-| `pages/import-wizard.html` | 批量导入向导 | `planned` |
-| `pages/login.html` | 登录 | `planned` |
-| `pages/403.html` `pages/404.html` `pages/500.html` | 异常页 | `planned` |
+| `prototypes/functional/v1/README.md` | 原型说明、运行方式、批次对照 | `review` |
+| `prototypes/functional/v1/prototype-quality-spec.md` | 原型质量规范：18 类"空洞"根因与约束、数据真实性、边界数据、角色视角、组件选择决策、交批验收清单 | `review` |
+| `prototypes/functional/v1/layout-spec.yaml` | 栅格、区域划分、主内容区宽度、组件尺寸规则 | `review` |
+| `prototypes/functional/v1/navigation.yaml` | 菜单树、87 项页面注册表、跳转关系、入口条件、批次 | `review` |
+| `prototypes/functional/v1/page-actions.yaml` | 动作清单：按钮 → 触发 → 结果 → 权限 → 接口 | `review` |
+| `prototypes/functional/v1/markup-contract.md` | 原型 HTML 必须携带的 `data-*` 语义标记与组件映射表 | `review` |
+| `prototypes/functional/v1/content-samples.json` | 原型演示数据（真实感中文样例） | `review` |
+| `prototypes/functional/v1/page-specs/_template.md` | 页面规格模板 | `review` |
+| `prototypes/functional/v1/page-specs/student-list.md` | 学生管理列表页面规格（批次 2-1 样板） | `review` |
+| `prototypes/functional/v1/page-specs/student-create.md` | 新增学生抽屉页面规格（批次 2-1 样板） | `review` |
+| `prototypes/functional/v1/page-specs/student-edit.md` | 编辑学生抽屉页面规格（批次 2-1 样板） | `review` |
+| `prototypes/functional/v1/page-specs/<page>.md` | 其余页面的规格：元素、状态、交互、跳转（随各批产出） | `planned` |
+| `prototypes/functional/v1/assets/prototype-shell.css` | 原型外壳与组件样式（Element Plus 仿真，非生产代码） | `review` |
+| `prototypes/functional/v1/assets/prototype-shell.js` | 原型演示引擎：外壳注入、角色 / 状态切换、浮层、提交模拟、校验 | `review` |
+| `prototypes/functional/v1/index.html` | 原型入口与导航（批次 2-1） | `review` |
+| `prototypes/functional/v1/pages/student-list.html` | 学生管理列表 + 新增 / 编辑抽屉浮层（**样板**） | `review` |
+| `prototypes/functional/v1/pages/teacher-list.html` | 教师管理列表（批次 2-2a 样板）+ 教师详情 / 新增 / 编辑 / 离职 / 放弃确认五个浮层片段（批次 2-2b-1） | `review` |
+| `prototypes/functional/v1/page-specs/teacher-list.md` | 教师管理列表页面规格 | `review` |
+| `prototypes/functional/v1/page-specs/teacher-detail.md` | 教师详情页面规格（六分区、跨校任教与空角色两种形态） | `review` |
+| `prototypes/functional/v1/page-specs/teacher-create.md` | 新增教师三步抽屉页面规格 | `review` |
+| `prototypes/functional/v1/page-specs/teacher-edit.md` | 编辑教师抽屉页面规格（字段级可编辑性矩阵） | `review` |
+| `prototypes/functional/v1/page-specs/teacher-role.md` | 教育角色分配弹窗页面规格（学校级角色 + 年级主任任职） | `review` |
+| `prototypes/functional/v1/page-specs/teacher-assign.md` | 任教关系设置独立页页面规格（双栏：班级视角 / 教师视角） | `review` |
+| `prototypes/functional/v1/pages/teacher-assign.html` | 任教关系设置（独立页，批次 2-2b-2） | `review` |
+| ~~`prototypes/functional/v1/pages/student-form.html`~~ | 已由 `pages/student-list.html` 内的 `data-demo-panel="PAGE-STU-CREATE" / "PAGE-STU-EDIT"` 浮层片段取代，不再单独出文件 | `waived` |
+| `prototypes/functional/v1/pages/grade-list.html` | 年级管理列表（批次 2-2b-2b 样板页）+ 删除年级二次确认浮层片段 `DIALOG-GRD-DELETE` | `review` |
+| `prototypes/functional/v1/page-specs/grade-list.md` | 年级管理列表页面规格（字段 / 动作 / 状态 / 权限 / 样例数据 / 自查） | `review` |
+| `prototypes/functional/v1/page-specs/grade-detail.md` | 年级详情抽屉页面规格（5 分区、两种样本） | `review` |
+| `prototypes/functional/v1/page-specs/grade-create.md` | 新建 / 编辑年级弹窗页面规格（一窗两态、字段级只读） | `review` |
+| `prototypes/functional/v1/page-specs/grade-batch.md` | 按学段批量生成弹窗页面规格（预览与冲突跳过） | `review` |
+| `prototypes/functional/v1/page-specs/grade-leader.md` | 指定年级主任弹窗页面规格（任职清单、四条保存前检查） | `review` |
+| `prototypes/functional/v1/page-specs/grade-archive.md` | 归档确认弹窗页面规格（引用情况、原因必填） | `review` |
+| `docs/00-governance/change-requests/CR-007.md` | 变更申请：统一浮层载体为弹窗，与 apps/plus-ui 一致（已批准并执行，关联 D-058） | `review` |
+| `docs/00-governance/change-requests/CR-008.md` | 变更申请：表单类改弹窗、详情类保留抽屉、含表格改独立页（已批准并执行，关联 GAP-039 / D-059） | `review` |
+| `evidence/stage2-prototype/verify-carrier-change.html` | 载体变更回归 harness（14 条断言：表单是弹窗、详情仍是抽屉、弹窗内无 drawer-* 钩子） | `review` |
+| `evidence/stage2-prototype/verify-grade-list.html` | 年级列表交互验证 harness（同源 iframe + 真实事件派发，38 条断言） | `review` |
+| `evidence/stage2-prototype/verify-detail-entry.html` | 详情浮层入口验证 harness（年级 / 教师 / 学生三个列表页，6 条断言，关联 D-060） | `review` |
+| `prototypes/functional/v1/pages/class-list.html` | 班级管理列表（批次 2-3a 样板页）+ 停用 / 删除二次确认片段 `DIALOG-CLS-DISABLE` / `DIALOG-CLS-DELETE` + 批次 2-3c 的四个弹窗片段 `PAGE-CLS-CREATE` / `PAGE-CLS-BATCH` / `PAGE-CLS-COPY` / `PAGE-CLS-LEADER` | `review` |
+| `prototypes/functional/v1/page-specs/class-list.md` | 班级管理列表页面规格（字段 / 动作 / 状态 / 权限 / 样例数据 / 自查） | `review` |
+| `docs/00-governance/change-requests/CR-009.md` | 变更申请：班级模块载体按 D-059 修正 + 补登记 5 个 PRD 要求的页面（已批准并执行，关联 GAP-040 / GAP-041 / D-061） | `review` |
+| `docs/00-governance/change-requests/CR-010.md` | 变更申请：补齐班级模块三项公共前置（任课教师班级读权限 / 班级状态枚举 / 校区与教室字段）（已批准并执行，关联 GAP-043 ~ 045 / D-063） | `review` |
+| `docs/00-governance/change-requests/CR-011.md` | 变更申请：把「在读名单」口径收敛为「只有在读状态计入」，并修正高二 (1) 班样例数（已批准并执行，关联 GAP-051 / D-068） | `review` |
+| `docs/00-governance/change-requests/CR-012.md` | 变更申请：升班任务的权限动作收敛为 update、校领导收回 approve、年级主任补只读参与（已批准并执行，关联 GAP-052 / GAP-053 / D-069） | `review` |
+| `docs/00-governance/change-requests/CR-013.md` | 变更申请：补齐升班模块的两项公共前置（6 个字段登记 + 取消确认片段登记）（已批准并执行，关联 GAP-054 / D-071） | `review` |
+| `docs/00-governance/change-requests/CR-014.md` | 变更申请：补齐升班明细的字段与枚举（7 个字段 + 3 个枚举 + `BR-PROMO-006` 的留级去向 + 升班 PRD 6.1 / 6.3 / 7.1 的字段口径）（已批准并执行，关联 GAP-055 / D-073） | `review` |
+| `evidence/stage2-prototype/verify-class-list.html` | 班级列表交互验证 harness（同源 iframe + 真实事件派发，39 条断言，CL-01 ~ CL-39；CL-34 已覆盖批次 2-3c 新增的 ACT-CLS-030 ~ 047） | `review` |
+| `prototypes/functional/v1/pages/class-detail.html` | 班级详情独立页（批次 2-3b：基本信息卡 + 花名册 / 任课教师 / 班主任任职历史 / 变更记录） | `review` |
+| `prototypes/functional/v1/page-specs/class-detail.md` | 班级详情页面规格（字段 / 动作 / 状态 / 权限 / 样例数据 / 自查） | `review` |
+| `evidence/stage2-prototype/verify-class-detail.html` | 班级详情交互验证 harness（同源 iframe + 真实事件派发，20 条断言，CD-01 ~ CD-20） | `review` |
+| `evidence/stage2-prototype/class-detail_1440x900.png` | 班级详情截图（设计基准分辨率，花名册页签） | `review` |
+| `evidence/stage2-prototype/class-detail_tab-*.png`（3 张，实际命名见 README 第 1 节） | 任课教师 / 班主任任职历史 / 变更记录三个页签截图 | `review` |
+| `evidence/stage2-prototype/class-detail_verify-results.png` | 班级详情 harness 结果清单（CD-01 ~ CD-20 全部通过） | `review` |
+| `evidence/stage2-prototype/class-list_1440x900.png` | 班级列表截图（设计基准分辨率，默认态） | `review` |
+| `evidence/stage2-prototype/class-list_role-*.png`（8 张，实际命名见 README 第 1 节） | 班级列表的 8 个角色形态截图 | `review` |
+| `evidence/stage2-prototype/class-list_dialog-disable_1440x900.png` | 停用班级二次确认截图 | `review` |
+| `evidence/stage2-prototype/class-list_dialog-delete_1440x900.png` | 删除班级二次确认截图 | `review` |
+| `evidence/stage2-prototype/class-list_more-menu_1440x900.png` | 行内「更多 ▾」下拉截图 | `review` |
+| `evidence/stage2-prototype/class-list_state-*.png`（7 张，实际命名见 README 第 1 节） | 班级列表的七类页面状态截图 | `review` |
+| `evidence/stage2-prototype/class-list_verify-results.png` | 班级列表 harness 结果清单（CL-01 ~ CL-39 全部通过） | `review` |
+| `prototypes/functional/v1/page-specs/class-create.md` | 新建 / 编辑班级弹窗页面规格（一窗两态、字段级只读、唯一性冲突、三个后续动作） | `review` |
+| `prototypes/functional/v1/page-specs/class-batch.md` | 批量生成班级弹窗页面规格（序号区间、预览与冲突跳过） | `review` |
+| `prototypes/functional/v1/page-specs/class-copy.md` | 复制班级弹窗页面规格（9 项源班级摘要、不复制花名册与班主任、GAP-049） | `review` |
+| `prototypes/functional/v1/page-specs/class-leader.md` | 指定 / 变更班主任弹窗页面规格（两态、候选人在职校验、四条保存前检查） | `review` |
+| `evidence/stage2-prototype/verify-class-dialogs.html` | 班级四个弹窗交互验证 harness（同源 iframe + 真实事件派发 + 第二个 iframe 验证跨页跳转，36 条断言，CDL-01 ~ CDL-36） | `review` |
+| `evidence/stage2-prototype/class-create_1440x900.png` | 新建班级弹窗截图（新建态默认值，两列表单） | `review` |
+| `evidence/stage2-prototype/class-create_edit_1440x900.png` | 新建 / 编辑班级弹窗的编辑态截图（学期 / 年级 / 类型 / 班主任只读） | `review` |
+| `evidence/stage2-prototype/class-batch_1440x900.png` | 批量生成班级弹窗截图（含 3 行「已存在，跳过」预览） | `review` |
+| `evidence/stage2-prototype/class-copy_1440x900.png` | 复制班级弹窗截图（源班级 9 项摘要，3 项标为不复制） | `review` |
+| `evidence/stage2-prototype/class-leader_1440x900.png` | 指定 / 变更班主任弹窗截图（变更态，含当前班主任与任职历史） | `review` |
+| `evidence/stage2-prototype/class-leader_none_1440x900.png` | 指定班主任弹窗截图（未指定班主任的空态） | `review` |
+| `evidence/stage2-prototype/class-dialogs_verify-results.png` | 班级四个弹窗 harness 结果清单（CDL-01 ~ CDL-36 全部通过） | `review` |
+| `prototypes/functional/v1/pages/class-roster-add.html` | 编班（添加学生）独立页（批次 2-3d：左学生池 + 右待加入清单、冲突整体拒绝并给调班入口） | `review` |
+| `prototypes/functional/v1/pages/class-move-students.html` | 批量迁学生独立页（批次 2-3d：选学生 → 选目标班 → 影响预览 → 执行） | `review` |
+| `prototypes/functional/v1/page-specs/class-roster-add.md` | 编班页页面规格（字段裁剪、勾选可用性、冲突与整体拒绝、调班入口） | `review` |
+| `prototypes/functional/v1/page-specs/class-move-students.md` | 批量迁学生页页面规格（可迁移范围、跨年级与停用班级校验、影响预览） | `review` |
+| `prototypes/functional/v1/page-specs/class-transfer.md` | 调班弹窗与移出确认片段的页面规格（两块都随班级详情交付） | `review` |
+| `evidence/stage2-prototype/verify-class-roster.html` | 编班 / 批量迁学生 / 移出与调班交互验证 harness（三个 iframe，34 条断言，RA-01 ~ RA-13、MV-01 ~ MV-10、TR-01 ~ TR-11） | `review` |
+| `evidence/stage2-prototype/class-roster-add_1440x900.png` | 编班页截图（默认态：15 行学生池 + 空待加入清单） | `review` |
+| `evidence/stage2-prototype/class-roster-add_conflict_1440x900.png` | 编班页截图（冲突态：待加入清单标红 + 冲突清单整体拒绝 + 调班入口） | `review` |
+| `evidence/stage2-prototype/class-move-students_1440x900.png` | 批量迁学生页截图（默认态：源班级 2 名在读全选 + 影响预览） | `review` |
+| `evidence/stage2-prototype/class-move-students_stopped_1440x900.png` | 批量迁学生页截图（目标班级已停用时的拦截形态） | `review` |
+| `evidence/stage2-prototype/class-detail_dialog-remove_1440x900.png` | 移出确认片段截图（带入 2 名成员） | `review` |
+| `evidence/stage2-prototype/class-detail_dialog-transfer_1440x900.png` | 调班弹窗截图（从编班页冲突行深链接带入该生与源 / 目标班级） | `review` |
+| `evidence/stage2-prototype/class-roster_verify-results.png` | 编班 / 批量迁学生 / 移出与调班 harness 结果清单（RA/MV/TR 共 34 条全部通过） | `review` |
+| `evidence/stage2-prototype/class-list_*.png`（21 张，见 README 第 1 节） | `CR-011` 后按新口径重拍：页头汇总「在读 148 人」、高二 (1) 班在读 1；含 verify-results | `review` |
+| `evidence/stage2-prototype/verify-promotion-list.html` | 升班任务列表交互验证 harness（PRM-01 ~ PRM-36，36 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/promotion-list_*.png`（14 张，见 README 第 6 节） | 升班任务列表截图：3 个分辨率 + 4 种角色形态 + 2 类筛选 + 取消确认片段 + 4 类状态 | `review` |
+| `evidence/stage2-prototype/interaction-verification.md` | 原型交互可点性验证报告（批次 2-2b-2b 的 GL-01 ~ GL-38、D-060 的 RD-01 ~ RD-06、批次 2-3e-s1 的 PRM-01 ~ PRM-36、批次 2-3e-s2 的 PC-01 ~ PC-22 实测结果） | `review` |
+| `prototypes/functional/v1/pages/class-list.html` | 班级管理列表 | `planned` |
+| `prototypes/functional/v1/pages/class-detail.html` | 班级详情与花名册 | `planned` |
+| `prototypes/functional/v1/pages/promotion-list.html` | 升班任务列表（批次 2-3e-s1 首件样板：12 行样例覆盖 8 个状态 + 同页确认片段 DIALOG-PRM-CANCEL） | `review` |
+| `prototypes/functional/v1/page-specs/promotion-list.md` | 升班任务列表页面规格（状态驱动的行内动作、权限与数据范围、样例数据、自查） | `review` |
+| `prototypes/functional/v1/pages/promotion-create.html` | 升班向导第一步：选择源 / 目标学年学期 + 目标年级班级齐备性 + 未结束任务冲突 + 在读规模与耗时预估（批次 2-3e-s2） | `review` |
+| `prototypes/functional/v1/page-specs/promotion-create.md` | 升班向导第一步页面规格（四档校验样例、三类前置校验、权限与数据范围、自查） | `review` |
+| `prototypes/functional/v1/pages/subject-list.html` | 学科与配置（列表 + 5 个弹窗：新建 / 编辑 / 选科角色 / 学段启用 / 批量初始化，批次 2-6c） | `review` |
+| `evidence/stage2-prototype/verify-subject.html` | 学科与配置交互验证 harness（SB-01 ~ SB-14 共 14 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/subject-list_*.png`、`evidence/stage2-prototype/subject-dialog-*_1440x900.png`、`evidence/stage2-prototype/subject_verify-results.png` | 批次 2-6c 截图（见 README 第 6.9 节） | `review` |
+| `prototypes/functional/v1/pages/stream-config.html` | 选科配置（开放期 / 截止时间 / 逾期审批 + 固定规则卡片，批次 2-7a） | `review` |
+| `prototypes/functional/v1/pages/stream-selection.html` | 学生选科（首选二选一 + 再选 4 选 2 + 当前结果与提交，批次 2-7a） | `review` |
+| `prototypes/functional/v1/pages/stream-list.html` | 选科清单（8 列 6 行 + PAGE-STR-HISTORY 时间线区块 + PAGE-STR-CHANGE 变更申请弹窗，批次 2-7a） | `review` |
+| `evidence/stage2-prototype/verify-stream.html` | 选科三页交互验证 harness（ST-01 ~ ST-24 共 26 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/stream-*.png`、`evidence/stage2-prototype/stream_verify-results.png` | 批次 2-7a 截图（12 张，见 README 第 6.10 节） | `review` |
+| `docs/00-governance/change-requests/CR-016.md` | 变更申请：选科模块的字段补登记、权限码对齐与组合分布统计载体修正（已批准并执行，关联 D-080 / GAP-057） | `review` |
+| `docs/10-prd/06-field-dictionary.yaml` | 新增 `stream_open_from` / `overdue_requires_approval` / `subject_combination` 三个字段（CR-016） | `review` |
+| `prototypes/functional/v1/pages/stream-stat.html` | 组合分布统计（总览统计卡 + 纯 CSS 柱条 + 组合明细与学科选择人数 + 下钻，批次 2-7b） | `review` |
+| `prototypes/functional/v1/pages/stream-approve.html` | 变更审批待办 + 审批弹窗 DIALOG-STR-APPROVE（批次 2-7b） | `review` |
+| `prototypes/functional/v1/pages/stream-generate-class.html` | 按组合生成教学班四步向导（预览 / 执行 / 核对，批次 2-7b） | `review` |
+| `prototypes/functional/v1/pages/teaching-class-list.html` | 教学班管理 + 详情抽屉 DRAWER-CLS-TEACHING + 停用确认 DIALOG-TCL-DISABLE（批次 2-7b） | `review` |
+| `evidence/stage2-prototype/verify-stream-b.html` | 批次 2-7b 交互验证 harness（SB-01 ~ SB-37 共 37 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/stream-stat_*.png`、`evidence/stage2-prototype/stream-approve_*.png`、`evidence/stage2-prototype/stream-generate-class_*.png`、`evidence/stage2-prototype/teaching-class-list_*.png`、`evidence/stage2-prototype/stream-b_verify-results.png` | 批次 2-7b 截图（13 张，见 README 第 6.11 节） | `review` |
+| `docs/00-governance/change-requests/CR-017.md` | 变更申请：教学班管理的交付面补齐（片段登记 / 3 个 operationId / 创建入口唯一，已批准并执行，关联 D-081 / GAP-058） | `review` |
+| `prototypes/functional/v1/pages/audit-log-list.html` | 操作日志 + 详情抽屉 + 对象变更时间线区块 + 导出配置弹窗（批次 2-8） | `review` |
+| `prototypes/functional/v1/pages/audit-ops-access.html` | 运营访问记录（租户侧自助查询，批次 2-8） | `review` |
+| `prototypes/functional/v1/pages/audit-sensitive-access.html` | 敏感数据访问记录（批次 2-8） | `review` |
+| `prototypes/functional/v1/pages/audit-security-event.html` | 登录与安全事件（批次 2-8） | `review` |
+| `prototypes/functional/v1/pages/audit-archive.html` | 归档管理 + 运维提醒（批次 2-8） | `review` |
+| `evidence/stage2-prototype/verify-audit.html` | 批次 2-8 交互验证 harness（AU-01 ~ AU-28 共 28 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/audit-*.png` | 批次 2-8 截图（9 张，见 README 第 6.12 节） | `review` |
+| `docs/00-governance/change-requests/CR-018.md` | 变更申请：审计模块补登记日志导出配置片段（已批准并执行，关联 D-082 / GAP-059） | `review` |
+| `prototypes/functional/v1/pages/async-task-list.html` | 异步任务列表 + 任务详情抽屉 + 导出配置弹窗（批次 2-9） | `review` |
+| `prototypes/functional/v1/pages/dead-letter-task.html` | 死信任务 + 重放确认片段（批次 2-9） | `review` |
+| `evidence/stage2-prototype/verify-task.html` | 批次 2-9 交互验证 harness（AT-01 ~ AT-22 共 22 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/async-task-list_*.png`、`evidence/stage2-prototype/dead-letter-task_*.png`、`evidence/stage2-prototype/task_verify-results.png` | 批次 2-9 截图（9 张，见 README 第 6.13 节） | `review` |
+| `docs/00-governance/change-requests/CR-019.md` | 变更申请：导入导出模块补登记死信重放确认片段（已批准并执行，关联 D-083 / GAP-060） | `review` |
+| `prototypes/functional/v1/pages/school-campus.html` | 校区管理（列表 + 页内表单 + 停用二次确认，批次 2-6b） | `review` |
+| `prototypes/functional/v1/pages/school-init.html` | 开通初始化四步向导（`initSchoolBaseline` 幂等，批次 2-6b） | `review` |
+| `prototypes/functional/v1/pages/term-list.html` | 学年列表 + 新建学年 / 设为当前 / 归档三个弹窗（批次 2-6b） | `review` |
+| `prototypes/functional/v1/pages/term-terms.html` | 学期管理（表格 + 页内表单 + 删除二次确认 + 引用检查，批次 2-6b） | `review` |
+| `evidence/stage2-prototype/verify-org-config.html` | 批次 2-6b 交互验证 harness（CP / SI / TL / TT 共 23 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/school-campus_*.png`、`evidence/stage2-prototype/school-init_*.png`、`evidence/stage2-prototype/term-list_*.png`、`evidence/stage2-prototype/term-terms_*.png`、`evidence/stage2-prototype/org-config_verify-results.png` | 批次 2-6b 截图（见 README 第 6.8 节） | `review` |
+| `prototypes/functional/v1/pages/school-list.html` | 学校管理列表 + 详情抽屉 + 4 个弹窗（批次 2-6a） | `review` |
+| `prototypes/functional/v1/page-specs/school.md` | 学校管理页面规格（覆盖 6 个页面编号） | `review` |
+| `docs/00-governance/change-requests/CR-015.md` | 变更申请：批次 2-6 的 9 条表单浮层由抽屉改为弹窗（已批准并执行，关联 D-077） | `review` |
+| `evidence/stage2-prototype/verify-school.html` | 学校管理交互验证 harness（SC-01 ~ SC-16 共 16 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/school-list_*.png`、`evidence/stage2-prototype/school-detail_1440x900.png`、`evidence/stage2-prototype/school-dialog-*_1440x900.png`、`evidence/stage2-prototype/school_verify-results.png` | 批次 2-6a 截图（见 README 第 6.7 节） | `review` |
+| `prototypes/functional/v1/pages/student-cross-transfer.html` | 跨校转学（转出校视角）四步向导（批次 2-5） | `review` |
+| `prototypes/functional/v1/pages/promotion-transfer.html` | 跨校转学（转入校视角）四步向导：待接收 → 接收 → 报到（批次 2-5） | `review` |
+| `prototypes/functional/v1/pages/promotion-history.html` | 异动历史列表（追加式记录 + 跨页登记入口，批次 2-5） | `review` |
+| `prototypes/functional/v1/page-specs/student-detail.md` | 学生详情抽屉与变更记录区块的规格 | `review` |
+| `prototypes/functional/v1/page-specs/student-status.md` | 学籍异动弹窗的规格（状态机、阶段与审批约束） | `review` |
+| `prototypes/functional/v1/page-specs/student-transfer.md` | 调班弹窗的规格 | `review` |
+| `prototypes/functional/v1/page-specs/promotion-change.md` | 升班口径异动登记的规格（同字段同接口） | `review` |
+| `prototypes/functional/v1/page-specs/cross-school-transfer.md` | 跨校转学两侧向导的规格 | `review` |
+| `prototypes/functional/v1/page-specs/promotion-history.md` | 异动历史的规格 | `review` |
+| `evidence/stage2-prototype/verify-student-module.html` | 批次 2-5 交互验证 harness（SM / CT / PT / PH 共 28 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/student-detail_*.png`、`evidence/stage2-prototype/student-cross-transfer_*.png`、`evidence/stage2-prototype/promotion-transfer_*.png`、`evidence/stage2-prototype/promotion-history_*.png`、`evidence/stage2-prototype/student-module_verify-results.png` | 批次 2-5 截图（见 README 第 6.6 节） | `review` |
+| `evidence/stage2-prototype/verify-promotion-create.html` | 升班向导第一步交互验证 harness（PC-01 ~ PC-22，22 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/promotion-create_*.png`（11 张，见 README 第 6.2 节） | 升班向导第一步截图：3 个分辨率 + 3 档校验样例 + 无权限形态 + 3 类状态 + harness 结果 | `review` |
+| `prototypes/functional/v1/pages/promotion-preview.html` | 升班向导第二步（预览与调整：双栏源班级 + 逐学生明细，含 PAGE-PRM-ADJUST 片段） | `review` |
+| `prototypes/functional/v1/pages/promotion-validate.html` | 升班向导第三步（通过 / 警告 / 错误三分类 + 下钻 + 标记跳过 + 执行被拦） | `review` |
+| `prototypes/functional/v1/pages/promotion-execute.html` | 升班向导第四步（进度条 + 四类计数 + 处理时间线 + 排队中形态） | `review` |
+| `prototypes/functional/v1/pages/promotion-result.html` | 升班结果与重试（四类清单 + 只重试失败项 / 继续执行剩余项 + 结果导出） | `review` |
+| `prototypes/functional/v1/page-specs/promotion-preview.md` | 升班向导第二步的页面规格（双栏结构、字段、动作、状态、权限、样例、自查） | `review` |
+| `prototypes/functional/v1/page-specs/promotion-adjust.md` | 调整学生去向弹窗的页面规格（处理方式驱动必填项、留级去向口径） | `review` |
+| `prototypes/functional/v1/page-specs/promotion-validate.md` | 升班校验结果页的页面规格（三分类、下钻、标记跳过） | `review` |
+| `prototypes/functional/v1/page-specs/promotion-execute.md` | 执行与进度页的页面规格（进度、计数、时间线、排队中） | `review` |
+| `prototypes/functional/v1/page-specs/promotion-result.md` | 执行结果与重试页的页面规格（四类清单、重试、导出） | `review` |
+| `prototypes/functional/v1/assets/wizard.css` | 向导类页面共用样式（步骤条、sticky 操作条、分组清单、数值卡、进度条、弹窗清单行） | `review` |
+| `evidence/stage2-prototype/verify-promotion-wizard.html` | 升班向导第 2 ~ 4 步交互验证 harness（PV / ADJ / VD / EX / RS / ALL 共 39 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/promotion-preview_*.png`（5 张）、`promotion-validate_*.png`（3 张）、`promotion-execute_*.png`（3 张）、`promotion-result_*.png`（4 张）、`evidence/stage2-prototype/promotion-wizard_verify-results.png` | 升班向导第 2 ~ 4 步截图（见 README 第 6.4 节）；含调整弹窗、只读角色、错误下钻与四类清单切换 | `review` |
+| `prototypes/functional/v1/pages/import-wizard.html` | 导入向导（四步 + 模板 / 校验 / 执行三个区块，`ACT-IMP-001` ~ `010`） | `review` |
+| `prototypes/functional/v1/pages/student-import.html` | 学生批量导入向导（14 列模板，不含学号列） | `review` |
+| `prototypes/functional/v1/pages/teacher-import.html` | 教师批量导入向导（9 列模板，工号租户内唯一） | `review` |
+| `prototypes/functional/v1/pages/class-import-roster.html` | 编班表导入向导（4 列，含目标班级列；列清单见 GAP-056） | `review` |
+| `prototypes/functional/v1/page-specs/import-wizard.md` | 导入向导页面规格（覆盖 PAGE-IMP-WIZARD + 三个区块） | `review` |
+| `prototypes/functional/v1/page-specs/student-import.md` | 学生批量导入的页面规格（14 列模板、不含学号列、学号对照表） | `review` |
+| `prototypes/functional/v1/page-specs/teacher-import.md` | 教师批量导入的页面规格（9 列模板、工号租户内唯一） | `review` |
+| `prototypes/functional/v1/page-specs/class-import-roster.md` | 编班表导入的页面规格（4 列、两阶段、幂等、冲突修正提示） | `review` |
+| `prototypes/functional/v1/pages/login.html` | 登录（不套管理外壳；多校切换、s + 学号、首登改密、锁定口径） | `review` |
+| `prototypes/functional/v1/pages/403.html` | 无权限页（不降级为全量，`DS-DENY-03` / `NFR-SEC-05`） | `review` |
+| `prototypes/functional/v1/page-specs/error-pages.md` | 异常页规格（403 / 404 / 500 合并一份规格，三页都指向同一口径） | `review` |
+| `prototypes/functional/v1/pages/404.html` | 页面不存在（指向 navigation.yaml 的页面注册表） | `review` |
+| `prototypes/functional/v1/pages/500.html` | 服务异常（请求编号 + 错误码 + 不产生部分写入） | `review` |
+| `prototypes/functional/v1/page-specs/login.md` | 登录页规格（三类账号形态、四类状态、D-039 口径） | `review` |
+| `evidence/stage2-prototype/verify-import-login.html` | 批次 2-4 交互验证 harness（IMP / MS / MT / MC / LG / ER / ALL 共 30 条断言全部通过） | `review` |
+| `evidence/stage2-prototype/import-wizard*.png`（5 张）、`evidence/stage2-prototype/student-import*.png`（2 张）、`evidence/stage2-prototype/teacher-import_1440x900.png`、`evidence/stage2-prototype/class-import-roster_1440x900.png`、`evidence/stage2-prototype/login_*.png`（2 张）、`evidence/stage2-prototype/error-403_1440x900.png`、`evidence/stage2-prototype/error-404_1440x900.png`、`evidence/stage2-prototype/error-500_1440x900.png`、`evidence/stage2-prototype/import-login_verify-results.png` | 批次 2-4 截图（见 README 第 6.5 节）；含四步向导、模块导入、登录页与三个异常页 | `review` |
 
 ---
 

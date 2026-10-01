@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>异步任务 — 业务原型 v1（批次 2-9）</title>
+<link rel="stylesheet" href="../assets/prototype-shell.css" />
+<script src="../assets/prototype-shell.js"></script>
+<style>
+  #task-table td.actions { white-space: nowrap; }
+  .progress-track { width: 110px; height: 10px; border-radius: 5px; background: #eef2f7; overflow: hidden; display: inline-block; vertical-align: middle; }
+  .progress-fill { height: 100%; border-radius: 5px; background: var(--app-primary); }
+</style>
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-IMP-TASK-LIST"
+  data-menu-page="PAGE-IMP-TASK-LIST"
+  data-breadcrumb="平台与运维 / 异步任务 / 任务列表"
+  data-tab="异步任务"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-IMP-TASK-LIST" data-role="page">
+
+  <div data-normal-view>
+
+  <div class="page-head">
+    <h1>异步任务</h1>
+    <span class="scope-hint" data-role="scope-hint">数据范围：本校（DS-04）· 默认只看本人任务</span>
+    <span class="el-tag primary">2026-2027 学年 第一学期</span>
+    <span class="el-tag info">记录保留 90 天</span>
+  </div>
+
+  <div class="alert info">
+    <span>三条口径</span>
+    <span>① 默认只显示<b>本人发起</b>的任务（<span class="mono">REQ-IMP-032</span>）；
+      ② 进度自动刷新失败时降级为手动刷新并给出提示（<span class="mono">REQ-IMP-035</span>）；
+      ③ 任务结果的查询与下载都<b>重新解析数据范围</b>，不复用发起时的判定（<span class="mono">REQ-IMP-036</span> / <span class="mono">DS-DENY-04</span>）。</span>
+  </div>
+
+  <section class="card" data-block="toolbar" data-role="toolbar" data-component="el-card.hover">
+    <div class="card-header">
+      <div class="toolbar" data-demo-state-target="toolbar">
+        <select class="select" data-role="filter" data-action-id="ACT-TASK-001" data-field="task_type" data-default="">
+          <option value="">全部任务类型</option>
+          <option value="import">导入</option>
+          <option value="export">导出</option>
+          <option value="promotion">升班</option>
+        </select>
+        <select class="select" data-role="filter" data-action-id="ACT-TASK-002" data-field="task_status" data-default="">
+          <option value="">全部状态</option>
+          <option value="queued">排队中</option>
+          <option value="running">执行中</option>
+          <option value="succeeded">已完成</option>
+          <option value="partial_failed">部分失败</option>
+          <option value="failed">失败</option>
+          <option value="cancelled">已取消</option>
+        </select>
+        <input class="input" type="date" value="2026-09-01" data-role="filter" data-action-id="ACT-TASK-003" data-field="begin_time" title="开始时间" />
+        <span class="cell-secondary">—</span>
+        <input class="input" type="date" value="2026-10-01" data-role="filter" data-action-id="ACT-TASK-004" data-field="end_time" title="结束时间" />
+        <input class="input" type="search" placeholder="按任务编号" data-role="filter" data-action-id="ACT-TASK-005" data-field="keyword" />
+      </div>
+      <div class="header-right">
+        <button class="btn" data-role="action" data-action-id="ACT-TASK-006" data-component="el-switch" id="btn-autorefresh"
+                data-demo-message="已开启自动刷新（每 10 秒）。若自动刷新失败会自动降级为手动刷新并提示（REQ-IMP-035）。">自动刷新：开</button>
+        <button class="btn" data-role="action" data-action-id="ACT-TASK-007" data-component="el-button"
+                data-permission="data.export:export" data-nav="PAGE-IMP-EXPORT" data-overlay="dialog">导出任务清单</button>
+        <button class="btn" data-role="action" data-action-id="ACT-TASK-008" data-component="el-button"
+                data-permission="data.async_task:read" data-api="listAsyncTask" data-demo-message="已刷新任务列表（默认只看本人任务）。">刷新</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" data-block="list" data-role="section" data-component="el-card.hover">
+    <div class="card-header"><h2>任务列表</h2><span class="el-tag info">listAsyncTask</span></div>
+    <div class="card-body">
+      <div class="table-scroll">
+        <table class="el-table" id="task-table" data-role="table" data-component="el-table" data-api="listAsyncTask"
+               style="min-width:1110px;table-layout:fixed">
+          <thead>
+            <tr>
+              <th data-role="column" data-field="task_no" style="width:190px">任务编号</th>
+              <th data-role="column" data-field="task_type" style="width:90px">类型</th>
+              <th data-role="column" data-field="task_status" style="width:100px">状态</th>
+              <th data-role="column" data-field="progress_percent" style="width:150px">进度</th>
+              <th data-role="column" data-field="owner" style="width:100px">发起人</th>
+              <th data-role="column" data-field="create_time" style="width:150px">发起时间</th>
+              <th data-role="column" data-field="elapsed" style="width:110px">耗时</th>
+              <th class="actions" style="width:220px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="task-rows">
+            <tr data-role="row" data-task="TASK-20260930-000331" data-status="queued" data-type="export" data-type-cn="导出"
+                data-owner="郑雅琴" data-time="2026-09-30 10:12" data-elapsed="0 秒" data-batch="—" data-file="—">
+              <td class="mono">TASK-20260930-000331</td><td>导出</td><td><span class="el-tag info">排队中</span></td>
+              <td><span class="progress-track"><span class="progress-fill" style="width:0"></span></span> 排队第 2 位</td>
+              <td>郑雅琴</td><td class="mono">2026-09-30 10:12</td><td>0 秒</td><td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-task="TASK-20260928-000312" data-status="running" data-type="import" data-type-cn="导入"
+                data-owner="郑雅琴" data-time="2026-09-28 10:25" data-elapsed="1 分 12 秒" data-batch="IMP-20260928-0001" data-file="—">
+              <td class="mono">TASK-20260928-000312</td><td>导入</td><td><span class="el-tag warning">执行中</span></td>
+              <td><span class="progress-track"><span class="progress-fill" style="width:62%"></span></span> 74 / 118 行（62%）</td>
+              <td>郑雅琴</td><td class="mono">2026-09-28 10:25</td><td>1 分 12 秒</td><td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-task="TASK-20260927-000288" data-status="succeeded" data-type="export" data-type-cn="导出"
+                data-owner="郑雅琴" data-time="2026-09-27 16:40" data-elapsed="18 秒" data-batch="—" data-file="导出结果.xlsx · 88012 · 2026-10-04 16:41 到期">
+              <td class="mono">TASK-20260927-000288</td><td>导出</td><td><span class="el-tag success">已完成</span></td>
+              <td><span class="progress-track"><span class="progress-fill" style="width:100%"></span></span> 100%</td>
+              <td>郑雅琴</td><td class="mono">2026-09-27 16:40</td><td>18 秒</td><td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-task="TASK-20260926-000255" data-status="partial_failed" data-type="promotion" data-type-cn="升班"
+                data-owner="郑雅琴" data-time="2026-09-26 09:10" data-elapsed="4 分 05 秒" data-batch="PRM-20260926-0001" data-file="失败明细.csv · 88020 · 2026-10-03 09:14 到期">
+              <td class="mono">TASK-20260926-000255</td><td>升班</td><td><span class="el-tag warning">部分失败</span></td>
+              <td><span class="progress-track"><span class="progress-fill" style="width:100%"></span></span> 100%（失败 3 行）</td>
+              <td>郑雅琴</td><td class="mono">2026-09-26 09:10</td><td>4 分 05 秒</td><td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-task="TASK-20260925-000241" data-status="failed" data-type="import" data-type-cn="导入"
+                data-owner="邓丽娟" data-time="2026-09-25 15:02" data-elapsed="32 秒" data-batch="IMP-20260925-0007" data-file="—">
+              <td class="mono">TASK-20260925-000241</td><td>导入</td><td><span class="el-tag danger">失败</span></td>
+              <td><span class="progress-track"><span class="progress-fill" style="width:18%"></span></span> 18%（已中断）</td>
+              <td>邓丽娟</td><td class="mono">2026-09-25 15:02</td><td>32 秒</td><td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-task="TASK-20260924-000226" data-status="cancelled" data-type="export" data-type-cn="导出"
+                data-owner="何文博" data-time="2026-09-24 11:18" data-elapsed="0 秒" data-batch="—" data-file="—">
+              <td class="mono">TASK-20260924-000226</td><td>导出</td><td><span class="el-tag">已取消</span></td>
+              <td><span class="progress-track"><span class="progress-fill" style="width:0"></span></span> 已取消</td>
+              <td>何文博</td><td class="mono">2026-09-24 11:18</td><td>0 秒</td><td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-task="TASK-20260922-000198" data-status="succeeded" data-type="export" data-type-cn="导出"
+                data-owner="邓丽娟" data-time="2026-09-22 09:05" data-elapsed="12 秒" data-batch="—" data-file="高一 (1) 班花名册.xlsx · 88002 · 2026-09-29 09:06 到期">
+              <td class="mono">TASK-20260922-000198</td><td>导出</td><td><span class="el-tag success">已完成</span></td>
+              <td><span class="progress-track"><span class="progress-fill" style="width:100%"></span></span> 100%</td>
+              <td>邓丽娟</td><td class="mono">2026-09-22 09:05</td><td>12 秒</td><td class="actions"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination"><span class="total">共 46 个任务（本人发起）· 当前第 1 页 · 每页 20 条（本页显示 7 行样例）</span></div>
+      <div class="legend" style="margin-top:8px"><span>状态推进：<span class="mono">queued → running → succeeded / partial_failed / failed</span>；
+        <span class="mono">queued</span> 状态可取消（<span class="mono">REQ-IMP-034</span>）；失败与部分失败可重试，重试沿用原批次号与幂等键、不产生重复数据（<span class="mono">REQ-IMP-037</span>）。</span></div>
+    </div>
+  </section>
+
+  </div>
+
+  <!-- PAGE-IMP-TASK-DETAIL：任务详情抽屉 -->
+  <div class="overlay" data-demo="panel" data-demo-panel="PAGE-IMP-TASK-DETAIL" data-overlay-kind="drawer">
+    <div class="drawer" data-role="drawer" data-component="el-drawer" data-size="md" data-page="PAGE-IMP-TASK-DETAIL">
+      <div class="drawer-header"><h2>任务详情 · <span id="task-detail-no">TASK-20260928-000312</span></h2><button class="close-x" data-close-panel="PAGE-IMP-TASK-DETAIL" title="关闭">✕</button></div>
+      <div class="drawer-body">
+        <section class="card" data-block="basic" data-role="section">
+          <div class="card-header"><h3>基本信息</h3><span class="el-tag info">getAsyncTask</span></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="field" data-field="task_type"><label>任务类型</label><div class="readonly-value" id="task-d-type">导入</div></div>
+              <div class="field" data-field="task_status"><label>状态</label><div class="readonly-value" id="task-d-status">执行中</div></div>
+              <div class="field" data-field="batch_no"><label>批次号（幂等键）</label><div class="readonly-value mono" id="task-d-batch">IMP-20260928-0001</div></div>
+              <div class="field" data-field="elapsed"><label>已耗时</label><div class="readonly-value" id="task-d-elapsed">1 分 12 秒</div></div>
+              <div class="field" data-field="owner"><label>发起人</label><div class="readonly-value" id="task-d-owner">郑雅琴</div></div>
+              <div class="field" data-field="create_time"><label>发起时间</label><div class="readonly-value mono" id="task-d-time">2026-09-28 10:25</div></div>
+              <div class="field span-2" data-field="params_summary"><label>参数摘要</label><div class="readonly-value">模块：学生 · 模板：student-v3 · 文件：学生名单_20260928.xlsx · 总行数 120</div></div>
+            </div>
+          </div>
+        </section>
+        <section class="card" data-block="progress" data-role="section" style="margin-top:12px">
+          <div class="card-header"><h3>进度与结果文件</h3><span class="el-tag info">REQ-IMP-033</span></div>
+          <div class="card-body">
+            <div class="progress-track" style="width:100%"><span class="progress-fill" style="width:62%"></span></div>
+            <div class="legend" style="margin-top:8px"><span>74 / 118 行（62%）· 成功 74 · 失败 0 · 跳过 0；结果文件在任务完成后生成，下载走短时签名（<span class="mono">REQ-IMP-042</span>）。</span></div>
+            <div class="form-grid" style="margin-top:10px">
+              <div class="field span-2" data-field="result_file">
+                <label>结果文件 / 失败明细</label>
+                <div class="readonly-value" id="task-d-file">—</div>
+                <div class="hint">文件有效期 7 天，到期清理；下载会写审计（含文件、对象、下载人、时间、来源 IP，<span class="mono">REQ-IMP-043</span>）。</div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="card" data-block="note" data-role="section" style="margin-top:12px">
+          <div class="card-header"><h3>口径提醒</h3><span class="el-tag warning">重新解析范围</span></div>
+          <div class="card-body">
+            <div class="alert warning">
+              <span>下载前会重新解析数据范围</span>
+              <span>任务结果的查询与下载都不复用发起时的判定（<span class="mono">REQ-IMP-036</span> / <span class="mono">DS-DENY-04</span>）：
+                如果你的范围在任务完成后被收窄，结果里超出范围的部分不会再返回。</span>
+            </div>
+          </div>
+        </section>
+      </div>
+      <div class="drawer-footer">
+        <button class="btn" data-role="action" data-action-id="ACT-TASK-020" data-component="el-button" data-close-panel="PAGE-IMP-TASK-DETAIL">关闭</button>
+        <button class="btn" data-role="action" data-action-id="ACT-TASK-021" data-component="el-button"
+                data-permission="data.async_task:read" data-api="retryAsyncTask" data-validate-on-submit
+                data-demo-message="已重新入队：沿用原批次号与幂等键，不产生重复数据（REQ-IMP-037）。">重试（二次确认）</button>
+        <button class="btn primary" data-role="action" data-action-id="ACT-TASK-022" data-component="el-button.primary"
+                data-permission="data.async_task:read" data-api="downloadTaskResult"
+                data-demo-message="已生成短时签名下载链接（与当前登录态绑定，过期或跨账号访问一律拒绝，REQ-IMP-042）；本次下载已写审计。">下载结果文件</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE-IMP-EXPORT：导出配置弹窗（列选择 + 明文开关） -->
+  <div class="overlay" data-demo="panel" data-demo-panel="PAGE-IMP-EXPORT" data-overlay-kind="dialog">
+    <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="md" data-page="PAGE-IMP-EXPORT" data-block="form">
+      <div class="dialog-header"><h2>导出配置</h2><span class="el-tag info">exportData</span><button class="close-x" data-close-panel="PAGE-IMP-EXPORT" title="关闭">✕</button></div>
+      <div class="dialog-body">
+        <div class="alert info">
+          <span>同步与异步分流</span>
+          <span>行数 ≤ 2000 同步下载；超过 2000 行转异步任务（可在本页的任务列表里看进度，<span class="mono">REQ-IMP-028</span> 同口径）。</span>
+        </div>
+        <div class="form-grid">
+          <div class="field" data-field="format">
+            <label>文件格式<span class="required">*</span></label>
+            <div class="radio-row">
+              <label><input type="radio" name="exp-format" value="xlsx" checked /> xlsx</label>
+              <label><input type="radio" name="exp-format" value="csv" /> csv</label>
+            </div>
+          </div>
+          <div class="field" data-field="row_estimate">
+            <label>预计行数</label>
+            <div class="readonly-value">4,286 行 → 将转异步任务</div>
+          </div>
+          <div class="field span-2" data-field="columns">
+            <label>列选择<span class="required">*</span></label>
+            <div class="radio-row">
+              <label><input type="checkbox" name="exp-col" value="basic" checked /> 基本信息（学号 / 姓名 / 性别）</label>
+              <label><input type="checkbox" name="exp-col" value="class" checked /> 班级与年级</label>
+              <label><input type="checkbox" name="exp-col" value="guardian" /> 监护人信息</label>
+              <label><input type="checkbox" name="exp-col" value="contact" /> 联系方式</label>
+            </div>
+            <div class="error-text"></div>
+            <div class="hint">至少选择一列；未勾选的列不会出现在导出文件里（列选择与权限一一对应）。</div>
+          </div>
+          <div class="field span-2" data-field="plaintext">
+            <label>明文导出</label>
+            <div class="radio-row">
+              <label><input type="radio" name="exp-plain" value="masked" checked /> 掩码（默认，证件号与手机号打码）</label>
+              <label><input type="radio" name="exp-plain" value="plain" /> 明文（需要 read_sensitive + 明文导出授权）</label>
+            </div>
+            <div class="hint">明文导出会额外写审计，并记录「是否含明文」（<span class="mono">BR-IMP-012</span> / <span class="mono">NFR-AUDIT-03</span>）。</div>
+          </div>
+        </div>
+        <div class="alert danger state-hidden" data-validate-summary>表单校验未通过：请修正下方标红的字段后重试。</div>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn" data-role="action" data-action-id="ACT-TASK-010" data-component="el-button" data-close-panel="PAGE-IMP-EXPORT">取消</button>
+        <button class="btn primary" data-role="action" data-action-id="ACT-TASK-011" data-component="el-button.primary"
+                data-permission="data.export:export" data-api="exportData" data-validate-on-submit data-after-success="close-panel"
+                data-demo-message="已提交导出：4,286 行超过 2000 行，已转异步任务并在任务列表里生成新任务；导出行为写审计（含是否含明文）。">开始导出</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="state-hidden" data-demo-state-panel="loading">
+    <section class="card"><div class="card-body">
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:190px"></div><div class="skeleton-bar" style="width:150px"></div><div class="skeleton-bar" style="width:100px"></div></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:190px"></div><div class="skeleton-bar" style="width:150px"></div><div class="skeleton-bar" style="width:100px"></div></div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="empty">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">📭</div>
+        <div class="title">你还没有发起过任务</div>
+        <div class="desc">默认只显示本人发起的任务（REQ-IMP-032）；导入与导出任务在发起后会自动出现在这里。</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-TASK-030" data-component="el-button.primary.plain"
+                data-permission="data.import:import" data-nav="PAGE-IMP-WIZARD">去发起导入</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="error">
+    <section class="card"><div class="card-body">
+      <div class="state-block error">
+        <div class="icon">⚠️</div>
+        <div class="title">任务超时无响应</div>
+        <div class="desc">重试不会放宽数据范围；若任务已进入死信，请运维在死信任务页重放（REQ-IMP-038）。</div>
+        <div class="req-id">请求编号 REQ-20261001-002520 · 错误码 EDU-IMP-5006</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-TASK-008" data-component="el-button.primary.plain" data-api="listAsyncTask">重试</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="forbidden">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">🔒</div>
+        <div class="title">你没有查看异步任务的权限</div>
+        <div class="desc">需要 <span class="mono">data.async_task:read</span>（教务主任 / 年级主任 / 班主任只看本人任务、平台运营看全平台）；任课教师无导入导出权限（<span class="mono">DS-07</span>）。无权限时不进入空白页（<span class="mono">DS-DENY-03</span>）。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="queued">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⏳</div>
+        <div class="title">任务排队中</div>
+        <div class="desc">超出并发配额的导入任务进入排队而不直接失败（REQ-IMP-049）：同一用户 1 个、同一学校 3 个（默认）；排队位置可在列表的进度列看到。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="partial">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⚠️</div>
+        <div class="title">执行部分失败</div>
+        <div class="desc">成功与失败分列，失败明细可下载；重试沿用原批次号与幂等键，不产生重复数据（REQ-IMP-037）。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="submitting">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⏳</div>
+        <div class="title">正在提交</div>
+        <div class="desc">按钮已置 loading 并禁用，禁止重复提交。</div>
+      </div>
+    </div></section>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  // 导入导出 PRD 6.1 / 5.2：教务主任、年级主任、班主任可看本人任务；平台运营看全平台；超管全放行；任课教师无权限。
+  var READ_ROLES = ['super_admin', 'academic_director', 'grade_leader', 'homeroom', 'platform_ops'];
+  var RETRY_ROLES = ['super_admin', 'academic_director'];
+  var CANCEL_ROLES = ['super_admin', 'academic_director'];
+  var EXPORT_ROLES = ['super_admin', 'academic_director', 'school_leader', 'grade_leader', 'homeroom'];
+  function q(sel) { return document.querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function currentRole() { return window.PrototypeShell.currentRole(); }
+
+  function rowActions() {
+    var role = currentRole();
+    var canRead = READ_ROLES.indexOf(role) !== -1;
+    var canRetry = RETRY_ROLES.indexOf(role) !== -1;
+    var canCancel = CANCEL_ROLES.indexOf(role) !== -1;
+    qa('#task-rows tr').forEach(function (row) {
+      var box = row.querySelector('td.actions');
+      box.innerHTML = '';
+      box.style.color = '';
+      box.style.fontSize = '';
+      if (!canRead) { box.textContent = '只读'; box.style.color = 'var(--app-text-secondary)'; box.style.fontSize = '12px'; return; }
+      var status = row.getAttribute('data-status');
+      var mk = function (id, text, extra) {
+        var b = document.createElement('button');
+        b.className = 'btn link';
+        b.textContent = text;
+        b.setAttribute('data-role', 'row-action');
+        b.setAttribute('data-action-id', id);
+        b.setAttribute('data-component', 'el-button.link.primary');
+        b.setAttribute('data-permission', 'data.async_task:read');
+        Object.keys(extra || {}).forEach(function (k) { b.setAttribute(k, extra[k]); });
+        box.appendChild(b);
+        box.appendChild(document.createTextNode(' '));
+      };
+      mk('ACT-TASK-023', '详情', { 'data-nav': 'PAGE-IMP-TASK-DETAIL', 'data-overlay': 'drawer' });
+      if ((status === 'failed' || status === 'partial_failed') && canRetry) mk('ACT-TASK-024', '重试', { 'data-api': 'retryAsyncTask' });
+      if (status === 'queued' && canCancel) mk('ACT-TASK-025', '取消', { 'data-api': 'cancelAsyncTask' });
+      if (status === 'succeeded' || status === 'partial_failed') mk('ACT-TASK-026', '下载', { 'data-api': 'downloadTaskResult' });
+      if ((status === 'failed' || status === 'partial_failed') && !canRetry) {
+        box.insertAdjacentHTML('beforeend', '<span class="cell-secondary" style="font-size:12px">只读</span>');
+      }
+    });
+    q('[data-action-id="ACT-TASK-007"]').classList.toggle('role-hidden', EXPORT_ROLES.indexOf(role) === -1);
+  }
+
+  document.addEventListener('click', function (event) {
+    var node = event.target;
+    if (node.closest('input, select, textarea, label')) return;
+    // 列选择是复选框组，外壳的 validateForm 只看 [data-required]，这里补一条「至少选择一列」的页内校验
+    var start = node.closest('[data-action-id="ACT-TASK-011"]');
+    if (start) {
+      var checkedCols = qa('[data-demo-panel="PAGE-IMP-EXPORT"] input[name="exp-col"]').filter(function (c) { return c.checked; });
+      var colField = q('[data-demo-panel="PAGE-IMP-EXPORT"] [data-field="columns"]');
+      var summary = q('[data-demo-panel="PAGE-IMP-EXPORT"] [data-validate-summary]');
+      var bad = checkedCols.length === 0;
+      colField.classList.toggle('has-error', bad);
+      var err = colField.querySelector('.error-text');
+      if (err) err.textContent = bad ? '至少选择一列后再导出' : '';
+      if (summary) summary.classList.toggle('state-hidden', !bad);
+      if (bad) { event.stopPropagation(); return; }
+    }
+    var btn = node.closest('[data-action-id="ACT-TASK-023"]');
+    if (!btn) return;
+    var row = btn.closest('tr');
+    q('#task-detail-no').textContent = row.getAttribute('data-task');
+    q('#task-d-type').textContent = row.getAttribute('data-type-cn');
+    q('#task-d-status').textContent = row.getAttribute('data-status');
+    q('#task-d-batch').textContent = row.getAttribute('data-batch');
+    q('#task-d-elapsed').textContent = row.getAttribute('data-elapsed');
+    q('#task-d-owner').textContent = row.getAttribute('data-owner');
+    q('#task-d-time').textContent = row.getAttribute('data-time');
+    q('#task-d-file').textContent = row.getAttribute('data-file');
+  });
+
+  var lastRole = '';
+  function applyRoleState(role) {
+    if (role === lastRole) return;
+    lastRole = role;
+    rowActions();
+    if (READ_ROLES.indexOf(role) === -1) window.PrototypeShell.applyState('forbidden');
+    else if (window.PrototypeShell.currentState() === 'forbidden') window.PrototypeShell.applyState('normal');
+    var hint = q('[data-role="scope-hint"]');
+    if (role === 'academic_director') hint.textContent = '数据范围：本校（DS-04）· 默认只看本人任务（可重试 / 取消）';
+    else if (role === 'grade_leader') hint.textContent = '数据范围：本人负责年级（DS-05）· 任务中心只看本人任务';
+    else if (role === 'homeroom') hint.textContent = '数据范围：本人担任班主任的班级（DS-06）· 任务中心只看本人任务';
+    else if (role === 'platform_ops') hint.textContent = '数据范围：全平台（DS-01）· 只读；导出需独立授权';
+    else if (role === 'super_admin') hint.textContent = '数据范围：全平台 · 不受限制（BR-ORG-014）';
+    else hint.textContent = '数据范围：本校（DS-04）· 无异步任务权限（DS-07 任课教师无导入导出权限）';
+  }
+
+  rowActions();
+  document.addEventListener('prototype:params', function () { lastRole = ''; applyRoleState(currentRole()); });
+  new MutationObserver(function () { applyRoleState(currentRole()); })
+    .observe(document.body, { attributes: true, attributeFilter: ['data-current-role'] });
+  applyRoleState(currentRole());
+})();
+</script>
+</body>
+</html>

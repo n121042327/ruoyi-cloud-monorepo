@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>升班校验结果 — 业务原型 v1（批次 2-3e-s4）</title>
+<link rel="stylesheet" href="../assets/prototype-shell.css" />
+<link rel="stylesheet" href="../assets/wizard.css" />
+<script src="../assets/prototype-shell.js"></script>
+<style>
+  #vd-table td.actions { white-space: nowrap; }
+  .chip-group .chip.on { font-weight: 600; }
+</style>
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-PRM-VALIDATE"
+  data-menu-page="PAGE-PRM-LIST"
+  data-breadcrumb="教育管理 / 升班与学籍 / 升班校验结果"
+  data-tab="升班校验结果"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-PRM-VALIDATE" data-role="page" data-filter="all">
+
+  <div class="page-head">
+    <h1>升班校验结果</h1>
+    <span class="scope-hint" data-role="scope-hint">数据范围：本校 · 2026-2027 学年 第一学期</span>
+    <span class="el-tag primary">向导 3 / 4</span>
+    <span class="el-tag info">PRM-20261001-0022 · 校验中</span>
+    <span class="el-tag danger" id="vd-block-tag">存在 1 个错误项</span>
+  </div>
+
+  <section class="card" data-block="steps" data-role="wizard" data-component="el-steps">
+    <div class="card-body">
+      <div class="steps wizard-steps">
+        <div class="step done" data-role="nav" data-nav="PAGE-PRM-CREATE" title="选择学年学期"><span class="idx">1</span><span>选择学年学期</span></div>
+        <div class="step-line"></div>
+        <div class="step done" data-role="nav" data-nav="PAGE-PRM-PREVIEW" title="上一步：预览与调整"><span class="idx">2</span><span>预览与调整</span></div>
+        <div class="step-line"></div>
+        <div class="step on"><span class="idx">3</span><span>校验</span></div>
+        <div class="step-line"></div>
+        <div class="step" data-role="nav" data-nav="PAGE-PRM-EXECUTE" title="执行与进度"><span class="idx">4</span><span>执行与结果</span></div>
+      </div>
+      <div class="legend" style="margin:0">
+        <span>校验维度（<span class="mono">REQ-PRM-022</span>）：目标年级存在、目标班级存在、目标班级属于目标学年学期、学生当前在读、学生无重复去向。
+          结果分三类（<span class="mono">REQ-PRM-023</span>）：<b>通过 / 警告 / 错误</b>；<b>容量超限只给警告、不阻塞执行</b>（<span class="mono">REQ-PRM-024</span> / <span class="mono">BR-CLASS-005</span>）。</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="alert info state-hidden" data-role-visible="grade_leader">
+    <span>年级主任视图 · 只读</span>
+    <span>你可以查看本年级明细的校验结论，但不能标记跳过、不能确认执行（<span class="mono">CR-012</span>）。</span>
+  </div>
+  <div class="alert warning state-hidden" data-role-visible="super_admin">
+    <span>超级管理员 · 不受限制</span>
+    <span>可标记跳过与确认执行；执行仍异步且幂等（<span class="mono">REQ-PRM-028</span>），并写入审计。</span>
+  </div>
+
+  <div data-normal-view>
+    <section class="card" data-block="summary" data-role="section" data-component="el-card.hover">
+      <div class="card-header">
+        <h2>校验结论</h2>
+        <span class="el-tag info">共 7 名学生的升班明细</span>
+        <div class="header-right">
+          <button class="btn" data-role="action" data-action-id="ACT-PRM-030" data-component="el-button"
+                  data-permission="promotion.batch:update" data-api="validatePromotionTask"
+                  data-role-visible="academic_director,super_admin"
+                  data-demo-message="已重新校验：按 REQ-PRM-022 的五个维度解析，结论与明细已刷新。">重新校验</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="stat-row">
+          <div class="stat-card pass">
+            <div class="label">通过</div>
+            <div class="value"><span id="vd-pass">5</span><span class="unit">条</span></div>
+          </div>
+          <div class="stat-card warn">
+            <div class="label">警告（不阻塞）</div>
+            <div class="value"><span id="vd-warn">1</span><span class="unit">条</span></div>
+          </div>
+          <div class="stat-card error">
+            <div class="label">错误（阻塞执行）</div>
+            <div class="value"><span id="vd-error">1</span><span class="unit">条</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="label">已标记跳过</div>
+            <div class="value"><span id="vd-skip">0</span><span class="unit">条</span></div>
+          </div>
+        </div>
+        <div class="alert danger" id="vd-block-alert" style="margin-top:12px">
+          <span>存在错误项，执行被阻止</span>
+          <span id="vd-block-text">1 条错误：朱书瑶的目标班级「2027 级 高二 (3) 班」不存在（该班级未在目标学年学期创建）。
+            必须先修正去向或对该学生<b>标记跳过</b>，否则不允许执行（<span class="mono">REQ-PRM-025</span>）。</span>
+          <div class="alert-actions">
+            <button class="btn" data-role="action" data-action-id="ACT-PRM-029" data-component="el-button"
+                    data-permission="promotion.batch:update" data-nav="PAGE-PRM-PREVIEW" data-role-visible="academic_director,super_admin">回到预览修正</button>
+          </div>
+        </div>
+        <div class="alert warning">
+          <span>容量只警告</span>
+          <span>孙悠然的目标班级「2027 级 高三 (1) 班」当前 46 人、容量 45：容量超限只提示，不阻塞执行（<span class="mono">REQ-PRM-024</span> / <span class="mono">BR-CLASS-005</span>）。</span>
+        </div>
+        <div class="legend" style="margin:0">
+          <span>校验结果可下钻到具体学生清单（<span class="mono">REQ-PRM-026</span>）；明细里的「标记跳过」只改该学生的 <span class="mono">result_type=skip</span>，不改学生数据。</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" data-block="detail" data-role="section" data-component="el-card.hover">
+      <div class="card-header">
+        <h2>按维度下钻明细</h2>
+        <div class="toolbar" data-demo-state-target="toolbar" id="vd-chips">
+          <button class="chip on" data-role="action" data-action-id="ACT-PRM-031" data-component="el-button" data-filter-level="all">全部 7</button>
+          <button class="chip" data-role="action" data-action-id="ACT-PRM-031" data-component="el-button" data-filter-level="passed">通过 5</button>
+          <button class="chip" data-role="action" data-action-id="ACT-PRM-031" data-component="el-button" data-filter-level="warning">警告 1</button>
+          <button class="chip" data-role="action" data-action-id="ACT-PRM-031" data-component="el-button" data-filter-level="error">错误 1</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-scroll">
+          <table class="el-table" id="vd-table" data-role="table" data-component="el-table" data-api="validatePromotionTask"
+                 style="min-width:1000px;table-layout:fixed">
+            <thead>
+              <tr>
+                <th data-role="column" data-field="student_no" style="width:130px">学号</th>
+                <th data-role="column" data-field="student_name" style="width:90px">姓名</th>
+                <th data-role="column" data-field="source_class_id" style="width:150px">源班级</th>
+                <th data-role="column" data-field="target_class_id" style="width:190px">目标班级 / 去向</th>
+                <th data-role="column" data-field="status" style="width:96px">校验级别</th>
+                <th data-role="column" data-field="error_msg" style="width:230px">校验说明</th>
+                <th class="actions" style="width:112px">操作</th>
+              </tr>
+            </thead>
+            <tbody id="vd-rows">
+              <tr data-role="row" data-student="2026000001" data-level="passed">
+                <td class="mono">2026000001</td><td>王梓萱</td><td>2026 级 高一 (1) 班</td>
+                <td>2027 级 高二 (1) 班</td><td><span class="el-tag success">通过</span></td>
+                <td>目标年级与班级均存在，班级属于目标学年学期，学生在读</td><td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-student="2026000002" data-level="passed">
+                <td class="mono">2026000002</td><td>李俊逸</td><td>2026 级 高一 (1) 班</td>
+                <td>2027 级 高二 (1) 班</td><td><span class="el-tag success">通过</span></td>
+                <td>同班 2 人去往同一目标班级，无重复去向</td><td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-student="2026000004" data-level="passed">
+                <td class="mono">2026000004</td><td>赵一诺</td><td>2026 级 高一 (2) 班</td>
+                <td>2027 级 高二 (2) 班</td><td><span class="el-tag success">通过</span></td>
+                <td>转班的目标班级有效（REQ-PRM-017）</td><td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-student="2026000006" data-level="passed">
+                <td class="mono">2026000006</td><td>吴雨桐</td><td>2026 级 高一 (2) 班</td>
+                <td>2027-2028 学年 高一（同学段同名年级）</td><td><span class="el-tag success">通过</span></td>
+                <td>留级去向由同学段同名年级推导，不写目标班级（BR-PROMO-006）</td><td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-student="2026000101" data-level="error">
+                <td class="mono">2026000101</td><td>朱书瑶</td><td>2026 级 高一 (3) 班</td>
+                <td><span class="cell-empty">2027 级 高二 (3) 班（不存在）</span></td>
+                <td><span class="el-tag danger">错误</span></td>
+                <td>目标班级不存在：该班级未在目标学年学期创建，请修正去向或标记跳过（REQ-PRM-022 / 025）</td>
+                <td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-student="2025000002" data-level="warning"
+                  data-role-visible="academic_director,super_admin,school_leader,platform_ops">
+                <td class="mono">2025000002</td><td>孙悠然</td><td>2025 级 高二 (1) 班</td>
+                <td>2027 级 高三 (1) 班</td><td><span class="el-tag warning">警告</span></td>
+                <td>目标班级超容量（46 / 45）：只提示，不阻塞执行（REQ-PRM-024）</td><td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-student="2024000001" data-level="passed"
+                  data-role-visible="academic_director,super_admin,school_leader,platform_ops">
+                <td class="mono">2024000001</td><td>马嘉懿</td><td>2024 级 高三 (1) 班</td>
+                <td><span class="cell-empty">—（毕业）</span></td><td><span class="el-tag success">通过</span></td>
+                <td>毕业年级：结果为毕业，不生成下一学年班级关系（REQ-PRM-015）</td><td class="actions"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="legend" style="margin:8px 0 0">
+          <span id="vd-filter-note">当前显示：全部 7 条（年级主任只看到本人负责年级的 5 条）。</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card sticky-actions" data-block="footer" data-role="section">
+      <div class="footer-bar" data-demo-state-target="toolbar">
+        <button class="btn" data-role="action" data-action-id="ACT-PRM-029" data-component="el-button"
+                data-permission="promotion.batch:update" data-nav="PAGE-PRM-PREVIEW">上一步：预览与调整</button>
+        <div class="grow"></div>
+        <span class="footer-note" id="vd-footer-note">存在 1 个错误项：需先修正去向或标记跳过（REQ-PRM-025）。</span>
+        <button class="btn primary" id="btn-execute" data-role="action" data-action-id="ACT-PRM-033" data-component="el-button.primary"
+                data-permission="promotion.batch:update" data-api="executePromotionTask"
+                data-role-visible="academic_director,super_admin" data-blocked="true"
+                data-demo-message="已提交执行：立即返回任务编号 PRM-20261001-0022，界面不阻塞（REQ-PRM-027）；执行按幂等键「任务编号 + 学生 + 目标学年学期」写入（REQ-PRM-029）。">确认执行（异步）</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="state-hidden" data-demo-state-panel="loading">
+    <section class="card"><div class="card-body">
+      <div class="legend" style="margin:0 0 8px"><span>正在校验 7 条明细…</span></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:130px"></div><div class="skeleton-bar" style="width:180px"></div><div class="skeleton-bar" style="width:90px"></div></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:130px"></div><div class="skeleton-bar" style="width:180px"></div><div class="skeleton-bar" style="width:90px"></div></div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="empty">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">📭</div>
+        <div class="title">没有可校验的升班明细</div>
+        <div class="desc">该任务还没有生成预览明细，或全部明细都已被标记跳过。请先回到第 2 步生成预览（<span class="mono">REQ-PRM-013</span>）。</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-PRM-029" data-component="el-button.primary.plain"
+                data-permission="promotion.batch:update" data-nav="PAGE-PRM-PREVIEW">回到预览与调整</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="error">
+    <section class="card"><div class="card-body">
+      <div class="state-block error">
+        <div class="icon">⚠️</div>
+        <div class="title">校验失败</div>
+        <div class="desc">无法读取目标年级与班级清单，执行被阻止（不会以「跳过校验」的方式继续）。</div>
+        <div class="req-id">请求编号 REQ-20261001-000455 · 错误码 EDU-PRM-5021 · 数据截止 2026-10-01 10:06</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-PRM-030" data-component="el-button.primary.plain"
+                data-permission="promotion.batch:update" data-api="validatePromotionTask"
+                data-demo-message="已重新校验：按 REQ-PRM-022 的五个维度解析，结论与明细已刷新。">重试校验</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="forbidden">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">🔒</div>
+        <div class="title">你没有查看升班校验的权限</div>
+        <div class="desc">校验结果需要 <span class="mono">promotion.batch:read</span>；班主任与租户管理员没有该权限，且无权限时不降级为全量（<span class="mono">DS-DENY-03</span>）。</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-PRM-043" data-component="el-button.primary.plain"
+                data-permission="promotion.batch:read" data-nav="PAGE-PRM-LIST">返回任务列表（只读）</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="submitting">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⏳</div>
+        <div class="title">正在提交</div>
+        <div class="desc">按钮已置 loading 并禁用；执行是异步任务，提交后立即返回任务编号（<span class="mono">REQ-PRM-027</span>）。</div>
+      </div>
+    </div></section>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var READ_ROLES = ['super_admin', 'academic_director', 'school_leader', 'grade_leader', 'platform_ops'];
+  var WRITE_ROLES = ['super_admin', 'academic_director'];
+
+  function q(sel) { return document.querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function currentRole() { return window.PrototypeShell.currentRole(); }
+  function isWriter() { return WRITE_ROLES.indexOf(currentRole()) !== -1; }
+  function visibleRows() {
+    return qa('#vd-rows tr').filter(function (r) { return !r.classList.contains('role-hidden'); });
+  }
+  function levelFilter() { return q('#page-root').getAttribute('data-filter') || 'all'; }
+
+  // 「标记跳过」只对错误项开放：修正是回到预览，跳过是就地放行（REQ-PRM-025）
+  function renderRowActions() {
+    qa('#vd-rows tr').forEach(function (row) {
+      var box = row.querySelector('td.actions');
+      box.innerHTML = '';
+      if (!isWriter() || row.getAttribute('data-level') === 'passed') {
+        box.textContent = isWriter() ? '—' : '只读';
+        box.style.color = 'var(--app-text-secondary)';
+        box.style.fontSize = '12px';
+        return;
+      }
+      box.style.color = '';
+      box.style.fontSize = '';
+      var btn = document.createElement('button');
+      btn.className = 'btn link';
+      btn.textContent = '标记跳过';
+      btn.setAttribute('data-role', 'row-action');
+      btn.setAttribute('data-action-id', 'ACT-PRM-032');
+      btn.setAttribute('data-component', 'el-button.link.primary');
+      btn.setAttribute('data-permission', 'promotion.batch:update');
+      btn.setAttribute('data-api', 'updatePromotionItem');
+      btn.setAttribute('data-student', row.getAttribute('data-student'));
+      btn.setAttribute('data-demo-message', '已把该学生标记为「跳过」：result_type=skip，本次执行不再处理他（REQ-PRM-017 / 025）。');
+      box.appendChild(btn);
+    });
+  }
+
+  function refresh() {
+    var rows = visibleRows();
+    var pass = 0, warn = 0, err = 0;
+    rows.forEach(function (row) {
+      var lv = row.getAttribute('data-level');
+      if (lv === 'passed') pass += 1;
+      if (lv === 'warning') warn += 1;
+      if (lv === 'error') err += 1;
+    });
+    q('#vd-pass').textContent = String(pass);
+    q('#vd-warn').textContent = String(warn);
+    q('#vd-error').textContent = String(err);
+    q('#vd-block-tag').textContent = err ? ('存在 ' + err + ' 个错误项') : '无错误项，可以执行';
+    q('#vd-block-tag').className = err ? 'el-tag danger' : 'el-tag success';
+    q('#vd-block-alert').classList.toggle('state-hidden', err === 0);
+    var btn = q('#btn-execute');
+    btn.setAttribute('data-blocked', err ? 'true' : 'false');
+    btn.title = err ? '存在错误项：请先修正去向或标记跳过（REQ-PRM-025）' : '';
+    q('#vd-footer-note').textContent = err
+      ? ('存在 ' + err + ' 个错误项：需先修正去向或标记跳过（REQ-PRM-025）。')
+      : '无错误项（警告不阻塞），可以执行（REQ-PRM-024）。';
+    q('#vd-filter-note').textContent = '当前显示：' + filterLabel() + '（年级主任只看到本人负责年级的 ' + rows.length + ' 条）。';
+    updateScopeHint();
+  }
+
+  function filterLabel() {
+    var f = levelFilter();
+    if (f === 'all') return '全部 ' + visibleRows().length + ' 条';
+    var label = { passed: '通过', warning: '警告', error: '错误' }[f];
+    var n = visibleRows().filter(function (r) { return r.getAttribute('data-level') === f; }).length;
+    return label + ' ' + n + ' 条';
+  }
+
+  function applyFilter(level) {
+    q('#page-root').setAttribute('data-filter', level);
+    qa('#vd-chips .chip').forEach(function (chip) {
+      chip.classList.toggle('on', chip.getAttribute('data-filter-level') === level);
+    });
+    qa('#vd-rows tr').forEach(function (row) {
+      row.classList.toggle('state-hidden', level !== 'all' && row.getAttribute('data-level') !== level);
+    });
+    refresh();
+  }
+
+  function updateScopeHint() {
+    var hint = q('[data-role="scope-hint"]');
+    var role = currentRole();
+    if (role === 'grade_leader') { hint.textContent = '数据范围：本人负责年级（2026 级 高一 · DS-05）· 只读，仅 5 条明细'; return; }
+    if (role === 'platform_ops') { hint.textContent = '数据范围：平台运营协助视图 · 只读并留痕（DS-01）'; return; }
+    if (role === 'super_admin') { hint.textContent = '数据范围：全平台 · 不受限制 · 操作强制留痕（BR-ORG-014）'; return; }
+    if (role === 'school_leader') { hint.textContent = '数据范围：本校（DS-04）· 只读（升班无审批环节）'; return; }
+    if (role === 'academic_director') { hint.textContent = '数据范围：本校（DS-04）· 可标记跳过与确认执行'; return; }
+    hint.textContent = '数据范围：无——当前角色没有 promotion.batch:read';
+  }
+
+  document.addEventListener('click', function (event) {
+    var chip = event.target.closest('#vd-chips .chip');
+    if (chip) { applyFilter(chip.getAttribute('data-filter-level')); return; }
+  });
+
+  q('#btn-execute').addEventListener('click', function (event) {
+    if (q('#page-root').getAttribute('data-sample') === 'empty') return;
+    var errCount = Number(q('#vd-error').textContent) || 0;
+    if (errCount > 0) {
+      event.stopPropagation();
+      window.PrototypeShell.toast('存在 ' + errCount + ' 个错误项：请先修正去向或对该学生标记跳过，再确认执行（REQ-PRM-025）。', 'warning');
+    }
+  });
+
+  var lastRole = '';
+  function applyRoleState(role) {
+    if (role === lastRole) return;
+    lastRole = role;
+    renderRowActions();
+    applyFilter(levelFilter());
+    if (READ_ROLES.indexOf(role) === -1) window.PrototypeShell.applyState('forbidden');
+    else if (window.PrototypeShell.currentState() === 'forbidden') window.PrototypeShell.applyState('normal');
+  }
+
+  document.addEventListener('prototype:params', function (event) {
+    if (event.detail && event.detail.level) applyFilter(event.detail.level);
+  });
+
+  renderRowActions();
+  refresh();
+  new MutationObserver(function () { applyRoleState(currentRole()); })
+    .observe(document.body, { attributes: true, attributeFilter: ['data-current-role'] });
+})();
+</script>
+</body>
+</html>

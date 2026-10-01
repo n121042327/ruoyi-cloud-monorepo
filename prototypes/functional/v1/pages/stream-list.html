@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>选科清单 — 业务原型 v1（批次 2-7a）</title>
+<link rel="stylesheet" href="../assets/prototype-shell.css" />
+<script src="../assets/prototype-shell.js"></script>
+<style>
+  #str-table td.actions { white-space: nowrap; }
+</style>
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-STR-LIST"
+  data-menu-page="PAGE-STR-LIST"
+  data-breadcrumb="教育管理 / 选科与教学班 / 选科清单"
+  data-tab="选科清单"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-STR-LIST" data-role="page">
+
+  <div class="page-head">
+    <h1>选科清单</h1>
+    <span class="scope-hint" data-role="scope-hint">数据范围：本校（DS-04）· 只读（变更走申请）</span>
+    <span class="el-tag primary">2026-2027 学年 第一学期 · 共 12 条选科</span>
+    <span class="el-tag warning">3 条待审批</span>
+  </div>
+
+  <div class="alert info">
+    <span>读口径</span>
+    <span>本页是选科的<b>只读清单</b>：学生本人改选科在「学生选科」页，截止后或已生效结果需要修改时走<b>变更申请 → 校级管理员审批</b>（<span class="mono">BR-STREAM-005</span>）；
+      教务主任不直接改学生选科，保证「选科结果只有一个写入路径」。</span>
+  </div>
+
+  <section class="card" data-block="toolbar" data-role="toolbar" data-component="el-card.hover">
+    <div class="card-header">
+      <div class="toolbar" data-demo-state-target="toolbar">
+        <button class="btn" data-role="action" data-action-id="ACT-STR-020" data-component="el-button"
+                data-permission="stream.selection:read" data-nav="PAGE-STR-STAT"
+                title="组合分布统计（独立页，图表 + 表格）">组合分布统计</button>
+        <button class="btn" data-role="action" data-action-id="ACT-STR-021" data-component="el-button"
+                data-permission="stream.config:read" data-nav="PAGE-STR-CONFIG">选科配置</button>
+        <button class="btn" data-role="action" data-action-id="ACT-STR-022" data-component="el-button"
+                data-permission="data.export:export" data-api="exportStreamSelection"
+                data-demo-message="已按当前筛选导出选科清单（含组合分布）；集团与运营方导出需逐次授权并留痕。">导出</button>
+      </div>
+      <div class="header-right">
+        <button class="btn" data-role="action" data-action-id="ACT-COM-005" data-component="el-button" data-api="listStreamSelection"
+                data-demo-message="已刷新选科清单。">刷新</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div data-normal-view>
+        <div class="table-scroll">
+          <table class="el-table" id="str-table" data-role="table" data-component="el-table" data-api="listStreamSelection"
+                 style="min-width:1080px;table-layout:fixed">
+            <thead>
+              <tr>
+                <th data-role="column" data-field="student_no" style="width:120px">学号</th>
+                <th data-role="column" data-field="student_name" style="width:90px">姓名</th>
+                <th data-role="column" data-field="grade_id" style="width:130px">年级 / 班级</th>
+                <th data-role="column" data-field="primary_subject_code" style="width:90px">首选</th>
+                <th data-role="column" data-field="secondary_subject_codes" style="width:170px">再选</th>
+                <th data-role="column" data-field="combination" style="width:190px">组合</th>
+                <th data-role="column" data-field="status" style="width:110px">状态</th>
+                <th class="actions" style="width:180px">操作</th>
+              </tr>
+            </thead>
+            <tbody id="str-rows">
+              <tr data-role="row" data-student="2026000001" data-status="已生效" data-role-code="live">
+                <td class="mono">2026000001</td><td>王梓萱</td><td>2026 级 高一 · (1) 班</td><td>物理</td><td>化学 · 生物</td>
+                <td>物理 + 化学 + 生物</td><td><span class="el-tag success">已生效</span></td><td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-student="2026000002" data-status="已生效" data-role-code="live">
+                <td class="mono">2026000002</td><td>李俊逸</td><td>2026 级 高一 · (1) 班</td><td>历史</td><td>思想政治 · 地理</td>
+                <td>历史 + 政治 + 地理</td><td><span class="el-tag success">已生效</span></td><td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-student="2026000004" data-status="待审批" data-role-code="pending"
+                  data-request="SC-2026-0031">
+                <td class="mono">2026000004</td><td>赵一诺</td><td>2026 级 高一 · (2) 班</td><td>物理</td><td>化学 · 地理</td>
+                <td>物理 + 化学 + 地理</td><td><span class="el-tag warning">待审批</span></td><td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-student="2026000101" data-status="已生效" data-role-code="live">
+                <td class="mono">2026000101</td><td>朱书瑶</td><td>2026 级 高一 · (3) 班</td><td>历史</td><td>化学 · 生物</td>
+                <td>历史 + 化学 + 生物</td><td><span class="el-tag success">已生效</span></td><td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-student="2025000002" data-status="待审批" data-role-code="pending"
+                  data-request="SC-2026-0032">
+                <td class="mono">2025000002</td><td>孙悠然</td><td>2025 级 高二 · (1) 班</td><td>物理</td><td>生物 · 地理</td>
+                <td>物理 + 生物 + 地理</td><td><span class="el-tag warning">待审批</span></td><td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-student="2024000001" data-status="已生效" data-role-code="live">
+                <td class="mono">2024000001</td><td>马嘉懿</td><td>2024 级 高三 · (1) 班</td><td>历史</td><td>生物 · 地理</td>
+                <td>历史 + 生物 + 地理</td><td><span class="el-tag success">已生效</span></td><td class="actions"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination"><span class="total">共 12 条选科 · 当前第 1 页 · 每页 20 条（本页显示 6 行样例）</span></div>
+      </div>
+
+      <!-- PAGE-STR-HISTORY：选科历史区块（追加式，不可删除） -->
+      <section class="card" data-block="history" data-page="PAGE-STR-HISTORY" data-role="section" style="margin-top:12px" data-normal-view>
+        <div class="card-header"><h3>选科历史</h3><span class="el-tag info">追加式 · listStreamHistory</span></div>
+        <div class="card-body">
+          <ul class="timeline">
+            <li><div class="tl-head"><b>赵一诺</b><span class="el-tag warning">变更申请</span><span class="cell-secondary">2026-10-09 20:14</span></div>
+              <div>物理 + 化学 + 生物 → 物理 + 化学 + 地理 · 申请单 <span class="mono">SC-2026-0031</span> · 原因：地理更适合升学方向</div></li>
+            <li><div class="tl-head"><b>孙悠然</b><span class="el-tag warning">变更申请</span><span class="cell-secondary">2026-10-10 08:30</span></div>
+              <div>物理 + 化学 + 生物 → 物理 + 生物 + 地理 · 申请单 <span class="mono">SC-2026-0032</span> · 截止后提交，等待校级管理员审批</div></li>
+            <li><div class="tl-head"><b>王梓萱</b><span class="el-tag success">生效</span><span class="cell-secondary">2026-09-26 10:02</span></div>
+              <div>首次提交选科：物理 + 化学 + 生物（开放期内直接生效）</div></li>
+          </ul>
+          <div class="legend" style="margin:8px 0 0"><span>选科历史是追加式的：每次提交 / 变更的旧组合、新组合、原因、操作人与时间都保留（不可删除）。</span></div>
+        </div>
+      </section>
+    </div>
+  </section>
+
+<!-- PAGE-STR-CHANGE：发起变更申请（学生 / 班主任） -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-STR-CHANGE" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="sm" data-page="PAGE-STR-CHANGE" data-block="form">
+    <div class="dialog-header"><h2>发起选科变更申请 · <span id="str-change-name">赵一诺</span></h2><span class="el-tag warning">需审批</span><button class="close-x" data-close-panel="PAGE-STR-CHANGE" title="关闭">✕</button></div>
+    <div class="dialog-body">
+      <div class="alert info">
+        <span>变更口径</span>
+        <span>已生效的选科不能直接改写：需提交变更申请并由<b>校级管理员审批</b>（<span class="mono">BR-STREAM-005</span>）；
+          审批通过前保持原组合不变，同一学生同时只允许一条待审批申请。</span>
+      </div>
+      <div class="form-grid">
+        <div class="field" data-field="primary_subject_code">
+          <label>新的首选<span class="required">*</span></label>
+          <div class="radio-row">
+            <label><input type="radio" name="change-primary" value="physics" checked /> 物理</label>
+            <label><input type="radio" name="change-primary" value="history" /> 历史</label>
+          </div>
+        </div>
+        <div class="field" data-field="secondary_subject_codes">
+          <label>新的再选（4 选 2）<span class="required">*</span></label>
+          <div class="radio-row">
+            <label><input type="checkbox" name="change-secondary" value="chemistry" /> 化学</label>
+            <label><input type="checkbox" name="change-secondary" value="biology" /> 生物</label>
+            <label><input type="checkbox" name="change-secondary" value="politics" /> 思想政治</label>
+            <label><input type="checkbox" name="change-secondary" value="geography" checked /> 地理</label>
+          </div>
+          <div class="error-text"></div>
+        </div>
+        <div class="field span-2" data-field="reason">
+          <label>变更原因<span class="required">*</span></label>
+          <textarea class="input" rows="2" style="width:100%;min-width:100%" data-component="el-input.textarea" data-required
+                    data-required-message="请填写变更原因（至少 5 个字）" placeholder="如：结合升学方向与学科优势调整"></textarea>
+          <div class="error-text"></div>
+        </div>
+      </div>
+      <div class="alert danger state-hidden" data-validate-summary>表单校验未通过：请修正下方标红的字段后重试。</div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-STR-023" data-component="el-button" data-close-panel="PAGE-STR-CHANGE">取消</button>
+      <button class="btn primary" data-role="action" data-action-id="ACT-STR-024" data-component="el-button.primary"
+                data-permission="stream.change_request:create" data-api="addStreamChangeRequest" data-validate-on-submit
+              data-after-success="close-panel"
+              data-demo-message="已提交变更申请：进入校级管理员审批待办（PAGE-STR-APPROVE），审批通过前保持原选科不变。">提交变更申请</button>
+    </div>
+  </div>
+</div>
+
+  <div class="state-hidden" data-demo-state-panel="loading">
+    <section class="card"><div class="card-body">
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:120px"></div><div class="skeleton-bar" style="width:200px"></div><div class="skeleton-bar" style="width:90px"></div></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:120px"></div><div class="skeleton-bar" style="width:200px"></div><div class="skeleton-bar" style="width:90px"></div></div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="empty">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">📭</div>
+        <div class="title">当前条件下没有选科记录</div>
+        <div class="desc">另一档空态是「本年级还没有学生提交选科」，此时给「查看未选科学生」入口（listUnselectedStudent）。</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-STR-021" data-component="el-button.primary.plain"
+                data-permission="stream.config:read" data-nav="PAGE-STR-CONFIG">去选科配置</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="error">
+    <section class="card"><div class="card-body">
+      <div class="state-block error">
+        <div class="icon">⚠️</div>
+        <div class="title">查询失败</div>
+        <div class="desc">重试不会放宽数据范围。</div>
+        <div class="req-id">请求编号 REQ-20261001-001720 · 错误码 EDU-STR-5003</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-COM-005" data-component="el-button.primary.plain" data-api="listStreamSelection">重试</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="forbidden">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">🔒</div>
+        <div class="title">你没有选科清单的权限</div>
+        <div class="desc">需要 <span class="mono">stream.selection:read</span>（教务主任 / 校领导 / 年级主任 / 班主任，且各自按 <span class="mono">DS-04</span> / <span class="mono">DS-05</span> / <span class="mono">DS-06</span> 收敛范围）；任课教师不含选科明细（<span class="mono">REQ-STR-053</span>），租户管理员无选科教学数据范围（<span class="mono">DS-02</span>），均不降级为全量（<span class="mono">DS-DENY-03</span>）。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="submitting">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⏳</div>
+        <div class="title">正在提交</div>
+        <div class="desc">按钮已置 loading 并禁用。</div>
+      </div>
+    </div></section>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  // PRD 2.1 / 6.1：可读选科清单的是教务主任、校领导、年级主任、班主任、平台运营；
+  // 任课教师不含选科明细（REQ-STR-053），租户管理员无选科教学数据范围（DS-02）
+  var READ_ROLES = ['super_admin', 'academic_director', 'school_leader', 'grade_leader', 'homeroom', 'platform_ops'];
+  var CAN_REQUEST = ['super_admin', 'academic_director', 'homeroom'];
+  function q(sel) { return document.querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function currentRole() { return window.PrototypeShell.currentRole(); }
+
+  function rowActions() {
+    qa('#str-rows tr').forEach(function (row) {
+      var box = row.querySelector('td.actions');
+      box.innerHTML = '';
+      box.style.color = '';
+      var canRequest = CAN_REQUEST.indexOf(currentRole()) !== -1;
+      if (!canRequest || row.getAttribute('data-status') === '待审批') {
+        box.textContent = row.getAttribute('data-status') === '待审批' ? '审批中' : '只读';
+        box.style.color = 'var(--app-text-secondary)';
+        box.style.fontSize = '12px';
+        return;
+      }
+      var b = document.createElement('button');
+      b.className = 'btn link';
+      b.textContent = '发起变更';
+      b.setAttribute('data-role', 'row-action');
+      b.setAttribute('data-action-id', 'ACT-STR-025');
+      b.setAttribute('data-component', 'el-button.link.primary');
+      b.setAttribute('data-permission', 'stream.change_request:create');
+      b.setAttribute('data-nav', 'PAGE-STR-CHANGE');
+      b.setAttribute('data-overlay', 'dialog');
+      b.setAttribute('data-student', row.getAttribute('data-student'));
+      box.appendChild(b);
+    });
+  }
+
+  document.addEventListener('click', function (event) {
+    var node = event.target;
+    if (node.closest('input, select, textarea, label')) return;
+    var btn = node.closest('[data-action-id="ACT-STR-025"]');
+    if (btn) {
+      var row = btn.closest('tr');
+      q('#str-change-name').textContent = row.children[1].textContent.trim();
+      return;
+    }
+  });
+
+  var lastRole = '';
+  function applyRoleState(role) {
+    if (role === lastRole) return;
+    lastRole = role;
+    rowActions();
+    if (READ_ROLES.indexOf(role) === -1) window.PrototypeShell.applyState('forbidden');
+    else if (window.PrototypeShell.currentState() === 'forbidden') window.PrototypeShell.applyState('normal');
+    var hint = q('[data-role="scope-hint"]');
+    if (role === 'school_leader') hint.textContent = '数据范围：本校（DS-04）· 只读（审批在变更审批待办页）';
+    else if (role === 'grade_leader') hint.textContent = '数据范围：本人负责年级（DS-05）· 只读';
+    else if (role === 'homeroom') hint.textContent = '数据范围：本人担任班主任的班级（DS-06）· 可代学生发起变更';
+    else if (role === 'platform_ops') hint.textContent = '数据范围：平台运营协助视图 · 只读并留痕（DS-01）';
+    else hint.textContent = '数据范围：本校（DS-04）· 只读（变更走申请）';
+  }
+
+  rowActions();
+  new MutationObserver(function () { applyRoleState(currentRole()); })
+    .observe(document.body, { attributes: true, attributeFilter: ['data-current-role'] });
+})();
+</script>
+</body>
+</html>

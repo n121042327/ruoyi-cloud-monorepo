@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>学年学期列表 — 业务原型 v1（批次 2-6b）</title>
+<link rel="stylesheet" href="../assets/prototype-shell.css" />
+<script src="../assets/prototype-shell.js"></script>
+<style>
+  #tm-table td.actions { white-space: nowrap; }
+</style>
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-TERM-LIST"
+  data-menu-page="PAGE-TERM-LIST"
+  data-breadcrumb="组织与配置 / 学年学期 / 学年列表"
+  data-tab="学年学期"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-TERM-LIST" data-role="page">
+
+  <div class="page-head">
+    <h1>学年学期</h1>
+    <span class="scope-hint" data-role="scope-hint">数据范围：本校（DS-04）· 可写</span>
+    <span class="el-tag primary">共 3 个学年</span>
+    <span class="el-tag success" id="tm-current-tag">当前：2026-2027 学年 第一学期</span>
+  </div>
+
+  <div class="alert info">
+    <span>学年口径</span>
+    <span>学年日期必须<b>连续不重叠</b>：前一年结束日 = 后一年开始日 − 1 天（已确认 <span class="mono">RV-TERM-08</span>）；
+      归档后该学年移出新建业务的可选列表，历史数据保留（<span class="mono">REQ-TERM-030</span>）；撤销归档需租户管理员。</span>
+  </div>
+
+  <section class="card" data-block="toolbar" data-role="toolbar" data-component="el-card.hover">
+    <div class="card-header">
+      <div class="toolbar" data-demo-state-target="toolbar">
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-TERM-001" data-component="el-button.primary.plain"
+                data-permission="org.term:create" data-nav="PAGE-TERM-CREATE" data-overlay="dialog"
+                data-role-visible="tenant_admin,super_admin">新建学年</button>
+        <button class="btn" data-role="action" data-action-id="ACT-TERM-002" data-component="el-button"
+                data-permission="org.term:read" data-nav="PAGE-TERM-TERMS">学期管理</button>
+      </div>
+      <div class="header-right">
+        <button class="btn" data-role="action" data-action-id="ACT-COM-005" data-component="el-button" data-api="listAcademicYear"
+                data-demo-message="已刷新学年清单。">刷新</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div data-normal-view>
+        <div class="table-scroll">
+          <table class="el-table" id="tm-table" data-role="table" data-component="el-table" data-api="listAcademicYear"
+                 style="min-width:1080px;table-layout:fixed">
+            <thead>
+              <tr>
+                <th data-role="column" data-field="academic_year" style="width:150px">学年</th>
+                <th data-role="column" data-field="start_date" style="width:140px">开始日期</th>
+                <th data-role="column" data-field="end_date" style="width:140px">结束日期</th>
+                <th data-role="column" data-field="term_count" style="width:100px">学期数</th>
+                <th data-role="column" data-field="current_term" style="width:180px">当前学年学期</th>
+                <th data-role="column" data-field="term_status" style="width:110px">状态</th>
+                <th class="actions" style="width:260px">操作</th>
+              </tr>
+            </thead>
+            <tbody id="tm-rows">
+              <tr data-role="row" data-year="2027" data-status="planned">
+                <td>2027-2028 学年</td><td>2027-09-01</td><td>2028-07-05</td><td class="num">2</td>
+                <td><span class="cell-empty">—</span></td>
+                <td><span class="el-tag info">未开始</span></td><td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-year="2026" data-status="current">
+                <td>2026-2027 学年<span class="cell-secondary">（当前）</span></td><td>2026-09-01</td><td>2027-07-05</td><td class="num">2</td>
+                <td><span class="el-tag success">2026-2027 学年 第一学期</span></td>
+                <td><span class="el-tag success">进行中</span></td><td class="actions"></td>
+              </tr>
+              <tr data-role="row" data-year="2025" data-status="archived">
+                <td>2025-2026 学年</td><td>2025-09-01</td><td>2026-07-05</td><td class="num">2</td>
+                <td><span class="cell-empty">—</span></td>
+                <td><span class="el-tag info">已归档</span></td><td class="actions"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="legend" style="margin:8px 0 0">
+        <span>「学期管理」可查看与维护该学年的学期（含删除）：<span class="mono">PAGE-TERM-TERMS</span>；
+          「设为当前学年学期」影响新业务默认落到哪个学期；归档与撤销归档都写审计。</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- 新建学年（PAGE-TERM-CREATE，CR-015：表单浮层用弹窗） -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-TERM-CREATE" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="sm" data-page="PAGE-TERM-CREATE" data-block="form">
+    <div class="dialog-header"><h2>新建学年</h2><button class="close-x" data-close-panel="PAGE-TERM-CREATE" title="关闭">✕</button></div>
+    <div class="dialog-body">
+      <div class="form-grid">
+        <div class="field" data-field="academic_year">
+          <label>学年<span class="required">*</span></label>
+          <input class="input" style="min-width:100%" value="2028-2029" data-component="el-input" data-required data-required-message="请填写学年" />
+          <div class="error-text"></div>
+          <div class="hint">格式 YYYY-YYYY（如 2026-2027）；学年不能重叠，开始日必须等于上一学年结束日 + 1 天（RV-TERM-08）。</div>
+        </div>
+        <div class="field" data-field="start_date">
+          <label>开始日期<span class="required">*</span></label>
+          <input class="input" style="min-width:100%" type="date" value="2028-09-01" data-component="el-date-picker" data-required data-required-message="请选择开始日期" />
+          <div class="error-text"></div>
+        </div>
+        <div class="field" data-field="end_date">
+          <label>结束日期<span class="required">*</span></label>
+          <input class="input" style="min-width:100%" type="date" value="2029-07-05" data-component="el-date-picker" data-required data-required-message="请选择结束日期" />
+          <div class="error-text"></div>
+        </div>
+        <div class="field" data-field="term_count">
+          <label>学期数</label>
+          <select class="select" style="min-width:100%" data-component="el-select">
+            <option value="2" selected>2 个学期（默认）</option>
+            <option value="1">1 个学期</option>
+          </select>
+          <div class="hint">创建学年时一并生成学期；学期可在「学期管理」里调整。</div>
+        </div>
+      </div>
+      <div class="alert danger state-hidden" data-validate-summary>表单校验未通过：请修正下方标红的字段后重试。</div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-TERM-003" data-component="el-button" data-close-panel="PAGE-TERM-CREATE">取消</button>
+      <button class="btn primary" data-role="action" data-action-id="ACT-TERM-004" data-component="el-button.primary"
+              data-permission="org.term:create" data-api="addAcademicYear" data-validate-on-submit data-after-success="close-panel"
+              data-demo-message="已创建学年与学期；日期必须连续不重叠（RV-TERM-08）。">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 设为当前学年学期（PAGE-TERM-SETCURRENT） -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-TERM-SETCURRENT" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="sm" data-page="PAGE-TERM-SETCURRENT" data-block="form">
+    <div class="dialog-header"><h2>设为当前学年学期</h2><button class="close-x" data-close-panel="PAGE-TERM-SETCURRENT" title="关闭">✕</button></div>
+    <div class="dialog-body">
+      <div class="alert warning">
+        <span>影响范围</span>
+        <span>设为当前后：新建年级 / 班级 / 学生编班等业务默认落到该学期；<b>不改动历史数据</b>。
+          学生与班级的统计口径按各自学年学期计算，不受影响。</span>
+      </div>
+      <div class="field" data-field="term_id">
+        <label>目标学年学期<span class="required">*</span></label>
+        <select class="select" style="min-width:100%" data-component="el-select" data-required data-required-message="请选择学年学期">
+          <option value="202602" selected>2026-2027 学年 第二学期（2027-02-22 起）</option>
+          <option value="202601">2026-2027 学年 第一学期（当前）</option>
+        </select>
+        <div class="error-text"></div>
+      </div>
+      <div class="field" data-field="reason">
+        <label>变更原因</label>
+        <textarea class="input" rows="2" style="width:100%;min-width:100%" data-component="el-input.textarea" placeholder="如：学年切换到第二学期"></textarea>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-TERM-005" data-component="el-button" data-close-panel="PAGE-TERM-SETCURRENT">取消</button>
+      <button class="btn primary" data-role="action" data-action-id="ACT-TERM-006" data-component="el-button.primary"
+              data-permission="org.term:update" data-api="setCurrentTerm" data-validate-on-submit data-after-success="close-panel"
+              data-demo-message="已切换当前学年学期（setCurrentTerm）：新业务默认落到该学期，历史数据不变。">确认切换</button>
+    </div>
+  </div>
+</div>
+
+<!-- 学年归档（PAGE-TERM-ARCHIVE） -->
+<div class="overlay" data-demo="panel" data-demo-panel="PAGE-TERM-ARCHIVE" data-overlay-kind="dialog">
+  <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="sm" data-page="PAGE-TERM-ARCHIVE" data-block="form">
+    <div class="dialog-header"><h2>学年归档 · <span id="tm-archive-name">2025-2026 学年</span></h2><span class="el-tag danger">危险动作</span><button class="close-x" data-close-panel="PAGE-TERM-ARCHIVE" title="关闭">✕</button></div>
+    <div class="dialog-body">
+      <div class="alert warning">
+        <span>影响范围</span>
+        <span>归档后：该学年移出新建业务的可选列表（新建班级 / 编班 / 导入等），<b>历史数据与统计保留</b>；
+          撤销归档需租户管理员（<span class="mono">revokeArchiveAcademicYear</span>）。归档前会做引用检查（<span class="mono">checkTermReference</span>）。</span>
+      </div>
+      <div class="alert info" id="tm-archive-ref">
+        <span>引用检查结果</span>
+        <span>该学年仍有 <b>4 个班级</b> 与 <b>12 名在读学生</b> 关联；归档不影响这些历史数据的可查性。</span>
+      </div>
+      <div class="field" data-field="remark">
+        <label>归档原因<span class="required">*</span></label>
+        <textarea class="input" rows="2" style="width:100%;min-width:100%" data-component="el-input.textarea" data-required
+                  data-required-message="请填写归档原因（至少 5 个字）" placeholder="如：2025-2026 学年已结束，学年数据归档"></textarea>
+        <div class="error-text"></div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" data-role="action" data-action-id="ACT-TERM-007" data-component="el-button" data-close-panel="PAGE-TERM-ARCHIVE">取消</button>
+      <button class="btn danger-plain" data-role="action" data-action-id="ACT-TERM-008" data-component="el-button.danger"
+              data-permission="org.term:update" data-api="archiveAcademicYear" data-validate-on-submit data-after-success="close-panel"
+              data-demo-message="已归档该学年：移出新建业务的可选列表，历史数据保留；操作写审计。">确认归档</button>
+    </div>
+  </div>
+</div>
+
+  <div class="state-hidden" data-demo-state-panel="loading">
+    <section class="card"><div class="card-body">
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:150px"></div><div class="skeleton-bar" style="width:200px"></div><div class="skeleton-bar" style="width:80px"></div></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:150px"></div><div class="skeleton-bar" style="width:200px"></div><div class="skeleton-bar" style="width:80px"></div></div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="empty">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">📭</div>
+        <div class="title">还没有学年</div>
+        <div class="desc">新建学年时会按学期数一并生成学期；学年日期必须连续不重叠（RV-TERM-08）。</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-TERM-001" data-component="el-button.primary.plain"
+                data-permission="org.term:create" data-nav="PAGE-TERM-CREATE" data-overlay="dialog">新建学年</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="error">
+    <section class="card"><div class="card-body">
+      <div class="state-block error">
+        <div class="icon">⚠️</div>
+        <div class="title">查询失败</div>
+        <div class="desc">重试不会放宽数据范围。</div>
+        <div class="req-id">请求编号 REQ-20261001-001340 · 错误码 EDU-TERM-5003</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-COM-005" data-component="el-button.primary.plain" data-api="listAcademicYear">重试</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="forbidden">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">🔒</div>
+        <div class="title">你没有学年学期的权限</div>
+        <div class="desc">需要 <span class="mono">org.term:read</span>；无权限时不降级为全量（<span class="mono">DS-DENY-03</span>）。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="submitting">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⏳</div>
+        <div class="title">正在提交</div>
+        <div class="desc">按钮已置 loading 并禁用。</div>
+      </div>
+    </div></section>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+  var WRITE_ROLES = ['super_admin', 'tenant_admin'];
+  function q(sel) { return document.querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function currentRole() { return window.PrototypeShell.currentRole(); }
+  function isWriter() { return WRITE_ROLES.indexOf(currentRole()) !== -1; }
+
+  function rowActions() {
+    qa('#tm-rows tr').forEach(function (row) {
+      var box = row.querySelector('td.actions');
+      box.innerHTML = '';
+      box.style.color = '';
+      var terms = document.createElement('button');
+      terms.className = 'btn link';
+      terms.textContent = '学期管理';
+      terms.setAttribute('data-role', 'row-action');
+      terms.setAttribute('data-action-id', 'ACT-TERM-002');
+      terms.setAttribute('data-component', 'el-button.link.primary');
+      terms.setAttribute('data-permission', 'org.term:read');
+      terms.setAttribute('data-nav', 'PAGE-TERM-TERMS');
+      box.appendChild(terms);
+      if (isWriter() && row.getAttribute('data-status') !== 'archived') {
+        var current = document.createElement('button');
+        current.className = 'btn link';
+        current.textContent = '设为当前';
+        current.setAttribute('data-role', 'row-action');
+        current.setAttribute('data-action-id', 'ACT-TERM-009');
+        current.setAttribute('data-component', 'el-button.link.primary');
+        current.setAttribute('data-permission', 'org.term:update');
+        current.setAttribute('data-nav', 'PAGE-TERM-SETCURRENT');
+        current.setAttribute('data-overlay', 'dialog');
+        box.appendChild(current);
+      }
+      if (isWriter()) {
+        var archive = document.createElement('button');
+        archive.className = 'btn link danger';
+        archive.textContent = row.getAttribute('data-status') === 'archived' ? '撤销归档' : '归档';
+        archive.setAttribute('data-role', 'row-action');
+        archive.setAttribute('data-action-id', 'ACT-TERM-010');
+        archive.setAttribute('data-component', row.getAttribute('data-status') === 'archived' ? 'el-button.link.primary' : 'el-button.link.danger');
+        archive.setAttribute('data-permission', 'org.term:update');
+        archive.setAttribute('data-nav', 'PAGE-TERM-ARCHIVE');
+        archive.setAttribute('data-overlay', 'dialog');
+        archive.setAttribute('data-year', row.getAttribute('data-year'));
+        box.appendChild(archive);
+      }
+    });
+  }
+
+  document.addEventListener('click', function (event) {
+    var node = event.target;
+    if (node.closest('input, select, textarea, label')) return;
+    var archive = node.closest('[data-action-id="ACT-TERM-010"]');
+    if (archive) {
+      var row = archive.closest('tr');
+      q('#tm-archive-name').textContent = row.children[0].textContent.replace(/（.*?）/, '').trim();
+      return;
+    }
+  });
+
+  var lastRole = '';
+  function applyRoleState(role) {
+    if (role === lastRole) return;
+    lastRole = role;
+    rowActions();
+    if (['super_admin', 'tenant_admin', 'academic_director', 'school_leader', 'platform_ops'].indexOf(role) === -1) {
+      window.PrototypeShell.applyState('forbidden');
+    } else if (window.PrototypeShell.currentState() === 'forbidden') {
+      window.PrototypeShell.applyState('normal');
+    }
+  }
+
+  rowActions();
+  new MutationObserver(function () { applyRoleState(currentRole()); })
+    .observe(document.body, { attributes: true, attributeFilter: ['data-current-role'] });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>批次 2-6b（校区 / 开通初始化 / 学年学期）交互验证</title>
+<style>
+  body { margin: 14px; background: #fff; color: #24292f; font: 13px/1.55 Consolas, "Microsoft YaHei", monospace; }
+  h1 { font-size: 17px; margin: 0 0 8px; }
+  ol { margin: 0 0 10px; padding-left: 22px; }
+  li.ok { color: #1a7f37; }
+  li.bad { color: #c0392b; font-weight: 700; }
+  p.sum { font-weight: 700; }
+  p.sum.bad { color: #c0392b; }
+  .frames { display: flex; flex-wrap: wrap; gap: 8px; }
+  iframe { width: 700px; height: 430px; border: 1px solid #dcdfe6; }
+</style>
+</head>
+<body>
+<h1>批次 2-6b（校区管理 / 开通初始化 / 学年列表 / 学期管理）交互验证（真实事件派发）</h1>
+<ol id="results"><li>运行中…</li></ol>
+<div class="frames">
+  <iframe id="f-cp" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/school-campus.html"></iframe>
+  <iframe id="f-si" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/school-init.html"></iframe>
+  <iframe id="f-tl" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/term-list.html"></iframe>
+  <iframe id="f-tt" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/term-terms.html"></iframe>
+</div>
+<script>
+(function () {
+  'use strict';
+  var RESULTS = [];
+  var F = { cp: document.getElementById('f-cp'), si: document.getElementById('f-si'),
+            tl: document.getElementById('f-tl'), tt: document.getElementById('f-tt') };
+  function rec(id, name, pass, detail) { RESULTS.push({ id: id, name: name, pass: Boolean(pass), detail: detail || '' }); }
+  function d(k) { return F[k].contentDocument; }
+  function w(k) { return F[k].contentWindow; }
+  function q(k, sel) { return d(k).querySelector(sel); }
+  function qa(k, sel) { return Array.prototype.slice.call(d(k).querySelectorAll(sel)); }
+  function text(k, sel) { var n = q(k, sel); return n ? n.textContent.replace(/\s+/g, ' ').trim() : ''; }
+  function attr(k, sel, name) { var n = q(k, sel); return n ? n.getAttribute(name) : null; }
+  function hasClass(k, sel, cls) { var n = q(k, sel); return Boolean(n && n.classList.contains(cls)); }
+  function openPanels(k) { return qa(k, '.overlay.open').map(function (n) { return n.getAttribute('data-demo-panel'); }); }
+  function click(k, sel) { var n = q(k, sel); if (!n) throw new Error('找不到 ' + sel); n.click(); return n; }
+  function delay(k) { return new Promise(function (r) { w(k).setTimeout(r, 60); }); }
+  function role(k, code, label) {
+    var btn = qa(k, '[data-demo="role-switcher"] .pbtn').filter(function (b) { return b.textContent.trim() === label; })[0];
+    if (btn) { btn.click(); return delay(k); }
+    w(k).PrototypeShell.applyRole(code); return delay(k);
+  }
+  function frameReady(k) {
+    return new Promise(function (resolve) {
+      if (d(k) && d(k).readyState === 'complete' && d(k).querySelector('#page-root')) { resolve(); return; }
+      F[k].addEventListener('load', function () { w(k).setTimeout(resolve, 250); });
+    });
+  }
+  function allReady() { return Promise.all(Object.keys(F).map(frameReady)); }
+  function stepVisible(k, n) { return !hasClass(k, '[data-step-content="' + n + '"]', 'state-hidden'); }
+
+  var steps = [
+    function (next) {
+      // 学校 / 学年 / 学期都是租户级写权限：先把四个页面切到租户管理员（演示面板没有该按钮，走 applyRole 兜底）
+      return Promise.all([role('cp', 'tenant_admin'), role('si', 'tenant_admin'),
+                          role('tl', 'tenant_admin'), role('tt', 'tenant_admin')]).then(function () {
+        rec('ROLE-01', '四个页面对租户管理员开放写入口（新建 / 保存 / 停用 / 归档 / 学期维护）', true, 'tenant_admin 已应用');
+        next();
+      });
+    },
+    function (next) {
+      return allReady().then(function () {
+        var cols = qa('cp', '#cp-table thead th').map(function (th) { return th.textContent.trim(); });
+        rec('CP-01', '校区列表 7 列与页面规格一致（名称 / 编码 / 地址 / 负责人 / 班级数 / 状态 / 操作），3 行样例',
+          cols.length === 7 && cols[0] === '校区名称' && qa('cp', '#cp-rows tr').length === 3,
+          cols.join(' | '));
+        next();
+      });
+    },
+    function (next) {
+      var widths = qa('cp', '#cp-table thead th[style]').reduce(function (s, th) { return s + (parseInt(th.style.width, 10) || 0); }, 0);
+      rec('CP-02', '校区表格列宽之和 = min-width = 1040；页头写明校区不参与权限判定（BR-ORG-009）',
+        widths === 1040 && text('cp', '.alert').indexOf('BR-ORG-009') !== -1, '列宽之和 ' + widths);
+      next();
+    },
+    function (next) {
+      click('cp', '#btn-add');
+      return delay('cp').then(function () {
+        rec('CP-03', '「新增校区」在页内展开表单（校区是轻量对象，不再套一层浮层）',
+          !hasClass('cp', '#cp-form', 'state-hidden') && text('cp', '#cp-form-title') === '新增校区',
+          text('cp', '#cp-form-title'));
+        next();
+      });
+    },
+    function (next) {
+      var name = q('cp', '#cp-name');
+      name.value = '';
+      name.dispatchEvent(new (w('cp').Event)('change', { bubbles: true }));
+      click('cp', '[data-action-id="ACT-SCH-033"]');
+      return delay('cp').then(function () {
+        var field = name.closest('.field');
+        rec('CP-04', '未填校区名称点「保存校区」被字段级拦截；保存走 saveCampus + org.school:update',
+          field.classList.contains('has-error')
+          && attr('cp', '[data-action-id="ACT-SCH-033"]', 'data-api') === 'saveCampus'
+          && attr('cp', '[data-action-id="ACT-SCH-033"]', 'data-permission') === 'org.school:update',
+          '字段错误=' + field.classList.contains('has-error'));
+        next();
+      });
+    },
+    function (next) {
+      click('cp', '#cp-rows tr:first-child [data-action-id="ACT-SCH-037"]');
+      return delay('cp').then(function () {
+        rec('CP-05', '行内「停用」展开页内二次确认：写清影响范围且原因必填',
+          !hasClass('cp', '#cp-confirm', 'state-hidden')
+          && text('cp', '#cp-confirm-text').indexOf('不再出现在班级的可选校区中') !== -1
+          && q('cp', '#cp-reason').hasAttribute('data-required'),
+          text('cp', '#cp-confirm-text').slice(0, 50));
+        next();
+      });
+    },
+    function (next) {
+      rec('CP-06', '「确认停用」走 removeCampus（校区停用后不再出现在可选校区，历史保留）',
+        attr('cp', '#btn-do-disable', 'data-api') === 'removeCampus'
+        && attr('cp', '#btn-do-disable', 'data-permission') === 'org.school:update',
+        attr('cp', '#btn-do-disable', 'data-api'));
+      next();
+    },
+    function (next) {
+      return role('cp', 'school_leader', '校领导').then(function () {
+        var noWrite = qa('cp', '#cp-rows [data-action-id]').length === 0
+          && hasClass('cp', '#btn-add', 'role-hidden');
+        rec('CP-07', '校领导：校区列表只读（无编辑 / 停用 / 新增入口）',
+          noWrite, '无写入口=' + noWrite);
+        next();
+      });
+    },
+    function (next) {
+      rec('SI-01', '开通初始化向导默认第 1 步（学校基本信息），四步步骤条第 1 步进行中',
+        stepVisible('si', 1) && qa('si', '#si-steps .step').length === 4
+        && text('si', '#si-steps .step.on').indexOf('学校基本信息') !== -1,
+        text('si', '#si-steps .step.on'));
+      next();
+    },
+    function (next) {
+      click('si', '#btn-next');
+      return delay('si').then(function () {
+        rec('SI-02', '第 2 步列出将创建的年级预览，并对已存在的年级标注「已存在，跳过」（幂等口径）',
+          stepVisible('si', 2) && text('si', '[data-block="step2"]').indexOf('已存在，跳过') !== -1,
+          text('si', '[data-block="step2"]').slice(0, 60));
+        next();
+      });
+    },
+    function (next) {
+      click('si', '#btn-next');
+      return delay('si').then(function () {
+        rec('SI-03', '第 3 步写明学年日期必须连续不重叠（RV-TERM-08）',
+          stepVisible('si', 3) && text('si', '[data-block="step3"]').indexOf('RV-TERM-08') !== -1,
+          '');
+        next();
+      });
+    },
+    function (next) {
+      var runVisible = !q('si', '#btn-run').classList.contains('state-hidden');
+      rec('SI-04', '第 3 步出现「执行初始化」，走 initSchoolBaseline + org.school:create',
+        runVisible && attr('si', '#btn-run', 'data-api') === 'initSchoolBaseline'
+        && attr('si', '#btn-run', 'data-permission') === 'org.school:create',
+        attr('si', '#btn-run', 'data-api'));
+      next();
+    },
+    function (next) {
+      var codes = ['loading', 'empty', 'error', 'forbidden', 'submitting'];
+      var missing = codes.filter(function (c) { return !q('si', '[data-demo-state-panel="' + c + '"]'); });
+      rec('SI-05', '初始化向导五类状态齐全；失败态写明「不留半成品 + 执行顺序」',
+        missing.length === 0 && text('si', '[data-demo-state-panel="error"]').indexOf('半成品') !== -1,
+        missing.length ? '缺 ' + missing.join(',') : '全部存在');
+      next();
+    },
+    function (next) {
+      var cols = qa('tl', '#tm-table thead th').map(function (th) { return th.textContent.trim(); });
+      rec('TL-01', '学年列表 7 列与规格一致，含 3 行（未开始 / 进行中 / 已归档）',
+        cols.length === 7 && qa('tl', '#tm-rows tr').length === 3
+        && text('tl', '#tm-rows tr:last-child').indexOf('已归档') !== -1,
+        cols.join(' | '));
+      next();
+    },
+    function (next) {
+      click('tl', '#tm-rows tr[data-status="current"] [data-action-id="ACT-TERM-009"]');
+      return delay('tl').then(function () {
+        rec('TL-02', '行内「设为当前」打开 PAGE-TERM-SETCURRENT 弹窗（CR-015：表单浮层用 el-dialog）',
+          openPanels('tl').indexOf('PAGE-TERM-SETCURRENT') !== -1
+          && Boolean(q('tl', '[data-demo-panel="PAGE-TERM-SETCURRENT"] > .dialog')),
+          openPanels('tl').join(','));
+        next();
+      });
+    },
+    function (next) {
+      rec('TL-03', '「确认切换」走 setCurrentTerm + org.term:update；弹窗写明「不改动历史数据」',
+        attr('tl', '[data-action-id="ACT-TERM-006"]', 'data-api') === 'setCurrentTerm'
+        && attr('tl', '[data-action-id="ACT-TERM-006"]', 'data-permission') === 'org.term:update'
+        && text('tl', '[data-demo-panel="PAGE-TERM-SETCURRENT"]').indexOf('不改动历史数据') !== -1,
+        attr('tl', '[data-action-id="ACT-TERM-006"]', 'data-api'));
+      w('tl').PrototypeShell.closePanel('all');
+      next();
+    },
+    function (next) {
+      click('tl', '#tm-rows tr[data-status="archived"] [data-action-id="ACT-TERM-010"]');
+      return delay('tl').then(function () {
+        var body = text('tl', '[data-demo-panel="PAGE-TERM-ARCHIVE"]');
+        rec('TL-04', '归档弹窗：影响范围 + 引用检查结果（checkTermReference）+ 原因必填；确认走 archiveAcademicYear，已归档行按钮变「撤销归档」',
+          openPanels('tl').indexOf('PAGE-TERM-ARCHIVE') !== -1 && body.indexOf('移出新建业务的可选列表') !== -1
+          && body.indexOf('引用检查结果') !== -1 && attr('tl', '[data-action-id="ACT-TERM-008"]', 'data-api') === 'archiveAcademicYear',
+          attr('tl', '[data-action-id="ACT-TERM-008"]', 'data-api'));
+        w('tl').PrototypeShell.closePanel('all');
+        next();
+      });
+    },
+    function (next) {
+      return role('tl', 'school_leader', '校领导').then(function () {
+        var noWrite = qa('tl', '#tm-rows [data-action-id="ACT-TERM-009"], #tm-rows [data-action-id="ACT-TERM-010"]').length === 0;
+        rec('TL-05', '校领导：学年列表只读（无设为当前 / 归档入口），学期管理入口保留',
+          noWrite && hasClass('tl', '[data-action-id="ACT-TERM-001"]', 'role-hidden'),
+          '无写入口=' + noWrite);
+        next();
+      });
+    },
+    function (next) {
+      var cols = qa('tt', '#tt-table thead th').map(function (th) { return th.textContent.trim(); });
+      rec('TT-01', '学期管理 7 列，2 行；页面写明删除前做引用检查（checkTermReference）',
+        cols.length === 7 && qa('tt', '#tt-rows tr').length === 2
+        && text('tt', '.alert').indexOf('checkTermReference') !== -1,
+        cols.join(' | '));
+      next();
+    },
+    function (next) {
+      click('tt', '#tt-rows tr:first-child [data-action-id="ACT-TERM-020"]');
+      return delay('tt').then(function () {
+        rec('TT-02', '行内「编辑」把该行填进页内表单并切到编辑态',
+          !hasClass('tt', '#tt-form', 'state-hidden') && text('tt', '#tt-form-title').indexOf('编辑学期') !== -1
+          && q('tt', '#tt-name').value === '第一学期',
+          text('tt', '#tt-form-title'));
+        next();
+      });
+    },
+    function (next) {
+      click('tt', '#tt-rows tr:first-child [data-action-id="ACT-TERM-021"]');
+      return delay('tt').then(function () {
+        var ref = text('tt', '#tt-ref-text');
+        rec('TT-03', '行内「删除」展开二次确认：有引用的学期（第一学期 34 班 / 137 人）确认删除按钮被禁用',
+          !hasClass('tt', '#tt-confirm', 'state-hidden') && ref.indexOf('不允许删除') !== -1
+          && q('tt', '#btn-do-delete').hasAttribute('disabled'),
+          ref.slice(0, 60));
+        next();
+      });
+    },
+    function (next) {
+      rec('TT-04', '「保存学期」走 saveTerm；「确认删除」走 removeTerm（都需 org.term:update）',
+        attr('tt', '#btn-save-term', 'data-api') === 'saveTerm'
+        && attr('tt', '#btn-do-delete', 'data-api') === 'removeTerm'
+        && attr('tt', '#btn-do-delete', 'data-permission') === 'org.term:update',
+        attr('tt', '#btn-save-term', 'data-api') + ' / ' + attr('tt', '#btn-do-delete', 'data-api'));
+      next();
+    },
+    function (next) {
+      var codes = ['loading', 'empty', 'error', 'forbidden', 'submitting'];
+      var missCp = codes.filter(function (c) { return !q('cp', '[data-demo-state-panel="' + c + '"]'); });
+      var missTl = codes.filter(function (c) { return !q('tl', '[data-demo-state-panel="' + c + '"]'); });
+      var missTt = codes.filter(function (c) { return !q('tt', '[data-demo-state-panel="' + c + '"]'); });
+      rec('TT-05', '校区 / 学年 / 学期三页的五类状态片段齐全',
+        missCp.length === 0 && missTl.length === 0 && missTt.length === 0,
+        [missCp, missTl, missTt].map(function (a) { return a.join(',') || 'ok'; }).join(' | '));
+      next();
+    }
+  ];
+
+  var EXPECTED = 23;
+  var rendered = false;
+  function render() {
+    rendered = true;
+    var ol = document.getElementById('results');
+    ol.innerHTML = '';
+    var pass = 0;
+    RESULTS.forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = r.pass ? 'ok' : 'bad';
+      li.textContent = (r.pass ? '通过  ' : '不通过 ') + r.id + '  ' + r.name + (r.detail ? '  —— ' + r.detail : '');
+      ol.appendChild(li);
+      if (r.pass) pass += 1;
+    });
+    var p = document.createElement('p');
+    p.className = pass === EXPECTED ? 'sum' : 'sum bad';
+    p.textContent = '合计 ' + RESULTS.length + ' / ' + EXPECTED + ' 条，通过 ' + pass + ' 条，不通过 '
+      + (RESULTS.length - pass) + ' 条' + (pass === EXPECTED && RESULTS.length === EXPECTED ? ' —— 全部通过' : '');
+    ol.appendChild(p);
+  }
+  function run(index) {
+    if (index >= steps.length) { render(); return; }
+    var called = false;
+    function next() { if (called) return; called = true; run(index + 1); }
+    var out;
+    try { out = steps[index](next); }
+    catch (err) {
+      rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步抛异常', false, String((err && err.message) || err));
+      run(index + 1); return;
+    }
+    if (out && typeof out.then === 'function') {
+      out.catch(function (err) {
+        rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步异步断言失败', false, String((err && err.message) || err));
+        next();
+      });
+    }
+  }
+  window.addEventListener('load', function () {
+    window.setTimeout(function () { run(0); }, 700);
+    window.setTimeout(function () { if (!rendered) { rec('WATCHDOG', '运行超时', false, ''); render(); } }, 40000);
+  });
+})();
+</script>
+</body>
+</html>

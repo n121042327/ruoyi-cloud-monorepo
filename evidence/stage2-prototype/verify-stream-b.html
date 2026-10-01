@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>批次 2-7b（组合分布统计 / 变更审批待办 / 按组合生成教学班 / 教学班管理）交互验证</title>
+<style>
+  body { margin: 14px; background: #fff; color: #24292f; font: 13px/1.55 Consolas, "Microsoft YaHei", monospace; }
+  h1 { font-size: 17px; margin: 0 0 8px; }
+  ol { margin: 0 0 10px; padding-left: 22px; }
+  li.ok { color: #1a7f37; }
+  li.bad { color: #c0392b; font-weight: 700; }
+  p.sum { font-weight: 700; }
+  p.sum.bad { color: #c0392b; }
+  iframe { width: 1440px; height: 860px; border: 1px solid #dcdfe6; }
+  iframe.offscreen { display: none; }
+</style>
+</head>
+<body>
+<h1>批次 2-7b（组合分布统计 / 变更审批待办 / 按组合生成教学班 / 教学班管理）交互验证（真实事件派发）</h1>
+<ol id="results"><li>运行中…</li></ol>
+<iframe id="f-stat" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/stream-stat.html"></iframe>
+<iframe id="f-appr" class="offscreen" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/stream-approve.html"></iframe>
+<iframe id="f-gen" class="offscreen" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/stream-generate-class.html"></iframe>
+<iframe id="f-tcl" class="offscreen" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/teaching-class-list.html"></iframe>
+<script>
+(function () {
+  'use strict';
+  var RESULTS = [];
+  var F = {
+    stat: document.getElementById('f-stat'),
+    appr: document.getElementById('f-appr'),
+    gen: document.getElementById('f-gen'),
+    tcl: document.getElementById('f-tcl')
+  };
+
+  function rec(id, name, pass, detail) { RESULTS.push({ id: id, name: name, pass: Boolean(pass), detail: detail || '' }); }
+  function d(k) { return F[k].contentDocument; }
+  function w(k) { return F[k].contentWindow; }
+  function q(k, sel) { return d(k).querySelector(sel); }
+  function qa(k, sel) { return Array.prototype.slice.call(d(k).querySelectorAll(sel)); }
+  function text(k, sel) { var n = q(k, sel); return n ? n.textContent.replace(/\s+/g, ' ').trim() : ''; }
+  function attr(k, sel, name) { var n = q(k, sel); return n ? n.getAttribute(name) : null; }
+  function hasClass(k, sel, cls) { var n = q(k, sel); return Boolean(n && n.classList.contains(cls)); }
+  function visible(k, sel) {
+    return qa(k, sel).filter(function (n) {
+      return !n.classList.contains('role-hidden') && !n.classList.contains('state-hidden');
+    });
+  }
+  function num(v) { return parseInt(String(v).replace(/[^\d-]/g, ''), 10) || 0; }
+  function click(k, sel) {
+    var n = q(k, sel);
+    if (!n) throw new Error('找不到元素 ' + sel);
+    n.click();
+    return n;
+  }
+  function setVal(k, sel, value) {
+    var n = q(k, sel);
+    if (!n) throw new Error('找不到元素 ' + sel);
+    n.value = value;
+    n.dispatchEvent(new (w(k).Event)('change', { bubbles: true }));
+    return n;
+  }
+  function delay(k) { return new Promise(function (r) { w(k).setTimeout(r, 80); }); }
+  function wait(ms) { return new Promise(function (r) { window.setTimeout(r, ms); }); }
+  function role(k, code, label) {
+    var btn = qa(k, '[data-demo="role-switcher"] .pbtn').filter(function (b) { return b.textContent.trim() === label; })[0];
+    if (btn) { btn.click(); return delay(k); }
+    w(k).PrototypeShell.applyRole(code);
+    return delay(k);
+  }
+  function panelOpen(k, id) { return Boolean(q(k, '[data-demo-panel="' + id + '"].open')); }
+  function statePanels(k, codes) {
+    codes = codes || ['loading', 'empty', 'error', 'forbidden', 'submitting'];
+    return codes.filter(function (c) { return !q(k, '[data-demo-state-panel="' + c + '"]'); });
+  }
+  function stepOf(k) { return Number(q(k, '#page-root').getAttribute('data-step')); }
+  function stepShown(k, n) { return !hasClass(k, '[data-step-content="' + n + '"]', 'state-hidden'); }
+  function frameReady(k) {
+    return new Promise(function (resolve) {
+      if (d(k) && d(k).readyState === 'complete' && d(k).querySelector('#page-root')) { resolve(); return; }
+      F[k].addEventListener('load', function () { w(k).setTimeout(resolve, 250); });
+    });
+  }
+  function allReady() { return Promise.all(Object.keys(F).map(frameReady)); }
+
+  var steps = [
+    function (next) {
+      return allReady().then(function () {
+        var cards = qa('stat', '[data-block="summary"] .stat-card .value').map(function (n) { return n.textContent.trim(); });
+        rec('SB-01', '组合分布统计总览：五张统计卡（高中在读数 15 / 已提交 12 / 未提交 3 / 待审批 2 / 生效组合数 6）',
+          cards.join(',') === '15,12,3,2,6', cards.join(','));
+        rec('SB-02', '组合分布柱条 6 行，合计 = 12 人 = 已提交选科数；统计与明细同口径（REQ-STR-050）',
+          qa('stat', '[data-role="chart-row"]').length === 6
+          && qa('stat', '[data-role="chart-row"]').reduce(function (s, n) { return s + num(n.getAttribute('data-count')); }, 0) === 12
+          && qa('stat', '#stat-rows tr').reduce(function (s, n) { return s + num(n.getAttribute('data-count')); }, 0) === 12,
+          '柱条 ' + qa('stat', '[data-role="chart-row"]').length + ' 行');
+        next();
+      });
+    },
+    function (next) {
+      var cols = qa('stat', '#stat-table thead th').map(function (th) { return th.textContent.trim(); });
+      var widths = qa('stat', '#stat-table thead th[style]').reduce(function (s, th) { return s + (parseInt(th.style.width, 10) || 0); }, 0);
+      rec('SB-03', '组合明细 6 列 / 6 行；列宽之和 = 表格 min-width = 920（1366×768 无表格内横向滚动）',
+        cols.length === 6 && cols[0] === '组合' && cols[5] === '操作' && qa('stat', '#stat-rows tr').length === 6
+        && widths === 920 && q('stat', '#stat-table').style.minWidth === '920px',
+        cols.join(' | ') + ' · 列宽 ' + widths);
+      next();
+    },
+    function (next) {
+      var rows = qa('stat', '#subject-table tbody tr');
+      var primary = rows.filter(function (r) { return r.children[1].textContent.indexOf('首选') !== -1; })
+        .reduce(function (s, r) { return s + num(r.children[2].textContent); }, 0);
+      var secondary = rows.filter(function (r) { return r.children[1].textContent.indexOf('再选') !== -1; })
+        .reduce(function (s, r) { return s + num(r.children[2].textContent); }, 0);
+      rec('SB-04', '各学科选择人数：首选合计 12 人、再选合计 24 人次（12 × 2，BR-STREAM-002）',
+        rows.length === 6 && primary === 12 && secondary === 24 && primary === 12,
+        '首选 ' + primary + ' / 再选 ' + secondary);
+      rec('SB-05', '口径说明写明「待审批不计入分布」（BR-STREAM-006）、统计与导出按范围实时解析（DS-DENY-08 / DS-DENY-04）',
+        text('stat', '[data-block="summary"]').indexOf('REQ-STR-013') !== -1
+        && text('stat', '.alert.info').indexOf('BR-STREAM-006') !== -1
+        && text('stat', '.alert.info').indexOf('DS-DENY-08') !== -1
+        && text('stat', '.alert.info').indexOf('REQ-STR-050') !== -1,
+        text('stat', '.alert.info').slice(0, 30));
+      next();
+    },
+    function (next) {
+      var rowBtns = qa('stat', '[data-action-id="ACT-STR-034"]');
+      rec('SB-06', '明细行内「查看学生」按组合下钻到选科清单（ACT-STR-034 / data-nav=PAGE-STR-LIST，REQ-STR-049）',
+        rowBtns.length === 6
+        && rowBtns.every(function (b) { return b.getAttribute('data-nav') === 'PAGE-STR-LIST' && b.getAttribute('data-permission') === 'stream.selection:read'; }),
+        '入口 ' + rowBtns.length + ' 个');
+      rec('SB-07', '统计页动作：导出 exportStreamSelection（data.export:export）、未选科走 listUnselectedStudent、按组合生成跳 PAGE-STR-GEN-CLASS',
+        attr('stat', '[data-action-id="ACT-STR-030"]', 'data-api') === 'exportStreamSelection'
+        && attr('stat', '[data-action-id="ACT-STR-030"]', 'data-permission') === 'data.export:export'
+        && attr('stat', '[data-action-id="ACT-STR-032"]', 'data-api') === 'listUnselectedStudent'
+        && attr('stat', '[data-action-id="ACT-STR-033"]', 'data-nav') === 'PAGE-STR-GEN-CLASS',
+        attr('stat', '[data-action-id="ACT-STR-030"]', 'data-api'));
+      return role('stat', 'grade_leader', '年级主任').then(function () {
+        rec('SB-08', '组合分布统计：年级主任数据范围收敛为 DS-05（统计只含本年级，DS-DENY-08），仍可下钻查看学生',
+          text('stat', '[data-role="scope-hint"]').indexOf('DS-05') !== -1
+          && qa('stat', '[data-action-id="ACT-STR-034"]').length === 6,
+          text('stat', '[data-role="scope-hint"]'));
+        rec('SB-09', '组合分布统计五类状态片段齐全（加载中 / 空数据 / 失败 / 无权限 / 提交中）', statePanels('stat').length === 0,
+          statePanels('stat').length ? ('缺 ' + statePanels('stat').join(',')) : '齐全');
+        return role('stat', 'academic_director', '教务主任');
+      }).then(next);
+    },
+    function (next) {
+      var rows = qa('appr', '#appr-rows tr');
+      var pending = rows.filter(function (r) { return r.getAttribute('data-status') === '待审批'; });
+      rec('SB-10', '变更审批待办：4 行样例（待审批 2 · 已通过 1 · 已驳回 1），默认筛「待审批」且按提交时间升序（REQ-STR-035）',
+        rows.length === 4 && pending.length === 2
+        && q('appr', 'select[data-field="status"]').value === '待审批'
+        && text('appr', '.pagination').indexOf('按提交时间升序') !== -1,
+        '待审批 ' + pending.length + ' 行');
+      rec('SB-11', '默认角色（教务主任）不能自审：待审批行操作列显示「只读」，页面不渲染审批入口（REQ-STR-034）',
+        qa('appr', '[data-action-id="ACT-STR-040"]').length === 0
+        && pending.every(function (r) { return r.querySelector('td.actions').textContent.indexOf('只读') !== -1; }),
+        pending[0].querySelector('td.actions').textContent.trim());
+      rec('SB-12', '已通过 / 已驳回行的操作列直接显示状态，不提供重复审批入口（原申请记录保持不变，REQ-STR-031）',
+        rows.filter(function (r) { return r.getAttribute('data-status') !== '待审批'; })
+          .every(function (r) { return r.querySelector('td.actions').textContent.indexOf(r.getAttribute('data-status')) !== -1; }),
+        'ok');
+      next();
+    },
+    function (next) {
+      return role('appr', 'school_leader', '校领导').then(function () {
+        rec('SB-13', '切到校领导（唯一审批人）：2 行待审批出现行内「审批」，指向 DIALOG-STR-APPROVE（stream.change_request:approve）',
+          qa('appr', '[data-action-id="ACT-STR-040"]').length === 2
+          && qa('appr', '[data-action-id="ACT-STR-040"]').every(function (b) {
+            return b.getAttribute('data-nav') === 'DIALOG-STR-APPROVE' && b.getAttribute('data-overlay') === 'dialog';
+          }),
+          '入口 ' + qa('appr', '[data-action-id="ACT-STR-040"]').length + ' 个');
+        next();
+      });
+    },
+    function (next) {
+      click('appr', '#appr-rows tr[data-no="SC-2026-0031"] [data-action-id="ACT-STR-040"]');
+      return delay('appr').then(function () {
+        rec('SB-14', '点行内「审批」打开审批弹窗并带入该申请：申请单号 / 学生 / 年级班级 / 原组合 / 新组合 / 原因（REQ-STR-038）',
+          panelOpen('appr', 'DIALOG-STR-APPROVE')
+          && text('appr', '#appr-no') === 'SC-2026-0031'
+          && text('appr', '#appr-student').indexOf('赵一诺') !== -1
+          && text('appr', '#appr-before') === '物理 + 化学 + 生物'
+          && text('appr', '#appr-after') === '物理 + 化学 + 地理'
+          && text('appr', '#appr-reason') === '地理更适合升学方向',
+          text('appr', '#appr-no') + ' / ' + text('appr', '#appr-after'));
+        next();
+      });
+    },
+    function (next) {
+      setVal('appr', '#appr-opinion', '');
+      click('appr', '[data-action-id="ACT-STR-042"]');
+      return delay('appr').then(function () {
+        rec('SB-15', '驳回未填审批意见被字段级拦截：字段标红 + 汇总提示 + 弹窗不关闭（REQ-STR-037）',
+          hasClass('appr', '[data-demo-panel="DIALOG-STR-APPROVE"] [data-field="approve_opinion"]', 'has-error')
+          && !hasClass('appr', '[data-demo-panel="DIALOG-STR-APPROVE"] [data-validate-summary]', 'state-hidden')
+          && panelOpen('appr', 'DIALOG-STR-APPROVE'),
+          text('appr', '[data-field="approve_opinion"] .error-text'));
+        rec('SB-16', '审批动作：同意 ACT-STR-041 / 驳回 ACT-STR-042 都走 approveStreamChangeRequest + stream.change_request:approve',
+          attr('appr', '[data-action-id="ACT-STR-041"]', 'data-api') === 'approveStreamChangeRequest'
+          && attr('appr', '[data-action-id="ACT-STR-041"]', 'data-permission') === 'stream.change_request:approve'
+          && attr('appr', '[data-action-id="ACT-STR-042"]', 'data-api') === 'approveStreamChangeRequest'
+          && attr('appr', '[data-action-id="ACT-STR-042"]', 'data-permission') === 'stream.change_request:approve',
+          attr('appr', '[data-action-id="ACT-STR-041"]', 'data-api'));
+        rec('SB-17', '审批弹窗写明影响面：通过后立即生效、教学班名单不自动同步、需人工触发增量生成（REQ-STR-036 / REQ-STR-060）',
+          text('appr', '[data-demo-panel="DIALOG-STR-APPROVE"]').indexOf('REQ-STR-060') !== -1
+          && text('appr', '[data-demo-panel="DIALOG-STR-APPROVE"]').indexOf('教学班名单') !== -1
+          && text('appr', '[data-demo-panel="DIALOG-STR-APPROVE"]').indexOf('REQ-STR-037') !== -1,
+          'ok');
+        w('appr').PrototypeShell.closePanel('all');
+        setVal('appr', '#appr-opinion', '');
+        rec('SB-18', '审批待办筛选器 3 个（状态 / 年级 / 关键字，ACT-STR-045 ~ 047）+ 五类状态片段齐全',
+          qa('appr', '[data-role="filter"]').length === 3 && statePanels('appr').length === 0,
+          '筛选 ' + qa('appr', '[data-role="filter"]').length + ' 个');
+        next();
+      });
+    },
+    function (next) {
+      rec('SB-19', '生成向导步骤 1：四步步骤条第 1 步进行中；生成方式支持「按完整组合」与「按单学科」两种粒度（REQ-STR-058）',
+        stepOf('gen') === 1 && stepShown('gen', 1)
+        && qa('gen', 'input[name="gc-mode"]').map(function (r) { return r.value; }).join(',') === 'combination,subject',
+        'step ' + stepOf('gen'));
+      setVal('gen', '#gc-grade', '');
+      click('gen', '#gc-next');
+      return delay('gen').then(function () {
+        rec('SB-20', '步骤 1 未选年级范围点「下一步」被字段级拦截：字段标红且不进入第 2 步',
+          stepOf('gen') === 1 && hasClass('gen', '[data-field="grade_id"]', 'has-error')
+          && text('gen', '[data-field="grade_id"] .error-text').indexOf('请选择年级范围') !== -1,
+          text('gen', '[data-field="grade_id"] .error-text'));
+        setVal('gen', '#gc-grade', '2026');
+        click('gen', '#gc-next');
+        return delay('gen');
+      }).then(function () {
+        rec('SB-21', '步骤 2 生成预览：5 行（4 个新建 + 1 个「已存在」跳过），幂等不重复建班不重复写成员（REQ-STR-057）',
+          stepOf('gen') === 2 && stepShown('gen', 2)
+          && qa('gen', '#plan-rows tr').length === 5
+          && qa('gen', '#plan-rows tr[data-existing="true"]').length === 1
+          && text('gen', '#plan-rows tr[data-existing="true"]').indexOf('跳过') !== -1
+          && text('gen', '#gc-steps').indexOf('生成预览') !== -1,
+          '预览 ' + qa('gen', '#plan-rows tr').length + ' 行');
+        rec('SB-22', '步骤 2 汇总卡：将生成 4 个 / 写入 10 人 / 跳过 1 个 / 参与统计 12 条；预览表格 5 列',
+          text('gen', '#gc-new-count').indexOf('4') !== -1 && text('gen', '#gc-member-count').indexOf('10') !== -1
+          && text('gen', '#gc-skip-count').indexOf('1') !== -1
+          && qa('gen', '#plan-table thead th').length === 5,
+          text('gen', '#gc-new-count') + ' / ' + text('gen', '#gc-member-count'));
+        next();
+      });
+    },
+    function (next) {
+      click('gen', '#gc-next');
+      return delay('gen').then(function () {
+        rec('SB-23', '步骤 3 执行与进度：异步任务编号 + 写入归属说明（教学班写入由班级管理模块执行，REQ-STR-056 / DP-01）',
+          stepOf('gen') === 3 && stepShown('gen', 3)
+          && text('gen', '[data-block="step3"]').indexOf('TASK-20261001-000418') !== -1
+          && text('gen', '[data-block="step3"]').indexOf('REQ-STR-056') !== -1
+          && text('gen', '[data-block="step3"]').indexOf('班级管理模块') !== -1,
+          'step ' + stepOf('gen'));
+        rec('SB-24', '步骤 3 只有「执行生成」一个出口：ACT-STR-057 data-api=executeTeachingClassGenerate；「下一步」在该步隐藏',
+          attr('gen', '[data-action-id="ACT-STR-057"]', 'data-api') === 'executeTeachingClassGenerate'
+          && hasClass('gen', '#gc-next', 'state-hidden'),
+          attr('gen', '[data-action-id="ACT-STR-057"]', 'data-api'));
+        next();
+      });
+    },
+    function (next) {
+      click('gen', '[data-action-id="ACT-STR-057"]');
+      return wait(1500).then(function () {
+        rec('SB-25', '点「执行生成」后进入步骤 4 核对：4 行教学班人数与选科统计全部一致、差异块隐藏（REQ-STR-059）',
+          stepOf('gen') === 4 && stepShown('gen', 4)
+          && qa('gen', '#check-table tbody tr').length === 4
+          && qa('gen', '#check-table tbody tr').every(function (r) { return r.children[3].textContent.trim() === '0'; })
+          && hasClass('gen', '#gc-diff-block', 'state-hidden'),
+          'step ' + stepOf('gen'));
+        rec('SB-26', '步骤 4 三个出口：增量生成并核对（previewTeachingClassGenerate）、去教学班管理、查看组合分布统计',
+          attr('gen', '[data-action-id="ACT-STR-053"]', 'data-api') === 'previewTeachingClassGenerate'
+          && attr('gen', '[data-action-id="ACT-STR-054"]', 'data-nav') === 'PAGE-CLS-TEACHING'
+          && attr('gen', '[data-action-id="ACT-STR-055"]', 'data-nav') === 'PAGE-STR-STAT',
+          attr('gen', '[data-action-id="ACT-STR-054"]', 'data-nav'));
+        next();
+      });
+    },
+    function (next) {
+      return role('gen', 'school_leader', '校领导').then(function () {
+        rec('SB-27', '生成向导：校领导进入无权限形态（教学班生成由教务主任触发，REQ-STR-054 / DS-DENY-03）',
+          !hasClass('gen', '[data-demo-state-panel="forbidden"]', 'state-hidden')
+          && text('gen', '[data-demo-state-panel="forbidden"]').indexOf('教务主任') !== -1,
+          text('gen', '[data-role="scope-hint"]'));
+        return role('gen', 'academic_director', '教务主任');
+      }).then(function () {
+        rec('SB-28', '生成向导：切回教务主任恢复可写形态；七类状态片段齐全（含部分失败与排队中）',
+          hasClass('gen', '[data-demo-state-panel="forbidden"]', 'state-hidden')
+          && statePanels('gen', ['loading', 'empty', 'error', 'forbidden', 'submitting', 'partial', 'queued']).length === 0,
+          statePanels('gen', ['loading', 'empty', 'error', 'forbidden', 'submitting', 'partial', 'queued']).join(',') || '齐全');
+        next();
+      });
+    },
+    function (next) {
+      var cols = qa('tcl', '#tcl-table thead th').map(function (th) { return th.textContent.trim(); });
+      var widths = qa('tcl', '#tcl-table thead th[style]').reduce(function (s, th) { return s + (parseInt(th.style.width, 10) || 0); }, 0);
+      rec('SB-29', '教学班管理：8 列 5 行；列宽之和 = 表格 min-width = 1140（1366×768 无表格内横向滚动）',
+        cols.length === 8 && cols[0] === '教学班名称' && cols[7] === '操作'
+        && qa('tcl', '#tcl-rows tr').length === 5
+        && widths === 1140 && q('tcl', '#tcl-table').style.minWidth === '1140px',
+        cols.join(' | ') + ' · 列宽 ' + widths);
+      rec('SB-30', '教学班管理：写明行政班与教学班两套独立关系（BR-CLASS-001 / BR-STU-004）、教学班不设班主任（REQ-CLS-039）、创建入口唯一（DP-01）',
+        text('tcl', '#page-root').indexOf('BR-CLASS-001') !== -1
+        && text('tcl', '#page-root').indexOf('REQ-CLS-039') !== -1
+        && text('tcl', '#page-root').indexOf('REQ-CLS-042') !== -1
+        && text('tcl', '#page-root').indexOf('DP-01') !== -1,
+        'ok');
+      next();
+    },
+    function (next) {
+      rec('SB-31', '教学班行内动作：教务主任 4 行「详情 + 停用」、已停用行只有「详情 + 已停用」无停用入口（REQ-CLS-044 同口径）',
+        qa('tcl', '[data-action-id="ACT-TCL-002"]').length === 5
+        && qa('tcl', '[data-action-id="ACT-TCL-005"]').length === 4
+        && text('tcl', '#tcl-rows tr[data-status="已停用"] td.actions').indexOf('已停用') !== -1,
+        '详情 ' + qa('tcl', '[data-action-id="ACT-TCL-002"]').length + ' / 停用 ' + qa('tcl', '[data-action-id="ACT-TCL-005"]').length);
+      click('tcl', '#tcl-rows tr[data-class="高一 · 物理 A 层"] [data-action-id="ACT-TCL-002"]');
+      return delay('tcl').then(function () {
+        rec('SB-32', '点行内「详情」打开 DRAWER-CLS-TEACHING 抽屉并带入该教学班（名称 / 年级 / 组合 / 人数 / 任课教师只读）',
+          panelOpen('tcl', 'DRAWER-CLS-TEACHING')
+          && text('tcl', '#tcl-detail-name') === '高一 · 物理 A 层'
+          && text('tcl', '#tcl-d-combination') === '单学科：物理'
+          && text('tcl', '#tcl-d-count') === '6 人'
+          && text('tcl', '[data-demo-panel="DRAWER-CLS-TEACHING"]').indexOf('REQ-CLS-042') !== -1,
+          text('tcl', '#tcl-detail-name') + ' / ' + text('tcl', '#tcl-d-count'));
+        w('tcl').PrototypeShell.closePanel('all');
+        next();
+      });
+    },
+    function (next) {
+      click('tcl', '#tcl-rows tr[data-class="高一 · 物化生 A 层"] [data-action-id="ACT-TCL-005"]');
+      return delay('tcl').then(function () {
+        var opened = panelOpen('tcl', 'DIALOG-TCL-DISABLE');
+        rec('SB-33', '点行内「停用」打开 DIALOG-TCL-DISABLE 二次确认并带入该教学班，写清影响范围（历史成员与考勤保留）',
+          opened && text('tcl', '#tcl-disable-name') === '高一 · 物化生 A 层'
+          && text('tcl', '[data-demo-panel="DIALOG-TCL-DISABLE"]').indexOf('历史成员') !== -1,
+          text('tcl', '#tcl-disable-name'));
+        setVal('tcl', '#tcl-disable-reason', '');
+        click('tcl', '[data-action-id="ACT-TCL-007"]');
+        return delay('tcl');
+      }).then(function () {
+        rec('SB-34', '停用确认未填原因被字段级拦截：字段标红 + 汇总提示 + 弹窗不关闭（REQ-CLS-047 写审计的前提是原因必填）',
+          hasClass('tcl', '[data-demo-panel="DIALOG-TCL-DISABLE"] [data-field="reason"]', 'has-error')
+          && !hasClass('tcl', '[data-demo-panel="DIALOG-TCL-DISABLE"] [data-validate-summary]', 'state-hidden')
+          && panelOpen('tcl', 'DIALOG-TCL-DISABLE'),
+          text('tcl', '[data-field="reason"] .error-text'));
+        rec('SB-35', '停用确认动作：ACT-TCL-007 data-api=disableTeachingClass / org.teaching_class:update；取消 ACT-TCL-006 关闭不写入',
+          attr('tcl', '[data-action-id="ACT-TCL-007"]', 'data-api') === 'disableTeachingClass'
+          && attr('tcl', '[data-action-id="ACT-TCL-007"]', 'data-permission') === 'org.teaching_class:update'
+          && Boolean(q('tcl', '[data-action-id="ACT-TCL-006"]')),
+          attr('tcl', '[data-action-id="ACT-TCL-007"]', 'data-api'));
+        w('tcl').PrototypeShell.closePanel('all');
+        setVal('tcl', '#tcl-disable-reason', '');
+        next();
+      });
+    },
+    function (next) {
+      return role('tcl', 'school_leader', '校领导').then(function () {
+        rec('SB-36', '教学班管理：校领导只读（无停用入口，操作列「只读」），详情抽屉仍可用',
+          qa('tcl', '[data-action-id="ACT-TCL-005"]').length === 0
+          && qa('tcl', '[data-action-id="ACT-TCL-002"]').length === 5
+          && text('tcl', '#tcl-rows tr td.actions').indexOf('只读') !== -1,
+          text('tcl', '#tcl-rows tr td.actions').trim());
+        rec('SB-37', '教学班管理五类状态片段齐全（加载中 / 空数据 / 失败 / 无权限 / 提交中）', statePanels('tcl').length === 0,
+          statePanels('tcl').length ? ('缺 ' + statePanels('tcl').join(',')) : '齐全');
+        return role('tcl', 'academic_director', '教务主任');
+      }).then(next);
+    }
+  ];
+
+  var EXPECTED = 37;
+  var rendered = false;
+  function render() {
+    rendered = true;
+    var ol = document.getElementById('results');
+    ol.innerHTML = '';
+    var pass = 0;
+    RESULTS.forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = r.pass ? 'ok' : 'bad';
+      li.textContent = (r.pass ? '通过  ' : '不通过 ') + r.id + '  ' + r.name + (r.detail ? '  —— ' + r.detail : '');
+      ol.appendChild(li);
+      if (r.pass) pass += 1;
+    });
+    var p = document.createElement('p');
+    p.className = pass === EXPECTED && RESULTS.length === EXPECTED ? 'sum' : 'sum bad';
+    p.textContent = '合计 ' + RESULTS.length + ' / ' + EXPECTED + ' 条，通过 ' + pass + ' 条，不通过 '
+      + (RESULTS.length - pass) + ' 条' + (pass === EXPECTED && RESULTS.length === EXPECTED ? ' —— 全部通过' : '');
+    ol.appendChild(p);
+  }
+  function run(index) {
+    if (index >= steps.length) { render(); return; }
+    var called = false;
+    function next() { if (called) return; called = true; run(index + 1); }
+    var out;
+    try { out = steps[index](next); }
+    catch (err) {
+      rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步抛异常', false, String((err && err.message) || err));
+      run(index + 1); return;
+    }
+    if (out && typeof out.then === 'function') {
+      out.catch(function (err) {
+        rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步异步断言失败', false, String((err && err.message) || err));
+        next();
+      });
+    }
+  }
+  window.addEventListener('load', function () { window.setTimeout(function () { run(0); }, 600); });
+  window.setTimeout(function () { if (!rendered) { rec('WATCHDOG', '运行超时', false, ''); render(); } }, 60000);
+})();
+</script>
+</body>
+</html>

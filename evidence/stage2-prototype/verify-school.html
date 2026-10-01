@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>批次 2-6a（学校管理）交互验证</title>
+<style>
+  body { margin: 14px; background: #fff; color: #24292f; font: 13px/1.55 Consolas, "Microsoft YaHei", monospace; }
+  h1 { font-size: 17px; margin: 0 0 8px; }
+  ol { margin: 0 0 10px; padding-left: 22px; }
+  li.ok { color: #1a7f37; }
+  li.bad { color: #c0392b; font-weight: 700; }
+  p.sum { font-weight: 700; }
+  p.sum.bad { color: #c0392b; }
+  iframe { width: 1440px; height: 820px; border: 1px solid #dcdfe6; }
+</style>
+</head>
+<body>
+<h1>批次 2-6a（学校管理列表 / 详情 / 新建 / 编辑 / 学段配置 / 停用）交互验证（真实事件派发）</h1>
+<ol id="results"><li>运行中…</li></ol>
+<iframe id="frame" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/school-list.html"></iframe>
+<script>
+(function () {
+  'use strict';
+  var RESULTS = [];
+  var frame = document.getElementById('frame');
+
+  function rec(id, name, pass, detail) { RESULTS.push({ id: id, name: name, pass: Boolean(pass), detail: detail || '' }); }
+  function d() { return frame.contentDocument; }
+  function w() { return frame.contentWindow; }
+  function q(sel) { return d().querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(d().querySelectorAll(sel)); }
+  function text(sel) { var n = q(sel); return n ? n.textContent.replace(/\s+/g, ' ').trim() : ''; }
+  function attr(sel, name) { var n = q(sel); return n ? n.getAttribute(name) : null; }
+  function hasClass(sel, cls) { var n = q(sel); return Boolean(n && n.classList.contains(cls)); }
+  function openPanels() { return qa('.overlay.open').map(function (n) { return n.getAttribute('data-demo-panel'); }); }
+  function shown(sel) { return qa(sel).filter(function (n) { return !n.classList.contains('role-hidden'); }); }
+  function click(sel) { var n = q(sel); if (!n) throw new Error('找不到 ' + sel); n.click(); return n; }
+  function delay() { return new Promise(function (r) { w().setTimeout(r, 60); }); }
+  function role(label, code) {
+    var btn = qa('[data-demo="role-switcher"] .pbtn').filter(function (b) { return b.textContent.trim() === label; })[0];
+    if (btn) { btn.click(); return delay(); }
+    w().PrototypeShell.applyRole(code); return delay();
+  }
+  function lastToast() {
+    var nodes = qa('.toast-host .toast');
+    var n = nodes[nodes.length - 1];
+    return n ? n.textContent.replace(/\s+/g, ' ').trim() : '';
+  }
+  function frameReady() {
+    return new Promise(function (resolve) {
+      if (d() && d().readyState === 'complete' && d().querySelector('#page-root')) { resolve(); return; }
+      frame.addEventListener('load', function () { w().setTimeout(resolve, 300); });
+    });
+  }
+
+  var steps = [
+    function (next) {
+      return frameReady().then(function () {
+        var cols = qa('#sch-table thead th').map(function (th) { return th.textContent.trim(); });
+        rec('SC-01', '学校列表 9 列与页面规格一致（名称 / 编码 / 学段 / 校区数 / 班级数 / 在读学生 / 状态 / 所属租户 / 操作）',
+          cols.length === 9 && cols[0] === '学校名称' && cols[8] === '操作' && qa('#sch-table tbody tr').length === 4,
+          cols.join(' | ') + ' · ' + qa('#sch-table tbody tr').length + ' 行');
+        next();
+      });
+    },
+    function (next) {
+      var widths = qa('#sch-table thead th[style]').reduce(function (s, th) { return s + (parseInt(th.style.width, 10) || 0); }, 0);
+      var minw = parseInt(q('#sch-table').style.minWidth, 10) || 0;
+      rec('SC-02', '表格列宽之和 = min-width = 1140（1366×768 下无表格内横向滚动）',
+        widths === minw && minw === 1140, '列宽之和 ' + widths + ' / min-width ' + minw);
+      next();
+    },
+    function (next) {
+      var opCount = 0;
+      var row = qa('#sch-table tbody tr')[0];
+      row.children[0].click();
+      return delay().then(function () {
+        rec('SC-03', '点数据行打开 PAGE-SCH-DETAIL 抽屉，标题带入该学校；行内动作按钮由脚本渲染',
+          openPanels().indexOf('PAGE-SCH-DETAIL') !== -1 && text('#sch-detail-name').indexOf('云溪实验学校') !== -1
+          && qa('#sch-table tbody tr:first-child td.actions [data-action-id]').length === 1
+          && Boolean(q('#sch-table tbody tr:first-child [data-action-id="ACT-SCH-018"]')),
+          '标题=' + text('#sch-detail-name') + ' / 行内动作 ' + qa('#sch-table tbody tr:first-child td.actions [data-action-id]').length + ' 个（教务主任只读，只给详情）');
+        next();
+      });
+    },
+    function (next) {
+      var sections = ['basic', 'summary', 'stage'].filter(function (b) {
+        return Boolean(q('[data-demo-panel="PAGE-SCH-DETAIL"] [data-block="' + b + '"]'));
+      });
+      rec('SC-04', '详情抽屉含基本信息 / 规模概览 / 学段配置三个分区，底部四个写入口 + 关闭',
+        sections.length === 3 && Boolean(q('[data-action-id="ACT-SCH-006"]'))
+        && Boolean(q('[data-action-id="ACT-SCH-007"]')) && Boolean(q('[data-action-id="ACT-SCH-009"]')),
+        '分区：' + sections.join(','));
+      next();
+    },
+    function (next) {
+      click('[data-action-id="ACT-SCH-009"]');
+      return delay().then(function () {
+        rec('SC-05', '详情「停用学校」打开 PAGE-SCH-DISABLE 二次确认，写清影响范围并要求原因必填',
+          openPanels().indexOf('PAGE-SCH-DISABLE') !== -1
+          && text('[data-demo-panel="PAGE-SCH-DISABLE"]').indexOf('影响范围') !== -1
+          && q('[data-demo-panel="PAGE-SCH-DISABLE"] textarea').hasAttribute('data-required'),
+          '已打开：' + openPanels().join(','));
+        next();
+      });
+    },
+    function (next) {
+      click('[data-demo-panel="PAGE-SCH-DISABLE"] [data-action-id="ACT-SCH-017"]');
+      return delay().then(function () {
+        var field = q('[data-demo-panel="PAGE-SCH-DISABLE"] textarea').closest('.field');
+        rec('SC-06', '停用原因未填点「确认停用」：字段级校验拦截，弹窗不关闭',
+          field.classList.contains('has-error') && openPanels().indexOf('PAGE-SCH-DISABLE') !== -1,
+          '字段错误=' + field.classList.contains('has-error'));
+        w().PrototypeShell.closePanel('all');
+        next();
+      });
+    },
+    function (next) {
+      click('[data-action-id="ACT-SCH-001"]');
+      return delay().then(function () {
+        rec('SC-07', '工具条「新建学校」打开 PAGE-SCH-CREATE 弹窗（CR-015：表单浮层用 el-dialog）',
+          openPanels().indexOf('PAGE-SCH-CREATE') !== -1
+          && Boolean(q('[data-demo-panel="PAGE-SCH-CREATE"] > .dialog'))
+          && qa('[data-demo-panel="PAGE-SCH-CREATE"] .drawer').length === 0,
+          '已打开：' + openPanels().join(','));
+        next();
+      });
+    },
+    function (next) {
+      rec('SC-08', '新建学校弹窗：名称必填、所属租户必填、学段至少一个；保存走 addSchool',
+        q('[data-demo-panel="PAGE-SCH-CREATE"] [data-field="school_name"] input').hasAttribute('data-required')
+        && Boolean(q('[data-demo-panel="PAGE-SCH-CREATE"] [data-field="tenant_id"] select'))
+        && qa('[data-demo-panel="PAGE-SCH-CREATE"] .radio-row input[type="checkbox"]').length === 3
+        && attr('[data-action-id="ACT-SCH-011"]', 'data-api') === 'addSchool',
+        attr('[data-action-id="ACT-SCH-011"]', 'data-api'));
+      next();
+    },
+    function (next) {
+      var name = q('[data-demo-panel="PAGE-SCH-CREATE"] [data-field="school_name"] input');
+      name.value = '';
+      name.dispatchEvent(new (w().Event)('change', { bubbles: true }));
+      click('[data-action-id="ACT-SCH-011"]');
+      return delay().then(function () {
+        var field = name.closest('.field');
+        rec('SC-09', '新建学校未填名称点「保存」：字段级校验拦截且弹窗不关（不发请求）',
+          field.classList.contains('has-error') && openPanels().indexOf('PAGE-SCH-CREATE') !== -1,
+          '字段错误=' + field.classList.contains('has-error'));
+        w().PrototypeShell.closePanel('all');
+        next();
+      });
+    },
+    function (next) {
+      click('[data-action-id="ACT-SCH-006"]');
+      return delay().then(function () {
+        rec('SC-10', '行内「编辑」打开 PAGE-SCH-EDIT：编码与所属租户只读、保存走 updateSchool',
+          openPanels().indexOf('PAGE-SCH-EDIT') !== -1
+          && text('[data-demo-panel="PAGE-SCH-EDIT"]').indexOf('SCH-201') !== -1
+          && attr('[data-action-id="ACT-SCH-013"]', 'data-api') === 'updateSchool',
+          attr('[data-action-id="ACT-SCH-013"]', 'data-api'));
+        w().PrototypeShell.closePanel('all');
+        next();
+      });
+    },
+    function (next) {
+      click('[data-action-id="ACT-SCH-005"]');
+      return delay().then(function () {
+        rec('SC-11', '「配置学段」打开 PAGE-SCH-STAGE：学段序号固定映射（小学 1–6 / 初中 1–3 / 高中 1–3），保存走 saveSchoolStage',
+          openPanels().indexOf('PAGE-SCH-STAGE') !== -1
+          && text('[data-demo-panel="PAGE-SCH-STAGE"]').indexOf('1 — 6') !== -1
+          && attr('[data-action-id="ACT-SCH-015"]', 'data-api') === 'saveSchoolStage',
+          attr('[data-action-id="ACT-SCH-015"]', 'data-api'));
+        w().PrototypeShell.closePanel('all');
+        next();
+      });
+    },
+    function (next) {
+      rec('SC-12', '行内「校区数」可点并指向 PAGE-SCH-CAMPUS（GAP-046 选项 A：不新增页面）',
+        attr('#sch-table tbody tr:first-child [data-action-id="ACT-SCH-004"]', 'data-nav') === 'PAGE-SCH-CAMPUS',
+        attr('#sch-table tbody tr:first-child [data-action-id="ACT-SCH-004"]', 'data-nav'));
+      next();
+    },
+    function (next) {
+      rec('SC-13', '工具条「开通初始化」指向 PAGE-SCH-INIT 向导；「导出」走 exportSchool + data.export:export',
+        attr('[data-action-id="ACT-SCH-002"]', 'data-nav') === 'PAGE-SCH-INIT'
+        && attr('[data-action-id="ACT-SCH-003"]', 'data-api') === 'exportSchool'
+        && attr('[data-action-id="ACT-SCH-003"]', 'data-permission') === 'data.export:export',
+        attr('[data-action-id="ACT-SCH-002"]', 'data-nav') + ' / ' + attr('[data-action-id="ACT-SCH-003"]', 'data-api'));
+      next();
+    },
+    function (next) {
+      return role('校领导', 'school_leader').then(function () {
+        var onlyDetail = qa('#sch-table tbody tr td.actions').every(function (td) {
+          return td.querySelectorAll('[data-action-id]').length === 1
+            && Boolean(td.querySelector('[data-action-id="ACT-SCH-018"]'));
+        });
+        rec('SC-14', '校领导：4 行只读（只保留「详情」入口，无「编辑」），新建 / 开通初始化按钮被隐藏',
+          onlyDetail && hasClass('[data-action-id="ACT-SCH-001"]', 'role-hidden'),
+          '只给详情=' + onlyDetail + ' / 新建隐藏=' + hasClass('[data-action-id="ACT-SCH-001"]', 'role-hidden'));
+        next();
+      });
+    },
+    function (next) {
+      return role('平台运营', 'platform_ops').then(function () {
+        var hint = text('[data-role="scope-hint"]');
+        rec('SC-15', '平台运营：只读范围提示（DS-01）+ 无写入口，导出按钮保留',
+          hint.indexOf('DS-01') !== -1 && hasClass('[data-action-id="ACT-SCH-001"]', 'role-hidden')
+          && !hasClass('[data-action-id="ACT-SCH-003"]', 'role-hidden'),
+          hint);
+        next();
+      });
+    },
+    function (next) {
+      return role('租户管理员', 'tenant_admin').then(function () {
+        var codes = ['loading', 'empty', 'error', 'forbidden', 'submitting'];
+        var missing = codes.filter(function (c) { return !q('[data-demo-state-panel="' + c + '"]'); });
+        rec('SC-16', '切回租户管理员：写入口恢复；五类状态片段齐全',
+          !hasClass('[data-action-id="ACT-SCH-001"]', 'role-hidden') && missing.length === 0,
+          missing.length ? '缺 ' + missing.join(',') : '全部存在');
+        next();
+      });
+    }
+  ];
+
+  var EXPECTED = 16;
+  var rendered = false;
+
+  function render() {
+    rendered = true;
+    var ol = document.getElementById('results');
+    ol.innerHTML = '';
+    var pass = 0;
+    RESULTS.forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = r.pass ? 'ok' : 'bad';
+      li.textContent = (r.pass ? '通过  ' : '不通过 ') + r.id + '  ' + r.name + (r.detail ? '  —— ' + r.detail : '');
+      ol.appendChild(li);
+      if (r.pass) pass += 1;
+    });
+    var p = document.createElement('p');
+    p.className = pass === EXPECTED ? 'sum' : 'sum bad';
+    p.textContent = '合计 ' + RESULTS.length + ' / ' + EXPECTED + ' 条，通过 ' + pass + ' 条，不通过 '
+      + (RESULTS.length - pass) + ' 条' + (pass === EXPECTED && RESULTS.length === EXPECTED ? ' —— 全部通过' : '');
+    ol.appendChild(p);
+  }
+
+  function run(index) {
+    if (index >= steps.length) { render(); return; }
+    var called = false;
+    function next() { if (called) return; called = true; run(index + 1); }
+    var out;
+    try { out = steps[index](next); }
+    catch (err) {
+      rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步抛异常（后续步骤已跳过）',
+        false, String((err && err.message) || err));
+      run(index + 1);
+      return;
+    }
+    if (out && typeof out.then === 'function') {
+      out.catch(function (err) {
+        rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步的异步断言失败',
+          false, String((err && err.message) || err));
+        next();
+      });
+    }
+  }
+
+  frame.addEventListener('load', function () { window.setTimeout(function () { run(0); }, 500); });
+  window.setTimeout(function () {
+    if (!rendered) {
+      rec('WATCHDOG', '运行超时：断言链未在 30 秒内跑完', false, '请检查是否有未返回的异步步骤');
+      render();
+    }
+  }, 30000);
+})();
+</script>
+</body>
+</html>

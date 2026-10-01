@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>PAGE-CLS-DETAIL 交互验证</title>
+<style>
+  body { margin: 14px; background: #fff; color: #24292f;
+         font: 13px/1.55 Consolas, "Microsoft YaHei", monospace; }
+  h1 { font-size: 17px; margin: 0 0 8px; }
+  ol { margin: 0 0 10px; padding-left: 22px; }
+  li.ok { color: #1a7f37; }
+  li.bad { color: #c0392b; font-weight: 700; }
+  p.sum { font-weight: 700; }
+  iframe { width: 1440px; height: 820px; border: 1px solid #dcdfe6; }
+</style>
+</head>
+<body>
+<h1>PAGE-CLS-DETAIL 交互验证（真实事件派发，非人工目视）</h1>
+<ol id="results"><li>运行中…</li></ol>
+<iframe id="frame" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/class-detail.html"></iframe>
+<script>
+(function () {
+  'use strict';
+  var RESULTS = [];
+  var frame = document.getElementById('frame');
+
+  function rec(id, name, pass, detail) {
+    RESULTS.push({ id: id, name: name, pass: Boolean(pass), detail: detail || '' });
+  }
+  function doc() { return frame.contentDocument; }
+  function win() { return frame.contentWindow; }
+  function q(sel) { return doc().querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(doc().querySelectorAll(sel)); }
+  function visible(sel) {
+    return qa(sel).filter(function (n) { return !n.classList.contains('state-hidden'); });
+  }
+  function rosterRows() {
+    return qa('#roster-rows tr').filter(function (tr) { return !tr.classList.contains('state-hidden'); });
+  }
+  function actionsOfRole() {
+    return qa('[data-role="action"]').filter(function (n) { return !n.classList.contains('role-hidden'); })
+      .map(function (n) { return n.getAttribute('data-action-id'); });
+  }
+  function setRole(code, next) {
+    win().PrototypeShell.applyRole(code);
+    window.setTimeout(function () { next(); }, 80);
+  }
+  function switchRole(label, next) {
+    var btn = qa('[data-demo="role-switcher"] .pbtn').filter(function (b) {
+      return b.textContent.trim() === label;
+    })[0];
+    if (btn) btn.click();
+    window.setTimeout(function () { next(); }, 100);
+  }
+  function hash(str, next, wait) {
+    win().location.hash = str;
+    window.setTimeout(function () { next(); }, wait || 250);
+  }
+  function toastText() {
+    var host = q('.toast-host');
+    return host ? host.textContent : '';
+  }
+  function clearToasts() {
+    var host = q('.toast-host');
+    if (host) host.innerHTML = '';
+  }
+  function clickTab(name) {
+    qa('[data-tab-target]').filter(function (b) { return b.getAttribute('data-tab-target') === name; })[0].click();
+  }
+  function panelVisible(name) {
+    var p = q('[data-tab-panel="' + name + '"]');
+    return p && !p.hasAttribute('hidden');
+  }
+
+  var steps = [
+    function (next) {
+      var head = q('.page-head');
+      rec('CD-01', '页头操作条：返回列表 + 班级名称 + 在读标签 + 班级类型 + 学年学期',
+        head.textContent.indexOf('返回列表') !== -1 && head.textContent.indexOf('高一 (1) 班') !== -1
+        && head.textContent.indexOf('行政班') !== -1 && head.textContent.indexOf('2026-2027 学年 第一学期') !== -1,
+        head.querySelector('h1').textContent.trim());
+      next();
+    },
+    function (next) {
+      var fields = qa('[data-block="detail"] [data-field]').map(function (n) { return n.getAttribute('data-field'); });
+      var expected = ['class_name', 'grade_id', 'class_type', 'head_teacher_id', 'term_id', 'campus_id', 'classroom', 'class_capacity'];
+      rec('CD-02', '基本信息卡 8 个字段与 class PRD 6.2 一致（名称 / 年级 / 类型 / 班主任 / 学年学期 / 校区 / 教室 / 容量）',
+        fields.join(',') === expected.join(','), fields.join(' | '));
+      next();
+    },
+    function (next) {
+      var summary = q('[data-detail-field="student_summary"]').textContent.trim();
+      var hint = q('#capacity-hint').textContent.trim();
+      rec('CD-03', '在读 / 容量口径：在读 2（休学不计入，BR-STU-012）；未超容量只给提示不拦截（BR-CLASS-005）',
+        summary.indexOf('在读 2 / 容量 45') !== -1 && hint.indexOf('未超过容量') !== -1,
+        summary + ' / ' + hint);
+      next();
+    },
+    function (next) {
+      var tabs = qa('[data-tab-target]').map(function (b) { return b.getAttribute('data-tab-target'); });
+      rec('CD-04', '四个页签齐备（花名册 / 任课教师 / 班主任任职历史 / 变更记录），默认选中花名册',
+        tabs.join(',') === 'roster,teachers,leader-history,changes' && panelVisible('roster'),
+        tabs.join(' | '));
+      next();
+    },
+    function (next) {
+      clickTab('teachers');
+      window.setTimeout(function () {
+        var ok = panelVisible('teachers') && !panelVisible('roster');
+        clickTab('roster');
+        rec('CD-05', '页签切换就地切换面板，不跳页（ACT-CLS-018）', ok,
+          '任课教师可见=' + panelVisible('teachers'));
+        next();
+      }, 60);
+    },
+    function (next) {
+      var rows = rosterRows();
+      var total = q('#roster-total').textContent;
+      rec('CD-06', '花名册默认只显示在读成员 2 行（REQ-CLS-010）',
+        rows.length === 2 && total.indexOf('共 2 条') !== -1, '可见 ' + rows.length + ' 行 / ' + total.slice(0, 22));
+      next();
+    },
+    function (next) {
+      qa('[data-scope="all"]')[0].click();
+      window.setTimeout(function () {
+        var rows = rosterRows();
+        var suspended = rows.filter(function (tr) { return tr.textContent.indexOf('休学') !== -1; });
+        rec('CD-07', '切「全部成员」→ 3 行，含休学（保留关系）的陈思远',
+          rows.length === 3 && suspended.length === 1, '可见 ' + rows.length + ' 行 / 休学 ' + suspended.length + ' 行');
+        next();
+      }, 60);
+    },
+    function (next) {
+      var input = q('#f-roster-keyword');
+      input.value = '2026000002';
+      q('[data-action-id="ACT-COM-001"]').click();
+      window.setTimeout(function () {
+        rec('CD-08', '按学号检索花名册（REQ-CLS-010）→ 1 行', rosterRows().length === 1, '可见 ' + rosterRows().length + ' 行');
+        next();
+      }, 60);
+    },
+    function (next) {
+      q('[data-action-id="ACT-COM-002"]').click();
+      window.setTimeout(function () {
+        var scopeOn = qa('[data-scope]').filter(function (b) { return b.classList.contains('on'); })[0];
+        rec('CD-09', '重置：清空关键字并把成员范围还原为「在读成员」（2 行）',
+          rosterRows().length === 2 && scopeOn.getAttribute('data-scope') === 'studying',
+          '可见 ' + rosterRows().length + ' 行 / 范围=' + scopeOn.getAttribute('data-scope'));
+        next();
+      }, 60);
+    },
+    function (next) {
+      clickTab('teachers');
+      window.setTimeout(function () {
+        var text = q('[data-tab-panel="teachers"]').textContent;
+        rec('CD-10', '任课教师按学科分组只读展示，来源是任教关系（REQ-CLS-011），未设置学科给空态说明',
+          text.indexOf('语文') !== -1 && text.indexOf('邓丽娟') !== -1 && text.indexOf('外语') !== -1
+          && text.indexOf('苏睿') !== -1 && text.indexOf('跨校任教') !== -1 && text.indexOf('待设置') !== -1,
+          '含语文 / 外语 / 待设置=' + (text.indexOf('待设置') !== -1));
+        clickTab('roster');
+        next();
+      }, 60);
+    },
+    function (next) {
+      clickTab('leader-history');
+      window.setTimeout(function () {
+        var rows = qa('#leader-history-rows tr').length;
+        var text = q('[data-tab-panel="leader-history"]').textContent;
+        rec('CD-11', '班主任任职历史：1 条生效中 + 写清学年切换重新指定与历史追加保留（REQ-CLS-024 / 050）',
+          rows === 1 && text.indexOf('REQ-CLS-050') !== -1 && text.indexOf('生效中') !== -1, rows + ' 条任职');
+        clickTab('roster');
+        next();
+      }, 60);
+    },
+    function (next) {
+      switchRole('任课教师', function () {
+        var guardian = q('th[data-field="guardian_name"]');
+        var phone = q('th[data-field="guardian_phone"]');
+        var ids = actionsOfRole();
+        var rowIds = Array.prototype.map.call(q('#roster-rows tr').querySelectorAll('td.actions [data-action-id]'), function (b) {
+          return b.getAttribute('data-action-id');
+        });
+        rec('CD-12', '任课教师：监护人 / 联系电话整列隐藏，无导出花名册，行内只剩只读「详情」（REQ-CLS-012 / 034）',
+          guardian.classList.contains('role-hidden') && phone.classList.contains('role-hidden')
+          && ids.indexOf('ACT-CLS-024') === -1 && rowIds.length === 1 && rowIds[0] === 'ACT-CLS-028',
+          '隐藏列=' + guardian.classList.contains('role-hidden') + '/' + phone.classList.contains('role-hidden')
+          + ' / 行内 ' + rowIds.join(','));
+        next();
+      });
+    },
+    function (next) {
+      switchRole('班主任', function () {
+        var ids = actionsOfRole();
+        var rowIds = Array.prototype.map.call(q('#roster-rows tr').querySelectorAll('td.actions [data-action-id]'), function (b) {
+          return b.getAttribute('data-action-id');
+        });
+        rec('CD-13', '班主任：可导出本班花名册，但没有编辑 / 指定班主任 / 编班入口（DP-01 的唯一写入入口在班级管理）',
+          ids.indexOf('ACT-CLS-024') !== -1 && ids.indexOf('ACT-CLS-019') === -1
+          && ids.indexOf('ACT-CLS-020') === -1 && ids.indexOf('ACT-CLS-021') === -1 && rowIds.length === 1,
+          '可见动作 ' + ids.join(','));
+        next();
+      });
+    },
+    function (next) {
+      switchRole('校领导', function () {
+        var leaderIds = actionsOfRole();
+        setRole('tenant_admin', function () {
+          var adminIds = actionsOfRole();
+          rec('CD-14', '校领导与租户管理员都是只读：没有编辑 / 指定班主任 / 编班 / 批量迁学生',
+            leaderIds.indexOf('ACT-CLS-019') === -1 && leaderIds.indexOf('ACT-CLS-021') === -1
+            && adminIds.indexOf('ACT-CLS-019') === -1 && adminIds.indexOf('ACT-CLS-021') === -1,
+            '校领导 ' + leaderIds.join(',') + ' / 租户管理员 ' + adminIds.join(','));
+          next();
+        });
+      });
+    },
+    function (next) {
+      switchRole('超级管理员', function () {
+        var ids = actionsOfRole();
+        rec('CD-15', '超级管理员：全部页头按钮可见（BR-ORG-014）',
+          ['ACT-CLS-019', 'ACT-CLS-020', 'ACT-CLS-021', 'ACT-CLS-022', 'ACT-CLS-023', 'ACT-CLS-024'].every(function (id) {
+            return ids.indexOf(id) !== -1;
+          }), ids.join(','));
+        next();
+      });
+    },
+    function (next) {
+      switchRole('平台运营', function () {
+        var ids = actionsOfRole();
+        var writeIds = ['ACT-CLS-019', 'ACT-CLS-020', 'ACT-CLS-021', 'ACT-CLS-022', 'ACT-CLS-023', 'ACT-CLS-024', 'ACT-CLS-026'];
+        var visibleWrites = writeIds.filter(function (id) { return ids.indexOf(id) !== -1; });
+        rec('CD-16', '平台运营：只读（无任何写入口），导出走「需授权」通道，读操作与页签仍可用',
+          ids.indexOf('ACT-COM-007') !== -1 && ids.indexOf('ACT-CLS-024') === -1 && visibleWrites.length === 0
+          && ids.indexOf('ACT-CLS-018') !== -1,
+          '写入口 ' + (visibleWrites.join(',') || '（无）'));
+        next();
+      });
+    },
+    function (next) {
+      setRole('academic_director', function () {
+        hash('term=202501', function () {
+          var alertNode = q('#history-readonly');
+          var ids = actionsOfRole();
+          var rowIds = Array.prototype.map.call(q('#roster-rows tr').querySelectorAll('td.actions [data-action-id]'), function (b) {
+            return b.getAttribute('data-action-id');
+          });
+          rec('CD-17', '历史学年学期（2025-2026 已归档）→ 只读提示条出现，编辑 / 指定班主任 / 编班 / 批量迁学生 / 行内调班移出全部隐藏（REQ-CLS-032）',
+            !alertNode.classList.contains('state-hidden') && ids.indexOf('ACT-CLS-019') === -1
+            && ids.indexOf('ACT-CLS-021') === -1 && ids.indexOf('ACT-CLS-023') === -1 && rowIds.length === 1,
+            '提示可见=' + !alertNode.classList.contains('state-hidden') + ' / 行内 ' + rowIds.join(','));
+          next();
+        }, 320);
+      });
+    },
+    function (next) {
+      hash('term=202601&sample=20250102', function () {
+        var empty = q('[data-demo-state-panel="empty"]');
+        var summary = q('[data-detail-field="student_summary"]').textContent.trim();
+        var head = q('.page-head h1').textContent;
+        rec('CD-18', '空班样本（高二 (2) 班）：花名册切空态、统计显示在读 0 / 容量 45、页头跟随样本',
+          !empty.classList.contains('state-hidden') && summary.indexOf('在读 0 / 容量 45') !== -1 && head.indexOf('高二 (2) 班') !== -1,
+          head.trim() + ' / ' + summary);
+        next();
+      }, 320);
+    },
+    function (next) {
+      var codes = ['loading', 'empty', 'error', 'forbidden', 'submitting', 'partial', 'queued'];
+      var missing = codes.filter(function (c) { return !q('[data-demo-state-panel="' + c + '"]'); });
+      rec('CD-19', '七类页面状态片段齐全（含部分失败与排队中）', missing.length === 0,
+        missing.length ? '缺 ' + missing.join(',') : '全部存在');
+      next();
+    },
+    function (next) {
+      hash('term=202601&sample=20260101&tab=changes', function () {
+        var text = q('[data-tab-panel="changes"]').textContent;
+        var rows = qa('[data-tab-panel="changes"] li').length;
+        clearToasts();
+        q('[data-action-id="ACT-CLS-027"]').click();
+        window.setTimeout(function () {
+          var t = toastText();
+          rec('CD-20', '变更记录 4 条（含操作人与 IP），未交付的「查看全部」给批次提示而不是死按钮',
+            rows === 4 && text.indexOf('来源 IP') !== -1 && t.indexOf('2-8') !== -1,
+            rows + ' 条 / 提示=' + t.slice(0, 26));
+          next();
+        }, 200);
+      }, 320);
+    }
+  ];
+
+  var EXPECTED = 20;
+
+  function render() {
+    var ol = document.getElementById('results');
+    ol.innerHTML = '';
+    var pass = 0;
+    RESULTS.forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = r.pass ? 'ok' : 'bad';
+      li.textContent = (r.pass ? '通过  ' : '不通过 ') + r.id + '  ' + r.name + (r.detail ? '  —— ' + r.detail : '');
+      ol.appendChild(li);
+      if (r.pass) pass += 1;
+    });
+    var p = document.createElement('p');
+    p.className = pass === EXPECTED ? 'sum' : 'sum bad';
+    p.textContent = '合计 ' + RESULTS.length + ' / ' + EXPECTED + ' 条，通过 ' + pass + ' 条，不通过 '
+      + (RESULTS.length - pass) + ' 条' + (pass === EXPECTED && RESULTS.length === EXPECTED ? ' —— 全部通过' : '');
+    ol.appendChild(p);
+  }
+
+  function run(index) {
+    if (index >= steps.length) { render(); return; }
+    var called = false;
+    function next() {
+      if (called) return;
+      called = true;
+      run(index + 1);
+    }
+    try {
+      steps[index](next);
+    } catch (err) {
+      rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步抛异常', false, String(err && err.message || err));
+      run(index + 1);
+    }
+  }
+
+  var started = false;
+  frame.addEventListener('load', function () {
+    if (started) return;
+    started = true;
+    window.setTimeout(function () { run(0); }, 400);
+  });
+})();
+</script>
+</body>
+</html>

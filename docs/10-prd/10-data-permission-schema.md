@@ -13,6 +13,7 @@
 | DP-04 | 授权可撤销、有有效期、**不设审批**（运营人员创建即生效）、每次访问留痕 |
 | DP-05 | 教育数据权限独立实现，不继承系统租户管理员的放行逻辑 |
 | DP-06 | 权限解析结果可缓存，但任一来源变更时必须立即失效 |
+| DP-07 | 系统内置超级管理员（`super_admin`）在第 4 节流程的放行判定中直接跳过数据范围解析（但功能权限无需单独授予），仍写访问与写操作审计；这是数据范围的唯一例外，不适用于任何业务角色，见 `BR-ORG-014` |
 
 ## 2. 数据范围的六个来源
 
@@ -107,6 +108,8 @@
 | `grantee_id` | varchar(64) | 被授权对象 ID |
 | `title` | varchar(200) | 事由标题 |
 | `reason` | varchar(500) | 共享原因 |
+| `resource_types` | varchar(200) | 资源类型集合，逗号分隔，如 `question_bank_item,exam_paper`。**只允许教学资源**，不允许学生等业务数据（BR-DATA-018） |
+| `resource_scope` | json | 资源范围细化：共享哪些题库、哪些试卷；为空表示该资源类型下的全部 |
 | `effective_start` | datetime | 生效时间 |
 | `effective_end` | datetime | 失效时间，为空表示长期有效 |
 | `status` | varchar(20) | 草稿 / 生效 / 已撤销 / 已过期 |
@@ -148,6 +151,9 @@ status = '生效' AND now >= effective_start AND (effective_end IS NULL OR now <
 
 ```
 输入：当前用户、目标资源类型、目标操作
+
+0. 系统超级管理员（super_admin）
+   → 直接放行，不做范围解析（DP-07）；仍写访问审计
 
 1. 取用户的租户与租户类型
    租户类型 = operator        → 返回 platform 范围，结束
@@ -225,7 +231,7 @@ status = '生效' AND now >= effective_start AND (effective_end IS NULL OR now <
 |---|---|
 | 六张表（`edu_user_role` / `edu_grade_leader` / `edu_teaching_assignment` / `edu_data_grant` / `edu_data_grant_scope`，以及 `edu_class` 的班主任字段） | 建表，进入首轮迁移脚本 |
 | 范围解析与拦截 | 实现 |
-| 共享授权界面 | 不实现界面，仅提供表与后端解析能力 |
+| 共享授权界面 | 不实现界面，仅提供表与后端解析能力；**首轮没有可授权对象**（题库与试卷不在首轮交付范围，见 BR-DATA-018） |
 | 授权审批 | **不设审批**，运营人员创建后直接生效（BR-DATA-017） |
 | 授权权限级别 | 仅 `read` 与 `export`，不开放 `write`（BR-DATA-015） |
 

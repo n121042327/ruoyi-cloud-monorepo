@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>登录与安全事件 — 业务原型 v1（批次 2-8）</title>
+<link rel="stylesheet" href="../assets/prototype-shell.css" />
+<script src="../assets/prototype-shell.js"></script>
+<style>#sec-table td.actions { white-space: nowrap; }</style>
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-AUDIT-SECURITY-EVENT"
+  data-menu-page="PAGE-AUDIT-LOG-LIST"
+  data-breadcrumb="平台与运维 / 审计日志 / 登录与安全事件"
+  data-tab="登录与安全事件"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-AUDIT-SECURITY-EVENT" data-role="page">
+
+  <div data-normal-view>
+
+  <div class="page-head">
+    <h1>登录与安全事件</h1>
+    <span class="scope-hint" data-role="scope-hint">数据范围：本校（DS-04）· 只读</span>
+    <span class="el-tag warning">登录失败 3 起</span>
+    <span class="el-tag info">锁定 1 起</span>
+  </div>
+
+  <div class="alert info">
+    <span>事件范围</span>
+    <span>本页记录：登录失败、账号锁定、激活码查看与重置、学号变更、权限变更（<span class="mono">REQ-AUD-007</span>）。
+      「激活码查看与重置」来自学生一次性凭据机制（<span class="mono">BR-STU-021</span> / D-039）：班主任打印密码条与丢码重置都会留痕。</span>
+  </div>
+
+  <section class="card" data-block="toolbar" data-role="toolbar" data-component="el-card.hover">
+    <div class="card-header">
+      <div class="toolbar" data-demo-state-target="toolbar">
+        <select class="select" data-role="filter" data-action-id="ACT-AUD-050" data-field="event_type" data-default="">
+          <option value="">全部事件类型</option>
+          <option value="login_fail">登录失败</option>
+          <option value="account_locked">账号锁定</option>
+          <option value="activation_view">激活码查看</option>
+          <option value="activation_reset">激活码重置</option>
+          <option value="student_no_change">学号变更</option>
+          <option value="permission_change">权限变更</option>
+        </select>
+        <input class="input" type="search" placeholder="按账号 / 姓名 / IP" data-role="filter" data-action-id="ACT-AUD-051" data-field="keyword" />
+      </div>
+      <div class="header-right">
+        <button class="btn" data-role="action" data-action-id="ACT-AUD-052" data-component="el-button"
+                data-permission="audit.log:read" data-api="listSecurityEvent" data-demo-message="已刷新登录与安全事件。">刷新</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" data-block="list" data-role="section" data-component="el-card.hover">
+    <div class="card-header"><h2>事件明细</h2><span class="el-tag info">listSecurityEvent</span></div>
+    <div class="card-body">
+      <div class="table-scroll">
+        <table class="el-table" id="sec-table" data-role="table" data-component="el-table" data-api="listSecurityEvent"
+               style="min-width:1060px;table-layout:fixed">
+          <thead>
+            <tr>
+              <th data-role="column" data-field="occur_time" style="width:150px">时间</th>
+              <th data-role="column" data-field="event_type" style="width:130px">事件类型</th>
+              <th data-role="column" data-field="account" style="width:150px">账号</th>
+              <th data-role="column" data-field="operator" style="width:120px">相关人</th>
+              <th data-role="column" data-field="result" style="width:90px">结果</th>
+              <th data-role="column" data-field="source_ip" style="width:140px">来源 IP</th>
+              <th data-role="column" data-field="detail" style="width:280px">说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-role="row"><td class="mono">2026-10-01 07:58:11</td><td><span class="el-tag danger">登录失败</span></td>
+              <td class="mono">s2026000001</td><td>王梓萱</td><td>失败</td><td class="mono">10.12.9.55</td><td>密码错误（第 1 次，共 5 次机会）</td></tr>
+            <tr data-role="row"><td class="mono">2026-10-01 07:59:02</td><td><span class="el-tag danger">登录失败</span></td>
+              <td class="mono">s2026000001</td><td>王梓萱</td><td>失败</td><td class="mono">10.12.9.55</td><td>密码错误（第 2 次，连续 5 次将锁定 5 分钟，NFR-SEC-04）</td></tr>
+            <tr data-role="row"><td class="mono">2026-10-01 08:02:47</td><td><span class="el-tag warning">账号锁定</span></td>
+              <td class="mono">s2026000001</td><td>王梓萱</td><td>已锁定</td><td class="mono">10.12.9.55</td><td>连续 5 次密码错误，锁定 5 分钟（08:07:47 自动解锁）</td></tr>
+            <tr data-role="row"><td class="mono">2026-09-30 14:10:33</td><td><span class="el-tag info">激活码查看</span></td>
+              <td class="mono">t20250010</td><td>邓丽娟</td><td>成功</td><td class="mono">10.12.9.77</td><td>打印本班（高一 (1) 班）43 名学生的密码条，一次性凭据已标记已打印</td></tr>
+            <tr data-role="row"><td class="mono">2026-09-30 10:22:05</td><td><span class="el-tag warning">激活码重置</span></td>
+              <td class="mono">t20250010</td><td>邓丽娟</td><td>成功</td><td class="mono">10.12.9.77</td><td>学生 李俊逸（2026000002）丢码重置，原激活码作废，新码一次性有效</td></tr>
+            <tr data-role="row"><td class="mono">2026-09-29 16:44:19</td><td><span class="el-tag danger">学号变更</span></td>
+              <td class="mono">t20250001</td><td>郑雅琴</td><td>成功</td><td class="mono">10.12.7.31</td><td>学生 沈可欣 学号 2026000011 → 2026000015（校级管理员操作，写审计）</td></tr>
+            <tr data-role="row"><td class="mono">2026-09-28 09:15:40</td><td><span class="el-tag warning">权限变更</span></td>
+              <td class="mono">t20250001</td><td>郑雅琴</td><td>成功</td><td class="mono">10.12.7.31</td><td>为 何文博 授予年级主任（2026 级 高一），变更后立即失效权限缓存（BR-DATA-013）</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination"><span class="total">共 128 条安全事件 · 当前第 1 页 · 每页 20 条（本页显示 7 行样例）</span></div>
+      <div class="legend" style="margin-top:8px"><span>安全事件只记录与账号安全有关的行为，不记录普通业务写操作（那部分在「操作日志」）。</span></div>
+    </div>
+  </section>
+
+  </div>
+
+  <div class="state-hidden" data-demo-state-panel="loading">
+    <section class="card"><div class="card-body">
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:150px"></div><div class="skeleton-bar" style="width:130px"></div><div class="skeleton-bar" style="width:150px"></div></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:150px"></div><div class="skeleton-bar" style="width:130px"></div><div class="skeleton-bar" style="width:150px"></div></div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="empty">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">📭</div>
+        <div class="title">这段时间没有安全事件</div>
+        <div class="desc">没有登录失败、没有锁定、也没有激活码重置——这是正常状态，不必把它当成“查询失败”。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="error">
+    <section class="card"><div class="card-body">
+      <div class="state-block error">
+        <div class="icon">⚠️</div>
+        <div class="title">安全事件读取失败</div>
+        <div class="desc">重试不会改变数据范围。</div>
+        <div class="req-id">请求编号 REQ-20261001-002410 · 错误码 EDU-AUD-5004</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-AUD-052" data-component="el-button.primary.plain" data-api="listSecurityEvent">重试</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="forbidden">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">🔒</div>
+        <div class="title">你没有查看登录与安全事件的权限</div>
+        <div class="desc">本页只有<b>校领导与平台运营</b>可查（PRD 6.1）；班主任与年级主任看本班 / 本年级的操作日志。无权限时不进入空白页（<span class="mono">DS-DENY-03</span>）。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="submitting">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⏳</div>
+        <div class="title">正在提交</div>
+        <div class="desc">按钮已置 loading 并禁用。</div>
+      </div>
+    </div></section>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  // 审计 PRD 6.1：登录与安全事件 = 校领导、平台运营；超管全放行。
+  var READ_ROLES = ['super_admin', 'school_leader', 'platform_ops'];
+  function q(sel) { return document.querySelector(sel); }
+  function currentRole() { return window.PrototypeShell.currentRole(); }
+  var lastRole = '';
+  function applyRoleState(role) {
+    if (role === lastRole) return;
+    lastRole = role;
+    if (READ_ROLES.indexOf(role) === -1) window.PrototypeShell.applyState('forbidden');
+    else if (window.PrototypeShell.currentState() === 'forbidden') window.PrototypeShell.applyState('normal');
+    var hint = q('[data-role="scope-hint"]');
+    if (role === 'school_leader') hint.textContent = '数据范围：本校（DS-04）· 只读';
+    else if (role === 'platform_ops') hint.textContent = '数据范围：全平台（DS-01）· 只读；运营自身的查询同样写日志（REQ-AUD-039）';
+    else if (role === 'super_admin') hint.textContent = '数据范围：全平台 · 不受限制（BR-ORG-014）';
+    else hint.textContent = '数据范围：本校（DS-04）· 无安全事件权限';
+  }
+  // 外壳 init 会在 applyRole 之后调用 applyState('normal')；若页面默认角色本来就无权限，
+  // 那次复位会把 forbidden 形态冲掉。这里在 prototype:params（init 的最后一步）之后再对齐一次。
+  document.addEventListener('prototype:params', function () { lastRole = ''; applyRoleState(currentRole()); });
+  new MutationObserver(function () { applyRoleState(currentRole()); })
+    .observe(document.body, { attributes: true, attributeFilter: ['data-current-role'] });
+  applyRoleState(currentRole());
+})();
+</script>
+</body>
+</html>

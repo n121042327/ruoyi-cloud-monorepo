@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>PAGE-GRD-LIST 交互验证</title>
+<style>
+  body { margin: 14px; background: #fff; color: #24292f;
+         font: 13px/1.55 Consolas, "Microsoft YaHei", monospace; }
+  h1 { font-size: 17px; margin: 0 0 8px; }
+  ol { margin: 0 0 10px; padding-left: 22px; }
+  li.ok { color: #1a7f37; }
+  li.bad { color: #c0392b; font-weight: 700; }
+  p.sum { font-weight: 700; }
+  iframe { width: 1440px; height: 760px; border: 1px solid #dcdfe6; }
+</style>
+</head>
+<body>
+<h1>PAGE-GRD-LIST 交互验证（真实事件派发，非人工目视）</h1>
+<ol id="results"><li>运行中…</li></ol>
+<iframe id="frame" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/grade-list.html"></iframe>
+<script>
+(function () {
+  'use strict';
+  var RESULTS = [];
+  var frame = document.getElementById('frame');
+  var FRAME_SRC = frame.getAttribute('src');
+  var started = false;
+
+  function rec(id, name, pass, detail) {
+    RESULTS.push({ id: id, name: name, pass: Boolean(pass), detail: detail || '' });
+  }
+
+  function doc() { return frame.contentDocument; }
+  function win() { return frame.contentWindow; }
+
+  function visibleRows() {
+    return Array.prototype.filter.call(doc().querySelectorAll('#grade-rows tr'), function (tr) {
+      return !tr.classList.contains('state-hidden');
+    });
+  }
+
+  function toolButtons() {
+    // 只统计当前角色真正看得到的按钮：data-role-visible 不匹配时外壳会加 role-hidden
+    return Array.prototype.filter.call(doc().querySelectorAll('[data-block="toolbar"] .toolbar .btn'), function (b) {
+      return !b.classList.contains('role-hidden');
+    }).map(function (b) { return b.textContent.trim(); });
+  }
+
+  function roleBtn(label) {
+    return Array.prototype.find.call(doc().querySelectorAll('[data-demo="role-switcher"] .pbtn'), function (b) {
+      return b.textContent.trim() === label;
+    });
+  }
+
+  function switchRole(label, next) {
+    var btn = roleBtn(label);
+    if (!btn) { next(false, '找不到角色按钮 ' + label); return; }
+    btn.click();
+    window.setTimeout(function () { next(true, ''); }, 80);
+  }
+
+  function toastText() {
+    var host = doc().querySelector('.toast-host');
+    return host ? host.textContent : '';
+  }
+
+  function clearToasts() {
+    var host = doc().querySelector('.toast-host');
+    if (host) host.innerHTML = '';
+  }
+
+  function rowOf(gradeName) {
+    return Array.prototype.find.call(doc().querySelectorAll('#grade-rows tr'), function (tr) {
+      return tr.children[0].textContent.indexOf(gradeName) !== -1;
+    });
+  }
+
+  var steps = [
+    function (next) {
+      var btns = toolButtons();
+      rec('GL-01', '默认（教务主任）工具栏为 新增 / 按学段批量生成 / 导出',
+        btns.indexOf('新增') !== -1 && btns.indexOf('按学段批量生成') !== -1 && btns.indexOf('导出') !== -1
+        && btns.indexOf('导出（需授权）') === -1, btns.join(' | '));
+      next();
+    },
+    function (next) {
+      var rows = visibleRows();
+      var archived = rows.filter(function (tr) { return tr.getAttribute('data-status') === '已归档'; });
+      rec('GL-02', '默认渲染本校 13 行，其中已归档 1 行',
+        rows.length === 13 && archived.length === 1, '可见 ' + rows.length + ' 行 / 已归档 ' + archived.length + ' 行');
+      next();
+    },
+    function (next) {
+      var rows = doc().querySelectorAll('#grade-rows tr');
+      var del = doc().querySelectorAll('#grade-rows [data-action-id="ACT-GRD-007"]');
+      var inEmptyRow = del.length === 1 && del[0].closest('tr') === rowOf('2021 级 小学六年级');
+      rec('GL-03', '删除入口只在「无班级且无学生关系」的空年级行出现',
+        inEmptyRow, 'ACT-GRD-007 共 ' + del.length + ' 处，行样例 ' + rows.length + ' 行');
+      next();
+    },
+    function (next) {
+      var archived = rowOf('2022 级 初中三年级');
+      var ids = Array.prototype.map.call(archived.querySelectorAll('td.actions [data-action-id]'), function (b) {
+        return b.getAttribute('data-action-id');
+      });
+      rec('GL-04', '已归档年级不渲染编辑 / 指定主任 / 归档 / 删除',
+        ids.length === 0 && archived.querySelector('td.actions').textContent.indexOf('已归档') !== -1,
+        ids.join(',') || '（无按钮）');
+      next();
+    },
+    function (next) {
+      switchRole('年级主任', function (ok) {
+        var btns = toolButtons();
+        var visibleRowActions = Array.prototype.filter.call(
+          doc().querySelectorAll('#grade-rows tr:first-child td.actions [data-action-id]'),
+          function (b) { return !b.classList.contains('role-hidden'); }
+        ).map(function (b) { return b.getAttribute('data-action-id'); });
+        // 年级主任对本年级是只读：可见行内操作只允许读操作「详情」（ACT-GRD-009）
+        var onlyReadAction = visibleRowActions.length === 1 && visibleRowActions[0] === 'ACT-GRD-009';
+        rec('GL-05', '年级主任：无新增 / 批量生成，可导出，操作列只剩只读「详情」',
+          ok && btns.indexOf('新增') === -1 && btns.indexOf('按学段批量生成') === -1
+          && btns.indexOf('导出') !== -1 && onlyReadAction,
+          btns.join(' | ') + ' / 可见行内操作 ' + (visibleRowActions.join(',') || '无'));
+        next();
+      });
+    },
+    function (next) {
+      switchRole('班主任', function (ok) {
+        var hint = doc().querySelector('[data-role="scope-hint"]').textContent;
+        rec('GL-06', '班主任：数据范围提示为 DS-06，且只读',
+          ok && hint.indexOf('DS-06') !== -1 && toolButtons().indexOf('新增') === -1, hint);
+        next();
+      });
+    },
+    function (next) {
+      switchRole('校领导', function (ok) {
+        var hint = doc().querySelector('[data-role="scope-hint"]').textContent;
+        var btns = toolButtons();
+        rec('GL-07', '校领导：只读并审批（GAP-034 裁决 B），无任何写入口',
+          ok && hint.indexOf('审批') !== -1 && btns.indexOf('新增') === -1
+          && btns.indexOf('按学段批量生成') === -1 && btns.indexOf('导出') !== -1, btns.join(' | '));
+        next();
+      });
+    },
+    function (next) {
+      switchRole('超级管理员', function (ok) {
+        var alertText = doc().querySelector('[data-role-visible="super_admin"]').textContent;
+        var hint = doc().querySelector('[data-role="scope-hint"]').textContent;
+        var btns = toolButtons();
+        var delCount = doc().querySelectorAll('#grade-rows [data-action-id="ACT-GRD-007"]').length;
+        rec('GL-08', '超级管理员：全部按钮可见 + 专用提示 + 带出的删除入口仍在',
+          ok && btns.indexOf('新增') !== -1 && btns.indexOf('按学段批量生成') !== -1
+          && alertText.indexOf('全平台不受限') !== -1 && hint.indexOf('BR-ORG-014') !== -1 && delCount === 1,
+          btns.join(' | '));
+        next();
+      });
+    },
+    function (next) {
+      switchRole('平台运营', function (ok) {
+        var select = doc().getElementById('f-school');
+        select.value = '202';
+        doc().querySelector('[data-action-id="ACT-COM-001"]').click();
+        window.setTimeout(function () {
+          var alertShown = !doc().getElementById('ops-scope-alert').classList.contains('state-hidden');
+          rec('GL-09', '平台运营切到他校：出现协助视图提示，且只剩他校 1 行',
+            ok && alertShown && visibleRows().length === 1 && select.disabled === false,
+            '可见 ' + visibleRows().length + ' 行 / 学校下拉可用 ' + !select.disabled);
+          next();
+        }, 80);
+      });
+    },
+    function (next) {
+      switchRole('年级主任', function (ok) {
+        doc().querySelector('[data-action-id="ACT-COM-002"]').click();
+        window.setTimeout(function () {
+          var select = doc().getElementById('f-school');
+          rec('GL-10', '非多校角色不能切换学校：下拉禁用，且重置后回到本校',
+            ok && select.disabled === true && select.value === '201' && visibleRows().length === 13,
+            '禁用=' + select.disabled + ' 值=' + select.value);
+          next();
+        }, 80);
+      });
+    },
+    function (next) {
+      var select = doc().getElementById('f-school');
+      select.value = '201';
+      doc().querySelector('[data-action-id="ACT-COM-001"]').click();
+      window.setTimeout(function () {
+        rec('GL-11', '切回本校后恢复 13 行',
+          visibleRows().length === 13, '可见 ' + visibleRows().length + ' 行');
+        next();
+      }, 60);
+    },
+    function (next) {
+      doc().querySelector('[data-stage-chip="junior"]').click();
+      window.setTimeout(function () {
+        rec('GL-12', '学段筛选「初中」后只剩 4 行',
+          visibleRows().length === 4, '可见 ' + visibleRows().length + ' 行');
+        next();
+      }, 60);
+    },
+    function (next) {
+      doc().querySelector('[data-stage-chip="__all"]').click();
+      window.setTimeout(function () {
+        rec('GL-13', '点「全部学段」后恢复 13 行',
+          visibleRows().length === 13, '可见 ' + visibleRows().length + ' 行');
+        next();
+      }, 60);
+    },
+    function (next) {
+      clearToasts();
+      doc().querySelector('[data-nav="PAGE-GRD-CREATE"]').click();
+      window.setTimeout(function () {
+        var panel = doc().querySelector('[data-demo-panel="PAGE-GRD-CREATE"]');
+        var mode = doc().getElementById('grade-form-mode').textContent.trim();
+        rec('GL-14', '点「新增」打开「新建 / 编辑年级」弹窗（载体与 apps/plus-ui 的 dialog 一致）',
+          panel.classList.contains('open') && mode === '新建', mode + ' / 打开 ' + panel.classList.contains('open'));
+        win().PrototypeShell.closePanel('all');
+        next();
+      }, 80);
+    },
+    function (next) {
+      clearToasts();
+      // D-064 之后「班级数」是真实跨页跳转（data-nav="PAGE-CLS-LIST"），不再是「后续批次交付」提示。
+      // 本步验证跳转真的发生，然后把 iframe 还原回年级列表页，后续断言继续在年级页上跑。
+      var stepDone = false;
+      var restored = false;
+      function onLoad() {
+        var d = null;
+        try { d = frame.contentDocument; } catch (err) { d = null; }
+        if (!restored) {
+          if (!d || !d.querySelector('#class-rows')) return; // 可能是首帧 load，忽略
+          restored = true;
+          rec('GL-15', '点「班级数」真实跳转到班级列表页（data-nav=PAGE-CLS-LIST，D-064 的跳转登记）',
+            true, '已落在班级列表页（' + (d.title || '') + '）');
+          frame.src = FRAME_SRC;
+          return;
+        }
+        if (d && d.querySelector('#grade-rows')) {
+          frame.removeEventListener('load', onLoad);
+          if (!stepDone) { stepDone = true; next(); }
+        }
+      }
+      frame.addEventListener('load', onLoad);
+      rowOf('2026 级 高一').querySelector('[data-action-id="ACT-GRD-008"]').click();
+      // 兜底：跳转与还原都失败时给出失败结论并结束本步，避免整条链卡死
+      window.setTimeout(function () {
+        if (stepDone) return;
+        stepDone = true;
+        frame.removeEventListener('load', onLoad);
+        if (!restored) {
+          rec('GL-15', '点「班级数」真实跳转到班级列表页（data-nav=PAGE-CLS-LIST）', false, '4 秒内没有发生跳转');
+        } else {
+          rec('GL-15-RESTORE', '跳转后 iframe 还原回年级列表页', false, '4 秒内没有还原成功');
+        }
+        next();
+      }, 4000);
+    },
+    function (next) {
+      clearToasts();
+      rowOf('2026 级 高一').click();
+      window.setTimeout(function () {
+        var t = toastText();
+        var panel = doc().querySelector('[data-demo-panel="PAGE-GRD-DETAIL"]');
+        rec('GL-16', '点数据行直接打开年级详情抽屉，不再只弹「批次交付」提示',
+          panel.classList.contains('open') && t.indexOf('交付') === -1,
+          '抽屉打开=' + panel.classList.contains('open') + ' / 提示=' + (t ? t.slice(0, 20) : '（无）'));
+        win().PrototypeShell.closePanel('all');
+        next();
+      }, 80);
+    },
+    function (next) {
+      clearToasts();
+      var delBtn = doc().querySelector('[data-action-id="ACT-GRD-007"]');
+      delBtn.click();
+      window.setTimeout(function () {
+        var panel = doc().querySelector('[data-demo-panel="DIALOG-GRD-DELETE"]');
+        var target = doc().getElementById('delete-target').textContent;
+        rec('GL-17', '点空年级行的「删除」打开二次确认弹窗并写入目标年级名',
+          panel.classList.contains('open') && target.indexOf('2021 级 小学六年级') !== -1, '标题目标：' + target);
+        next();
+      }, 80);
+    },
+    function (next) {
+      var panel = doc().querySelector('[data-demo-panel="DIALOG-GRD-DELETE"]');
+      panel.querySelector('[data-action-id="ACT-GRD-010"]').click();
+      window.setTimeout(function () {
+        var failed = panel.querySelector('.field.has-error');
+        var stillOpen = panel.classList.contains('open');
+        rec('GL-18', '未填删除原因时校验拦截，弹窗不关闭',
+          Boolean(failed) && stillOpen, failed ? '已给出字段级错误' : '未拦截');
+        next();
+      }, 120);
+    },
+    function (next) {
+      var panel = doc().querySelector('[data-demo-panel="DIALOG-GRD-DELETE"]');
+      var area = panel.querySelector('textarea');
+      area.value = '2021 年建年级时学段内序号选错，实际应为小学五年级';
+      panel.querySelector('[data-action-id="ACT-GRD-010"]').click();
+      window.setTimeout(function () {
+        var btn = panel.querySelector('[data-action-id="ACT-GRD-010"]');
+        var loading = btn.classList.contains('loading') && btn.hasAttribute('disabled');
+        rec('GL-19', '填写原因后提交进入 loading 并禁用，禁止重复提交',
+          loading || btn.textContent.indexOf('处理中') !== -1, '按钮状态：' + btn.textContent.trim());
+        next();
+      }, 150);
+    },
+    function (next) {
+      window.setTimeout(function () {
+        var panel = doc().querySelector('[data-demo-panel="DIALOG-GRD-DELETE"]');
+        var t = toastText();
+        rec('GL-20', '模拟提交成功后给出反馈并关闭弹窗',
+          !panel.classList.contains('open') && t.indexOf('逻辑删除') !== -1, t.slice(0, 70));
+        next();
+      }, 1300);
+    },
+    function (next) {
+      doc().querySelector('[data-action-id="ACT-COM-003"]').click();
+      window.setTimeout(function () {
+        var hidden = doc().querySelector('[data-block="filter"] .card-body').classList.contains('state-hidden');
+        var label = doc().querySelector('[data-action-id="ACT-COM-003"]').textContent.trim();
+        rec('GL-21', '「隐藏搜索」折叠筛选区并把按钮改成「显示搜索」',
+          hidden && label === '显示搜索', label);
+        doc().querySelector('[data-action-id="ACT-COM-003"]').click();
+        next();
+      }, 60);
+    },
+    function (next) {
+      win().PrototypeShell.applyState('empty');
+      window.setTimeout(function () {
+        var shown = !doc().querySelector('[data-demo-state-panel="empty"]').classList.contains('state-hidden');
+        rec('GL-22', '状态切换器能切到空态（六类状态真实存在）', shown, '');
+        win().PrototypeShell.applyState('normal');
+        next();
+      }, 60);
+    },
+    function (next) {
+      // 后面的表单 / 详情用例都要用可维护年级的角色：先切回教务主任（年级主任看不到新增与编辑入口）
+      switchRole('教务主任', function () {
+        clearToasts();
+        next();
+      });
+    },
+    function (next) {
+      clearToasts();
+      doc().querySelector('[data-action-id="ACT-COM-002"]').click();
+      win().PrototypeShell.openPanel('PAGE-GRD-DETAIL');
+      window.setTimeout(function () {
+        var rows = doc().querySelectorAll('[data-detail-classes] tr').length;
+        var name = doc().querySelector('[data-detail-field="grade_name"]').textContent.trim();
+        rec('GL-23', '年级详情抽屉：样本 A 显示 3 个行政班与基本信息',
+          rows === 3 && name.indexOf('2026 级 高一') !== -1, '班级行 ' + rows + ' / ' + name);
+        next();
+      }, 120);
+    },
+    function (next) {
+      doc().querySelector('[data-detail-sample="B"]').click();
+      window.setTimeout(function () {
+        var classRows = doc().querySelectorAll('[data-detail-classes] tr').length;
+        var statRows = doc().querySelectorAll('[data-detail-stats] tr').length;
+        var leaderRows = doc().querySelectorAll('[data-detail-leaders] tr').length;
+        var name = doc().querySelector('[data-detail-field="grade_name"]').textContent.trim();
+        rec('GL-24', '切「样本 B · 空年级」：班级 / 学生统计 / 年级主任都走空态而非空白',
+          classRows === 1 && statRows === 1 && leaderRows === 1 && name.indexOf('小学六年级') !== -1,
+          '班级 ' + classRows + ' / 统计 ' + statRows + ' / 主任 ' + leaderRows);
+        win().PrototypeShell.closePanel('all');
+        next();
+      }, 120);
+    },
+    function (next) {
+      rowOf('2025 级 高二').click();
+      window.setTimeout(function () {
+        var name = doc().querySelector('[data-detail-field="grade_name"]').textContent.trim();
+        var enroll = doc().querySelector('[data-detail-field="enroll_year"]').textContent.trim();
+        rec('GL-25', '点其他行时详情基本信息跟随该行（子列表仍用样本并给出说明）',
+          name.indexOf('2025 级 高二') !== -1 && enroll === '2025', name + ' / ' + enroll);
+        win().PrototypeShell.closePanel('all');
+        next();
+      }, 120);
+    },
+    function (next) {
+      doc().querySelector('[data-action-id="ACT-GRD-001"]').click();
+      window.setTimeout(function () {
+        var name = doc().getElementById('grade-form-name').value;
+        var levelCount = doc().getElementById('grade-form-level').options.length;
+        var mode = doc().getElementById('grade-form-mode').textContent.trim();
+        rec('GL-26', '新建年级：名称按规则生成，高中序号 3 项、新建态可编辑',
+          name === '2027 级 高一' && levelCount === 3 && mode === '新建'
+            && doc().getElementById('grade-form-stage').disabled === false,
+          name + ' / 序号 ' + levelCount + ' 项 / ' + mode);
+        next();
+      }, 120);
+    },
+    function (next) {
+      var sel = doc().getElementById('grade-form-stage');
+      sel.value = 'primary';
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+      window.setTimeout(function () {
+        var levelCount = doc().getElementById('grade-form-level').options.length;
+        var name = doc().getElementById('grade-form-name').value;
+        rec('GL-27', '把学段改成小学：序号选项变 6 项、名称同步重算（BR-GRADE-006）',
+          levelCount === 6 && name === '2027 级 小学一年级', name + ' / 序号 ' + levelCount + ' 项');
+        next();
+      }, 80);
+    },
+    function (next) {
+      doc().getElementById('grade-form-name').value = '2026 级 小学一年级';
+      doc().querySelector('[data-action-id="ACT-GRD-018"]').click();
+      window.setTimeout(function () {
+        var panel = doc().querySelector('[data-demo-panel="PAGE-GRD-CREATE"]');
+        var conflict = !doc().getElementById('grade-form-conflict').classList.contains('state-hidden');
+        rec('GL-28', '输入已存在的年级名称：前端拦重名，弹窗不关也不发请求',
+          conflict && panel.classList.contains('open'),
+          conflict ? '已提示唯一性冲突' : '未拦截');
+        win().PrototypeShell.closePanel('all');
+        next();
+      }, 200);
+    },
+    function (next) {
+      doc().querySelector('[data-action-id="ACT-GRD-004"]').click();
+      window.setTimeout(function () {
+        var mode = doc().getElementById('grade-form-mode').textContent.trim();
+        var stageDisabled = doc().getElementById('grade-form-stage').disabled;
+        var levelDisabled = doc().getElementById('grade-form-level').disabled;
+        var name = doc().getElementById('grade-form-name').value;
+        rec('GL-29', '行内「编辑」：复用同一弹窗的编辑态，学段与序号只读（REQ-GRD-018）',
+          mode === '编辑' && stageDisabled && levelDisabled && name.indexOf('2026 级 小学一年级') !== -1,
+          mode + ' / 学段禁用 ' + stageDisabled + ' / 序号禁用 ' + levelDisabled);
+        win().PrototypeShell.closePanel('all');
+        next();
+      }, 150);
+    },
+    function (next) {
+      doc().querySelector('[data-action-id="ACT-GRD-002"]').click();
+      window.setTimeout(function () {
+        var before = doc().getElementById('grade-batch-preview').children.length;
+        var sel = doc().getElementById('grade-batch-stage');
+        sel.value = 'primary';
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+        window.setTimeout(function () {
+          doc().getElementById('grade-batch-enroll').value = '2026';
+          doc().getElementById('grade-batch-enroll').dispatchEvent(new Event('change', { bubbles: true }));
+          window.setTimeout(function () {
+            var after = doc().getElementById('grade-batch-preview').children.length;
+            var conflicts = doc().querySelectorAll('#grade-batch-preview .list-row.conflict').length;
+            rec('GL-30', '批量生成预览：高中 3 项、小学 6 项，并标出已存在的冲突项（2026 级 小学一年级）',
+              before === 3 && after === 6 && conflicts >= 1,
+              '高中 ' + before + ' / 小学 ' + after + ' / 冲突 ' + conflicts);
+            win().PrototypeShell.closePanel('all');
+            next();
+          }, 100);
+        }, 100);
+      }, 150);
+    },
+    function (next) {
+      rowOf('2026 级 高一').querySelector('[data-action-id="ACT-GRD-005"]').click();
+      window.setTimeout(function () {
+        var before = doc().querySelectorAll('#grade-leader-list .list-row').length;
+        doc().getElementById('grade-leader-teacher').value = '郑雅琴';
+        doc().querySelector('[data-action-id="ACT-GRD-024"]').click();
+        window.setTimeout(function () {
+          var after = doc().querySelectorAll('#grade-leader-list .list-row').length;
+          rec('GL-31', '指定年级主任：添加第三人后清单从 1 条变 2 条',
+            before === 1 && after === 2, before + ' → ' + after);
+          next();
+        }, 100);
+      }, 150);
+    },
+    function (next) {
+      clearToasts();
+      doc().getElementById('grade-leader-teacher').value = '郑雅琴';
+      doc().querySelector('[data-action-id="ACT-GRD-024"]').click();
+      window.setTimeout(function () {
+        var after = doc().querySelectorAll('#grade-leader-list .list-row').length;
+        var t = toastText();
+        rec('GL-32', '同一学期同一年级同一人重复添加被拒绝（REQ-GRD-024）',
+          after === 2 && t.indexOf('已有一条任职') !== -1, t.slice(0, 50));
+        win().PrototypeShell.closePanel('all');
+        next();
+      }, 150);
+    },
+    function (next) {
+      rowOf('2024 级 初中三年级').querySelector('[data-action-id="ACT-GRD-006"]').click();
+      window.setTimeout(function () {
+        var target = doc().getElementById('grade-archive-target').textContent.trim();
+        doc().querySelector('[data-action-id="ACT-GRD-029"]').click();
+        window.setTimeout(function () {
+          var panel = doc().querySelector('[data-demo-panel="PAGE-GRD-ARCHIVE"]');
+          var hasError = Boolean(panel.querySelector('.field.has-error'));
+          rec('GL-33', '归档确认：目标年级跟随行，未填原因时校验拦截且弹窗不关',
+            target.indexOf('2024 级 初中三年级') !== -1 && hasError && panel.classList.contains('open'),
+            target + ' / 字段错误 ' + hasError);
+          win().PrototypeShell.closePanel('all');
+          next();
+        }, 200);
+      }, 150);
+    },
+    function (next) {
+      frame.contentWindow.location.hash = '#enroll=2021';
+      window.setTimeout(function () {
+        var rows = visibleRows().length;
+        var value = doc().getElementById('f-enroll').value;
+        rec('GL-34', '在已打开的页面上直接改 hash：深链接立即生效（无需刷新）',
+          rows === 1 && value === '2021', '可见 ' + rows + ' 行 / 下拉 ' + value);
+        frame.contentWindow.location.hash = '#enroll=';
+        window.setTimeout(function () { next(); }, 80);
+      }, 200);
+    },
+    function (next) {
+      // 上一行使 #enroll= 落在"参数为空"分支，下拉仍停在 2021；这里用「重置」按钮回到全部年级
+      var reset = doc().querySelector('[data-action-id="ACT-COM-002"]');
+      if (reset) reset.click();
+      window.setTimeout(function () {
+        clearToasts();
+        rowOf('2024 级 小学三年级').querySelector('td').click();
+        window.setTimeout(function () {
+          var panel = doc().querySelector('[data-demo-panel="PAGE-GRD-DETAIL"]');
+          var name = doc().querySelector('[data-detail-field="grade_name"]').textContent.trim();
+          var t = toastText();
+          rec('GL-35', '点击数据行打开详情抽屉（行上只写 data-nav，未写 data-overlay），且基本信息跟随该行',
+            panel.classList.contains('open') && name.indexOf('2024 级 小学三年级') !== -1
+            && t.indexOf('交付') === -1,
+            '抽屉打开=' + panel.classList.contains('open') + ' / 标题=' + name
+            + ' / 提示=' + (t ? t.slice(0, 20) : '（无）'));
+          next();
+        }, 240);
+      }, 160);
+    },
+    function (next) {
+      win().PrototypeShell.closePanel('all');
+      window.setTimeout(function () {
+        clearToasts();
+        var row = rowOf('2025 级 小学二年级');
+        var btn = row.querySelector('[data-action-id="ACT-GRD-009"]');
+        if (btn) btn.click();
+        window.setTimeout(function () {
+          var panel = doc().querySelector('[data-demo-panel="PAGE-GRD-DETAIL"]');
+          var name = doc().querySelector('[data-detail-field="grade_name"]').textContent.trim();
+          rec('GL-36', '操作列「详情」入口存在，点击后打开同一抽屉并跟随该行（ACT-GRD-009）',
+            Boolean(btn) && panel.classList.contains('open') && name.indexOf('2025 级 小学二年级') !== -1,
+            '入口存在=' + Boolean(btn) + ' / 标题=' + name);
+          next();
+        }, 240);
+      }, 140);
+    },
+    function (next) {
+      doc().querySelector('[data-close-panel="PAGE-GRD-DETAIL"]').click();
+      window.setTimeout(function () {
+        var stillOpen = doc().querySelector('.overlay.open');
+        var rows = visibleRows().length;
+        rec('GL-37', '关闭抽屉回到列表：筛选条件与行数保持不变，页面未重新加载',
+          !stillOpen && rows === 13, '仍有浮层=' + Boolean(stillOpen) + ' / 可见 ' + rows + ' 行');
+        next();
+      }, 220);
+    },
+    function (next) {
+      var emptyRow = rowOf('2021 级 小学六年级');
+      var btnCount = emptyRow.querySelectorAll('td.actions [data-action-id]').length;
+      var wrap = doc().querySelector('.table-scroll');
+      var table = doc().getElementById('grade-table');
+      rec('GL-38', '空年级行操作列 5 个入口（详情 / 编辑 / 指定年级主任 / 归档 / 删除）不撑破 1440 首屏',
+        btnCount === 5 && table.scrollWidth <= wrap.clientWidth + 1,
+        '入口 ' + btnCount + ' 个 / 表格 ' + table.scrollWidth + 'px vs 容器 ' + wrap.clientWidth + 'px');
+      next();
+    }
+  ];
+
+  var EXPECTED = 38;
+
+  function render() {
+    var ol = document.getElementById('results');
+    ol.innerHTML = '';
+    var pass = 0;
+    RESULTS.forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = r.pass ? 'ok' : 'bad';
+      li.textContent = (r.pass ? '通过  ' : '不通过 ') + r.id + '  ' + r.name + (r.detail ? '  —— ' + r.detail : '');
+      ol.appendChild(li);
+      if (r.pass) pass += 1;
+    });
+    var p = document.createElement('p');
+    p.className = pass === EXPECTED ? 'sum' : 'sum bad';
+    p.textContent = '合计 ' + RESULTS.length + ' / ' + EXPECTED + ' 条，通过 ' + pass + ' 条，不通过 '
+      + (RESULTS.length - pass) + ' 条' + (pass === EXPECTED && RESULTS.length === EXPECTED ? ' —— 全部通过' : '');
+    ol.appendChild(p);
+  }
+
+  function run(index) {
+    if (index >= steps.length) { render(); return; }
+    steps[index](function () { run(index + 1); });
+  }
+
+  frame.addEventListener('load', function () {
+    // 只在首次加载时启动：GL-15 会真实跳转并还原 iframe，还原时不能重新起一条链
+    if (started) return;
+    started = true;
+    window.setTimeout(function () { run(0); }, 300);
+  });
+})();
+</script>
+</body>
+</html>

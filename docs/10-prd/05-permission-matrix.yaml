@@ -6,6 +6,15 @@ purpose: |
   两者都必须通过才允许执行。数据范围模型详见 08-data-scope-model.md。
 
 roles:
+  - code: super_admin
+    name: 系统超级管理员
+    home: system
+    default_data_scope: platform
+    note: |
+      系统内置账号，不属于任何业务租户，由平台在部署时创建并按需授予（BR-ORG-014）。
+      不受租户隔离、数据范围与功能权限限制，可执行全部功能；因此禁止用于日常业务操作。
+      所有访问与写操作仍强制写审计（BR-AUDIT-001），审计不可关闭。
+
   - code: platform_ops
     name: 平台运营
     home: platform
@@ -143,6 +152,37 @@ resources:
 actions: [read, create, update, delete, export, approve, import]
 
 matrix:
+  # 系统超级管理员
+  - role: super_admin
+    entries:
+      - { resource: org.tenant, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: org.school, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: org.term, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: org.subject, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: org.grade, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: org.class, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: org.teaching_class, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: person.student, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: person.student_guardian, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: person.student_contact, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: person.teacher, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: person.teaching_assignment, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: enrollment.status, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: enrollment.transfer, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: promotion.batch, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: stream.selection, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: stream.change_request, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: stream.config, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: data.import, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: data.export, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: data.async_task, actions: [read, create, update, delete, export, approve, import] }
+      - { resource: audit.log, actions: [read, create, update, delete, export, approve, import] }
+    data_scope: platform
+    note: |
+      全部资源、全部操作、全平台数据范围；数据范围解析直接放行（DP-07），不按 DS-01 ~ DS-07 收窄。
+      仍然写审计：访问留痕 + 写操作变更前后值，见 BR-AUDIT-001 与 BR-AUDIT-002。
+      与运营方租户的运营人员（platform_ops）是两类主体：platform_ops 仍按查看 / 修改 / 导出分别授权。
+
   # 平台运营
   - role: platform_ops
     entries:
@@ -171,7 +211,7 @@ matrix:
       - { resource: org.school, actions: [read, create, update] }
       - { resource: org.term, actions: [read, create, update] }
       - { resource: org.subject, actions: [read, create, update] }
-      - { resource: org.grade, actions: [read, create, update] }
+      - { resource: org.grade, actions: [read, create, update, delete], condition: delete 仅在年级下无班级且无学生关系时可用 }
       - { resource: org.class, actions: [read] }
       - { resource: person.teacher, actions: [read, create, update] }
       - { resource: person.teaching_assignment, actions: [read, create, update] }
@@ -188,7 +228,7 @@ matrix:
     entries:
       - { resource: org.term, actions: [read] }
       - { resource: org.subject, actions: [read] }
-      - { resource: org.grade, actions: [read, create, update] }
+      - { resource: org.grade, actions: [read], condition: 校领导对本模块只读，年级主任任职的变更走审批（GAP-034 裁决 B，CR-005） }
       - { resource: org.class, actions: [read] }
       - { resource: org.teaching_class, actions: [read] }
       - { resource: person.student, actions: [read] }
@@ -196,7 +236,7 @@ matrix:
       - { resource: person.student_contact, actions: [read] }
       - { resource: person.teacher, actions: [read] }
       - { resource: enrollment.transfer, actions: [read, approve] }
-      - { resource: promotion.batch, actions: [read, approve] }
+      - { resource: promotion.batch, actions: [read], condition: 升班任务无审批环节，校领导只读（CR-012 / GAP-052） }
       - { resource: stream.change_request, actions: [read, approve] }
       - { resource: stream.config, actions: [read, update] }
       - { resource: data.export, actions: [export] }
@@ -206,7 +246,7 @@ matrix:
   # 教务主任
   - role: academic_director
     entries:
-      - { resource: org.grade, actions: [read, create, update] }
+      - { resource: org.grade, actions: [read, create, update, delete], condition: delete 仅在年级下无班级且无学生关系时可用 }
       - { resource: org.class, actions: [read, create, update, delete] }
       - { resource: org.teaching_class, actions: [read, create, update, delete] }
       - { resource: person.student, actions: [read, create, update] }
@@ -216,7 +256,7 @@ matrix:
       - { resource: person.teaching_assignment, actions: [read, create, update, delete] }
       - { resource: enrollment.status, actions: [read, create, update] }
       - { resource: enrollment.transfer, actions: [read, create] }
-      - { resource: promotion.batch, actions: [read, create] }
+      - { resource: promotion.batch, actions: [read, create, update], condition: 预览 / 执行 / 重试 / 取消统一映射到 update（CR-012 / GAP-052） }
       - { resource: stream.config, actions: [read, update] }
       - { resource: stream.selection, actions: [read, update] }
       - { resource: data.import, actions: [import] }
@@ -228,6 +268,7 @@ matrix:
   # 年级主任
   - role: grade_leader
     entries:
+      - { resource: org.grade, actions: [read], condition: 仅本人负责的年级（DS-05） }
       - { resource: org.class, actions: [read, create, update] }
       - { resource: person.student, actions: [read, create, update] }
       - { resource: person.student_contact, actions: [read, update] }
@@ -235,6 +276,7 @@ matrix:
       - { resource: person.teaching_assignment, actions: [read, create] }
       - { resource: enrollment.status, actions: [read] }
       - { resource: enrollment.transfer, actions: [read, create] }
+      - { resource: promotion.batch, actions: [read], condition: 仅本人负责的年级（DS-05），只读（CR-012 / GAP-053） }
       - { resource: stream.selection, actions: [read] }
       - { resource: data.export, actions: [export] }
       - { resource: data.async_task, actions: [read], condition: 仅本人发起的任务 }
@@ -246,6 +288,7 @@ matrix:
   # 班主任
   - role: homeroom
     entries:
+      - { resource: org.grade, actions: [read], condition: 仅本班所属年级（DS-06） }
       - { resource: org.class, actions: [read] }
       - { resource: person.student, actions: [read] }
       - { resource: person.student_guardian, actions: [read, update] }
@@ -270,6 +313,8 @@ matrix:
   # 任课教师
   - role: subject_teacher
     entries:
+      - { resource: org.grade, actions: [read], condition: 仅任教班级所属年级的年级摘要（DS-07） }
+      - { resource: org.class, actions: [read], condition: 仅任教班级的必要资料（DS-07）；不含班主任变更与编班，且禁止导出花名册（REQ-CLS-012 / REQ-CLS-034） }
       - { resource: person.student, actions: [read], condition: 仅任教班级的必要基本资料 }
       - { resource: org.teaching_class, actions: [read] }
       - { resource: person.student_contact, actions: [] }
@@ -299,15 +344,57 @@ sensitive_fields:
   - field: person.student.id_card_no
     mask: 前 6 位与后 4 位之外的字符掩码
     view_requires: [read_sensitive]
+    granted_roles: [academic_director, school_leader, platform_ops]
+    source: CR-003（GAP-026 裁决 A）
   - field: person.student_contact.phone
     mask: 中间 4 位掩码
     view_requires: [read_contact]
+    granted_roles: [academic_director, homeroom, school_leader]
+    source: CR-003（GAP-026 裁决 A）
   - field: person.student_guardian.phone
     mask: 中间 4 位掩码
     view_requires: [read_contact]
+    granted_roles: [academic_director, homeroom, school_leader]
+    source: CR-003（GAP-026 裁决 A）
+  - field: person.student.birth_date
+    mask: 只显示年月
+    view_requires: [read_sensitive]
+    granted_roles: [academic_director, school_leader, platform_ops]
+    source: CR-003（GAP-026 裁决 A；与 student PRD 5.3 对齐）
+  - field: person.student.photo_file_id
+    mask: 列表与详情只展示缩略图；原图需 read_sensitive 并写访问日志
+    view_requires: [read_sensitive]
+    granted_roles: [academic_director, homeroom, school_leader, platform_ops]
+    source: CR-003（GAP-027 裁决 A）
   - field: person.student.address
     mask: 不掩码，但按数据范围限制
     view_requires: []
+
+  - field: person.teacher.teacher_phone
+    mask: 中间 4 位掩码
+    view_requires: [read_contact]
+    granted_roles: [academic_director, homeroom, school_leader]
+    source: CR-004（GAP-033 裁决 A）
+
+field_level_permissions:
+  read_sensitive:
+    name: 查看敏感字段全量
+    granted_roles: [academic_director, school_leader, platform_ops]
+    applies_to: [person.student.id_card_no, person.student.birth_date, person.student.photo_file_id]
+    note: 查看全量必须写访问日志（查看人、对象、字段、时间、用途说明），见 REQ-AUD-008
+  read_contact:
+    name: 查看联系方式全量
+    granted_roles: [academic_director, homeroom, school_leader]
+    applies_to: [person.student_contact.phone, person.student_guardian.phone, person.teacher.teacher_phone]
+    note: 年级主任与任课教师只有掩码；年级主任对监护人信息只读；教师列表对任课教师整列隐藏联系电话
+  write_field_admin:
+    name: 校级管理员专属字段写权限
+    granted_roles: [tenant_admin]
+    applies_to: [person.teacher.teacher_no, person.teacher.hire_date]
+    note: |
+      校级管理员在本平台映射为租户管理员（tenant_admin）。
+      修改必须写审计并记录变更前后值，见 REQ-TCH-022 与 CR-004（GAP-032 裁决 A：校领导对教师主体只读）。
+  scope: CR-003（GAP-026 裁决 A，2026-09-30 用户确认"按推荐来"）；CR-004（GAP-032 / GAP-033 裁决 A，2026-09-30 用户同意）
 
 deny_rules:
   - id: PM-DENY-001
@@ -341,7 +428,7 @@ resolved_questions:
     resolved_at: 2026-09-29
   - id: PM-Q-005
     question: 集团租户的管理员是否可以只读下属学校的学生名单？
-    answer: 禁止。集团默认只有 DS-03 集团自有数据；跨校可见性只能来自运营方创建的数据共享授权
+    answer: 禁止。集团默认只有 DS-03 集团自有数据；跨校共享只针对教学资源（题库习题、试卷），学生等业务数据不跨校共享（BR-DATA-018）
     applied_to: group_expert / group_leader 的 note 与 BR-ORG-007、BR-ORG-008
     resolved_at: 2026-09-30
   - id: PM-Q-006
@@ -353,6 +440,12 @@ resolved_questions:
     question: 家长账号是否在首轮建立？
     answer: 数据模型与表在首轮建立，端不实现；表进入首轮迁移脚本
     applied_to: guardian 的 status 与 D-033、GAP-017
+    resolved_at: 2026-09-30
+  - id: PM-Q-008
+    question: 系统是否需要能力不受限的超级管理员？
+    answer: 需要。新增系统内置角色 super_admin（超级管理员），拥有全部资源与全部操作与全平台数据范围；数据范围解析直接放行（DP-07），但仍强制写审计
+    applied_to: roles.super_admin / matrix.super_admin / BR-ORG-014 / DP-07
+    source: CR-006（2026-09-30 用户指示「增加超级管理员用户，可以做任意事、所有权限、所有功能、所有角色」）
     resolved_at: 2026-09-30
 
 open_questions: []
