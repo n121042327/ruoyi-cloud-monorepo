@@ -46,7 +46,7 @@
       group: '组织与配置',
       items: [
         { id: 'PAGE-SCH-LIST', name: '学校管理', batch: '2-6', delivered: 'pages/school-list.html' },
-        { id: 'PAGE-TERM-LIST', name: '学年学期', batch: '2-6' },
+        { id: 'PAGE-TERM-LIST', name: '学年学期', batch: '2-6', delivered: 'pages/term-list.html' },
         { id: 'PAGE-SUB-LIST', name: '学科与配置', batch: '2-6', delivered: 'pages/subject-list.html' }
       ]
     },
@@ -55,7 +55,7 @@
       items: [
         { id: 'PAGE-IMP-WIZARD', name: '导入导出', batch: '2-4', delivered: 'pages/import-wizard.html' },
         { id: 'PAGE-IMP-TASK-LIST', name: '异步任务', batch: '2-9', delivered: 'pages/async-task-list.html' },
-        { id: 'PAGE-AUDIT-LOG-LIST', name: '审计日志', batch: '2-8' }
+        { id: 'PAGE-AUDIT-LOG-LIST', name: '审计日志', batch: '2-8', delivered: 'pages/audit-log-list.html' }
       ]
     }
   ];

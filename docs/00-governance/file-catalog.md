@@ -325,6 +325,7 @@
 | `prototypes/high-fidelity/v1/screenshots/1920/*.png` | 1920×1080 档截图（45 张） | `review` |
 | `prototypes/high-fidelity/v1/interaction-notes.md` | 交互说明：状态切换、加载、空态、错误 | `review` |
 | `tools/capture_hifi_screenshots.ps1` | 三档截图生成脚本（headless Chrome） | `review` |
+| `tools/make_hifi_pages_table.py` | 高保真入口页的全量清单生成器（45 页；数据来自 page-manifest + navigation） | `review` |
 
 ---
 
