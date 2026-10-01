@@ -247,3 +247,7 @@ mvn -q -DskipTests=false -pl ruoyi-modules/ruoyi-system -am test
 | `docs/00-governance/decisions.md` | 已确认决策与裁决 |
 | `docs/00-governance/change-control.md` | 变更流程 |
 | `docs/00-governance/traceability.yaml` | 需求 → 原型 → 接口 → 表 → 测试 追踪 |
+
+## 页面字段布局约束
+
+生成或修改页面、表单、表格、列表、详情和查询条件，必须遵守 `docs/00-governance/page-field-layout.md`。语义分组与依赖顺序优先；必填优先仅作建议。冻结版本通过新版本变更，逐批人工验收。

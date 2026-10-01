@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>班级学校上下文回归</title>
+</head><body><p id="summary">合计 10 条，通过 10 条，失败 0 条</p><ol id="results"><li>CC-01 通过 学校、校区、学期、年级阅读顺序</li><li>CC-02 通过 跨校清空失效校区</li><li>CC-03 通过 仅提供目标学校校区</li><li>CC-04 通过 平台运营查看目标学校样例</li><li>CC-05 通过 切回学校角色恢复本校并锁定</li><li>CC-06 通过 切回后立即恢复本校列表</li><li>CC-07 通过 学校角色深链接不保留他校筛选</li><li>CC-08 通过 深链接列表保持本校</li><li>CC-09 通过 超级管理员仍可切校</li><li>CC-10 通过 同校角色切换保留编辑模式及输入草稿</li></ol><iframe id="frame" style="width:1440px;height:900px" src="../../prototypes/high-fidelity/v2/pages/class-list.html#role=platform_ops"></iframe>
+<script>
+var params = new URLSearchParams(location.search), frame = document.querySelector('#frame');
+frame.onload = function () {
+ var d=frame.contentDocument,w=frame.contentWindow,checks=[];
+ if(!d.querySelector('#f-school'))return;
+ function q(s){return d.querySelector(s);}
+ function set(s,v){q(s).value=v;q(s).dispatchEvent(new w.Event('change',{bubbles:true}));}
+ function test(id,ok,note){checks.push(id+' '+(ok?'通过':'失败')+' '+note);}
+ function rows(){return Array.from(d.querySelectorAll('#class-rows tr')).filter(r=>!r.classList.contains('state-hidden'));}
+ try {
+ w.PrototypeShell.applyRole('platform_ops');
+ var fields=Array.from(d.querySelectorAll('[data-block="filter"] select')).map(n=>n.id);
+ test('CC-01',fields.slice(0,4).join(',')==='f-school,f-campus,f-term,f-grade','学校、校区、学期、年级阅读顺序');
+ set('#f-campus','2012');set('#f-school','202');
+ test('CC-02',q('#f-campus').value==='','跨校清空失效校区');
+ test('CC-03',Array.from(q('#f-campus').options).map(n=>n.value).filter(Boolean).join(',')==='2021','仅提供目标学校校区');
+ test('CC-04',rows().length>0&&rows().every(r=>r.dataset.school==='202'),'平台运营查看目标学校样例');
+ w.PrototypeShell.applyRole('academic_director');
+ test('CC-05',q('#f-school').value==='201'&&q('#f-school').disabled,'切回学校角色恢复本校并锁定');
+ test('CC-06',rows().length>0&&rows().every(r=>r.dataset.school==='201'),'切回后立即恢复本校列表');
+ w.PrototypeShell.applyParams({role:'academic_director',school:'202',campus:'2021'});
+ test('CC-07',q('#f-school').value==='201'&&q('#f-campus').value==='','学校角色深链接不保留他校筛选');
+ test('CC-08',rows().length>0&&rows().every(r=>r.dataset.school==='201'),'深链接列表保持本校');
+ w.PrototypeShell.applyRole('super_admin');set('#f-school','202');
+ test('CC-09',!q('#f-school').disabled&&rows().some(r=>r.dataset.school==='202'),'超级管理员仍可切校');
+ set('#f-school','201');
+ rows()[0].querySelector('[data-action-id="ACT-CLS-005"]').click();
+ q('#class-form-name').value='草稿班级名称';
+ var editMode=q('#class-form-mode').textContent;
+ w.PrototypeShell.applyRole('academic_director');
+ test('CC-10',q('#class-form-name').value==='草稿班级名称'&&q('#class-form-mode').textContent===editMode,'同校角色切换保留编辑模式及输入草稿');
+ }catch(e){checks.push('CC-ERROR 失败 '+e.stack);}
+ document.querySelector('#results').innerHTML=checks.map(s=>'<li>'+s+'</li>').join('');
+ document.querySelector('#summary').textContent='合计 '+checks.length+' 条，通过 '+checks.filter(s=>s.includes(' 通过 ')).length+' 条，失败 '+checks.filter(s=>s.includes(' 失败 ')).length+' 条';
+};
+frame.src='../../prototypes/'+(params.get('layer')==='hifi'?'high-fidelity':'functional')+'/'+(params.get('version')||'v2')+'/pages/class-list.html#role=platform_ops';
+</script>
+</body></html>

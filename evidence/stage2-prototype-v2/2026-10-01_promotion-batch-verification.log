@@ -1,0 +1,16 @@
+verify-promotion-layout.html?page=list&layer=functional exit=0 ['合计 12 条，通过 12 条，失败 0 条']
+verify-promotion-layout.html?page=list&layer=hifi exit=0 ['合计 12 条，通过 12 条，失败 0 条']
+verify-promotion-layout.html?page=history&layer=functional exit=0 ['合计 9 条，通过 9 条，失败 0 条']
+verify-promotion-layout.html?page=history&layer=hifi exit=0 ['合计 9 条，通过 9 条，失败 0 条']
+verify-promotion-list.html exit=0 ['合计 36 / 36 条，通过 36 条，不通过 0 条 —— 全部通过']
+verify-promotion-history-module.html exit=0 ['合计 28 / 28 条，通过 28 条，不通过 0 条 —— 全部通过']
+['python', 'tools/check_docs.py'] exit=0
+=== 文档一致性核查 ===
+通过：未发现问题
+
+['git', 'diff', '--check'] exit=0
+
+['git', 'diff', 'HEAD', '--', 'prototypes/functional/v1', 'prototypes/high-fidelity/v1'] exit=0
+
+frozen baselines unchanged: PASS
+UTF-8 no BOM LF: PASS; independent final review: PASS; manual acceptance: pending; backend permission verification: not executed; commit/push/merge: not executed

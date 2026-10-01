@@ -1,0 +1,57 @@
+CR-028 学生学籍异动 / 调班 / 异动登记浮层字段分组验证日志
+执行日期：2026-10-01
+工作目录：D:\work\person_work\ruoyi-cloud-monorepo
+
+命令模板（Chrome headless）：
+  chrome --headless=new --disable-gpu --allow-file-access-from-files
+         --user-data-dir=<临时目录> --virtual-time-budget=30000 --dump-dom
+         file:///D:/work/person_work/ruoyi-cloud-monorepo/evidence/stage2-prototype-v2/verify-student-overlay-layout.html?layer=<functional|hifi>&version=<v1|v2>
+
+一、本批验证：verify-student-overlay-layout.html（13 项 × 2 层）
+
+  v1 functional 基线（修改前）：合计 13 条，通过 5 条，失败 8 条
+    失败项：SO-01 / SO-02 / SO-03 / SO-04 / SO-07 / SO-08 / SO-09 / SO-10
+    证据：evidence/stage2-prototype-v2/2026-10-01_student-overlay-v1-functional.html
+  v2 functional：合计 13 条，通过 13 条，失败 0 条
+    证据：evidence/stage2-prototype-v2/2026-10-01_student-overlay-v2-functional.html
+  v2 hifi：合计 13 条，通过 13 条，失败 0 条
+    证据：evidence/stage2-prototype-v2/2026-10-01_student-overlay-v2-hifi.html
+
+二、回归（学生列表改动后的既有验证器）
+
+  verify-student-layout-list.html（学生模块既有回归，28 项）：
+    合计 28 / 28 条，通过 28 条，不通过 0 条 —— 全部通过
+    证据：evidence/stage2-prototype-v2/2026-10-01_student-layout-list-cr028-result.html
+  verify-student-cascade.html functional：合计 20 / 20 条，通过 20 条，不通过 0 条
+  verify-student-cascade.html hifi：合计 20 / 20 条，通过 20 条，不通过 0 条
+    证据：evidence/stage2-prototype-v2/2026-10-01_student-cascade-cr028-functional-result.html
+          evidence/stage2-prototype-v2/2026-10-01_student-cascade-cr028-hifi-result.html
+  verify-student-grade-layout.html functional：合计 17 条，通过 17 条，失败 0 条
+  verify-student-grade-layout.html hifi：合计 17 条，通过 17 条，失败 0 条
+    证据：evidence/stage2-prototype-v2/2026-10-01_student-grade-layout-cr028-functional-result.html
+          evidence/stage2-prototype-v2/2026-10-01_student-grade-layout-cr028-hifi-result.html
+
+  本批通过合计：13 × 2 + 28 + 20 × 2 + 17 × 2 = 128 项。
+
+三、文档与冻结检查
+
+  python tools/check_docs.py  -> 通过：未发现问题（退出码 0）
+  git diff --check            -> 无输出（退出码 0）
+  git diff HEAD -- prototypes/functional/v1 prototypes/high-fidelity/v1 -> 空输出，冻结 v1 未改动
+  文件编码检查 -> prototypes/{functional,high-fidelity}/v2/pages/student-list.html、
+                 prototypes/functional/v2/layout-spec.yaml、tools/align_student_overlay_layout.py、
+                 evidence/stage2-prototype-v2/verify-student-overlay-layout.html 均为 UTF-8 无 BOM、LF 换行
+
+四、截图（1440 × 900）
+
+  evidence/stage2-prototype-v2/2026-10-01_student-status-layout-cr028_1440x900.png
+  evidence/stage2-prototype-v2/2026-10-01_student-transfer-layout-cr028_1440x900.png
+  evidence/stage2-prototype-v2/2026-10-01_student-prm-change-layout-cr028_1440x900.png
+  evidence/stage2-prototype-v2/2026-10-01_student-status-layout-cr028-hifi_1440x900.png
+  evidence/stage2-prototype-v2/2026-10-01_student-transfer-layout-cr028-hifi_1440x900.png
+  evidence/stage2-prototype-v2/2026-10-01_student-prm-change-layout-cr028-hifi_1440x900.png
+
+五、口径说明
+
+  以上均为脚本与浏览器实际输出。字段分组通过不代表业务规则通过：GAP-077（调班是否补生效日期）
+  仍未裁决，本批未新增字段；人工验收未进行，接口与数据权限未执行。

@@ -1,0 +1,13 @@
+verify-class-context.html?layer=functional exit=0 ['合计 10 条，通过 10 条，失败 0 条']
+verify-class-context.html?layer=hifi exit=0 ['合计 10 条，通过 10 条，失败 0 条']
+verify-class-list.html exit=0 ['合计 39 / 39 条，通过 39 条，不通过 0 条 —— 全部通过']
+verify-class-dialogs.html exit=0 ['合计 36 / 36 条，通过 36 条，不通过 0 条 —— 全部通过']
+['python', 'tools/check_docs.py'] exit=0
+=== 文档一致性核查 ===
+通过：未发现问题
+
+['git', 'diff', '--check'] exit=0
+
+['git', 'diff', 'HEAD', '--', 'prototypes/functional/v1', 'prototypes/high-fidelity/v1'] exit=0
+
+UTF-8 no BOM LF: PASS; human acceptance: pending; backend verification: not executed; commit/push: not executed

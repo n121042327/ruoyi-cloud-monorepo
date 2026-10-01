@@ -47,7 +47,7 @@
 **异步（入队后立即返回任务号）**：导入执行、导出（> 2000 行）、升班预览与执行、教学班生成（> 1 万人）、
 归档区间检索（> 30 秒）、任务重试与死信重放。异步接口统一返回 `task_no`，进度与结果在异步任务中心查询。
 
-## 4. 接口总览（共 173 个 operationId）
+## 4. 接口总览（共 172 个 operationId）
 
 | 模块 | 接口数 |
 |---|---|
@@ -58,11 +58,11 @@
 | 升班与学籍异动（`promotion`） | 20 |
 | 学校与租户（`school`） | 16 |
 | 3+1+2 选科与教学班（`stream`） | 17 |
-| 学生管理（`student`） | 19 |
+| 学生管理（`student`） | 18 |
 | 学科与配置（`subject`） | 12 |
 | 教师管理（`teacher`） | 20 |
 | 学年学期（`term`） | 12 |
-| **合计** | **173** |
+| **合计** | **172** |
 
 ## 5.1 审计与操作日志（`audit`）
 
@@ -222,16 +222,15 @@
 | 7 | `listStudentChangeLog` | GET | `/edu/student/{id}/change-log` | 变更记录 | `person.student` | 查询 | 同步 |
 | 8 | `listEnrollmentStatusOption` | GET | `/edu/student/{id}/status-options` | 当前状态可执行的异动 | `person.student` | 查询 | 同步 |
 | 9 | `changeEnrollmentStatus` | POST | `/edu/student/{id}/enrollment-change` | 学籍异动 | `person.student` | 写入 / 触发 | 同步 |
-| 10 | `transferStudentClass` | POST | `/edu/student/{id}/class-transfer` | 调班 | `person.student` | 写入 / 触发 | 同步 |
-| 11 | `crossSchoolTransfer` | POST | `/edu/student/cross-school-transfer` | 跨校转学 | `person.student` | 写入 / 触发 | 同步 |
-| 12 | `importStudentValidate` | POST | `/edu/student/import/validate` | 导入校验 | `person.student` | 写入 / 触发 | 同步 |
-| 13 | `importStudentExecute` | POST | `/edu/student/import/execute` | 导入执行（异步） | `person.student` | 写入 / 触发 | 异步 |
-| 14 | `downloadStudentImportTemplate` | GET | `/edu/student/import/template` | 模板下载 | `person.student` | 查询 | 同步 |
-| 15 | `exportStudent` | POST | `/edu/student/export` | 导出 | `person.student` | 写入 / 触发 | 异步 |
-| 16 | `resetStudentPassword` | POST | `/edu/student/{id}/reset-password` | 重置密码 | `person.student` | 写入 / 触发 | 同步 |
-| 17 | `listStudentGuardian` | GET | `/edu/student/{id}/guardian` | 监护人列表 | `person.student` | 查询 | 同步 |
-| 18 | `saveStudentGuardian` | POST | `/edu/student/{id}/guardian` | 新增 / 修改监护人 | `person.student` | 写入 / 触发 | 同步 |
-| 19 | `unbindStudentGuardian` | POST | `/edu/student/{id}/guardian/{guardianId}/unbind` | 解绑（需审核） | `person.student` | 写入 / 触发 | 同步 |
+| 10 | `crossSchoolTransfer` | POST | `/edu/student/cross-school-transfer` | 跨校转学 | `person.student` | 写入 / 触发 | 同步 |
+| 11 | `importStudentValidate` | POST | `/edu/student/import/validate` | 导入校验 | `person.student` | 写入 / 触发 | 同步 |
+| 12 | `importStudentExecute` | POST | `/edu/student/import/execute` | 导入执行（异步） | `person.student` | 写入 / 触发 | 异步 |
+| 13 | `downloadStudentImportTemplate` | GET | `/edu/student/import/template` | 模板下载 | `person.student` | 查询 | 同步 |
+| 14 | `exportStudent` | POST | `/edu/student/export` | 导出 | `person.student` | 写入 / 触发 | 异步 |
+| 15 | `resetStudentPassword` | POST | `/edu/student/{id}/reset-password` | 重置密码 | `person.student` | 写入 / 触发 | 同步 |
+| 16 | `listStudentGuardian` | GET | `/edu/student/{id}/guardian` | 监护人列表 | `person.student` | 查询 | 同步 |
+| 17 | `saveStudentGuardian` | POST | `/edu/student/{id}/guardian` | 新增 / 修改监护人 | `person.student` | 写入 / 触发 | 同步 |
+| 18 | `unbindStudentGuardian` | POST | `/edu/student/{id}/guardian/{guardianId}/unbind` | 解绑（需审核） | `person.student` | 写入 / 触发 | 同步 |
 
 ## 5.9 学科与配置（`subject`）
 

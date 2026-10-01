@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>详情浮层入口验证（年级 / 教师 / 学生）</title>
+<style>
+  body { margin: 14px; background: #fff; color: #24292f;
+         font: 13px/1.55 Consolas, "Microsoft YaHei", monospace; }
+  h1 { font-size: 17px; margin: 0 0 8px; }
+  ol { margin: 0 0 10px; padding-left: 22px; }
+  li.ok { color: #1a7f37; }
+  li.bad { color: #c0392b; font-weight: 700; }
+  p.sum { font-weight: 700; }
+  iframe { width: 1440px; height: 760px; border: 1px solid #dcdfe6; }
+  iframe.offscreen { display: none; }
+</style>
+</head>
+<body>
+<h1>详情浮层入口验证：点数据行与操作列「详情」都能打开抽屉（真实事件派发，非人工目视）</h1>
+<ol id="results"><li>运行中…</li></ol>
+<iframe id="frame-grade" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v2/pages/grade-list.html"></iframe>
+<iframe id="frame-teacher" class="offscreen" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v2/pages/teacher-list.html"></iframe>
+<iframe id="frame-student" class="offscreen" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/student-list.html"></iframe>
+<script>
+(function () {
+  'use strict';
+  var RESULTS = [];
+
+  function rec(id, name, pass, detail) {
+    RESULTS.push({ id: id, name: name, pass: Boolean(pass), detail: detail || '' });
+  }
+
+  function doc(id) { return document.getElementById(id).contentDocument; }
+  function win(id) { return document.getElementById(id).contentWindow; }
+  function q(id, sel) { return doc(id).querySelector(sel); }
+  function qa(id, sel) { return Array.prototype.slice.call(doc(id).querySelectorAll(sel)); }
+
+  function openOverlays(id) {
+    return qa(id, '.overlay.open').map(function (n) {
+      return n.getAttribute('data-demo-panel');
+    });
+  }
+
+  function toastText(id) {
+    var host = q(id, '.toast-host');
+    return host ? host.textContent : '';
+  }
+
+  function clearToasts(id) {
+    var host = q(id, '.toast-host');
+    if (host) host.innerHTML = '';
+  }
+
+  function rowOf(id, text) {
+    return qa(id, 'tbody tr[data-role="row"]').filter(function (tr) {
+      // CR-031：年级表第一列在 CR-027 后由「年级名称」改为「学段」，
+      // 按第一列定位会取不到行；改为匹配整行文本（不再依赖列位置）。
+      return tr.textContent.indexOf(text) !== -1;
+    })[0];
+  }
+
+  var steps = [
+    // ---------------- 年级：点行打开详情抽屉 ----------------
+    function (next) {
+      clearToasts('frame-grade');
+      var row = rowOf('frame-grade', '2024 级 小学三年级');
+      row.querySelector('td').click();
+      window.setTimeout(function () {
+        var open = openOverlays('frame-grade').indexOf('PAGE-GRD-DETAIL') !== -1;
+        var title = q('frame-grade', '[data-detail-field="grade_name"]').textContent.trim();
+        var t = toastText('frame-grade');
+        rec('RD-01', '年级列表：点数据行打开详情抽屉，抽屉基本信息跟随该行',
+          open && title.indexOf('2024 级 小学三年级') !== -1 && t.indexOf('交付') === -1,
+          '抽屉=' + open + ' / 标题=' + title + ' / 提示=' + (t ? t.slice(0, 18) : '（无）'));
+        next();
+      }, 200);
+    },
+    // ---------------- 年级：操作列「详情」 ----------------
+    function (next) {
+      win('frame-grade').PrototypeShell.closePanel('all');
+      window.setTimeout(function () {
+        clearToasts('frame-grade');
+        var row = rowOf('frame-grade', '2025 级 小学二年级');
+        var btn = row.querySelector('[data-action-id="ACT-GRD-009"]');
+        if (btn) btn.click();
+        window.setTimeout(function () {
+          var open = openOverlays('frame-grade').indexOf('PAGE-GRD-DETAIL') !== -1;
+          var title = q('frame-grade', '[data-detail-field="grade_name"]').textContent.trim();
+          rec('RD-02', '年级列表：操作列「详情」打开同一抽屉，不额外开页面',
+            Boolean(btn) && open && title.indexOf('2025 级 小学二年级') !== -1,
+            '入口存在=' + Boolean(btn) + ' / 抽屉=' + open + ' / 标题=' + title);
+          next();
+        }, 200);
+      }, 140);
+    },
+    // ---------------- 年级：关闭后无残留 ----------------
+    function (next) {
+      q('frame-grade', '[data-close-panel="PAGE-GRD-DETAIL"]').click();
+      window.setTimeout(function () {
+        var open = openOverlays('frame-grade');
+        rec('RD-03', '年级列表：关闭抽屉后无残留浮层，回到列表（筛选保留）',
+          open.length === 0, '仍打开：' + (open.join(',') || '无'));
+        next();
+      }, 200);
+    },
+    // ---------------- 教师：点行打开详情抽屉（行上未写 data-overlay） ----------------
+    function (next) {
+      clearToasts('frame-teacher');
+      var row = qa('frame-teacher', '#teacher-rows tr[data-role="row"]')[0];
+      row.querySelector('td').click();
+      window.setTimeout(function () {
+        var open = openOverlays('frame-teacher').indexOf('PAGE-TCH-DETAIL') !== -1;
+        var t = toastText('frame-teacher');
+        rec('RD-04', '教师列表：点数据行打开教师详情抽屉（外壳按已有片段自动识别浮层）',
+          open && t.indexOf('交付') === -1, '抽屉=' + open + ' / 提示=' + (t ? t.slice(0, 18) : '（无）'));
+        next();
+      }, 200);
+    },
+    // ---------------- 教师：显式 data-overlay="dialog" 不被改写 ----------------
+    function (next) {
+      win('frame-teacher').PrototypeShell.closePanel('all');
+      window.setTimeout(function () {
+        var btn = qa('frame-teacher', '#teacher-rows [data-action-id="ACT-TCH-006"]')[0];
+        if (btn) btn.click();
+        window.setTimeout(function () {
+          var open = openOverlays('frame-teacher');
+          rec('RD-05', '教师列表：显式标注 data-overlay="dialog" 的「编辑」仍开弹窗，不被抽屉规则覆盖',
+            open.indexOf('PAGE-TCH-EDIT') !== -1 && open.indexOf('PAGE-TCH-DETAIL') === -1,
+            '已打开：' + (open.join(',') || '无'));
+          next();
+        }, 200);
+      }, 140);
+    },
+    // ---------------- 学生：详情已在批次 2-5 交付，点行打开抽屉并带入该行学生 ----------------
+    function (next) {
+      clearToasts('frame-student');
+      var row = qa('frame-student', '#student-rows tr[data-role="row"]')[0];
+      var name = row.children[2].textContent.trim();
+      row.querySelector('td').click();
+      window.setTimeout(function () {
+        var open = openOverlays('frame-student');
+        var t = toastText('frame-student');
+        var title = (q('frame-student', '[data-demo-panel="PAGE-STU-DETAIL"] .drawer-header h2') || {}).textContent || '';
+        rec('RD-06', '学生列表：详情已在批次 2-5 交付，点行打开学生详情抽屉并带入该行学生',
+          open.indexOf('PAGE-STU-DETAIL') !== -1 && title.indexOf(name) !== -1 && t.indexOf('交付') === -1,
+          '已打开：' + (open.join(',') || '无') + ' / 标题=' + title.replace(/\s+/g, ' '));
+        next();
+      }, 200);
+    }
+  ];
+
+  var EXPECTED = 6;
+
+  function render() {
+    var ol = document.getElementById('results');
+    ol.innerHTML = '';
+    var pass = 0;
+    RESULTS.forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = r.pass ? 'ok' : 'bad';
+      li.textContent = (r.pass ? '通过  ' : '不通过 ') + r.id + '  ' + r.name + (r.detail ? '  —— ' + r.detail : '');
+      ol.appendChild(li);
+      if (r.pass) pass += 1;
+    });
+    var p = document.createElement('p');
+    p.className = pass === EXPECTED ? 'sum' : 'sum bad';
+    p.textContent = '合计 ' + RESULTS.length + ' / ' + EXPECTED + ' 条，通过 ' + pass + ' 条，不通过 '
+      + (RESULTS.length - pass) + ' 条' + (pass === EXPECTED && RESULTS.length === EXPECTED ? ' —— 全部通过' : '');
+    ol.appendChild(p);
+  }
+
+  function run(index) {
+    if (index >= steps.length) { render(); return; }
+    steps[index](function () { run(index + 1); });
+  }
+
+  var pending = ['frame-grade', 'frame-teacher', 'frame-student'];
+  // CR-031：三个 iframe 都在本脚本之前声明，本地文件可能在本脚本挂监听前就已 load，
+  // 只靠 load 事件会永久停在「运行中」。这里同时轮询 readyState，两种信号谁先到都可以。
+  function markReady(id) {
+    if (pending.indexOf(id) === -1) return;
+    pending = pending.filter(function (x) { return x !== id; });
+    if (!pending.length) window.setTimeout(function () { run(0); }, 320);
+  }
+  var polls = 0;
+  (function poll() {
+    polls += 1;
+    pending.slice().forEach(function (id) {
+      var f = document.getElementById(id);
+      try {
+        if (f.contentDocument && f.contentDocument.readyState === 'complete') markReady(id);
+      } catch (e) { /* 跨源不可读时忽略，交给 load 事件 */ }
+    });
+    if (pending.length && polls < 40) {
+      window.setTimeout(poll, 250);
+    } else if (pending.length) {
+      // 兜底：10 秒内没等到全部 ready 也开跑，避免永久停在「运行中」
+      pending = [];
+      window.setTimeout(function () { run(0); }, 320);
+    }
+  })();
+  pending.slice().forEach(function (id) {
+    document.getElementById(id).addEventListener('load', function () { markReady(id); });
+  });
+})();
+</script>
+</body>
+</html>

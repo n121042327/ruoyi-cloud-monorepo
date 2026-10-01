@@ -46,7 +46,6 @@
 | `listStudentChangeLog` | GET | `/edu/student/{id}/change-log` | 变更记录 | `person.student` | 同步 |
 | `listEnrollmentStatusOption` | GET | `/edu/student/{id}/status-options` | 当前状态可执行的异动 | `person.student` | 同步 |
 | `changeEnrollmentStatus` | POST | `/edu/student/{id}/enrollment-change` | 学籍异动 | `person.student` | 同步 |
-| `transferStudentClass` | POST | `/edu/student/{id}/class-transfer` | 调班 | `person.student` | 同步 |
 | `crossSchoolTransfer` | POST | `/edu/student/cross-school-transfer` | 跨校转学 | `person.student` | 同步 |
 | `importStudentValidate` | POST | `/edu/student/import/validate` | 导入校验 | `person.student` | 同步 |
 | `importStudentExecute` | POST | `/edu/student/import/execute` | 导入执行（异步） | `person.student` | 异步 |
@@ -57,7 +56,7 @@
 | `saveStudentGuardian` | POST | `/edu/student/{id}/guardian` | 新增 / 修改监护人 | `person.student` | 同步 |
 | `unbindStudentGuardian` | POST | `/edu/student/{id}/guardian/{guardianId}/unbind` | 解绑（需审核） | `person.student` | 同步 |
 
-共 19 个接口。请求 / 响应契约见 `docs/40-detailed-design/api/openapi.yaml`，错误码见 `docs/40-detailed-design/api/error-codes.yaml`。
+共 18 个接口。请求 / 响应契约见 `docs/40-detailed-design/api/openapi.yaml`，错误码见 `docs/40-detailed-design/api/error-codes.yaml`。
 
 ## 4. 页面与动作落点
 

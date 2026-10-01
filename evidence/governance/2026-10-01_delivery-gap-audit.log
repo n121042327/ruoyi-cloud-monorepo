@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-01",
+  "requirements_by_module": {
+    "audit": 40,
+    "class": 62,
+    "grade": 40,
+    "import-export": 52,
+    "promotion": 66,
+    "school": 45,
+    "stream": 69,
+    "student": 97,
+    "subject": 42,
+    "teacher": 70,
+    "term": 42
+  },
+  "total_requirements": 625,
+  "traceability_rows": 0,
+  "mapping_entries": 5,
+  "mapping_elements": 35,
+  "mapping_files": [
+    "prototypes/high-fidelity/v1/pages/student-list.html"
+  ],
+  "registered_class_actions": 64,
+  "registered_promotion_actions": 52,
+  "used_class_promotion_actions": 93,
+  "unregistered_actions": [],
+  "document_check_exit_code": 0,
+  "interactive_tests": "未执行",
+  "api_permission_tests": "未执行"
+}
+
+=== 文档一致性核查 ===
+通过：未发现问题

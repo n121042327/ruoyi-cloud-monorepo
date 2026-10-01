@@ -5,7 +5,422 @@ purpose: |
 
 status_values: [未开始, 部分覆盖, 已覆盖, 已验收]
 
-traceability: []
+traceability:
+- requirement_id: REQ-STU-001
+  data_scope: 学校上下文内按角色解析本校、负责年级、负责班级、任教班级必要资料或本人范围；学生主体读取经学校侧在校记录或班级关系，不自动按租户树放行集团。平台运营全平台读取单独授权并留痕，super_admin 按既有唯一例外处理；缺学校或执行人上下文拒绝。
+  title: 提供学生列表分页查询，默认每页 20 条，最大 200 条
+  source: docs/10-prd/modules/student/PRD.md:195
+  business_rules:
+  - NFR-PERF-05
+  permission: 各角色 `person.student` 的 `read`
+  permission_source: docs/10-prd/05-permission-matrix.yaml
+  data_scope_source: docs/10-prd/08-data-scope-model.md
+  prototype_functional: prototypes/functional/v2/pages/student-list.html
+  prototype_hifi: prototypes/high-fidelity/v2/pages/student-list.html
+  component_mapping: prototypes/high-fidelity/v2/component-mapping.yaml
+  api_operation_ids:
+  - listStudent
+  api_source: docs/40-detailed-design/api/openapi.yaml
+  tables:
+  - edu_student
+  - edu_student_enrollment
+  - edu_class_member
+  table_basis: docs/40-detailed-design/database/schema.yaml（平台学生读取经学校侧记录；本字段为设计涉及表，不是已验证 SQL）
+  acceptance_cases:
+  - AC-STU-001
+  acceptance_source: docs/10-prd/modules/student/acceptance.md
+  frontend:
+    page: null
+    planned_page: apps/plus-ui/src/views/edu/student/stu_list/index.vue
+    plan_source: docs/40-detailed-design/frontend-page-tree.yaml
+  backend:
+    controller: null
+    service: null
+  tests:
+    unit: []
+    integration: []
+    permission: []
+    prototype: []
+  status: 部分覆盖
+  notes:
+  - 原型是静态样例；生产前端、后端与权限测试均未验证。
+- requirement_id: REQ-STU-002
+  data_scope: 学校上下文内按角色解析本校、负责年级、负责班级、任教班级必要资料或本人范围；学生主体读取经学校侧在校记录或班级关系，不自动按租户树放行集团。平台运营全平台读取单独授权并留痕，super_admin 按既有唯一例外处理；缺学校或执行人上下文拒绝。
+  title: 支持按学校、学年学期、年级、班级、学籍状态、性别、入学年份、学段筛选
+  source: docs/10-prd/modules/student/PRD.md:196
+  business_rules:
+  - BR-STU-012
+  permission: 筛选项本身受数据范围约束
+  permission_source: docs/10-prd/05-permission-matrix.yaml
+  data_scope_source: docs/10-prd/08-data-scope-model.md
+  prototype_functional: prototypes/functional/v2/pages/student-list.html
+  prototype_hifi: prototypes/high-fidelity/v2/pages/student-list.html
+  component_mapping: prototypes/high-fidelity/v2/component-mapping.yaml
+  api_operation_ids:
+  - listStudent
+  api_source: docs/40-detailed-design/api/openapi.yaml
+  tables:
+  - edu_student
+  - edu_student_enrollment
+  - edu_class_member
+  table_basis: docs/40-detailed-design/database/schema.yaml（平台学生读取经学校侧记录；本字段为设计涉及表，不是已验证 SQL）
+  acceptance_cases:
+  - AC-STU-002
+  acceptance_source: docs/10-prd/modules/student/acceptance.md
+  frontend:
+    page: null
+    planned_page: apps/plus-ui/src/views/edu/student/stu_list/index.vue
+    plan_source: docs/40-detailed-design/frontend-page-tree.yaml
+  backend:
+    controller: null
+    service: null
+  tests:
+    unit: []
+    integration: []
+    permission: []
+    prototype:
+    - evidence/stage2-prototype-v2/verify-student-cascade.html
+  status: 部分覆盖
+  notes:
+  - listStudent 是列表读取入口，但现有 OpenAPI 仅定义 pageNum/pageSize，未显式定义本需求查询字段，契约覆盖不足；本批不改冻结 API。
+  - 原型是静态样例；生产前端、后端与权限测试均未验证。
+- requirement_id: REQ-STU-003
+  data_scope: 学校上下文内按角色解析本校、负责年级、负责班级、任教班级必要资料或本人范围；学生主体读取经学校侧在校记录或班级关系，不自动按租户树放行集团。平台运营全平台读取单独授权并留痕，super_admin 按既有唯一例外处理；缺学校或执行人上下文拒绝。
+  title: 支持关键字检索，命中范围为学号、姓名、全国学籍号
+  source: docs/10-prd/modules/student/PRD.md:197
+  business_rules:
+  - BR-STU-022
+  permission: 同上
+  permission_source: docs/10-prd/05-permission-matrix.yaml
+  data_scope_source: docs/10-prd/08-data-scope-model.md
+  prototype_functional: prototypes/functional/v2/pages/student-list.html
+  prototype_hifi: prototypes/high-fidelity/v2/pages/student-list.html
+  component_mapping: prototypes/high-fidelity/v2/component-mapping.yaml
+  api_operation_ids:
+  - listStudent
+  api_source: docs/40-detailed-design/api/openapi.yaml
+  tables:
+  - edu_student
+  - edu_student_enrollment
+  - edu_class_member
+  table_basis: docs/40-detailed-design/database/schema.yaml（平台学生读取经学校侧记录；本字段为设计涉及表，不是已验证 SQL）
+  acceptance_cases:
+  - AC-STU-003
+  acceptance_source: docs/10-prd/modules/student/acceptance.md
+  frontend:
+    page: null
+    planned_page: apps/plus-ui/src/views/edu/student/stu_list/index.vue
+    plan_source: docs/40-detailed-design/frontend-page-tree.yaml
+  backend:
+    controller: null
+    service: null
+  tests:
+    unit: []
+    integration: []
+    permission: []
+    prototype: []
+  status: 部分覆盖
+  notes:
+  - listStudent 是列表读取入口，但现有 OpenAPI 仅定义 pageNum/pageSize，未显式定义本需求查询字段，契约覆盖不足；本批不改冻结 API。
+  - 原型是静态样例；生产前端、后端与权限测试均未验证。
+- requirement_id: REQ-STU-004
+  data_scope: 学校上下文内按角色解析本校、负责年级、负责班级、任教班级必要资料或本人范围；学生主体读取经学校侧在校记录或班级关系，不自动按租户树放行集团。平台运营全平台读取单独授权并留痕，super_admin 按既有唯一例外处理；缺学校或执行人上下文拒绝。
+  title: 支持按证件号后四位精确检索，且仅对具备敏感字段读取权限的角色开放
+  source: docs/10-prd/modules/student/PRD.md:198
+  business_rules:
+  - NFR-SEC-06
+  permission: '`read_sensitive`'
+  permission_source: docs/10-prd/05-permission-matrix.yaml
+  data_scope_source: docs/10-prd/08-data-scope-model.md
+  prototype_functional: prototypes/functional/v2/pages/student-list.html
+  prototype_hifi: prototypes/high-fidelity/v2/pages/student-list.html
+  component_mapping: prototypes/high-fidelity/v2/component-mapping.yaml
+  api_operation_ids:
+  - listStudent
+  api_source: docs/40-detailed-design/api/openapi.yaml
+  tables:
+  - edu_student
+  - edu_student_enrollment
+  - edu_class_member
+  table_basis: docs/40-detailed-design/database/schema.yaml（平台学生读取经学校侧记录；本字段为设计涉及表，不是已验证 SQL）
+  acceptance_cases:
+  - AC-STU-004
+  acceptance_source: docs/10-prd/modules/student/acceptance.md
+  frontend:
+    page: null
+    planned_page: apps/plus-ui/src/views/edu/student/stu_list/index.vue
+    plan_source: docs/40-detailed-design/frontend-page-tree.yaml
+  backend:
+    controller: null
+    service: null
+  tests:
+    unit: []
+    integration: []
+    permission: []
+    prototype: []
+  status: 部分覆盖
+  notes:
+  - listStudent 是列表读取入口，但现有 OpenAPI 仅定义 pageNum/pageSize，未显式定义本需求查询字段，契约覆盖不足；本批不改冻结 API。
+  - 原型是静态样例；生产前端、后端与权限测试均未验证。
+- requirement_id: REQ-STU-005
+  data_scope: 学校上下文内按角色解析本校、负责年级、负责班级、任教班级必要资料或本人范围；学生主体读取经学校侧在校记录或班级关系，不自动按租户树放行集团。平台运营全平台读取单独授权并留痕，super_admin 按既有唯一例外处理；缺学校或执行人上下文拒绝。
+  title: 支持按学号、姓名、入学年份、班级名称、更新时间排序
+  source: docs/10-prd/modules/student/PRD.md:199
+  business_rules: []
+  permission: —
+  permission_source: docs/10-prd/05-permission-matrix.yaml
+  data_scope_source: docs/10-prd/08-data-scope-model.md
+  prototype_functional: prototypes/functional/v2/pages/student-list.html
+  prototype_hifi: prototypes/high-fidelity/v2/pages/student-list.html
+  component_mapping: prototypes/high-fidelity/v2/component-mapping.yaml
+  api_operation_ids:
+  - listStudent
+  api_source: docs/40-detailed-design/api/openapi.yaml
+  tables:
+  - edu_student
+  - edu_student_enrollment
+  - edu_class_member
+  table_basis: docs/40-detailed-design/database/schema.yaml（平台学生读取经学校侧记录；本字段为设计涉及表，不是已验证 SQL）
+  acceptance_cases:
+  - AC-STU-005
+  acceptance_source: docs/10-prd/modules/student/acceptance.md
+  frontend:
+    page: null
+    planned_page: apps/plus-ui/src/views/edu/student/stu_list/index.vue
+    plan_source: docs/40-detailed-design/frontend-page-tree.yaml
+  backend:
+    controller: null
+    service: null
+  tests:
+    unit: []
+    integration: []
+    permission: []
+    prototype: []
+  status: 部分覆盖
+  notes:
+  - listStudent 是列表读取入口，但现有 OpenAPI 仅定义 pageNum/pageSize，未显式定义本需求查询字段，契约覆盖不足；本批不改冻结 API。
+  - 原型是静态样例；生产前端、后端与权限测试均未验证。
+- requirement_id: REQ-STU-006
+  data_scope: 学校上下文内按角色解析本校、负责年级、负责班级、任教班级必要资料或本人范围；学生主体读取经学校侧在校记录或班级关系，不自动按租户树放行集团。平台运营全平台读取单独授权并留痕，super_admin 按既有唯一例外处理；缺学校或执行人上下文拒绝。
+  title: 默认列表列：学号、姓名、性别、学段、年级、班级、学籍状态、入学年份、联系电话（掩码）、更新时间
+  source: docs/10-prd/modules/student/PRD.md:200
+  business_rules:
+  - BR-STU-009
+  permission: —
+  permission_source: docs/10-prd/05-permission-matrix.yaml
+  data_scope_source: docs/10-prd/08-data-scope-model.md
+  prototype_functional: prototypes/functional/v2/pages/student-list.html
+  prototype_hifi: prototypes/high-fidelity/v2/pages/student-list.html
+  component_mapping: prototypes/high-fidelity/v2/component-mapping.yaml
+  api_operation_ids:
+  - listStudent
+  api_source: docs/40-detailed-design/api/openapi.yaml
+  tables:
+  - edu_student
+  - edu_student_enrollment
+  - edu_class_member
+  table_basis: docs/40-detailed-design/database/schema.yaml（平台学生读取经学校侧记录；本字段为设计涉及表，不是已验证 SQL）
+  acceptance_cases:
+  - AC-STU-006
+  acceptance_source: docs/10-prd/modules/student/acceptance.md
+  frontend:
+    page: null
+    planned_page: apps/plus-ui/src/views/edu/student/stu_list/index.vue
+    plan_source: docs/40-detailed-design/frontend-page-tree.yaml
+  backend:
+    controller: null
+    service: null
+  tests:
+    unit: []
+    integration: []
+    permission: []
+    prototype: []
+  status: 部分覆盖
+  notes:
+  - 原型是静态样例；生产前端、后端与权限测试均未验证。
+- requirement_id: REQ-STU-007
+  data_scope: 学校上下文内按角色解析本校、负责年级、负责班级、任教班级必要资料或本人范围；学生主体读取经学校侧在校记录或班级关系，不自动按租户树放行集团。平台运营全平台读取单独授权并留痕，super_admin 按既有唯一例外处理；缺学校或执行人上下文拒绝。
+  title: 可选列表列：全国学籍号、出生日期、证件号（掩码）、监护人姓名
+  source: docs/10-prd/modules/student/PRD.md:201
+  business_rules:
+  - BR-STU-009
+  permission: 可选列的可见性按字段级权限判定
+  permission_source: docs/10-prd/05-permission-matrix.yaml
+  data_scope_source: docs/10-prd/08-data-scope-model.md
+  prototype_functional: prototypes/functional/v2/pages/student-list.html
+  prototype_hifi: prototypes/high-fidelity/v2/pages/student-list.html
+  component_mapping: prototypes/high-fidelity/v2/component-mapping.yaml
+  api_operation_ids:
+  - listStudent
+  api_source: docs/40-detailed-design/api/openapi.yaml
+  tables:
+  - edu_student
+  - edu_student_enrollment
+  - edu_class_member
+  table_basis: docs/40-detailed-design/database/schema.yaml（平台学生读取经学校侧记录；本字段为设计涉及表，不是已验证 SQL）
+  acceptance_cases:
+  - AC-STU-007
+  acceptance_source: docs/10-prd/modules/student/acceptance.md
+  frontend:
+    page: null
+    planned_page: apps/plus-ui/src/views/edu/student/stu_list/index.vue
+    plan_source: docs/40-detailed-design/frontend-page-tree.yaml
+  backend:
+    controller: null
+    service: null
+  tests:
+    unit: []
+    integration: []
+    permission: []
+    prototype: []
+  status: 部分覆盖
+  notes:
+  - 列配置目前是演示提示，不能作为完整可选列实现证据。
+  - 原型是静态样例；生产前端、后端与权限测试均未验证。
+- requirement_id: REQ-STU-008
+  data_scope: 学校上下文内按角色解析本校、负责年级、负责班级、任教班级必要资料或本人范围；学生主体读取经学校侧在校记录或班级关系，不自动按租户树放行集团。平台运营全平台读取单独授权并留痕，super_admin 按既有唯一例外处理；缺学校或执行人上下文拒绝。
+  title: 列表结果的每一行都必须通过数据范围过滤，范围为空时返回空列表
+  source: docs/10-prd/modules/student/PRD.md:202
+  business_rules:
+  - DS-DENY-03
+  - NFR-SEC-03
+  permission: —
+  permission_source: docs/10-prd/05-permission-matrix.yaml
+  data_scope_source: docs/10-prd/08-data-scope-model.md
+  prototype_functional: prototypes/functional/v2/pages/student-list.html
+  prototype_hifi: prototypes/high-fidelity/v2/pages/student-list.html
+  component_mapping: prototypes/high-fidelity/v2/component-mapping.yaml
+  api_operation_ids:
+  - listStudent
+  api_source: docs/40-detailed-design/api/openapi.yaml
+  tables:
+  - edu_student
+  - edu_student_enrollment
+  - edu_class_member
+  table_basis: docs/40-detailed-design/database/schema.yaml（平台学生读取经学校侧记录；本字段为设计涉及表，不是已验证 SQL）
+  acceptance_cases:
+  - AC-STU-008
+  acceptance_source: docs/10-prd/modules/student/acceptance.md
+  frontend:
+    page: null
+    planned_page: apps/plus-ui/src/views/edu/student/stu_list/index.vue
+    plan_source: docs/40-detailed-design/frontend-page-tree.yaml
+  backend:
+    controller: null
+    service: null
+  tests:
+    unit: []
+    integration: []
+    permission: []
+    prototype: []
+  status: 部分覆盖
+  notes:
+  - 原型是静态样例；生产前端、后端与权限测试均未验证。
+- requirement_id: REQ-STU-009
+  data_scope: 学校上下文内按角色解析本校、负责年级、负责班级、任教班级必要资料或本人范围；学生主体读取经学校侧在校记录或班级关系，不自动按租户树放行集团。平台运营全平台读取单独授权并留痕，super_admin 按既有唯一例外处理；缺学校或执行人上下文拒绝。
+  title: 列表页的"新增""编辑""异动""调班""导出""导入"按钮按功能权限显示，且后端二次校验
+  source: docs/10-prd/modules/student/PRD.md:203
+  business_rules:
+  - NFR-SEC-05
+  permission: '`05-permission-matrix.yaml`'
+  permission_source: docs/10-prd/05-permission-matrix.yaml
+  data_scope_source: docs/10-prd/08-data-scope-model.md
+  prototype_functional: prototypes/functional/v2/pages/student-list.html
+  prototype_hifi: prototypes/high-fidelity/v2/pages/student-list.html
+  component_mapping: prototypes/high-fidelity/v2/component-mapping.yaml
+  api_operation_ids: []
+  api_source: docs/40-detailed-design/api/openapi.yaml
+  tables: []
+  table_basis: 本需求未逐条确定存储落点，不按模块批量挂表
+  acceptance_cases:
+  - AC-STU-009
+  - AC-STU-134
+  - AC-STU-135
+  acceptance_source: docs/10-prd/modules/student/acceptance.md
+  frontend:
+    page: null
+    planned_page: apps/plus-ui/src/views/edu/student/stu_list/index.vue
+    plan_source: docs/40-detailed-design/frontend-page-tree.yaml
+  backend:
+    controller: null
+    service: null
+  tests:
+    unit: []
+    integration: []
+    permission: []
+    prototype: []
+  status: 部分覆盖
+  notes:
+  - 本需求覆盖按钮显隐与后端二次校验；原型声明 batchTransferStudent，但冻结 OpenAPI 无同名 operationId，未自行指定替代接口。
+  - 原型是静态样例；生产前端、后端与权限测试均未验证。
+- requirement_id: REQ-STU-010
+  data_scope: 偏好仅按当前用户维度存储；恢复的教育查询仍受学校上下文及角色数据范围约束。
+  title: 列表支持记住用户上一次的筛选条件与列配置，按用户维度存储
+  source: docs/10-prd/modules/student/PRD.md:204
+  business_rules: []
+  permission: —
+  permission_source: docs/10-prd/05-permission-matrix.yaml
+  data_scope_source: docs/10-prd/08-data-scope-model.md
+  prototype_functional: prototypes/functional/v2/pages/student-list.html
+  prototype_hifi: prototypes/high-fidelity/v2/pages/student-list.html
+  component_mapping: prototypes/high-fidelity/v2/component-mapping.yaml
+  api_operation_ids: []
+  api_source: docs/40-detailed-design/api/openapi.yaml
+  tables: []
+  table_basis: 本需求未逐条确定存储落点，不按模块批量挂表
+  acceptance_cases:
+  - AC-STU-010
+  acceptance_source: docs/10-prd/modules/student/acceptance.md
+  frontend:
+    page: null
+    planned_page: apps/plus-ui/src/views/edu/student/stu_list/index.vue
+    plan_source: docs/40-detailed-design/frontend-page-tree.yaml
+  backend:
+    controller: null
+    service: null
+  tests:
+    unit: []
+    integration: []
+    permission: []
+    prototype: []
+  status: 部分覆盖
+  notes:
+  - 用户偏好持久化尚无本需求逐项设计与实现证据，未生成猜测 API 或表。
+  - 原型是静态样例；生产前端、后端与权限测试均未验证。
+
+- requirement_id: REQ-CLS-035
+  data_scope: 学校上下文内按角色解析本校、负责年级、负责班级、任教班级必要资料或本人范围；学生主体读取经学校侧在校记录或班级关系，不自动按租户树放行集团。平台运营全平台读取单独授权并留痕，super_admin 按既有唯一例外处理；缺学校或执行人上下文拒绝。
+  title: 编班表一行一学生及目标班级列；本批补四列与定位校验裁决
+  source: docs/10-prd/modules/class/PRD.md:234
+  business_rules:
+  - BR-STU-016
+  permission: 执行范围与功能权限引用班级 PRD 第 5 节及权限矩阵；本补充不增加跨校写权限
+  permission_source: docs/10-prd/05-permission-matrix.yaml
+  data_scope_source: docs/10-prd/08-data-scope-model.md
+  prototype_functional: prototypes/functional/v1/pages/class-import-roster.html
+  prototype_hifi: prototypes/high-fidelity/v1/pages/class-import-roster.html
+  supplement: docs/10-prd/modules/class/import-template-v2.md
+  change_request: docs/00-governance/change-requests/CR-021.md
+  api_operation_ids: []
+  tables: []
+  acceptance_cases:
+  - AC-CLS-035
+  acceptance_source: docs/10-prd/modules/class/acceptance.md
+  frontend:
+    page: null
+  backend:
+    controller: null
+    service: null
+  tests:
+    unit: []
+    integration: []
+    permission: []
+  status: 部分覆盖
+  notes:
+  - 只补设计依据；既有原型列名相同，但没有验证新增组合定位与教学班规则。
+  - 具体 API、关系存储与执行验收未逐条补齐，不生成猜测实现路径。
+
+template_note: 仅为字段形状示例，不是已实现路径或已验证追踪记录；真实记录以 traceability 为准。
 
 template:
   requirement_id: REQ-STU-001

@@ -1,0 +1,159 @@
+schema_version: "1.0"
+baseline: prototypes/functional/v1/layout-spec.yaml
+scope: PAGE-STU-LIST、PAGE-CLS-LIST、PAGE-TCH-LIST、PAGE-GRD-LIST、PAGE-PRM-LIST、PAGE-PRM-HISTORY、PAGE-STU-STATUS、PAGE-STU-TRANSFER、PAGE-PRM-CHANGE、PAGE-STU-DETAIL、DIALOG-GRD-DELETE、PAGE-GRD-DETAIL、PAGE-GRD-LEADER、PAGE-GRD-ARCHIVE；其他页面保持 v1 规则
+promotion_delta:
+  change_request: docs/00-governance/change-requests/CR-024.md
+  list_groups:
+    教育信息: [school_id, source_term_id, target_term_id]
+    任务信息: [promotion_task_status, create_by, task_no]
+  history_groups:
+    教育信息: [term_id, grade_id]
+    异动信息: [change_type, effective_date]
+  history_term: 用户裁决只展示当前样例，禁用学期切换并说明缺少历史归属。
+  date_filter: 生效日期单日期精确匹配现有行的日期，空值不限制。
+  operations: 查询操作独立于字段组。
+teacher_grade_delta:
+  change_request: docs/00-governance/change-requests/CR-023.md
+  teacher_groups:
+    教育信息: [school_id, grade_name, class_name, subject_code, edu_role]
+    职业信息: [employment_status]
+    检索信息: [teacher_name]
+  grade_groups:
+    教育信息: [school_id, stage_code, enroll_year, leader_user_id]
+  operations: 查询操作独立于字段组。
+  role_context: 学校角色恢复本校样例 201，学校变更立即刷新；同校角色切换不初始化表单。
+  scope_note: 仅查询布局和学校上下文，不新增校区或下拉选项联动，不改表格列序。
+field_layout_authority: docs/00-governance/page-field-layout.md
+table_form_delta:
+  change_request: docs/00-governance/change-requests/CR-025.md
+  class_table: [campus_id, grade_id, class_name, class_type, head_teacher_id, classroom, class_capacity, student_count, class_status, actions]
+  class_form_groups:
+    教育信息: [campus_id, term_id, grade_id, class_name, class_type, head_teacher_id, classroom]
+    管理信息: [class_capacity]
+  teacher_form_groups:
+    基础信息: [teacher_no, teacher_name, gender]
+    教育信息: [school_id, edu_role]
+    职业信息: [hire_date, employment_status]
+    联系方式: [teacher_phone, email]
+    补充信息: [remark]
+  table_fields: 单元格以 data-field 标识，交互按字段名读取；操作与选择列独立。
+  scope_note: 班级共用新建编辑、教师编辑表单；其他浮层未整体整理，非完整教师样例绑定仍属 GAP-073。
+student_grade_delta:
+  change_request: docs/00-governance/change-requests/CR-027.md
+  student_table: [student_no, student_name, gender, enroll_year, stage_code, grade_name, class_name, enrollment_status, student_phone, update_time, actions]
+  student_table_groups:
+    基础信息: [student_no, student_name, gender]
+    教育信息: [enroll_year, stage_code, grade_name, class_name, enrollment_status]
+    联系方式: [student_phone]
+    管理信息: [update_time]
+  student_form_groups:
+    基础信息: [学号, 全国学籍号, 姓名, 性别]
+    教育信息: [入学年份, 学段, 年级, 行政班, 学籍状态, 入学日期]
+    补充信息: [学生照片]
+    证件信息: [证件类型, 证件号码, 出生日期]
+    联系方式: [学生手机号, 联系地址]
+    监护人信息: [监护人姓名, 与学生关系, 监护人电话, 主要联系人]
+  grade_table: [stage_code, enroll_year, grade_name, grade_level, leader_user_id, class_count, student_count, grade_status, actions]
+  grade_table_groups:
+    教育信息: [stage_code, enroll_year, grade_name, grade_level, leader_user_id]
+    管理信息: [class_count, student_count, grade_status]
+  grade_form_groups:
+    教育信息: [school_id, stage_code, enroll_year, grade_level, grade_name]
+  read_by_field: 学生、年级的编辑 / 归档 / 批量预览一律按 data-field 读取单元格，禁止按列号。
+  scope_note: 学生与年级的表格、新建 / 编辑表单；详情与其余浮层未整理，差异见 GAP-076。
+student_overlay_delta:
+  change_request: docs/00-governance/change-requests/CR-028.md
+  pages: [PAGE-STU-STATUS, PAGE-STU-TRANSFER, PAGE-PRM-CHANGE]
+  status_groups:
+    异动信息: [change_type, effective_date]
+    复学 / 报到安排: [class_id]
+    异动说明: [reason]
+  status_notes:
+    条件字段: 复学 / 报到后的班级是异动类型的条件字段，独立成组并紧跟在异动信息之后，不与异动类型、生效日期混组。
+    组内顺序: 先触发字段（异动类型）再生效日期，生效日期描述该次异动的时间。
+    审批提示: 「需要审批」提示属于异动类型的结果，留在异动信息组内。
+  transfer_groups:
+    班级关系: [class_id]
+    调班说明: [reason]
+  transfer_notes:
+    缺字段: PRD 6.1 要求弹窗含「生效日期」，现有原型与 PRD 7.3 的调班审计口径都不含该字段，未获裁决前不新增，差异见 GAP-077。
+    原关系: 调班弹窗只列目标班级；原班级在弹窗页头以只读标签展示，不重复成组。
+  registration_change_groups:
+    异动信息: [change_type, effective_date]
+    异动说明: [reason]
+  group_names: 异动信息 / 异动说明 / 复学 / 报到安排 / 班级关系 / 调班说明为业务专用组名，三类异动浮层与班级模块调班浮层保持一致。
+  operations: 提交与取消固定在 dialog-footer，不属于任何字段组。
+  validation_summary: 校验汇总在字段分区之外，浮层内的任一校验失败都能定位到对应字段。
+  scope_note: 只重排字段分组与顺序；字段集、组件、接口、权限、演示脚本与冻结 v1 均未改变。
+grade_overlay_delta:
+  change_request: docs/00-governance/change-requests/CR-031.md
+  pages: [DIALOG-GRD-DELETE, PAGE-GRD-DETAIL, PAGE-GRD-LEADER, PAGE-GRD-ARCHIVE]
+  delete_groups:
+    删除影响: [影响范围, 当前状态]
+    删除说明: [remark]
+  detail_groups:
+    教育信息: [school, stage_label, enroll_year, grade_level, grade_name, 年级名称规则]
+    管理信息: [status]
+  detail_notes:
+    卡片标题: 原「基本信息」卡片改名为「年级信息」，组名由卡片内的分区承担；其余四张卡片（下辖班级 / 在读学生统计 / 年级主任任职历史 / 变更记录）是子表与时间线，不作为字段组。
+    读取方式: 详情字段仍按 data-detail-field 填充，重排不影响取值（读取不依赖位置）。
+  leader_groups:
+    任职信息: [term_id, 当前任职清单]
+    新增任职: [leader_user_id, 主要负责人, 生效日期]
+  leader_notes:
+    学年学期在前: 学年学期是任职的时间上下文，排在最前；随后是当前任职清单，最后是新增任职子表单。
+    组内动作: 分组内只保留子清单行动作——「添加」（ACT-GRD-024）与清单行的「移除」（ACT-GRD-027）；表单级提交与取消固定在 dialog-footer。
+    行内布局: 新增任职行使用 .form-inline；分区宽度规则对 .form-inline 内的 input / select 不生效，保持横向排列。
+  archive_groups:
+    归档影响: [影响范围, 当前引用情况]
+    归档说明: [remark]
+  validation_summary: 四个浮层的校验汇总都在字段分区之外；删除确认在本批补上校验汇总（此前只有提示，与同页其余三个弹窗不一致）。
+  operations: 提交与取消固定在 dialog-footer，详情抽屉的关闭固定在 drawer-footer。
+  scope_note: 只重排字段分组与顺序并补一处校验汇总；字段集、组件、接口、权限与演示脚本未改变。
+student_detail_delta:
+  change_request: docs/00-governance/change-requests/CR-033.md
+  pages: [PAGE-STU-DETAIL]
+  detail_groups:
+    基础信息: [student_no, national_student_no, student_name, gender]
+    教育信息: [enroll_year, grade_id, enrollment_status]
+    证件信息: [id_card_no]
+    联系方式: [student_phone]
+  detail_notes:
+    卡片标题: 原「基本信息」卡片改名为「学生信息」，组名由卡片内的四个分区承担；监护人（上限 3）与变更记录两张卡片保持原样。
+    字段顺序: 基础信息按学号 → 全国学籍号 → 姓名 → 性别，与 CR-027 的新增 / 编辑学生表单一致；教育信息在前、证件与联系方式在后。
+    读取方式: 详情字段按 id 填充（sd-f-*），重排不影响取值。
+    页头标识: 抽屉页头仍显示姓名、学籍状态与学号标签；这三处是身份摘要，不作为字段组重复计算。
+  operations: 抽屉的编辑 / 学籍异动 / 调班 / 跨校转学 / 异动登记固定在 drawer-footer，分组内不出现表单级动作。
+  scope_note: 只重排字段分组与顺序；字段集、组件、接口、权限与演示脚本未改变。
+class_list_delta:
+  change_request: docs/00-governance/change-requests/CR-022.md
+  display_order: [school_id, campus_id, term_id, grade_id, class_type, head_teacher_id, keyword]
+  role_context: 学校角色恢复本校样例 201，重建下拉并刷新列表；平台运营与超级管理员可切校。
+  scope_note: 本批调整查询条件顺序和角色上下文；不新增校区到年级的联动规则，不改冻结 v1。
+change_request: docs/00-governance/change-requests/CR-020.md
+filter_cascade:
+  display_order: [school_id, term_id, grade_id, class_id]
+  display_note: 学校作为首个范围上下文；该页没有既有校区筛选，本批不新增。
+  school_id:
+    children: [grade_id, class_id]
+    rule: 学校变化后，仅保留该学校的原有年级和班级选项；失效值清空为全部。
+  grade_id:
+    children: [class_id]
+    rule: 学生列表选择年级后，班级选项只保留该年级；空年级选择显示本校全部原有班级。
+    authority: 用户在本次会话明确选择“学生列表按年级收窄班级（推荐）”。
+  sources:
+    - prototypes/functional/v1/content-samples.json 的 classes[].school_id / grade_id
+    - v1 学生列表已有下拉选项（保留无学生的空班，不从当前学生行反推全部班级）
+  term_scope:
+    result: 未执行（CR-030 / CR-034 后仍是唯一未按学校收窄的筛选项）
+    reason: calendar 样例没有学校归属，不能据此推导各校可用学期；本批不编造学期范围。GAP-067 的推荐 A 需要用户提供两校学期样例。
+  teacher_grade_pages:
+    change_request: docs/00-governance/change-requests/CR-034.md
+    grade_list: 学校变化后重建 f-enroll（入学年份）与 f-leader（年级主任）选项，并隐藏该校没有的学段 chip、清掉失效选中值；归属取自 content-samples.json 的 grades[].school_id / stage_code / grade_leaders。
+    teacher_list: 学校变化后重建 f-grade（任教年级）与 f-class（任教班级）选项；归属取自 grades[].school_id 与 classes[].school_id。任教学科是平台级配置，不随学校收窄。
+    student_list: 年级 / 班级 收窄沿用 CR-020 的实现，本批未改。
+    read_rule: 读取不依赖位置；切换学校后若原值不在新范围内，清空为「全部」。
+  data_scope:
+    rule: 前端选项收窄不代替后端数据范围校验；学校用户固定本校，集团身份不获得学校业务数据。
+  sample_totals:
+    rule: 页头与分页显示同一筛选后的样例行数，不把静态样例声称为真实学生总数。

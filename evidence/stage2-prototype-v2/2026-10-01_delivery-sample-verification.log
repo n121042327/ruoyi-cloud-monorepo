@@ -1,0 +1,26 @@
+COMMAND python tools/build_student_sample_mapping.py --check
+EXIT 0
+通过：207 个元素的映射与快照一致
+
+
+COMMAND python tools/check_docs.py
+EXIT 0
+=== 文档一致性核查 ===
+通过：未发现问题
+
+
+COMMAND git diff --check
+EXIT 0
+
+
+frozen_baselines_unchanged PASS
+
+UTF-8_no_BOM_LF PASS
+
+GAP_STATUS {"GAP-042": "closed", "GAP-047": "open", "GAP-056": "closed", "GAP-063": "open", "GAP-064": "open", "GAP-065": "closed", "GAP-066": "open", "GAP-067": "open", "GAP-068": "closed", "GAP-069": "open", "GAP-070": "closed"}
+
+browser_assertions PASS 88 (20 functional + 20 hifi + 14 carrier + 6 entry + 28 student)
+traceability_reference_checks PASS 11 (10 student + 1 class template)
+backend_api_permission_tests 未执行
+manual_acceptance 待确认
+commit_push_merge 未执行

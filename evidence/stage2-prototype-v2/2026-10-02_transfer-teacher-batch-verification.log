@@ -1,0 +1,87 @@
+CR-029 / CR-030 学生调班对齐与教师非在职行验证日志
+执行日期：2026-10-02
+工作目录：D:\work\person_work\ruoyi-cloud-monorepo
+
+命令模板（Chrome headless）：
+  chrome --headless=new --disable-gpu --allow-file-access-from-files
+         --user-data-dir=<临时目录> --virtual-time-budget=30000 --dump-dom
+         file:///D:/work/person_work/ruoyi-cloud-monorepo/evidence/stage2-prototype-v2/<验证器>.html?layer=<functional|hifi>&version=<v1|v2>
+
+一、CR-029 学生调班对齐
+
+  verify-student-transfer-alignment.html
+    v1 functional 基线（修改前）：合计 8 条，通过 2 条，失败 6 条
+      证据 2026-10-02_student-transfer-alignment-v1-functional.html
+    v2 functional：合计 8 条，通过 8 条，失败 0 条
+    v2 hifi：合计 8 条，通过 8 条，失败 0 条
+      证据 2026-10-02_student-transfer-alignment-v2-functional.html / -v2-hifi.html
+
+  verify-student-overlay-layout-cr029.html（CR-028 分组回归按新口径的副本）
+    v2 functional：合计 13 条，通过 13 条，失败 0 条
+    v2 hifi：合计 13 条，通过 13 条，失败 0 条
+      证据 2026-10-02_student-overlay-layout-cr029-v2-functional.html / -v2-hifi.html
+
+  verify-student-layout-list-cr029.html（学生模块回归，SM-08 改按 transferClass）
+    合计 28 / 28 条，通过 28 条，不通过 0 条 —— 全部通过
+      证据 2026-10-02_student-layout-list-cr029-v2-result.html
+    过程留档：2026-10-02_student-layout-list-cr029-result.html 是复制后未改 SM-08 断言时的运行结果（27 / 28），
+    仅用于记录「旧断言指向 transferStudentClass」这一事实，不作为本批证据。
+
+  被取代的历史断言：verify-student-overlay-layout.html（CR-028 版）现在失败 2 项
+    —— SO-08 / SO-09 断言的是「未裁决前不补字段」的当时状态
+      证据 2026-10-02_student-overlay-layout-cr028-superseded.html
+
+二、CR-030 教师非在职行
+
+  verify-teacher-inactive-rows.html
+    v1 functional 基线（修改前）：合计 8 条，通过 1 条，失败 7 条
+      证据 2026-10-02_teacher-inactive-rows-v1-functional.html
+    v2 functional：合计 8 条，通过 8 条，失败 0 条
+    v2 hifi：合计 8 条，通过 8 条，失败 0 条
+      证据 2026-10-02_teacher-inactive-rows-v2-functional.html / -v2-hifi.html
+
+  verify-teacher-edit-binding-cr030.html（教师编辑绑定回归，EB-12 / EB-14 改按新规则）
+    functional：合计 14 条，通过 14 条，失败 0 条
+    hifi：合计 14 条，通过 14 条，失败 0 条
+      证据 2026-10-02_teacher-edit-binding-cr030-functional.html / -hifi.html
+
+三、既有回归（本批改动后复跑）
+
+  verify-teacher-grade-carrier.html：functional 14 / 14，hifi 14 / 14
+    证据 2026-10-02_teacher-grade-carrier-cr030-functional-result.html / -hifi-result.html
+  verify-teacher-grade-context.html：functional 13 / 13，hifi 13 / 13
+    证据 2026-10-02_teacher-grade-context-cr030-functional-result.html / -hifi-result.html
+  verify-table-form-layout.html：functional 8 / 8，hifi 8 / 8
+    证据 2026-10-02_table-form-layout-cr030-functional-result.html / -hifi-result.html
+
+  本批通过合计（不含被取代的历史断言与超范围验证器）：
+    8 × 2 + 13 × 2 + 28 + 8 × 2 + 14 × 2 + 14 × 2 + 13 × 2 + 8 × 2 = 184 项。
+
+  说明：verify-teacher-grade-detail.html 在 headless 下停在「运行中」，原因是三个 iframe 的 load 事件竞态
+  （与 2026-10-01 的同一验证器对照可复现），与本批改动无关，未计入上表；产物
+  2026-10-02_teacher-grade-detail-cr030-*.html 仅作过程留档。
+
+四、契约重新生成（CR-029）
+
+  python tools/extract_api_catalog.py   -> 11 个模块 / 172 个 operationId（原 173）
+  python tools/gen_api_and_map.py       -> OpenAPI 172 个 operationId / 152 条路径；页面动作映射 45 页 / 609 个动作
+  python tools/gen_stage5_docs.py       -> 11 个模块详细设计 / 接口 172 个
+  受影响的生成文件：docs/30-architecture/06-api-catalog.md、docs/40-detailed-design/api/openapi.yaml、
+  frontend-page-tree.yaml、page-action-api-map.yaml、modules/student/design.md、00-index.md
+  生成器新增 API_ALIASES（transferStudentClass → transferClass），解决冻结 v1 原型与收敛后契约的别名问题。
+
+五、文档与冻结检查
+
+  python tools/check_docs.py            -> 通过：未发现问题（退出码 0）
+  python tools/verify_nav_links.py      -> 真实点击验证：7 / 7 通过
+  git diff --check                      -> 无输出（退出码 0）
+  git status --short -- prototypes/functional/v1 prototypes/high-fidelity/v1
+                                        -> 只有 navigation.yaml 与 page-actions.yaml 两个注册表文件被修改，
+                                           未改动任何 v1 页面文件；high-fidelity/v1 无改动
+  工具幂等：tools/align_student_overlay_layout.py 连续两次运行后 v2 学生页哈希不变；
+            tools/extract_api_catalog.py、tools/gen_api_and_map.py 在改动前先跑过一次，输出与改动前逐字节一致
+
+六、口径说明
+
+  以上计数均为脚本与浏览器实际输出。字段与入口通过不代表业务规则通过：GAP-078（撤销后账号与教育角色的
+  恢复口径）仍未裁决；人工验收未进行，接口与数据权限未执行。

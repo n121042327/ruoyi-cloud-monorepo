@@ -12,7 +12,7 @@
 | 结构检查 SQL | `docs/40-detailed-design/database/check-sql.sql` | 22 条结构与不变式检查 |
 | 迁移脚本 | `docs/40-detailed-design/migrations/V1` ~ `V5` | 可重复执行的建表与外键脚本 |
 | 迁移计划 | `docs/40-detailed-design/database/migration-plan.md` | 顺序、依赖、回滚、存量升级 |
-| 接口契约 | `docs/40-detailed-design/api/openapi.yaml` | OpenAPI 3.0.3，173 个 operationId |
+| 接口契约 | `docs/40-detailed-design/api/openapi.yaml` | OpenAPI 3.0.3，172 个 operationId |
 | 错误码 | `docs/40-detailed-design/api/error-codes.yaml` | 72 个错误码 |
 | 页面动作映射 | `docs/40-detailed-design/page-action-api-map.yaml` | 页面动作 → 权限 → operationId → 组件 |
 | 前端页面树 | `docs/40-detailed-design/frontend-page-tree.yaml` | 路由 / 组件归属 / 批次 / 文件 |

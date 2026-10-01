@@ -2757,7 +2757,7 @@ pages:
   - action_id: ACT-STU-020
     element: 批量调班
     permission: org.class:update
-    api: batchTransferStudent
+    api: transferClass
     nav: '-'
     overlay: '-'
   - action_id: ACT-COM-003
@@ -2985,7 +2985,7 @@ pages:
   - action_id: ACT-STU-032
     element: 确认调班
     permission: org.class:update
-    api: transferStudentClass
+    api: transferClass
     nav: '-'
     overlay: '-'
   - action_id: ACT-PRM-045
@@ -3527,7 +3527,7 @@ pages:
   - action_id: ACT-TCH-032
     element: 保存
     permission: person.teacher:update
-    api: saveTeacherEduRole
+    api: saveTeacherRole
     nav: '-'
     overlay: '-'
   - action_id: ACT-TCH-006
@@ -3683,7 +3683,7 @@ pages:
   - action_id: ACT-TCH-009
     element: 确认登记
     permission: '-'
-    api: saveTeacherLeave
+    api: leaveTeacher
     nav: '-'
     overlay: '-'
   - action_id: ACT-TCH-012

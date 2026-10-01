@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>教师与年级上下文回归</title>
+</head><body><p id="summary">合计 11 条，通过 10 条，失败 1 条</p><ol id="results"><li>TG-01 通过 平台运营目标学校样例</li><li>TG-02 通过 切回学校角色恢复并锁定本校</li><li>TG-03 通过 立即刷新本校列表</li><li>TG-04 通过 深链接不能保留他校学校上下文</li><li>TG-09 通过 学校选择变化无需搜索即可刷新</li><li>TG-05 通过 超级管理员可切校并即时刷新</li><li>TG-06 通过 查询字段有语义分组标题</li><li>TG-07 通过 查询操作独立于字段组</li><li>TG-08 通过 学校、入学年份、年级主任顺序</li><li>TG-10 失败 深链接切校关闭原学校浮层</li><li>TG-11 通过 同校角色切换保留当前浮层</li></ol><iframe id="frame" style="width:1440px;height:900px" src="../../prototypes/functional/v2/pages/grade-list.html#role=platform_ops"></iframe>
+<script>
+var params=new URLSearchParams(location.search),page=params.get('page')==='grade'?'grade':'teacher',frame=document.querySelector('#frame');
+frame.onload=function(){
+ var d=frame.contentDocument,w=frame.contentWindow,checks=[];
+ if(!d.querySelector('#f-school'))return;
+ function q(s){return d.querySelector(s);}
+ function set(s,v){q(s).value=v;q(s).dispatchEvent(new w.Event('change',{bubbles:true}));}
+ function test(id,ok,note){checks.push(id+' '+(ok?'通过':'失败')+' '+note);}
+ function rows(){return Array.from(d.querySelectorAll('#'+page+'-rows tr')).filter(r=>!r.classList.contains('state-hidden'));}
+ function search(){q('[data-block="filter"] [data-action-id="ACT-COM-001"]').click();}
+ try{
+ w.PrototypeShell.applyRole('platform_ops');set('#f-school','202');search();
+ test('TG-01',rows().length>0&&rows().every(r=>r.dataset.school==='202'||r.dataset.homeSchool==='202'),'平台运营目标学校样例');
+ w.PrototypeShell.applyRole('academic_director');
+ test('TG-02',q('#f-school').value==='201'&&q('#f-school').disabled,'切回学校角色恢复并锁定本校');
+ test('TG-03',rows().length>0&&rows().every(r=>r.dataset.school==='201'||r.dataset.homeSchool==='201'),'立即刷新本校列表');
+ w.PrototypeShell.applyParams({role:'academic_director',school:'202'});
+ test('TG-04',q('#f-school').value==='201'&&rows().every(r=>r.dataset.school==='201'||r.dataset.homeSchool==='201'),'深链接不能保留他校学校上下文');
+ w.PrototypeShell.applyRole('super_admin');set('#f-school','201');
+ test('TG-09',rows().length>0&&rows().every(r=>r.dataset.school==='201'||r.dataset.homeSchool==='201'),'学校选择变化无需搜索即可刷新');
+ set('#f-school','202');
+ test('TG-05',!q('#f-school').disabled&&rows().some(r=>r.dataset.school==='202'||r.dataset.homeSchool==='202'),'超级管理员可切校并即时刷新');
+ var filter=q('[data-block="filter"]');
+ test('TG-06',filter.querySelector('h3')&&filter.querySelector('h3').textContent==='教育信息','查询字段有语义分组标题');
+ var operation=filter.querySelector('[aria-label="查询操作"]');
+ test('TG-07',operation&&operation.querySelector('[data-action-id="ACT-COM-001"]')&&!operation.querySelector('select,input'),'查询操作独立于字段组');
+ if(page==='teacher'){
+ var ids=Array.from(filter.querySelectorAll('select')).map(n=>n.id);
+ test('TG-08',ids.join(',')==='f-school,f-grade,f-class,f-subject,f-status','任教年级、班级相邻，状态在职业信息组');
+ }else test('TG-08',Array.from(filter.querySelectorAll('select')).map(n=>n.id).join(',')==='f-school,f-enroll,f-leader','学校、入学年份、年级主任顺序');
+ var panelId=page==='teacher'?'PAGE-TCH-DETAIL':'PAGE-GRD-CREATE';
+ w.PrototypeShell.openPanel(panelId);
+ w.PrototypeShell.applyParams({role:'super_admin',school:'201'});
+ test('TG-10',!q('[data-demo-panel="'+panelId+'"]').classList.contains('open'),'深链接切校关闭原学校浮层');
+ w.PrototypeShell.openPanel(panelId);
+ w.PrototypeShell.applyRole('academic_director');
+ test('TG-11',q('[data-demo-panel="'+panelId+'"]').classList.contains('open'),'同校角色切换保留当前浮层');
+ }catch(e){checks.push('TG-ERROR 失败 '+e.stack);}
+ q = s=>document.querySelector(s);
+ q('#results').innerHTML=checks.map(s=>'<li>'+s+'</li>').join('');
+ q('#summary').textContent='合计 '+checks.length+' 条，通过 '+checks.filter(s=>s.includes(' 通过 ')).length+' 条，失败 '+checks.filter(s=>s.includes(' 失败 ')).length+' 条';
+};
+frame.src='../../prototypes/'+(params.get('layer')==='hifi'?'high-fidelity':'functional')+'/'+(params.get('version')||'v2')+'/pages/'+page+'-list.html#role=platform_ops';
+</script>
+</body></html>

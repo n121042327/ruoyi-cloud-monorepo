@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><title>学生筛选级联回归</title>
+<body><h1>学生筛选级联回归</h1><p id="summary">运行中</p><ol id="results"></ol><pre id="mapping-snapshot"></pre><iframe id="frame" style="width:1440px;height:900px"></iframe>
+<script>
+(function () {
+  'use strict';
+  var params = new URLSearchParams(location.search);
+  var version = params.get('version') || 'v2';
+  var layer = params.get('layer') === 'hifi' ? 'high-fidelity' : 'functional';
+  var frame = document.getElementById('frame');
+  frame.addEventListener('load', function () {
+    if (!frame.contentDocument.querySelector('#f-school')) return;
+    var d = frame.contentDocument, w = frame.contentWindow, checks = [];
+    function q(s) { return d.querySelector(s); }
+    function values(s) { return Array.from(q(s).options).map(function (o) { return o.value; }).filter(Boolean); }
+    function set(s, value) { q(s).value = value; q(s).dispatchEvent(new w.Event('change', {bubbles:true})); }
+    function test(id, ok, detail) { checks.push({id:id, passed:Boolean(ok), detail:detail || ''}); }
+    function visible() { return Array.from(d.querySelectorAll('#student-rows tr')).filter(function (r) {return !r.classList.contains('state-hidden');}); }
+    try {
+      w.PrototypeShell.applyRole('platform_ops');
+      test('SC-01', values('#f-grade').join(',') === '202601,202501,202401', '本校不出现他校年级');
+      test('SC-02', !values('#f-class').includes('20260201'), '本校不出现他校班级');
+      set('#f-grade','202601'); set('#f-class','20260101');
+      set('#f-school','202');
+      test('SC-03', values('#f-grade').join(',') === '202602', '切到他校后只有该校年级');
+      test('SC-04', values('#f-class').join(',') === '20260201', '切到他校后只有该校班级');
+      test('SC-05', q('#f-grade').value === '' && q('#f-class').value === '', '失效筛选值清空');
+      test('SC-06', visible().length === 1 && visible().every(function(r){return r.dataset.school === '202';}), '切校立即刷新列表');
+      test('SC-07', q('#pg-total').textContent.includes('1 行样例'), '分页样例统计同步');
+      test('SC-08', q('.page-head .el-tag.primary').textContent.includes('1 行样例'), '页头样例统计同步');
+      set('#f-school','201');
+      test('SC-09', values('#f-class').includes('20260103'), '恢复本校无学生的空班选项');
+      set('#f-grade','202501');
+      test('SC-16', values('#f-class').join(',') === '20250101', '选择高二只显示高二班级');
+      set('#f-class','20250101'); set('#f-grade','202601');
+      test('SC-17', q('#f-class').value === '' && values('#f-class').join(',') === '20260101,20260102,20260103', '切年级清空失效班级并保留空班');
+      set('#f-school','202');
+      q('#empty-action').click();
+      test('SC-10', q('#f-school').value === '201' && !values('#f-grade').includes('202602'), '空态重置恢复本校选项');
+      w.location.hash = 'role=platform_ops&school=202';
+      w.PrototypeShell.applyParams({role:'platform_ops',school:'202'});
+      test('SC-11', values('#f-grade').join(',') === '202602', '学校深链接重建选项');
+      test('SC-12', visible().every(function(r){return r.dataset.school === '202';}), '深链接列表范围同步');
+      w.PrototypeShell.applyRole('super_admin');
+      test('SC-13', !q('#f-school').disabled, '超级管理员可切学校');
+      set('#f-school','202'); w.PrototypeShell.applyRole('academic_director');
+      test('SC-14', q('#f-school').disabled, '学校角色学校控件仍禁用');
+      test('SC-18', q('#f-school').value === '201' && visible().every(function(r){return r.dataset.school === '201';}), '切学校角色后恢复本校上下文与列表');
+      w.PrototypeShell.applyParams({role:'academic_director',school:'202'});
+      test('SC-19', q('#f-school').value === '201' && !values('#f-grade').includes('202602'), '学校角色深链接不能保留他校上下文');
+      var orderedFilters = Array.from(d.querySelectorAll('[data-block="filter"] select')).map(function(n){return n.id;});
+      test('SC-20', orderedFilters.slice(0,4).join(',') === 'f-school,f-term,f-grade,f-class', '学校作为首个上下文筛选，之后为学年学期、年级、班级');
+      // 快照覆盖列表和文件中已有浮层，不把共享外壳混入学生页面明细。
+      function selector(n) {
+        if (n.id) return '#' + CSS.escape(n.id);
+        if (n.hasAttribute('data-demo-panel')) return '[data-demo-panel="' + n.getAttribute('data-demo-panel') + '"]';
+        var parent = n.parentElement;
+        if (!parent) return n.tagName.toLowerCase();
+        var same = Array.from(parent.children).filter(function(x){return x.tagName === n.tagName;});
+        return selector(parent) + ' > ' + n.tagName.toLowerCase() + ':nth-of-type(' + (same.indexOf(n)+1) + ')';
+      }
+      var nodes = Array.from(d.querySelectorAll('#page-root, [data-demo-panel]')).flatMap(function(root){
+        return [root].concat(Array.from(root.querySelectorAll('button,input,select,textarea,a[href],[data-nav],[data-close-panel],[data-step]')));
+      }).filter(function(n,i,a){return a.indexOf(n) === i && (n.matches('button,input,select,textarea,a[href],[data-nav],[data-close-panel],[data-step]') || n.hasAttribute('data-demo-panel'));});
+      var snapshot = nodes.map(function(n){
+        var scope = n.closest('[data-page]') || n.closest('[data-demo-panel]') || q('#page-root');
+        var permission = n.closest('[data-permission]');
+        return {selector:selector(n), tag:n.tagName.toLowerCase(), label:(n.getAttribute('data-demo-panel') || n.getAttribute('aria-label') || n.getAttribute('title') || n.getAttribute('placeholder') || n.getAttribute('data-field') || n.textContent || '').replace(/\s+/g,' ').trim(), page_id:scope.getAttribute('data-page') || scope.getAttribute('data-demo-panel'), component:n.getAttribute('data-component'), type:n.getAttribute('type'), action_id:n.getAttribute('data-action-id'), permission:permission ? permission.getAttribute('data-permission') : null, field:n.getAttribute('data-field'), nav:n.getAttribute('data-nav'), api:n.getAttribute('data-api'), close:n.getAttribute('data-close-panel'), panel:n.getAttribute('data-demo-panel'), role_visible:n.getAttribute('data-role-visible'), role_enabled:n.getAttribute('data-role-enabled'), disabled:n.hasAttribute('disabled')};
+      });
+      test('SC-15', snapshot.every(function(n){return d.querySelectorAll(n.selector).length === 1;}), '元素选择器唯一');
+      document.getElementById('mapping-snapshot').textContent = JSON.stringify(snapshot);
+    } catch (e) { test('SC-ERROR',false,e.stack || String(e)); }
+    document.getElementById('results').innerHTML = checks.map(function(c){return '<li>' + c.id + ' ' + (c.passed ? '通过' : '失败') + ' ' + c.detail + '</li>';}).join('');
+    var passed = checks.filter(function(c){return c.passed;}).length;
+    document.getElementById('summary').textContent = '合计 ' + checks.length + ' / 20 条，通过 ' + passed + ' 条，不通过 ' + (checks.length-passed) + ' 条';
+  });
+  frame.src = '../../prototypes/' + layer + '/' + version + '/pages/student-list.html#role=platform_ops';
+})();
+</script></body></html>

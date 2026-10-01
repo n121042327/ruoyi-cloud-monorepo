@@ -1,0 +1,57 @@
+CR-032 Mermaid 架构图渲染缺陷修复与校验日志
+执行日期：2026-10-02
+工作目录：D:\work\person_work\ruoyi-cloud-monorepo
+
+一、缺陷
+
+  用户在 docs/30-architecture/02-architecture.md 的「架构分层（逻辑视图）」看到：
+    Lexical error on line 18. Unrecognized text.
+    ... end  subgraph 能力层（公共组件）    TENANT["r
+    ---------------------^
+  原因：Mermaid 的 subgraph 标题在未加引号时按标识符解析，全角括号（、）不是合法标识符字符。
+  同一份图在 docs/30-architecture/diagrams/logical.mmd 与 docs/diagrams.md 里各有一份副本。
+
+二、修复
+
+  docs/30-architecture/02-architecture.md（两个代码块）
+    客户端 -> subgraph client["客户端"]
+    接入层 -> subgraph access["接入层"]
+    业务层 -> subgraph business["业务层"]
+    能力层（公共组件） -> subgraph capability["能力层（公共组件）"]
+    存储 -> subgraph storage["存储"]
+    浏览器 -> subgraph browser["浏览器"]
+    Docker 宿主机 -> subgraph host["Docker 宿主机"]
+    外部存储 -> subgraph external["外部存储"]
+  docs/30-architecture/diagrams/logical.mmd
+    原 接入层 / 业务层 / 能力层 三个 subgraph 共用同一个 id access（重复 id，解析能过但语义错误），
+    改为 access / business / capability。
+  docs/diagrams.md 由 tools/make_diagrams_doc.py 重新生成（41 张图），与 .mmd 源文件一致。
+
+三、校验
+
+  权威校验：真实 Mermaid 解析器（mermaid@10 + jsdom，装在临时目录，未写入仓库依赖）
+    遍历仓库全部 *.mmd 与 Markdown 里的 mermaid 代码块，逐个 mermaid.parse
+    修复前：合计 102 个图，失败 1 个
+      FAIL 30-architecture/02-architecture.md#1 :: Lexical error on line 18. Unrecognized text.
+    修复后：合计 103 个图，失败 0 个
+  语法对照（确认哪种写法可用）：
+    PASS  subgraph id["标题"]
+    FAIL  subgraph ["标题"]              （Parse error）
+    FAIL  subgraph 标题（含括号）         （Lexical error）
+    PASS  subgraph 纯中文标题
+  静态检查（仓库内，无 Node 依赖）：python tools/check_mermaid.py
+    全仓库：=== Mermaid 结构检查（103 张图）=== 通过：未发现问题（退出码 0）
+    负例自检：临时写入 subgraph 能力层（公共组件） -> 报 1 项问题、退出码 1；
+              改写成 subgraph capability["能力层（公共组件）"] -> 通过、退出码 0
+
+四、其余检查
+
+  python tools/check_docs.py -> 通过：未发现问题（退出码 0）
+  git diff --check          -> 无输出（退出码 0）
+
+五、边界
+
+  tools/check_mermaid.py 是静态规则检查，只覆盖「subgraph 标题含危险字符」这一类错误；
+  结构调整（重复 subgraph id、节点/边语法）仍需要用真实解析器复跑。
+  Node 与 mermaid 未加入仓库依赖（package.json 未改动），临时环境在
+  C:\Users\Angel\AppData\Local\Temp\mmd-check。

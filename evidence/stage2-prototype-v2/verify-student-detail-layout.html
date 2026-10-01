@@ -1,0 +1,70 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>学生详情抽屉字段分组回归（CR-033）</title>
+<p id="summary">运行中</p><ol id="results"></ol><iframe id="frame" style="width:1440px;height:900px"></iframe>
+<script>
+var params=new URLSearchParams(location.search),frame=document.querySelector('#frame');
+var layer=params.get('layer')==='hifi'?'high-fidelity':'functional';
+var version=params.get('version')||'v2';
+frame.onload=function(){
+  var d=frame.contentDocument,w=frame.contentWindow,checks=[];
+  if(!d.querySelector('#student-rows')){ document.querySelector('#summary').textContent='页面未加载'; return; }
+  function q(s){return d.querySelector(s);}
+  function test(id,ok,note){checks.push(id+' '+(ok?'通过':'失败')+' '+(note||''));}
+  function groups(panel){
+    return Array.from(panel.querySelectorAll('section[data-layout-group]')).map(function(s){
+      return s.getAttribute('data-layout-group');});
+  }
+  function groupOf(panel,name){ return panel.querySelector('section[data-layout-group="'+name+'"]'); }
+  function labels(scope){
+    if(!scope) return [];
+    return Array.from(scope.querySelectorAll('.field')).map(function(f){
+      var l=f.querySelector('label');
+      return l?l.textContent.replace(/\s+/g,'').replace(/\*$/,''):'';
+    });
+  }
+  try{
+    w.PrototypeShell.applyRole('super_admin');
+    var detail=q('[data-demo-panel="PAGE-STU-DETAIL"]');
+    test('SD-01',groups(detail).join(',')==='基础信息,教育信息,证件信息,联系方式',
+      '学生详情分组顺序：'+groups(detail).join('|'));
+    test('SD-02',labels(groupOf(detail,'基础信息')).join(',')==='学号,全国学籍号,姓名,性别',
+      '基础信息组按学号 → 全国学籍号 → 姓名 → 性别：'+labels(groupOf(detail,'基础信息')).join('|'));
+    test('SD-03',labels(groupOf(detail,'教育信息')).join(',')==='入学年份/学段,年级/班级,学籍状态',
+      '教育信息组：'+labels(groupOf(detail,'教育信息')).join('|'));
+    test('SD-04',labels(groupOf(detail,'证件信息')).join(',')==='证件号码'
+      &&labels(groupOf(detail,'联系方式')).join(',')==='联系电话',
+      '证件与联系方式各自成组，不混组');
+    var cards=Array.from(detail.querySelectorAll('.card > .card-header > h3')).map(function(h){return h.textContent.trim();});
+    test('SD-05',cards[0]==='学生信息'&&cards.indexOf('监护人（上限 3）')!==-1&&cards.indexOf('变更记录')!==-1,
+      '卡片标题：'+cards.join('|'));
+    var rows=Array.from(d.querySelectorAll('#student-rows tr[data-role="row"]'));
+    var second=rows[1];
+    var nameCell=second&&second.querySelector('td[data-field="student_name"]');
+    var noCell=second&&second.querySelector('td[data-field="student_no"]');
+    if(nameCell&&noCell){
+      nameCell.click();
+      test('SD-06',q('#sd-f-no').textContent.trim()===noCell.textContent.trim()
+        &&q('#sd-f-name').textContent.trim()===nameCell.textContent.trim()
+        &&q('#sd-f-class').textContent.trim().length>0,
+        '按 id 填充仍然生效：'+q('#sd-f-no').textContent.trim()+' / '+q('#sd-f-name').textContent.trim());
+    }else{
+      test('SD-06',false,'列表单元格没有 data-field，无法按字段点击');
+    }
+    var footerIds=Array.from(detail.querySelectorAll('.drawer-footer button[data-action-id]'))
+      .map(function(b){return b.getAttribute('data-action-id');});
+    test('SD-07',footerIds.join(',')==='ACT-STU-005,ACT-STU-025,ACT-STU-026,ACT-STU-027,ACT-STU-028',
+      '抽屉页脚操作保持：'+footerIds.join('|'));
+    var seen={},dup=false;
+    Array.from(detail.querySelectorAll('section[data-layout-group] .field')).forEach(function(f){
+      var l=f.querySelector('label');
+      var t=l?l.textContent.replace(/\s+/g,'').replace(/\*$/,''):'';
+      if(seen[t]) dup=true;
+      seen[t]=true;});
+    test('SD-08',!dup&&detail.querySelectorAll('.layout-sections').length===1,
+      '同一抽屉内没有同义字段重复成组，且只有一个分区容器');
+  }catch(e){checks.push('SD-ERROR 失败 '+e.stack);}
+  document.querySelector('#results').innerHTML=checks.map(function(s){return '<li>'+s+'</li>';}).join('');
+  var pass=checks.filter(function(s){return s.indexOf(' 通过 ')!==-1;}).length;
+  document.querySelector('#summary').textContent='合计 '+checks.length+' 条，通过 '+pass+' 条，失败 '+(checks.length-pass)+' 条';
+};
+frame.src='../../prototypes/'+layer+'/'+version+'/pages/student-list.html#role=super_admin';
+</script></html>

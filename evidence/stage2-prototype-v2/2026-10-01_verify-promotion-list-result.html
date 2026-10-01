@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<title>PAGE-PRM-LIST 交互验证</title>
+<style>
+  body { margin: 14px; background: #fff; color: #24292f;
+         font: 13px/1.55 Consolas, "Microsoft YaHei", monospace; }
+  h1 { font-size: 17px; margin: 0 0 8px; }
+  ol { margin: 0 0 10px; padding-left: 22px; }
+  li.ok { color: #1a7f37; }
+  li.bad { color: #c0392b; font-weight: 700; }
+  p.sum { font-weight: 700; }
+  p.sum.bad { color: #c0392b; }
+  iframe { width: 1440px; height: 820px; border: 1px solid #dcdfe6; }
+</style>
+</head>
+<body>
+<h1>升班任务列表（PAGE-PRM-LIST）交互验证（真实事件派发，非人工目视）</h1>
+<ol id="results"><li class="ok">通过  PRM-01  默认（教务主任）工具栏为 新建任务 / 导出，不含「导出（需授权）」  —— ACT-PRM-001 | ACT-PRM-007 | ACT-COM-007</li><li class="ok">通过  PRM-02  默认渲染本校 11 行（12 行样例扣除他校 1 行）  —— 可见 11 行</li><li class="ok">通过  PRM-03  页头与分页：共 17 个任务 + 本页样例 11 行 + 执行中 1 + 失败/部分失败 3 + 待确认 2  —— 共 17 个升班任务 / 共 17 条 · 当前第 1 页 · 每页 20 条（本页显示 11 行样例） / 本页样例 11 行 · 执行中 1 · 失败 / 部分失败 3 · 待确认 2</li><li class="ok">通过  PRM-04  列与 REQ-PRM-001 一致（任务编号 + 8 列 + 操作，共 10 列）  —— 任务编号 | 源学年学期 | 目标学年学期 | 状态 | 学生总数 | 成功 | 失败 | 创建人 | 创建时间 | 操作</li><li class="ok">通过  PRM-05  FD-promotion_task_status 的 8 个状态各至少 1 条样例  —— 8 个状态齐全</li><li class="ok">通过  PRM-06  草稿行没有升班明细：学生总数 / 成功 / 失败都显示「—」  —— — / — / —</li><li class="ok">通过  PRM-07  已预览待确认行渲染「执行 / 重新预览 / 取消」（REQ-PRM-006）  —— ACT-PRM-003,ACT-PRM-002,ACT-PRM-005</li><li class="ok">通过  PRM-08  执行中行渲染「查看进度 / 取消」，且行内有进度条  —— ACT-PRM-006,ACT-PRM-005</li><li class="ok">通过  PRM-09  已完成行渲染「查看结果 / 结果导出」  —— ACT-PRM-006,ACT-PRM-008</li><li class="ok">通过  PRM-10  部分失败行渲染「重试失败项 / 查看结果」（只重试失败项，REQ-PRM-032）  —— ACT-PRM-004,ACT-PRM-006</li><li class="ok">通过  PRM-11  失败行渲染「重试 / 查看结果」  —— ACT-PRM-004,ACT-PRM-006</li><li class="ok">通过  PRM-12  已取消行渲染「继续执行剩余项 / 查看结果」（不做整批回滚）  —— ACT-PRM-004,ACT-PRM-006</li><li class="ok">通过  PRM-13  校验中行渲染「查看校验 / 取消」  —— ACT-PRM-003,ACT-PRM-005</li><li class="ok">通过  PRM-14  校领导：本校 11 行只读，工具栏只有导出，行内无写入口（CR-012）  —— 可见 11 行 / 行内写入口 无</li><li class="ok">通过  PRM-15  年级主任：只读，且只显示本年级有学生的 6 行（DS-05）  —— 可见 6 行</li><li class="ok">通过  PRM-16  年级主任计数按 DS-05 收窄：512 → 128（DS-DENY-08）  —— 学生总数列 = 128</li><li class="ok">通过  PRM-17  年级主任看不到「跨学段」这类本年级无学生的任务（PRM-20260930-0016）  —— 跨学段行可见=false</li><li class="ok">通过  PRM-18  班主任没有 promotion.batch:read：进入无权限面板且表体 0 行（DS-DENY-03）  —— 无权限面板=true / 可见 0 行</li><li class="ok">通过  PRM-19  租户管理员同样无权限（矩阵里无 enrollment.* / promotion.batch）  —— 无权限面板=true</li><li class="ok">通过  PRM-20  平台运营：本校只读 + 「导出（需授权）」入口，无任何写入口  —— 可见 11 行 / 授权导出可见=true</li><li class="ok">通过  PRM-21  平台运营切到他校：只剩他校 1 行并出现协助视图提示（升班任务不跨校共享）  —— 可见 1 行 / 提示=true</li><li class="ok">通过  PRM-22  按状态筛选（部分失败）→ 2 行  —— 可见 2 行</li><li class="ok">通过  PRM-23  按源学年学期筛选（2025-2026 第二学期）→ 3 行  —— 可见 3 行</li><li class="ok">通过  PRM-24  按任务编号检索 → 1 行（超学科边界样本）  —— 可见 1 行</li><li class="ok">通过  PRM-25  重置：清空条件并回到 11 行  —— 可见 11 行</li><li class="ok">通过  PRM-26  行内「取消」打开 DIALOG-PRM-CANCEL 并绑定该行任务编号  —— 打开=true / 标题=PRM-20260930-0012</li><li class="ok">通过  PRM-27  取消原因未填：字段级校验拦截，弹窗不关闭也不发请求  —— 字段错误=true / 仍打开=true</li><li class="ok">通过  PRM-28  确认取消走 cancelPromotionTask，权限点为 promotion.batch:update（CR-012）  —— cancelPromotionTask / promotion.batch:update</li><li class="ok">通过  PRM-29  八类页面状态片段齐全（含部分失败与排队中）  —— 全部存在</li><li class="ok">通过  PRM-30  无权限态写明不降级为全量（DS-DENY-03）并给出下一步  ——  🔒 当前账号没有升班任务的查看权限 升班任务需要 promotion.batch:read；班主任与租户管理员在权限</li><li class="ok">通过  PRM-31  表格列宽之和 = min-width 且 ≤ 1118px（1366×768 下不出现表格内横向滚动）  —— 列宽之和 1108 / min-width 1108</li><li class="ok">通过  PRM-32  页面用到的动作编号全部落在 common_actions 与 promotion_list 已登记集合内  —— 17 个编号</li><li class="ok">通过  PRM-33  深链接 #status=running 在已打开的页面上立即生效（hashchange 重放筛选）  —— 生效时 1 行 / 还原后 11 行</li><li class="ok">通过  PRM-34  无占位数据：每一行都带状态标签  —— 缺标签 0 行</li><li class="ok">通过  PRM-35  边界样本标注：跨学段 1 条 + 超阈值 1 条  —— 跨学段=true / 超阈值=true</li><li class="ok">通过  PRM-36  页头数据范围提示跟随角色变化（年级主任 DS-05 / 教务主任 DS-04）  —— 数据范围：本人负责年级（2026 级 高一· DS-05）· 只读，计数按范围收窄 → 数据范围：本校 · 2026-2027 学年 第一学期（DS-04）</li><p class="sum">合计 36 / 36 条，通过 36 条，不通过 0 条 —— 全部通过</p></ol>
+<iframe id="frame" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v2/pages/promotion-list.html"></iframe>
+<script>
+(function () {
+  'use strict';
+  var RESULTS = [];
+  var frame = document.getElementById('frame');
+
+  function rec(id, name, pass, detail) {
+    RESULTS.push({ id: id, name: name, pass: Boolean(pass), detail: detail || '' });
+  }
+  function doc() { return frame.contentDocument; }
+  function win() { return frame.contentWindow; }
+  function q(sel) { return doc().querySelector(sel); }
+  function panel(id) { return doc().querySelector('[data-demo-panel="' + id + '"]'); }
+  function isOpen(id) { var p = panel(id); return Boolean(p && p.classList.contains('open')); }
+  function panelState(id) {
+    var p = doc().querySelector('[data-demo-state-panel="' + id + '"]');
+    return p ? !p.classList.contains('state-hidden') : false;
+  }
+  function rows() { return Array.prototype.slice.call(doc().querySelectorAll('#prm-rows tr')); }
+  function visibleRows() { return rows().filter(function (tr) { return !tr.classList.contains('state-hidden'); }); }
+  function rowOf(fragment) {
+    return rows().filter(function (tr) { return tr.getAttribute('data-task') === fragment; })[0];
+  }
+  function isVisible(row) { return Boolean(row) && !row.classList.contains('state-hidden'); }
+  function actionsOf(row) {
+    if (!row) return [];
+    return Array.prototype.map.call(row.querySelectorAll('td.actions [data-action-id]'), function (b) {
+      return b.getAttribute('data-action-id');
+    });
+  }
+  function cellText(row, selector) {
+    var n = row ? row.querySelector(selector) : null;
+    return n ? n.textContent.replace(/\s+/g, ' ').trim() : '';
+  }
+  function textOf(sel) {
+    var n = q(sel);
+    return n ? n.textContent.replace(/\s+/g, ' ').trim() : '';
+  }
+  function hiddenByRole(id) {
+    var n = doc().querySelector('[data-action-id="' + id + '"]');
+    return Boolean(n && n.classList.contains('role-hidden'));
+  }
+  function clickAct(id) {
+    var node = doc().querySelector('[data-action-id="' + id + '"]');
+    if (!node) throw new Error('找不到动作元素 ' + id);
+    node.click();
+    return node;
+  }
+  function clickActInRow(row, id) {
+    var node = row.querySelector('td.actions [data-action-id="' + id + '"]');
+    if (!node) throw new Error('行内找不到动作元素 ' + id);
+    node.click();
+    return node;
+  }
+  function setVal(node, value) {
+    node.value = value;
+    node.dispatchEvent(new (win().Event)('change', { bubbles: true }));
+  }
+  function search() { clickAct('ACT-COM-001'); }
+  function setRole(code) {
+    win().PrototypeShell.applyRole(code);
+    search();
+  }
+  function columnSum() {
+    return Array.prototype.reduce.call(doc().querySelectorAll('#prm-table thead th[style]'), function (sum, th) {
+      return sum + (parseInt(th.style.width, 10) || 0);
+    }, 0);
+  }
+  function minWidth() {
+    var t = q('#prm-table');
+    return parseInt((t.style.minWidth || '0'), 10) || 0;
+  }
+
+  // page-actions.yaml 已登记的编号（common_actions + promotion_list）
+  var REGISTERED = {
+    'ACT-COM-001': 1, 'ACT-COM-002': 1, 'ACT-COM-003': 1, 'ACT-COM-004': 1,
+    'ACT-COM-005': 1, 'ACT-COM-006': 1, 'ACT-COM-007': 1, 'ACT-COM-008': 1,
+    'ACT-PRM-001': 1, 'ACT-PRM-002': 1, 'ACT-PRM-003': 1, 'ACT-PRM-004': 1, 'ACT-PRM-005': 1,
+    'ACT-PRM-006': 1, 'ACT-PRM-007': 1, 'ACT-PRM-008': 1, 'ACT-PRM-009': 1, 'ACT-PRM-010': 1
+  };
+
+  var steps = [
+    function (next) {
+      // 默认角色 = 教务主任
+      var btns = Array.prototype.map.call(doc().querySelectorAll('[data-block="toolbar"] .toolbar [data-action-id]'), function (b) {
+        return b.getAttribute('data-action-id');
+      });
+      rec('PRM-01', '默认（教务主任）工具栏为 新建任务 / 导出，不含「导出（需授权）」',
+        btns.indexOf('ACT-PRM-001') !== -1 && btns.indexOf('ACT-PRM-007') !== -1 && hiddenByRole('ACT-COM-007'),
+        btns.join(' | '));
+      next();
+    },
+    function (next) {
+      rec('PRM-02', '默认渲染本校 11 行（12 行样例扣除他校 1 行）',
+        visibleRows().length === 11, '可见 ' + visibleRows().length + ' 行');
+      next();
+    },
+    function (next) {
+      var head = textOf('#head-total');
+      var summary = textOf('#head-summary');
+      var pg = textOf('#pg-total');
+      rec('PRM-03', '页头与分页：共 17 个任务 + 本页样例 11 行 + 执行中 1 + 失败/部分失败 3 + 待确认 2',
+        head.indexOf('17') !== -1 && pg.indexOf('17') !== -1 && summary.indexOf('样例 11 行') !== -1
+        && summary.indexOf('执行中 1') !== -1 && summary.indexOf('失败 / 部分失败 3') !== -1 && summary.indexOf('待确认 2') !== -1,
+        head + ' / ' + pg + ' / ' + summary);
+      next();
+    },
+    function (next) {
+      var cols = Array.prototype.map.call(doc().querySelectorAll('#prm-table thead th'), function (th) {
+        return th.textContent.trim();
+      });
+      var want = ['任务编号', '源学年学期', '目标学年学期', '状态', '学生总数', '成功', '失败', '创建人', '创建时间', '操作'];
+      rec('PRM-04', '列与 REQ-PRM-001 一致（任务编号 + 8 列 + 操作，共 10 列）',
+        cols.length === want.length && want.every(function (w, i) { return cols[i] === w; }), cols.join(' | '));
+      next();
+    },
+    function (next) {
+      var codes = ['draft', 'previewed', 'validating', 'running', 'succeeded', 'partial_failed', 'failed', 'cancelled'];
+      var missing = codes.filter(function (c) { return !rowOf('x') && !rows().some(function (r) { return r.getAttribute('data-status') === c; }); });
+      rec('PRM-05', 'FD-promotion_task_status 的 8 个状态各至少 1 条样例', missing.length === 0,
+        missing.length ? '缺 ' + missing.join(',') : '8 个状态齐全');
+      next();
+    },
+    function (next) {
+      var row = rowOf('PRM-20260930-0011');
+      rec('PRM-06', '草稿行没有升班明细：学生总数 / 成功 / 失败都显示「—」',
+        cellText(row, '.c-total') === '—' && cellText(row, '.c-success') === '—' && cellText(row, '.c-failed') === '—',
+        cellText(row, '.c-total') + ' / ' + cellText(row, '.c-success') + ' / ' + cellText(row, '.c-failed'));
+      next();
+    },
+    function (next) {
+      var a = actionsOf(rowOf('PRM-20260930-0012'));
+      rec('PRM-07', '已预览待确认行渲染「执行 / 重新预览 / 取消」（REQ-PRM-006）',
+        a.join(',') === 'ACT-PRM-003,ACT-PRM-002,ACT-PRM-005', a.join(','));
+      next();
+    },
+    function (next) {
+      var row = rowOf('PRM-20260930-0014');
+      var a = actionsOf(row);
+      rec('PRM-08', '执行中行渲染「查看进度 / 取消」，且行内有进度条',
+        a.join(',') === 'ACT-PRM-006,ACT-PRM-005' && Boolean(row.querySelector('.bar')), a.join(','));
+      next();
+    },
+    function (next) {
+      var a = actionsOf(rowOf('PRM-20260620-0001'));
+      rec('PRM-09', '已完成行渲染「查看结果 / 结果导出」',
+        a.join(',') === 'ACT-PRM-006,ACT-PRM-008', a.join(','));
+      next();
+    },
+    function (next) {
+      var a = actionsOf(rowOf('PRM-20260930-0019'));
+      rec('PRM-10', '部分失败行渲染「重试失败项 / 查看结果」（只重试失败项，REQ-PRM-032）',
+        a.join(',') === 'ACT-PRM-004,ACT-PRM-006', a.join(','));
+      next();
+    },
+    function (next) {
+      var a = actionsOf(rowOf('PRM-20260926-0003'));
+      rec('PRM-11', '失败行渲染「重试 / 查看结果」', a.join(',') === 'ACT-PRM-004,ACT-PRM-006', a.join(','));
+      next();
+    },
+    function (next) {
+      var a = actionsOf(rowOf('PRM-20260930-0015'));
+      rec('PRM-12', '已取消行渲染「继续执行剩余项 / 查看结果」（不做整批回滚）',
+        a.join(',') === 'ACT-PRM-004,ACT-PRM-006', a.join(','));
+      next();
+    },
+    function (next) {
+      var a = actionsOf(rowOf('PRM-20260930-0013'));
+      rec('PRM-13', '校验中行渲染「查看校验 / 取消」', a.join(',') === 'ACT-PRM-003,ACT-PRM-005', a.join(','));
+      next();
+    },
+    function (next) {
+      setRole('school_leader');
+      var noWrites = visibleRows().every(function (r) { return actionsOf(r).length === 0; });
+      rec('PRM-14', '校领导：本校 11 行只读，工具栏只有导出，行内无写入口（CR-012）',
+        visibleRows().length === 11 && noWrites && !hiddenByRole('ACT-PRM-007') && hiddenByRole('ACT-PRM-001'),
+        '可见 ' + visibleRows().length + ' 行 / 行内写入口 ' + (noWrites ? '无' : '有'));
+      next();
+    },
+    function (next) {
+      setRole('grade_leader');
+      var noWrites = visibleRows().every(function (r) { return actionsOf(r).length === 0; });
+      rec('PRM-15', '年级主任：只读，且只显示本年级有学生的 6 行（DS-05）',
+        visibleRows().length === 6 && noWrites, '可见 ' + visibleRows().length + ' 行');
+      next();
+    },
+    function (next) {
+      var row = rowOf('PRM-20260930-0012');
+      rec('PRM-16', '年级主任计数按 DS-05 收窄：512 → 128（DS-DENY-08）',
+        cellText(row, '.c-total') === '128', '学生总数列 = ' + cellText(row, '.c-total'));
+      next();
+    },
+    function (next) {
+      rec('PRM-17', '年级主任看不到「跨学段」这类本年级无学生的任务（PRM-20260930-0016）',
+        !isVisible(rowOf('PRM-20260930-0016')) && !isVisible(rowOf('PRM-20260620-0001')),
+        '跨学段行可见=' + isVisible(rowOf('PRM-20260930-0016')));
+      next();
+    },
+    function (next) {
+      setRole('homeroom');
+      rec('PRM-18', '班主任没有 promotion.batch:read：进入无权限面板且表体 0 行（DS-DENY-03）',
+        panelState('forbidden') && visibleRows().length === 0,
+        '无权限面板=' + panelState('forbidden') + ' / 可见 ' + visibleRows().length + ' 行');
+      next();
+    },
+    function (next) {
+      setRole('tenant_admin');
+      rec('PRM-19', '租户管理员同样无权限（矩阵里无 enrollment.* / promotion.batch）',
+        panelState('forbidden') && visibleRows().length === 0,
+        '无权限面板=' + panelState('forbidden'));
+      next();
+    },
+    function (next) {
+      setRole('platform_ops');
+      var noWrites = visibleRows().every(function (r) { return actionsOf(r).length === 0; });
+      rec('PRM-20', '平台运营：本校只读 + 「导出（需授权）」入口，无任何写入口',
+        visibleRows().length === 11 && noWrites && !hiddenByRole('ACT-COM-007') && hiddenByRole('ACT-PRM-001'),
+        '可见 ' + visibleRows().length + ' 行 / 授权导出可见=' + !hiddenByRole('ACT-COM-007'));
+      next();
+    },
+    function (next) {
+      setVal(q('#f-school'), '202');
+      var alertVisible = !q('#ops-scope-alert').classList.contains('state-hidden')
+        && !q('#ops-scope-alert').classList.contains('role-hidden');
+      rec('PRM-21', '平台运营切到他校：只剩他校 1 行并出现协助视图提示（升班任务不跨校共享）',
+        visibleRows().length === 1 && alertVisible,
+        '可见 ' + visibleRows().length + ' 行 / 提示=' + alertVisible);
+      setVal(q('#f-school'), '201');
+      next();
+    },
+    function (next) {
+      setVal(q('#f-status'), 'partial_failed');
+      rec('PRM-22', '按状态筛选（部分失败）→ 2 行',
+        visibleRows().length === 2, '可见 ' + visibleRows().length + ' 行');
+      setVal(q('#f-status'), '');
+      next();
+    },
+    function (next) {
+      setVal(q('#f-src'), '202502');
+      rec('PRM-23', '按源学年学期筛选（2025-2026 第二学期）→ 3 行',
+        visibleRows().length === 3, '可见 ' + visibleRows().length + ' 行');
+      setVal(q('#f-src'), '');
+      next();
+    },
+    function (next) {
+      setVal(q('#f-keyword'), 'PRM-20260930-0016');
+      rec('PRM-24', '按任务编号检索 → 1 行（超学科边界样本）',
+        visibleRows().length === 1 && visibleRows()[0].getAttribute('data-task') === 'PRM-20260930-0016',
+        '可见 ' + visibleRows().length + ' 行');
+      next();
+    },
+    function (next) {
+      clickAct('ACT-COM-002');
+      rec('PRM-25', '重置：清空条件并回到 11 行',
+        visibleRows().length === 11 && q('#f-keyword').value === '', '可见 ' + visibleRows().length + ' 行');
+      next();
+    },
+    function (next) {
+      setRole('academic_director');
+      var row = rowOf('PRM-20260930-0012');
+      clickActInRow(row, 'ACT-PRM-005');
+      rec('PRM-26', '行内「取消」打开 DIALOG-PRM-CANCEL 并绑定该行任务编号',
+        isOpen('DIALOG-PRM-CANCEL') && textOf('#cancel-target') === 'PRM-20260930-0012',
+        '打开=' + isOpen('DIALOG-PRM-CANCEL') + ' / 标题=' + textOf('#cancel-target'));
+      next();
+    },
+    function (next) {
+      clickAct('ACT-PRM-010');
+      var field = panel('DIALOG-PRM-CANCEL').querySelector('.field');
+      rec('PRM-27', '取消原因未填：字段级校验拦截，弹窗不关闭也不发请求',
+        field.classList.contains('has-error') && isOpen('DIALOG-PRM-CANCEL'),
+        '字段错误=' + field.classList.contains('has-error') + ' / 仍打开=' + isOpen('DIALOG-PRM-CANCEL'));
+      next();
+    },
+    function (next) {
+      var btn = doc().querySelector('[data-action-id="ACT-PRM-010"]');
+      rec('PRM-28', '确认取消走 cancelPromotionTask，权限点为 promotion.batch:update（CR-012）',
+        btn.getAttribute('data-api') === 'cancelPromotionTask'
+        && btn.getAttribute('data-permission') === 'promotion.batch:update',
+        btn.getAttribute('data-api') + ' / ' + btn.getAttribute('data-permission'));
+      next();
+    },
+    function (next) {
+      var codes = ['loading', 'empty', 'error', 'forbidden', 'submitting', 'partial', 'queued'];
+      var missing = codes.filter(function (c) { return !doc().querySelector('[data-demo-state-panel="' + c + '"]'); });
+      rec('PRM-29', '八类页面状态片段齐全（含部分失败与排队中）', missing.length === 0,
+        missing.length ? '缺 ' + missing.join(',') : '全部存在');
+      next();
+    },
+    function (next) {
+      var t = doc().querySelector('[data-demo-state-panel="forbidden"]').textContent;
+      rec('PRM-30', '无权限态写明不降级为全量（DS-DENY-03）并给出下一步',
+        t.indexOf('DS-DENY-03') !== -1 && t.indexOf('学生详情') !== -1,
+        t.replace(/\s+/g, ' ').slice(0, 60));
+      next();
+    },
+    function (next) {
+      rec('PRM-31', '表格列宽之和 = min-width 且 ≤ 1118px（1366×768 下不出现表格内横向滚动）',
+        columnSum() === minWidth() && columnSum() <= 1118,
+        '列宽之和 ' + columnSum() + ' / min-width ' + minWidth());
+      next();
+    },
+    function (next) {
+      var used = {};
+      Array.prototype.forEach.call(doc().querySelectorAll('[data-action-id]'), function (n) {
+        used[n.getAttribute('data-action-id')] = true;
+      });
+      var unknown = Object.keys(used).filter(function (id) { return !REGISTERED[id]; });
+      rec('PRM-32', '页面用到的动作编号全部落在 common_actions 与 promotion_list 已登记集合内',
+        unknown.length === 0, unknown.length ? '未登记 ' + unknown.join(',') : Object.keys(used).length + ' 个编号');
+      next();
+    },
+    function (next) {
+      frame.contentWindow.location.hash = '#status=running';
+      window.setTimeout(function () {
+        var ok = visibleRows().length === 1 && visibleRows()[0].getAttribute('data-status') === 'running';
+        frame.contentWindow.location.hash = '#status=';
+        window.setTimeout(function () {
+          rec('PRM-33', '深链接 #status=running 在已打开的页面上立即生效（hashchange 重放筛选）',
+            ok && visibleRows().length === 11,
+            '生效时 ' + (ok ? 1 : '-') + ' 行 / 还原后 ' + visibleRows().length + ' 行');
+          next();
+        }, 120);
+      }, 120);
+    },
+    function (next) {
+      var rowsAll = visibleRows();
+      var noTag = rowsAll.filter(function (r) { return !r.querySelector('.el-tag'); });
+      rec('PRM-34', '无占位数据：每一行都带状态标签', noTag.length === 0, '缺标签 ' + noTag.length + ' 行');
+      next();
+    },
+    function (next) {
+      var cross = rowOf('PRM-20260930-0016').textContent.indexOf('跨学段') !== -1;
+      var large = rowOf('PRM-20260930-0017').textContent.indexOf('超阈值') !== -1;
+      rec('PRM-35', '边界样本标注：跨学段 1 条 + 超阈值 1 条', cross && large,
+        '跨学段=' + cross + ' / 超阈值=' + large);
+      next();
+    },
+    function (next) {
+      setRole('grade_leader');
+      var hint1 = textOf('[data-role="scope-hint"]');
+      setRole('academic_director');
+      var hint2 = textOf('[data-role="scope-hint"]');
+      rec('PRM-36', '页头数据范围提示跟随角色变化（年级主任 DS-05 / 教务主任 DS-04）',
+        hint1.indexOf('DS-05') !== -1 && hint2.indexOf('DS-04') !== -1,
+        hint1 + ' → ' + hint2);
+      next();
+    }
+  ];
+
+  var EXPECTED = 36;
+
+  function render() {
+    var ol = document.getElementById('results');
+    ol.innerHTML = '';
+    var pass = 0;
+    RESULTS.forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = r.pass ? 'ok' : 'bad';
+      li.textContent = (r.pass ? '通过  ' : '不通过 ') + r.id + '  ' + r.name + (r.detail ? '  —— ' + r.detail : '');
+      ol.appendChild(li);
+      if (r.pass) pass += 1;
+    });
+    var p = document.createElement('p');
+    p.className = pass === EXPECTED ? 'sum' : 'sum bad';
+    p.textContent = '合计 ' + RESULTS.length + ' / ' + EXPECTED + ' 条，通过 ' + pass + ' 条，不通过 '
+      + (RESULTS.length - pass) + ' 条' + (pass === EXPECTED && RESULTS.length === EXPECTED ? ' —— 全部通过' : '');
+    ol.appendChild(p);
+  }
+
+  function run(index) {
+    if (index >= steps.length) { render(); return; }
+    var called = false;
+    function next() {
+      if (called) return;
+      called = true;
+      run(index + 1);
+    }
+    try {
+      steps[index](next);
+    } catch (err) {
+      rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步抛异常（后续步骤已跳过）',
+        false, String((err && err.message) || err));
+      run(index + 1);
+    }
+  }
+
+  var started = false;
+  frame.addEventListener('load', function () {
+    if (started) return;
+    started = true;
+    window.setTimeout(function () { run(0); }, 500);
+  });
+})();
+</script>
+
+
+</body></html>

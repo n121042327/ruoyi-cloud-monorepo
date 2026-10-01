@@ -1,0 +1,18 @@
+verify-teacher-grade-carrier.html exit=0 ['合计 14 条，通过 14 条，不通过 0 条 —— 全部通过']
+verify-teacher-grade-detail.html exit=0 ['合计 6 / 6 条，通过 6 条，不通过 0 条 —— 全部通过']
+verify-teacher-grade-context.html?page=teacher&layer=functional exit=0 ['合计 13 条，通过 13 条，失败 0 条']
+verify-teacher-grade-context.html?page=teacher&layer=hifi exit=0 ['合计 13 条，通过 13 条，失败 0 条']
+verify-table-form-layout.html?page=teacher&layer=functional exit=0 ['合计 7 条，通过 7 条，失败 0 条']
+verify-table-form-layout.html?page=teacher&layer=hifi exit=0 ['合计 7 条，通过 7 条，失败 0 条']
+functional: EDIT_BASE=1, editSampleFromRow=1, fillEditForm=1
+high-fidelity: EDIT_BASE=1, editSampleFromRow=1, fillEditForm=1
+['python', 'tools/check_docs.py'] exit=0
+=== 文档一致性核查 ===
+通过：未发现问题
+
+['git', 'diff', '--check'] exit=0
+
+['git', 'diff', 'HEAD', '--', 'prototypes/functional/v1', 'prototypes/high-fidelity/v1'] exit=0
+
+frozen v1 unchanged: PASS
+UTF-8 no BOM + LF: PASS; manual acceptance: pending; backend/API: not executed; commit/push/merge: not executed

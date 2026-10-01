@@ -138,3 +138,7 @@ const id = Number(row.studentId);
 - 不使用 `any`，必要时用 `unknown` 再做类型收窄
 - 不引入与 Element Plus 重复功能的组件库
 - 不擅自升级依赖版本
+
+## 页面字段布局约束
+
+生成或修改页面、表单、表格、列表、详情和查询条件，必须遵守 `docs/00-governance/page-field-layout.md`。语义分组与依赖顺序优先；必填优先仅作建议。冻结版本通过新版本变更，逐批人工验收。

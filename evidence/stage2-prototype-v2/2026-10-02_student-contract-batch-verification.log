@@ -1,0 +1,46 @@
+CR-035 学生列表契约样板与批量调班收敛（GAP-066）验证日志
+执行日期：2026-10-02
+工作目录：D:\work\person_work\ruoyi-cloud-monorepo
+
+一、契约一致性检查（新增工具）
+
+  python tools/check_api_contract.py -> 通过：接口契约一致（退出码 0）
+    OpenAPI operationId：172 个
+    原型 data-api 引用：112 处；其中 16 处是已登记的 GAP-079 孤儿（仅提示，不判失败）
+    查询参数对齐：listStudent -> docs/10-prd/modules/student/PRD.md（12 个参数）
+    listStudent 参数齐备：14 个（12 个业务参数 + pageNum / pageSize）
+  负例能力：新出现的、未登记的孤儿 data-api 会让脚本退出码为 1（本批首次运行时即以退出码 1
+  报出 16 处未登记引用，逐条核对后登记为 GAP-079 并加入已知清单）。
+
+二、契约重新生成
+
+  python tools/extract_api_catalog.py   -> 11 个模块 / 172 个 operationId
+  python tools/gen_api_and_map.py       -> OpenAPI 172 个 operationId，152 条路径；页面动作映射 45 页 / 609 个动作
+  python tools/gen_stage5_docs.py       -> 11 个模块详细设计 / 接口 172 个
+  受影响文件与规模：
+    docs/40-detailed-design/api/openapi.yaml            +72 行（listStudent 参数块）
+    docs/40-detailed-design/page-action-api-map.yaml     2 处 api 由 batchTransferStudent / transferStudentClass
+                                                         收敛为 transferClass
+  核对：batchTransferStudent 已从 06-api-catalog.md / openapi.yaml / page-action-api-map.yaml 中消失。
+
+三、回归
+
+  verify-student-layout-list-cr029.html（学生模块 28 项）：合计 28 / 28 条，通过 28 条，不通过 0 条
+    证据 2026-10-02_student-layout-list-cr035-result.html
+  verify-student-cascade.html：functional 20 / 20，hifi 20 / 20
+    证据 2026-10-02_student-cascade-cr035-functional.html / -hifi.html
+  本批通过合计：28 + 20 × 2 = 68 项。
+
+四、文档与冻结检查
+
+  python tools/check_docs.py      -> 通过：未发现问题（退出码 0）
+  python tools/check_mermaid.py   -> 通过：未发现问题
+  git diff --check                -> 无输出（退出码 0）
+  git status --short -- prototypes/functional/v1/pages prototypes/high-fidelity/v1
+                                  -> 空输出，冻结 v1 页面未改动
+
+五、新增缺项
+
+  GAP-079：v2 原型里 8 个 data-api 字符串在 OpenAPI 中不存在（exportClass / exportGrade /
+  exportPromotionTask / uploadStudentPhoto / getStudentPhoto / viewStudentIdCard /
+  saveTeacherEduRole / saveTeacherLeave，两层各一份）。本批只登记与提示，未擅自改指。

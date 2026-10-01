@@ -26,6 +26,7 @@ import yaml
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CATALOG = os.path.join(REPO_ROOT, "docs", "30-architecture", "06-api-catalog.md")
+PRD_DIR = os.path.join(REPO_ROOT, "docs", "10-prd", "modules")
 FUNC_PAGES = os.path.join(REPO_ROOT, "prototypes", "functional", "v1", "pages")
 NAV = os.path.join(REPO_ROOT, "prototypes", "functional", "v1", "navigation.yaml")
 MANIFEST = os.path.join(REPO_ROOT, "prototypes", "high-fidelity", "v1", "page-manifest.yaml")
@@ -42,6 +43,56 @@ ROW_RE = re.compile(
     r"\|\s*\d+\s*\|\s*`([A-Za-z][A-Za-z0-9]+)`\s*\|\s*(GET|POST|PUT|DELETE|PATCH)\s*\|\s*`([^`]+)`\s*\|"
     r"\s*([^|]+)\|\s*`([^`]+)`\s*\|\s*([^|]+)\|\s*([^|]+)\|"
 )
+
+# 阶段 2 的 v1 原型是冻结版本，里面仍写着后来被收敛掉的历史 operationId。
+# 口径以模块 PRD 第 8 节为准（再经 06-api-catalog.md 落到本文件），因此这里做一次显式别名映射，
+# 避免映射表引用一个已经不存在的 operationId。新增别名必须同时写明来源与收敛依据。
+API_ALIASES = {
+    # CR-029 / A-077：学生调班统一复用班级模块的调班接口（DP-01）
+    "transferStudentClass": "transferClass",
+    # CR-035 / GAP-066：批量调班同样复用 transferClass（D-067：单条 = 调班，多条 = 批量迁移）
+    "batchTransferStudent": "transferClass",
+    # CR-036 / GAP-079：v2 已改名对齐 PRD，v1 原型里的历史字符串由别名兜住
+    "saveTeacherEduRole": "saveTeacherRole",
+    "saveTeacherLeave": "leaveTeacher",
+}
+
+# 模块 PRD 里的查询参数小节：标题固定为 `### 8.N \`<operationId>\` 查询参数`，
+# 表格列固定为「参数 | 位置 | 类型 | 必填 | 说明」。阶段 4 的接口清单只有一个路径 + 说明，
+# 放不下逐字段参数，因此参数以 PRD 为上游源，由本脚本写进 OpenAPI。
+QUERY_SECTION_RE = re.compile(r"^#{2,4}\s+[\d.]*\s*`([A-Za-z][A-Za-z0-9]+)`\s*查询参数", re.M)
+QUERY_ROW_RE = re.compile(
+    r"^\|\s*([A-Za-z][A-Za-z0-9]*)\s*\|\s*(query|path|header)\s*\|\s*([^|]+?)\s*\|"
+    r"\s*(是|否)\s*\|\s*([^|]+?)\s*\|\s*$",
+    re.M,
+)
+
+
+def parse_query_params():
+    """从各模块 PRD 读回查询参数表。返回 {operationId: [参数, ...]}。"""
+    out = {}
+    if not os.path.isdir(PRD_DIR):
+        return out
+    for module in sorted(os.listdir(PRD_DIR)):
+        prd = os.path.join(PRD_DIR, module, "PRD.md")
+        if not os.path.isfile(prd):
+            continue
+        text = io.open(prd, encoding="utf-8").read()
+        for m in QUERY_SECTION_RE.finditer(text):
+            seg = text[m.end():]
+            nxt = re.search(r"\n#{2,4}\s", seg)
+            if nxt:
+                seg = seg[:nxt.start()]
+            rows = [{
+                "name": r.group(1),
+                "in": r.group(2),
+                "schema": {"type": r.group(3)},
+                "required": r.group(4) == "是",
+                "description": r.group(5),
+            } for r in QUERY_ROW_RE.finditer(seg)]
+            if rows:
+                out[m.group(1)] = rows
+    return out
 
 
 def parse_catalog():
@@ -72,6 +123,7 @@ def path_params(path: str):
 
 
 def gen_openapi(ops):
+    query_params = parse_query_params()
     tags = []
     seen = set()
     for o in ops:
@@ -91,6 +143,7 @@ def gen_openapi(ops):
                 {"name": "pageNum", "in": "query", "required": False, "schema": {"type": "integer", "minimum": 1, "default": 1}},
                 {"name": "pageSize", "in": "query", "required": False, "schema": {"type": "integer", "minimum": 1, "maximum": 200, "default": 20}},
             ]
+        params += query_params.get(o["op"], [])
         entry = {
             "tags": [o["module"]],
             "operationId": o["op"],
@@ -205,7 +258,7 @@ def gen_page_action_map():
                 "action_id": m.group(1),
                 "element": re.sub(r"<[^>]+>", "", tag.split(">")[0])[-1:] or "",
                 "permission": attr("data-permission") or "-",
-                "api": attr("data-api") or "-",
+                "api": API_ALIASES.get(attr("data-api"), attr("data-api")) or "-",
                 "nav": attr("data-nav") or "-",
                 "overlay": attr("data-overlay") or "-",
             })
