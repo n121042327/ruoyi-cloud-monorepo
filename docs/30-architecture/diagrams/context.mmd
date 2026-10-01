@@ -1,0 +1,33 @@
+%% 系统上下文（对应 01-system-context.md）
+flowchart LR
+  OPS["平台运营方<br/>全平台支撑与排障"]
+  GROUP["基教集团<br/>自有组织与配置"]
+  SCHOOL["学校<br/>校领导 / 教务主任 / 年级主任 / 班主任 / 任课教师"]
+  STUDENT["学生"]
+  PARENT["家长（后续端）"]
+
+  SYS["K12 教育 ToB 平台<br/>ruoyi-edu + plus-ui"]
+
+  IDP["学校已有统一身份（SSO）<br/>后续对接"]
+  SMS["短信 / 通知通道<br/>首轮不做"]
+  OSS["文件存储"]
+  MYSQL[("MySQL 8")]
+  REDIS[("Redis")]
+  RMQ[("RabbitMQ")]
+  ES["Elasticsearch<br/>首轮不启用"]
+
+  OPS --> SYS
+  GROUP --> SYS
+  SCHOOL --> SYS
+  STUDENT --> SYS
+  PARENT -. 后续 .-> SYS
+
+  SYS --> MYSQL
+  SYS --> REDIS
+  SYS --> RMQ
+  SYS --> OSS
+  SYS -. 后续 .-> ES
+  SYS -. 后续 .-> IDP
+  SYS -. 后续 .-> SMS
+
+  SYS -. 只预留模块位 .-> FUTURE["题库 / 作业 / 考试 / 练习 / 错题 / 学情分析"]

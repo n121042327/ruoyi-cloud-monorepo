@@ -1677,6 +1677,63 @@
 - 如果错了的代价：删除 `prototypes/high-fidelity/v1/pages/`、`page-manifest.yaml`、
   两个 `tools/make_hifi_*.py` 与 `evidence/stage3-highfidelity/pages/` 即可；阶段 2 与 `reference/` 不受影响
 
+## D-086 教育模块的表格组件首轮统一用 `el-table`，不用 `vxe-table`
+
+- 日期：2026-10-01
+- 触发：阶段 4 技术选型（`docs/30-architecture/04-tech-selection.md`）需要裁决 `stack-lock.md` 标注的待定项
+- 上游依据：`stack-lock.md` 里 `vxe-table` 的"教育模块是否使用需 ADR"；
+  阶段 2 / 3 的表格规范（`markup-contract.md` 的映射表、`layout-spec` 的"列宽之和 = min-width"）
+- 决策（用户授权默认取推荐）：
+  1. **首轮统一 `el-table`**：阶段 3 的 `component-mapping.yaml` 已按 `el-table` 建立映射，
+     列宽口径、空态、行内动作的实现都按它写；混用两套表格会让阶段 8 的验收维护两套标准。
+  2. **首轮列表规模不需要虚拟滚动**：每页 20 行，最大列数 12（学生列表），`el-table` 足够。
+  3. **`vxe-table` 不删除**：它仍在 `apps/plus-ui/package.json` 里（基线自带），
+     后续题目检索这类"结果可能上千行"的表格再走 ADR 单独评估，届时按页面而不是按模块切换。
+- 落点：`docs/30-architecture/04-tech-selection.md` 第 3.1 节
+
+## D-087 交付阶段 4：概要设计（批次 4-0 与 4-1）
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要拍板的默认选推荐，执行完以后没有任何问题提交合并」）
+- 上游依据：11 个模块 PRD 与 11 个公共前置文件（阶段 1）、阶段 3 的 45 页高保真原型与 `page-manifest.yaml`、
+  `stack-lock.md`、`docs/00-governance/stage-inputs.yaml` 的 stage4 门禁与批次计划
+- 决策（全部取推荐方案）：
+  1. **首轮教育域单服务**（`ruoyi-edu` 内 11 个模块包），不拆微服务；用包边界 + 7 条受控跨模块调用替代进程边界（`02` 的 A-01、`03` 第 4 节）。
+  2. **数据权限自建**（`org.dromara.edu.datascope`），只沿用 `ruoyi-common-tenant` 的租户隔离；
+     教育域的范围判定入口唯一，不提供"该表豁免"后门，缺上下文直接拒绝（`09` 第 4.3 节）。
+  3. **集团默认不下钻下属学校**：跨校读取只有"运营授权的教学资源（只读，`BR-DATA-018` 限定题库 / 试卷）"与
+     "平台运营 `DS-01`（只读 + 留痕）"两条路径；集团打开教学数据菜单得到解释性空态而不是报错页（`09` 第 6 节）。
+  4. **异步只用于耗时与削峰**：导入执行、导出、升班执行、教学班生成、日志归档；同步 / 异步由三条规则 + 五个 PRD 阈值决定（`07` 第 1 ~ 2 节）。
+  5. **缓存只放范围片段与可重算数据**，权限判定不落缓存；首轮不引入本地缓存（`08` 第 1 节 C-01 ~ C-05）。
+  6. **接口清单由工具从 PRD 生成**：`tools/extract_api_catalog.py` 产出 173 个 operationId，禁止手工编辑接口行（`06` 文件头）。
+  7. **技术选型不引入新基础设施**：首轮不引 Seata、不启用 Elasticsearch、不引入分库分表（`04` 第 2.1 节）。
+  8. **`vxe-table` 裁决**：见 `D-086`。
+- 关键设计：阶段 4 的 11 份文档 + 6 个 Mermaid 图源；接口 173 个（11 个模块）；数据归属 33 张教育域表（按 5-0 / 5-1 / 5-2 三个建表批次划分）；
+  数据权限九类来源、四层范围、九条拒绝规则逐条有落点
+
+| 文件 | 变更 |
+|---|---|
+| `docs/30-architecture/00-index.md` | 新增：阶段目标、文档清单与阅读顺序、门禁对照、批次记录、刻意不做的事 |
+| `docs/30-architecture/01-system-context.md` | 新增：参与方、系统边界、外部依赖与失败影响、信任边界 |
+| `docs/30-architecture/02-architecture.md` | 新增：逻辑 / 容器 / 部署三视图（含 Mermaid）+ 七条关键架构决策 |
+| `docs/30-architecture/03-module-division.md` | 新增：11 个模块的写入边界、7 条受控跨模块调用、依赖规则、包结构、后续模块预留位 |
+| `docs/30-architecture/04-tech-selection.md` | 新增：前后端选型与理由、首轮不引入的组件、`vxe-table` 裁决（D-086） |
+| `docs/30-architecture/05-data-ownership.md` | 新增：33 张教育域表的归属、12 条关键归属裁决、平台级实体与租户隔离的关系 |
+| `docs/30-architecture/06-api-catalog.md` | 新增（工具生成）：173 个 operationId，含服务归属、权限点推断规则、同步 / 异步边界 |
+| `docs/30-architecture/07-sync-async-boundary.md` | 新增：同步 / 异步判定规则与阈值、异步操作清单、消息设计、任务状态机、审计与异步的关系 |
+| `docs/30-architecture/08-cache-strategy.md` | 新增：五条缓存原则、10 类键、失效链路、缓存与权限的关系、降级策略 |
+| `docs/30-architecture/09-permission-architecture.md` | 新增：四层范围与九类来源、解析流程、SQL 拦截器实现、不继承租户管理员放行、两段式取数、九条拒绝规则、集团跨租户方案 |
+| `docs/30-architecture/10-mobile-and-toc-extension.md` | 新增：三个预留决定、各端扩展位、ToC 库表预留策略、首轮必须避免的三个做法 |
+| `docs/30-architecture/diagrams/*.mmd`（6 个） | 新增：上下文 / 逻辑 / 容器 / 部署 / 权限流程 / 状态机 |
+| `tools/extract_api_catalog.py` | 新增：从 PRD 第 8 节生成接口清单 |
+| `docs/00-governance/file-catalog.md` | 阶段 4 的 12 行状态由 `planned` 改为 `review` |
+
+- 验证证据：`python tools/check_docs.py` 通过；接口清单 173 个 operationId 与 11 个模块 PRD 第 8 节逐条对应（工具生成，无手工编辑）；
+  门禁四条逐条在 `00-index.md` 第 3 节给出证据位置
+- 阶段状态：4-0 与 4-1 已产出待验收；阶段 5 以本目录为输入
+- 如果错了的代价：删除 `docs/30-architecture/` 与 `tools/extract_api_catalog.py`、回滚 `file-catalog.md` 的 12 行状态即可；
+  阶段 1 / 2 / 3 与已合并的 main 不受影响
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |

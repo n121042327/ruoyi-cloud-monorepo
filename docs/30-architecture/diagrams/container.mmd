@@ -1,0 +1,32 @@
+%% 容器视图（对应 02-architecture.md 第 2 节）
+flowchart LR
+  subgraph 浏览器
+    B["Chrome / Edge"]
+  end
+  subgraph Docker 宿主机
+    NX["nginx<br/>静态资源 + 反向代理"]
+    GW["ruoyi-gateway"]
+    AUTH["ruoyi-auth"]
+    SYS["ruoyi-system"]
+    EDU["ruoyi-edu"]
+    JOB["ruoyi-job"]
+    MYSQL[("mysql:8")]
+    REDIS[("redis")]
+    RMQ[("rabbitmq")]
+  end
+  subgraph 外部存储
+    NAS["NAS / 本地卷"]
+  end
+  B -->|HTTPS| NX
+  NX -->|/api| GW
+  GW --> AUTH
+  GW --> SYS
+  GW --> EDU
+  SYS --> MYSQL
+  EDU --> MYSQL
+  AUTH --> REDIS
+  EDU --> REDIS
+  EDU --> RMQ
+  EDU --> NAS
+  JOB --> MYSQL
+  JOB --> RMQ

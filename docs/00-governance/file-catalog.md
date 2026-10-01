@@ -327,18 +327,18 @@
 
 | 路径 | 用途 | 状态 |
 |---|---|---|
-| `00-index.md` | 索引 | `planned` |
-| `01-system-context.md` | 系统上下文、外部系统、边界 | `planned` |
-| `02-architecture.md` | 架构图（逻辑 + 部署 + 容器） | `planned` |
-| `03-module-division.md` | 模块划分与服务边界 | `planned` |
-| `04-tech-selection.md` | 技术选型与理由（引用 `stack-lock.md`） | `planned` |
-| `05-data-ownership.md` | 数据归属：哪张表归哪个服务 | `planned` |
-| `06-api-catalog.md` | 接口清单（模块 × 资源 × 操作 × operationId） | `planned` |
-| `07-sync-async-boundary.md` | 同步 / 异步边界与消息清单 | `planned` |
-| `08-cache-strategy.md` | Redis 缓存键、失效策略、隔离策略 | `planned` |
-| `09-permission-architecture.md` | 数据权限落地架构（含租户 / 学校 / 年级 / 班级） | `planned` |
-| `10-mobile-and-toc-extension.md` | 移动端与 ToC 扩展位置（不做实现） | `planned` |
-| `diagrams/*.mmd` | Mermaid 架构图源文件 | `planned` |
+| `docs/30-architecture/00-index.md` | 索引 | `review` |
+| `docs/30-architecture/01-system-context.md` | 系统上下文、外部系统、边界 | `review` |
+| `docs/30-architecture/02-architecture.md` | 架构图（逻辑 + 部署 + 容器） | `review` |
+| `docs/30-architecture/03-module-division.md` | 模块划分与服务边界 | `review` |
+| `docs/30-architecture/04-tech-selection.md` | 技术选型与理由（引用 `docs/00-governance/stack-lock.md`） | `review` |
+| `docs/30-architecture/05-data-ownership.md` | 数据归属：哪张表归哪个服务 | `review` |
+| `docs/30-architecture/06-api-catalog.md` | 接口清单（模块 × 资源 × 操作 × operationId） | `review` |
+| `docs/30-architecture/07-sync-async-boundary.md` | 同步 / 异步边界与消息清单 | `review` |
+| `docs/30-architecture/08-cache-strategy.md` | Redis 缓存键、失效策略、隔离策略 | `review` |
+| `docs/30-architecture/09-permission-architecture.md` | 数据权限落地架构（含租户 / 学校 / 年级 / 班级） | `review` |
+| `docs/30-architecture/10-mobile-and-toc-extension.md` | 移动端与 ToC 扩展位置（不做实现） | `review` |
+| `diagrams/*.mmd` | Mermaid 架构图源文件 | `review` |
 
 ---
 
