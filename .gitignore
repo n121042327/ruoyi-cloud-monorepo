@@ -103,3 +103,27 @@ evidence/**/*.tmp
 # Python 工具链
 __pycache__/
 *.py[cod]
+
+
+# ---------------------------------------------------------------- 原型验证的临时产物
+# 说明：验收证据需要入库（见上面的 !evidence/**），但脚本运行过程产生的中间文件不入库，
+# 只保留有命名规范的正式证据（如 2026-10-01_xxx.log、cmp-stage2-xxx.png）。
+
+# 脚本重定向的 stdout / stderr
+evidence/**/*.stdout
+evidence/**/*.stderr
+
+# 依赖安装日志（与验收日志区分）
+evidence/**/pip-*.log
+evidence/**/pip-*.err
+
+# 视觉对比的中间态截图（正式对比图以 cmp- 开头）
+evidence/stage3-highfidelity/fixed-*.png
+evidence/stage3-highfidelity/v2-*.png
+
+# 截图脚本的探测输出
+prototypes/high-fidelity/v1/screenshots/_probe/
+
+# 已被 tools/verify_nav_links.py（CDP 真实点击）取代的验证页：
+# 它在 --dump-dom + --virtual-time-budget 下跑不出多步跳转，留着会误导，不纳入仓库
+evidence/stage3-highfidelity/verify-nav-clicks.html
