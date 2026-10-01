@@ -165,8 +165,12 @@ commit message 使用 Conventional Commits，scope 与描述用中文。
 - 合并完成后删除该阶段分支，不留长命分支
 - 阶段边界另有 annotated tag 可追溯：
   `stage2-prototype-end`、`stage3-highfidelity-end`、`stage4-architecture-end`、`stage5-detailed-design-end`
-- 阶段 0 ~ 5 的历史是线性提交，保留在 `main` 上**不再回改**（改写历史会让全部 SHA 变化并需要 force push）；
-  原 `codex/prototype` 分支已改名为 `codex/archive-through-stage5`，仅作存档，不再使用
+- 阶段 0 ~ 5 的合并痕迹已于 2026-10-01 补齐：此前用 `--ff-only` 合并，`main` 上是一条直线；
+  现改为把 `main` 退回阶段 1 终点后逐阶段执行 `git merge --no-ff <阶段终点>`，
+  每个阶段边界新增一个 merge commit，`git log --graph` 能看到 5 处分叉。
+  **没有重放或改写任何已有提交**，原 SHA 全部保留，工作树内容与改写前 0 差异
+- 改写前的状态保留在 `backup/pre-nomerge-rewrite` 分支，确认无误后可删除
+- 原 `codex/prototype` 分支已改名为 `codex/archive-through-stage5`，仅作存档，不再使用
 
 ## 9. 质量与状态口径
 
@@ -182,6 +186,13 @@ commit message 使用 Conventional Commits，scope 与描述用中文。
 
 ## 10. 文档语言与命名
 
+- **所有文件使用 UTF-8 编码、不带 BOM；换行统一用 LF**
+  - 用 PowerShell 写文件时显式指定编码，避免落到 ANSI：
+    `[System.IO.File]::WriteAllText($path, $text, [System.Text.UTF8Encoding]::new($false))`
+  - 写 `.ps1` 脚本时，含中文的脚本必须存为「UTF-8 with BOM」，否则整个脚本只用 ASCII ——
+    Windows PowerShell 5.1 按 ANSI 解析 `.ps1`，中文会导致语法错误（本仓库的
+    `tools/capture_hifi_screenshots.ps1` 因此保持纯 ASCII，并在文件头注明了原因）
+  - 生成器输出、提交信息、验收日志同样一律 UTF-8
 - 文档、注释、提交信息用中文；代码标识符、文件路径、命令用英文
 - 中文与英文之间加空格，中文标点用全角
 - 文档编号遵循 `docs/00-governance/file-catalog.md` 的目录约定
