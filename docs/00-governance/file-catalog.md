@@ -326,6 +326,8 @@
 | `prototypes/high-fidelity/v1/interaction-notes.md` | 交互说明：状态切换、加载、空态、错误 | `review` |
 | `tools/capture_hifi_screenshots.ps1` | 三档截图生成脚本（headless Chrome） | `review` |
 | `tools/make_hifi_pages_table.py` | 高保真入口页的全量清单生成器（45 页；数据来自 page-manifest + navigation） | `review` |
+| `tools/check_hifi_layout.py` | 高保真布局检查（CDP 实测 45 页：搜索区行数、表格溢出、操作列 display、卡片内边距） | `review` |
+| `tools/make_diagrams_doc.py` | 把全部 `*.mmd` 汇总成可预览的 `docs/diagrams.md` | `review` |
 
 ---
 
@@ -347,6 +349,7 @@
 | `docs/30-architecture/09-permission-architecture.md` | 数据权限落地架构（含租户 / 学校 / 年级 / 班级） | `review` |
 | `docs/30-architecture/10-mobile-and-toc-extension.md` | 移动端与 ToC 扩展位置（不做实现） | `review` |
 | `diagrams/*.mmd` | Mermaid 架构图源文件 | `review` |
+| `docs/diagrams.md` | 全部 Mermaid 图汇总（阶段 4 架构图 + 阶段 5 ER / 时序 / 状态机 / 领域模型，共 41 张）；任何支持 Mermaid 的 Markdown 预览器都能直接看图 | `review` |
 
 ---
 

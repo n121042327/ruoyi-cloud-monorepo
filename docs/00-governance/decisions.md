@@ -1871,6 +1871,64 @@
 - 如果错了的代价：回滚 `hifi-shell.js` / `prototype-shell.js` 的 `MENUS` 与 14 处按钮即可；
   不涉及页面结构、动作登记与任何阶段 4 / 5 产物。
 
+## D-092 修复高保真原型的样式表加载失败与表格 / 搜索区 / 筛选区布局缺陷
+
+- 决策日期：2026-10-01
+- 来源：用户在高保真原型里人工验收报出 4 处 —— 搜索区字段逐行堆叠且状态按钮样式原始、
+  异步任务表格错行、筛选区没有左右边距、审计日志表格错行。
+- 排查结论：**一个主因 + 一个次因**。
+  1. **主因（决定性）**：45 个高保真页面全部把阶段 2 的样式表写成
+     `../../functional/v1/assets/prototype-shell.css`，而页面位于 `prototypes/high-fidelity/v1/pages/`，
+     正确路径需要三层 `../`。这个路径**不存在**，所以阶段 2 的基础样式表在所有高保真页面里
+     一个都没加载成功 —— `.form-inline` / `.form-item`（搜索区栅格）、`.chip`（状态筛选按钮）、
+     `.toolbar`（筛选条）、`td.actions` 的 `nowrap` + 粘性列全部失效，页面退回浏览器默认样式。
+     用户报的四个现象都是这一个根因的不同表现。
+  2. **次因**：`hifi.css` 自己写了 `table.el-table td.actions { display: flex }`。
+     `td` 用 flex 会脱离表格列宽分配，即使样式表正常加载也会让整行与表头错位。
+- 修复动作：
+  1. 45 个页面的 CSS 路径补一层 `../`；
+  2. `hifi.css` 的 `td.actions` 改为 `white-space: nowrap` + 相邻兄弟 `margin-left: 10px`
+     （与阶段 2 的 `prototype-shell.css` 口径一致）；
+  3. 补 `.card > .footer-bar` 样式：14 个向导 / 导入页的底部操作栏此前**没有任何样式**，
+     内边距、上边框与按钮排布都缺失；
+  4. 新增 `tools/check_hifi_layout.py`：用 CDP 实测 45 页的搜索区行数、表格溢出宽度、
+     操作列 `display`、卡片直接子元素的内边距，避免以后再靠肉眼验收。
+- 验证：
+  - `tools/check_hifi_layout.py` 全量 45 页：搜索区堆叠、操作列 flex、footer-bar 缺失三类问题清零；
+  - 截图抽查：搜索区恢复三列栅格、状态筛选按钮恢复圆角 chip 样式、表格表头与数据行对齐、
+    筛选区有左右内边距；
+  - `tools/make_hifi_coverage.py`、`tools/run_harness.py`（19 / 19）、`tools/check_docs.py` 均通过；
+  - 135 张三档截图按修复后的样式重新生成。
+- 遗留（已知，不影响可用性）：1366 视口下仍有 19 页的表格宽度大于内容区（列宽之和 1050 ~ 1140，
+  内容区约 1030），表格内会出现横向滚动。**这不是本次引入的**：阶段 2 的同一页面实测也溢出 44px，
+  因为页面里的列宽是按 1440 以上视口定的。表格有 `.table-scroll` 横向滚动容器，列与表头保持对齐；
+  要彻底消除需逐页重排列宽，已登记为待办。
+- 关于「阶段四」：阶段 4 概要设计的产物是文档与 Mermaid 图（`docs/30-architecture/**`），
+  **没有 HTML 页面**，因此不存在本次这类页面布局问题；它的 `.mmd` 图属于另一类问题（见 D-093）。
+
+## D-093 说明 *.mmd 的打开方式，并生成可直接预览的图汇总
+
+- 决策日期：2026-10-01
+- 背景：用户问「`*.mmd` 是什么文件，要用什么软件打开」。
+- 说明：`.mmd` 是 Mermaid 图定义文件常用的扩展名，内容是**纯文本**的图描述
+  （`graph` / `sequenceDiagram` / `stateDiagram-v2` / `classDiagram` 等语法），
+  本身不是图片；用记事本能打开但只能看到代码，双击不会有图形。
+- 可用的查看方式：
+  | 方式 | 说明 |
+  |---|---|
+  | VS Code + 扩展 | 装 Markdown Preview Mermaid Support 或 Mermaid Preview，预览 `docs/diagrams.md` 即可 |
+  | Typora / Obsidian / Notion | 原生支持 ` ```mermaid ` 代码块，直接渲染 |
+  | mermaid.live | 把 `.mmd` 内容粘进在线编辑器（需要联网） |
+  | GitHub / GitLab | 提交到仓库后，`.md` 里的 mermaid 代码块自动渲染 |
+  | 命令行 | `npm i -g @mermaid-js/mermaid-cli` 后用 `mmdc -i x.mmd -o x.svg` 导出图片 |
+- 本仓库共有 41 个 `.mmd`：阶段 4 架构与流程 6 张、阶段 5 ER 图 1 张、时序图 14 张、
+  状态机 9 张、领域模型 11 张。
+- 处理：新增 `tools/make_diagrams_doc.py`，生成 `docs/diagrams.md` ——
+  把 41 个源文件按分组嵌成 Mermaid 代码块。**用任意支持 Mermaid 的 Markdown 预览器打开这一个文件就能看全部图**，
+  不必逐个打开 `.mmd`。
+- 如果错了的代价：删除 `docs/diagrams.md` 与 `tools/make_diagrams_doc.py` 即可；
+  `.mmd` 源文件与阶段 4 / 5 的任何产物都不受影响。
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |
