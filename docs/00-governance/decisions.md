@@ -1958,6 +1958,30 @@
   拉开层级（标题 / 卡片 / 表头的视觉重量差）、改密度（更紧凑或更宽松）、改形态特征（导航、圆角体系、表头）。
   若要执行，建议先做 2 ~ 3 个样板页定方向再全量，避免 45 页返工。
 
+## D-095 调整分支策略：main 为唯一长期分支，阶段用短命分支 + `--no-ff` 合并
+
+- 决策日期：2026-10-01
+- 背景：用户指出 `codex/prototype` 分支名只覆盖「原型」，内容却延伸到阶段 4 概要设计与阶段 5 详细设计，
+  命名与内容不符；询问能否把 `f03c5d14`（阶段 3 全量）与 `5476917d`（阶段 4）拆成独立分支再合并。
+- 可行性判断：这两个提交已在线性历史中，要形成「分支 + 合并」的形态必须改写历史 ——
+  44 个提交的 SHA 会全部变化，将来 push 需要 force push，已有 tag / 分支 / 克隆都不兼容。
+  收益仅是历史图形更整齐，**不做**。
+- 采用方案（用户确认 B + D）：
+  - **B**：`main` 为唯一长期分支；每个阶段从 `main` 拉短命分支 `codex/stage<N>-<name>`，
+    完成后用 `git merge --no-ff` 合并并保留 merge commit（阶段边界在 `git log --graph` 里可见），
+    合并后删除该阶段分支；
+  - **D**：把 `codex/prototype` 改名为 `codex/archive-through-stage5` 作为存档，
+    不再作为工作分支使用。
+- 已执行：
+  - 建立四个 annotated tag 标记阶段边界：`stage2-prototype-end`（`9b5fcdbd`）、
+    `stage3-highfidelity-end`（`f03c5d14`）、`stage4-architecture-end`（`5476917d`）、
+    `stage5-detailed-design-end`（`62968d07`）；
+  - `git branch -m codex/prototype codex/archive-through-stage5`；
+  - 当前工作分支切到 `main`；
+  - 新策略写入 `AGENTS.md` 第 8.1 节，后续协作者据此执行。
+- 未执行（需用户明确同意）：改写历史重建分支-合并结构（方案 C）。
+- 如果错了的代价：分支改名可逆（改回即可）；tag 可删除；二者都不影响任何提交内容与 `main` 的历史。
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |
