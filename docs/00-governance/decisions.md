@@ -1777,6 +1777,211 @@
   `tools/gen_stage5_docs.py`，回滚 `schema.yaml` 的 4 处修订与 `file-catalog.md` 的阶段 5 状态行即可；
   阶段 1 / 2 / 3 / 4 与已合并的 main 不受影响（`schema.yaml` 未被上游引用）
 
+## D-089 收尾阶段 2 / 阶段 3 的目录清单缺口（业务组件清单、交互说明、三档截图）
+
+- 决策日期：2026-10-01
+- 起因：用户要求「一次性把剩下原型阶段的文件全部生成出来」。核对 `file-catalog.md` 阶段 2 / 阶段 3 后发现
+  13 行状态停留在 `planned`，逐项核实后分为「状态行过时」与「真实缺口」两类。
+- 核实结果：
+  - 状态行过时（文件已交付，只是没登记）：阶段 2 的 `page-specs/*.md`（45 个 + 模板）、
+    `pages/class-list.html`、`pages/class-detail.html`；阶段 3 的 `index.html`、`README.md`、
+    `design-tokens.json`、`component-spec.md`、`component-mapping.yaml`、`visual-checklist.md`、`pages/*.html`。
+    其中阶段 3 的行原本只写了裸文件名（`index.html`），`check_docs.py` 按仓库根解析会判定文件不存在，
+    一并改成相对仓库根的完整路径。
+  - 真实缺口 3 项：`business-components.yaml`、`interaction-notes.md`、`screenshots/` 三档截图。
+- 补齐动作：
+  - 新增 `prototypes/high-fidelity/v1/business-components.yaml`：15 个业务组件
+    （学生 / 班级 / 教师 / 学科 / 学期选择器、数据范围提示条、导入向导、任务进度、变更时间线、
+    危险动作确认等），每个给出 Element Plus 底层组件、属性、状态与阶段 6 落点；
+    `BC-DEMO-PANEL` 明确标注**不进入生产**。
+  - 新增 `prototypes/high-fidelity/v1/interaction-notes.md`：状态片段替换机制、角色与可编辑性、
+    加载 / 空态 / 错误（含错误码与请求编号）、危险动作二次确认、跨页跳转、三档分辨率、阶段 6 映射。
+  - 新增 `tools/capture_hifi_screenshots.ps1`（headless Chrome）并生成 45 页 × 3 档 = 135 张截图，
+    共约 12.8 MB；脚本保持纯 ASCII，避免 Windows PowerShell 5.1 按 ANSI 解析中文时语法报错。
+  - 同步更新 `prototypes/high-fidelity/v1/index.html` 与 `README.md`，让新增文件在入口可见。
+- 验证：`tools/capture_hifi_screenshots.ps1` 输出 `DONE captured=135 total=135`；
+  抽查 1366 与 1920 档截图，页面渲染完整（非空白、无布局错位）；`python tools/check_docs.py` 通过。
+- 未处理项：阶段 0 的 `.agents/skills/edu-*/SKILL.md` 仍为 `planned` ——
+  用户已明确「教育模块专用 Codex 技能不处理」，保持原状，不计入本阶段缺口。
+- 如果错了的代价：删除新增的 2 个文件、1 个脚本与 `screenshots/` 目录即可；
+  `screenshots/` 是纯验收证据，不影响原型页面与阶段 5 的任何产物。
+
+## D-090 阶段 2 全量 harness 回归运行器与最终结果
+
+- 决策日期：2026-10-01
+- 背景：目标的验收口径要求「每批完成后跑 `check_docs.py` 与全部 harness 回归」。
+  此前批次是逐个手动跑 Chrome，没有可复现的一次性运行器，也没有一份覆盖全部 19 个 harness 的完整日志，
+  导致「全部 harness 回归通过」这句话缺少单一证据。
+- 新增 `tools/run_harness.py`：用 headless Chrome 的 `--dump-dom` 抓取每个 harness 的 `<p class="sum">`，
+  按「RESULTS == EXPECTED 且不通过 0 条」判定；两种历史结果格式都支持
+  （`合计 N / EXPECTED 条，通过 M 条，不通过 K 条` 与早期批次的 `合计 N 条，通过 M 条，不通过 K 条`）。
+- 修正记录：首次全量运行 18 / 19，`verify-carrier-change.html` 报「未找到结果行」。
+  排查后确认是**运行器正则**只支持带 `/ EXPECTED` 的格式，该 harness 用的是早期格式，属误报；
+  修正正则后该 harness 14 / 14 通过，全量 19 / 19 通过。
+- 最终结果：**19 / 19 通过，累计断言 508 条**，日志 `evidence/stage2-prototype/harness-regression.log`
+  （每条含 harness 名与断言数）。
+- 同批回归：`tools/make_hifi_coverage.py` 退出码 0（阶段 2 与阶段 3 的页面编号 / 动作编号 / 状态片段集合一致）；
+  `tools/check_docs.py` 通过。
+- 如果错了的代价：删除 `tools/run_harness.py` 与 `harness-regression.log` 即可；
+  不影响任何原型页面、截图与阶段 3 / 4 / 5 产物。
+
+## D-091 修复外壳菜单与跨页入口的「死链」（高保真 11 项、业务原型 2 项、任务中心 14 处）
+
+- 决策日期：2026-10-01
+- 来源：用户人工验收反馈「高保真原型侧边菜单点了没反应」「业务原型相关链接没做完」
+- 排查结论：三处独立缺陷，性质相同——**页面已经交付，但入口没有接上**。
+  1. 高保真外壳 `prototypes/high-fidelity/v1/assets/hifi-shell.js` 的 `MENUS` 只有「学生管理」写了
+     `delivered`，其余 11 项走 pending 分支：菜单显示「3-2 起」，点击只弹「本批未提供页面」。
+     实际这 11 个页面在 3-2 ~ 3-9 都已派生交付。
+  2. 业务原型外壳 `prototypes/functional/v1/assets/prototype-shell.js` 的 `MENUS` 缺
+     「学年学期」「审计日志」两项的 `delivered`。
+  3. 7 个页面的「查看任务中心」按钮只挂了 `data-demo-toast`（弹提示），没有跨页入口，
+     而 `pages/async-task-list.html` 自批次 2-9 起就已交付。业务原型与高保真各 7 处，共 14 处。
+- 修复动作：
+  - `hifi-shell.js`：11 项补 `delivered`，`batch` 改为真实交付批次（3-2 ~ 3-9）；
+  - `prototype-shell.js`：2 项补 `delivered`；
+  - 14 处按钮改用外壳**已有**的 `data-nav="PAGE-IMP-TASK-LIST"` 跳转机制，不新增自定义属性。
+- 验证（写进本轮证据）：
+  - 渲染验证：高保真页面 12 个菜单项全部带 `data-href`，「3-2 起」出现 **0** 次；
+    业务原型 12 项 `pending` 计数为 **0**；
+  - `tools/run_harness.py` 全量回归 **19 / 19 通过、508 条断言**，修改未破坏既有断言；
+  - `tools/make_hifi_coverage.py` 退出码 0（阶段 2 与阶段 3 的页面编号 / 动作编号 / 状态片段集合仍一致）；
+  - `tools/check_docs.py` 通过；
+  - 135 张三档截图按修复后的菜单重新生成。
+- 补充：真实点击验证（新增 `tools/verify_nav_links.py`，用 CDP 控制 headless Chrome，
+  点击后读 `location.href`，绕开 `--virtual-time-budget` 会把 setTimeout 快进、
+  多步异步跳转无法在 `--dump-dom` 下验证的限制）：
+  | 用例 | 场景 | 结果 |
+  |---|---|---|
+  | HF-01 | 高保真侧边菜单「异步任务」 | 跳到 `async-task-list.html` |
+  | HF-02 | 高保真侧边菜单「学科与配置」 | 跳到 `subject-list.html` |
+  | HF-03 | 高保真侧边菜单「审计日志」 | 跳到 `audit-log-list.html` |
+  | HF-04 | 高保真「查看任务中心」按钮 | 跳到 `async-task-list.html` |
+  | FN-01 | 业务原型侧边菜单「审计日志」 | 跳到 `audit-log-list.html` |
+  | FN-02 | 业务原型侧边菜单「学年学期」 | 跳到 `term-list.html` |
+  | FN-03 | 业务原型「查看任务中心」按钮 | 跳到 `async-task-list.html` |
+
+  **7 / 7 通过**，日志 `evidence/stage3-highfidelity/nav-click-verify.log`。
+  首轮跑出 4 / 7：高保真三个菜单用例报「找不到元素」—— 排查发现高保真外壳的菜单项只设了
+  `data-delivery`，没有业务原型外壳同名的 `data-page-nav`（不一致导致脚本选择器落空）。
+  已在 `hifi-shell.js` 补上 `data-page-nav`（保留 `data-delivery` 以兼容原有的 `data-nav` 回退逻辑），
+  重跑即 7 / 7。
+- 遗留（已知，不影响原型可用性）：阶段 2 的形态截图（约 200 张，按角色 / 状态 / 弹窗逐张抓取）
+  本轮未重跑，其侧边菜单的批次标记与当前页面不一致；如需刷新需按形态逐个补抓。
+- 如果错了的代价：回滚 `hifi-shell.js` / `prototype-shell.js` 的 `MENUS` 与 14 处按钮即可；
+  不涉及页面结构、动作登记与任何阶段 4 / 5 产物。
+
+## D-092 修复高保真原型的样式表加载失败与表格 / 搜索区 / 筛选区布局缺陷
+
+- 决策日期：2026-10-01
+- 来源：用户在高保真原型里人工验收报出 4 处 —— 搜索区字段逐行堆叠且状态按钮样式原始、
+  异步任务表格错行、筛选区没有左右边距、审计日志表格错行。
+- 排查结论：**一个主因 + 一个次因**。
+  1. **主因（决定性）**：45 个高保真页面全部把阶段 2 的样式表写成
+     `../../functional/v1/assets/prototype-shell.css`，而页面位于 `prototypes/high-fidelity/v1/pages/`，
+     正确路径需要三层 `../`。这个路径**不存在**，所以阶段 2 的基础样式表在所有高保真页面里
+     一个都没加载成功 —— `.form-inline` / `.form-item`（搜索区栅格）、`.chip`（状态筛选按钮）、
+     `.toolbar`（筛选条）、`td.actions` 的 `nowrap` + 粘性列全部失效，页面退回浏览器默认样式。
+     用户报的四个现象都是这一个根因的不同表现。
+  2. **次因**：`hifi.css` 自己写了 `table.el-table td.actions { display: flex }`。
+     `td` 用 flex 会脱离表格列宽分配，即使样式表正常加载也会让整行与表头错位。
+- 修复动作：
+  1. 45 个页面的 CSS 路径补一层 `../`；
+  2. `hifi.css` 的 `td.actions` 改为 `white-space: nowrap` + 相邻兄弟 `margin-left: 10px`
+     （与阶段 2 的 `prototype-shell.css` 口径一致）；
+  3. 补 `.card > .footer-bar` 样式：14 个向导 / 导入页的底部操作栏此前**没有任何样式**，
+     内边距、上边框与按钮排布都缺失；
+  4. 新增 `tools/check_hifi_layout.py`：用 CDP 实测 45 页的搜索区行数、表格溢出宽度、
+     操作列 `display`、卡片直接子元素的内边距，避免以后再靠肉眼验收。
+- 验证：
+  - `tools/check_hifi_layout.py` 全量 45 页：搜索区堆叠、操作列 flex、footer-bar 缺失三类问题清零；
+  - 截图抽查：搜索区恢复三列栅格、状态筛选按钮恢复圆角 chip 样式、表格表头与数据行对齐、
+    筛选区有左右内边距；
+  - `tools/make_hifi_coverage.py`、`tools/run_harness.py`（19 / 19）、`tools/check_docs.py` 均通过；
+  - 135 张三档截图按修复后的样式重新生成。
+- 遗留（已知，不影响可用性）：1366 视口下仍有 19 页的表格宽度大于内容区（列宽之和 1050 ~ 1140，
+  内容区约 1030），表格内会出现横向滚动。**这不是本次引入的**：阶段 2 的同一页面实测也溢出 44px，
+  因为页面里的列宽是按 1440 以上视口定的。表格有 `.table-scroll` 横向滚动容器，列与表头保持对齐；
+  要彻底消除需逐页重排列宽，已登记为待办。
+- 关于「阶段四」：阶段 4 概要设计的产物是文档与 Mermaid 图（`docs/30-architecture/**`），
+  **没有 HTML 页面**，因此不存在本次这类页面布局问题；它的 `.mmd` 图属于另一类问题（见 D-093）。
+
+## D-093 说明 *.mmd 的打开方式，并生成可直接预览的图汇总
+
+- 决策日期：2026-10-01
+- 背景：用户问「`*.mmd` 是什么文件，要用什么软件打开」。
+- 说明：`.mmd` 是 Mermaid 图定义文件常用的扩展名，内容是**纯文本**的图描述
+  （`graph` / `sequenceDiagram` / `stateDiagram-v2` / `classDiagram` 等语法），
+  本身不是图片；用记事本能打开但只能看到代码，双击不会有图形。
+- 可用的查看方式：
+  | 方式 | 说明 |
+  |---|---|
+  | VS Code + 扩展 | 装 Markdown Preview Mermaid Support 或 Mermaid Preview，预览 `docs/diagrams.md` 即可 |
+  | Typora / Obsidian / Notion | 原生支持 ` ```mermaid ` 代码块，直接渲染 |
+  | mermaid.live | 把 `.mmd` 内容粘进在线编辑器（需要联网） |
+  | GitHub / GitLab | 提交到仓库后，`.md` 里的 mermaid 代码块自动渲染 |
+  | 命令行 | `npm i -g @mermaid-js/mermaid-cli` 后用 `mmdc -i x.mmd -o x.svg` 导出图片 |
+- 本仓库共有 41 个 `.mmd`：阶段 4 架构与流程 6 张、阶段 5 ER 图 1 张、时序图 14 张、
+  状态机 9 张、领域模型 11 张。
+- 处理：新增 `tools/make_diagrams_doc.py`，生成 `docs/diagrams.md` ——
+  把 41 个源文件按分组嵌成 Mermaid 代码块。**用任意支持 Mermaid 的 Markdown 预览器打开这一个文件就能看全部图**，
+  不必逐个打开 `.mmd`。
+- 如果错了的代价：删除 `docs/diagrams.md` 与 `tools/make_diagrams_doc.py` 即可；
+  `.mmd` 源文件与阶段 4 / 5 的任何产物都不受影响。
+
+## D-094 阶段 2 与阶段 3 的视觉差异量化评估（用户决定暂不做视觉升级）
+
+- 决策日期：2026-10-01
+- 背景：用户人工对比两套原型后反馈「感官上、样式上、结构上变化不大」，要求核实是否合格。
+- 评估方法：同一页面、同一视口（1366×900）分别渲染阶段 2 与阶段 3，逐像素比较 RGB 通道差。
+- 实测数据（3 个代表性页面）：
+
+  | 页面 | 平均通道差（满分 765） | 可见差异像素（>12） | 明显差异像素（>45） |
+  |---|---|---|---|
+  | 学生管理列表 | 46.3 | 45.3% | 16.4% |
+  | 异步任务列表 | 40.7 | 44.4% | 14.0% |
+  | 审计日志列表 | 42.7 | 47.6% | 14.7% |
+
+  阶段 2 对照图见 `evidence/stage3-highfidelity/cmp-stage2-*.png`。
+- 设计 token 对比：阶段 2 有 22 个变量，阶段 3 有 55 个。主要差异是
+  主色 `#409eff → #2f6bff`、成功色 `#67c23a → #0f9d58`、危险色 `#f56c6c → #d93026`；
+  **边框色 `#dcdfe6` 未变**。新增的是字体栈、圆角体系（4 / 8 / 12px）、三级阴影、
+  动效时长与缓动、填充色等细节变量。
+- 结论（分两个口径）：
+  1. 按阶段 3 的既定门禁（覆盖度 48/48、45 页全量、三档截图、token 与组件映射齐备）：**合格**；
+  2. 按「高保真应明显区别于业务原型」的通俗预期：**不达标** —— 平均差异只有 5% ~ 6%。
+- 原因说明：阶段 1 确认的口径是「视觉规范来源 = Element Plus 设计规范 + 现有 `plus-ui` 风格，
+  美观度在其之上」（`R-002`），因此阶段 3 的定位是**在既有视觉语言内精修**，
+  不改信息架构、字段、动作与组件形态。两套原型都基于 Element Plus 风格，观感接近是这一目标的必然结果。
+- 用户决定（2026-10-01）：**暂不做视觉升级**，保留当前版本。
+- 未执行的备选方案（供后续需要时参考）：换色彩方向（当前蓝与 Element Plus 默认蓝过于接近）、
+  拉开层级（标题 / 卡片 / 表头的视觉重量差）、改密度（更紧凑或更宽松）、改形态特征（导航、圆角体系、表头）。
+  若要执行，建议先做 2 ~ 3 个样板页定方向再全量，避免 45 页返工。
+
+## D-095 调整分支策略：main 为唯一长期分支，阶段用短命分支 + `--no-ff` 合并
+
+- 决策日期：2026-10-01
+- 背景：用户指出 `codex/prototype` 分支名只覆盖「原型」，内容却延伸到阶段 4 概要设计与阶段 5 详细设计，
+  命名与内容不符；询问能否把 `f03c5d14`（阶段 3 全量）与 `5476917d`（阶段 4）拆成独立分支再合并。
+- 可行性判断：这两个提交已在线性历史中，要形成「分支 + 合并」的形态必须改写历史 ——
+  44 个提交的 SHA 会全部变化，将来 push 需要 force push，已有 tag / 分支 / 克隆都不兼容。
+  收益仅是历史图形更整齐，**不做**。
+- 采用方案（用户确认 B + D）：
+  - **B**：`main` 为唯一长期分支；每个阶段从 `main` 拉短命分支 `codex/stage<N>-<name>`，
+    完成后用 `git merge --no-ff` 合并并保留 merge commit（阶段边界在 `git log --graph` 里可见），
+    合并后删除该阶段分支；
+  - **D**：把 `codex/prototype` 改名为 `codex/archive-through-stage5` 作为存档，
+    不再作为工作分支使用。
+- 已执行：
+  - 建立四个 annotated tag 标记阶段边界：`stage2-prototype-end`（`9b5fcdbd`）、
+    `stage3-highfidelity-end`（`f03c5d14`）、`stage4-architecture-end`（`5476917d`）、
+    `stage5-detailed-design-end`（`62968d07`）；
+  - `git branch -m codex/prototype codex/archive-through-stage5`；
+  - 当前工作分支切到 `main`；
+  - 新策略写入 `AGENTS.md` 第 8.1 节，后续协作者据此执行。
+- 未执行（需用户明确同意）：改写历史重建分支-合并结构（方案 C）。
+- 如果错了的代价：分支改名可逆（改回即可）；tag 可删除；二者都不影响任何提交内容与 `main` 的历史。
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |

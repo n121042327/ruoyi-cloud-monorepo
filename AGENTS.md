@@ -154,6 +154,20 @@ ruoyi-cloud-monorepo/
 另外：**不自动 commit、不自动 push**。提交前先展示变更摘要。
 commit message 使用 Conventional Commits，scope 与描述用中文。
 
+### 8.1 分支与集成策略（2026-10-01 起生效）
+
+- **`main` 是唯一的长期分支**
+- 每个阶段从 `main` 拉一条**短命分支**：`codex/stage<N>-<name>`，
+  例如 `codex/stage6-frontend`、`codex/stage7-backend`、`codex/stage8-acceptance`
+- 阶段完成、门禁通过后，用 **`git merge --no-ff`** 合并回 `main`，保留 merge commit ——
+  这样每个阶段在 `git log --graph` 里是一个可识别的分叉 + 汇合；
+  **不要用 `--ff-only`**，否则阶段边界在历史里消失
+- 合并完成后删除该阶段分支，不留长命分支
+- 阶段边界另有 annotated tag 可追溯：
+  `stage2-prototype-end`、`stage3-highfidelity-end`、`stage4-architecture-end`、`stage5-detailed-design-end`
+- 阶段 0 ~ 5 的历史是线性提交，保留在 `main` 上**不再回改**（改写历史会让全部 SHA 变化并需要 force push）；
+  原 `codex/prototype` 分支已改名为 `codex/archive-through-stage5`，仅作存档，不再使用
+
 ## 9. 质量与状态口径
 
 功能状态只允许四选一：`已设计` / `已实现` / `已启用` / `已验证`。

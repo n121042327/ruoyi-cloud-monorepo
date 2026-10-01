@@ -1,0 +1,8 @@
+[PASS] HF-01 高保真侧边菜单「异步任务」 —— 跳到 async-task-list.html（期望 async-task-list.html）
+[PASS] HF-02 高保真侧边菜单「学科与配置」 —— 跳到 subject-list.html（期望 subject-list.html）
+[PASS] HF-03 高保真侧边菜单「审计日志」 —— 跳到 audit-log-list.html（期望 audit-log-list.html）
+[PASS] HF-04 高保真「查看任务中心」按钮 —— 跳到 async-task-list.html（期望 async-task-list.html）
+[PASS] FN-01 业务原型侧边菜单「审计日志」 —— 跳到 audit-log-list.html（期望 audit-log-list.html）
+[PASS] FN-02 业务原型侧边菜单「学年学期」 —— 跳到 term-list.html（期望 term-list.html）
+[PASS] FN-03 业务原型「查看任务中心」按钮 —— 跳到 async-task-list.html（期望 async-task-list.html）
+真实点击验证：7 / 7 通过

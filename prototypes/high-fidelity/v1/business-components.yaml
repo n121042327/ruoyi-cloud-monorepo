@@ -1,0 +1,305 @@
+schema_version: "1.0"
+purpose: |
+  阶段 3 的**业务组件清单**：跨页面复用、带业务语义的组合组件。
+
+  与 `component-mapping.yaml` 的分工：
+  - `component-mapping.yaml` 回答「单个可交互元素（按钮 / 输入框 / 单元格）映射成哪个 Element Plus 组件」
+  - 本文件回答「一组元素组合出来的业务组件叫什么、放在哪、有哪些状态、阶段 6 落在哪个文件」
+
+  阶段 6 生产前端按本文件的 `stage6_path` 建组件，避免同一件事（如学生选择器）
+  在每个页面各写一遍，导致口径分叉。
+
+conventions:
+  id: "BC-<域>-<名称>，BC = Business Component"
+  base: 业务组件的底层只能由 Element Plus 组件与项目内基础组件组合，不引入额外 UI 库
+  props: 只列阶段 6 必须实现的属性；实现时可增补，但不得改变语义
+  states: 至少覆盖 default / loading / empty / error 四态中的适用项
+  permission: 组件内不判定权限；由调用页传入能力布尔值，组件只负责展示
+  stage6_dir: apps/plus-ui/src/components/Edu/
+
+components:
+  - id: BC-COMMON-SCOPE-HINT
+    name: 数据范围提示条
+    purpose: 在页头声明当前用户能看到的数据范围（本校全部 / 本年级 / 本班 / 本人任教），避免用户误以为「数据丢了」
+    used_by:
+      - student-list.html
+      - teacher-list.html
+      - grade-list.html
+      - class-list.html
+      - class-detail.html
+      - stream-list.html
+      - audit-log-list.html
+    base: [el-alert]
+    props:
+      - { name: scopeType, type: "school | grade | class | teaching | platform", required: true }
+      - { name: scopeText, type: "string", required: true }
+      - { name: readOnly, type: "boolean", default: false }
+    states: [default, readOnly]
+    notes: |
+      文案来自后端解析结果，前端不拼接。平台运营访问时额外显示「访问已留痕」。
+    stage6_path: components/Edu/ScopeHint.vue
+
+  - id: BC-STU-SELECTOR
+    name: 学生选择器
+    purpose: 跨页选择学生（编班、调班、选科、监护人绑定、转学）
+    used_by:
+      - class-roster-add.html
+      - class-move-students.html
+      - class-import-roster.html
+      - stream-selection.html
+      - student-cross-transfer.html
+    base: [el-select, el-table, el-pagination, el-tag]
+    props:
+      - { name: multiple, type: "boolean", default: false }
+      - { name: limit, type: "number", default: null, desc: 多选上限（如每次调班最多 200 人） }
+      - { name: schoolId, type: "string", required: true }
+      - { name: gradeId, type: "string", default: null }
+      - { name: classId, type: "string", default: null }
+      - { name: excludeSelected, type: "boolean", default: true }
+    states: [default, loading, empty, error, disabled]
+    behavior: |
+      支持「按学号 / 姓名」模糊搜索；输入学号时必须精确匹配；结果分页加载。
+      选择结果以学生 ID 数组回传，不回传姓名快照，避免姓名变更后数据不一致。
+    permission: 由调用页传入 disabled + 提示文案，组件不做范围判定
+    stage6_path: components/Edu/StudentSelector.vue
+
+  - id: BC-CLS-SELECTOR
+    name: 班级选择器
+    purpose: 按学期 / 年级 / 校区筛选班级，供编班、任教关系、选科统计使用
+    used_by:
+      - class-list.html
+      - class-move-students.html
+      - teacher-assign.html
+      - teaching-class-list.html
+      - stream-stat.html
+    base: [el-select, el-option-group]
+    props:
+      - { name: termId, type: "string", required: true }
+      - { name: gradeId, type: "string", default: null }
+      - { name: campusId, type: "string", default: null }
+      - { name: classType, type: "administrative | teaching", default: administrative }
+      - { name: multiple, type: "boolean", default: false }
+    states: [default, loading, empty, error]
+    behavior: 选项按年级分组；教学班单独分组显示，避免与行政班混淆
+    stage6_path: components/Edu/ClassSelector.vue
+
+  - id: BC-ORG-CASCADE
+    name: 学校 → 校区 → 年级级联
+    purpose: 「按学校检索校区 / 年级 / 班级 / 学生」的统一下钻入口（D-064）
+    used_by:
+      - school-campus.html
+      - school-list.html
+      - class-list.html
+      - student-list.html
+      - grade-list.html
+    base: [el-cascader]
+    props:
+      - { name: levels, type: "array", default: "[school, campus, grade, class]", desc: 逐级可裁剪 }
+      - { name: checkStrictly, type: "boolean", default: true, desc: 允许只选到中间层级 }
+      - { name: schoolFixed, type: "boolean", default: false, desc: 单校用户固定学校，不显示第一级 }
+    states: [default, loading, empty, error]
+    behavior: 每级数据独立加载；切换上级时清空下级已选值并重新拉取
+    stage6_path: components/Edu/OrgCascade.vue
+
+  - id: BC-TERM-SELECTOR
+    name: 学年学期选择器
+    purpose: 所有与学期相关的页面统一选择学年 + 学期，并在归档学年上禁选
+    used_by:
+      - class-list.html
+      - grade-list.html
+      - term-list.html
+      - promotion-create.html
+      - stream-config.html
+      - teacher-assign.html
+    base: [el-select, el-option-group]
+    props:
+      - { name: includeArchived, type: "boolean", default: false }
+      - { name: onlyCurrent, type: "boolean", default: false }
+      - { name: modelValue, type: "string", required: true, desc: termId }
+    states: [default, loading, empty, error]
+    behavior: 归档学年下的学期置灰并提示「已归档」；默认选中当前学期
+    stage6_path: components/Edu/TermSelector.vue
+
+  - id: BC-TCH-SELECTOR
+    name: 教师选择器
+    purpose: 选择年级主任、班主任、任课教师
+    used_by:
+      - grade-list.html
+      - class-detail.html
+      - teacher-assign.html
+      - promotion-create.html
+    base: [el-select, el-tag]
+    props:
+      - { name: schoolId, type: "string", required: true }
+      - { name: termId, type: "string", required: true }
+      - { name: onlyActive, type: "boolean", default: true, desc: 排除离职 / 停用 }
+      - { name: subjectId, type: "string", default: null, desc: 按学科过滤（任教关系场景） }
+      - { name: multiple, type: "boolean", default: false }
+    states: [default, loading, empty, error]
+    notes: 班主任选择器只允许选在职教师，且同一学期不得重复带同一行政班（由后端二次校验）
+    stage6_path: components/Edu/TeacherSelector.vue
+
+  - id: BC-SUB-SELECTOR
+    name: 学科选择器
+    purpose: 选择学科，支持按学段启用与选科角色过滤
+    used_by:
+      - subject-list.html
+      - teacher-assign.html
+      - stream-config.html
+    base: [el-select]
+    props:
+      - { name: stageCode, type: "string", default: null }
+      - { name: streamRole, type: "primary | secondary | null", default: null }
+      - { name: multiple, type: "boolean", default: false }
+    states: [default, loading, empty, error]
+    behavior: 只列出该学段已启用学科；选择「选科角色」时按固定集合过滤（物理 / 历史 / 化学 / 生物 / 思想政治 / 地理）
+    stage6_path: components/Edu/SubjectSelector.vue
+
+  - id: BC-STU-GUARDIAN-PANEL
+    name: 监护人面板
+    purpose: 展示与维护学生监护人关系（关系、主要联系人、绑定状态、审核记录）
+    used_by:
+      - student-list.html
+      - student-import.html
+    base: [el-table, el-tag, el-dialog, el-form]
+    props:
+      - { name: studentId, type: "string", required: true }
+      - { name: editable, type: "boolean", default: false, desc: 仅班主任为 true（字段级矩阵） }
+      - { name: maxBind, type: "number", default: 3 }
+    states: [default, loading, empty, error, readonly]
+    behavior: |
+      最多绑定 3 人；解绑必须经班主任确认；同一字段同时只允许一条待审申请
+      （数据库由 uk_sfc_pending 强制）。手机号掩码展示，完整值需单独点击并留痕。
+    stage6_path: components/Edu/GuardianPanel.vue
+
+  - id: BC-COMMON-STATUS-TAG
+    name: 状态徽标
+    purpose: 统一各模块状态值的颜色与文案，避免同一状态在不同页颜色不一致
+    used_by:
+      - student-list.html
+      - class-list.html
+      - promotion-list.html
+      - async-task-list.html
+      - dead-letter-task.html
+      - stream-list.html
+      - audit-log-list.html
+    base: [el-tag]
+    props:
+      - { name: domain, type: "student | class | task | stream | audit | enrollment", required: true }
+      - { name: value, type: "string", required: true }
+    states: [default]
+    mapping:
+      task: { queued: info, running: primary, succeeded: success, partial_failed: warning, failed: danger, dead: danger, cancelled: info }
+      class: { active: success, disabled: info }
+      enrollment: { 在读: success, 休学: warning, 转出: info, 毕业: success, 结业: warning, 肄业: info, 开除: danger, 死亡: info }
+      stream: { pending: warning, approved: success, rejected: danger, cancelled: info }
+      audit: { success: success, failed: danger }
+    stage6_path: components/Edu/StatusTag.vue
+
+  - id: BC-COMMON-PERM-MATRIX
+    name: 权限矩阵只读面板
+    purpose: 在教师 / 学生 / 班级详情里展示「哪些角色对该字段可读、可写」，替代口头约定
+    used_by:
+      - teacher-list.html
+      - student-list.html
+      - class-detail.html
+    base: [el-table, el-tag]
+    props:
+      - { name: matrixRef, type: "string", required: true, desc: 指向 docs/10-prd 的字段级矩阵条目 }
+      - { name: role, type: "string", required: true, desc: 当前演示角色，用于高亮 }
+    states: [default, loading, error]
+    stage6_path: components/Edu/PermissionMatrix.vue
+
+  - id: BC-IMP-WIZARD
+    name: 导入向导
+    purpose: 上传 → 校验 → 确认执行 → 结果下载 的四步导入流程
+    used_by:
+      - import-wizard.html
+      - student-import.html
+      - teacher-import.html
+      - class-import-roster.html
+    base: [el-steps, el-upload, el-table, el-alert, el-button]
+    props:
+      - { name: moduleCode, type: "student | teacher | class_roster | ...", required: true }
+      - { name: templateVersion, type: "string", required: true }
+      - { name: syncLimitRows, type: "number", default: 5000 }
+      - { name: syncLimitBytes, type: "number", default: 10485760 }
+    states: [idle, uploading, validating, invalid, ready, executing, done, partial, error]
+    behavior: |
+      校验失败必须能下载失败行；超过行数 / 大小上限时提示拆分或转异步；
+      执行阶段显示任务编号并跳转任务中心。
+    stage6_path: components/Edu/ImportWizard.vue
+
+  - id: BC-TASK-PROGRESS
+    name: 异步任务进度
+    purpose: 在列表与详情处统一展示任务进度、重试次数、失败行入口
+    used_by:
+      - async-task-list.html
+      - dead-letter-task.html
+      - promotion-execute.html
+      - stream-generate-class.html
+    base: [el-progress, el-tag, el-button]
+    props:
+      - { name: taskNo, type: "string", required: true }
+      - { name: status, type: "string", required: true }
+      - { name: retryCount, type: "number", default: 0 }
+      - { name: showDeadLetter, type: "boolean", default: false }
+    states: [queued, running, succeeded, partial_failed, failed, dead, cancelled]
+    behavior: 轮询间隔 5s，页面离开后停止；失败态提供重试与下载失败行
+    stage6_path: components/Edu/TaskProgress.vue
+
+  - id: BC-AUD-CHANGE-TIMELINE
+    name: 变更时间线
+    purpose: 以时间线展示对象的历史变更（谁、何时、改了哪些字段、旧值 → 新值）
+    used_by:
+      - audit-log-list.html
+      - school-init.html
+      - promotion-history.html
+    base: [el-timeline, el-timeline-item, el-descriptions]
+    props:
+      - { name: objectType, type: "string", required: true }
+      - { name: objectId, type: "string", required: true }
+      - { name: showUnchanged, type: "boolean", default: false }
+    states: [default, loading, empty, error, archived]
+    behavior: 只展示发生变化的字段；命中归档区间时显示「已归档」标记与检索入口
+    stage6_path: components/Edu/ChangeTimeline.vue
+
+  - id: BC-COMMON-CONFIRM
+    name: 危险动作二次确认
+    purpose: 删除 / 停用 / 归档 / 覆盖 / 重放 等危险动作的统一确认载体，文案必须写清对象与影响范围
+    used_by:
+      - grade-list.html
+      - class-list.html
+      - promotion-list.html
+      - dead-letter-task.html
+      - audit-archive.html
+      - teaching-class-list.html
+    base: [el-dialog, el-form, el-input, el-checkbox]
+    props:
+      - { name: title, type: "string", required: true }
+      - { name: objectLabel, type: "string", required: true }
+      - { name: impactText, type: "string", required: true }
+      - { name: requireReason, type: "boolean", default: true }
+      - { name: requireTyping, type: "string", default: null, desc: 需要输入的确认文本（如班级名称） }
+    states: [default, submitting, error]
+    behavior: 原因必填时后端二次校验；确认后写审计
+    stage6_path: components/Edu/DangerConfirmDialog.vue
+
+  - id: BC-DEMO-PANEL
+    name: 原型演示面板（仅原型，不进入生产）
+    purpose: 原型里切换角色、权限与状态片段，用于人工验收
+    used_by:
+      - 全部高保真页面
+    base: [原生 details / 按钮组]
+    props:
+      - { name: roles, type: "array", required: true }
+      - { name: stateFragments, type: "array", required: true }
+    states: [collapsed, expanded]
+    notes: |
+      **阶段 6 不实现本组件**。它的作用是把「角色 → 可见范围 → 状态片段」的关系
+      变成可点击的演示，验收完成后即废弃；对应能力在生产里由权限指令与真实数据驱动。
+    stage6_path: null
+
+not_in_scope:
+  - 通用表格封装：首轮直接用 el-table（D-086），不抽象 EduTable，避免过早抽象
+  - 通用表单引擎：各模块表单字段差异大，先按页面写，等出现第三处重复再抽

@@ -35,25 +35,25 @@
     {
       group: '教育管理', items: [
         { id: 'PAGE-STU-LIST', name: '学生管理', batch: '3-1', delivered: 'pages/student-list.html' },
-        { id: 'PAGE-TCH-LIST', name: '教师管理', batch: '3-1' },
-        { id: 'PAGE-CLS-LIST', name: '班级管理', batch: '3-1' },
-        { id: 'PAGE-GRD-LIST', name: '年级管理', batch: '3-1' },
-        { id: 'PAGE-PRM-LIST', name: '升班与学籍', batch: '3-1' },
-        { id: 'PAGE-STR-LIST', name: '选科与教学班', batch: '3-1' }
+        { id: 'PAGE-TCH-LIST', name: '教师管理', batch: '3-2', delivered: 'pages/teacher-list.html' },
+        { id: 'PAGE-CLS-LIST', name: '班级管理', batch: '3-3', delivered: 'pages/class-list.html' },
+        { id: 'PAGE-GRD-LIST', name: '年级管理', batch: '3-2', delivered: 'pages/grade-list.html' },
+        { id: 'PAGE-PRM-LIST', name: '升班与学籍', batch: '3-3', delivered: 'pages/promotion-list.html' },
+        { id: 'PAGE-STR-LIST', name: '选科与教学班', batch: '3-7', delivered: 'pages/stream-list.html' }
       ]
     },
     {
       group: '组织与配置', items: [
-        { id: 'PAGE-SCH-LIST', name: '学校管理', batch: '3-1' },
-        { id: 'PAGE-TERM-LIST', name: '学年学期', batch: '3-1' },
-        { id: 'PAGE-SUB-LIST', name: '学科与配置', batch: '3-1' }
+        { id: 'PAGE-SCH-LIST', name: '学校管理', batch: '3-6', delivered: 'pages/school-list.html' },
+        { id: 'PAGE-TERM-LIST', name: '学年学期', batch: '3-6', delivered: 'pages/term-list.html' },
+        { id: 'PAGE-SUB-LIST', name: '学科与配置', batch: '3-6', delivered: 'pages/subject-list.html' }
       ]
     },
     {
       group: '平台与运维', items: [
-        { id: 'PAGE-IMP-WIZARD', name: '导入导出', batch: '3-1' },
-        { id: 'PAGE-IMP-TASK-LIST', name: '异步任务', batch: '3-1' },
-        { id: 'PAGE-AUDIT-LOG-LIST', name: '审计日志', batch: '3-1' }
+        { id: 'PAGE-IMP-WIZARD', name: '导入导出', batch: '3-4', delivered: 'pages/import-wizard.html' },
+        { id: 'PAGE-IMP-TASK-LIST', name: '异步任务', batch: '3-9', delivered: 'pages/async-task-list.html' },
+        { id: 'PAGE-AUDIT-LOG-LIST', name: '审计日志', batch: '3-8', delivered: 'pages/audit-log-list.html' }
       ]
     }
   ];
@@ -276,6 +276,7 @@
       menu.appendChild(el('div', 'hi-menu-group', g.group));
       g.items.forEach(function (item) {
         var node = el('div', 'hi-menu-item' + (item.id === activePage ? ' on' : ''));
+        node.setAttribute('data-page-nav', item.id);
         node.appendChild(el('span', null, item.name));
         node.appendChild(el('span', 'badge', item.delivered ? '高保真' : '3-2 起'));
         if (item.delivered) {

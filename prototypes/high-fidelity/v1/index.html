@@ -23,42 +23,80 @@
       只提升视觉，<b>不改阶段 2 的信息架构与字段</b>（由 <span class="mono">verify-hifi-student</span> 的 HF-17 逐列比对看住）。</span>
   </div>
 
+  <!-- BEGIN pages-table（由 tools/make_hifi_pages_table.py 生成，勿手改） -->
   <section class="card">
-    <div class="card-header"><h3>已交付页面（样板批 3-1）</h3><span class="el-tag success">待人工验收</span></div>
+    <div class="card-header"><h3>已交付页面（全量 45 页）</h3><span class="el-tag success">已产出待验收</span></div>
     <div class="card-body">
       <table class="el-table">
         <thead>
-          <tr><th style="width:200px">页面编号</th><th>页面</th><th style="width:150px">类型</th><th style="width:230px">入口</th><th>验收要点</th></tr>
+          <tr><th style="width:210px">页面编号</th><th>页面</th><th style="width:110px">类型</th><th style="width:280px">入口</th><th style="width:90px">批次</th></tr>
         </thead>
         <tbody>
-          <tr>
-            <td class="mono">PAGE-STU-LIST</td>
-            <td>学生管理列表（样板）</td>
-            <td>列表页</td>
-            <td><a href="pages/student-list.html">pages/student-list.html</a></td>
-            <td>12 列 12 行、列宽之和 = min-width = 1128；高保真 token（主色 / 卡片阴影 / 表头底色）生效；8 种角色形态；字段裁剪（任课教师隐藏联系电话列）</td>
-          </tr>
-          <tr>
-            <td class="mono">PAGE-STU-DETAIL</td>
-            <td>学生详情（抽屉）</td>
-            <td>抽屉（详情类浮层）</td>
-            <td><a href="pages/student-list.html#panel=PAGE-STU-DETAIL">列表页内行内「详情」</a></td>
-            <td>基本信息 + 证件号掩码与留痕口径 + 追加式变更记录时间线</td>
-          </tr>
-          <tr>
-            <td class="mono">PAGE-STU-CREATE / PAGE-STU-EDIT</td>
-            <td>新增 / 编辑学生（弹窗）</td>
-            <td>弹窗（表单类浮层）</td>
-            <td><a href="pages/student-list.html#panel=PAGE-STU-CREATE">列表页「新增学生」</a></td>
-            <td>系统发号只读、字段级校验、字段级可编辑性矩阵（联系电话按角色灰底只读）、保存后默认未分班（DP-01）</td>
-          </tr>
+          <tr><td colspan="5" style="background:#f5f7fa;font-weight:600">学生管理（3 页）</td></tr>
+          <tr><td class="mono">PAGE-STU-CROSS-TRANSFER</td><td>跨校转学</td><td>向导页</td><td><a href="pages/student-cross-transfer.html">pages/student-cross-transfer.html</a></td><td>2-5</td></tr>
+          <tr><td class="mono">PAGE-STU-IMPORT</td><td>批量导入向导</td><td>向导页</td><td><a href="pages/student-import.html">pages/student-import.html</a></td><td>2-4</td></tr>
+          <tr><td class="mono">PAGE-STU-DETAIL（+7 个同页片段）</td><td>学生详情</td><td>详情抽屉</td><td><a href="pages/student-list.html">pages/student-list.html</a></td><td>2-5</td></tr>
+          <tr><td colspan="5" style="background:#f5f7fa;font-weight:600">教师管理（3 页）</td></tr>
+          <tr><td class="mono">PAGE-TCH-ASSIGN（+1 个同页片段）</td><td>任教关系设置</td><td>独立页</td><td><a href="pages/teacher-assign.html">pages/teacher-assign.html</a></td><td>2-2</td></tr>
+          <tr><td class="mono">PAGE-TCH-IMPORT</td><td>教师导入向导</td><td>向导页</td><td><a href="pages/teacher-import.html">pages/teacher-import.html</a></td><td>2-4</td></tr>
+          <tr><td class="mono">PAGE-TCH-DETAIL（+4 个同页片段）</td><td>教师详情</td><td>详情抽屉</td><td><a href="pages/teacher-list.html">pages/teacher-list.html</a></td><td>2-2</td></tr>
+          <tr><td colspan="5" style="background:#f5f7fa;font-weight:600">年级管理（1 页）</td></tr>
+          <tr><td class="mono">PAGE-GRD-DETAIL（+5 个同页片段）</td><td>年级详情</td><td>详情抽屉</td><td><a href="pages/grade-list.html">pages/grade-list.html</a></td><td>2-2</td></tr>
+          <tr><td colspan="5" style="background:#f5f7fa;font-weight:600">班级管理（6 页）</td></tr>
+          <tr><td class="mono">PAGE-CLS-DETAIL（+1 个同页片段）</td><td>班级详情</td><td>详情抽屉</td><td><a href="pages/class-detail.html">pages/class-detail.html</a></td><td>2-3</td></tr>
+          <tr><td class="mono">PAGE-CLS-ROSTER-IMPORT</td><td>编班表导入向导</td><td>向导页</td><td><a href="pages/class-import-roster.html">pages/class-import-roster.html</a></td><td>2-4</td></tr>
+          <tr><td class="mono">PAGE-CLS-LIST（+4 个同页片段）</td><td>班级管理列表</td><td>独立页</td><td><a href="pages/class-list.html">pages/class-list.html</a></td><td>2-3</td></tr>
+          <tr><td class="mono">PAGE-CLS-MOVE</td><td>批量迁学生</td><td>独立页</td><td><a href="pages/class-move-students.html">pages/class-move-students.html</a></td><td>2-3</td></tr>
+          <tr><td class="mono">PAGE-CLS-ROSTER-ADD</td><td>添加学生</td><td>独立页</td><td><a href="pages/class-roster-add.html">pages/class-roster-add.html</a></td><td>2-3</td></tr>
+          <tr><td class="mono">DRAWER-CLS-TEACHING（+2 个同页片段）</td><td>教学班详情抽屉</td><td>详情抽屉</td><td><a href="pages/teaching-class-list.html">pages/teaching-class-list.html</a></td><td>2-7</td></tr>
+          <tr><td colspan="5" style="background:#f5f7fa;font-weight:600">升班与学籍异动（8 页）</td></tr>
+          <tr><td class="mono">PAGE-PRM-CREATE</td><td>新建升班任务</td><td>向导页</td><td><a href="pages/promotion-create.html">pages/promotion-create.html</a></td><td>2-3</td></tr>
+          <tr><td class="mono">PAGE-PRM-EXECUTE</td><td>执行与进度</td><td>向导页</td><td><a href="pages/promotion-execute.html">pages/promotion-execute.html</a></td><td>2-3</td></tr>
+          <tr><td class="mono">PAGE-PRM-HISTORY</td><td>异动历史</td><td>独立页</td><td><a href="pages/promotion-history.html">pages/promotion-history.html</a></td><td>2-5</td></tr>
+          <tr><td class="mono">PAGE-PRM-LIST</td><td>升班任务列表</td><td>独立页</td><td><a href="pages/promotion-list.html">pages/promotion-list.html</a></td><td>2-3</td></tr>
+          <tr><td class="mono">PAGE-PRM-PREVIEW（+1 个同页片段）</td><td>升班预览与调整</td><td>向导页</td><td><a href="pages/promotion-preview.html">pages/promotion-preview.html</a></td><td>2-3</td></tr>
+          <tr><td class="mono">PAGE-PRM-RESULT</td><td>执行结果与重试</td><td>独立页</td><td><a href="pages/promotion-result.html">pages/promotion-result.html</a></td><td>2-3</td></tr>
+          <tr><td class="mono">PAGE-PRM-TRANSFER</td><td>跨校转学</td><td>向导页</td><td><a href="pages/promotion-transfer.html">pages/promotion-transfer.html</a></td><td>2-5</td></tr>
+          <tr><td class="mono">PAGE-PRM-VALIDATE</td><td>升班校验结果</td><td>向导页</td><td><a href="pages/promotion-validate.html">pages/promotion-validate.html</a></td><td>2-3</td></tr>
+          <tr><td colspan="5" style="background:#f5f7fa;font-weight:600">3+1+2 选科与教学班（6 页）</td></tr>
+          <tr><td class="mono">PAGE-STR-APPROVE（+1 个同页片段）</td><td>变更审批待办</td><td>独立页</td><td><a href="pages/stream-approve.html">pages/stream-approve.html</a></td><td>2-7</td></tr>
+          <tr><td class="mono">PAGE-STR-CONFIG</td><td>选科配置</td><td>独立页</td><td><a href="pages/stream-config.html">pages/stream-config.html</a></td><td>2-7</td></tr>
+          <tr><td class="mono">PAGE-STR-GEN-CLASS</td><td>按组合生成教学班</td><td>向导页</td><td><a href="pages/stream-generate-class.html">pages/stream-generate-class.html</a></td><td>2-7</td></tr>
+          <tr><td class="mono">PAGE-STR-LIST（+2 个同页片段）</td><td>选科清单</td><td>独立页</td><td><a href="pages/stream-list.html">pages/stream-list.html</a></td><td>2-7</td></tr>
+          <tr><td class="mono">PAGE-STR-STUDENT</td><td>学生选科</td><td>独立页</td><td><a href="pages/stream-selection.html">pages/stream-selection.html</a></td><td>2-7</td></tr>
+          <tr><td class="mono">PAGE-STR-STAT</td><td>组合分布统计</td><td>独立页</td><td><a href="pages/stream-stat.html">pages/stream-stat.html</a></td><td>2-7</td></tr>
+          <tr><td colspan="5" style="background:#f5f7fa;font-weight:600">学科与配置（1 页）</td></tr>
+          <tr><td class="mono">PAGE-SUB-LIST（+5 个同页片段）</td><td>学科列表</td><td>独立页</td><td><a href="pages/subject-list.html">pages/subject-list.html</a></td><td>2-6</td></tr>
+          <tr><td colspan="5" style="background:#f5f7fa;font-weight:600">学校与租户（3 页）</td></tr>
+          <tr><td class="mono">PAGE-SCH-CAMPUS</td><td>校区管理</td><td>独立页</td><td><a href="pages/school-campus.html">pages/school-campus.html</a></td><td>2-6</td></tr>
+          <tr><td class="mono">PAGE-SCH-INIT</td><td>开通初始化向导</td><td>向导页</td><td><a href="pages/school-init.html">pages/school-init.html</a></td><td>2-6</td></tr>
+          <tr><td class="mono">PAGE-SCH-DETAIL（+5 个同页片段）</td><td>学校详情</td><td>详情抽屉</td><td><a href="pages/school-list.html">pages/school-list.html</a></td><td>2-6</td></tr>
+          <tr><td colspan="5" style="background:#f5f7fa;font-weight:600">学年学期（2 页）</td></tr>
+          <tr><td class="mono">PAGE-TERM-LIST（+3 个同页片段）</td><td>学年学期列表</td><td>独立页</td><td><a href="pages/term-list.html">pages/term-list.html</a></td><td>2-6</td></tr>
+          <tr><td class="mono">PAGE-TERM-TERMS</td><td>学期管理</td><td>独立页</td><td><a href="pages/term-terms.html">pages/term-terms.html</a></td><td>2-6</td></tr>
+          <tr><td colspan="5" style="background:#f5f7fa;font-weight:600">导入导出与异步任务（3 页）</td></tr>
+          <tr><td class="mono">PAGE-IMP-TASK-DETAIL（+2 个同页片段）</td><td>任务详情</td><td>详情抽屉</td><td><a href="pages/async-task-list.html">pages/async-task-list.html</a></td><td>2-9</td></tr>
+          <tr><td class="mono">PAGE-IMP-DEADLETTER（+1 个同页片段）</td><td>死信任务</td><td>独立页</td><td><a href="pages/dead-letter-task.html">pages/dead-letter-task.html</a></td><td>2-9</td></tr>
+          <tr><td class="mono">PAGE-IMP-WIZARD（+3 个同页片段）</td><td>导入向导</td><td>向导页</td><td><a href="pages/import-wizard.html">pages/import-wizard.html</a></td><td>2-4</td></tr>
+          <tr><td colspan="5" style="background:#f5f7fa;font-weight:600">审计与操作日志（5 页）</td></tr>
+          <tr><td class="mono">PAGE-AUDIT-ARCHIVE</td><td>归档管理</td><td>独立页</td><td><a href="pages/audit-archive.html">pages/audit-archive.html</a></td><td>2-8</td></tr>
+          <tr><td class="mono">PAGE-AUDIT-LOG-DETAIL（+3 个同页片段）</td><td>日志详情</td><td>详情抽屉</td><td><a href="pages/audit-log-list.html">pages/audit-log-list.html</a></td><td>2-8</td></tr>
+          <tr><td class="mono">PAGE-AUDIT-OPS-ACCESS</td><td>运营访问记录</td><td>独立页</td><td><a href="pages/audit-ops-access.html">pages/audit-ops-access.html</a></td><td>2-8</td></tr>
+          <tr><td class="mono">PAGE-AUDIT-SECURITY-EVENT</td><td>登录与安全事件</td><td>独立页</td><td><a href="pages/audit-security-event.html">pages/audit-security-event.html</a></td><td>2-8</td></tr>
+          <tr><td class="mono">PAGE-AUDIT-SENSITIVE-ACCESS</td><td>敏感数据访问记录</td><td>独立页</td><td><a href="pages/audit-sensitive-access.html">pages/audit-sensitive-access.html</a></td><td>2-8</td></tr>
+          <tr><td colspan="5" style="background:#f5f7fa;font-weight:600">公共页面（登录 / 异常页）（4 页）</td></tr>
+          <tr><td class="mono">PAGE-403</td><td>无权限</td><td>独立页（不套外壳）</td><td><a href="pages/403.html">pages/403.html</a></td><td>2-4</td></tr>
+          <tr><td class="mono">PAGE-404</td><td>页面不存在</td><td>独立页（不套外壳）</td><td><a href="pages/404.html">pages/404.html</a></td><td>2-4</td></tr>
+          <tr><td class="mono">PAGE-500</td><td>服务异常</td><td>独立页（不套外壳）</td><td><a href="pages/500.html">pages/500.html</a></td><td>2-4</td></tr>
+          <tr><td class="mono">PAGE-LOGIN</td><td>登录</td><td>独立页（不套外壳）</td><td><a href="pages/login.html">pages/login.html</a></td><td>2-4</td></tr>
         </tbody>
       </table>
       <div class="legend" style="margin-top:12px">
-        <span>载体口径沿用阶段 2：<b>表单类浮层用弹窗、详情类用抽屉、含表格用独立页</b>（D-059 / CR-015）。</span>
+        <span>载体口径沿用阶段 2：<b>表单类浮层用弹窗、详情类用抽屉、含表格用独立页</b>（D-059 / CR-015）。带 <span class="mono">#panel=</span> 的入口表示该页面是同页浮层片段，进去后由演示面板自动打开。</span>
       </div>
     </div>
   </section>
+  <!-- END pages-table -->
 
   <section class="card">
     <div class="card-header"><h3>视觉规范（阶段 3 的冻结候选）</h3><span class="el-tag info">visual-spec.yaml</span></div>
@@ -66,7 +104,7 @@
       <div class="legend" style="margin-bottom:10px">
         <span>视觉规范有两份，同源：<span class="mono">design-tokens.json</span>（机器可读，权威值，阶段 6 搬进 apps/plus-ui）与
           <span class="mono">visual-spec.yaml</span>（人类可读摘要）；另有 <span class="mono">component-spec.md</span>（组件规格）、
-          <span class="mono">component-mapping.yaml</span>（每个可交互元素 → Element Plus 组件）、<span class="mono">visual-checklist.md</span>（32 条交批自查）。</span>
+<span class="mono">component-mapping.yaml</span>（每个可交互元素 → Element Plus 组件）、<span class="mono">business-components.yaml</span>（15 个业务组件与阶段 6 落点）、<span class="mono">interaction-notes.md</span>（状态切换 / 加载 / 空态 / 错误 / 危险动作）、<span class="mono">visual-checklist.md</span>（32 条交批自查）。</span>
       </div>
       <div class="stat-row">
         <div class="stat-card"><div class="label">主色</div><div class="value small">#2f6bff</div></div>
@@ -98,7 +136,7 @@
   </section>
 
   <section class="card">
-    <div class="card-header"><h3>后续批次</h3><span class="el-tag info">每批 ≤ 3 个页面并暂停验收</span></div>
+    <div class="card-header"><h3>批次进度（3-0 ~ 3-9 全部完成）</h3><span class="el-tag info">3-1 样板，3-2 ~ 3-9 派生覆盖</span></div>
     <div class="card-body">
       <table class="el-table">
         <thead><tr><th style="width:110px">批次</th><th>内容</th><th style="width:180px">状态</th></tr></thead>

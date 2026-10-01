@@ -117,7 +117,7 @@
 | `prototypes/functional/v1/page-specs/student-list.md` | 学生管理列表页面规格（批次 2-1 样板） | `review` |
 | `prototypes/functional/v1/page-specs/student-create.md` | 新增学生抽屉页面规格（批次 2-1 样板） | `review` |
 | `prototypes/functional/v1/page-specs/student-edit.md` | 编辑学生抽屉页面规格（批次 2-1 样板） | `review` |
-| `prototypes/functional/v1/page-specs/<page>.md` | 其余页面的规格：元素、状态、交互、跳转（随各批产出） | `planned` |
+| `prototypes/functional/v1/page-specs/*.md` | 其余页面的规格：元素、状态、交互、跳转（45 个页面规格已随各批产出，含模板文件） | `review` |
 | `prototypes/functional/v1/assets/prototype-shell.css` | 原型外壳与组件样式（Element Plus 仿真，非生产代码） | `review` |
 | `prototypes/functional/v1/assets/prototype-shell.js` | 原型演示引擎：外壳注入、角色 / 状态切换、浮层、提交模拟、校验 | `review` |
 | `prototypes/functional/v1/index.html` | 原型入口与导航（批次 2-1） | `review` |
@@ -194,8 +194,8 @@
 | `evidence/stage2-prototype/verify-promotion-list.html` | 升班任务列表交互验证 harness（PRM-01 ~ PRM-36，36 条断言全部通过） | `review` |
 | `evidence/stage2-prototype/promotion-list_*.png`（14 张，见 README 第 6 节） | 升班任务列表截图：3 个分辨率 + 4 种角色形态 + 2 类筛选 + 取消确认片段 + 4 类状态 | `review` |
 | `evidence/stage2-prototype/interaction-verification.md` | 原型交互可点性验证报告（批次 2-2b-2b 的 GL-01 ~ GL-38、D-060 的 RD-01 ~ RD-06、批次 2-3e-s1 的 PRM-01 ~ PRM-36、批次 2-3e-s2 的 PC-01 ~ PC-22 实测结果） | `review` |
-| `prototypes/functional/v1/pages/class-list.html` | 班级管理列表 | `planned` |
-| `prototypes/functional/v1/pages/class-detail.html` | 班级详情与花名册 | `planned` |
+| `prototypes/functional/v1/pages/class-list.html` | 班级管理列表 | `review` |
+| `prototypes/functional/v1/pages/class-detail.html` | 班级详情与花名册 | `review` |
 | `prototypes/functional/v1/pages/promotion-list.html` | 升班任务列表（批次 2-3e-s1 首件样板：12 行样例覆盖 8 个状态 + 同页确认片段 DIALOG-PRM-CANCEL） | `review` |
 | `prototypes/functional/v1/page-specs/promotion-list.md` | 升班任务列表页面规格（状态驱动的行内动作、权限与数据范围、样例数据、自查） | `review` |
 | `prototypes/functional/v1/pages/promotion-create.html` | 升班向导第一步：选择源 / 目标学年学期 + 目标年级班级齐备性 + 未结束任务冲突 + 在读规模与耗时预估（批次 2-3e-s2） | `review` |
@@ -299,6 +299,8 @@
 | `prototypes/functional/v1/page-specs/login.md` | 登录页规格（三类账号形态、四类状态、D-039 口径） | `review` |
 | `evidence/stage2-prototype/verify-import-login.html` | 批次 2-4 交互验证 harness（IMP / MS / MT / MC / LG / ER / ALL 共 30 条断言全部通过） | `review` |
 | `evidence/stage2-prototype/import-wizard*.png`（5 张）、`evidence/stage2-prototype/student-import*.png`（2 张）、`evidence/stage2-prototype/teacher-import_1440x900.png`、`evidence/stage2-prototype/class-import-roster_1440x900.png`、`evidence/stage2-prototype/login_*.png`（2 张）、`evidence/stage2-prototype/error-403_1440x900.png`、`evidence/stage2-prototype/error-404_1440x900.png`、`evidence/stage2-prototype/error-500_1440x900.png`、`evidence/stage2-prototype/import-login_verify-results.png` | 批次 2-4 截图（见 README 第 6.5 节）；含四步向导、模块导入、登录页与三个异常页 | `review` |
+| `tools/run_harness.py` | 阶段 2 全量 harness 回归运行器（19 个 `verify-*.html`；兼容两种历史结果格式） | `review` |
+| `evidence/stage2-prototype/harness-regression.log` | 全量回归结果：19 / 19 通过，累计断言 508 条 | `review` |
 
 ---
 
@@ -308,16 +310,24 @@
 
 | 路径 | 用途 | 状态 |
 |---|---|---|
-| `index.html` | 高保真原型入口 | `planned` |
-| `README.md` | 与业务原型的差异说明、视觉规范摘要 | `planned` |
-| `design-tokens.json` | 色彩、字号、间距、圆角、阴影、层级 | `planned` |
-| `component-spec.md` | 组件外观与状态规格（按钮、表格、表单、抽屉、徽标…） | `planned` |
-| `component-mapping.yaml` | 原型元素 → Element Plus 组件 的映射 | `planned` |
-| `business-components.yaml` | 业务组件清单（学生选择器、班级树…） | `planned` |
-| `visual-checklist.md` | 视觉验收清单（对齐、间距、层级、响应式） | `planned` |
-| `pages/**` | 高保真页面 | `planned` |
-| `screenshots/**` | 1366 / 1440 / 1920 三档截图 | `planned` |
-| `interaction-notes.md` | 交互说明：状态切换、加载、空态、错误 | `planned` |
+| `prototypes/high-fidelity/v1/index.html` | 高保真原型入口 | `review` |
+| `prototypes/high-fidelity/v1/README.md` | 与业务原型的差异说明、视觉规范摘要 | `review` |
+| `prototypes/high-fidelity/v1/design-tokens.json` | 色彩、字号、间距、圆角、阴影、层级 | `review` |
+| `prototypes/high-fidelity/v1/visual-spec.yaml` | 视觉规范的人类可读摘要（与 design-tokens 同源） | `review` |
+| `prototypes/high-fidelity/v1/component-spec.md` | 组件外观与状态规格（按钮、表格、表单、抽屉、徽标…） | `review` |
+| `prototypes/high-fidelity/v1/component-mapping.yaml` | 原型元素 → Element Plus 组件 的映射 | `review` |
+| `prototypes/high-fidelity/v1/business-components.yaml` | 业务组件清单（学生选择器、班级树…）与阶段 6 落点 | `review` |
+| `prototypes/high-fidelity/v1/visual-checklist.md` | 视觉验收清单（对齐、间距、层级、响应式） | `review` |
+| `prototypes/high-fidelity/v1/page-manifest.yaml` | 页面文件与页面编号 / 路由的对应 | `review` |
+| `prototypes/high-fidelity/v1/pages/*.html` | 高保真页面（45 个） | `review` |
+| `prototypes/high-fidelity/v1/screenshots/1366/*.png` | 1366×900 档截图（45 张） | `review` |
+| `prototypes/high-fidelity/v1/screenshots/1440/*.png` | 1440×900 档截图（45 张） | `review` |
+| `prototypes/high-fidelity/v1/screenshots/1920/*.png` | 1920×1080 档截图（45 张） | `review` |
+| `prototypes/high-fidelity/v1/interaction-notes.md` | 交互说明：状态切换、加载、空态、错误 | `review` |
+| `tools/capture_hifi_screenshots.ps1` | 三档截图生成脚本（headless Chrome） | `review` |
+| `tools/make_hifi_pages_table.py` | 高保真入口页的全量清单生成器（45 页；数据来自 page-manifest + navigation） | `review` |
+| `tools/check_hifi_layout.py` | 高保真布局检查（CDP 实测 45 页：搜索区行数、表格溢出、操作列 display、卡片内边距） | `review` |
+| `tools/make_diagrams_doc.py` | 把全部 `*.mmd` 汇总成可预览的 `docs/diagrams.md` | `review` |
 
 ---
 
@@ -339,6 +349,7 @@
 | `docs/30-architecture/09-permission-architecture.md` | 数据权限落地架构（含租户 / 学校 / 年级 / 班级） | `review` |
 | `docs/30-architecture/10-mobile-and-toc-extension.md` | 移动端与 ToC 扩展位置（不做实现） | `review` |
 | `diagrams/*.mmd` | Mermaid 架构图源文件 | `review` |
+| `docs/diagrams.md` | 全部 Mermaid 图汇总（阶段 4 架构图 + 阶段 5 ER / 时序 / 状态机 / 领域模型，共 41 张）；任何支持 Mermaid 的 Markdown 预览器都能直接看图 | `review` |
 
 ---
 

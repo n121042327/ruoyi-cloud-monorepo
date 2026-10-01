@@ -1,0 +1,46 @@
+[正常] 403.html
+[正常] 404.html
+[正常] 500.html
+[问题] async-task-list.html —— 表格 task-table 溢出 84px（表 1111 / 容器 1027）
+[正常] audit-archive.html
+[问题] audit-log-list.html —— 表格 aud-table 溢出 24px（表 1051 / 容器 1027）
+[正常] audit-ops-access.html
+[正常] audit-security-event.html
+[问题] audit-sensitive-access.html —— 表格 sen-table 溢出 54px（表 1081 / 容器 1027）
+[问题] class-detail.html —— 表格 roster-table 溢出 96px（表 1123 / 容器 1027）
+[正常] class-import-roster.html
+[问题] class-list.html —— 表格 class-table 溢出 90px（表 1117 / 容器 1027）
+[正常] class-move-students.html
+[问题] class-roster-add.html —— 表格 pool-table 溢出 130px（表 781 / 容器 651）
+[正常] dead-letter-task.html
+[问题] grade-list.html —— 表格 grade-table 溢出 96px（表 1123 / 容器 1027）
+[正常] import-wizard.html
+[正常] login.html
+[正常] promotion-create.html
+[正常] promotion-execute.html
+[问题] promotion-history.html —— 表格 ph-table 溢出 173px（表 1200 / 容器 1027）
+[问题] promotion-list.html —— 表格 prm-table 溢出 82px（表 1109 / 容器 1027）
+[问题] promotion-preview.html —— 表格 pv-table 溢出 303px（表 1000 / 容器 697）
+[正常] promotion-result.html
+[正常] promotion-transfer.html
+[正常] promotion-validate.html
+[正常] school-campus.html
+[正常] school-init.html
+[问题] school-list.html —— 表格 sch-table 溢出 99px（表 1141 / 容器 1042）
+[问题] stream-approve.html —— 表格 appr-table 溢出 104px（表 1131 / 容器 1027）
+[正常] stream-config.html
+[正常] stream-generate-class.html
+[问题] stream-list.html —— 表格 str-table 溢出 54px（表 1081 / 容器 1027）
+[正常] stream-selection.html
+[正常] stream-stat.html
+[正常] student-cross-transfer.html
+[正常] student-import.html
+[问题] student-list.html —— 表格 student-table 溢出 102px（表 1129 / 容器 1027）
+[问题] subject-list.html —— 表格 sub-table 溢出 94px（表 1121 / 容器 1027）
+[问题] teacher-assign.html —— 表格 assign-table 溢出 203px（表 900 / 容器 697）
+[正常] teacher-import.html
+[问题] teacher-list.html —— 表格 teacher-table 溢出 76px（表 1103 / 容器 1027）
+[问题] teaching-class-list.html —— 表格 tcl-table 溢出 114px（表 1141 / 容器 1027）
+[问题] term-list.html —— 表格 tm-table 溢出 39px（表 1081 / 容器 1042）
+[正常] term-terms.html
+布局检查：45 页，其中 19 页有问题
