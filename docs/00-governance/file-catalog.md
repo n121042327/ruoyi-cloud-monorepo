@@ -230,6 +230,23 @@
 | `evidence/stage2-prototype/verify-task.html` | 批次 2-9 交互验证 harness（AT-01 ~ AT-22 共 22 条断言全部通过） | `review` |
 | `evidence/stage2-prototype/async-task-list_*.png`、`evidence/stage2-prototype/dead-letter-task_*.png`、`evidence/stage2-prototype/task_verify-results.png` | 批次 2-9 截图（9 张，见 README 第 6.13 节） | `review` |
 | `docs/00-governance/change-requests/CR-019.md` | 变更申请：导入导出模块补登记死信重放确认片段（已批准并执行，关联 D-083 / GAP-060） | `review` |
+| `prototypes/high-fidelity/v1/design-tokens.json` | 阶段 3 视觉 token（机器可读，权威值；阶段 6 搬进 apps/plus-ui） | `review` |
+| `prototypes/high-fidelity/v1/visual-spec.yaml` | 阶段 3 视觉规范的人类可读摘要（与 design-tokens.json 同源） | `review` |
+| `prototypes/high-fidelity/v1/component-spec.md` | 阶段 3 组件规格（变体 / 尺寸 / 状态 / Element Plus 映射 / 禁止事项） | `review` |
+| `prototypes/high-fidelity/v1/component-mapping.yaml` | 阶段 3 组件映射表（4 个页面 32 个可交互元素 → Element Plus 组件） | `review` |
+| `prototypes/high-fidelity/v1/visual-checklist.md` | 阶段 3 交批自查清单（32 条，含三档分辨率与可访问性） | `review` |
+| `prototypes/high-fidelity/v1/assets/hifi.css`、`prototypes/high-fidelity/v1/assets/hifi-shell.js` | 阶段 3 高保真样式与外壳 | `review` |
+| `prototypes/high-fidelity/v1/pages/*.html`（45 页） | 阶段 3 全量交付页（由阶段 2 派生：视觉层 + 外壳替换），覆盖 95 个页面编号 / 403 个动作编号 / 229 个状态片段 | `review` |
+| `prototypes/high-fidelity/v1/reference/student-list-visual-reference.html` | 阶段 3 手工精修的视觉基准（不在交付清单内） | `review` |
+| `prototypes/high-fidelity/v1/page-manifest.yaml` | 阶段 3 逐页清单（来源 / 页面编号 / 动作编号 / 状态片段 / 元素计数） | `review` |
+| `tools/make_hifi_pages.py`、`tools/make_hifi_coverage.py` | 阶段 3 派生工具与覆盖度工具（幂等；集合差异为 0 才退出 0） | `review` |
+| `evidence/stage3-highfidelity/verify-hifi-coverage.html` | 阶段 3 覆盖度 harness（CV-01 ~ CV-45 + 3 条集合级检查，48 / 48 通过） | `review` |
+| `evidence/stage3-highfidelity/pages/*.png`（53 张） | 阶段 3 交付页截图：45 页 1440×900 + 4 个代表页 1366 / 1920 | `review` |
+| `evidence/stage3-highfidelity/hifi-coverage_verify-results.png` | 阶段 3 覆盖度 harness 结果清单 | `review` |
+| `prototypes/high-fidelity/v1/index.html`、`prototypes/high-fidelity/v1/README.md` | 阶段 3 入口与交付说明（3-0 ~ 3-9 批次表） | `review` |
+| `evidence/stage3-highfidelity/verify-hifi-student.html` | 阶段 3 样板批交互验证 harness（HF-01 ~ HF-18 共 18 条断言全部通过） | `review` |
+| `evidence/stage3-highfidelity/student-list_*.png`、`evidence/stage3-highfidelity/hifi-student_verify-results.png` | 阶段 3 样板批截图（10 张：三档分辨率 + 抽屉 / 弹窗 + 3 种角色 + 空态 / 无权限 + harness 结果） | `review` |
+| `evidence/stage3-highfidelity/README.md` | 阶段 3 验收证据与「阶段 2 vs 阶段 3」差异表 | `review` |
 | `prototypes/functional/v1/pages/school-campus.html` | 校区管理（列表 + 页内表单 + 停用二次确认，批次 2-6b） | `review` |
 | `prototypes/functional/v1/pages/school-init.html` | 开通初始化四步向导（`initSchoolBaseline` 幂等，批次 2-6b） | `review` |
 | `prototypes/functional/v1/pages/term-list.html` | 学年列表 + 新建学年 / 设为当前 / 归档三个弹窗（批次 2-6b） | `review` |

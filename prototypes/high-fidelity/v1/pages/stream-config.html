@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 阶段 3 高保真页面：由 prototypes/functional/v1/pages/stream-config.html 派生（工具：tools/make_hifi_pages.py）。
+     只替换视觉层与外壳，信息架构 / 字段 / 动作 / 状态片段与阶段 2 一致；视觉差异见 assets/hifi.css 与 design-tokens.json。 -->
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>选科配置 — 业务原型 v1（批次 2-7a） · 高保真</title>
+<link rel="stylesheet" href="../../functional/v1/assets/prototype-shell.css" />
+<script src="../assets/hifi-shell.js"></script>
+<style>
+  .rule-card { border: 1px solid var(--app-border-light); border-radius: var(--app-radius-base); padding: 12px 14px; background: #fafbfc; }
+  .rule-card h4 { margin: 0 0 6px; font-size: 14px; color: var(--app-text-primary); }
+  .period-bar { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--app-radius-small); background: #ecf5ff; border: 1px solid #a0cfff; font-size: 13px; }
+</style>
+  <link rel="stylesheet" href="../assets/hifi.css" />
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-STR-CONFIG"
+  data-menu-page="PAGE-STR-LIST"
+  data-breadcrumb="教育管理 / 选科与教学班 / 选科配置"
+  data-tab="选科配置"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-STR-CONFIG" data-role="page">
+
+  <div class="page-head">
+    <h1>选科配置</h1>
+    <span class="scope-hint" data-role="scope-hint">数据范围：本校（DS-04）· 可写</span>
+    <span class="el-tag primary">2026-2027 学年 第一学期</span>
+    <span class="el-tag warning" id="cfg-period-tag">进行中</span>
+  </div>
+
+  <div data-normal-view>
+
+  <div class="period-bar">
+    <span>选科开放期</span>
+    <span id="cfg-period-text">2026-10-08 00:00 — 2026-10-31 23:59（进行中，剩余 30 天）</span>
+    <span class="el-tag info">逾期变更需校级管理员审批（BR-STREAM-005）</span>
+  </div>
+
+  <section class="card" data-block="rule" data-role="section" data-component="el-card.hover">
+    <div class="card-header"><h2>规则（固定，不可自由配置）</h2><span class="el-tag info">3+1+2</span></div>
+    <div class="card-body">
+      <div class="rule-card">
+        <h4>首选科目（1 门）</h4>
+        <div class="chip-group"><span class="chip on">物理</span><span class="chip on">历史</span></div>
+        <div class="legend" style="margin:6px 0 0"><span>首选科目固定为物理 / 历史两门（<span class="mono">BV-STREAM-001</span> / <span class="mono">BR-SUBJECT-003</span>），学校与教务主任都不能增减。</span></div>
+      </div>
+      <div class="rule-card" style="margin-top:10px">
+        <h4>再选科目（4 选 2）</h4>
+        <div class="chip-group"><span class="chip on">化学</span><span class="chip on">生物</span><span class="chip on">思想政治</span><span class="chip on">地理</span></div>
+        <div class="legend" style="margin:6px 0 0"><span>再选科目固定为化学 / 生物 / 思想政治 / 地理（<span class="mono">BR-STREAM-002</span>），必须选满 2 门且不能重复。</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" data-block="form" data-role="section" data-component="el-card.hover">
+    <div class="card-header"><h2>开放期与审批</h2><span class="el-tag info">saveStreamConfig</span></div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="field" data-field="stream_open_from">
+          <label>开放日期<span class="required">*</span></label>
+          <input class="input" style="min-width:100%" type="date" value="2026-10-08" data-component="el-date-picker" data-required data-required-message="请选择开放日期" />
+          <div class="error-text"></div>
+        </div>
+        <div class="field" data-field="stream_deadline">
+          <label>截止时间<span class="required">*</span></label>
+          <input class="input" style="min-width:100%" type="datetime-local" value="2026-10-31T23:59" data-component="el-date-picker" data-required data-required-message="请选择截止时间" />
+          <div class="error-text"></div>
+          <div class="hint">开放日期不能晚于截止时间；截止后学生只能提交变更申请（转审批）。</div>
+        </div>
+        <div class="field" data-field="overdue_requires_approval">
+          <label>逾期变更</label>
+          <div class="radio-row">
+            <label><input type="radio" name="overdue" value="yes" checked /> 需校级管理员审批（默认）</label>
+            <label><input type="radio" name="overdue" value="no" /> 不允许逾期变更</label>
+          </div>
+          <div class="hint">默认「需校级管理员审批」（<span class="mono">BR-STREAM-005</span>）：逾期提交后进入审批待办（<span class="mono">PAGE-STR-APPROVE</span>）。</div>
+        </div>
+        <div class="field" data-field="term_id">
+          <label>适用学年学期</label>
+          <div class="readonly-value">2026-2027 学年 第一学期（当前学期）</div>
+          <div class="hint">配置按学年学期保存；切换当前学期后需重新确认开放期。</div>
+        </div>
+      </div>
+      <div class="alert danger state-hidden" data-validate-summary>表单校验未通过：请修正下方标红的字段后重试。</div>
+    </div>
+    <div class="card-body" style="border-top:1px solid var(--app-border-light); display:flex; gap:8px; align-items:center">
+      <button class="btn" data-role="action" data-action-id="ACT-STR-002" data-component="el-button"
+              data-permission="stream.selection:read" data-nav="PAGE-STR-LIST">查看选科清单</button>
+      <button class="btn" data-role="action" data-action-id="ACT-STR-003" data-component="el-button"
+              data-permission="stream.selection:read" data-api="listUnselectedStudent"
+              data-demo-message="已导出未选科学生清单（按年级 / 班级分组，可直接催办）。">查看未选科学生</button>
+      <div class="grow" style="flex:1"></div>
+      <button class="btn primary" id="btn-save-config" data-role="action" data-action-id="ACT-STR-001" data-component="el-button.primary"
+              data-permission="stream.config:update" data-api="saveStreamConfig"
+              data-demo-message="已保存选科配置：开放期与逾期审批口径生效，变更写审计（NFR-AUDIT-01）。">保存配置</button>
+    </div>
+  </section>
+
+  </div>
+
+  <div class="state-hidden" data-demo-state-panel="loading">
+    <section class="card"><div class="card-body">
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:150px"></div><div class="skeleton-bar" style="width:220px"></div></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:150px"></div><div class="skeleton-bar" style="width:220px"></div></div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="empty">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">📭</div>
+        <div class="title">还没有选科配置</div>
+        <div class="desc">先设置开放日期与截止时间；未配置时学生端显示「选科未开放」。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="error">
+    <section class="card"><div class="card-body">
+      <div class="state-block error">
+        <div class="icon">⚠️</div>
+        <div class="title">读取配置失败</div>
+        <div class="desc">配置读取失败时不展示默认值，避免误以为已配置。</div>
+        <div class="req-id">请求编号 REQ-20261001-001560 · 错误码 EDU-STR-5001</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-COM-005" data-component="el-button.primary.plain" data-api="getStreamConfig">重试</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="forbidden">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">🔒</div>
+        <div class="title">你没有选科配置的权限</div>
+        <div class="desc">需要 <span class="mono">stream.config:update</span>（教务主任 / 校领导）。租户管理员只有租户组织配置范围（<span class="mono">DS-02</span>）、任课教师不含选科明细（<span class="mono">REQ-STR-053</span>），均不降级为可读（<span class="mono">DS-DENY-03</span>）。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="submitting">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⏳</div>
+        <div class="title">正在提交</div>
+        <div class="desc">按钮已置 loading 并禁用。</div>
+      </div>
+    </div></section>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  // PRD 2.1 / 5.1 / 6.1：选科配置(stream.config)可写的是教务主任与校领导；租户管理员无选科教学数据范围（DS-02）
+  var WRITE_ROLES = ['super_admin', 'academic_director', 'school_leader'];
+  function q(sel) { return document.querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function currentRole() { return window.PrototypeShell.currentRole(); }
+  // 页内表单自带必填校验（外壳只校验 [data-demo-panel] 内的提交）
+  function validateScope(scopeSel) {
+    var ok = true;
+    qa(scopeSel + ' [data-required]').forEach(function (input) {
+      var wrapper = input.closest('.field');
+      var empty = !(input.value || '').trim();
+      if (wrapper) {
+        wrapper.classList.toggle('has-error', empty);
+        var err = wrapper.querySelector('.error-text');
+        if (err) err.textContent = empty ? (input.getAttribute('data-required-message') || '该项为必填') : '';
+      }
+      if (empty) ok = false;
+    });
+    var scope = q(scopeSel);
+    var summary = scope ? scope.querySelector('[data-validate-summary]') : null;
+    if (summary) summary.classList.toggle('state-hidden', ok);
+    return ok;
+  }
+  q('#btn-save-config').addEventListener('click', function (event) {
+    if (!validateScope('[data-block="form"]')) event.stopPropagation();
+  });
+  var lastRole = '';
+  function applyRoleState(role) {
+    if (role === lastRole) return;
+    lastRole = role;
+    if (WRITE_ROLES.indexOf(role) === -1) window.PrototypeShell.applyState('forbidden');
+    else if (window.PrototypeShell.currentState() === 'forbidden') window.PrototypeShell.applyState('normal');
+    var hint = q('[data-role="scope-hint"]');
+    if (role === 'school_leader') hint.textContent = '数据范围：本校（DS-04）· 可写（选科配置由教务主任 / 校领导维护）';
+    else if (role === 'super_admin') hint.textContent = '数据范围：全平台 · 不受限制（BR-ORG-014）';
+    else if (role === 'platform_ops') hint.textContent = '数据范围：平台运营协助视图 · 只读（DS-01）';
+    else if (role === 'tenant_admin') hint.textContent = '数据范围：本租户组织配置（DS-02）· 无选科教学数据范围';
+    else if (role === 'academic_director') hint.textContent = '数据范围：本校（DS-04）· 可写';
+    else hint.textContent = '数据范围：本校（DS-04）· 无选科配置权限（REQ-STR-053 / 05-permission-matrix）';
+  }
+  new MutationObserver(function () { applyRoleState(currentRole()); })
+    .observe(document.body, { attributes: true, attributeFilter: ['data-current-role'] });
+  applyRoleState(currentRole());
+})();
+</script>
+</body>
+</html>

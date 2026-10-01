@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>阶段 3 样板（高保真 · 学生管理）交互验证</title>
+<style>
+  body { margin: 14px; background: #fff; color: #24292f; font: 13px/1.55 Consolas, "Microsoft YaHei", monospace; }
+  h1 { font-size: 17px; margin: 0 0 8px; }
+  ol { margin: 0 0 10px; padding-left: 22px; }
+  li.ok { color: #1a7f37; }
+  li.bad { color: #c0392b; font-weight: 700; }
+  p.sum { font-weight: 700; }
+  p.sum.bad { color: #c0392b; }
+  iframe { width: 1440px; height: 900px; border: 1px solid #dcdfe6; }
+</style>
+</head>
+<body>
+<h1>阶段 3 样板（高保真 · 学生管理列表 / 详情抽屉 / 新增与编辑弹窗）交互验证（真实事件派发）</h1>
+<ol id="results"><li>运行中…</li></ol>
+<iframe id="frame" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/high-fidelity/v1/reference/student-list-visual-reference.html"></iframe>
+<script>
+(function () {
+  'use strict';
+  var RESULTS = [];
+  var frame = document.getElementById('frame');
+  function rec(id, name, pass, detail) { RESULTS.push({ id: id, name: name, pass: Boolean(pass), detail: detail || '' }); }
+  function d() { return frame.contentDocument; }
+  function w() { return frame.contentWindow; }
+  function q(sel) { return d().querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(d().querySelectorAll(sel)); }
+  function text(sel) { var n = q(sel); return n ? n.textContent.replace(/\s+/g, ' ').trim() : ''; }
+  function attr(sel, name) { var n = q(sel); return n ? n.getAttribute(name) : null; }
+  function hasClass(sel, cls) { var n = q(sel); return Boolean(n && n.classList.contains(cls)); }
+  function visible(sel) {
+    return qa(sel).filter(function (n) {
+      var style = w().getComputedStyle(n);
+      return style.display !== 'none' && !n.classList.contains('role-hidden') && !n.classList.contains('state-hidden')
+        && !n.closest('.state-hidden') && !n.closest('.role-hidden');
+    });
+  }
+  function widths(tableSel) {
+    return qa(tableSel + ' thead th[style]').reduce(function (s, th) { return s + (parseInt(th.style.width, 10) || 0); }, 0);
+  }
+  function click(sel) {
+    var n = q(sel);
+    if (!n) throw new Error('找不到元素 ' + sel);
+    n.click();
+    return n;
+  }
+  function setVal(sel, value) {
+    var n = q(sel);
+    if (!n) throw new Error('找不到元素 ' + sel);
+    n.value = value;
+    n.dispatchEvent(new (w().Event)('change', { bubbles: true }));
+    return n;
+  }
+  function delay() { return new Promise(function (r) { w().setTimeout(r, 90); }); }
+  function role(code, label) {
+    var btn = qa('[data-demo="role-switcher"] .pbtn').filter(function (b) { return b.textContent.trim() === label; })[0];
+    if (btn) { btn.click(); return delay(); }
+    w().HiFiShell.applyRole(code);
+    return delay();
+  }
+  function panelOpen(id) { return Boolean(q('[data-demo-panel="' + id + '"].open')); }
+  function statePanels(codes) {
+    codes = codes || ['loading', 'empty', 'error', 'forbidden', 'submitting'];
+    return codes.filter(function (c) { return !q('[data-demo-state-panel="' + c + '"]'); });
+  }
+  function frameReady() {
+    return new Promise(function (resolve) {
+      if (d() && d().readyState === 'complete' && d().querySelector('#page-root')) { resolve(); return; }
+      frame.addEventListener('load', function () { w().setTimeout(resolve, 300); });
+    });
+  }
+
+  var steps = [
+    function (next) {
+      return frameReady().then(function () {
+        var cols = qa('#stu-table thead th').map(function (th) { return th.textContent.trim(); });
+        rec('HF-01', '高保真样板：12 列 12 行；列宽之和 = 表格 min-width = 1128（1366×768 无表格内横向滚动）',
+          cols.length === 12 && cols[1] === '学号' && cols[11] === '操作'
+          && qa('#stu-rows tr').length === 12
+          && widths('#stu-table') === 1128 && q('#stu-table').style.minWidth === '1128px',
+          cols.length + ' 列 · 列宽 ' + widths('#stu-table'));
+        rec('HF-02', '高保真视觉规范生效：主行动按钮为主色 #2f6bff、卡片有阴影、表头背景 #f7f9fc（token 来自 visual-spec.yaml）',
+          w().getComputedStyle(q('.btn.primary')).backgroundColor === 'rgb(47, 107, 255)'
+          && w().getComputedStyle(q('.card')).boxShadow !== 'none'
+          && w().getComputedStyle(q('#stu-table thead th')).backgroundColor === 'rgb(247, 249, 252)',
+          w().getComputedStyle(q('.btn.primary')).backgroundColor);
+        rec('HF-03', '五类状态片段齐全，且主内容包在 [data-normal-view] 内（状态片段替换内容而不是堆在内容之后）',
+          statePanels().length === 0 && qa('[data-normal-view]').length === 1
+          && qa('[data-normal-view] [data-block="list"]').length === 1,
+          statePanels().join(',') || '齐全');
+        next();
+      });
+    },
+    function (next) {
+      rec('HF-04', '教务主任（可写）：12 行都有 3 个行内动作（详情 / 编辑 / 调班），新增与导入按钮可见',
+        qa('[data-action-id="ACT-STU-040"]').length === 12
+        && qa('[data-action-id="ACT-STU-041"]').length === 12
+        && qa('[data-action-id="ACT-STU-042"]').length === 12
+        && visible('[data-action-id="ACT-STU-001"]').length === 1
+        && visible('[data-action-id="ACT-STU-002"]').length === 1,
+        '详情 ' + qa('[data-action-id="ACT-STU-040"]').length + ' 个');
+      click('#stu-rows tr:first-child [data-action-id="ACT-STU-040"]');
+      return delay().then(function () {
+        rec('HF-05', '点行内「详情」打开 PAGE-STU-DETAIL 抽屉并带入该行学生（姓名 / 学号 / 年级 / 班级 / 状态 / 电话）',
+          panelOpen('PAGE-STU-DETAIL') && text('#stu-d-name') === '王梓萱'
+          && text('#stu-d-no') === '2026000001' && text('#stu-d-class') === '高一 (1) 班'
+          && text('#stu-d-status') === '在读' && text('#stu-d-phone') === '136****7781',
+          text('#stu-d-name') + ' / ' + text('#stu-d-class'));
+        next();
+      });
+    },
+    function (next) {
+      rec('HF-06', '详情写明证件号默认掩码，查看全量需要 read_sensitive 并写敏感数据访问日志（BR-AUDIT-002 / REQ-AUD-008）',
+        text('[data-demo-panel="PAGE-STU-DETAIL"]').indexOf('330102********1234') !== -1
+        && text('[data-demo-panel="PAGE-STU-DETAIL"]').indexOf('BR-AUDIT-002') !== -1
+        && text('[data-demo-panel="PAGE-STU-DETAIL"]').indexOf('REQ-AUD-008') !== -1,
+        'ok');
+      rec('HF-07', '详情含变更记录时间线（3 条，追加式；班级变更注明写入入口在班级管理 DP-01）',
+        qa('[data-demo-panel="PAGE-STU-DETAIL"] .timeline li').length === 3
+        && text('[data-demo-panel="PAGE-STU-DETAIL"]').indexOf('DP-01') !== -1,
+        '时间线 ' + qa('[data-demo-panel="PAGE-STU-DETAIL"] .timeline li').length + ' 条');
+      w().HiFiShell.closePanel('all');
+      next();
+    },
+    function (next) {
+      click('[data-action-id="ACT-STU-001"]');
+      return delay().then(function () {
+        var opened = panelOpen('PAGE-STU-CREATE');
+        setVal('#stu-create-name', '');
+        click('[data-action-id="ACT-STU-011"]');
+        return delay().then(function () {
+          rec('HF-08', '点「新增学生」打开 PAGE-STU-CREATE 弹窗；清空姓名点「保存」被字段级拦截且弹窗不关闭',
+            opened && hasClass('[data-demo-panel="PAGE-STU-CREATE"] [data-field="student_name"]', 'has-error')
+            && !hasClass('[data-demo-panel="PAGE-STU-CREATE"] [data-validate-summary]', 'state-hidden')
+            && panelOpen('PAGE-STU-CREATE'),
+            text('[data-field="student_name"] .error-text'));
+          rec('HF-09', '新增保存走 addStudent + person.student:create，并在反馈里写明系统发号与「默认未分班」（DP-01）',
+            attr('[data-action-id="ACT-STU-011"]', 'data-api') === 'addStudent'
+            && attr('[data-action-id="ACT-STU-011"]', 'data-permission') === 'person.student:create'
+            && attr('[data-action-id="ACT-STU-011"]', 'data-demo-message').indexOf('未分班') !== -1
+            && text('[data-demo-panel="PAGE-STU-CREATE"]').indexOf('系统统一发号') !== -1,
+            attr('[data-action-id="ACT-STU-011"]', 'data-api'));
+          w().HiFiShell.closePanel('all');
+          setVal('#stu-create-name', '');
+          next();
+        });
+      });
+    },
+    function (next) {
+      click('#stu-rows tr[data-student="2026000004"] [data-action-id="ACT-STU-041"]');
+      return delay().then(function () {
+        rec('HF-10', '点行内「编辑」打开 PAGE-STU-EDIT 并带入该行学号；联系电话字段登记了 data-role-editable（字段级可编辑性矩阵）',
+          panelOpen('PAGE-STU-EDIT') && text('#stu-edit-no') === '2026000004'
+          && attr('[data-demo-panel="PAGE-STU-EDIT"] [data-field="student_phone"]', 'data-role-editable') === 'academic_director,homeroom,tenant_admin,school_leader'
+          && text('[data-demo-panel="PAGE-STU-EDIT"]').indexOf('字段级可编辑性') !== -1,
+          text('#stu-edit-no'));
+        w().HiFiShell.closePanel('all');
+        next();
+      });
+    },
+    function (next) {
+      return role('grade_leader', '年级主任').then(function () {
+        rec('HF-11', '年级主任：数据范围收敛为 DS-05，仍可写（3 个行内动作都在）',
+          text('[data-role="scope-hint"]').indexOf('DS-05') !== -1
+          && qa('[data-action-id="ACT-STU-041"]').length === 12,
+          text('[data-role="scope-hint"]'));
+        return role('homeroom', '班主任');
+      }).then(function () {
+        rec('HF-12', '班主任：只读本班（无编辑 / 调班入口，操作列显示「只读」），提示可改监护人',
+          qa('[data-action-id="ACT-STU-041"]').length === 0
+          && qa('[data-action-id="ACT-STU-042"]').length === 0
+          && text('#stu-rows tr td.actions').indexOf('只读') !== -1
+          && text('[data-role="scope-hint"]').indexOf('DS-06') !== -1,
+          text('[data-role="scope-hint"]'));
+        return role('subject_teacher', '任课教师');
+      }).then(function () {
+        rec('HF-13', '任课教师：只读且字段裁剪 —— 联系电话整列（表头 + 单元格）隐藏（DS-07）',
+          w().getComputedStyle(q('#stu-table thead th[data-col-hide-role="subject_teacher"]')).display === 'none'
+          && w().getComputedStyle(q('#stu-rows tr td[data-col-hide-role="subject_teacher"]')).display === 'none'
+          && text('[data-role="scope-hint"]').indexOf('DS-07') !== -1,
+          '表头 ' + w().getComputedStyle(q('#stu-table thead th[data-col-hide-role="subject_teacher"]')).display);
+        return role('tenant_admin', '租户管理员');
+      }).then(function () {
+        rec('HF-14', '租户管理员：进入无权限形态（DS-02 只有组织配置范围，无教学数据范围），不进入空白页',
+          !hasClass('[data-demo-state-panel="forbidden"]', 'state-hidden')
+          && text('[data-role="scope-hint"]').indexOf('DS-02') !== -1,
+          text('[data-role="scope-hint"]'));
+        return role('super_admin', '超级管理员');
+      }).then(function () {
+        rec('HF-15', '超级管理员：全部工具栏按钮与 3 个行内动作可见，提示不受限制且强制留痕（BR-ORG-014）',
+          visible('[data-action-id="ACT-STU-001"]').length === 1
+          && visible('[data-action-id="ACT-STU-002"]').length === 1
+          && qa('[data-action-id="ACT-STU-042"]').length === 12
+          && text('[data-role="scope-hint"]').indexOf('BR-ORG-014') !== -1,
+          text('[data-role="scope-hint"]'));
+        return role('academic_director', '教务主任');
+      }).then(next);
+    },
+    function (next) {
+      w().location.hash = '#state=empty';
+      return delay().then(function () {
+        rec('HF-16', '深链接在已打开的页面上生效：#state=empty 切到空态，主内容被替换（hashchange 重放）',
+          !hasClass('[data-demo-state-panel="empty"]', 'state-hidden')
+          && hasClass('[data-normal-view]', 'state-hidden')
+          && text('[data-demo-state-panel="empty"]').indexOf('不会退化为全量') !== -1,
+          text('[data-demo-state-panel="empty"]').slice(0, 24));
+        w().location.hash = '';
+        return delay();
+      }).then(function () {
+        var labels = qa('#stu-table thead th').slice(1).map(function (th) { return th.textContent.trim(); });
+        rec('HF-17', '高保真与阶段 2 的信息架构一致：12 列且列顺序与 functional/v1 的 student-list 相同（本阶段只提升视觉，不改结构）',
+          labels.join(',') === '学号,姓名,性别,学段,年级,班级,学籍状态,入学年份,联系电话,更新时间,操作',
+          labels.join(','));
+        rec('HF-18', '高保真外壳：演示面板含 8 个角色 + 8 个状态；侧边菜单标注交付批次（本页「高保真」、其余「3-2 起」）',
+          qa('[data-demo="role-switcher"] .pbtn').length === 8
+          && qa('[data-demo="state-switcher"] .pbtn').length === 8
+          && text('.hi-menu-item.on').indexOf('学生管理') !== -1
+          && qa('.hi-menu-item .badge').filter(function (b) { return b.textContent.indexOf('高保真') !== -1; }).length === 1,
+          '角色 ' + qa('[data-demo="role-switcher"] .pbtn').length + ' / 状态 ' + qa('[data-demo="state-switcher"] .pbtn').length);
+        next();
+      });
+    }
+  ];
+
+  var EXPECTED = 18;
+  var rendered = false;
+  function render() {
+    rendered = true;
+    var ol = document.getElementById('results');
+    ol.innerHTML = '';
+    var pass = 0;
+    RESULTS.forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = r.pass ? 'ok' : 'bad';
+      li.textContent = (r.pass ? '通过  ' : '不通过 ') + r.id + '  ' + r.name + (r.detail ? '  —— ' + r.detail : '');
+      ol.appendChild(li);
+      if (r.pass) pass += 1;
+    });
+    var p = document.createElement('p');
+    p.className = pass === EXPECTED && RESULTS.length === EXPECTED ? 'sum' : 'sum bad';
+    p.textContent = '合计 ' + RESULTS.length + ' / ' + EXPECTED + ' 条，通过 ' + pass + ' 条，不通过 '
+      + (RESULTS.length - pass) + ' 条' + (pass === EXPECTED && RESULTS.length === EXPECTED ? ' —— 全部通过' : '');
+    ol.appendChild(p);
+  }
+  function run(index) {
+    if (index >= steps.length) { render(); return; }
+    var called = false;
+    function next() { if (called) return; called = true; run(index + 1); }
+    var out;
+    try { out = steps[index](next); }
+    catch (err) {
+      rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步抛异常', false, String((err && err.message) || err));
+      run(index + 1); return;
+    }
+    if (out && typeof out.then === 'function') {
+      out.catch(function (err) {
+        rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步异步断言失败', false, String((err && err.message) || err));
+        next();
+      });
+    }
+  }
+  window.addEventListener('load', function () { window.setTimeout(function () { run(0); }, 700); });
+  window.setTimeout(function () { if (!rendered) { rec('WATCHDOG', '运行超时', false, ''); render(); } }, 60000);
+})();
+</script>
+</body>
+</html>

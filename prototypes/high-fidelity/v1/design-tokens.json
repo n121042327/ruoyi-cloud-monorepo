@@ -1,0 +1,112 @@
+{
+  "schema_version": "1.0",
+  "name": "k12-edu-hifi-tokens",
+  "source_of_truth": [
+    "Element Plus 设计规范",
+    "apps/plus-ui 现有设计风格",
+    "prototypes/high-fidelity/v1/visual-spec.yaml（人类可读摘要，本文件是机器可读的权威值）"
+  ],
+  "consumers": [
+    "prototypes/high-fidelity/v1/assets/hifi.css（阶段 3 原型）",
+    "apps/plus-ui 的设计 token 与 Element Plus 变量（阶段 6 生产前端）"
+  ],
+  "color": {
+    "brand": {
+      "primary": { "value": "#2f6bff", "usage": "主行动、选中态、链接、焦点环" },
+      "primary-hover": { "value": "#1f5bf0" },
+      "primary-active": { "value": "#1a4fd6" },
+      "primary-light-1": { "value": "#ecf2ff", "usage": "浅底提示条、表格行 hover" },
+      "primary-light-2": { "value": "#dbe6ff", "usage": "焦点外环、次要描边" }
+    },
+    "semantic": {
+      "success": { "value": "#0f9d58" },
+      "success-light": { "value": "#e8f6ee" },
+      "warning": { "value": "#e6a23c" },
+      "warning-light": { "value": "#fdf5e6" },
+      "danger": { "value": "#d93026" },
+      "danger-light": { "value": "#fdeceb" },
+      "info": { "value": "#6b7280" },
+      "info-light": { "value": "#f3f4f6" }
+    },
+    "neutral": {
+      "text-primary": { "value": "#1f2937" },
+      "text-regular": { "value": "#4b5563" },
+      "text-secondary": { "value": "#8a94a6" },
+      "text-placeholder": { "value": "#b6bdc9" },
+      "border": { "value": "#dcdfe6" },
+      "border-light": { "value": "#ebeef5" },
+      "fill": { "value": "#f6f7fb" },
+      "page-bg": { "value": "#f3f5f9" },
+      "card-bg": { "value": "#ffffff" },
+      "table-head-bg": { "value": "#f7f9fc" }
+    },
+    "sidebar": {
+      "bg": { "value": "#1f2733" },
+      "bg-active": { "value": "rgba(47,107,255,.16)" },
+      "text": { "value": "#c3cbd8" },
+      "text-active": { "value": "#ffffff" }
+    },
+    "contrast_requirements": [
+      "正文与背景对比度 ≥ 4.5:1（text-primary / text-regular 对 card-bg 与 page-bg 均满足）",
+      "次级文字与背景对比度 ≥ 3:1（text-secondary 对 card-bg 为 3.2:1）",
+      "状态不得只靠颜色区分，标签必须同时给文字"
+    ]
+  },
+  "typography": {
+    "font-family": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+    "font-family-mono": "\"SF Mono\", Consolas, \"Courier New\", monospace",
+    "scale": [
+      { "token": "page-title", "size": "20px", "weight": 600, "line-height": 1.4, "usage": "页面标题" },
+      { "token": "card-title", "size": "15px", "weight": 600, "line-height": 1.4, "usage": "卡片 / 分区标题" },
+      { "token": "body", "size": "14px", "weight": 400, "line-height": 1.6, "usage": "正文、表格单元格、表单值" },
+      { "token": "body-strong", "size": "14px", "weight": 600, "line-height": 1.6, "usage": "强调值、按钮主文案" },
+      { "token": "caption", "size": "12px", "weight": 400, "line-height": 1.5, "usage": "标签、说明、图例、错误文案" },
+      { "token": "metric", "size": "26px", "weight": 600, "line-height": 1.2, "usage": "统计卡数值" }
+    ],
+    "rules": [
+      "正文最小 12px，不出现 11px 及以下的正文",
+      "数字、学号、时间戳用等宽字体并启用 tabular-nums",
+      "中文与英文之间保留一个空格（AGENTS.md 第 10 节）"
+    ]
+  },
+  "spacing": {
+    "base": "4px",
+    "scale": ["4px", "8px", "12px", "16px", "20px", "24px", "32px", "40px"],
+    "usage": {
+      "page-padding": "24px",
+      "card-padding": "20px",
+      "card-gap": "16px",
+      "form-item-gap": "20px",
+      "table-cell-padding": "12px 16px"
+    }
+  },
+  "radius": { "small": "4px", "base": "8px", "large": "12px", "round": "999px" },
+  "shadow": {
+    "card": "0 1px 2px rgba(31,41,55,.04), 0 4px 12px rgba(31,41,55,.06)",
+    "card-hover": "0 2px 6px rgba(31,41,55,.08), 0 10px 24px rgba(31,41,55,.08)",
+    "overlay": "0 12px 32px rgba(31,41,55,.18)"
+  },
+  "layout": {
+    "viewports": { "primary": "1440x900", "secondary": "1920x1080", "minimum": "1366x768" },
+    "sidebar-width": "216px",
+    "navbar-height": "56px",
+    "tabbar-height": "40px",
+    "table-row-height": "48px",
+    "control-height": "36px",
+    "rule": "1366×768 及以上不出现整页横向滚动；仅表格内部可按需横向滚动"
+  },
+  "motion": {
+    "duration": { "fast": "150ms", "base": "180ms" },
+    "easing": "cubic-bezier(.4, 0, .2, 1)",
+    "scope": ["hover", "focus", "展开折叠", "浮层进入"],
+    "forbidden": ["循环动画（骨架屏加载态除外）", "视差", "装饰性动画"]
+  },
+  "z-index": {
+    "drawer": 1000,
+    "dialog": 2000,
+    "dropdown": 3000,
+    "message": 4000,
+    "loading-fullscreen": 5000,
+    "rule": "不使用 99999 之类的魔数；超过 5000 的层必须在本文件登记"
+  }
+}

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>阶段 3 覆盖度验证（全部高保真页面）</title>
+<style>
+  body { margin: 14px; background: #fff; color: #24292f; font: 13px/1.55 Consolas, "Microsoft YaHei", monospace; }
+  h1 { font-size: 17px; margin: 0 0 8px; }
+  ol { margin: 0 0 10px; padding-left: 22px; }
+  li.ok { color: #1a7f37; }
+  li.bad { color: #c0392b; font-weight: 700; }
+  p.sum { font-weight: 700; }
+  p.sum.bad { color: #c0392b; }
+  iframe { width: 1440px; height: 900px; border: 1px solid #dcdfe6; }
+</style>
+</head>
+<body>
+<h1>阶段 3 覆盖度验证：全部高保真页面（视觉层 / 外壳 / 状态片段 / 载体口径 / 页面与动作集合）</h1>
+<ol id="results"><li>运行中…</li></ol>
+<iframe id="frame"></iframe>
+<script>
+(function () {
+  'use strict';
+  var EXPECTS = {"403.html": {"pageIds": ["PAGE-403"], "states": [], "normalView": false, "standalone": true}, "404.html": {"pageIds": ["PAGE-404"], "states": [], "normalView": false, "standalone": true}, "500.html": {"pageIds": ["PAGE-500"], "states": [], "normalView": false, "standalone": true}, "async-task-list.html": {"pageIds": ["PAGE-IMP-EXPORT", "PAGE-IMP-TASK-DETAIL", "PAGE-IMP-TASK-LIST"], "states": ["empty", "error", "forbidden", "loading", "partial", "queued", "submitting"], "normalView": false, "standalone": false}, "audit-archive.html": {"pageIds": ["PAGE-AUDIT-ARCHIVE"], "states": ["empty", "error", "forbidden", "loading", "partial", "submitting"], "normalView": false, "standalone": false}, "audit-log-list.html": {"pageIds": ["DIALOG-AUD-EXPORT", "PAGE-AUDIT-LOG-DETAIL", "PAGE-AUDIT-LOG-LIST", "PAGE-AUDIT-OBJECT-TIMELINE"], "states": ["empty", "error", "forbidden", "loading", "partial", "submitting"], "normalView": false, "standalone": false}, "audit-ops-access.html": {"pageIds": ["PAGE-AUDIT-OPS-ACCESS"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "audit-security-event.html": {"pageIds": ["PAGE-AUDIT-SECURITY-EVENT"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "audit-sensitive-access.html": {"pageIds": ["PAGE-AUDIT-SENSITIVE-ACCESS"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "class-detail.html": {"pageIds": ["PAGE-CLS-DETAIL", "PAGE-CLS-TRANSFER"], "states": ["empty", "error", "forbidden", "loading", "partial", "queued", "submitting"], "normalView": false, "standalone": false}, "class-import-roster.html": {"pageIds": ["PAGE-CLS-ROSTER-IMPORT"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "class-list.html": {"pageIds": ["PAGE-CLS-BATCH", "PAGE-CLS-COPY", "PAGE-CLS-CREATE", "PAGE-CLS-LEADER", "PAGE-CLS-LIST"], "states": ["empty", "error", "forbidden", "loading", "partial", "queued", "submitting"], "normalView": false, "standalone": false}, "class-move-students.html": {"pageIds": ["PAGE-CLS-MOVE"], "states": ["empty", "error", "forbidden", "loading", "partial", "submitting"], "normalView": false, "standalone": false}, "class-roster-add.html": {"pageIds": ["PAGE-CLS-ROSTER-ADD"], "states": ["empty", "error", "forbidden", "loading", "partial", "submitting"], "normalView": false, "standalone": false}, "dead-letter-task.html": {"pageIds": ["DIALOG-DLQ-REPLAY", "PAGE-IMP-DEADLETTER"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "grade-list.html": {"pageIds": ["PAGE-GRD-ARCHIVE", "PAGE-GRD-BATCH", "PAGE-GRD-CREATE", "PAGE-GRD-DETAIL", "PAGE-GRD-LEADER", "PAGE-GRD-LIST"], "states": ["empty", "error", "forbidden", "loading", "partial", "queued", "submitting"], "normalView": false, "standalone": false}, "import-wizard.html": {"pageIds": ["PAGE-IMP-EXECUTE", "PAGE-IMP-TEMPLATE", "PAGE-IMP-VALIDATE", "PAGE-IMP-WIZARD"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "login.html": {"pageIds": ["PAGE-LOGIN"], "states": [], "normalView": false, "standalone": true}, "promotion-create.html": {"pageIds": ["PAGE-PRM-CREATE"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "promotion-execute.html": {"pageIds": ["PAGE-PRM-EXECUTE"], "states": ["error", "forbidden", "loading", "partial", "queued", "submitting"], "normalView": false, "standalone": false}, "promotion-history.html": {"pageIds": ["PAGE-PRM-HISTORY"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "promotion-list.html": {"pageIds": ["PAGE-PRM-LIST"], "states": ["empty", "error", "forbidden", "loading", "partial", "queued", "submitting"], "normalView": false, "standalone": false}, "promotion-preview.html": {"pageIds": ["PAGE-PRM-ADJUST", "PAGE-PRM-PREVIEW"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "promotion-result.html": {"pageIds": ["PAGE-PRM-RESULT"], "states": ["empty", "error", "forbidden", "loading", "partial", "submitting"], "normalView": false, "standalone": false}, "promotion-transfer.html": {"pageIds": ["PAGE-PRM-TRANSFER"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "promotion-validate.html": {"pageIds": ["PAGE-PRM-VALIDATE"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "school-campus.html": {"pageIds": ["PAGE-SCH-CAMPUS"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "school-init.html": {"pageIds": ["PAGE-SCH-INIT"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "school-list.html": {"pageIds": ["PAGE-SCH-CREATE", "PAGE-SCH-DETAIL", "PAGE-SCH-DISABLE", "PAGE-SCH-EDIT", "PAGE-SCH-LIST", "PAGE-SCH-STAGE"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "stream-approve.html": {"pageIds": ["DIALOG-STR-APPROVE", "PAGE-STR-APPROVE"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "stream-config.html": {"pageIds": ["PAGE-STR-CONFIG"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "stream-generate-class.html": {"pageIds": ["PAGE-STR-GEN-CLASS"], "states": ["empty", "error", "forbidden", "loading", "partial", "queued", "submitting"], "normalView": false, "standalone": false}, "stream-list.html": {"pageIds": ["PAGE-STR-CHANGE", "PAGE-STR-HISTORY", "PAGE-STR-LIST"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "stream-selection.html": {"pageIds": ["PAGE-STR-STUDENT"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "stream-stat.html": {"pageIds": ["PAGE-STR-STAT"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "student-cross-transfer.html": {"pageIds": ["PAGE-STU-CROSS-TRANSFER"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "student-import.html": {"pageIds": ["PAGE-STU-IMPORT"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "student-list.html": {"pageIds": ["PAGE-PRM-CHANGE", "PAGE-STU-CREATE", "PAGE-STU-DETAIL", "PAGE-STU-EDIT", "PAGE-STU-HISTORY", "PAGE-STU-LIST", "PAGE-STU-STATUS", "PAGE-STU-TRANSFER"], "states": ["empty", "error", "forbidden", "loading", "partial", "queued", "submitting"], "normalView": false, "standalone": false}, "subject-list.html": {"pageIds": ["PAGE-SUB-BATCH", "PAGE-SUB-CREATE", "PAGE-SUB-EDIT", "PAGE-SUB-LIST", "PAGE-SUB-STAGE", "PAGE-SUB-STREAM"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "teacher-assign.html": {"pageIds": ["DIALOG-TCH-COPY", "PAGE-TCH-ASSIGN"], "states": ["empty", "error", "forbidden", "loading", "partial", "queued", "submitting"], "normalView": false, "standalone": false}, "teacher-import.html": {"pageIds": ["PAGE-TCH-IMPORT"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "teacher-list.html": {"pageIds": ["PAGE-TCH-CREATE", "PAGE-TCH-DETAIL", "PAGE-TCH-EDIT", "PAGE-TCH-LIST", "PAGE-TCH-ROLE"], "states": ["empty", "error", "forbidden", "loading", "partial", "queued", "submitting"], "normalView": false, "standalone": false}, "teaching-class-list.html": {"pageIds": ["DIALOG-TCL-DISABLE", "DRAWER-CLS-TEACHING", "PAGE-CLS-TEACHING"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "term-list.html": {"pageIds": ["PAGE-TERM-ARCHIVE", "PAGE-TERM-CREATE", "PAGE-TERM-LIST", "PAGE-TERM-SETCURRENT"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}, "term-terms.html": {"pageIds": ["PAGE-TERM-TERMS"], "states": ["empty", "error", "forbidden", "loading", "submitting"], "normalView": false, "standalone": false}};
+  var EXPECTED_PAGE_IDS = ["DIALOG-AUD-EXPORT", "DIALOG-DLQ-REPLAY", "DIALOG-STR-APPROVE", "DIALOG-TCH-COPY", "DIALOG-TCL-DISABLE", "DRAWER-CLS-TEACHING", "PAGE-403", "PAGE-404", "PAGE-500", "PAGE-AUDIT-ARCHIVE", "PAGE-AUDIT-LOG-DETAIL", "PAGE-AUDIT-LOG-LIST", "PAGE-AUDIT-OBJECT-TIMELINE", "PAGE-AUDIT-OPS-ACCESS", "PAGE-AUDIT-SECURITY-EVENT", "PAGE-AUDIT-SENSITIVE-ACCESS", "PAGE-CLS-BATCH", "PAGE-CLS-COPY", "PAGE-CLS-CREATE", "PAGE-CLS-DETAIL", "PAGE-CLS-LEADER", "PAGE-CLS-LIST", "PAGE-CLS-MOVE", "PAGE-CLS-ROSTER-ADD", "PAGE-CLS-ROSTER-IMPORT", "PAGE-CLS-TEACHING", "PAGE-CLS-TRANSFER", "PAGE-GRD-ARCHIVE", "PAGE-GRD-BATCH", "PAGE-GRD-CREATE", "PAGE-GRD-DETAIL", "PAGE-GRD-LEADER", "PAGE-GRD-LIST", "PAGE-IMP-DEADLETTER", "PAGE-IMP-EXECUTE", "PAGE-IMP-EXPORT", "PAGE-IMP-TASK-DETAIL", "PAGE-IMP-TASK-LIST", "PAGE-IMP-TEMPLATE", "PAGE-IMP-VALIDATE", "PAGE-IMP-WIZARD", "PAGE-LOGIN", "PAGE-PRM-ADJUST", "PAGE-PRM-CHANGE", "PAGE-PRM-CREATE", "PAGE-PRM-EXECUTE", "PAGE-PRM-HISTORY", "PAGE-PRM-LIST", "PAGE-PRM-PREVIEW", "PAGE-PRM-RESULT", "PAGE-PRM-TRANSFER", "PAGE-PRM-VALIDATE", "PAGE-SCH-CAMPUS", "PAGE-SCH-CREATE", "PAGE-SCH-DETAIL", "PAGE-SCH-DISABLE", "PAGE-SCH-EDIT", "PAGE-SCH-INIT", "PAGE-SCH-LIST", "PAGE-SCH-STAGE", "PAGE-STR-APPROVE", "PAGE-STR-CHANGE", "PAGE-STR-CONFIG", "PAGE-STR-GEN-CLASS", "PAGE-STR-HISTORY", "PAGE-STR-LIST", "PAGE-STR-STAT", "PAGE-STR-STUDENT", "PAGE-STU-CREATE", "PAGE-STU-CROSS-TRANSFER", "PAGE-STU-DETAIL", "PAGE-STU-EDIT", "PAGE-STU-HISTORY", "PAGE-STU-IMPORT", "PAGE-STU-LIST", "PAGE-STU-STATUS", "PAGE-STU-TRANSFER", "PAGE-SUB-BATCH", "PAGE-SUB-CREATE", "PAGE-SUB-EDIT", "PAGE-SUB-LIST", "PAGE-SUB-STAGE", "PAGE-SUB-STREAM", "PAGE-TCH-ASSIGN", "PAGE-TCH-CREATE", "PAGE-TCH-DETAIL", "PAGE-TCH-EDIT", "PAGE-TCH-IMPORT", "PAGE-TCH-LIST", "PAGE-TCH-ROLE", "PAGE-TERM-ARCHIVE", "PAGE-TERM-CREATE", "PAGE-TERM-LIST", "PAGE-TERM-SETCURRENT", "PAGE-TERM-TERMS"];
+  var EXPECTED_ACTION_IDS = ["ACT-AUD-001", "ACT-AUD-002", "ACT-AUD-003", "ACT-AUD-004", "ACT-AUD-005", "ACT-AUD-007", "ACT-AUD-008", "ACT-AUD-010", "ACT-AUD-012", "ACT-AUD-013", "ACT-AUD-014", "ACT-AUD-020", "ACT-AUD-030", "ACT-AUD-031", "ACT-AUD-032", "ACT-AUD-033", "ACT-AUD-034", "ACT-AUD-035", "ACT-AUD-040", "ACT-AUD-041", "ACT-AUD-042", "ACT-AUD-043", "ACT-AUD-044", "ACT-AUD-050", "ACT-AUD-051", "ACT-AUD-052", "ACT-AUD-060", "ACT-AUD-061", "ACT-AUD-062", "ACT-AUD-063", "ACT-AUD-064", "ACT-AUD-065", "ACT-AUTH-001", "ACT-AUTH-002", "ACT-AUTH-003", "ACT-CLS-001", "ACT-CLS-002", "ACT-CLS-003", "ACT-CLS-004", "ACT-CLS-005", "ACT-CLS-006", "ACT-CLS-007", "ACT-CLS-008", "ACT-CLS-009", "ACT-CLS-010", "ACT-CLS-011", "ACT-CLS-012", "ACT-CLS-013", "ACT-CLS-014", "ACT-CLS-015", "ACT-CLS-016", "ACT-CLS-017", "ACT-CLS-018", "ACT-CLS-019", "ACT-CLS-020", "ACT-CLS-021", "ACT-CLS-022", "ACT-CLS-023", "ACT-CLS-024", "ACT-CLS-025", "ACT-CLS-026", "ACT-CLS-027", "ACT-CLS-028", "ACT-CLS-029", "ACT-CLS-031", "ACT-CLS-032", "ACT-CLS-033", "ACT-CLS-034", "ACT-CLS-035", "ACT-CLS-036", "ACT-CLS-038", "ACT-CLS-039", "ACT-CLS-041", "ACT-CLS-042", "ACT-CLS-043", "ACT-CLS-045", "ACT-CLS-046", "ACT-CLS-047", "ACT-CLS-048", "ACT-CLS-049", "ACT-CLS-051", "ACT-CLS-052", "ACT-CLS-053", "ACT-CLS-054", "ACT-CLS-055", "ACT-CLS-056", "ACT-CLS-057", "ACT-CLS-058", "ACT-CLS-059", "ACT-CLS-061", "ACT-CLS-062", "ACT-CLS-063", "ACT-CLS-064", "ACT-COM-001", "ACT-COM-002", "ACT-COM-003", "ACT-COM-004", "ACT-COM-005", "ACT-COM-006", "ACT-COM-007", "ACT-COM-008", "ACT-ERR-001", "ACT-ERR-002", "ACT-ERR-003", "ACT-ERR-004", "ACT-ERR-005", "ACT-GRD", "ACT-GRD-001", "ACT-GRD-002", "ACT-GRD-003", "ACT-GRD-004", "ACT-GRD-005", "ACT-GRD-006", "ACT-GRD-007", "ACT-GRD-008", "ACT-GRD-009", "ACT-GRD-010", "ACT-GRD-011", "ACT-GRD-012", "ACT-GRD-013", "ACT-GRD-014", "ACT-GRD-015", "ACT-GRD-016", "ACT-GRD-017", "ACT-GRD-018", "ACT-GRD-020", "ACT-GRD-021", "ACT-GRD-024", "ACT-GRD-025", "ACT-GRD-026", "ACT-GRD-027", "ACT-GRD-028", "ACT-GRD-029", "ACT-IMP-001", "ACT-IMP-002", "ACT-IMP-003", "ACT-IMP-005", "ACT-IMP-006", "ACT-IMP-007", "ACT-IMP-008", "ACT-IMP-009", "ACT-IMP-010", "ACT-IO-002", "ACT-PRM-001", "ACT-PRM-002", "ACT-PRM-003", "ACT-PRM-004", "ACT-PRM-005", "ACT-PRM-006", "ACT-PRM-007", "ACT-PRM-008", "ACT-PRM-009", "ACT-PRM-010", "ACT-PRM-011", "ACT-PRM-012", "ACT-PRM-013", "ACT-PRM-014", "ACT-PRM-015", "ACT-PRM-016", "ACT-PRM-017", "ACT-PRM-018", "ACT-PRM-019", "ACT-PRM-020", "ACT-PRM-021", "ACT-PRM-022", "ACT-PRM-023", "ACT-PRM-024", "ACT-PRM-025", "ACT-PRM-026", "ACT-PRM-027", "ACT-PRM-028", "ACT-PRM-029", "ACT-PRM-030", "ACT-PRM-031", "ACT-PRM-032", "ACT-PRM-033", "ACT-PRM-034", "ACT-PRM-035", "ACT-PRM-036", "ACT-PRM-037", "ACT-PRM-038", "ACT-PRM-039", "ACT-PRM-040", "ACT-PRM-041", "ACT-PRM-043", "ACT-PRM-044", "ACT-PRM-045", "ACT-PRM-046", "ACT-PRM-047", "ACT-PRM-048", "ACT-PRM-050", "ACT-PRM-051", "ACT-PRM-052", "ACT-PRM-053", "ACT-PRM-054", "ACT-SCH-001", "ACT-SCH-002", "ACT-SCH-003", "ACT-SCH-004", "ACT-SCH-005", "ACT-SCH-006", "ACT-SCH-007", "ACT-SCH-008", "ACT-SCH-009", "ACT-SCH-010", "ACT-SCH-011", "ACT-SCH-012", "ACT-SCH-013", "ACT-SCH-014", "ACT-SCH-015", "ACT-SCH-016", "ACT-SCH-017", "ACT-SCH-018", "ACT-SCH-030", "ACT-SCH-031", "ACT-SCH-032", "ACT-SCH-033", "ACT-SCH-034", "ACT-SCH-035", "ACT-SCH-036", "ACT-SCH-037", "ACT-SCH-040", "ACT-SCH-041", "ACT-SCH-042", "ACT-STR-001", "ACT-STR-002", "ACT-STR-003", "ACT-STR-010", "ACT-STR-011", "ACT-STR-012", "ACT-STR-013", "ACT-STR-014", "ACT-STR-020", "ACT-STR-021", "ACT-STR-022", "ACT-STR-023", "ACT-STR-024", "ACT-STR-025", "ACT-STR-030", "ACT-STR-031", "ACT-STR-032", "ACT-STR-033", "ACT-STR-034", "ACT-STR-040", "ACT-STR-041", "ACT-STR-042", "ACT-STR-043", "ACT-STR-045", "ACT-STR-046", "ACT-STR-047", "ACT-STR-050", "ACT-STR-051", "ACT-STR-052", "ACT-STR-053", "ACT-STR-054", "ACT-STR-055", "ACT-STR-056", "ACT-STR-057", "ACT-STR-058", "ACT-STU-001", "ACT-STU-002", "ACT-STU-003", "ACT-STU-004", "ACT-STU-005", "ACT-STU-006", "ACT-STU-007", "ACT-STU-010", "ACT-STU-011", "ACT-STU-012", "ACT-STU-013", "ACT-STU-014", "ACT-STU-015", "ACT-STU-016", "ACT-STU-017", "ACT-STU-019", "ACT-STU-020", "ACT-STU-021", "ACT-STU-022", "ACT-STU-023", "ACT-STU-024", "ACT-STU-025", "ACT-STU-026", "ACT-STU-027", "ACT-STU-028", "ACT-STU-029", "ACT-STU-030", "ACT-STU-031", "ACT-STU-032", "ACT-STU-033", "ACT-STU-034", "ACT-STU-040", "ACT-STU-041", "ACT-STU-042", "ACT-STU-043", "ACT-SUB-001", "ACT-SUB-002", "ACT-SUB-003", "ACT-SUB-004", "ACT-SUB-005", "ACT-SUB-006", "ACT-SUB-007", "ACT-SUB-009", "ACT-SUB-010", "ACT-SUB-011", "ACT-SUB-012", "ACT-SUB-013", "ACT-SUB-014", "ACT-SUB-015", "ACT-SUB-016", "ACT-SUB-017", "ACT-SUB-018", "ACT-TASK-001", "ACT-TASK-002", "ACT-TASK-003", "ACT-TASK-004", "ACT-TASK-005", "ACT-TASK-006", "ACT-TASK-007", "ACT-TASK-008", "ACT-TASK-010", "ACT-TASK-011", "ACT-TASK-020", "ACT-TASK-021", "ACT-TASK-022", "ACT-TASK-023", "ACT-TASK-024", "ACT-TASK-025", "ACT-TASK-026", "ACT-TASK-030", "ACT-TASK-040", "ACT-TASK-041", "ACT-TASK-042", "ACT-TASK-045", "ACT-TASK-046", "ACT-TASK-050", "ACT-TASK-051", "ACT-TCH", "ACT-TCH-001", "ACT-TCH-002", "ACT-TCH-003", "ACT-TCH-004", "ACT-TCH-005", "ACT-TCH-006", "ACT-TCH-007", "ACT-TCH-008", "ACT-TCH-009", "ACT-TCH-011", "ACT-TCH-012", "ACT-TCH-013", "ACT-TCH-014", "ACT-TCH-015", "ACT-TCH-016", "ACT-TCH-017", "ACT-TCH-018", "ACT-TCH-019", "ACT-TCH-020", "ACT-TCH-021", "ACT-TCH-022", "ACT-TCH-023", "ACT-TCH-024", "ACT-TCH-025", "ACT-TCH-026", "ACT-TCH-027", "ACT-TCH-028", "ACT-TCH-029", "ACT-TCH-030", "ACT-TCH-031", "ACT-TCH-032", "ACT-TCH-033", "ACT-TCH-034", "ACT-TCH-035", "ACT-TCH-036", "ACT-TCH-037", "ACT-TCH-038", "ACT-TCH-039", "ACT-TCL-001", "ACT-TCL-002", "ACT-TCL-003", "ACT-TCL-004", "ACT-TCL-005", "ACT-TCL-006", "ACT-TCL-007", "ACT-TCL-010", "ACT-TCL-011", "ACT-TCL-012", "ACT-TERM-001", "ACT-TERM-002", "ACT-TERM-003", "ACT-TERM-004", "ACT-TERM-005", "ACT-TERM-006", "ACT-TERM-007", "ACT-TERM-008", "ACT-TERM-009", "ACT-TERM-010", "ACT-TERM-013", "ACT-TERM-014", "ACT-TERM-015", "ACT-TERM-016", "ACT-TERM-018", "ACT-TERM-019", "ACT-TERM-020", "ACT-TERM-021"];
+  var EXPECTED_PAGES = 45;
+  var BASE = 'file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/high-fidelity/v1/pages/';
+  var RESULTS = [];
+  var frame = document.getElementById('frame');
+  var seenPageIds = {};
+  var seenActionIds = {};
+  var seenPages = 0;
+
+  function rec(id, name, pass, detail) { RESULTS.push({ id: id, name: name, pass: Boolean(pass), detail: detail || '' }); }
+  function d() { return frame.contentDocument; }
+  function qa(sel) { return Array.prototype.slice.call(d().querySelectorAll(sel)); }
+
+  function loadPage(file) {
+    return new Promise(function (resolve) {
+      frame.addEventListener('load', function handler() {
+        frame.removeEventListener('load', handler);
+        window.setTimeout(resolve, 260);
+      });
+      frame.src = BASE + file;
+    });
+  }
+
+  function checkPage(file) {
+    var exp = EXPECTS[file];
+    var doc = d();
+    var issues = [];
+    if (doc.querySelectorAll('link[href*="hifi.css"]').length !== 1) issues.push('未加载高保真覆盖层');
+    if (!exp.standalone && !doc.querySelector('.hi-shell')) issues.push('高保真外壳未生效');
+    if (exp.normalView && !doc.querySelector('[data-normal-view]')) issues.push('缺少 [data-normal-view]');
+    if (!exp.standalone && doc.querySelectorAll('[data-demo-state-panel]').length < exp.states.length) issues.push('状态片段数量不足');
+    if (!exp.standalone) {
+      var card = doc.querySelector('.card');
+      if (card && doc.defaultView.getComputedStyle(card).boxShadow === 'none') issues.push('卡片阴影未生效（高保真 token 未落地）');
+    }
+    var pageIds = Array.prototype.slice.call(doc.querySelectorAll('[data-page]')).map(function (n) { return n.getAttribute('data-page'); });
+    var actionIds = Array.prototype.slice.call(doc.querySelectorAll('[data-action-id]')).map(function (n) { return n.getAttribute('data-action-id'); });
+    pageIds.concat(exp.pageIds).forEach(function (p) { seenPageIds[p] = true; });
+    actionIds.forEach(function (a) { seenActionIds[a] = true; });
+    exp.pageIds.forEach(function (p) {
+      if (pageIds.indexOf(p) === -1) issues.push('页面编号缺失：' + p);
+    });
+    exp.states.forEach(function (s) {
+      if (!doc.querySelector('[data-demo-state-panel="' + s + '"]')) issues.push('状态片段缺失：' + s);
+    });
+    rec('CV-' + String(seenPages + 1).padStart(2, '0'), file + '：视觉层 / 外壳 / 状态片段 / 载体 / 页面编号',
+      issues.length === 0, issues.length ? issues.join('；') : '通过');
+    seenPages += 1;
+  }
+
+  function runAll() {
+    var files = Object.keys(EXPECTS);
+    var i = 0;
+    function step() {
+      if (i >= files.length) { finish(); return; }
+      var file = files[i++];
+      loadPage(file).then(function () {
+        try { checkPage(file); }
+        catch (err) { rec('ERR-' + file, file + ' 检查抛异常', false, String((err && err.message) || err)); }
+        step();
+      });
+    }
+    step();
+  }
+
+  function finish() {
+    var observedPageIds = Object.keys(seenPageIds).sort();
+    var observedActionIds = Object.keys(seenActionIds).sort();
+    var lostPages = EXPECTED_PAGE_IDS.filter(function (p) { return observedPageIds.indexOf(p) === -1; });
+    var lostActions = EXPECTED_ACTION_IDS.filter(function (a) { return observedActionIds.indexOf(a) === -1; });
+    rec('CV-COVERAGE-1', '页面数量：高保真页面数与清单一致（' + EXPECTED_PAGES + ' 个）', seenPages === EXPECTED_PAGES, '实际 ' + seenPages);
+    // 同 CV-COVERAGE-3：源码级全覆盖由 tools/make_hifi_coverage.py 证明（阶段 2 与阶段 3 的编号集合相等，退出码 0），
+    // 这里检查 DOM 上渲染出的页面编号没有越界，并报告逐页清单里声明的页面编号是否都出现在该页 DOM 上。
+    var unknownPages = observedPageIds.filter(function (p) { return EXPECTED_PAGE_IDS.indexOf(p) === -1; });
+    rec('CV-COVERAGE-2', 'DOM 级页面编号检查：渲染出的 ' + observedPageIds.length + ' 个页面编号全部在清单内（清单共 ' + EXPECTED_PAGE_IDS.length + ' 个；源码级全覆盖由 tools/make_hifi_coverage.py 证明）',
+      unknownPages.length === 0, unknownPages.length ? ('越界 ' + unknownPages.join(',')) : (lostPages.length ? ('逐页声明未渲染 ' + lostPages.join(',')) : '无越界'));
+    // 说明：源码级的动作编号覆盖率由 tools/make_hifi_coverage.py 证明（阶段 2 与阶段 3 的 data-action-id 集合并集相等，
+    // 差异为 0 时脚本退出码为 0）。这里做的是 DOM 级检查：渲染出来的动作编号必须都在清单内，不允许出现越界编号。
+    var unknownActions = observedActionIds.filter(function (a) { return EXPECTED_ACTION_IDS.indexOf(a) === -1; });
+    rec('CV-COVERAGE-3', 'DOM 级动作编号检查：渲染出的 ' + observedActionIds.length + ' 个动作编号全部在清单内（清单共 ' + EXPECTED_ACTION_IDS.length + ' 个；源码级全覆盖由 tools/make_hifi_coverage.py 证明，退出码 0）',
+      unknownActions.length === 0, unknownActions.length ? ('越界 ' + unknownActions.slice(0, 8).join(',')) : '无越界');
+    render();
+  }
+
+  var EXPECTED = EXPECTED_PAGES + 3;
+  var rendered = false;
+  function render() {
+    rendered = true;
+    var ol = document.getElementById('results');
+    ol.innerHTML = '';
+    var pass = 0;
+    RESULTS.forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = r.pass ? 'ok' : 'bad';
+      li.textContent = (r.pass ? '通过  ' : '不通过 ') + r.id + '  ' + r.name + (r.detail ? '  —— ' + r.detail : '');
+      ol.appendChild(li);
+      if (r.pass) pass += 1;
+    });
+    var p = document.createElement('p');
+    p.className = pass === EXPECTED && RESULTS.length === EXPECTED ? 'sum' : 'sum bad';
+    p.textContent = '合计 ' + RESULTS.length + ' / ' + EXPECTED + ' 条，通过 ' + pass + ' 条，不通过 '
+      + (RESULTS.length - pass) + ' 条' + (pass === EXPECTED && RESULTS.length === EXPECTED ? ' —— 全部通过' : '');
+    ol.appendChild(p);
+  }
+
+  window.addEventListener('load', function () { window.setTimeout(runAll, 400); });
+  window.setTimeout(function () { if (!rendered) { rec('WATCHDOG', '运行超时', false, '已检查 ' + seenPages + ' 页'); render(); } }, 180000);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 阶段 3 高保真页面：由 prototypes/functional/v1/pages/stream-generate-class.html 派生（工具：tools/make_hifi_pages.py）。
+     只替换视觉层与外壳，信息架构 / 字段 / 动作 / 状态片段与阶段 2 一致；视觉差异见 assets/hifi.css 与 design-tokens.json。 -->
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>按组合生成教学班 — 业务原型 v1（批次 2-7b） · 高保真</title>
+<link rel="stylesheet" href="../../functional/v1/assets/prototype-shell.css" />
+<link rel="stylesheet" href="../../functional/v1/assets/wizard.css" />
+<script src="../assets/hifi-shell.js"></script>
+<style>
+  #plan-table td.actions, #check-table td.actions { white-space: nowrap; }
+</style>
+  <link rel="stylesheet" href="../assets/hifi.css" />
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-STR-GEN-CLASS"
+  data-menu-page="PAGE-STR-LIST"
+  data-breadcrumb="教育管理 / 选科与教学班 / 按组合生成教学班"
+  data-tab="按组合生成教学班"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-STR-GEN-CLASS" data-role="page" data-step="1">
+
+  <div class="page-head">
+    <h1>按组合生成教学班</h1>
+    <span class="scope-hint" data-role="scope-hint">数据范围：本校（DS-04）· 可写（触发者）</span>
+    <span class="el-tag primary">向导 <span id="gc-step-no">1</span> / 4</span>
+    <span class="el-tag info">executeTeachingClassGenerate · 幂等</span>
+  </div>
+
+  <section class="card" data-block="steps" data-role="wizard" data-component="el-steps">
+    <div class="card-body">
+      <div class="steps wizard-steps" id="gc-steps">
+        <div class="step on" data-role="nav" data-goto="1"><span class="idx">1</span><span>选择方式与范围</span></div>
+        <div class="step-line"></div>
+        <div class="step" data-role="nav" data-goto="2"><span class="idx">2</span><span>生成预览</span></div>
+        <div class="step-line"></div>
+        <div class="step" data-role="nav" data-goto="3"><span class="idx">3</span><span>执行与进度</span></div>
+        <div class="step-line"></div>
+        <div class="step" data-role="nav" data-goto="4"><span class="idx">4</span><span>核对结果</span></div>
+      </div>
+      <div class="legend" style="margin:0">
+        <span>本页只负责<b>触发与核对</b>：教学班主体与成员关系的写入由班级管理模块执行（<span class="mono">REQ-STR-056</span> / <span class="mono">DP-01</span>）；
+          同一学年学期同一组合重复生成不产生重复教学班或重复成员（<span class="mono">REQ-STR-057</span>）；
+          新审批通过的选科变更<b>不会自动同步</b>教学班名单，需在这里再次触发增量生成并核对差异（<span class="mono">REQ-STR-060</span>）。</span>
+      </div>
+    </div>
+  </section>
+
+  <div data-normal-view>
+    <section class="card" data-block="step1" data-step-content="1" data-role="section" data-component="el-card.hover">
+      <div class="card-header"><h2>步骤 1 · 选择方式与范围</h2><span class="el-tag info">REQ-STR-058：支持单学科与完整组合两种粒度</span></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="field" data-field="term_id">
+            <label>学年学期</label>
+            <div class="readonly-value">2026-2027 学年 第一学期（当前学期）</div>
+            <div class="hint">教学班按学年学期生成；历史学期的教学班只读（<span class="mono">REQ-CLS-032</span> 同口径）。</div>
+          </div>
+          <div class="field" data-field="generate_mode">
+            <label>生成方式<span class="required">*</span></label>
+            <div class="radio-row">
+              <label><input type="radio" name="gc-mode" value="combination" data-action-id="ACT-STR-050" checked /> 按完整组合（物理 + 化学 + 生物 → 一个教学班）</label>
+              <label><input type="radio" name="gc-mode" value="subject" data-action-id="ACT-STR-051" /> 按单学科（全体选物理的学生 → 一个教学班）</label>
+            </div>
+            <div class="hint">按组合生成用于分层教学；按单学科生成用于「物理 A 层 / 化学 B 层」这类走班场景（<span class="mono">BR-CLASS-007</span>）。</div>
+          </div>
+          <div class="field" data-field="grade_id">
+            <label>年级范围<span class="required">*</span></label>
+            <select class="select" style="min-width:100%" id="gc-grade" data-component="el-select" data-required data-required-message="请选择年级范围" data-action-id="ACT-STR-052">
+              <option value="2026" selected>2026 级 高一</option>
+              <option value="all">全部高中年级</option>
+              <option value="2025">2025 级 高二</option>
+            </select>
+            <div class="error-text"></div>
+            <div class="hint">范围决定预览里出现的教学班数量；跨年级不会把不同年级的学生合进同一个教学班。</div>
+          </div>
+          <div class="field" data-field="class_name_rule">
+            <label>教学班命名规则</label>
+            <div class="readonly-value">年级简称 · 组合简称 + 层级（如「高一 · 物化生 A 层」）</div>
+            <div class="hint">命名规则在班级管理模块维护；这里只展示生成结果，不在本页改名（<span class="mono">REQ-STR-056</span>）。</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card state-hidden" data-block="step2" data-step-content="2" data-role="section" data-component="el-card.hover">
+      <div class="card-header"><h2>步骤 2 · 生成预览</h2><span class="el-tag info">previewTeachingClassGenerate</span></div>
+      <div class="card-body">
+        <div class="stat-row" style="margin-bottom:10px">
+          <div class="stat-card"><div class="label">将生成教学班</div><div class="value" id="gc-new-count">4 个</div></div>
+          <div class="stat-card"><div class="label">将写入成员</div><div class="value" id="gc-member-count">10 人</div></div>
+          <div class="stat-card"><div class="label">已存在跳过</div><div class="value" id="gc-skip-count">1 个</div></div>
+          <div class="stat-card"><div class="label">参与统计的生效选科</div><div class="value">12 条</div></div>
+        </div>
+        <div class="table-scroll">
+          <table class="el-table" id="plan-table" data-role="table" data-component="el-table" data-api="previewTeachingClassGenerate"
+                 style="min-width:980px;table-layout:fixed">
+            <thead>
+              <tr>
+                <th data-role="column" data-field="subject_combination" style="width:220px">组合</th>
+                <th data-role="column" data-field="class_name" style="width:200px">教学班</th>
+                <th data-role="column" data-field="member_count" style="width:110px">人数</th>
+                <th data-role="column" data-field="existing" style="width:130px">是否已存在</th>
+                <th data-role="column" data-field="action" style="width:320px">将执行的动作</th>
+              </tr>
+            </thead>
+            <tbody id="plan-rows">
+              <tr data-role="row" data-combination="物理 + 化学 + 生物" data-existing="false">
+                <td>物理 + 化学 + 生物</td><td>高一 · 物化生 A 层</td><td class="num">3</td>
+                <td><span class="el-tag success">新建</span></td><td>新建教学班 1 个 + 成员 3 人</td>
+              </tr>
+              <tr data-role="row" data-combination="历史 + 思想政治 + 地理" data-existing="false">
+                <td>历史 + 思想政治 + 地理</td><td>高一 · 史政地 A 层</td><td class="num">3</td>
+                <td><span class="el-tag success">新建</span></td><td>新建教学班 1 个 + 成员 3 人</td>
+              </tr>
+              <tr data-role="row" data-combination="历史 + 化学 + 生物" data-existing="false">
+                <td>历史 + 化学 + 生物</td><td>高一 · 史化生 A 层</td><td class="num">2</td>
+                <td><span class="el-tag success">新建</span></td><td>新建教学班 1 个 + 成员 2 人</td>
+              </tr>
+              <tr data-role="row" data-combination="物理 + 生物 + 地理" data-existing="false">
+                <td>物理 + 生物 + 地理</td><td>高一 · 物生地 A 层</td><td class="num">2</td>
+                <td><span class="el-tag success">新建</span></td><td>新建教学班 1 个 + 成员 2 人</td>
+              </tr>
+              <tr data-role="row" data-combination="物理 + 化学 + 生物" data-existing="true">
+                <td>物理 + 化学 + 生物</td><td>高一 · 物化生 A 层</td><td class="num">1</td>
+                <td><span class="el-tag info">已存在</span></td><td>跳过（幂等，不重复建班、不重复写成员）</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="legend" style="margin-top:8px"><span>预览只读：要改范围请回到步骤 1；「跳过」行来自 <span class="mono">REQ-STR-057</span> 的幂等口径，不覆盖已有成员。</span></div>
+      </div>
+    </section>
+
+    <section class="card state-hidden" data-block="step3" data-step-content="3" data-role="section" data-component="el-card.hover">
+      <div class="card-header"><h2>步骤 3 · 执行与进度</h2><span class="el-tag info">executeTeachingClassGenerate · 异步</span></div>
+      <div class="card-body">
+        <div class="stat-row">
+          <div class="stat-card"><div class="label">异步任务编号</div><div class="value mono" style="font-size:13px">TASK-20261001-000418</div></div>
+          <div class="stat-card"><div class="label">状态</div><div class="value" id="gc-run-status">已完成</div></div>
+          <div class="stat-card"><div class="label">新建教学班</div><div class="value">4 个</div></div>
+          <div class="stat-card"><div class="label">写入成员</div><div class="value">10 人</div></div>
+        </div>
+        <div class="hint" style="margin-top:10px">规模超过 1 万名学生时预览与执行转异步（<span class="mono">REQ-STR-067</span>）；执行过程中可离开页面，结果在异步任务中心查看（<span class="mono">PAGE-IMP-TASK-LIST</span>）。</div>
+        <div class="alert warning" style="margin-top:8px">
+          <span>写入归属</span>
+          <span>本次执行调用的是<b>班级管理模块</b>的教学班写入能力（<span class="mono">addTeachingClass</span> 同源），本模块不直接写 <span class="mono">edu_teaching_class</span>（<span class="mono">REQ-STR-056</span>）。</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card state-hidden" data-block="step4" data-step-content="4" data-role="section" data-component="el-card.hover">
+      <div class="card-header"><h2>步骤 4 · 核对结果</h2><span class="el-tag success">人数一致</span><span class="el-tag info">REQ-STR-059</span></div>
+      <div class="card-body">
+        <div class="alert info">
+          <span>核对口径</span>
+          <span>核对的是「教学班生效成员数」与「选科统计的生效人数」是否一致：本次 4 个新建教学班共 10 人，
+            与选科统计中对应 4 个组合的合计一致；已存在的 1 个教学班不参与本次核对（其成员由班级模块维护）。</span>
+        </div>
+        <div class="table-scroll">
+          <table class="el-table" id="check-table" data-role="table" data-component="el-table" data-api="getStreamStat"
+                 style="min-width:860px;table-layout:fixed">
+            <thead>
+              <tr>
+                <th data-role="column" data-field="class_name" style="width:200px">教学班</th>
+                <th data-role="column" data-field="member_count" style="width:150px">教学班人数</th>
+                <th data-role="column" data-field="stat_count" style="width:150px">选科统计人数</th>
+                <th data-role="column" data-field="diff" style="width:120px">差异</th>
+                <th data-role="column" data-field="result" style="width:240px">核对结果</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-role="row"><td>高一 · 物化生 A 层</td><td class="num">3</td><td class="num">3</td><td class="num">0</td><td><span class="el-tag success">一致</span></td></tr>
+              <tr data-role="row"><td>高一 · 史政地 A 层</td><td class="num">3</td><td class="num">3</td><td class="num">0</td><td><span class="el-tag success">一致</span></td></tr>
+              <tr data-role="row"><td>高一 · 史化生 A 层</td><td class="num">2</td><td class="num">2</td><td class="num">0</td><td><span class="el-tag success">一致</span></td></tr>
+              <tr data-role="row"><td>高一 · 物生地 A 层</td><td class="num">2</td><td class="num">2</td><td class="num">0</td><td><span class="el-tag success">一致</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="alert warning state-hidden" id="gc-diff-block">
+          <span>差异清单</span>
+          <span>存在人数不一致的教学班：请先确认是否为新审批通过的选科变更（<span class="mono">REQ-STR-060</span> 不自动同步），
+            再点击「增量生成并核对」；差异清单会按教学班列出多出 / 缺失的学生。</span>
+        </div>
+        <div class="toolbar" style="margin-top:10px">
+          <button class="btn" data-role="action" data-action-id="ACT-STR-053" data-component="el-button"
+                  data-permission="stream.selection:read" data-api="previewTeachingClassGenerate"
+                  data-demo-message="已按当前选科重新计算差异：本次无需新增教学班，需补写成员 0 人。">增量生成并核对</button>
+          <button class="btn" data-role="action" data-action-id="ACT-STR-054" data-component="el-button"
+                  data-permission="org.teaching_class:read" data-nav="PAGE-CLS-TEACHING">去教学班管理</button>
+          <button class="btn" data-role="action" data-action-id="ACT-STR-055" data-component="el-button"
+                  data-permission="stream.selection:read" data-nav="PAGE-STR-STAT">查看组合分布统计</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" data-block="footer" data-role="section">
+      <div class="footer-bar" data-demo-state-target="toolbar">
+        <button class="btn" id="gc-prev" data-role="action" data-action-id="ACT-STR-058" data-component="el-button"
+                data-permission="stream.selection:read">上一步</button>
+        <div class="grow"></div>
+        <span class="footer-note" id="gc-footer-note">下一步：生成预览（不写库）。</span>
+        <button class="btn primary" id="gc-next" data-role="action" data-action-id="ACT-STR-056" data-component="el-button.primary"
+                data-permission="stream.selection:read">下一步</button>
+        <button class="btn primary state-hidden" id="gc-run" data-role="action" data-action-id="ACT-STR-057" data-component="el-button.primary"
+                data-permission="stream.selection:read" data-api="executeTeachingClassGenerate"
+                data-demo-message="已触发生成：新建教学班 4 个、写入成员 10 人、跳过已存在 1 个（幂等）；写入由班级管理模块执行，结果可在异步任务中心查看。">执行生成</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="state-hidden" data-demo-state-panel="loading">
+    <section class="card"><div class="card-body">
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:160px"></div><div class="skeleton-bar" style="width:280px"></div></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:160px"></div><div class="skeleton-bar" style="width:240px"></div></div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="empty">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">📭</div>
+        <div class="title">当前范围下没有可生成的组合</div>
+        <div class="desc">可能是该年级还没有生效选科，或选科尚未截止。先到「选科清单」核对已提交与未提交名单（listUnselectedStudent）。</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-STR-055" data-component="el-button.primary.plain"
+                data-permission="stream.selection:read" data-nav="PAGE-STR-STAT">去看组合分布统计</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="error">
+    <section class="card"><div class="card-body">
+      <div class="state-block error">
+        <div class="icon">⚠️</div>
+        <div class="title">生成失败</div>
+        <div class="desc">生成是幂等的：失败后重新执行不会产生重复教学班或重复成员（REQ-STR-057）；本次已写入的部分不做整批回滚，请按差异清单重试。</div>
+        <div class="req-id">请求编号 REQ-20261001-001980 · 错误码 EDU-STR-5006</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-STR-057" data-component="el-button.primary.plain" data-api="executeTeachingClassGenerate">重新执行</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="forbidden">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">🔒</div>
+        <div class="title">你没有生成教学班的权限</div>
+        <div class="desc">本页由<b>教务主任</b>触发（<span class="mono">REQ-STR-054</span>）；校领导与年级主任只读，班主任与任课教师不涉及本页。无权限时不降级为全量（<span class="mono">DS-DENY-03</span>）。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="submitting">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⏳</div>
+        <div class="title">正在执行生成</div>
+        <div class="desc">按钮已置 loading 并禁用；大规模生成转异步任务，可离开页面。</div>
+      </div>
+    </div></section>
+  </div>
+
+  <div class="state-hidden" data-demo-state-panel="partial">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⚠️</div>
+        <div class="title">部分教学班生成成功</div>
+        <div class="desc">成功的教学班已保留；失败项按教学班逐条列出原因与下一步，可只重试失败项（不做整批回滚）。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="queued">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⏳</div>
+        <div class="title">已进入队列</div>
+        <div class="desc">同一学校同时只允许一个教学班生成任务，超出排队；可在异步任务中心查看排队位置。</div>
+      </div>
+    </div></section>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  // PRD 6.1：按组合生成教学班的角色 = 教务主任（触发者）；超管全放行。
+  // 校领导 / 年级主任在本模块只读（看不到本页的写入口），班主任与任课教师不涉及。
+  var TRIGGER_ROLES = ['super_admin', 'academic_director'];
+  var MAX_STEP = 4;
+  var NOTES = {
+    1: '下一步：生成预览（不写库）。',
+    2: '下一步：执行生成（写入由班级管理模块执行，幂等）。',
+    3: '下一步：核对结果（人数与选科统计是否一致）。',
+    4: '核对完成。如需同步新审批通过的变更，点「增量生成并核对」。'
+  };
+  function q(sel) { return document.querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function currentRole() { return window.PrototypeShell.currentRole(); }
+
+  function setStep(index) {
+    if (index < 1) index = 1;
+    if (index > MAX_STEP) index = MAX_STEP;
+    q('#page-root').setAttribute('data-step', String(index));
+    qa('[data-step-content]').forEach(function (node) {
+      node.classList.toggle('state-hidden', Number(node.getAttribute('data-step-content')) !== index);
+    });
+    qa('#gc-steps .step').forEach(function (node, i) {
+      var order = i + 1;
+      node.classList.remove('on', 'done');
+      if (order < index) node.classList.add('done');
+      if (order === index) node.classList.add('on');
+    });
+    q('#gc-step-no').textContent = String(index);
+    q('#gc-prev').toggleAttribute('disabled', index === 1);
+    q('#gc-next').classList.toggle('state-hidden', index >= 3);
+    q('#gc-run').classList.toggle('state-hidden', index !== 3);
+    q('#gc-footer-note').textContent = NOTES[index];
+  }
+
+  q('#gc-next').addEventListener('click', function (event) {
+    var step = Number(q('#page-root').getAttribute('data-step'));
+    if (step === 1) {
+      var grade = q('#gc-grade');
+      var field = grade.closest('.field');
+      var ok = Boolean((grade.value || '').trim());
+      field.classList.toggle('has-error', !ok);
+      var err = field.querySelector('.error-text');
+      if (err) err.textContent = ok ? '' : '请选择年级范围';
+      if (!ok) { event.stopPropagation(); return; }
+    }
+    setStep(step + 1);
+  });
+  q('#gc-prev').addEventListener('click', function () {
+    setStep(Number(q('#page-root').getAttribute('data-step')) - 1);
+  });
+  qa('#gc-steps .step').forEach(function (node) {
+    node.addEventListener('click', function () {
+      var target = Number(node.getAttribute('data-goto'));
+      if (TRIGGER_ROLES.indexOf(currentRole()) === -1) return;
+      setStep(target);
+    });
+  });
+  q('#gc-run').addEventListener('click', function () {
+    window.setTimeout(function () { setStep(4); }, 1100);
+  });
+  // 深链接 #step=N（与其它向导页一致，便于截图与评审直接定位到某一步）
+  document.addEventListener('prototype:params', function (event) {
+    if (event.detail && event.detail.step) setStep(Number(event.detail.step));
+  });
+
+  var lastRole = '';
+  function applyRoleState(role) {
+    if (role === lastRole) return;
+    lastRole = role;
+    if (TRIGGER_ROLES.indexOf(role) === -1) window.PrototypeShell.applyState('forbidden');
+    else if (window.PrototypeShell.currentState() === 'forbidden') window.PrototypeShell.applyState('normal');
+    var hint = q('[data-role="scope-hint"]');
+    if (role === 'academic_director') hint.textContent = '数据范围：本校（DS-04）· 可写（教学班生成触发者）';
+    else if (role === 'school_leader') hint.textContent = '数据范围：本校（DS-04）· 只读（教学班生成由教务主任触发）';
+    else if (role === 'grade_leader') hint.textContent = '数据范围：本人负责年级（DS-05）· 只读';
+    else if (role === 'platform_ops') hint.textContent = '数据范围：平台运营协助视图 · 只读（DS-01）';
+    else if (role === 'super_admin') hint.textContent = '数据范围：全平台 · 不受限制（BR-ORG-014）';
+    else hint.textContent = '数据范围：本校（DS-04）· 无教学班生成权限';
+  }
+
+  setStep(1);
+  new MutationObserver(function () { applyRoleState(currentRole()); })
+    .observe(document.body, { attributes: true, attributeFilter: ['data-current-role'] });
+  applyRoleState(currentRole());
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+schema_version: "1.0"
+purpose: |
+  阶段 3（独立高保真原型）的视觉规范。本文件是阶段 3 的**冻结候选**：一经确认即冻结，
+  阶段 6 的生产前端按本文件的 token 落地（Tailwind / Element Plus 变量 / 设计 token 三处一致）。
+
+  与阶段 2 的关系：阶段 2（prototypes/functional/v1）回答「长什么样、怎么操作、页面怎么跳」，
+  视觉在 Element Plus 默认样式之上只做最小调整；阶段 3 回答「最终长什么样」，
+  在 Element Plus 规范与 apps/plus-ui 现有风格之上做精修，**不改阶段 2 的目录与文件**。
+
+source_of_truth:
+  - Element Plus 设计规范（色彩 / 字体 / 间距 / 组件状态）
+  - apps/plus-ui 的现有设计风格（主色 #409eff 系、卡片式布局、侧边深色导航）
+  - 阶段 2 的功能原型（信息架构、字段、动作、状态片段；本阶段只提升视觉，不改结构）
+
+principles:
+  - 信息层级优先：同一屏最多两级视觉重量（主标题 + 卡片标题），次要信息用次级文字色而不是缩小字号
+  - 克制的色彩：主色只用于主行动与选中态；语义色只用于状态标签、提示条与行内错误
+  - 密度可读兼备：表格行高 48px、卡片内边距 20px、表单控件高 36px（Element Plus 的 default 尺寸）
+  - 动效克制：只保留 150–200ms 的 hover / focus / 展开动效，不做装饰性动画
+  - 空态与错误态与主界面同等对待：不允许出现裸白屏
+
+colors:
+  brand:
+    primary: "#2f6bff"
+    primary_hover: "#1f5bf0"
+    primary_active: "#1a4fd6"
+    primary_light_1: "#ecf2ff"
+    primary_light_2: "#dbe6ff"
+  semantic:
+    success: "#0f9d58"
+    success_light: "#e8f6ee"
+    warning: "#e6a23c"
+    warning_light: "#fdf5e6"
+    danger: "#d93026"
+    danger_light: "#fdeceb"
+    info: "#6b7280"
+    info_light: "#f3f4f6"
+  neutral:
+    text_primary: "#1f2937"
+    text_regular: "#4b5563"
+    text_secondary: "#8a94a6"
+    text_placeholder: "#b6bdc9"
+    border: "#dcdfe6"
+    border_light: "#ebeef5"
+    fill: "#f6f7fb"
+    page_bg: "#f3f5f9"
+    card_bg: "#ffffff"
+  sidebar:
+    bg: "#1f2733"
+    bg_active: "#2f6bff"
+    text: "#c3cbd8"
+    text_active: "#ffffff"
+
+typography:
+  font_family: '-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif'
+  numeric_font: '"SF Mono", Consolas, "Courier New", monospace'
+  scale:
+    - { token: page_title, size: 20px, weight: 600, line_height: 1.4 }
+    - { token: card_title, size: 15px, weight: 600, line_height: 1.4 }
+    - { token: body, size: 14px, weight: 400, line_height: 1.6 }
+    - { token: body_strong, size: 14px, weight: 600, line_height: 1.6 }
+    - { token: caption, size: 12px, weight: 400, line_height: 1.5 }
+    - { token: metric, size: 26px, weight: 600, line_height: 1.2 }
+  rule: 正文最小 12px；表格内数字用 numeric_font；中英文之间保留一个空格（与 AGENTS.md 第 10 节一致）
+
+spacing:
+  base: 4px
+  scale: [4, 8, 12, 16, 20, 24, 32, 40]
+  usage:
+    page_padding: 24px
+    card_padding: 20px
+    card_gap: 16px
+    form_item_gap: 20px
+    table_cell_padding: "12px 16px"
+
+radius:
+  small: 4px
+  base: 8px
+  large: 12px
+  round: 999px
+
+shadow:
+  card: "0 1px 2px rgba(31, 41, 55, .04), 0 4px 12px rgba(31, 41, 55, .06)"
+  card_hover: "0 2px 6px rgba(31, 41, 55, .08), 0 10px 24px rgba(31, 41, 55, .08)"
+  overlay: "0 12px 32px rgba(31, 41, 55, .18)"
+
+layout:
+  viewports: { primary: 1440x900, secondary: 1920x1080, minimum: 1366x768 }
+  sidebar_width: 216px
+  navbar_height: 56px
+  tabbar_height: 40px
+  content_max_width: none
+  rule: 1366×768 及以上不出现整页横向滚动；仅表格内部可按需横向滚动
+
+components:
+  card:
+    carrier: section.card（白色 + radius.base + shadow.card）
+    header: 高度 52px，左侧卡片标题，右侧标签或动作
+  table:
+    header_bg: "#f7f9fc"
+    header_text: text_regular + weight 600
+    row_height: 48px
+    row_hover: primary_light_1
+    border: border_light 底部 1px
+  tag:
+    height: 22px
+    padding: "0 8px"
+    radius: small
+    variants: [success, warning, danger, info, primary]
+  button:
+    height: 36px
+    padding: "0 16px"
+    radius: base
+    variants: [primary, default, plain, danger, link]
+  input:
+    height: 36px
+    radius: base
+    focus: primary 边框 + 2px primary_light_2 外环
+  dialog:
+    width: { sm: 480px, md: 560px, lg: 720px }
+    radius: large
+    shadow: overlay
+    carrier_rule: 表单类浮层一律用弹窗（沿用 D-059 / CR-015）
+  drawer:
+    width: { md: 560px, lg: 720px }
+    carrier_rule: 详情类浮层保留抽屉
+  stat_card:
+    min_width: 150px
+    label: caption + text_secondary
+    value: metric + text_primary
+  chart:
+    primitive: 纯 CSS 柱条 / 环形（原型内不引 JS 图表库）
+    production_mapping: 阶段 6 由 ECharts 承接
+    rule: 图表必须与同页表格同源，每个柱条可下钻时登记 data-action-id
+
+motion:
+  duration: { fast: 150ms, base: 180ms }
+  easing: cubic-bezier(.4, 0, .2, 1)
+  scope: hover / focus / 展开折叠 / 浮层进入；不做循环动画与视差
+
+states:
+  rule: 与阶段 2 相同，五类基础状态（loading / empty / error / forbidden / submitting）+ 业务补充态
+  carrier: 状态片段替换主内容（主内容包在 [data-normal-view] 内），不允许堆在内容之后
+  alignment: 空态与错误态垂直居中在内容区，图标 40px、标题 15px、说明 13px、主行动按钮 1 个
+
+accessibility:
+  - 正文与背景对比度 ≥ 4.5:1；次级文字 ≥ 3:1
+  - 焦点可见：所有可交互元素有 2px 主色外环，不用 outline: none
+  - 图标不单独承载语义，必须配文字或 aria-label
+  - 状态不只靠颜色区分（标签同时给文字）
+
+checks:
+  - 是否只提升视觉、没有改动阶段 2 的信息架构与字段
+  - 是否使用了本文件的 token（不出现未登记的色值、字号、阴影）
+  - 是否每个页面都有五类状态片段且状态替换主内容
+  - 是否 1366×768 下不出现整页横向滚动
+  - 是否与 apps/plus-ui 的现有风格冲突（以现有代码为准，冲突时记入 decisions.md）

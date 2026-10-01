@@ -1,0 +1,514 @@
+schema_version: "1.0"
+generated_by: tools/make_hifi_coverage.py
+source_batch: 阶段 2 基线：prototypes/functional/v1（阶段 2 收尾提交 9b5fcdbd）
+derive_tool: tools/make_hifi_pages.py
+handcrafted_reference:
+  - file: reference/student-list-visual-reference.html
+    note: 阶段 3 手工精修的视觉基准（不在 pages/ 交付清单内，不参与覆盖度比对）；pages/ 下的交付页全部由阶段 2 派生
+totals:
+  pages: 45
+  page_ids: 95
+  action_ids: 403
+  state_panels: 229
+coverage_check:
+  pages_missing: []
+  pages_extra: []
+  page_ids_lost: []
+  action_ids_lost: []
+  state_panels_lost: {}
+pages:
+  - file: 403.html
+    origin: derived
+    title: "你没有访问该页面的权限 — 业务原型 v1（批次 2-4） · 高保真"
+    standalone: true
+    normal_view: false
+    hifi_css: true
+    hifi_shell: false
+    page_ids: ["PAGE-403"]
+    action_ids_count: 2
+    state_panels: []
+    elements: {buttons: 2, inputs: 0, selects: 0, tables: 0, tags: 0, cards: 0, fields: 0, filters: 0}
+  - file: 404.html
+    origin: derived
+    title: "页面不存在或已被移除 — 业务原型 v1（批次 2-4） · 高保真"
+    standalone: true
+    normal_view: false
+    hifi_css: true
+    hifi_shell: false
+    page_ids: ["PAGE-404"]
+    action_ids_count: 2
+    state_panels: []
+    elements: {buttons: 2, inputs: 0, selects: 0, tables: 0, tags: 0, cards: 0, fields: 0, filters: 0}
+  - file: 500.html
+    origin: derived
+    title: "服务异常，请稍后重试 — 业务原型 v1（批次 2-4） · 高保真"
+    standalone: true
+    normal_view: false
+    hifi_css: true
+    hifi_shell: false
+    page_ids: ["PAGE-500"]
+    action_ids_count: 3
+    state_panels: []
+    elements: {buttons: 3, inputs: 0, selects: 0, tables: 0, tags: 0, cards: 0, fields: 0, filters: 0}
+  - file: async-task-list.html
+    origin: derived
+    title: "异步任务 — 业务原型 v1（批次 2-9） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-IMP-EXPORT", "PAGE-IMP-TASK-DETAIL", "PAGE-IMP-TASK-LIST"]
+    action_ids_count: 15
+    state_panels: ["empty", "error", "forbidden", "loading", "partial", "queued", "submitting"]
+    elements: {buttons: 10, inputs: 3, selects: 2, tables: 1, tags: 14, cards: 28, fields: 25, filters: 5}
+  - file: audit-archive.html
+    origin: derived
+    title: "归档管理 — 业务原型 v1（批次 2-8） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-AUDIT-ARCHIVE"]
+    action_ids_count: 4
+    state_panels: ["empty", "error", "forbidden", "loading", "partial", "submitting"]
+    elements: {buttons: 3, inputs: 1, selects: 1, tables: 1, tags: 8, cards: 20, fields: 8, filters: 2}
+  - file: audit-log-list.html
+    origin: derived
+    title: "操作日志 — 业务原型 v1（批次 2-8） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["DIALOG-AUD-EXPORT", "PAGE-AUDIT-LOG-DETAIL", "PAGE-AUDIT-LOG-LIST", "PAGE-AUDIT-OBJECT-TIMELINE"]
+    action_ids_count: 12
+    state_panels: ["empty", "error", "forbidden", "loading", "partial", "submitting"]
+    elements: {buttons: 7, inputs: 4, selects: 3, tables: 1, tags: 24, cards: 26, fields: 26, filters: 6}
+  - file: audit-ops-access.html
+    origin: derived
+    title: "运营访问记录 — 业务原型 v1（批次 2-8） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-AUDIT-OPS-ACCESS"]
+    action_ids_count: 6
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 3, inputs: 2, selects: 2, tables: 1, tags: 7, cards: 15, fields: 11, filters: 4}
+  - file: audit-security-event.html
+    origin: derived
+    title: "登录与安全事件 — 业务原型 v1（批次 2-8） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-AUDIT-SECURITY-EVENT"]
+    action_ids_count: 3
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 2, inputs: 1, selects: 1, tables: 1, tags: 10, cards: 15, fields: 9, filters: 2}
+  - file: audit-sensitive-access.html
+    origin: derived
+    title: "敏感数据访问记录 — 业务原型 v1（批次 2-8） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-AUDIT-SENSITIVE-ACCESS"]
+    action_ids_count: 5
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 3, inputs: 1, selects: 2, tables: 1, tags: 6, cards: 15, fields: 10, filters: 3}
+  - file: class-detail.html
+    origin: derived
+    title: "班级详情 — 业务原型 v1（批次 2-3b） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-CLS-DETAIL", "PAGE-CLS-TRANSFER"]
+    action_ids_count: 20
+    state_panels: ["empty", "error", "forbidden", "loading", "partial", "queued", "submitting"]
+    elements: {buttons: 21, inputs: 4, selects: 1, tables: 5, tags: 25, cards: 14, fields: 22, filters: 0}
+  - file: class-import-roster.html
+    origin: derived
+    title: "编班表导入 — 业务原型 v1（批次 2-4） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-CLS-ROSTER-IMPORT"]
+    action_ids_count: 10
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 12, inputs: 0, selects: 2, tables: 1, tags: 6, cards: 25, fields: 4, filters: 0}
+  - file: class-list.html
+    origin: derived
+    title: "班级管理列表 — 业务原型 v1（批次 2-3a 样板） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-CLS-BATCH", "PAGE-CLS-COPY", "PAGE-CLS-CREATE", "PAGE-CLS-LEADER", "PAGE-CLS-LIST"]
+    action_ids_count: 32
+    state_panels: ["empty", "error", "forbidden", "loading", "partial", "queued", "submitting"]
+    elements: {buttons: 31, inputs: 12, selects: 18, tables: 2, tags: 31, cards: 8, fields: 38, filters: 1}
+  - file: class-move-students.html
+    origin: derived
+    title: "批量迁学生 — 业务原型 v1（批次 2-3d） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-CLS-MOVE"]
+    action_ids_count: 4
+    state_panels: ["empty", "error", "forbidden", "loading", "partial", "submitting"]
+    elements: {buttons: 9, inputs: 1, selects: 1, tables: 3, tags: 15, cards: 12, fields: 11, filters: 0}
+  - file: class-roster-add.html
+    origin: derived
+    title: "编班（添加学生） — 业务原型 v1（批次 2-3d） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-CLS-ROSTER-ADD"]
+    action_ids_count: 5
+    state_panels: ["empty", "error", "forbidden", "loading", "partial", "submitting"]
+    elements: {buttons: 9, inputs: 1, selects: 0, tables: 1, tags: 20, cards: 6, fields: 8, filters: 1}
+  - file: dead-letter-task.html
+    origin: derived
+    title: "死信任务 — 业务原型 v1（批次 2-9） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["DIALOG-DLQ-REPLAY", "PAGE-IMP-DEADLETTER"]
+    action_ids_count: 6
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 4, inputs: 2, selects: 1, tables: 1, tags: 5, cards: 18, fields: 9, filters: 2}
+  - file: grade-list.html
+    origin: derived
+    title: "年级管理列表 — 业务原型 v1（批次 2-2b-2b 样板） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-GRD-ARCHIVE", "PAGE-GRD-BATCH", "PAGE-GRD-CREATE", "PAGE-GRD-DETAIL", "PAGE-GRD-LEADER", "PAGE-GRD-LIST"]
+    action_ids_count: 32
+    state_panels: ["empty", "error", "forbidden", "loading", "partial", "queued", "submitting"]
+    elements: {buttons: 42, inputs: 4, selects: 11, tables: 5, tags: 42, cards: 23, fields: 23, filters: 1}
+  - file: import-wizard.html
+    origin: derived
+    title: "导入向导 — 业务原型 v1（批次 2-4） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-IMP-EXECUTE", "PAGE-IMP-TEMPLATE", "PAGE-IMP-VALIDATE", "PAGE-IMP-WIZARD"]
+    action_ids_count: 10
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 12, inputs: 0, selects: 3, tables: 1, tags: 8, cards: 25, fields: 7, filters: 0}
+  - file: login.html
+    origin: derived
+    title: "登录 — 业务原型 v1（批次 2-4） · 高保真"
+    standalone: true
+    normal_view: false
+    hifi_css: true
+    hifi_shell: false
+    page_ids: ["PAGE-LOGIN"]
+    action_ids_count: 3
+    state_panels: []
+    elements: {buttons: 1, inputs: 2, selects: 1, tables: 0, tags: 0, cards: 0, fields: 3, filters: 0}
+  - file: promotion-create.html
+    origin: derived
+    title: "新建升班任务 — 业务原型 v1（批次 2-3e-s2） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-PRM-CREATE"]
+    action_ids_count: 9
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 12, inputs: 1, selects: 3, tables: 0, tags: 15, cards: 22, fields: 4, filters: 0}
+  - file: promotion-execute.html
+    origin: derived
+    title: "升班执行与进度 — 业务原型 v1（批次 2-3e-s4） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-PRM-EXECUTE"]
+    action_ids_count: 4
+    state_panels: ["error", "forbidden", "loading", "partial", "queued", "submitting"]
+    elements: {buttons: 7, inputs: 0, selects: 0, tables: 0, tags: 10, cards: 21, fields: 0, filters: 0}
+  - file: promotion-history.html
+    origin: derived
+    title: "异动历史 — 业务原型 v1（批次 2-5） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-PRM-HISTORY"]
+    action_ids_count: 7
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 8, inputs: 1, selects: 3, tables: 1, tags: 13, cards: 15, fields: 12, filters: 2}
+  - file: promotion-list.html
+    origin: derived
+    title: "升班任务列表 — 业务原型 v1（批次 2-3e 样板） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-PRM-LIST"]
+    action_ids_count: 12
+    state_panels: ["empty", "error", "forbidden", "loading", "partial", "queued", "submitting"]
+    elements: {buttons: 14, inputs: 2, selects: 5, tables: 1, tags: 21, cards: 8, fields: 16, filters: 2}
+  - file: promotion-preview.html
+    origin: derived
+    title: "升班预览与调整 — 业务原型 v1（批次 2-3e-s3） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-PRM-ADJUST", "PAGE-PRM-PREVIEW"]
+    action_ids_count: 10
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 14, inputs: 3, selects: 5, tables: 1, tags: 27, cards: 18, fields: 15, filters: 0}
+  - file: promotion-result.html
+    origin: derived
+    title: "升班执行结果与重试 — 业务原型 v1（批次 2-3e-s4） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-PRM-RESULT"]
+    action_ids_count: 5
+    state_panels: ["empty", "error", "forbidden", "loading", "partial", "submitting"]
+    elements: {buttons: 8, inputs: 0, selects: 0, tables: 1, tags: 13, cards: 19, fields: 6, filters: 0}
+  - file: promotion-transfer.html
+    origin: derived
+    title: "跨校转学（转入校接收） — 业务原型 v1（批次 2-5） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-PRM-TRANSFER"]
+    action_ids_count: 5
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 5, inputs: 1, selects: 3, tables: 1, tags: 8, cards: 25, fields: 10, filters: 0}
+  - file: promotion-validate.html
+    origin: derived
+    title: "升班校验结果 — 业务原型 v1（批次 2-3e-s4） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-PRM-VALIDATE"]
+    action_ids_count: 5
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 7, inputs: 0, selects: 0, tables: 1, tags: 11, cards: 19, fields: 6, filters: 0}
+  - file: school-campus.html
+    origin: derived
+    title: "校区管理 — 业务原型 v1（批次 2-6b） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-SCH-CAMPUS"]
+    action_ids_count: 9
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 9, inputs: 5, selects: 0, tables: 1, tags: 6, cards: 19, fields: 11, filters: 0}
+  - file: school-init.html
+    origin: derived
+    title: "开通初始化向导 — 业务原型 v1（批次 2-6b） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-SCH-INIT"]
+    action_ids_count: 3
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 3, inputs: 1, selects: 3, tables: 0, tags: 9, cards: 25, fields: 5, filters: 0}
+  - file: school-list.html
+    origin: derived
+    title: "学校管理 — 业务原型 v1（批次 2-6） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-SCH-CREATE", "PAGE-SCH-DETAIL", "PAGE-SCH-DISABLE", "PAGE-SCH-EDIT", "PAGE-SCH-LIST", "PAGE-SCH-STAGE"]
+    action_ids_count: 22
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 26, inputs: 4, selects: 6, tables: 1, tags: 13, cards: 24, fields: 28, filters: 1}
+  - file: stream-approve.html
+    origin: derived
+    title: "变更审批待办 — 业务原型 v1（批次 2-7b） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["DIALOG-STR-APPROVE", "PAGE-STR-APPROVE"]
+    action_ids_count: 8
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 6, inputs: 2, selects: 2, tables: 1, tags: 9, cards: 18, fields: 17, filters: 3}
+  - file: stream-config.html
+    origin: derived
+    title: "选科配置 — 业务原型 v1（批次 2-7a） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-STR-CONFIG"]
+    action_ids_count: 4
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 4, inputs: 2, selects: 0, tables: 0, tags: 5, cards: 17, fields: 4, filters: 0}
+  - file: stream-generate-class.html
+    origin: derived
+    title: "按组合生成教学班 — 业务原型 v1（批次 2-7b） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-STR-GEN-CLASS"]
+    action_ids_count: 9
+    state_panels: ["empty", "error", "forbidden", "loading", "partial", "queued", "submitting"]
+    elements: {buttons: 8, inputs: 0, selects: 1, tables: 2, tags: 16, cards: 29, fields: 14, filters: 0}
+  - file: stream-list.html
+    origin: derived
+    title: "选科清单 — 业务原型 v1（批次 2-7a） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-STR-CHANGE", "PAGE-STR-HISTORY", "PAGE-STR-LIST"]
+    action_ids_count: 7
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 8, inputs: 1, selects: 0, tables: 1, tags: 13, cards: 16, fields: 10, filters: 0}
+  - file: stream-selection.html
+    origin: derived
+    title: "学生选科 — 业务原型 v1（批次 2-7a） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-STR-STUDENT"]
+    action_ids_count: 5
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 3, inputs: 0, selects: 0, tables: 0, tags: 6, cards: 20, fields: 0, filters: 0}
+  - file: stream-stat.html
+    origin: derived
+    title: "组合分布统计 — 业务原型 v1（批次 2-7b） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-STR-STAT"]
+    action_ids_count: 5
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 7, inputs: 0, selects: 0, tables: 2, tags: 13, cards: 25, fields: 10, filters: 0}
+  - file: student-cross-transfer.html
+    origin: derived
+    title: "跨校转学（转出校） — 业务原型 v1（批次 2-5） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-STU-CROSS-TRANSFER"]
+    action_ids_count: 4
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 4, inputs: 1, selects: 3, tables: 1, tags: 10, cards: 25, fields: 10, filters: 0}
+  - file: student-import.html
+    origin: derived
+    title: "学生批量导入 — 业务原型 v1（批次 2-4） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-STU-IMPORT"]
+    action_ids_count: 10
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 12, inputs: 0, selects: 2, tables: 1, tags: 6, cards: 25, fields: 4, filters: 0}
+  - file: student-list.html
+    origin: derived
+    title: "学生管理列表 — 业务原型 v1（批次 2-1 样板） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-PRM-CHANGE", "PAGE-STU-CREATE", "PAGE-STU-DETAIL", "PAGE-STU-EDIT", "PAGE-STU-HISTORY", "PAGE-STU-LIST", "PAGE-STU-STATUS", "PAGE-STU-TRANSFER"]
+    action_ids_count: 41
+    state_panels: ["empty", "error", "forbidden", "loading", "partial", "queued", "submitting"]
+    elements: {buttons: 53, inputs: 35, selects: 20, tables: 2, tags: 32, cards: 23, fields: 72, filters: 1}
+  - file: subject-list.html
+    origin: derived
+    title: "学科与配置 — 业务原型 v1（批次 2-6c） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-SUB-BATCH", "PAGE-SUB-CREATE", "PAGE-SUB-EDIT", "PAGE-SUB-LIST", "PAGE-SUB-STAGE", "PAGE-SUB-STREAM"]
+    action_ids_count: 19
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 18, inputs: 5, selects: 4, tables: 1, tags: 31, cards: 15, fields: 22, filters: 1}
+  - file: teacher-assign.html
+    origin: derived
+    title: "任教关系设置 — 业务原型 v1（批次 2-2b-2） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["DIALOG-TCH-COPY", "PAGE-TCH-ASSIGN"]
+    action_ids_count: 12
+    state_panels: ["empty", "error", "forbidden", "loading", "partial", "queued", "submitting"]
+    elements: {buttons: 15, inputs: 3, selects: 7, tables: 5, tags: 28, cards: 17, fields: 16, filters: 0}
+  - file: teacher-import.html
+    origin: derived
+    title: "教师批量导入 — 业务原型 v1（批次 2-4） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-TCH-IMPORT"]
+    action_ids_count: 10
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 12, inputs: 0, selects: 2, tables: 1, tags: 6, cards: 25, fields: 4, filters: 0}
+  - file: teacher-list.html
+    origin: derived
+    title: "教师管理列表 — 业务原型 v1（批次 2-2a 样板） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-TCH-CREATE", "PAGE-TCH-DETAIL", "PAGE-TCH-EDIT", "PAGE-TCH-LIST", "PAGE-TCH-ROLE"]
+    action_ids_count: 39
+    state_panels: ["empty", "error", "forbidden", "loading", "partial", "queued", "submitting"]
+    elements: {buttons: 49, inputs: 17, selects: 13, tables: 6, tags: 56, cards: 26, fields: 40, filters: 1}
+  - file: teaching-class-list.html
+    origin: derived
+    title: "教学班管理 — 业务原型 v1（批次 2-7b） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["DIALOG-TCL-DISABLE", "DRAWER-CLS-TEACHING", "PAGE-CLS-TEACHING"]
+    action_ids_count: 11
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 8, inputs: 1, selects: 3, tables: 1, tags: 12, cards: 24, fields: 17, filters: 3}
+  - file: term-list.html
+    origin: derived
+    title: "学年学期列表 — 业务原型 v1（批次 2-6b） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-TERM-ARCHIVE", "PAGE-TERM-CREATE", "PAGE-TERM-LIST", "PAGE-TERM-SETCURRENT"]
+    action_ids_count: 10
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 11, inputs: 5, selects: 2, tables: 1, tags: 7, cards: 13, fields: 13, filters: 0}
+  - file: term-terms.html
+    origin: derived
+    title: "学期管理 — 业务原型 v1（批次 2-6b） · 高保真"
+    standalone: false
+    normal_view: false
+    hifi_css: true
+    hifi_shell: true
+    page_ids: ["PAGE-TERM-TERMS"]
+    action_ids_count: 9
+    state_panels: ["empty", "error", "forbidden", "loading", "submitting"]
+    elements: {buttons: 9, inputs: 3, selects: 0, tables: 1, tags: 5, cards: 19, fields: 9, filters: 0}

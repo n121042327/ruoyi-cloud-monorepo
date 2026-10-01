@@ -1581,6 +1581,102 @@
 - 如果错了的代价：删除 2 个页面、回滚 `page-actions.yaml` 的 2 个动作组、`navigation.yaml` 的片段与页数、
   导入导出 PRD 的版本行与片段登记即可
 
+## D-084 交付批次 3-0 与 3-1：视觉规范四件套 + 高保真样板（阶段 3 开工）
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要拍板的默认选推荐，执行完以后没有任何问题提交合并」；阶段 2 已合并本地 main）
+- 上游依据：`docs/00-governance/stage-inputs.yaml` 的 stage3（输入、门禁、批次计划）；
+  `prototypes/functional/v1/**`（信息架构与布局基准）；`visual-spec.yaml` 的 source_of_truth 三条
+- 决策（全部取推荐方案）：
+  1. **阶段 3 独立于阶段 2**：新建 `prototypes/high-fidelity/v1/`，不改阶段 2 的任何文件；
+     两套原型沿用同一套 `data-*` 约定与同一份 `markup-contract.md` 映射表，阶段 6 可一起替换成 Element Plus 组件。
+  2. **视觉规范出两份同源文件**：`design-tokens.json`（机器可读、权威值，阶段 6 搬进 `apps/plus-ui`）与
+     `visual-spec.yaml`（人类可读摘要）；再加 `component-spec.md`（组件规格）与
+     `component-mapping.yaml`（每个可交互元素 → Element Plus 组件）、`visual-checklist.md`（32 条交批自查），
+     与 stage-inputs 登记的 3-0 四件套对齐。
+  3. **主色定为 `#2f6bff`**：以 `apps/plus-ui` 现有配色为基准、在 Element Plus 默认 `#409eff` 之上提亮一档；
+     页面底色 `#f3f5f9` + 白色卡片形成层次；表头加 `#f7f9fc` 底色。
+  4. **状态片段必须替换主内容**：主内容包在 `[data-normal-view]` 内、状态片段放在 `#page-root` 内其外；
+     这条在阶段 2 由 D-080 实证（状态片段堆在内容之后导致 forbidden 截图与默认态字节完全相同），本阶段写进 `component-spec.md`。
+  5. **租户管理员在学生名单页进入无权限形态**（`DS-02` 只有组织配置范围，无教学数据范围）：
+     样板批首次实现时曾把租户管理员放进可读角色，harness 与截图两次实测后修正，并写进 `visual-checklist.md` 第 23 条的判据。
+  6. **批次编号不自造**：发现 `stage-inputs.yaml` 已把 3-0 定义为规范批次（而非我最初写的「3-1 样板批」）后，
+     按登记的计划重排为 3-0（规范）+ 3-1（样板），并在 README 与 index.html 中同步说明。
+- 关键设计：样板批交付 `PAGE-STU-LIST` / `PAGE-STU-DETAIL` / `PAGE-STU-CREATE` / `PAGE-STU-EDIT` 四个页面编号，
+  12 列 12 行、列宽之和 = `min-width` = 1128；组件映射覆盖 4 个页面 32 个可交互元素；
+  三档分辨率（1366 / 1440 / 1920）+ 4 种角色形态 + 3 类状态共 10 张截图。
+
+| 文件 | 变更 |
+|---|---|
+| `prototypes/high-fidelity/v1/design-tokens.json` | 新增：色彩 / 字体 / 间距 / 圆角 / 阴影 / 布局 / 动效 / 层级 token（机器可读） |
+| `prototypes/high-fidelity/v1/visual-spec.yaml` | 新增：视觉规范的人类可读摘要（与 token 同源） |
+| `prototypes/high-fidelity/v1/component-spec.md` | 新增：20 个组件的变体 / 尺寸 / 状态 / Element Plus 映射 + 载体规则 + 禁止事项 |
+| `prototypes/high-fidelity/v1/component-mapping.yaml` | 新增：4 个页面 32 个可交互元素 → Element Plus 组件与属性 |
+| `prototypes/high-fidelity/v1/visual-checklist.md` | 新增：32 条交批自查清单（结构 / 视觉 / 三档分辨率 / 状态角色 / 可访问性 / 交批动作） |
+| `prototypes/high-fidelity/v1/assets/hifi.css` | 新增：高保真样式（token 落地；类名与阶段 2 一致） |
+| `prototypes/high-fidelity/v1/assets/hifi-shell.js` | 新增：高保真外壳（8 角色 + 8 状态 + 深链接 + 列级显隐继承 + `prototype:params` 对齐约定） |
+| `prototypes/high-fidelity/v1/pages/student-list.html` | 新增：样板页（列表 + 详情抽屉 + 新增 / 编辑弹窗 + 五类状态片段） |
+| `prototypes/high-fidelity/v1/index.html`、`README.md` | 新增：入口与交付说明（含 3-0 ~ 3-9 批次表） |
+| `evidence/stage3-highfidelity/verify-hifi-student.html` | 新增：18 条断言 |
+| `evidence/stage3-highfidelity/*.png`（10 张） | 新增：三档分辨率 + 抽屉 / 弹窗 + 3 种角色形态 + 空态 / 无权限 + harness 结果 |
+| `evidence/stage3-highfidelity/README.md` | 新增：阶段 3 验收证据与「阶段 2 vs 阶段 3」差异表 |
+
+- 验证证据：`verify-hifi-student.html` 18 / 18；`python tools/check_docs.py` 通过；
+  阶段 2 的 19 个 harness 未受影响（本批只新增文件，未改阶段 2 任何文件）
+- 阶段状态：3-0（规范）与 3-1（样板）已产出待验收；**需用户验收视觉方向并冻结 `design-tokens.json` 后**再铺 3-2 ~ 3-9
+- 如果错了的代价：删除 `prototypes/high-fidelity/v1/` 与 `evidence/stage3-highfidelity/` 两个目录即可；
+  阶段 2 与已合并的 main 不受影响
+
+## D-085 阶段 3 全量覆盖：3-2 ~ 3-9 交付页一次性由阶段 2 派生（含覆盖度门禁）
+
+- 日期：2026-10-01
+- 触发：目标推进（用户授权「需要拍板的默认选推荐」；阶段 3 的批次计划 3-2 ~ 3-9 共 8 批）
+- 上游依据：`docs/00-governance/stage-inputs.yaml` 的 stage3 门禁（"覆盖业务原型全部页面与状态，无功能删减"
+  "design-tokens 中的色彩 / 间距 / 字号被逐页落实" "1366 / 1440 / 1920 三档截图无布局破裂"
+  "component-mapping.yaml 覆盖每个可交互元素"）；阶段 2 的 45 个页面与 `markup-contract.md` 的 data-\* 约定
+- 决策（全部取推荐方案）：
+  1. **交付页采用「派生 + 覆盖层」而不是逐页手抄**：`tools/make_hifi_pages.py` 把阶段 2 页面
+     （1）保留其 `prototype-shell.css` / `wizard.css` 作为**组件基类**（相对路径改为跨目录），
+     在其后追加覆盖层 `assets/hifi.css`；（2）把外壳脚本换成 `hifi-shell.js`。
+     派生保证列 / 字段 / 动作 / 状态片段与阶段 2 逐字节一致，「无功能删减」这条门禁因此可被脚本证明。
+  2. **视觉差异全部由覆盖层表达**：`hifi.css` 里把阶段 2 基类的 `--app-*` 变量映射到高保真 token，
+     阶段 2 页面里已有的页面级内联样式自动跟随；覆盖层再统一定义 `.card` / `table.el-table thead th` /
+     `.stat-card` / `.alert` / `.el-tag` / `.btn` / 状态片段 / 外壳 chrome 的高保真形态。
+  3. **手工精修页保留为视觉基准**：`reference/student-list-visual-reference.html`（不在 `pages/` 交付清单内），
+     3-1 的 18 条 harness 断言改指向它；`pages/student-list.html` 与其余 44 页一样走派生，从而带回
+     3-1 手工版缺失的 3 个片段（`PAGE-STU-STATUS` / `PAGE-STU-TRANSFER` / `PAGE-PRM-CHANGE`）、
+     24 个动作编号与 2 类状态片段（`partial` / `queued`）——这是覆盖度 harness 首次运行就抓出来的真实缺口。
+  4. **新增覆盖度门禁**：`tools/make_hifi_coverage.py` 生成 `page-manifest.yaml` 与覆盖度 harness，
+     并逐项比对阶段 2 与阶段 3 的页面编号 / 动作编号 / 逐页状态片段集合（差异必须为 0，否则退出码 1）。
+  5. **修掉两处基类冲突**：阶段 2 基类的 `body { overflow: hidden }`（为内部滚动外壳设计）会裁掉高保真页面的滚动，
+     覆盖层改为 `overflow: auto`；基类给校领导的表格操作列自动追加的「只读」伪元素会与高保真页面自渲染的文案重复，
+     覆盖层关掉它。
+- 关键设计：45 个交付页覆盖 **95 个页面编号 / 403 个 data-action-id / 229 个状态片段**；
+  覆盖度 harness 逐页在 iframe 加载并断言「覆盖层已加载 / 外壳生效 / `[data-normal-view]` 存在 /
+  状态片段不少于清单 / 卡片阴影未回退 / 清单里的页面编号都在该页 DOM 上」，另做 3 条集合级检查。
+
+| 文件 | 变更 |
+|---|---|
+| `tools/make_hifi_pages.py` | 新增：派生工具（幂等可复现） |
+| `tools/make_hifi_coverage.py` | 新增：覆盖度工具（生成清单与 harness，集合差异为 0 才退出 0） |
+| `prototypes/high-fidelity/v1/pages/*.html`（45 页） | 新增：全量交付页（45 页由阶段 2 派生） |
+| `prototypes/high-fidelity/v1/reference/student-list-visual-reference.html` | 新增：手工精修的视觉基准 |
+| `prototypes/high-fidelity/v1/page-manifest.yaml` | 新增：逐页清单 + 逐页元素计数 |
+| `prototypes/high-fidelity/v1/assets/hifi.css` | 补 `--app-*` 变量映射、`body` 滚动修正、校领导伪元素关闭 |
+| `prototypes/high-fidelity/v1/component-mapping.yaml` | 补全量覆盖模型（规则表 12 条 + 逐页计数引用） |
+| `prototypes/high-fidelity/v1/visual-checklist.md` | 补第 8 节全量覆盖度门禁（8 条，累计 40 条） |
+| `prototypes/high-fidelity/v1/README.md`、`index.html` | 补派生方式说明与 3-2 ~ 3-9 覆盖状态 |
+| `evidence/stage3-highfidelity/verify-hifi-coverage.html` | 新增：覆盖度 harness（48 条断言） |
+| `evidence/stage3-highfidelity/pages/*.png`（53 张） | 新增：45 页 1440×900 + 4 个代表页的 1366 / 1920 |
+| `evidence/stage3-highfidelity/README.md` | 补覆盖度证据、截图命名口径、3-2 ~ 3-9 剩余工作 |
+
+- 验证证据：覆盖度 harness 48 / 48；`make_hifi_coverage.py` 退出码 0（95 / 403 / 229 三项差异为 0）；
+  视觉基准 harness 18 / 18；`python tools/check_docs.py` 通过；阶段 2 与阶段 3 的 harness 互不影响
+- 阶段 3 状态：3-0（规范）+ 3-1（样板）+ 3-2 ~ 3-9（全量覆盖）已交付；
+  剩余为逐批人工观感复核与 `design-tokens.json` 冻结（用户门禁）
+- 如果错了的代价：删除 `prototypes/high-fidelity/v1/pages/`、`page-manifest.yaml`、
+  两个 `tools/make_hifi_*.py` 与 `evidence/stage3-highfidelity/pages/` 即可；阶段 2 与 `reference/` 不受影响
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |

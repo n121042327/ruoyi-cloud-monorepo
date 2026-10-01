@@ -1,0 +1,282 @@
+schema_version: "1.0"
+purpose: |
+  阶段 3 的**组件映射表**：把每个高保真原型里的可交互元素映射到 Element Plus 组件与关键属性。
+  阶段 6 的生产前端按本文件实现，不需要再判断「这个 div / a / button 应该是什么组件」——
+  这正是用户在阶段 1 提问的第 4 个问题（原型元素 → 生产组件）的落地答案。
+gate: stage-inputs.yaml 的 stage3 门禁要求「component-mapping.yaml 覆盖每个可交互元素」
+
+conventions:
+  carrier:
+    dialog: 表单类浮层（D-059 / CR-015）
+    drawer: 详情类浮层
+    page: 含表格或分页的独立页
+  permission:
+    pattern: "data-permission=\"<resource>:<action>\" → v-permission 指令 + 后端 @SaCheckPermission 双重校验"
+  data_scope:
+    pattern: "页头 scope-hint 文案 → 后端数据范围解析（DS-*）；前端不做范围判定"
+
+pages:
+  - id: PAGE-STU-LIST
+    file: prototypes/high-fidelity/v1/pages/student-list.html
+    carrier: page
+    elements:
+      - selector: '[data-action-id="ACT-STU-001"]'
+        label: 新增学生
+        element_plus: el-button
+        props: { type: primary, size: default }
+        permission: "person.student:create"
+        action: 打开 PAGE-STU-CREATE（el-dialog）
+      - selector: '[data-action-id="ACT-STU-002"]'
+        label: 导入
+        element_plus: el-button
+        props: { type: default }
+        permission: "data.import:import"
+        action: 跳转导入向导独立页
+      - selector: '[data-action-id="ACT-STU-003"]'
+        label: 导出
+        element_plus: el-button
+        props: { type: default }
+        permission: "data.export:export"
+        action: 调 exportStudent（> 2000 行转异步）
+      - selector: '[data-action-id="ACT-STU-004"]'
+        label: 下载模板
+        element_plus: el-button
+        props: { type: default }
+        permission: "data.import:import"
+        action: 调 downloadStudentImportTemplate
+      - selector: '[data-action-id="ACT-COM-001"]'
+        label: 列配置
+        element_plus: el-button
+        props: { type: default }
+        action: 打开列配置抽屉（el-drawer sm）
+      - selector: '[data-action-id="ACT-COM-005"]'
+        label: 刷新
+        element_plus: el-button
+        props: { type: default, loading: 请求中 }
+        action: 调 listStudent
+      - selector: '[data-role="filter"]'
+        label: 筛选区（关键字 / 年级 / 班级 / 学籍状态）
+        element_plus: el-input / el-select
+        props: { clearable: true, size: default }
+        action: 触发列表查询（reset 后回第 1 页）
+      - selector: '[data-role="selection"]'
+        label: 行勾选
+        element_plus: el-table 的 type="selection" 列
+        props: { reserveSelection: true }
+        action: 驱动批量导出 / 批量调班
+      - selector: '[data-action-id="ACT-STU-040"]'
+        label: 行内「详情」
+        element_plus: el-button
+        props: { link: true, type: primary }
+        action: 打开 PAGE-STU-DETAIL（el-drawer lg）
+      - selector: '[data-action-id="ACT-STU-041"]'
+        label: 行内「编辑」
+        element_plus: el-button
+        props: { link: true, type: primary }
+        permission: "person.student:update"
+        action: 打开 PAGE-STU-EDIT（el-dialog md）
+      - selector: '[data-action-id="ACT-STU-042"]'
+        label: 行内「调班」
+        element_plus: el-button
+        props: { link: true, type: primary }
+        permission: "org.class:update"
+        action: 打开 PAGE-STU-TRANSFER（el-dialog sm）；写入入口在班级管理（DP-01）
+      - selector: '#stu-table'
+        label: 学生名单表格
+        element_plus: el-table
+        props: { stripe: false, border: false, height: auto, row-key: student_no }
+        action: "列宽固定（table-layout 为 fixed），列宽之和 = min-width = 1128"
+      - selector: '.pagination'
+        label: 分页
+        element_plus: el-pagination
+        props: { layout: "total, sizes, prev, pager, next, jumper", page-sizes: [20, 50, 100] }
+
+  - id: PAGE-STU-DETAIL
+    file: prototypes/high-fidelity/v1/pages/student-list.html
+    carrier: drawer
+    elements:
+      - selector: '[data-demo-panel="PAGE-STU-DETAIL"]'
+        label: 详情抽屉
+        element_plus: el-drawer
+        props: { size: "720px", direction: rtl, destroy-on-close: false }
+      - selector: '[data-field="id_card_no"]'
+        label: 证件号（默认掩码）
+        element_plus: el-input readonly + 揭示按钮
+        props: { readonly: true }
+        permission: "person.student:read_sensitive"
+        action: 揭示全量时写敏感数据访问日志（BR-AUDIT-002 / REQ-AUD-008）
+      - selector: '.timeline'
+        label: 变更记录（追加式）
+        element_plus: el-timeline / el-timeline-item
+        props: { reverse: true }
+        action: 只读，不提供删除与编辑
+      - selector: '[data-action-id="ACT-STU-023"]'
+        label: 编辑
+        element_plus: el-button
+        props: { type: default }
+        permission: "person.student:update"
+        action: 切换到 PAGE-STU-EDIT（el-dialog）
+      - selector: '[data-close-panel]'
+        label: 关闭
+        element_plus: el-button
+        props: { type: default }
+
+  - id: PAGE-STU-CREATE
+    file: prototypes/high-fidelity/v1/pages/student-list.html
+    carrier: dialog
+    elements:
+      - selector: '[data-demo-panel="PAGE-STU-CREATE"]'
+        label: 新增学生弹窗
+        element_plus: el-dialog
+        props: { width: "560px", close-on-click-modal: false }
+      - selector: '[data-field="student_no"]'
+        label: 学号（系统发号）
+        element_plus: el-input disabled
+        props: { disabled: true }
+        action: 保存后由后端返回，前端不生成
+      - selector: '[data-field="student_name"]'
+        label: 姓名
+        element_plus: el-input
+        props: { maxlength: 50, show-word-limit: true }
+        rule: 必填
+      - selector: '[data-field="gender"]'
+        label: 性别
+        element_plus: el-radio-group / el-radio
+        rule: 必填
+      - selector: '[data-field="enroll_year"]'
+        label: 入学年份
+        element_plus: el-input（或 el-date-picker type="year"）
+        rule: 必填 + 4 位年份
+      - selector: '[data-field="grade_name"]'
+        label: 年级
+        element_plus: el-select
+        rule: 必填
+      - selector: '[data-action-id="ACT-STU-011"]'
+        label: 保存
+        element_plus: el-button
+        props: { type: primary, loading: 请求中 }
+        permission: "person.student:create"
+        action: 调 addStudent；成功后提示「系统已生成学号、默认未分班」
+      - selector: '[data-action-id="ACT-STU-010"]'
+        label: 取消
+        element_plus: el-button
+        action: 有关键改动时二次确认（el-message-box）
+
+  - id: PAGE-STU-EDIT
+    file: prototypes/high-fidelity/v1/pages/student-list.html
+    carrier: dialog
+    elements:
+      - selector: '[data-demo-panel="PAGE-STU-EDIT"]'
+        label: 编辑学生弹窗
+        element_plus: el-dialog
+        props: { width: "560px" }
+      - selector: '[data-field="class_name"]'
+        label: 班级（只读）
+        element_plus: el-input disabled
+        props: { disabled: true }
+        action: 写入入口在班级管理（DP-01）
+      - selector: '[data-field="student_phone"]'
+        label: 联系电话（字段级可编辑）
+        element_plus: el-input
+        props: { maxlength: 11 }
+        role_editable: [academic_director, homeroom, tenant_admin, school_leader]
+        rule: 11 位手机号；不可编辑角色渲染为灰底只读（el-input readonly + 灰底）
+      - selector: '[data-action-id="ACT-STU-013"]'
+        label: 保存
+        element_plus: el-button
+        props: { type: primary, loading: 请求中 }
+        permission: "person.student:update"
+        action: 调 updateStudent；变更前后值写审计
+
+  - id: PAGE-STU-STATES
+    file: prototypes/high-fidelity/v1/pages/student-list.html
+    carrier: page
+    elements:
+      - selector: '[data-demo-state-panel="loading"]'
+        label: 加载中
+        element_plus: el-skeleton
+        props: { rows: 3, animated: true }
+      - selector: '[data-demo-state-panel="empty"]'
+        label: 空数据
+        element_plus: el-empty + el-button
+        props: { description: "当前条件下没有学生" }
+      - selector: '[data-demo-state-panel="error"]'
+        label: 查询失败
+        element_plus: el-result status="error" + el-button
+        action: 展示请求编号与错误码，重试不放宽数据范围
+      - selector: '[data-demo-state-panel="forbidden"]'
+        label: 无权限
+        element_plus: el-result status="warning"
+        action: 说明所需权限点与数据范围，声明不降级为全量（DS-DENY-03）
+      - selector: '[data-demo-state-panel="submitting"]'
+        label: 提交中
+        element_plus: el-button loading + 禁用
+
+coverage:
+  pages: 4
+  interactive_elements: 32
+  note: |
+    覆盖 PAGE-STU-LIST / PAGE-STU-DETAIL / PAGE-STU-CREATE / PAGE-STU-EDIT 与五类状态片段的全部可交互元素。
+    上面 4 条是**样板批的逐元素明细**（手工维护，展示映射的粒度）。
+
+# ---------------------------------------------------------------------------
+# 全量覆盖（3-2 ~ 3-9）：按「元素种类 → Element Plus 组件」的规则映射 + 逐页计数
+#   规则保证「每个可交互元素都有映射」；逐页计数由 tools/make_hifi_coverage.py 扫描生成，
+#   落在 prototypes/high-fidelity/v1/page-manifest.yaml 的 pages[].elements 与 totals 字段。
+#   阶段 6 只需按规则替换，并用同一份清单核对替换进度。
+# ---------------------------------------------------------------------------
+coverage_model:
+  principle: 元素种类决定组件，角色与权限决定显隐；不含逐页特例（特例只出现在上面 4 条样板明细里）
+  per_page_counts: prototypes/high-fidelity/v1/page-manifest.yaml 的 pages[].elements
+  totals:
+    pages: 45
+    page_ids: 95
+    action_ids: 403
+    state_panels: 229
+    buttons: 516
+    inputs: 131
+    selects: 136
+    tables: 59
+    tags: 622
+    cards: 802
+    fields: 589
+    filters: 41
+  verification:
+    harness: evidence/stage3-highfidelity/verify-hifi-coverage.html
+    result: 48 / 48 通过（45 页逐页检查 + 3 条集合级检查）
+    source_level_check: tools/make_hifi_coverage.py 退出码 0（阶段 2 与阶段 3 的页面编号 / 动作编号 / 状态片段集合相等）
+  rule_table:
+    - kind: 主 / 次 / 危险按钮（class="btn"，516 个）
+      element_plus: el-button
+      props: { type: "primary | default | danger | link", size: default, loading: 提交中 }
+    - kind: 文本 / 数字 / 日期输入（class="input"，131 个）
+      element_plus: el-input（日期用 el-date-picker）
+      props: { clearable: true, maxlength: 按字段字典 }
+    - kind: 下拉（class="select"，136 个）
+      element_plus: el-select / el-option
+      props: { clearable: true, filterable: 选项超过 10 项时 }
+    - kind: 表格（class="el-table"，59 个）
+      element_plus: el-table + el-table-column
+      props: { border: false, row-key: 业务主键, height: auto }
+      rule: 列宽与 min-width 与原型一致；列宽之和 = min-width（不出现表格内横向滚动）
+    - kind: 状态标签（class="el-tag"，622 个）
+      element_plus: el-tag
+      props: { type: "primary | success | warning | danger | info", size: small }
+    - kind: 卡片 / 区块（class="card"，802 个）
+      element_plus: el-card（:shadow="never" + design-tokens 的阴影）
+    - kind: 表单字段（data-field，589 个）
+      element_plus: el-form-item + 对应控件
+      props: { prop: 字段名, rules: 必填 / 格式 }
+    - kind: 筛选控件（data-role="filter"，41 个）
+      element_plus: el-input / el-select / el-date-picker
+      rule: 级联口径见阶段 2 的 layout-spec.filter_cascade
+    - kind: 浮层（data-demo-panel）
+      element_plus: el-dialog（表单类）/ el-drawer（详情类）
+      rule: 载体口径见 component-spec.md 第 2 节（D-059 / CR-015）
+    - kind: 状态片段（data-demo-state-panel，229 个）
+      element_plus: el-skeleton / el-empty / el-result
+      rule: 状态替换主内容，主内容包在 [data-normal-view] 内（component-spec.md 第 4 节）
+    - kind: 时序 / 时间线（class="timeline"）
+      element_plus: el-timeline + el-timeline-item
+    - kind: 图表（class="bar-chart"）
+      element_plus: ECharts bar（原型用纯 CSS）

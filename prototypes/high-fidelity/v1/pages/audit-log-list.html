@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 阶段 3 高保真页面：由 prototypes/functional/v1/pages/audit-log-list.html 派生（工具：tools/make_hifi_pages.py）。
+     只替换视觉层与外壳，信息架构 / 字段 / 动作 / 状态片段与阶段 2 一致；视觉差异见 assets/hifi.css 与 design-tokens.json。 -->
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>操作日志 — 业务原型 v1（批次 2-8） · 高保真</title>
+<link rel="stylesheet" href="../../functional/v1/assets/prototype-shell.css" />
+<script src="../assets/hifi-shell.js"></script>
+<style>
+  #aud-table td.actions { white-space: nowrap; }
+  .diff-table td { vertical-align: top; }
+  .diff-old { color: var(--app-text-secondary); text-decoration: line-through; }
+  .diff-new { color: var(--app-text-primary); font-weight: 600; }
+</style>
+  <link rel="stylesheet" href="../assets/hifi.css" />
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-AUDIT-LOG-LIST"
+  data-menu-page="PAGE-AUDIT-LOG-LIST"
+  data-breadcrumb="平台与运维 / 审计日志 / 操作日志"
+  data-tab="操作日志"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-AUDIT-LOG-LIST" data-role="page">
+
+  <div data-normal-view>
+
+  <div class="page-head">
+    <h1>操作日志</h1>
+    <span class="scope-hint" data-role="scope-hint">数据范围：本校（DS-04）· 只读</span>
+    <span class="el-tag primary">默认最近 7 天</span>
+    <span class="el-tag info">单次查询上限 90 天</span>
+  </div>
+
+  <div class="alert info">
+    <span>不可篡改</span>
+    <span>日志<b>只允许追加</b>：列表与详情都不提供修改与删除入口，数据库账号层面同样回收更新与删除权限（<span class="mono">REQ-AUD-025</span> / <span class="mono">REQ-AUD-030</span> / <span class="mono">REQ-AUD-031</span>）；
+      查询行为本身不写日志（避免噪声），但<b>导出</b>必须写（<span class="mono">REQ-AUD-011</span>）。</span>
+  </div>
+
+  <section class="card" data-block="toolbar" data-role="toolbar" data-component="el-card.hover">
+    <div class="card-header">
+      <div class="toolbar" data-demo-state-target="toolbar">
+        <input class="input" type="date" value="2026-09-25" data-role="filter" data-action-id="ACT-AUD-001" data-field="begin_time" title="开始时间" />
+        <span class="cell-secondary">—</span>
+        <input class="input" type="date" value="2026-10-01" data-role="filter" data-action-id="ACT-AUD-002" data-field="end_time" title="结束时间" />
+        <select class="select" data-role="filter" data-action-id="ACT-AUD-003" data-field="operator_id" data-default="">
+          <option value="">全部操作人</option>
+          <option value="t1">郑雅琴（教务主任）</option>
+          <option value="t2">邓丽娟（班主任）</option>
+          <option value="ops">运维账号 A（平台运营）</option>
+        </select>
+        <select class="select" data-role="filter" data-action-id="ACT-AUD-004" data-field="object_type" data-default="">
+          <option value="">全部对象类型</option>
+          <option value="student">学生</option>
+          <option value="class">班级</option>
+          <option value="teacher">教师</option>
+          <option value="stream">选科</option>
+          <option value="promotion">升班任务</option>
+        </select>
+        <select class="select" data-role="filter" data-action-id="ACT-AUD-005" data-field="action_type" data-default="">
+          <option value="">全部操作类型</option>
+          <option value="create">新增</option>
+          <option value="update">修改</option>
+          <option value="delete">删除</option>
+          <option value="approve">审批</option>
+          <option value="export">导出</option>
+        </select>
+        <input class="input" type="search" placeholder="按对象标识 / 操作人 / 请求标识" data-role="filter" data-action-id="ACT-AUD-007" data-field="keyword" />
+      </div>
+      <div class="header-right">
+        <button class="btn" data-role="action" data-action-id="ACT-AUD-010" data-component="el-button"
+                data-permission="audit.log:export" data-nav="DIALOG-AUD-EXPORT" data-overlay="dialog">导出</button>
+        <button class="btn" data-role="action" data-action-id="ACT-AUD-008" data-component="el-button"
+                data-permission="audit.log:read" data-api="listOperationLog"
+                data-demo-message="已刷新操作日志（按时间倒序，默认最近 7 天）。">刷新</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" data-block="list" data-role="section" data-component="el-card.hover">
+    <div class="card-header"><h2>日志列表</h2><span class="el-tag info">listOperationLog · 按时间倒序</span></div>
+    <div class="card-body">
+      <div class="table-scroll">
+        <table class="el-table" id="aud-table" data-role="table" data-component="el-table" data-api="listOperationLog"
+               style="min-width:1050px;table-layout:fixed">
+          <thead>
+            <tr>
+              <th data-role="column" data-field="operate_time" style="width:150px">时间</th>
+              <th data-role="column" data-field="operator" style="width:110px">操作人</th>
+              <th data-role="column" data-field="operator_role" style="width:100px">角色</th>
+              <th data-role="column" data-field="action_type" style="width:100px">操作类型</th>
+              <th data-role="column" data-field="object_type" style="width:110px">对象类型</th>
+              <th data-role="column" data-field="object_id" style="width:170px">对象标识</th>
+              <th data-role="column" data-field="result" style="width:90px">结果</th>
+              <th data-role="column" data-field="source_ip" style="width:130px">来源 IP</th>
+              <th class="actions" style="width:90px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="aud-rows">
+            <tr data-role="row" data-time="2026-10-01 09:12:33" data-operator="郑雅琴" data-role-name="教务主任"
+                data-action="update" data-action-cn="修改" data-obj-type="班级" data-obj-id="高一 (1) 班 · 20260101"
+                data-result="成功" data-ip="10.12.7.31" data-req="REQ-20261001-000418">
+              <td class="mono">2026-10-01 09:12:33</td><td>郑雅琴</td><td>教务主任</td><td><span class="el-tag warning">修改</span></td>
+              <td>班级</td><td>高一 (1) 班 · 20260101</td><td><span class="el-tag success">成功</span></td><td class="mono">10.12.7.31</td><td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-time="2026-10-01 08:40:02" data-operator="邓丽娟" data-role-name="班主任"
+                data-action="update" data-action-cn="修改" data-obj-type="学生监护人" data-obj-id="王梓萱 · 2026000001"
+                data-result="成功" data-ip="10.12.9.77" data-req="REQ-20261001-000402">
+              <td class="mono">2026-10-01 08:40:02</td><td>邓丽娟</td><td>班主任</td><td><span class="el-tag warning">修改</span></td>
+              <td>学生监护人</td><td>王梓萱 · 2026000001</td><td><span class="el-tag success">成功</span></td><td class="mono">10.12.9.77</td><td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-time="2026-09-30 17:05:44" data-operator="陆承志" data-role-name="校领导"
+                data-action="approve" data-action-cn="审批" data-obj-type="选科变更申请" data-obj-id="SC-2026-0028"
+                data-result="成功" data-ip="10.12.7.12" data-req="REQ-20260930-002033">
+              <td class="mono">2026-09-30 17:05:44</td><td>陆承志</td><td>校领导</td><td><span class="el-tag info">审批</span></td>
+              <td>选科变更申请</td><td>SC-2026-0028</td><td><span class="el-tag success">成功</span></td><td class="mono">10.12.7.12</td><td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-time="2026-09-30 16:22:10" data-operator="郑雅琴" data-role-name="教务主任"
+                data-action="export" data-action-cn="导出" data-obj-type="花名册" data-obj-id="高一 (1) 班 · 20260101"
+                data-result="成功" data-ip="10.12.7.31" data-req="REQ-20260930-002011">
+              <td class="mono">2026-09-30 16:22:10</td><td>郑雅琴</td><td>教务主任</td><td><span class="el-tag">导出</span></td>
+              <td>花名册</td><td>高一 (1) 班 · 20260101</td><td><span class="el-tag success">成功</span></td><td class="mono">10.12.7.31</td><td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-time="2026-09-30 15:48:57" data-operator="运维账号 A" data-role-name="平台运营"
+                data-action="export" data-action-cn="导出" data-obj-type="学生" data-obj-id="2026 级高一学生清单"
+                data-result="成功" data-ip="172.16.4.9" data-req="REQ-20260930-001998">
+              <td class="mono">2026-09-30 15:48:57</td><td>运维账号 A</td><td>平台运营</td><td><span class="el-tag">导出</span></td>
+              <td>学生</td><td>2026 级高一学生清单</td><td><span class="el-tag success">成功</span></td><td class="mono">172.16.4.9</td><td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-time="2026-09-30 11:03:26" data-operator="何文博" data-role-name="年级主任"
+                data-action="create" data-action-cn="新增" data-obj-type="班级" data-obj-id="高一 (4) 班 · 20260104"
+                data-result="失败" data-ip="10.12.8.21" data-req="REQ-20260930-001940">
+              <td class="mono">2026-09-30 11:03:26</td><td>何文博</td><td>年级主任</td><td><span class="el-tag success">新增</span></td>
+              <td>班级</td><td>高一 (4) 班 · 20260104</td><td><span class="el-tag danger">失败</span></td><td class="mono">10.12.8.21</td><td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-time="2026-09-29 19:31:08" data-operator="郑雅琴" data-role-name="教务主任"
+                data-action="update" data-action-cn="修改" data-obj-type="学生" data-obj-id="李俊逸 · 2026000002"
+                data-result="成功" data-ip="10.12.7.31" data-req="REQ-20260929-001877">
+              <td class="mono">2026-09-29 19:31:08</td><td>郑雅琴</td><td>教务主任</td><td><span class="el-tag warning">修改</span></td>
+              <td>学生</td><td>李俊逸 · 2026000002</td><td><span class="el-tag success">成功</span></td><td class="mono">10.12.7.31</td><td class="actions"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination"><span class="total">共 4,286 条 · 当前第 1 页 · 每页 20 条（本页显示 7 行样例）</span></div>
+      <div class="legend" style="margin-top:8px"><span>列表受数据范围约束：校领导 / 教务主任看本校、年级主任看本年级、班主任看本班；范围为空时返回空列表而不退化为全量（<span class="mono">REQ-AUD-024</span> / <span class="mono">DS-DENY-03</span>）。</span></div>
+    </div>
+  </section>
+
+  </div>
+
+  <!-- PAGE-AUDIT-LOG-DETAIL + PAGE-AUDIT-OBJECT-TIMELINE：日志详情抽屉（含对象变更时间线区块） -->
+  <div class="overlay" data-demo="panel" data-demo-panel="PAGE-AUDIT-LOG-DETAIL" data-overlay-kind="drawer">
+    <div class="drawer" data-role="drawer" data-component="el-drawer" data-size="lg" data-page="PAGE-AUDIT-LOG-DETAIL">
+      <div class="drawer-header"><h2>日志详情 · <span id="aud-detail-time">2026-10-01 09:12:33</span></h2><button class="close-x" data-close-panel="PAGE-AUDIT-LOG-DETAIL" title="关闭">✕</button></div>
+      <div class="drawer-body">
+        <section class="card" data-block="basic" data-role="section">
+          <div class="card-header"><h3>基本信息</h3><span class="el-tag info">getOperationLog</span></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="field" data-field="operator"><label>操作人</label><div class="readonly-value" id="aud-d-operator">郑雅琴</div></div>
+              <div class="field" data-field="operator_role"><label>操作人角色快照</label><div class="readonly-value" id="aud-d-role">教务主任</div></div>
+              <div class="field" data-field="action_type"><label>操作类型</label><div class="readonly-value" id="aud-d-action">修改</div></div>
+              <div class="field" data-field="object_id"><label>对象标识</label><div class="readonly-value" id="aud-d-obj">高一 (1) 班 · 20260101</div></div>
+              <div class="field" data-field="source_ip"><label>来源 IP</label><div class="readonly-value mono" id="aud-d-ip">10.12.7.31</div></div>
+              <div class="field" data-field="request_id"><label>请求标识</label><div class="readonly-value mono" id="aud-d-req">REQ-20261001-000418</div></div>
+              <div class="field" data-field="tenant_id"><label>租户 / 学校</label><div class="readonly-value">云溪实验学校（云溪教育集团）· 云溪实验学校</div></div>
+              <div class="field" data-field="result"><label>执行结果</label><div class="readonly-value" id="aud-d-result">成功</div></div>
+            </div>
+            <div class="legend" style="margin-top:8px"><span>本页只读：日志不提供修改与删除入口（<span class="mono">REQ-AUD-025</span>）。</span></div>
+          </div>
+        </section>
+
+        <section class="card" data-block="diff" data-role="section" style="margin-top:12px">
+          <div class="card-header"><h3>变更明细（只记发生变化的字段）</h3><span class="el-tag info">REQ-AUD-003</span></div>
+          <div class="card-body">
+            <div class="table-scroll">
+              <table class="el-table diff-table" id="aud-diff" data-role="table" data-component="el-table"
+                     style="min-width:720px;table-layout:fixed">
+                <thead>
+                  <tr>
+                    <th style="width:200px">字段</th>
+                    <th style="width:260px">变更前</th>
+                    <th style="width:260px">变更后</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>班级容量</td><td class="diff-old">40</td><td class="diff-new">45</td></tr>
+                  <tr><td>教室</td><td class="diff-old">本部教学楼 A201</td><td class="diff-new">本部教学楼 A203</td></tr>
+                  <tr><td>监护人手机号</td><td class="diff-old">136****7781</td><td class="diff-new">136****7781（未变化，不入日志）</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="legend" style="margin-top:8px"><span>变更前 / 后值里的证件号与手机号按掩码展示（<span class="mono">BR-AUDIT-007</span> / <span class="mono">NFR-SEC-06</span>）；未变化的字段不入库（<span class="mono">REQ-AUD-003</span>）。</span></div>
+          </div>
+        </section>
+
+        <!-- PAGE-AUDIT-OBJECT-TIMELINE：对象变更时间线（详情内的区块） -->
+        <section class="card" data-block="timeline" data-page="PAGE-AUDIT-OBJECT-TIMELINE" data-role="section" style="margin-top:12px">
+          <div class="card-header"><h3>该对象的全部变更</h3><span class="el-tag info">PAGE-AUDIT-OBJECT-TIMELINE · 只含当前可见范围</span></div>
+          <div class="card-body">
+            <ul class="timeline">
+              <li><div class="tl-head"><b>2026-10-01 09:12:33</b><span class="el-tag warning">修改</span><span class="cell-secondary">郑雅琴（教务主任）</span></div>
+                <div>班级容量 40 → 45；教室 A201 → A203</div></li>
+              <li><div class="tl-head"><b>2026-09-28 14:20:05</b><span class="el-tag warning">修改</span><span class="cell-secondary">郑雅琴（教务主任）</span></div>
+                <div>班主任 未指定 → 邓丽娟（assignHeadTeacher）</div></li>
+              <li><div class="tl-head"><b>2026-09-26 10:02:41</b><span class="el-tag success">新增</span><span class="cell-secondary">郑雅琴（教务主任）</span></div>
+                <div>新建班级「高一 (1) 班」（学年学期 2026-2027 第一学期）</div></li>
+            </ul>
+            <div class="legend" style="margin-top:8px"><span>时间线按对象串联全部变更，追加式、不支持删除（<span class="mono">REQ-AUD-023</span> / <span class="mono">BR-AUDIT-003</span>）。</span></div>
+          </div>
+        </section>
+      </div>
+      <div class="drawer-footer">
+        <button class="btn" data-role="action" data-action-id="ACT-AUD-020" data-component="el-button" data-close-panel="PAGE-AUDIT-LOG-DETAIL">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIALOG-AUD-EXPORT：日志导出配置弹窗（审计 PRD 6.3 要求「点击导出打开导出配置弹窗」） -->
+  <div class="overlay" data-demo="panel" data-demo-panel="DIALOG-AUD-EXPORT" data-overlay-kind="dialog">
+    <div class="dialog" data-role="dialog" data-component="el-dialog" data-size="md" data-page="DIALOG-AUD-EXPORT" data-block="form">
+      <div class="dialog-header"><h2>导出操作日志</h2><span class="el-tag info">最多 50000 行</span><button class="close-x" data-close-panel="DIALOG-AUD-EXPORT" title="关闭">✕</button></div>
+      <div class="dialog-body">
+        <div class="alert info">
+          <span>导出前重新解析范围</span>
+          <span>导出不复用列表页的判定结果，会重新解析数据范围（<span class="mono">REQ-AUD-027</span> / <span class="mono">DS-DENY-04</span>）；
+            导出行为本身写入审计，文件有效期 7 天（<span class="mono">REQ-AUD-029</span> / <span class="mono">NFR-AUDIT-03</span>）。</span>
+        </div>
+        <div class="form-grid">
+          <div class="field" data-field="format">
+            <label>文件格式<span class="required">*</span></label>
+            <div class="radio-row">
+              <label><input type="radio" name="aud-format" value="xlsx" checked /> xlsx</label>
+              <label><input type="radio" name="aud-format" value="csv" /> csv</label>
+            </div>
+          </div>
+          <div class="field" data-field="row_limit">
+            <label>导出范围</label>
+            <div class="readonly-value">当前筛选条件（最近 7 天）· 预估 4,286 行</div>
+            <div class="hint">单次上限 50000 行（<span class="mono">REQ-AUD-028</span>）；超出时提示收窄时间范围或转异步任务。</div>
+          </div>
+          <div class="field span-2" data-field="export_reason">
+            <label>导出用途说明<span class="required">*</span></label>
+            <input class="input" style="min-width:100%" data-component="el-input" data-required
+                   data-required-message="请填写导出用途说明（写入审计）" placeholder="如：迎接上级检查，需要提供本学期班级变更记录" />
+            <div class="error-text"></div>
+          </div>
+        </div>
+        <div class="alert danger state-hidden" data-validate-summary>表单校验未通过：请修正下方标红的字段后重试。</div>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn" data-role="action" data-action-id="ACT-AUD-012" data-component="el-button" data-close-panel="DIALOG-AUD-EXPORT">取消</button>
+        <button class="btn primary" data-role="action" data-action-id="ACT-AUD-013" data-component="el-button.primary"
+                data-permission="audit.log:export" data-api="exportOperationLog" data-validate-on-submit
+                data-after-success="close-panel"
+                data-demo-message="已提交导出：4,286 行按当前筛选与数据范围生成，导出行为已写审计，文件 7 天后自动清理。">开始导出</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="state-hidden" data-demo-state-panel="loading">
+    <section class="card"><div class="card-body">
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:140px"></div><div class="skeleton-bar" style="width:110px"></div><div class="skeleton-bar" style="width:170px"></div></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:140px"></div><div class="skeleton-bar" style="width:110px"></div><div class="skeleton-bar" style="width:170px"></div></div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="empty">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">📭</div>
+        <div class="title">当前条件下没有日志</div>
+        <div class="desc">可能是时间范围太窄、筛选条件过多，或你的数据范围（DS-05 / DS-06）内确实没有写操作。范围为空时返回空列表，不会退化为全量。</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-AUD-001" data-component="el-button.primary.plain"
+                data-field="begin_time" data-demo-message="已把时间范围放宽到最近 90 天（单次查询上限）。">放宽到最近 90 天</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="error">
+    <section class="card"><div class="card-body">
+      <div class="state-block error">
+        <div class="icon">⚠️</div>
+        <div class="title">查询超时</div>
+        <div class="desc">90 天内 P95 ≤ 1 秒；超时不会放宽数据范围，请收窄时间范围后重试。</div>
+        <div class="req-id">请求编号 REQ-20261001-002260 · 错误码 EDU-AUD-5001</div>
+        <button class="btn primary-plain" data-role="action" data-action-id="ACT-AUD-008" data-component="el-button.primary.plain" data-api="listOperationLog">重试</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="forbidden">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">🔒</div>
+        <div class="title">你没有查看操作日志的权限</div>
+        <div class="desc">需要 <span class="mono">audit.log:read</span>（校领导 / 教务主任看本校、年级主任看本年级、班主任看本班、平台运营看全平台）；任课教师无日志权限（<span class="mono">DS-07</span>）。无权限时不进入空白页（<span class="mono">DS-DENY-03</span>）。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="partial">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⚠️</div>
+        <div class="title">该区间已归档，查询耗时较长</div>
+        <div class="desc">归档区间检索单次 P95 ≤ 30 秒，超出转异步任务；可在异步任务中心查看进度（REQ-AUD-033）。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="submitting">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⏳</div>
+        <div class="title">正在提交</div>
+        <div class="desc">按钮已置 loading 并禁用，禁止重复提交。</div>
+      </div>
+    </div></section>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  // 审计 PRD 6.1 / 5.2：校领导、教务主任、年级主任、班主任可读；平台运营 DS-01 只读；租户管理员在本页只看运营访问记录（另页）。
+  var READ_ROLES = ['super_admin', 'school_leader', 'academic_director', 'grade_leader', 'homeroom', 'platform_ops'];
+  var EXPORT_ROLES = ['super_admin', 'school_leader', 'academic_director', 'platform_ops'];
+  function q(sel) { return document.querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function currentRole() { return window.PrototypeShell.currentRole(); }
+
+  function rowActions() {
+    var canRead = READ_ROLES.indexOf(currentRole()) !== -1;
+    var canExport = EXPORT_ROLES.indexOf(currentRole()) !== -1;
+    qa('#aud-rows tr').forEach(function (row) {
+      var box = row.querySelector('td.actions');
+      box.innerHTML = '';
+      box.style.color = '';
+      box.style.fontSize = '';
+      if (!canRead) { box.textContent = '只读'; box.style.color = 'var(--app-text-secondary)'; box.style.fontSize = '12px'; return; }
+      var b = document.createElement('button');
+      b.className = 'btn link';
+      b.textContent = '详情';
+      b.setAttribute('data-role', 'row-action');
+      b.setAttribute('data-action-id', 'ACT-AUD-014');
+      b.setAttribute('data-component', 'el-button.link.primary');
+      b.setAttribute('data-permission', 'audit.log:read');
+      b.setAttribute('data-nav', 'PAGE-AUDIT-LOG-DETAIL');
+      b.setAttribute('data-overlay', 'drawer');
+      box.appendChild(b);
+    });
+    q('[data-action-id="ACT-AUD-010"]').classList.toggle('role-hidden', !canExport);
+    q('[data-action-id="ACT-AUD-010"]').classList.remove('is-disabled');
+  }
+
+  document.addEventListener('click', function (event) {
+    var node = event.target;
+    if (node.closest('input, select, textarea, label')) return;
+    var btn = node.closest('[data-action-id="ACT-AUD-014"]');
+    if (!btn) return;
+    var row = btn.closest('tr');
+    q('#aud-detail-time').textContent = row.getAttribute('data-time');
+    q('#aud-d-operator').textContent = row.getAttribute('data-operator');
+    q('#aud-d-role').textContent = row.getAttribute('data-role-name');
+    q('#aud-d-action').textContent = row.getAttribute('data-action-cn');
+    q('#aud-d-obj').textContent = row.getAttribute('data-obj-id');
+    q('#aud-d-ip').textContent = row.getAttribute('data-ip');
+    q('#aud-d-req').textContent = row.getAttribute('data-req');
+    q('#aud-d-result').textContent = row.getAttribute('data-result');
+  });
+
+  var lastRole = '';
+  function applyRoleState(role) {
+    if (role === lastRole) return;
+    lastRole = role;
+    rowActions();
+    if (READ_ROLES.indexOf(role) === -1) window.PrototypeShell.applyState('forbidden');
+    else if (window.PrototypeShell.currentState() === 'forbidden') window.PrototypeShell.applyState('normal');
+    var hint = q('[data-role="scope-hint"]');
+    if (role === 'school_leader') hint.textContent = '数据范围：本校（DS-04）· 只读';
+    else if (role === 'academic_director') hint.textContent = '数据范围：本校（DS-04）· 只读（可导出）';
+    else if (role === 'grade_leader') hint.textContent = '数据范围：本人负责年级（DS-05）· 只读（不可导出）';
+    else if (role === 'homeroom') hint.textContent = '数据范围：本人担任班主任的班级（DS-06）· 只读（不可导出）';
+    else if (role === 'platform_ops') hint.textContent = '数据范围：全平台（DS-01）· 只读；运营自身的查询与导出同样写日志（REQ-AUD-039）';
+    else if (role === 'super_admin') hint.textContent = '数据范围：全平台 · 不受限制（BR-ORG-014）';
+    else hint.textContent = '数据范围：无日志权限（DS-07 任课教师无日志权限）';
+  }
+
+  rowActions();
+  // 外壳 init 会在 applyRole 之后调用 applyState('normal')；若页面默认角色本来就无权限，
+  // 那次复位会把 forbidden 形态冲掉。这里在 prototype:params（init 的最后一步）之后再对齐一次。
+  document.addEventListener('prototype:params', function () { lastRole = ''; applyRoleState(currentRole()); });
+  new MutationObserver(function () { applyRoleState(currentRole()); })
+    .observe(document.body, { attributes: true, attributeFilter: ['data-current-role'] });
+  applyRoleState(currentRole());
+})();
+</script>
+</body>
+</html>

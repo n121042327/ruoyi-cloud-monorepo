@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>学生管理 — 高保真原型 v1（阶段 3 样板）</title>
+<link rel="stylesheet" href="../assets/hifi.css" />
+<script src="../assets/hifi-shell.js"></script>
+</head>
+<body
+  data-base=".."
+  data-page-id="PAGE-STU-LIST"
+  data-menu-page="PAGE-STU-LIST"
+  data-breadcrumb="教育管理 / 学生管理"
+  data-tab="学生管理"
+  data-tenant="云溪实验学校（云溪教育集团）">
+
+<div id="app-shell"></div>
+
+<div id="page-root" data-page="PAGE-STU-LIST" data-role="page">
+
+  <div class="page-head">
+    <h1>学生管理</h1>
+    <span class="scope-hint" data-role="scope-hint">数据范围：本校（DS-04）· 在读 137 人</span>
+    <span class="el-tag primary">2026-2027 学年 第一学期</span>
+    <span class="el-tag info">共 141 条</span>
+  </div>
+
+  <div class="alert info">
+    <span>写入入口</span>
+    <span>学生的<b>班级归属</b>只在班级管理模块维护（编班 / 调班 / 移出，<span class="mono">DP-01</span>）；
+      本页只读展示班级，行内「调班」跳转到班级口径的调班弹窗。证件号与联系电话默认掩码，查看全量需要
+      <span class="mono">read_sensitive</span> / <span class="mono">read_contact</span> 并留痕（<span class="mono">BR-AUDIT-002</span>）。</span>
+  </div>
+
+  <div data-normal-view>
+
+  <section class="card hoverable" data-block="toolbar" data-role="toolbar">
+    <div class="card-header">
+      <div class="toolbar" data-demo-state-target="toolbar" style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn primary" data-role="action" data-action-id="ACT-STU-001"
+                data-permission="person.student:create" data-nav="PAGE-STU-CREATE" data-overlay="dialog"
+                data-role-visible="academic_director,grade_leader">新增学生</button>
+        <button class="btn" data-role="action" data-action-id="ACT-STU-002"
+                data-permission="data.import:import" data-nav="PAGE-STU-IMPORT"
+                data-role-visible="academic_director">导入</button>
+        <button class="btn" data-role="action" data-action-id="ACT-STU-003"
+                data-permission="data.export:export" data-api="exportStudent"
+                data-demo-message="已按当前筛选与数据范围导出 137 行，导出行为写审计（NFR-AUDIT-03）。"
+                data-role-visible="academic_director,grade_leader,homeroom,school_leader">导出</button>
+        <button class="btn" data-role="action" data-action-id="ACT-STU-004"
+                data-permission="data.import:import" data-api="downloadStudentImportTemplate"
+                data-demo-message="已下载导入模板 student-v3.xlsx（14 列，版本号在文件内可见）。"
+                data-role-visible="academic_director">下载模板</button>
+      </div>
+      <div class="header-right">
+        <button class="btn" data-role="action" data-action-id="ACT-COM-001">列配置</button>
+        <button class="btn" data-role="action" data-action-id="ACT-COM-005" data-api="listStudent"
+                data-demo-message="已刷新学生列表。">刷新</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="form-grid" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+        <div class="field" data-field="keyword">
+          <label>关键字</label>
+          <input class="input" style="width:100%" type="search" placeholder="学号 / 姓名 / 全国学籍号" data-role="filter" />
+        </div>
+        <div class="field" data-field="grade_name">
+          <label>年级</label>
+          <select class="select" style="width:100%" data-role="filter">
+            <option value="">全部年级</option>
+            <option value="2026">2026 级 高一</option>
+            <option value="2025">2025 级 高二</option>
+            <option value="2024">2024 级 高三</option>
+          </select>
+        </div>
+        <div class="field" data-field="class_name">
+          <label>班级</label>
+          <select class="select" style="width:100%" data-role="filter">
+            <option value="">全部班级</option>
+            <option value="20260101">高一 (1) 班</option>
+            <option value="20260102">高一 (2) 班</option>
+            <option value="20260103">高一 (3) 班</option>
+            <option value="__none">未分班</option>
+          </select>
+        </div>
+        <div class="field" data-field="enrollment_status">
+          <label>学籍状态</label>
+          <select class="select" style="width:100%" data-role="filter">
+            <option value="">全部状态</option>
+            <option value="enrolled">在读</option>
+            <option value="suspended">休学</option>
+            <option value="transferred_in_pending">转入未报到</option>
+            <option value="graduated">毕业</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card hoverable" data-block="list" data-role="section">
+    <div class="card-header"><h2>学生名单</h2><span class="el-tag info">listStudent · 12 行样例</span></div>
+    <div class="card-body">
+      <div class="table-scroll">
+        <table class="el-table" id="stu-table" data-role="table" data-api="listStudent"
+               style="min-width:1128px;table-layout:fixed">
+          <thead>
+            <tr>
+              <th style="width:50px" class="center"><input type="checkbox" data-role="selection" data-action-id="ACT-COM-008" /></th>
+              <th data-role="column" data-field="student_no" style="width:100px">学号</th>
+              <th data-role="column" data-field="student_name" style="width:80px">姓名</th>
+              <th data-role="column" data-field="gender" style="width:48px">性别</th>
+              <th data-role="column" data-field="stage_code" style="width:70px">学段</th>
+              <th data-role="column" data-field="grade_name" style="width:112px">年级</th>
+              <th data-role="column" data-field="class_name" style="width:106px">班级</th>
+              <th data-role="column" data-field="enrollment_status" style="width:108px">学籍状态</th>
+              <th data-role="column" data-field="enroll_year" style="width:64px">入学年份</th>
+              <th data-role="column" data-field="student_phone" style="width:110px" data-col-hide-role="subject_teacher">联系电话</th>
+              <th data-role="column" data-field="update_time" style="width:140px">更新时间</th>
+              <th class="actions" style="width:140px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="stu-rows">
+            <tr data-role="row" data-student="2026000001" data-name="王梓萱" data-no="2026000001" data-gender="女"
+                data-stage="高中" data-grade="2026 级 高一" data-class="高一 (1) 班" data-status="在读"
+                data-year="2026" data-phone="136****7781" data-updated="2026-09-28 14:20">
+              <td class="center"><input type="checkbox" data-role="selection" data-action-id="ACT-COM-008" /></td>
+              <td class="mono">2026000001</td><td>王梓萱</td><td>女</td><td>高中</td><td>2026 级 高一</td><td>高一 (1) 班</td>
+              <td><span class="el-tag success">在读</span></td><td class="num">2026</td><td class="mono">136****7781</td><td class="mono">2026-09-28 14:20</td>
+              <td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-student="2026000002" data-name="李俊逸" data-no="2026000002" data-gender="男"
+                data-stage="高中" data-grade="2026 级 高一" data-class="高一 (1) 班" data-status="在读"
+                data-year="2026" data-phone="137****2043" data-updated="2026-09-29 19:31">
+              <td class="center"><input type="checkbox" data-role="selection" data-action-id="ACT-COM-008" /></td>
+              <td class="mono">2026000002</td><td>李俊逸</td><td>男</td><td>高中</td><td>2026 级 高一</td><td>高一 (1) 班</td>
+              <td><span class="el-tag success">在读</span></td><td class="num">2026</td><td class="mono">137****2043</td><td class="mono">2026-09-29 19:31</td>
+              <td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-student="2026000003" data-name="陈思远" data-no="2026000003" data-gender="男"
+                data-stage="高中" data-grade="2026 级 高一" data-class="高一 (1) 班" data-status="休学"
+                data-year="2026" data-phone="138****5520" data-updated="2026-09-20 10:08">
+              <td class="center"><input type="checkbox" data-role="selection" data-action-id="ACT-COM-008" /></td>
+              <td class="mono">2026000003</td><td>陈思远</td><td>男</td><td>高中</td><td>2026 级 高一</td><td>高一 (1) 班</td>
+              <td><span class="el-tag warning">休学</span></td><td class="num">2026</td><td class="mono">138****5520</td><td class="mono">2026-09-20 10:08</td>
+              <td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-student="2026000004" data-name="赵一诺" data-no="2026000004" data-gender="女"
+                data-stage="高中" data-grade="2026 级 高一" data-class="高一 (2) 班" data-status="在读"
+                data-year="2026" data-phone="139****6612" data-updated="2026-09-26 16:44">
+              <td class="center"><input type="checkbox" data-role="selection" data-action-id="ACT-COM-008" /></td>
+              <td class="mono">2026000004</td><td>赵一诺</td><td>女</td><td>高中</td><td>2026 级 高一</td><td>高一 (2) 班</td>
+              <td><span class="el-tag success">在读</span></td><td class="num">2026</td><td class="mono">139****6612</td><td class="mono">2026-09-26 16:44</td>
+              <td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-student="2026000005" data-name="周子涵" data-no="2026000005" data-gender="女"
+                data-stage="高中" data-grade="2026 级 高一" data-class="—" data-status="转入未报到"
+                data-year="2026" data-phone="130****8891" data-updated="2026-09-18 09:12">
+              <td class="center"><input type="checkbox" data-role="selection" data-action-id="ACT-COM-008" /></td>
+              <td class="mono">2026000005</td><td>周子涵</td><td>女</td><td>高中</td><td>2026 级 高一</td><td class="cell-empty">—</td>
+              <td><span class="el-tag warning">转入未报到</span></td><td class="num">2026</td><td class="mono">130****8891</td><td class="mono">2026-09-18 09:12</td>
+              <td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-student="2026000101" data-name="朱书瑶" data-no="2026000101" data-gender="女"
+                data-stage="高中" data-grade="2026 级 高一" data-class="高一 (3) 班" data-status="在读"
+                data-year="2026" data-phone="135****3388" data-updated="2026-09-27 11:05">
+              <td class="center"><input type="checkbox" data-role="selection" data-action-id="ACT-COM-008" /></td>
+              <td class="mono">2026000101</td><td>朱书瑶</td><td>女</td><td>高中</td><td>2026 级 高一</td><td>高一 (3) 班</td>
+              <td><span class="el-tag success">在读</span></td><td class="num">2026</td><td class="mono">135****3388</td><td class="mono">2026-09-27 11:05</td>
+              <td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-student="2026000013" data-name="潘思彤" data-no="2026000013" data-gender="女"
+                data-stage="高中" data-grade="2026 级 高一" data-class="—" data-status="在读"
+                data-year="2026" data-phone="186****4417" data-updated="2026-09-25 15:20">
+              <td class="center"><input type="checkbox" data-role="selection" data-action-id="ACT-COM-008" /></td>
+              <td class="mono">2026000013</td><td>潘思彤</td><td>女</td><td>高中</td><td>2026 级 高一</td><td class="cell-empty">—</td>
+              <td><span class="el-tag success">在读</span></td><td class="num">2026</td><td class="mono">186****4417</td><td class="mono">2026-09-25 15:20</td>
+              <td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-student="2026000014" data-name="蒋知远" data-no="2026000014" data-gender="男"
+                data-stage="高中" data-grade="2026 级 高一" data-class="—" data-status="在读"
+                data-year="2026" data-phone="189****7723" data-updated="2026-09-25 15:21">
+              <td class="center"><input type="checkbox" data-role="selection" data-action-id="ACT-COM-008" /></td>
+              <td class="mono">2026000014</td><td>蒋知远</td><td>男</td><td>高中</td><td>2026 级 高一</td><td class="cell-empty">—</td>
+              <td><span class="el-tag success">在读</span></td><td class="num">2026</td><td class="mono">189****7723</td><td class="mono">2026-09-25 15:21</td>
+              <td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-student="2025000002" data-name="孙悠然" data-no="2025000002" data-gender="女"
+                data-stage="高中" data-grade="2025 级 高二" data-class="高二 (1) 班" data-status="在读"
+                data-year="2025" data-phone="133****9012" data-updated="2026-09-24 08:40">
+              <td class="center"><input type="checkbox" data-role="selection" data-action-id="ACT-COM-008" /></td>
+              <td class="mono">2025000002</td><td>孙悠然</td><td>女</td><td>高中</td><td>2025 级 高二</td><td>高二 (1) 班</td>
+              <td><span class="el-tag success">在读</span></td><td class="num">2025</td><td class="mono">133****9012</td><td class="mono">2026-09-24 08:40</td>
+              <td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-student="2025000010" data-name="徐昊然" data-no="2025000010" data-gender="男"
+                data-stage="高中" data-grade="2025 级 高二" data-class="高二 (1) 班" data-status="出国留学"
+                data-year="2025" data-phone="150****2231" data-updated="2026-09-15 17:02">
+              <td class="center"><input type="checkbox" data-role="selection" data-action-id="ACT-COM-008" /></td>
+              <td class="mono">2025000010</td><td>徐昊然</td><td>男</td><td>高中</td><td>2025 级 高二</td><td>高二 (1) 班</td>
+              <td><span class="el-tag warning">出国留学</span></td><td class="num">2025</td><td class="mono">150****2231</td><td class="mono">2026-09-15 17:02</td>
+              <td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-student="2024000001" data-name="马嘉懿" data-no="2024000001" data-gender="男"
+                data-stage="高中" data-grade="2024 级 高三" data-class="高三 (1) 班" data-status="在读"
+                data-year="2024" data-phone="151****6654" data-updated="2026-09-21 13:36">
+              <td class="center"><input type="checkbox" data-role="selection" data-action-id="ACT-COM-008" /></td>
+              <td class="mono">2024000001</td><td>马嘉懿</td><td>男</td><td>高中</td><td>2024 级 高三</td><td>高三 (1) 班</td>
+              <td><span class="el-tag success">在读</span></td><td class="num">2024</td><td class="mono">151****6654</td><td class="mono">2026-09-21 13:36</td>
+              <td class="actions"></td>
+            </tr>
+            <tr data-role="row" data-student="2024000007" data-name="宋佳潼" data-no="2024000007" data-gender="女"
+                data-stage="高中" data-grade="2024 级 高三" data-class="高三 (1) 班" data-status="毕业"
+                data-year="2023" data-phone="152****3390" data-updated="2026-07-01 09:00">
+              <td class="center"><input type="checkbox" data-role="selection" data-action-id="ACT-COM-008" /></td>
+              <td class="mono">2024000007</td><td>宋佳潼</td><td>女</td><td>高中</td><td>2024 级 高三</td><td>高三 (1) 班</td>
+              <td><span class="el-tag info">毕业</span></td><td class="num">2023</td><td class="mono">152****3390</td><td class="mono">2026-07-01 09:00</td>
+              <td class="actions"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <span class="total">共 141 条 · 本页 12 行 · 每页 20 条</span>
+        <button class="pg on">1</button><button class="pg">2</button><button class="pg">3</button><button class="pg">›</button>
+      </div>
+      <div class="legend" style="margin-top:10px">
+        <span><b>列口径</b>：在读人数只统计「在读」成员——休学、出国留学保留关系但不计入（<span class="mono">BR-STU-012</span>）。</span>
+        <span><b>敏感字段</b>：联系电话默认掩码；查看全量需要 <span class="mono">read_contact</span> 并写访问日志。</span>
+      </div>
+    </div>
+  </section>
+
+  </div>
+
+  <!-- PAGE-STU-DETAIL：学生详情抽屉（详情类浮层保留抽屉） -->
+  <div class="overlay" data-demo-panel="PAGE-STU-DETAIL" data-overlay-kind="drawer">
+    <div class="drawer" data-size="lg" data-page="PAGE-STU-DETAIL">
+      <div class="drawer-header">
+        <h2>学生详情 · <span id="stu-d-name">王梓萱</span></h2>
+        <button class="close-x" data-close-panel="PAGE-STU-DETAIL" title="关闭">✕</button>
+      </div>
+      <div class="drawer-body">
+        <section class="card">
+          <div class="card-header"><h3>基本信息</h3><span class="el-tag info">getStudent</span></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="field" data-field="student_no"><label>学号</label><div class="readonly-value mono" id="stu-d-no">2026000001</div></div>
+              <div class="field" data-field="student_name"><label>姓名</label><div class="readonly-value">王梓萱</div></div>
+              <div class="field" data-field="gender"><label>性别</label><div class="readonly-value">女</div></div>
+              <div class="field" data-field="enroll_year"><label>入学年份</label><div class="readonly-value num">2026</div></div>
+              <div class="field" data-field="grade_name"><label>年级</label><div class="readonly-value" id="stu-d-grade">2026 级 高一</div></div>
+              <div class="field" data-field="class_name"><label>班级（只读，写入入口在班级管理）</label><div class="readonly-value" id="stu-d-class">高一 (1) 班</div></div>
+              <div class="field" data-field="enrollment_status"><label>学籍状态</label><div class="readonly-value" id="stu-d-status">在读</div></div>
+              <div class="field" data-field="student_phone"><label>联系电话</label><div class="readonly-value mono" id="stu-d-phone">136****7781</div></div>
+              <div class="field span-2" data-field="id_card_no">
+                <label>证件号码（默认掩码）</label>
+                <div class="readonly-value mono">330102********1234</div>
+                <div class="hint">查看全量需要 <span class="mono">read_sensitive</span>，并写入敏感数据访问日志（<span class="mono">BR-AUDIT-002</span> / <span class="mono">REQ-AUD-008</span>）。</div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="card">
+          <div class="card-header"><h3>变更记录</h3><span class="el-tag info">追加式 · 不可删除</span></div>
+          <div class="card-body">
+            <ul class="timeline">
+              <li><div class="tl-head"><b>2026-09-28 14:20</b><span class="el-tag warning">班级变更</span><span class="cell-secondary">郑雅琴（教务主任）</span></div>
+                <div>编入 高一 (1) 班（班级管理模块写入，DP-01）</div></li>
+              <li><div class="tl-head"><b>2026-09-26 10:02</b><span class="el-tag success">报到入学</span><span class="cell-secondary">系统按导入批次写入</span></div>
+                <div>学籍状态：转入未报到 → 在读</div></li>
+              <li><div class="tl-head"><b>2026-09-25 09:36</b><span class="el-tag info">监护人变更</span><span class="cell-secondary">邓丽娟（班主任）</span></div>
+                <div>监护人手机号 136****7781（仅班主任可改，年级主任只读）</div></li>
+            </ul>
+          </div>
+        </section>
+      </div>
+      <div class="drawer-footer">
+        <button class="btn" data-role="action" data-action-id="ACT-STU-023" data-nav="PAGE-STU-EDIT" data-overlay="dialog"
+                data-role-visible="academic_director,grade_leader">编辑</button>
+        <button class="btn" data-role="action" data-close-panel="PAGE-STU-DETAIL">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE-STU-CREATE / PAGE-STU-EDIT：表单类浮层一律用弹窗 -->
+  <div class="overlay" data-demo-panel="PAGE-STU-CREATE" data-overlay-kind="dialog">
+    <div class="dialog" data-size="md" data-page="PAGE-STU-CREATE" data-block="form">
+      <div class="dialog-header"><h2>新增学生</h2><span class="el-tag info">系统统一发号</span><button class="close-x" data-close-panel="PAGE-STU-CREATE" title="关闭">✕</button></div>
+      <div class="dialog-body">
+        <div class="form-grid">
+          <div class="field" data-field="student_no"><label>学号</label><div class="readonly-value mono">2026000016（保存后生成）</div></div>
+          <div class="field" data-field="student_name">
+            <label>姓名<span class="required">*</span></label>
+            <input class="input" style="width:100%" id="stu-create-name" data-required data-required-message="请填写学生姓名" placeholder="与学籍一致" />
+            <div class="error-text"></div>
+          </div>
+          <div class="field" data-field="gender">
+            <label>性别<span class="required">*</span></label>
+            <div class="radio-row">
+              <label><input type="radio" name="stu-gender" value="1" checked /> 男</label>
+              <label><input type="radio" name="stu-gender" value="2" /> 女</label>
+            </div>
+          </div>
+          <div class="field" data-field="enroll_year">
+            <label>入学年份<span class="required">*</span></label>
+            <input class="input" style="width:100%" value="2026" data-validate="year4" data-required data-required-message="请填写入学年份" />
+            <div class="error-text"></div>
+          </div>
+          <div class="field" data-field="grade_name">
+            <label>年级<span class="required">*</span></label>
+            <select class="select" style="width:100%" data-required data-required-message="请选择年级">
+              <option value="">请选择</option>
+              <option value="2026" selected>2026 级 高一</option>
+            </select>
+            <div class="error-text"></div>
+          </div>
+          <div class="field span-2" data-field="guardian">
+            <label>监护人</label>
+            <div class="hint">新增时可不填；监护人上限 3 人，绑定与解绑在详情页维护（<span class="mono">BR-ACCOUNT-018</span>）。</div>
+          </div>
+        </div>
+        <div class="alert danger state-hidden" data-validate-summary>表单校验未通过：请修正下方标红的字段后重试。</div>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn" data-role="action" data-action-id="ACT-STU-010" data-close-panel="PAGE-STU-CREATE">取消</button>
+        <button class="btn primary" data-role="action" data-action-id="ACT-STU-011"
+                data-permission="person.student:create" data-api="addStudent" data-validate-on-submit
+                data-demo-message="已保存：系统已生成学号 2026000016，默认未分班（编班在班级管理模块，DP-01）。">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" data-demo-panel="PAGE-STU-EDIT" data-overlay-kind="dialog">
+    <div class="dialog" data-size="md" data-page="PAGE-STU-EDIT" data-block="form">
+      <div class="dialog-header"><h2>编辑学生 · <span id="stu-edit-no">2026000001</span></h2><span class="el-tag info">字段级可编辑性</span><button class="close-x" data-close-panel="PAGE-STU-EDIT" title="关闭">✕</button></div>
+      <div class="dialog-body">
+        <div class="form-grid">
+          <div class="field" data-field="student_no"><label>学号</label><div class="readonly-value mono" id="stu-edit-no-view">2026000001</div></div>
+          <div class="field" data-field="class_name"><label>班级</label><div class="readonly-value">高一 (1) 班（只读，写入入口在班级管理）</div></div>
+          <div class="field" data-field="student_name">
+            <label>姓名<span class="required">*</span></label>
+            <input class="input" style="width:100%" value="王梓萱" data-required data-required-message="请填写学生姓名" />
+            <div class="error-text"></div>
+          </div>
+          <div class="field" data-field="student_phone" data-role-editable="academic_director,homeroom,tenant_admin,school_leader">
+            <label>联系电话</label>
+            <input class="input" style="width:100%" value="13677810000" data-validate="phone11" />
+            <div class="error-text"></div>
+            <div class="hint">班主任与教务主任可改；年级主任只读、任课教师不可见（字段级可编辑性矩阵）。</div>
+          </div>
+        </div>
+        <div class="alert danger state-hidden" data-validate-summary>表单校验未通过：请修正下方标红的字段后重试。</div>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn" data-role="action" data-action-id="ACT-STU-012" data-close-panel="PAGE-STU-EDIT">取消</button>
+        <button class="btn primary" data-role="action" data-action-id="ACT-STU-013"
+                data-permission="person.student:update" data-api="updateStudent" data-validate-on-submit
+                data-demo-message="已保存：变更前后值已写审计；联系电话按掩码回显。">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="state-hidden" data-demo-state-panel="loading">
+    <section class="card"><div class="card-body">
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:100px"></div><div class="skeleton-bar" style="width:200px"></div><div class="skeleton-bar" style="width:150px"></div></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:100px"></div><div class="skeleton-bar" style="width:240px"></div><div class="skeleton-bar" style="width:150px"></div></div>
+      <div class="skeleton-row"><div class="skeleton-bar" style="width:100px"></div><div class="skeleton-bar" style="width:180px"></div><div class="skeleton-bar" style="width:150px"></div></div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="empty">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">📭</div>
+        <div class="title">当前条件下没有学生</div>
+        <div class="desc">可能是筛选条件太窄，或你的数据范围（DS-05 / DS-06 / DS-07）内确实没有学生。范围为空时返回空列表，不会退化为全量。</div>
+        <button class="btn primary" data-role="action" data-action-id="ACT-STU-001" data-nav="PAGE-STU-CREATE" data-overlay="dialog"
+                data-role-visible="academic_director,grade_leader">新增第一个学生</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="error">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⚠️</div>
+        <div class="title">查询失败</div>
+        <div class="desc">重试不会放宽数据范围；如持续失败请把请求编号提供给运维。</div>
+        <div class="req-id">请求编号 REQ-20261001-003100 · 错误码 EDU-STU-5001</div>
+        <button class="btn" data-role="action" data-action-id="ACT-COM-005" data-api="listStudent">重试</button>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="forbidden">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">🔒</div>
+        <div class="title">你没有查看学生名单的权限</div>
+        <div class="desc">需要 <span class="mono">person.student:read</span>；无权限时不降级为全量（<span class="mono">DS-DENY-03</span>）。</div>
+      </div>
+    </div></section>
+  </div>
+  <div class="state-hidden" data-demo-state-panel="submitting">
+    <section class="card"><div class="card-body">
+      <div class="state-block">
+        <div class="icon">⏳</div>
+        <div class="title">正在提交</div>
+        <div class="desc">按钮已置 loading 并禁用，禁止重复提交。</div>
+      </div>
+    </div></section>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  // 阶段 3 样板页：角色集合与阶段 2 的 student-list 一致（教务主任 / 年级主任可写，班主任只读本班，任课教师只读任教班级）
+  // 租户管理员只有组织配置范围（DS-02），无教学数据范围，因此不在可读角色内 —— 进入本页应看到无权限形态
+  var READ_ROLES = ['super_admin', 'academic_director', 'grade_leader', 'homeroom', 'subject_teacher', 'school_leader', 'platform_ops'];
+  var WRITE_ROLES = ['super_admin', 'academic_director', 'grade_leader'];
+  function q(sel) { return document.querySelector(sel); }
+  function qa(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function currentRole() { return window.HiFiShell.currentRole(); }
+
+  function rowActions() {
+    var role = currentRole();
+    var canWrite = WRITE_ROLES.indexOf(role) !== -1;
+    var canRead = READ_ROLES.indexOf(role) !== -1;
+    qa('#stu-rows tr').forEach(function (row) {
+      var box = row.querySelector('td.actions');
+      box.innerHTML = '';
+      if (!canRead) { box.textContent = '只读'; box.style.color = 'var(--hi-text-secondary)'; box.style.fontSize = '12px'; return; }
+      var detail = document.createElement('button');
+      detail.className = 'btn link';
+      detail.textContent = '详情';
+      detail.setAttribute('data-role', 'row-action');
+      detail.setAttribute('data-action-id', 'ACT-STU-040');
+      detail.setAttribute('data-nav', 'PAGE-STU-DETAIL');
+      detail.setAttribute('data-overlay', 'drawer');
+      detail.setAttribute('data-student', row.getAttribute('data-student'));
+      box.appendChild(detail);
+      if (canWrite) {
+        var edit = document.createElement('button');
+        edit.className = 'btn link';
+        edit.textContent = '编辑';
+        edit.setAttribute('data-role', 'row-action');
+        edit.setAttribute('data-action-id', 'ACT-STU-041');
+        edit.setAttribute('data-nav', 'PAGE-STU-EDIT');
+        edit.setAttribute('data-overlay', 'dialog');
+        edit.setAttribute('data-student', row.getAttribute('data-student'));
+        edit.setAttribute('data-no', row.getAttribute('data-no'));
+        box.appendChild(edit);
+        var transfer = document.createElement('button');
+        transfer.className = 'btn link';
+        transfer.textContent = '调班';
+        transfer.setAttribute('data-role', 'row-action');
+        transfer.setAttribute('data-action-id', 'ACT-STU-042');
+        transfer.setAttribute('data-nav', 'PAGE-STU-TRANSFER');
+        transfer.setAttribute('data-overlay', 'dialog');
+        box.appendChild(transfer);
+      } else {
+        box.insertAdjacentHTML('beforeend', '<span class="cell-secondary" style="font-size:12px">只读</span>');
+      }
+    });
+  }
+
+  document.addEventListener('click', function (event) {
+    var node = event.target;
+    if (node.closest('input, select, textarea, label')) return;
+    var detail = node.closest('[data-action-id="ACT-STU-040"]');
+    if (detail) {
+      var row = detail.closest('tr');
+      q('#stu-d-name').textContent = row.getAttribute('data-name');
+      q('#stu-d-no').textContent = row.getAttribute('data-no');
+      q('#stu-d-grade').textContent = row.getAttribute('data-grade');
+      q('#stu-d-class').textContent = row.getAttribute('data-class');
+      q('#stu-d-status').textContent = row.getAttribute('data-status');
+      q('#stu-d-phone').textContent = row.getAttribute('data-phone');
+      return;
+    }
+    var edit = node.closest('[data-action-id="ACT-STU-041"]');
+    if (edit) {
+      var no = edit.getAttribute('data-no');
+      q('#stu-edit-no').textContent = no;
+      q('#stu-edit-no-view').textContent = no;
+    }
+  });
+
+  var lastRole = '';
+  function applyRoleState(role) {
+    if (role === lastRole) return;
+    lastRole = role;
+    rowActions();
+    if (READ_ROLES.indexOf(role) === -1) window.HiFiShell.applyState('forbidden');
+    else if (window.HiFiShell.currentState() === 'forbidden') window.HiFiShell.applyState('normal');
+    var hint = q('[data-role="scope-hint"]');
+    if (role === 'academic_director') hint.textContent = '数据范围：本校（DS-04）· 在读 137 人 · 可写';
+    else if (role === 'grade_leader') hint.textContent = '数据范围：本人负责年级（DS-05）· 可写';
+    else if (role === 'homeroom') hint.textContent = '数据范围：本人担任班主任的班级（DS-06）· 只读（可改监护人）';
+    else if (role === 'subject_teacher') hint.textContent = '数据范围：任教班级（DS-07）· 只读且字段裁剪（联系电话整列隐藏）';
+    else if (role === 'school_leader') hint.textContent = '数据范围：本校（DS-04）· 只读';
+    else if (role === 'platform_ops') hint.textContent = '数据范围：全平台协助视图 · 只读并留痕（DS-01）';
+    else if (role === 'tenant_admin') hint.textContent = '数据范围：本租户组织配置（DS-02）· 无教学数据范围（不进入学生名单）';
+    else if (role === 'super_admin') hint.textContent = '数据范围：全平台 · 不受限制（BR-ORG-014）';
+  }
+
+  rowActions();
+  document.addEventListener('prototype:params', function () { lastRole = ''; applyRoleState(currentRole()); });
+  new MutationObserver(function () { applyRoleState(currentRole()); })
+    .observe(document.body, { attributes: true, attributeFilter: ['data-current-role'] });
+  applyRoleState(currentRole());
+})();
+</script>
+</body>
+</html>

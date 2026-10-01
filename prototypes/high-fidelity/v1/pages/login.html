@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 阶段 3 高保真页面：由 prototypes/functional/v1/pages/login.html 派生（工具：tools/make_hifi_pages.py）。
+     只替换视觉层与外壳，信息架构 / 字段 / 动作 / 状态片段与阶段 2 一致；视觉差异见 assets/hifi.css 与 design-tokens.json。 -->
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>登录 — 业务原型 v1（批次 2-4） · 高保真</title>
+<link rel="stylesheet" href="../../functional/v1/assets/prototype-shell.css" />
+<style>
+  body { margin: 0; background: linear-gradient(160deg, #eef4ff 0%, #f5f7fb 45%, #f7f9fc 100%); }
+  .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .login-card {
+    width: 420px; background: #fff; border: 1px solid var(--app-border-light);
+    border-radius: var(--app-radius-base); box-shadow: var(--app-shadow-md); padding: 28px 28px 22px;
+  }
+  .login-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .login-brand .mark {
+    width: 30px; height: 30px; border-radius: 8px; background: var(--app-primary);
+    color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700;
+  }
+  .login-brand h1 { font-size: 18px; margin: 0; color: var(--app-text-primary); }
+  .login-sub { font-size: 13px; color: var(--app-text-secondary); margin-bottom: 18px; }
+  .login-card .field { margin-bottom: 14px; }
+  .login-card label { display: block; font-size: 13px; color: var(--app-text-regular); margin-bottom: 6px; }
+  .login-card .input, .login-card .select { width: 100%; min-width: 100%; }
+  .login-row { display: flex; align-items: center; justify-content: space-between; font-size: 13px; margin-bottom: 16px; }
+  .login-row a { color: var(--app-primary); text-decoration: none; }
+  .login-btn { width: 100%; justify-content: center; height: 38px; }
+  .login-foot { margin-top: 16px; font-size: 12px; color: var(--app-text-secondary); line-height: 1.7; }
+  .brand-note { margin-top: 14px; text-align: center; font-size: 12px; color: var(--app-text-secondary); }
+</style>
+  <link rel="stylesheet" href="../assets/hifi.css" />
+</head>
+<body>
+<div id="page-root" data-page="PAGE-LOGIN" data-role="page" data-state="normal">
+
+  <div class="login-wrap">
+    <div>
+      <div class="login-card">
+        <div class="login-brand"><span class="mark">K</span><h1>K12 教育平台</h1></div>
+        <div class="login-sub">学校 / 集团 / 运营方统一入口 · PC 端</div>
+
+        <div class="field" data-field="tenant_id">
+          <label>学校（多校账号可切换）</label>
+          <select class="select" id="login-tenant" data-component="el-select" data-role="action" data-action-id="ACT-AUTH-002"
+                  data-permission="-">
+            <option value="201" selected>云溪实验学校（云溪教育集团）</option>
+            <option value="202">云溪外国语学校（云溪教育集团）</option>
+            <option value="100">云溪教育集团（集团租户）</option>
+            <option value="1">平台运营方（超级租户）</option>
+          </select>
+          <div class="hint">学校用户登录后学校不可切换；集团与平台运营账号登录后可在顶部切换。</div>
+        </div>
+
+        <div class="field" data-field="login_name">
+          <label>登录名<span class="required">*</span></label>
+          <input class="input" id="login-name" data-component="el-input" placeholder="教师工号 / 管理员账号 / s+学号，如 s2026000001"
+                 data-required data-required-message="请输入登录名" />
+          <div class="error-text"></div>
+          <div class="hint">学生登录名 = <span class="mono">s</span> + 学号（<span class="mono">BR-ACCOUNT-002</span>），如 <span class="mono">s2026000001</span>。</div>
+        </div>
+
+        <div class="field" data-field="password">
+          <label>密码<span class="required">*</span></label>
+          <input class="input" id="login-password" type="password" data-component="el-input.password"
+                 placeholder="请输入密码" data-required data-required-message="请输入密码" />
+          <div class="error-text"></div>
+        </div>
+
+        <div class="login-row">
+          <label style="display:inline-flex;align-items:center;gap:6px;margin:0">
+            <input type="checkbox" id="login-remember" checked /> 记住登录名
+          </label>
+          <a href="#" id="login-forgot" data-role="action" data-action-id="ACT-AUTH-003" data-component="el-button.link.primary"
+             title="首轮不做自助找回：请联系本校管理员重置">忘记密码？</a>
+        </div>
+
+        <div class="alert danger state-hidden" id="login-error">
+          <span>登录失败</span>
+          <span id="login-error-text">账号或密码错误，还可尝试 4 次；连续 5 次错误将锁定 5 分钟。</span>
+        </div>
+        <div class="alert warning state-hidden" id="login-locked">
+          <span>账号已锁定</span>
+          <span>连续 5 次输入错误，账号锁定 5 分钟（<span class="mono">NFR-SEC-04</span>）；锁定期间请联系本校管理员或稍后重试。</span>
+        </div>
+        <div class="alert info state-hidden" id="login-first">
+          <span>首次登录</span>
+          <span>首次登录必须修改密码：班主任发放一次性激活码，学生用激活码首次登录后立即设置自己的密码，激活码用完即废（<span class="mono">D-039</span> / <span class="mono">BR-ACCOUNT-004</span>）。</span>
+        </div>
+
+        <button class="btn primary login-btn" id="login-submit" data-role="action" data-action-id="ACT-AUTH-001"
+                data-component="el-button.primary" data-permission="-" data-api="login"
+                data-demo-message="登录成功：已按账号角色进入工作台（教师 → 我的班级，教务主任 → 学生管理，平台运营 → 学校管理）；登录写审计（NFR-AUDIT-01）。">登录</button>
+
+        <div class="login-foot">
+          <div>· 学生：登录名 <span class="mono">s</span> + 学号，初始凭据由班主任发放的一次性激活码换取（<span class="mono">D-039</span>）。</div>
+          <div>· 教师：工号登录；任课教师登录后只看到本人任教班级的必要资料（<span class="mono">DS-07</span>）。</div>
+          <div>· 运营方：全平台可见，但查看 / 修改 / 导出分别授权、分别审计（<span class="mono">DS-01</span>）。</div>
+        </div>
+      </div>
+      <div class="brand-note">原型演示：点「登录」看成功反馈；清空任一必填项看字段级校验。</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  function q(sel) { return document.querySelector(sel); }
+  function show(id, on) { q(id).classList.toggle('state-hidden', !on); }
+  var tries = 0;
+  var host = document.createElement('div');
+  host.className = 'toast-host';
+  document.body.appendChild(host);
+  function toast(message, type) {
+    var node = document.createElement('div');
+    node.className = 'toast ' + (type || 'info');
+    node.textContent = message;
+    host.appendChild(node);
+    window.setTimeout(function () { node.remove(); }, 3600);
+  }
+
+  q('#login-submit').addEventListener('click', function (event) {
+    event.stopPropagation();
+    var name = q('#login-name');
+    var pwd = q('#login-password');
+    var bad = false;
+    [[name, '请输入登录名'], [pwd, '请输入密码']].forEach(function (pair) {
+      var field = pair[0].closest('.field');
+      var empty = !pair[0].value.trim();
+      field.classList.toggle('has-error', empty);
+      field.querySelector('.error-text').textContent = empty ? pair[1] : '';
+      if (empty) bad = true;
+    });
+    if (bad) { show('#login-error', false); return; }
+
+    // 原型里固定用一个「演示用错误密码」触发失败路径，便于验收锁定与提示
+    if (pwd.value === 'wrong') {
+      tries += 1;
+      if (tries >= 5) {
+        show('#login-error', false); show('#login-locked', true);
+        toast('连续 5 次输入错误，账号锁定 5 分钟（NFR-SEC-04）。', 'error');
+        return;
+      }
+      show('#login-locked', false); show('#login-error', true);
+      q('#login-error-text').textContent = '账号或密码错误，还可尝试 ' + (5 - tries) + ' 次；连续 5 次错误将锁定 5 分钟。';
+      toast('账号或密码错误：还可尝试 ' + (5 - tries) + ' 次。', 'error');
+      return;
+    }
+
+    q('#login-submit').classList.add('loading');
+    q('#login-submit').setAttribute('disabled', 'disabled');
+    q('#login-submit').textContent = '登录中';
+    window.setTimeout(function () {
+      q('#login-submit').classList.remove('loading');
+      q('#login-submit').removeAttribute('disabled');
+      q('#login-submit').textContent = '登录';
+      toast('登录成功：已按账号角色进入工作台；登录写审计（NFR-AUDIT-01）。', 'success');
+    }, 1000);
+  });
+
+  q('#login-forgot').addEventListener('click', function (event) {
+    event.preventDefault();
+    toast('首轮不做自助找回：请联系本校管理员重置密码（管理员重置后同样走一次性凭据）。', 'info');
+  });
+
+  q('#login-tenant').addEventListener('change', function (event) {
+    toast('已切换登录入口：' + event.target.options[event.target.selectedIndex].text, 'info');
+  });
+})();
+</script>
+</body>
+</html>
