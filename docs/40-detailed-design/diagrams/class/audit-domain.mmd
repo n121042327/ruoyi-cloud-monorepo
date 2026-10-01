@@ -1,0 +1,23 @@
+classDiagram
+  class EduAuditLog {
+    +Long id
+    +String requestId
+    +String objectType
+    +String objectId
+    +String actionType
+    +DateTime logTime
+  }
+  class EduAuditChange {
+    +Long logId
+    +String fieldName
+    +String oldValue
+    +String newValue
+  }
+  class EduAuditArchiveBatch {
+    +String archiveNo
+    +DateTime rangeStart
+    +DateTime rangeEnd
+    +String archiveStatus
+  }
+  EduAuditLog "1" --> "n" EduAuditChange : 字段变更明细
+  EduAuditArchiveBatch "1" --> "n" EduAuditLog : 归档区间

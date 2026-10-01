@@ -1,0 +1,16 @@
+sequenceDiagram
+  autonumber
+  participant S as 定时任务
+  participant API as ruoyi-edu
+  participant DB as MySQL
+  participant ARC as 归档消费者
+
+  S->>API: 创建归档批次
+  API->>DB: INSERT edu_audit_archive_batch（archive_no 幂等）
+  API->>ARC: 投递 edu.task.archive
+  loop 按区间搬迁
+    ARC->>DB: INSERT INTO edu_audit_log_archive
+    ARC->>DB: DELETE 在线区间
+  end
+  ARC->>DB: 批次置 succeeded + 记录区间
+  Note over API,DB: 不使用原生分区，避免唯一键必须包含分区键

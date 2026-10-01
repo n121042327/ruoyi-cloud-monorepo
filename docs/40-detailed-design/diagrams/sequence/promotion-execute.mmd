@@ -1,0 +1,25 @@
+sequenceDiagram
+  autonumber
+  participant A as 教务主任
+  participant UI as 升班执行页
+  participant API as ruoyi-edu
+  participant MQ as RabbitMQ
+  participant W as 升班消费者
+  participant DB as MySQL
+
+  A->>UI: 选择源 / 目标学期
+  UI->>API: POST previewPromotionTask
+  API->>DB: 写 edu_promotion_task + edu_promotion_item（预演）
+  API-->>UI: 预览结果（升班 / 跳过 / 异常）
+  A->>UI: 确认执行
+  UI->>API: POST executePromotionTask
+  API->>DB: 行锁校验：同校同源/目标学期无 running 任务
+  API->>MQ: edu.promotion.execute（task_no 幂等）
+  MQ->>W: 投递
+  loop 每 200 名学生
+    W->>DB: 目标学期班级关系（按学年追加，不覆盖历史）
+    W->>DB: 更新 edu_promotion_item.item_status
+  end
+  W->>DB: 任务置 succeeded / partial_failed
+  UI->>API: GET getPromotionTask
+  API-->>A: 结果与失败清单

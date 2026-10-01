@@ -1,0 +1,31 @@
+classDiagram
+  class EduSchool {
+    +Long id
+    +String tenantId
+    +String schoolCode
+    +String schoolName
+    +String schoolStatus
+  }
+  class EduCampus {
+    +Long schoolId
+    +String campusCode
+    +String campusName
+  }
+  class EduSchoolStage {
+    +Long schoolId
+    +String stageCode
+  }
+  class EduDataGrant {
+    +String grantNo
+    +String granteeType
+    +DateTime effectiveEnd
+    +String grantStatus
+  }
+  class EduDataGrantScope {
+    +Long grantId
+    +String resourceCode
+    +String accessLevel
+  }
+  EduSchool "1" --> "n" EduCampus : 校区
+  EduSchool "1" --> "n" EduSchoolStage : 学段
+  EduDataGrant "1" --> "n" EduDataGrantScope : 授权范围

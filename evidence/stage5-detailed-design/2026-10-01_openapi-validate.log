@@ -1,0 +1,12 @@
+=== OpenAPI 契约校验 ===
+验证时间：2026-10-01 03:31:04
+工具：openapi-spec-validator（pip 安装）
+文件：docs/40-detailed-design/api/openapi.yaml
+
+paths: 153
+operations: 173
+unique_operationId: 173
+duplicates: none
+openapi: 3.0.3
+
+结论：通过（OpenAPI 3.0 规范校验 + operationId 唯一性）

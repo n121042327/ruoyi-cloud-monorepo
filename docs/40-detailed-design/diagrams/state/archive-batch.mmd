@@ -1,0 +1,7 @@
+stateDiagram-v2
+  [*] --> created : 创建批次
+  created --> running : 开始搬迁
+  running --> succeeded : 区间搬迁完成
+  running --> failed : 搬迁失败
+  failed --> running : 重试（已搬迁区间不重复）
+  succeeded --> [*]

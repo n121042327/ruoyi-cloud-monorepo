@@ -1,0 +1,13 @@
+stateDiagram-v2
+  [*] --> queued
+  queued --> running : 消费者取到消息
+  queued --> cancelled : 用户取消
+  running --> succeeded : 全部成功
+  running --> partial_failed : 部分失败
+  running --> failed : 整体失败
+  partial_failed --> running : 重试失败项
+  failed --> running : 重试
+  failed --> dead : 超过 3 次（30s / 2m / 8m）
+  dead --> running : 运维重放（写审计）
+  succeeded --> [*]
+  cancelled --> [*]

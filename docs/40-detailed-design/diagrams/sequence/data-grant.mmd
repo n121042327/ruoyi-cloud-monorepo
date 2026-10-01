@@ -1,0 +1,18 @@
+sequenceDiagram
+  autonumber
+  participant O as 平台运营
+  participant UI as 数据共享授权页
+  participant API as ruoyi-edu
+  participant DB as MySQL
+  participant R as Redis
+
+  O->>UI: 选择授权对象学校 + 教学资源 + read/export
+  UI->>API: POST 创建授权
+  API->>API: 校验资源类型只限题库习题 / 试卷（BR-DATA-018）
+  API->>DB: BEGIN
+  API->>DB: INSERT edu_data_grant
+  API->>DB: INSERT edu_data_grant_scope
+  API->>DB: COMMIT
+  API->>R: DEL edu:<tenant>:grant:<school>:<resource>
+  API-->>O: 授权编号 + 有效期
+  Note over API,DB: 撤销后历史保留，不做物理删除

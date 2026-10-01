@@ -1,0 +1,3897 @@
+schema_version: '1.0'
+generated_by: tools/gen_api_and_map.py
+purpose: 页面动作 → 功能权限 → 后端 operationId 的映射。阶段 6 的每个按钮/行内动作都按 action_id 落实：data-api 非 '-' 的必须调用对应 operationId；为 '-' 的是纯前端动作（打开弹窗、切换筛选、跳转）。
+totals:
+  pages: 45
+  actions: 609
+  mapped_to_api: 186
+  frontend_only: 423
+conventions:
+  action_id: 与 prototypes/functional/v1/page-actions.yaml 登记一致（每个可点元素必有一个）
+  permission: 对应 docs/10-prd/05-permission-matrix.yaml 的 <resource>:<action>；'-' 表示不校验功能权限
+  api: 对应 docs/40-detailed-design/api/openapi.yaml 的 operationId；'-' 表示不调接口
+pages:
+- file: 403.html
+  page_ids:
+  - PAGE-403
+  actions:
+  - action_id: ACT-ERR-001
+    element: 返回工作台
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-ERR-002
+    element: 申请开通权限
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+- file: 404.html
+  page_ids:
+  - PAGE-404
+  actions:
+  - action_id: ACT-ERR-003
+    element: 返回上一页
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-ERR-001
+    element: 返回工作台
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+- file: 500.html
+  page_ids:
+  - PAGE-500
+  actions:
+  - action_id: ACT-ERR-004
+    element: 重试
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-ERR-005
+    element: 去异步任务中心
+    permission: '-'
+    api: '-'
+    nav: PAGE-IMP-TASK-LIST
+    overlay: '-'
+  - action_id: ACT-ERR-001
+    element: 返回工作台
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+- file: async-task-list.html
+  page_ids:
+  - PAGE-IMP-EXPORT
+  - PAGE-IMP-TASK-DETAIL
+  - PAGE-IMP-TASK-LIST
+  actions:
+  - action_id: ACT-TASK-001
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TASK-002
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TASK-003
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TASK-004
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TASK-005
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TASK-006
+    element: 自动刷新：开
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TASK-007
+    element: 导出任务清单
+    permission: data.export:export
+    api: '-'
+    nav: PAGE-IMP-EXPORT
+    overlay: dialog
+  - action_id: ACT-TASK-008
+    element: 刷新
+    permission: data.async_task:read
+    api: listAsyncTask
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TASK-020
+    element: 关闭
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TASK-021
+    element: 重试（二次确认）
+    permission: data.async_task:read
+    api: retryAsyncTask
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TASK-022
+    element: 下载结果文件
+    permission: data.async_task:read
+    api: downloadTaskResult
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TASK-010
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TASK-011
+    element: 开始导出
+    permission: data.export:export
+    api: exportData
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TASK-030
+    element: 去发起导入
+    permission: data.import:import
+    api: '-'
+    nav: PAGE-IMP-WIZARD
+    overlay: '-'
+  - action_id: ACT-TASK-008
+    element: 刷新
+    permission: '-'
+    api: listAsyncTask
+    nav: '-'
+    overlay: '-'
+- file: audit-archive.html
+  page_ids:
+  - PAGE-AUDIT-ARCHIVE
+  actions:
+  - action_id: ACT-AUD-060
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-061
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-062
+    element: 归档区间检索
+    permission: audit.log:read
+    api: searchArchivedLog
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-063
+    element: 刷新
+    permission: audit.log:read
+    api: listArchiveBatch
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-063
+    element: 刷新
+    permission: '-'
+    api: listArchiveBatch
+    nav: '-'
+    overlay: '-'
+- file: audit-log-list.html
+  page_ids:
+  - DIALOG-AUD-EXPORT
+  - PAGE-AUDIT-LOG-DETAIL
+  - PAGE-AUDIT-LOG-LIST
+  - PAGE-AUDIT-OBJECT-TIMELINE
+  actions:
+  - action_id: ACT-AUD-001
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-002
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-003
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-004
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-005
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-007
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-010
+    element: 导出
+    permission: audit.log:export
+    api: '-'
+    nav: DIALOG-AUD-EXPORT
+    overlay: dialog
+  - action_id: ACT-AUD-008
+    element: 刷新
+    permission: audit.log:read
+    api: listOperationLog
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-020
+    element: 关闭
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-012
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-013
+    element: 开始导出
+    permission: audit.log:export
+    api: exportOperationLog
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-001
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-008
+    element: 刷新
+    permission: '-'
+    api: listOperationLog
+    nav: '-'
+    overlay: '-'
+- file: audit-ops-access.html
+  page_ids:
+  - PAGE-AUDIT-OPS-ACCESS
+  actions:
+  - action_id: ACT-AUD-030
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-031
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-032
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-033
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-034
+    element: 导出记录
+    permission: audit.log:export
+    api: exportOperatorAccess
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-035
+    element: 刷新
+    permission: audit.log:read
+    api: listOperatorAccess
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-035
+    element: 刷新
+    permission: '-'
+    api: listOperatorAccess
+    nav: '-'
+    overlay: '-'
+- file: audit-security-event.html
+  page_ids:
+  - PAGE-AUDIT-SECURITY-EVENT
+  actions:
+  - action_id: ACT-AUD-050
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-051
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-052
+    element: 刷新
+    permission: audit.log:read
+    api: listSecurityEvent
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-052
+    element: 刷新
+    permission: '-'
+    api: listSecurityEvent
+    nav: '-'
+    overlay: '-'
+- file: audit-sensitive-access.html
+  page_ids:
+  - PAGE-AUDIT-SENSITIVE-ACCESS
+  actions:
+  - action_id: ACT-AUD-040
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-041
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-042
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-043
+    element: 导出记录
+    permission: audit.log:export
+    api: exportOperationLog
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-044
+    element: 刷新
+    permission: audit.log:read
+    api: listSensitiveAccess
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUD-044
+    element: 刷新
+    permission: '-'
+    api: listSensitiveAccess
+    nav: '-'
+    overlay: '-'
+- file: class-detail.html
+  page_ids:
+  - PAGE-CLS-DETAIL
+  - PAGE-CLS-TRANSFER
+  actions:
+  - action_id: ACT-CLS-017
+    element: ← 返回列表
+    permission: '-'
+    api: '-'
+    nav: PAGE-CLS-LIST
+    overlay: '-'
+  - action_id: ACT-CLS-019
+    element: 编辑班级
+    permission: org.class:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-020
+    element: 指定班主任
+    permission: org.class:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-021
+    element: 编班（添加学生）
+    permission: org.class:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-023
+    element: 批量迁学生
+    permission: org.class:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-022
+    element: 复制班级
+    permission: org.class:create
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-024
+    element: 导出花名册
+    permission: data.export:export
+    api: exportClassRoster
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-007
+    element: 导出（需授权）
+    permission: data.export:export
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-018
+    element: 花名册
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-018
+    element: 花名册
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-018
+    element: 花名册
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-018
+    element: 花名册
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-025
+    element: 在读成员（2）
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-025
+    element: 在读成员（2）
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-001
+    element: 搜索
+    permission: org.class:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-002
+    element: 重置
+    permission: org.class:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-026
+    element: 移出所选
+    permission: org.class:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-021
+    element: 编班（添加学生）
+    permission: org.class:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-064
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-064
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-064
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-021
+    element: 编班（添加学生）
+    permission: org.class:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-027
+    element: 查看全部变更记录
+    permission: audit.log:read
+    api: '-'
+    nav: PAGE-AUDIT-LOG-LIST
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 重试
+    permission: '-'
+    api: listClassRoster
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-049
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-048
+    element: 确认移出
+    permission: org.class:update
+    api: removeClassRoster
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-051
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-052
+    element: 确认调班
+    permission: org.class:update
+    api: transferClass
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-026
+    element: 移出所选
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+- file: class-import-roster.html
+  page_ids:
+  - PAGE-CLS-ROSTER-IMPORT
+  actions:
+  - action_id: ACT-IMP-001
+    element: 下载模板
+    permission: data.import:import
+    api: downloadImportTemplate
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IO-002
+    element: 选择文件
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-005
+    element: 下载失败明细
+    permission: data.import:import
+    api: downloadImportFailedRows
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-007
+    element: 查看异步任务
+    permission: data.async_task:read
+    api: '-'
+    nav: PAGE-IMP-TASK-LIST
+    overlay: '-'
+  - action_id: ACT-IMP-008
+    element: 下载编班结果
+    permission: data.import:import
+    api: downloadImportResult
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-003
+    element: 上一步
+    permission: data.import:import
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-002
+    element: 下一步：上传与校验
+    permission: data.import:import
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-006
+    element: 确认执行（异步）
+    permission: data.import:import
+    api: executeImport
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-009
+    element: 重新导入
+    permission: data.import:import
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-001
+    element: 下载模板
+    permission: data.import:import
+    api: downloadImportTemplate
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-001
+    element: 下载模板
+    permission: data.import:import
+    api: downloadImportTemplate
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-010
+    element: 去异步任务中心（只读）
+    permission: '-'
+    api: '-'
+    nav: PAGE-IMP-TASK-LIST
+    overlay: '-'
+- file: class-list.html
+  page_ids:
+  - PAGE-CLS-BATCH
+  - PAGE-CLS-COPY
+  - PAGE-CLS-CREATE
+  - PAGE-CLS-LEADER
+  - PAGE-CLS-LIST
+  actions:
+  - action_id: ACT-COM-001
+    element: 搜索
+    permission: org.class:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-002
+    element: 重置
+    permission: org.class:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-001
+    element: 新建
+    permission: org.class:create
+    api: '-'
+    nav: PAGE-CLS-CREATE
+    overlay: dialog
+  - action_id: ACT-CLS-002
+    element: 批量生成
+    permission: org.class:create
+    api: '-'
+    nav: PAGE-CLS-BATCH
+    overlay: dialog
+  - action_id: ACT-CLS-003
+    element: 导出
+    permission: data.export:export
+    api: exportClass
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-007
+    element: 导出（需授权）
+    permission: data.export:export
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-003
+    element: 隐藏搜索
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-004
+    element: 列配置
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listClass
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-006
+    element: '2'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listClass
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-012
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-011
+    element: 确认停用
+    permission: org.class:update
+    api: disableClass
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-015
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-014
+    element: 确认删除
+    permission: org.class:delete
+    api: removeClass
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-031
+    element: 按规则生成
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-034
+    element: 继续新增
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-035
+    element: 进入班级详情
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-036
+    element: 立即编班
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-032
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-033
+    element: 保存
+    permission: org.class:create
+    api: addClass
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-038
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-039
+    element: 确认生成
+    permission: org.class:create
+    api: batchAddClass
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-041
+    element: 按规则生成
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-042
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-043
+    element: 确认复制
+    permission: org.class:create
+    api: addClass
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-047
+    element: 查看全部任职历史
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-045
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-046
+    element: 保存
+    permission: org.class:update
+    api: assignHeadTeacher
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-003
+    element: 隐藏搜索
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+- file: class-move-students.html
+  page_ids:
+  - PAGE-CLS-MOVE
+  actions:
+  - action_id: ACT-CLS-063
+    element: ← 返回班级列表
+    permission: '-'
+    api: '-'
+    nav: PAGE-CLS-LIST
+    overlay: '-'
+  - action_id: ACT-CLS-059
+    element: 全选在读成员
+    permission: org.class:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-059
+    element: 全选在读成员
+    permission: org.class:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-059
+    element: 全选在读成员
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-059
+    element: 全选在读成员
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-059
+    element: 全选在读成员
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-059
+    element: 全选在读成员
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-059
+    element: 全选在读成员
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-059
+    element: 全选在读成员
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-059
+    element: 全选在读成员
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-063
+    element: ← 返回班级列表
+    permission: '-'
+    api: '-'
+    nav: PAGE-CLS-LIST
+    overlay: '-'
+  - action_id: ACT-CLS-061
+    element: 刷新影响预览
+    permission: org.class:read
+    api: listClassRoster
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-063
+    element: ← 返回班级列表
+    permission: '-'
+    api: '-'
+    nav: PAGE-CLS-LIST
+    overlay: '-'
+  - action_id: ACT-CLS-062
+    element: 执行迁移
+    permission: org.class:update
+    api: transferClass
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-061
+    element: 刷新影响预览
+    permission: '-'
+    api: listClassRoster
+    nav: '-'
+    overlay: '-'
+- file: class-roster-add.html
+  page_ids:
+  - PAGE-CLS-ROSTER-ADD
+  actions:
+  - action_id: ACT-CLS-058
+    element: ← 返回班级详情
+    permission: '-'
+    api: '-'
+    nav: PAGE-CLS-DETAIL
+    overlay: '-'
+  - action_id: ACT-CLS-053
+    element: 全部学生
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-053
+    element: 全部学生
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-053
+    element: 全部学生
+    permission: person.student:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-053
+    element: 全部学生
+    permission: person.student:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-054
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-054
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-054
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-054
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-054
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-054
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-054
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-054
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-054
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-054
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-054
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-054
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-054
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-054
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-054
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-053
+    element: 全部学生
+    permission: person.student:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-CLS-058
+    element: ← 返回班级详情
+    permission: '-'
+    api: '-'
+    nav: PAGE-CLS-DETAIL
+    overlay: '-'
+  - action_id: ACT-CLS-057
+    element: 加入班级
+    permission: org.class:update
+    api: addClassRoster
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 重试
+    permission: '-'
+    api: listStudent
+    nav: '-'
+    overlay: '-'
+- file: dead-letter-task.html
+  page_ids:
+  - DIALOG-DLQ-REPLAY
+  - PAGE-IMP-DEADLETTER
+  actions:
+  - action_id: ACT-TASK-040
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TASK-041
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TASK-042
+    element: 刷新
+    permission: data.async_task:read
+    api: listDeadLetterTask
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TASK-050
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TASK-051
+    element: 确认重放
+    permission: data.async_task:read
+    api: replayDeadLetterTask
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TASK-042
+    element: 刷新
+    permission: '-'
+    api: listDeadLetterTask
+    nav: '-'
+    overlay: '-'
+- file: grade-list.html
+  page_ids:
+  - PAGE-GRD-ARCHIVE
+  - PAGE-GRD-BATCH
+  - PAGE-GRD-CREATE
+  - PAGE-GRD-DETAIL
+  - PAGE-GRD-LEADER
+  - PAGE-GRD-LIST
+  actions:
+  - action_id: ACT-COM-001
+    element: 搜索
+    permission: org.grade:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-002
+    element: 重置
+    permission: org.grade:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-GRD-001
+    element: 新增
+    permission: org.grade:create
+    api: '-'
+    nav: PAGE-GRD-CREATE
+    overlay: dialog
+  - action_id: ACT-GRD-002
+    element: 按学段批量生成
+    permission: org.grade:create
+    api: '-'
+    nav: PAGE-GRD-BATCH
+    overlay: dialog
+  - action_id: ACT-GRD-003
+    element: 导出
+    permission: data.export:export
+    api: exportGrade
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-007
+    element: 导出（需授权）
+    permission: data.export:export
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-003
+    element: 隐藏搜索
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-004
+    element: 列配置
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listGrade
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-GRD-008
+    element: '4'
+    permission: org.class:read
+    api: '-'
+    nav: PAGE-CLS-LIST
+    overlay: '-'
+  - action_id: ACT-GRD-008
+    element: '4'
+    permission: org.class:read
+    api: '-'
+    nav: PAGE-CLS-LIST
+    overlay: '-'
+  - action_id: ACT-GRD-008
+    element: '4'
+    permission: org.class:read
+    api: '-'
+    nav: PAGE-CLS-LIST
+    overlay: '-'
+  - action_id: ACT-GRD-008
+    element: '4'
+    permission: org.class:read
+    api: '-'
+    nav: PAGE-CLS-LIST
+    overlay: '-'
+  - action_id: ACT-GRD-008
+    element: '4'
+    permission: org.class:read
+    api: '-'
+    nav: PAGE-CLS-LIST
+    overlay: '-'
+  - action_id: ACT-GRD-008
+    element: '4'
+    permission: org.class:read
+    api: '-'
+    nav: PAGE-CLS-LIST
+    overlay: '-'
+  - action_id: ACT-GRD-008
+    element: '4'
+    permission: org.class:read
+    api: '-'
+    nav: PAGE-CLS-LIST
+    overlay: '-'
+  - action_id: ACT-GRD-008
+    element: '4'
+    permission: org.class:read
+    api: '-'
+    nav: PAGE-CLS-LIST
+    overlay: '-'
+  - action_id: ACT-GRD-008
+    element: '4'
+    permission: org.class:read
+    api: '-'
+    nav: PAGE-CLS-LIST
+    overlay: '-'
+  - action_id: ACT-GRD-008
+    element: '4'
+    permission: org.class:read
+    api: '-'
+    nav: PAGE-CLS-LIST
+    overlay: '-'
+  - action_id: ACT-GRD-008
+    element: '4'
+    permission: org.class:read
+    api: '-'
+    nav: PAGE-CLS-LIST
+    overlay: '-'
+  - action_id: ACT-GRD-008
+    element: '4'
+    permission: org.class:read
+    api: '-'
+    nav: PAGE-CLS-LIST
+    overlay: '-'
+  - action_id: ACT-GRD-008
+    element: '4'
+    permission: org.class:read
+    api: '-'
+    nav: PAGE-CLS-LIST
+    overlay: '-'
+  - action_id: ACT-COM-006
+    element: '2'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listGrade
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-GRD-011
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-GRD-010
+    element: 确认删除
+    permission: org.grade:delete
+    api: removeGrade
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-GRD-012
+    element: 编辑
+    permission: org.grade:update
+    api: '-'
+    nav: PAGE-GRD-CREATE
+    overlay: dialog
+  - action_id: ACT-GRD-014
+    element: 查看全部班级
+    permission: org.class:read
+    api: '-'
+    nav: PAGE-CLS-LIST
+    overlay: '-'
+  - action_id: ACT-GRD-013
+    element: 指定年级主任
+    permission: org.grade:update
+    api: '-'
+    nav: PAGE-GRD-LEADER
+    overlay: dialog
+  - action_id: ACT-GRD-015
+    element: 关闭
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-GRD-016
+    element: 按规则重新生成
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-GRD-017
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-GRD-018
+    element: 保存
+    permission: org.grade:create
+    api: addGrade
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-GRD-020
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-GRD-021
+    element: 确认生成
+    permission: org.grade:create
+    api: batchAddGrade
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-GRD-024
+    element: 添加
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-GRD-025
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-GRD-026
+    element: 保存
+    permission: org.grade:update
+    api: saveGradeLeader
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-GRD-028
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-GRD-029
+    element: 确认归档
+    permission: org.grade:update
+    api: archiveGrade
+    nav: '-'
+    overlay: '-'
+- file: import-wizard.html
+  page_ids:
+  - PAGE-IMP-EXECUTE
+  - PAGE-IMP-TEMPLATE
+  - PAGE-IMP-VALIDATE
+  - PAGE-IMP-WIZARD
+  actions:
+  - action_id: ACT-IMP-001
+    element: 下载模板
+    permission: data.import:import
+    api: downloadImportTemplate
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IO-002
+    element: 选择文件
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-005
+    element: 下载失败明细
+    permission: data.import:import
+    api: downloadImportFailedRows
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-007
+    element: 查看异步任务
+    permission: data.async_task:read
+    api: '-'
+    nav: PAGE-IMP-TASK-LIST
+    overlay: '-'
+  - action_id: ACT-IMP-008
+    element: 下载结果摘要
+    permission: data.import:import
+    api: downloadImportResult
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-003
+    element: 上一步
+    permission: data.import:import
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-002
+    element: 下一步：上传与校验
+    permission: data.import:import
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-006
+    element: 确认执行（异步）
+    permission: data.import:import
+    api: executeImport
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-009
+    element: 重新导入
+    permission: data.import:import
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-001
+    element: 下载模板
+    permission: data.import:import
+    api: downloadImportTemplate
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-001
+    element: 下载模板
+    permission: data.import:import
+    api: downloadImportTemplate
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-010
+    element: 去异步任务中心（只读）
+    permission: '-'
+    api: '-'
+    nav: PAGE-IMP-TASK-LIST
+    overlay: '-'
+- file: login.html
+  page_ids:
+  - PAGE-LOGIN
+  actions:
+  - action_id: ACT-AUTH-002
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUTH-003
+    element: 忘记密码？
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-AUTH-001
+    element: 登录
+    permission: '-'
+    api: login
+    nav: '-'
+    overlay: '-'
+- file: promotion-create.html
+  page_ids:
+  - PAGE-PRM-CREATE
+  actions:
+  - action_id: ACT-PRM-013
+    element: 重新校验
+    permission: promotion.batch:create
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-015
+    element: 去创建年级
+    permission: org.grade:read
+    api: '-'
+    nav: PAGE-GRD-LIST
+    overlay: '-'
+  - action_id: ACT-PRM-016
+    element: 去创建班级
+    permission: org.class:read
+    api: '-'
+    nav: PAGE-CLS-LIST
+    overlay: '-'
+  - action_id: ACT-PRM-017
+    element: 查看已有任务
+    permission: promotion.batch:read
+    api: '-'
+    nav: PAGE-PRM-LIST
+    overlay: '-'
+  - action_id: ACT-PRM-014
+    element: 查看在读名单
+    permission: person.student:read
+    api: '-'
+    nav: PAGE-STU-LIST
+    overlay: '-'
+  - action_id: ACT-PRM-011
+    element: 取消
+    permission: promotion.batch:create
+    api: '-'
+    nav: PAGE-PRM-LIST
+    overlay: '-'
+  - action_id: ACT-PRM-012
+    element: 下一步：预览与调整
+    permission: promotion.batch:create
+    api: addPromotionTask
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-018
+    element: 去学生管理核对学籍状态
+    permission: person.student:read
+    api: '-'
+    nav: PAGE-STU-LIST
+    overlay: '-'
+  - action_id: ACT-PRM-019
+    element: 返回任务列表
+    permission: promotion.batch:read
+    api: '-'
+    nav: PAGE-PRM-LIST
+    overlay: '-'
+  - action_id: ACT-PRM-013
+    element: 重新校验
+    permission: promotion.batch:create
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-019
+    element: 返回任务列表
+    permission: promotion.batch:read
+    api: '-'
+    nav: PAGE-PRM-LIST
+    overlay: '-'
+  - action_id: ACT-PRM-019
+    element: 返回任务列表
+    permission: promotion.batch:read
+    api: '-'
+    nav: PAGE-PRM-LIST
+    overlay: '-'
+- file: promotion-execute.html
+  page_ids:
+  - PAGE-PRM-EXECUTE
+  actions:
+  - action_id: ACT-PRM-034
+    element: 刷新进度
+    permission: '-'
+    api: getPromotionTask
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-035
+    element: 取消任务（去列表）
+    permission: promotion.batch:update
+    api: '-'
+    nav: PAGE-PRM-LIST
+    overlay: '-'
+  - action_id: ACT-PRM-036
+    element: 查看结果
+    permission: promotion.batch:read
+    api: '-'
+    nav: PAGE-PRM-RESULT
+    overlay: '-'
+  - action_id: ACT-PRM-034
+    element: 刷新进度
+    permission: '-'
+    api: getPromotionTask
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-036
+    element: 查看结果
+    permission: promotion.batch:read
+    api: '-'
+    nav: PAGE-PRM-RESULT
+    overlay: '-'
+  - action_id: ACT-PRM-036
+    element: 查看结果
+    permission: promotion.batch:read
+    api: '-'
+    nav: PAGE-PRM-RESULT
+    overlay: '-'
+  - action_id: ACT-PRM-043
+    element: 返回任务列表（只读）
+    permission: promotion.batch:read
+    api: '-'
+    nav: PAGE-PRM-LIST
+    overlay: '-'
+- file: promotion-history.html
+  page_ids:
+  - PAGE-PRM-HISTORY
+  actions:
+  - action_id: ACT-COM-001
+    element: 搜索
+    permission: enrollment.status:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-002
+    element: 重置
+    permission: enrollment.status:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-046
+    element: 异动登记
+    permission: enrollment.status:update
+    api: '-'
+    nav: PAGE-STU-LIST
+    overlay: '-'
+  - action_id: ACT-PRM-048
+    element: 导出
+    permission: data.export:export
+    api: exportData
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-003
+    element: 隐藏搜索
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listEnrollmentChange
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-006
+    element: '1'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-006
+    element: '1'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-002
+    element: 重置
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listEnrollmentChange
+    nav: '-'
+    overlay: '-'
+- file: promotion-list.html
+  page_ids:
+  - PAGE-PRM-LIST
+  actions:
+  - action_id: ACT-COM-001
+    element: 搜索
+    permission: promotion.batch:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-002
+    element: 重置
+    permission: promotion.batch:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-001
+    element: 新建任务
+    permission: promotion.batch:create
+    api: '-'
+    nav: PAGE-PRM-CREATE
+    overlay: '-'
+  - action_id: ACT-PRM-007
+    element: 导出
+    permission: data.export:export
+    api: exportPromotionTask
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-007
+    element: 导出（需授权）
+    permission: data.export:export
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-003
+    element: 隐藏搜索
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-004
+    element: 列配置
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listPromotionTask
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-006
+    element: '2'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listPromotionTask
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-009
+    element: 返回
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-010
+    element: 确认取消任务
+    permission: promotion.batch:update
+    api: cancelPromotionTask
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-003
+    element: 隐藏搜索
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+- file: promotion-preview.html
+  page_ids:
+  - PAGE-PRM-ADJUST
+  - PAGE-PRM-PREVIEW
+  actions:
+  - action_id: ACT-PRM-022
+    element: 导出预览结果
+    permission: data.export:export
+    api: exportPromotionPreview
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-021
+    element: 重新预览
+    permission: promotion.batch:update
+    api: previewPromotionTask
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-026
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-023
+    element: 应用到本班
+    permission: promotion.batch:update
+    api: batchUpdatePromotionItem
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-026
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-023
+    element: 应用到本班
+    permission: promotion.batch:update
+    api: batchUpdatePromotionItem
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-026
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-023
+    element: 应用到本班
+    permission: promotion.batch:update
+    api: batchUpdatePromotionItem
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-026
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-023
+    element: 应用到本班
+    permission: promotion.batch:update
+    api: batchUpdatePromotionItem
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-026
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-020
+    element: 上一步：选择学年学期
+    permission: promotion.batch:update
+    api: '-'
+    nav: PAGE-PRM-CREATE
+    overlay: '-'
+  - action_id: ACT-PRM-025
+    element: 下一步：升班校验
+    permission: promotion.batch:update
+    api: validatePromotionTask
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-020
+    element: 上一步：选择学年学期
+    permission: promotion.batch:update
+    api: '-'
+    nav: PAGE-PRM-CREATE
+    overlay: '-'
+  - action_id: ACT-PRM-021
+    element: 重新预览
+    permission: promotion.batch:update
+    api: previewPromotionTask
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-043
+    element: 返回任务列表
+    permission: promotion.batch:read
+    api: '-'
+    nav: PAGE-PRM-LIST
+    overlay: '-'
+  - action_id: ACT-PRM-043
+    element: 返回任务列表
+    permission: promotion.batch:read
+    api: '-'
+    nav: PAGE-PRM-LIST
+    overlay: '-'
+  - action_id: ACT-PRM-027
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-028
+    element: 保存调整
+    permission: promotion.batch:update
+    api: updatePromotionItem
+    nav: '-'
+    overlay: '-'
+- file: promotion-result.html
+  page_ids:
+  - PAGE-PRM-RESULT
+  actions:
+  - action_id: ACT-PRM-038
+    element: 结果导出
+    permission: data.export:export
+    api: exportPromotionResult
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-037
+    element: 只重试失败项
+    permission: promotion.batch:update
+    api: retryPromotionTask
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-041
+    element: 成功清单 6
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-041
+    element: 成功清单 6
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-041
+    element: 成功清单 6
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-041
+    element: 成功清单 6
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-043
+    element: 返回任务列表
+    permission: promotion.batch:read
+    api: '-'
+    nav: PAGE-PRM-LIST
+    overlay: '-'
+  - action_id: ACT-PRM-039
+    element: 继续执行剩余项
+    permission: promotion.batch:update
+    api: retryPromotionTask
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-039
+    element: 继续执行剩余项
+    permission: promotion.batch:update
+    api: retryPromotionTask
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-037
+    element: 只重试失败项
+    permission: promotion.batch:update
+    api: retryPromotionTask
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-037
+    element: 只重试失败项
+    permission: promotion.batch:update
+    api: retryPromotionTask
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-043
+    element: 返回任务列表
+    permission: promotion.batch:read
+    api: '-'
+    nav: PAGE-PRM-LIST
+    overlay: '-'
+- file: promotion-transfer.html
+  page_ids:
+  - PAGE-PRM-TRANSFER
+  actions:
+  - action_id: ACT-PRM-051
+    element: 办理报到
+    permission: enrollment.status:update
+    api: checkInTransfer
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-053
+    element: 上一步
+    permission: enrollment.transfer:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-052
+    element: 下一步
+    permission: enrollment.transfer:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-050
+    element: 接收
+    permission: enrollment.transfer:approve
+    api: acceptTransfer
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-054
+    element: 撤销申请
+    permission: enrollment.transfer:approve
+    api: cancelTransfer
+    nav: '-'
+    overlay: '-'
+- file: promotion-validate.html
+  page_ids:
+  - PAGE-PRM-VALIDATE
+  actions:
+  - action_id: ACT-PRM-030
+    element: 重新校验
+    permission: promotion.batch:update
+    api: validatePromotionTask
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-029
+    element: 回到预览修正
+    permission: promotion.batch:update
+    api: '-'
+    nav: PAGE-PRM-PREVIEW
+    overlay: '-'
+  - action_id: ACT-PRM-031
+    element: 全部 7
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-031
+    element: 全部 7
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-031
+    element: 全部 7
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-031
+    element: 全部 7
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-029
+    element: 回到预览修正
+    permission: promotion.batch:update
+    api: '-'
+    nav: PAGE-PRM-PREVIEW
+    overlay: '-'
+  - action_id: ACT-PRM-033
+    element: 确认执行（异步）
+    permission: promotion.batch:update
+    api: executePromotionTask
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-029
+    element: 回到预览修正
+    permission: promotion.batch:update
+    api: '-'
+    nav: PAGE-PRM-PREVIEW
+    overlay: '-'
+  - action_id: ACT-PRM-030
+    element: 重新校验
+    permission: promotion.batch:update
+    api: validatePromotionTask
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-043
+    element: 返回任务列表（只读）
+    permission: promotion.batch:read
+    api: '-'
+    nav: PAGE-PRM-LIST
+    overlay: '-'
+- file: school-campus.html
+  page_ids:
+  - PAGE-SCH-CAMPUS
+  actions:
+  - action_id: ACT-SCH-030
+    element: 新增校区
+    permission: org.school:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SCH-031
+    element: 返回学校列表
+    permission: org.school:read
+    api: '-'
+    nav: PAGE-SCH-LIST
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listCampus
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SCH-032
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SCH-033
+    element: 保存校区
+    permission: org.school:update
+    api: saveCampus
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SCH-035
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SCH-036
+    element: 确认停用
+    permission: org.school:update
+    api: removeCampus
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SCH-030
+    element: 新增校区
+    permission: org.school:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listCampus
+    nav: '-'
+    overlay: '-'
+- file: school-init.html
+  page_ids:
+  - PAGE-SCH-INIT
+  actions:
+  - action_id: ACT-SCH-041
+    element: 上一步
+    permission: org.school:create
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SCH-040
+    element: 下一步
+    permission: org.school:create
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SCH-042
+    element: 执行初始化
+    permission: org.school:create
+    api: initSchoolBaseline
+    nav: '-'
+    overlay: '-'
+- file: school-list.html
+  page_ids:
+  - PAGE-SCH-CREATE
+  - PAGE-SCH-DETAIL
+  - PAGE-SCH-DISABLE
+  - PAGE-SCH-EDIT
+  - PAGE-SCH-LIST
+  - PAGE-SCH-STAGE
+  actions:
+  - action_id: ACT-COM-001
+    element: 搜索
+    permission: org.school:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-002
+    element: 重置
+    permission: org.school:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SCH-001
+    element: 新建学校
+    permission: org.school:create
+    api: '-'
+    nav: PAGE-SCH-CREATE
+    overlay: dialog
+  - action_id: ACT-SCH-002
+    element: 开通初始化
+    permission: org.school:create
+    api: '-'
+    nav: PAGE-SCH-INIT
+    overlay: '-'
+  - action_id: ACT-SCH-003
+    element: 导出
+    permission: data.export:export
+    api: exportSchool
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-003
+    element: 隐藏搜索
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listSchool
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SCH-004
+    element: '3'
+    permission: org.school:read
+    api: '-'
+    nav: PAGE-SCH-CAMPUS
+    overlay: '-'
+  - action_id: ACT-SCH-004
+    element: '3'
+    permission: org.school:read
+    api: '-'
+    nav: PAGE-SCH-CAMPUS
+    overlay: '-'
+  - action_id: ACT-SCH-004
+    element: '3'
+    permission: org.school:read
+    api: '-'
+    nav: PAGE-SCH-CAMPUS
+    overlay: '-'
+  - action_id: ACT-SCH-005
+    element: 配置学段
+    permission: org.school:update
+    api: '-'
+    nav: PAGE-SCH-STAGE
+    overlay: dialog
+  - action_id: ACT-SCH-006
+    element: 编辑学校
+    permission: org.school:update
+    api: '-'
+    nav: PAGE-SCH-EDIT
+    overlay: dialog
+  - action_id: ACT-SCH-007
+    element: 校区管理
+    permission: org.school:read
+    api: '-'
+    nav: PAGE-SCH-CAMPUS
+    overlay: '-'
+  - action_id: ACT-SCH-008
+    element: 学段配置
+    permission: org.school:update
+    api: '-'
+    nav: PAGE-SCH-STAGE
+    overlay: dialog
+  - action_id: ACT-SCH-009
+    element: 停用学校
+    permission: org.school:update
+    api: '-'
+    nav: PAGE-SCH-DISABLE
+    overlay: dialog
+  - action_id: ACT-SCH-010
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SCH-011
+    element: 保存
+    permission: org.school:create
+    api: addSchool
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SCH-012
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SCH-013
+    element: 保存
+    permission: org.school:update
+    api: updateSchool
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SCH-014
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SCH-015
+    element: 保存配置
+    permission: org.school:update
+    api: saveSchoolStage
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SCH-016
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SCH-017
+    element: 确认停用
+    permission: org.school:update
+    api: disableSchool
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SCH-001
+    element: 新建学校
+    permission: org.school:create
+    api: '-'
+    nav: PAGE-SCH-CREATE
+    overlay: dialog
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listSchool
+    nav: '-'
+    overlay: '-'
+- file: stream-approve.html
+  page_ids:
+  - DIALOG-STR-APPROVE
+  - PAGE-STR-APPROVE
+  actions:
+  - action_id: ACT-STR-045
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-046
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-047
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listStreamChangeRequest
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-043
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-042
+    element: 驳回
+    permission: stream.change_request:approve
+    api: approveStreamChangeRequest
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-041
+    element: 同意并生效
+    permission: stream.change_request:approve
+    api: approveStreamChangeRequest
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-045
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listStreamChangeRequest
+    nav: '-'
+    overlay: '-'
+- file: stream-config.html
+  page_ids:
+  - PAGE-STR-CONFIG
+  actions:
+  - action_id: ACT-STR-002
+    element: 查看选科清单
+    permission: stream.selection:read
+    api: '-'
+    nav: PAGE-STR-LIST
+    overlay: '-'
+  - action_id: ACT-STR-003
+    element: 查看未选科学生
+    permission: stream.selection:read
+    api: listUnselectedStudent
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-001
+    element: 保存配置
+    permission: stream.config:update
+    api: saveStreamConfig
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 重试
+    permission: '-'
+    api: getStreamConfig
+    nav: '-'
+    overlay: '-'
+- file: stream-generate-class.html
+  page_ids:
+  - PAGE-STR-GEN-CLASS
+  actions:
+  - action_id: ACT-STR-050
+    element: 按完整组合（物理 + 化学 + 生物 → 一个教学班）
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-051
+    element: 按单学科（全体选物理的学生 → 一个教学班）
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-052
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-053
+    element: 增量生成并核对
+    permission: stream.selection:read
+    api: previewTeachingClassGenerate
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-054
+    element: 去教学班管理
+    permission: org.teaching_class:read
+    api: '-'
+    nav: PAGE-CLS-TEACHING
+    overlay: '-'
+  - action_id: ACT-STR-055
+    element: 查看组合分布统计
+    permission: stream.selection:read
+    api: '-'
+    nav: PAGE-STR-STAT
+    overlay: '-'
+  - action_id: ACT-STR-058
+    element: 上一步
+    permission: stream.selection:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-056
+    element: 下一步
+    permission: stream.selection:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-057
+    element: 执行生成
+    permission: stream.selection:read
+    api: executeTeachingClassGenerate
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-055
+    element: 查看组合分布统计
+    permission: stream.selection:read
+    api: '-'
+    nav: PAGE-STR-STAT
+    overlay: '-'
+  - action_id: ACT-STR-057
+    element: 执行生成
+    permission: '-'
+    api: executeTeachingClassGenerate
+    nav: '-'
+    overlay: '-'
+- file: stream-list.html
+  page_ids:
+  - PAGE-STR-CHANGE
+  - PAGE-STR-HISTORY
+  - PAGE-STR-LIST
+  actions:
+  - action_id: ACT-STR-020
+    element: 组合分布统计
+    permission: stream.selection:read
+    api: '-'
+    nav: PAGE-STR-STAT
+    overlay: '-'
+  - action_id: ACT-STR-021
+    element: 选科配置
+    permission: stream.config:read
+    api: '-'
+    nav: PAGE-STR-CONFIG
+    overlay: '-'
+  - action_id: ACT-STR-022
+    element: 导出
+    permission: data.export:export
+    api: exportStreamSelection
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listStreamSelection
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-023
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-024
+    element: 提交变更申请
+    permission: stream.change_request:create
+    api: addStreamChangeRequest
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-021
+    element: 选科配置
+    permission: stream.config:read
+    api: '-'
+    nav: PAGE-STR-CONFIG
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listStreamSelection
+    nav: '-'
+    overlay: '-'
+- file: stream-selection.html
+  page_ids:
+  - PAGE-STR-STUDENT
+  actions:
+  - action_id: ACT-STR-010
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-010
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-011
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-011
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-011
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-011
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-012
+    element: 查看选科历史
+    permission: '-'
+    api: '-'
+    nav: PAGE-STR-HISTORY
+    overlay: '-'
+  - action_id: ACT-STR-013
+    element: 恢复当前结果
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-014
+    element: 提交选科
+    permission: stream.selection:update
+    api: updateMyStream
+    nav: '-'
+    overlay: '-'
+- file: stream-stat.html
+  page_ids:
+  - PAGE-STR-STAT
+  actions:
+  - action_id: ACT-STR-030
+    element: 导出统计
+    permission: data.export:export
+    api: exportStreamSelection
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: getStreamStat
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-031
+    element: 返回选科清单
+    permission: stream.selection:read
+    api: '-'
+    nav: PAGE-STR-LIST
+    overlay: '-'
+  - action_id: ACT-STR-032
+    element: 查看未选科学生（3）
+    permission: stream.selection:read
+    api: listUnselectedStudent
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STR-033
+    element: 按组合生成教学班
+    permission: stream.selection:read
+    api: '-'
+    nav: PAGE-STR-GEN-CLASS
+    overlay: '-'
+  - action_id: ACT-STR-031
+    element: 返回选科清单
+    permission: stream.selection:read
+    api: '-'
+    nav: PAGE-STR-LIST
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: getStreamStat
+    nav: '-'
+    overlay: '-'
+- file: student-cross-transfer.html
+  page_ids:
+  - PAGE-STU-CROSS-TRANSFER
+  actions:
+  - action_id: ACT-STU-041
+    element: 上一步
+    permission: enrollment.transfer:create
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-040
+    element: 下一步
+    permission: enrollment.transfer:create
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-042
+    element: 提交转学申请
+    permission: enrollment.transfer:create
+    api: addTransfer
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-043
+    element: 撤销申请
+    permission: enrollment.transfer:create
+    api: cancelTransfer
+    nav: '-'
+    overlay: '-'
+- file: student-import.html
+  page_ids:
+  - PAGE-STU-IMPORT
+  actions:
+  - action_id: ACT-IMP-001
+    element: 下载模板
+    permission: data.import:import
+    api: downloadImportTemplate
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IO-002
+    element: 选择文件
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-005
+    element: 下载失败明细
+    permission: data.import:import
+    api: downloadImportFailedRows
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-007
+    element: 查看异步任务
+    permission: data.async_task:read
+    api: '-'
+    nav: PAGE-IMP-TASK-LIST
+    overlay: '-'
+  - action_id: ACT-IMP-008
+    element: 下载学号对照表
+    permission: data.import:import
+    api: downloadImportResult
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-003
+    element: 上一步
+    permission: data.import:import
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-002
+    element: 下一步：上传与校验
+    permission: data.import:import
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-006
+    element: 确认执行（异步）
+    permission: data.import:import
+    api: executeImport
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-009
+    element: 重新导入
+    permission: data.import:import
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-001
+    element: 下载模板
+    permission: data.import:import
+    api: downloadImportTemplate
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-001
+    element: 下载模板
+    permission: data.import:import
+    api: downloadImportTemplate
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-010
+    element: 去异步任务中心（只读）
+    permission: '-'
+    api: '-'
+    nav: PAGE-IMP-TASK-LIST
+    overlay: '-'
+- file: student-list.html
+  page_ids:
+  - PAGE-PRM-CHANGE
+  - PAGE-STU-CREATE
+  - PAGE-STU-DETAIL
+  - PAGE-STU-EDIT
+  - PAGE-STU-HISTORY
+  - PAGE-STU-LIST
+  - PAGE-STU-STATUS
+  - PAGE-STU-TRANSFER
+  actions:
+  - action_id: ACT-COM-001
+    element: 搜索
+    permission: person.student:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-002
+    element: 重置
+    permission: person.student:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-001
+    element: 新增
+    permission: person.student:create
+    api: '-'
+    nav: PAGE-STU-CREATE
+    overlay: dialog
+  - action_id: ACT-STU-002
+    element: 导入
+    permission: data.import:import
+    api: '-'
+    nav: PAGE-STU-IMPORT
+    overlay: '-'
+  - action_id: ACT-STU-003
+    element: 导出
+    permission: data.export:export
+    api: exportStudent
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-004
+    element: 下载模板
+    permission: data.import:import
+    api: downloadStudentImportTemplate
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-007
+    element: 导出（需授权）
+    permission: data.export:export
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-019
+    element: 批量导出
+    permission: data.export:export
+    api: exportStudent
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-020
+    element: 批量调班
+    permission: org.class:update
+    api: batchTransferStudent
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-003
+    element: 隐藏搜索
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-004
+    element: 列配置
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listStudent
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-008
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-006
+    element: '2'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-006
+    element: '2'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-006
+    element: '2'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listStudent
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-021
+    element: 上传照片
+    permission: person.student:create
+    api: uploadStudentPhoto
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-022
+    element: 查看原图
+    permission: read_sensitive
+    api: getStudentPhoto
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-015
+    element: 添加监护人
+    permission: person.student_guardian:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-016
+    element: 删除本行
+    permission: person.student_guardian:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-017
+    element: 设为主要联系人
+    permission: person.student_guardian:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-014
+    element: 取消
+    permission: person.student:create
+    api: '-'
+    nav: DIALOG-STU-DISCARD
+    overlay: dialog
+  - action_id: ACT-STU-012
+    element: 上一步
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-011
+    element: 下一步
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-013
+    element: 保存
+    permission: person.student:create
+    api: addStudent
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-010
+    element: 查看完整证件号
+    permission: read_sensitive
+    api: viewStudentIdCard
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-015
+    element: 添加监护人
+    permission: person.student_guardian:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-016
+    element: 删除本行
+    permission: person.student_guardian:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-014
+    element: 取消
+    permission: person.student:update
+    api: '-'
+    nav: DIALOG-STU-DISCARD
+    overlay: dialog
+  - action_id: ACT-STU-012
+    element: 上一步
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-011
+    element: 下一步
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-013
+    element: 保存
+    permission: person.student:update
+    api: updateStudent
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-023
+    element: 查看完整
+    permission: person.student:read_sensitive
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-023
+    element: 查看完整
+    permission: person.student_contact:read_contact
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-024
+    element: 编辑监护人信息
+    permission: person.student_guardian:update
+    api: saveStudentGuardian
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-034
+    element: 解绑
+    permission: person.student_guardian:update
+    api: unbindStudentGuardian
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-029
+    element: 查看全部
+    permission: audit.log:read
+    api: '-'
+    nav: PAGE-AUDIT-LOG-LIST
+    overlay: '-'
+  - action_id: ACT-STU-005
+    element: 编辑
+    permission: person.student:update
+    api: '-'
+    nav: PAGE-STU-EDIT
+    overlay: dialog
+  - action_id: ACT-STU-025
+    element: 学籍异动
+    permission: enrollment.status:update
+    api: '-'
+    nav: PAGE-STU-STATUS
+    overlay: dialog
+  - action_id: ACT-STU-026
+    element: 调班
+    permission: org.class:update
+    api: '-'
+    nav: PAGE-STU-TRANSFER
+    overlay: dialog
+  - action_id: ACT-STU-027
+    element: 跨校转学
+    permission: enrollment.transfer:create
+    api: '-'
+    nav: PAGE-STU-CROSS-TRANSFER
+    overlay: '-'
+  - action_id: ACT-STU-028
+    element: 异动登记（升班口径）
+    permission: enrollment.transfer:create
+    api: '-'
+    nav: PAGE-PRM-CHANGE
+    overlay: dialog
+  - action_id: ACT-STU-031
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-030
+    element: 提交异动
+    permission: enrollment.status:update
+    api: changeEnrollmentStatus
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-033
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-STU-032
+    element: 确认调班
+    permission: org.class:update
+    api: transferStudentClass
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-045
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-PRM-044
+    element: 提交登记
+    permission: enrollment.status:update
+    api: changeEnrollmentStatus
+    nav: '-'
+    overlay: '-'
+- file: subject-list.html
+  page_ids:
+  - PAGE-SUB-BATCH
+  - PAGE-SUB-CREATE
+  - PAGE-SUB-EDIT
+  - PAGE-SUB-LIST
+  - PAGE-SUB-STAGE
+  - PAGE-SUB-STREAM
+  actions:
+  - action_id: ACT-COM-001
+    element: 搜索
+    permission: org.subject:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-002
+    element: 重置
+    permission: org.subject:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SUB-001
+    element: 新建学科
+    permission: org.subject:create
+    api: '-'
+    nav: PAGE-SUB-CREATE
+    overlay: dialog
+  - action_id: ACT-SUB-002
+    element: 按学段批量初始化
+    permission: org.subject:create
+    api: '-'
+    nav: PAGE-SUB-BATCH
+    overlay: dialog
+  - action_id: ACT-COM-003
+    element: 隐藏搜索
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listSubject
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SUB-009
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SUB-010
+    element: 保存
+    permission: org.subject:create
+    api: addSubject
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SUB-011
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SUB-012
+    element: 保存
+    permission: org.subject:update
+    api: updateSubject
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SUB-013
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SUB-014
+    element: 保存角色
+    permission: org.subject:update
+    api: saveSubjectStreamRole
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SUB-015
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SUB-016
+    element: 保存配置
+    permission: org.subject:update
+    api: saveSubjectStage
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SUB-017
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SUB-018
+    element: 确认初始化
+    permission: org.subject:create
+    api: batchInitSubject
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-SUB-002
+    element: 按学段批量初始化
+    permission: org.subject:create
+    api: '-'
+    nav: PAGE-SUB-BATCH
+    overlay: dialog
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listSubject
+    nav: '-'
+    overlay: '-'
+- file: teacher-assign.html
+  page_ids:
+  - DIALOG-TCH-COPY
+  - PAGE-TCH-ASSIGN
+  actions:
+  - action_id: ACT-TCH-035
+    element: 新增任教关系
+    permission: person.teaching_assignment:create
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-015
+    element: 复制上一学年
+    permission: person.teaching_assignment:create
+    api: '-'
+    nav: DIALOG-TCH-COPY
+    overlay: dialog
+  - action_id: ACT-TCH-037
+    element: 导出任教关系
+    permission: data.export:export
+    api: exportTeachingAssignment
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-004
+    element: 列配置
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listTeachingAssignment
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-033
+    element: 班级视角
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-033
+    element: 班级视角
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-034
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-034
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-034
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-034
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-034
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-034
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-034
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-034
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-034
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-034
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-034
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-034
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-034
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-034
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-034
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-034
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-034
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-034
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-034
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-016
+    element: 前往班级详情
+    permission: org.class:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-017
+    element: 展开
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-035
+    element: 新增任教关系
+    permission: person.teaching_assignment:create
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listTeachingAssignment
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-039
+    element: 保存任教关系
+    permission: person.teaching_assignment:create
+    api: saveTeachingAssignment
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-002
+    element: 重置
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-038
+    element: 确认复制
+    permission: person.teaching_assignment:create
+    api: copyTeachingAssignment
+    nav: '-'
+    overlay: '-'
+- file: teacher-import.html
+  page_ids:
+  - PAGE-TCH-IMPORT
+  actions:
+  - action_id: ACT-IMP-001
+    element: 下载模板
+    permission: data.import:import
+    api: downloadImportTemplate
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IO-002
+    element: 选择文件
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-005
+    element: 下载失败明细
+    permission: data.import:import
+    api: downloadImportFailedRows
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-007
+    element: 查看异步任务
+    permission: data.async_task:read
+    api: '-'
+    nav: PAGE-IMP-TASK-LIST
+    overlay: '-'
+  - action_id: ACT-IMP-008
+    element: 下载结果摘要
+    permission: data.import:import
+    api: downloadImportResult
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-003
+    element: 上一步
+    permission: data.import:import
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-002
+    element: 下一步：上传与校验
+    permission: data.import:import
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-006
+    element: 确认执行（异步）
+    permission: data.import:import
+    api: executeImport
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-009
+    element: 重新导入
+    permission: data.import:import
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-001
+    element: 下载模板
+    permission: data.import:import
+    api: downloadImportTemplate
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-001
+    element: 下载模板
+    permission: data.import:import
+    api: downloadImportTemplate
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-IMP-010
+    element: 去异步任务中心（只读）
+    permission: '-'
+    api: '-'
+    nav: PAGE-IMP-TASK-LIST
+    overlay: '-'
+- file: teacher-list.html
+  page_ids:
+  - PAGE-TCH-CREATE
+  - PAGE-TCH-DETAIL
+  - PAGE-TCH-EDIT
+  - PAGE-TCH-LIST
+  - PAGE-TCH-ROLE
+  actions:
+  - action_id: ACT-COM-001
+    element: 搜索
+    permission: person.teacher:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-002
+    element: 重置
+    permission: person.teacher:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-001
+    element: 新增
+    permission: person.teacher:create
+    api: '-'
+    nav: PAGE-TCH-CREATE
+    overlay: dialog
+  - action_id: ACT-TCH-002
+    element: 导入
+    permission: data.import:import
+    api: '-'
+    nav: PAGE-TCH-IMPORT
+    overlay: '-'
+  - action_id: ACT-TCH-003
+    element: 导出
+    permission: data.export:export
+    api: exportTeacher
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-004
+    element: 下载模板
+    permission: data.import:import
+    api: downloadTeacherImportTemplate
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-005
+    element: 批量设置任教
+    permission: person.teaching_assignment:create
+    api: batchSaveTeachingAssignment
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-007
+    element: 导出（需授权）
+    permission: data.export:export
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-003
+    element: 隐藏搜索
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-004
+    element: 列配置
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listTeacher
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-008
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-006
+    element: '2'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-006
+    element: '2'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listTeacher
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-012
+    element: 解除
+    permission: person.teacher:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-031
+    element: 加入待保存
+    permission: person.teacher:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-030
+    element: 收起
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-022
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: DIALOG-TCH-DISCARD
+    overlay: dialog
+  - action_id: ACT-TCH-030
+    element: 收起
+    permission: person.teacher:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-032
+    element: 保存
+    permission: person.teacher:update
+    api: saveTeacherEduRole
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-006
+    element: 编辑
+    permission: person.teacher:update
+    api: '-'
+    nav: PAGE-TCH-EDIT
+    overlay: dialog
+  - action_id: ACT-TCH-011
+    element: 查看完整手机号
+    permission: read_contact
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-007
+    element: 分配角色
+    permission: person.teacher:update
+    api: '-'
+    nav: PAGE-TCH-ROLE
+    overlay: dialog
+  - action_id: ACT-TCH-012
+    element: 解除
+    permission: person.teacher:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-015
+    element: 复制上一学年
+    permission: person.teaching_assignment:create
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-008
+    element: 设置任教
+    permission: person.teaching_assignment:read
+    api: '-'
+    nav: PAGE-TCH-ASSIGN
+    overlay: '-'
+  - action_id: ACT-TCH-017
+    element: 收起
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-017
+    element: 收起
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-016
+    element: 前往班级详情
+    permission: org.class:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-013
+    element: 停用账号
+    permission: person.teacher:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-014
+    element: 重置密码
+    permission: person.teacher:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-029
+    element: 查看全部
+    permission: audit.log:read
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-018
+    element: 关闭
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-024
+    element: 继续新增
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-025
+    element: 查看详情
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-026
+    element: 立即设置任教
+    permission: person.teaching_assignment:create
+    api: '-'
+    nav: PAGE-TCH-ASSIGN
+    overlay: '-'
+  - action_id: ACT-TCH-022
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: DIALOG-TCH-DISCARD
+    overlay: dialog
+  - action_id: ACT-TCH-020
+    element: 上一步
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-019
+    element: 下一步
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-021
+    element: 保存
+    permission: person.teacher:create
+    api: addTeacher
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-023
+    element: 模拟并发冲突
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-022
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: DIALOG-TCH-DISCARD
+    overlay: dialog
+  - action_id: ACT-TCH-021
+    element: 保存
+    permission: person.teacher:update
+    api: updateTeacher
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-028
+    element: 继续填写
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-027
+    element: 放弃并关闭
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-009
+    element: 确认登记
+    permission: '-'
+    api: saveTeacherLeave
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCH-012
+    element: 解除
+    permission: person.teacher:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+- file: teaching-class-list.html
+  page_ids:
+  - DIALOG-TCL-DISABLE
+  - DRAWER-CLS-TEACHING
+  - PAGE-CLS-TEACHING
+  actions:
+  - action_id: ACT-TCL-010
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCL-011
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCL-012
+    element: '-'
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCL-001
+    element: 去生成教学班
+    permission: org.teaching_class:create
+    api: '-'
+    nav: PAGE-STR-GEN-CLASS
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listTeachingClass
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCL-003
+    element: 去增量生成并核对
+    permission: org.teaching_class:read
+    api: '-'
+    nav: PAGE-STR-GEN-CLASS
+    overlay: '-'
+  - action_id: ACT-TCL-004
+    element: 关闭
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCL-006
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCL-007
+    element: 确认停用
+    permission: org.teaching_class:update
+    api: disableTeachingClass
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TCL-001
+    element: 去生成教学班
+    permission: org.teaching_class:create
+    api: '-'
+    nav: PAGE-STR-GEN-CLASS
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listTeachingClass
+    nav: '-'
+    overlay: '-'
+- file: term-list.html
+  page_ids:
+  - PAGE-TERM-ARCHIVE
+  - PAGE-TERM-CREATE
+  - PAGE-TERM-LIST
+  - PAGE-TERM-SETCURRENT
+  actions:
+  - action_id: ACT-TERM-001
+    element: 新建学年
+    permission: org.term:create
+    api: '-'
+    nav: PAGE-TERM-CREATE
+    overlay: dialog
+  - action_id: ACT-TERM-002
+    element: 学期管理
+    permission: org.term:read
+    api: '-'
+    nav: PAGE-TERM-TERMS
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listAcademicYear
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TERM-003
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TERM-004
+    element: 保存
+    permission: org.term:create
+    api: addAcademicYear
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TERM-005
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TERM-006
+    element: 确认切换
+    permission: org.term:update
+    api: setCurrentTerm
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TERM-007
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TERM-008
+    element: 确认归档
+    permission: org.term:update
+    api: archiveAcademicYear
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TERM-001
+    element: 新建学年
+    permission: org.term:create
+    api: '-'
+    nav: PAGE-TERM-CREATE
+    overlay: dialog
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listAcademicYear
+    nav: '-'
+    overlay: '-'
+- file: term-terms.html
+  page_ids:
+  - PAGE-TERM-TERMS
+  actions:
+  - action_id: ACT-TERM-013
+    element: 新增学期
+    permission: org.term:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TERM-014
+    element: 返回学年列表
+    permission: org.term:read
+    api: '-'
+    nav: PAGE-TERM-LIST
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listTerm
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TERM-015
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TERM-016
+    element: 保存学期
+    permission: org.term:update
+    api: saveTerm
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TERM-018
+    element: 取消
+    permission: '-'
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TERM-019
+    element: 确认删除
+    permission: org.term:update
+    api: removeTerm
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-TERM-013
+    element: 新增学期
+    permission: org.term:update
+    api: '-'
+    nav: '-'
+    overlay: '-'
+  - action_id: ACT-COM-005
+    element: 刷新
+    permission: '-'
+    api: listTerm
+    nav: '-'
+    overlay: '-'

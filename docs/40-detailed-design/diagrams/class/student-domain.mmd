@@ -1,0 +1,45 @@
+classDiagram
+  class EduStudent {
+    +Long id
+    +String studentNo
+    +String nationalStudentNo
+    +String idCardNo
+    +String studentName
+    +String loginName
+    +Date birthDate
+  }
+  class EduStudentEnrollment {
+    +Long id
+    +Long studentId
+    +Long schoolId
+    +String enrollmentStatus
+    +Date enrollDate
+  }
+  class EduGuardian {
+    +Long id
+    +String guardianName
+    +String guardianPhone
+  }
+  class EduStudentGuardian {
+    +Long studentId
+    +Long guardianId
+    +String relation
+    +String bindStatus
+  }
+  class EduStudentFieldChange {
+    +Long studentId
+    +String fieldName
+    +String status
+    +String pendingGuard
+  }
+  class EduActivationCode {
+    +Long studentId
+    +String code
+    +String status
+    +Long activeGuard
+  }
+  EduStudent "1" --> "n" EduStudentEnrollment : 在校记录
+  EduStudent "1" --> "n" EduStudentGuardian : 监护人关系
+  EduGuardian "1" --> "n" EduStudentGuardian : 被绑定
+  EduStudent "1" --> "n" EduStudentFieldChange : 变更申请
+  EduStudent "1" --> "n" EduActivationCode : 激活码

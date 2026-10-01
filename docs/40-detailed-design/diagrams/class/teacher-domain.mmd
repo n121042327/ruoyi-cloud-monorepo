@@ -1,0 +1,30 @@
+classDiagram
+  class EduTeacher {
+    +Long id
+    +String tenantId
+    +Long schoolId
+    +String teacherNo
+    +String teacherName
+    +Long userId
+    +String teacherStatus
+  }
+  class EduUserRole {
+    +Long userId
+    +String eduRole
+    +String status
+  }
+  class EduGradeLeader {
+    +Long termId
+    +Long gradeId
+    +Long userId
+  }
+  class EduTeachingAssignment {
+    +Long termId
+    +Long teacherId
+    +Long subjectId
+    +String classType
+    +Long classId
+  }
+  EduTeacher "1" --> "n" EduUserRole : 教育角色
+  EduTeacher "1" --> "n" EduGradeLeader : 年级主任任职
+  EduTeacher "1" --> "n" EduTeachingAssignment : 任教关系

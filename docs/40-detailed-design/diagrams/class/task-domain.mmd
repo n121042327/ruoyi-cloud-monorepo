@@ -1,0 +1,33 @@
+classDiagram
+  class EduAsyncTask {
+    +String taskNo
+    +String taskType
+    +String taskStatus
+    +Long ownerId
+  }
+  class EduAsyncTaskRetry {
+    +String taskNo
+    +Integer retryNo
+  }
+  class EduDeadLetterTask {
+    +String taskNo
+    +String replayStatus
+  }
+  class EduFileRef {
+    +String fileId
+    +String bizType
+    +DateTime expireTime
+  }
+  class EduImportBatch {
+    +String batchNo
+    +String importStatus
+  }
+  class EduImportError {
+    +String batchNo
+    +Integer rowNo
+    +String result
+  }
+  EduAsyncTask "1" --> "n" EduAsyncTaskRetry : 重试记录
+  EduAsyncTask "1" --> "0..1" EduDeadLetterTask : 进死信
+  EduImportBatch "1" --> "n" EduImportError : 错误行
+  EduImportBatch "1" --> "1" EduAsyncTask : 执行任务

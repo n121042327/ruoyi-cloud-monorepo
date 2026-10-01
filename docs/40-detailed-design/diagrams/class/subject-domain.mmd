@@ -1,0 +1,14 @@
+classDiagram
+  class EduSubject {
+    +Long id
+    +String subjectCode
+    +String subjectName
+    +Boolean streamEnabled
+    +String streamRole
+  }
+  class EduSubjectStage {
+    +Long subjectId
+    +String stageCode
+  }
+  EduSubject "1" --> "n" EduSubjectStage : 学段启用
+  note for EduSubject "一条主体 + 学段启用表（RV-SUB-04）"

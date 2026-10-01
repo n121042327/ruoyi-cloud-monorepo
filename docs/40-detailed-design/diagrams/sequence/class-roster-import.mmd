@@ -1,0 +1,18 @@
+sequenceDiagram
+  autonumber
+  participant T as 班主任
+  participant UI as 班级成员页
+  participant API as ruoyi-edu
+  participant DB as MySQL
+
+  T->>UI: 上传编班表
+  UI->>API: POST importRosterValidate
+  API->>API: 校验班级 / 学生 / 学期一致
+  API-->>UI: 校验结果
+  T->>UI: 确认执行
+  UI->>API: POST importRosterExecute
+  loop 每 200 行一个事务
+    API->>DB: INSERT / UPDATE edu_class_member
+    Note over API,DB: uk_class_member_admin 保证一个学生一个行政班
+  end
+  API-->>T: 成功 / 失败行清单

@@ -1,0 +1,31 @@
+=== 生成列唯一约束语义验证（GAP-018 / 激活码） ===
+验证时间：2026-10-01 03:32:11
+库：edu_verify（MySQL 8.4.11）
+目的：证明「同一学生同一字段只允许一条待审核」与「同一学生同时只有一个未使用激活码」
+      由数据库生成列 + 唯一键强制，而不是只靠应用层。
+说明：为满足真实外键约束，先建立两条测试学生记录。
+
+--- 准备：测试学生 id = 1 / 2 ---
+
+--- 场景 A：学生资料变更申请（uk_sfc_pending）---
+  [PASS] A1 插入 guardian_phone 待审 -> 实际：SUCCESS，期望：SUCCESS
+  [PASS] A2 重复插入同学生同字段待审 -> 实际：FAIL，期望：FAIL | 错误：ERROR 1062 (23000) at line 1: Duplicate entry '1:guardian_phone' for key 'edu_student_field_change.uk_sfc_pending'
+  [PASS] A3 插入同学生不同字段待审 -> 实际：SUCCESS，期望：SUCCESS
+  [PASS] A4 将 guardian_phone 置为 approved -> 实际：SUCCESS，期望：SUCCESS
+  [PASS] A5 批准后再次提交同字段待审 -> 实际：SUCCESS，期望：SUCCESS
+  [PASS] B1 插入 CODE-A 未使用激活码 -> 实际：SUCCESS，期望：SUCCESS
+  [PASS] B2 同学生再插 CODE-B 未使用 -> 实际：FAIL，期望：FAIL | 错误：ERROR 1062 (23000) at line 1: Duplicate entry '2' for key 'edu_activation_code.uk_activation_active'
+  [PASS] B3 将 CODE-A 置为已使用 -> 实际：SUCCESS，期望：SUCCESS
+  [PASS] B4 再插 CODE-C 未使用 -> 实际：SUCCESS，期望：SUCCESS
+
+--- 最终数据核对 ---
+资料变更申请表：
+  id=5 field=guardian_phone status=approved pending_guard=NULL
+  id=7 field=id_card_no status=pending pending_guard=1:id_card_no
+  id=8 field=guardian_phone status=pending pending_guard=1:guardian_phone
+激活码表：
+  id=4 code=CODE-A status=used active_guard=NULL
+  id=6 code=CODE-C status=unused active_guard=2
+
+场景通过：9 / 9
+结论：通过（唯一约束与状态流转语义均符合设计）

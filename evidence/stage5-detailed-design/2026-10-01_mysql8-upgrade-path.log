@@ -1,0 +1,30 @@
+=== 存量升级路径验证（脚本重放） ===
+验证时间：2026-10-01 03:33:02
+库：edu_verify（MySQL 8.4.11，已存在完整 V1~V5 结构）
+场景：在同一库上按 V1 → V2 → V3 → V4 → V5 重新执行一遍。
+目的：验证脚本可重复执行、结构收敛一致，并记录重放的真实语义。
+
+--- 重放前对象计数 ---
+  表=43 视图=2 外键=32 唯一约束=49
+  重放前 edu_student 行数：0
+
+--- 逐脚本重放 ---
+  V1__edu_student_teacher.sql -> 退出码 0；ERROR 行数 0
+  V2__edu_org_config.sql -> 退出码 0；ERROR 行数 0
+  V3__edu_grade_class.sql -> 退出码 0；ERROR 行数 0
+  V4__edu_promotion_stream_support.sql -> 退出码 0；ERROR 行数 0
+  V5__edu_foreign_keys.sql -> 退出码 0；ERROR 行数 0
+
+--- 重放后对象计数 ---
+  表=43 视图=2 外键=32 唯一约束=49
+  重放后 edu_student 行数：0
+
+--- 结构检查 ---
+  check-sql.sql：0 行输出（22 条检查全部通过）
+
+--- 重放语义说明（重要） ---
+  每个脚本开头都是 SET FOREIGN_KEY_CHECKS = 0; 后接 DROP TABLE IF EXISTS + CREATE TABLE，
+  因此重放是「清空并重建」语义：结构完全收敛，但表中数据会被清空。
+  生产环境不得把 V1~V5 当作可重复执行的增量迁移使用；增量变更必须另立 V6+（见 database/migration-plan.md 第 4、7 节）。
+
+结论：通过（5 个脚本可重复执行、ERROR 0 行、对象计数与结构检查均不变；同时确认并记录重建语义）

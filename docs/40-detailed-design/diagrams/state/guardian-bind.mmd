@@ -1,0 +1,12 @@
+stateDiagram-v2
+  [*] --> pending : 家长扫码 / 教师录入
+  pending --> approved : 班主任确认
+  pending --> rejected : 班主任驳回（意见必填）
+  rejected --> pending : 家长修改后重提（同字段仅一条待审）
+  approved --> unbinding : 发起解绑
+  unbinding --> approved : 班主任驳回解绑
+  unbinding --> [*] : 班主任确认解绑
+  note right of approved
+    绑定上限 3 人
+    解绑需班主任确认
+  end note

@@ -1,0 +1,15 @@
+classDiagram
+  class EduAcademicYear {
+    +Long id
+    +String academicYearCode
+    +Date startDate
+    +Date endDate
+    +String yearStatus
+  }
+  class EduTerm {
+    +Long id
+    +Long academicYearId
+    +String termCode
+    +Boolean isCurrent
+  }
+  EduAcademicYear "1" --> "n" EduTerm : 学期

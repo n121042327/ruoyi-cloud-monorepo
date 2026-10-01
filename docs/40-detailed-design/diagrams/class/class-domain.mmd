@@ -1,0 +1,29 @@
+classDiagram
+  class EduClass {
+    +Long id
+    +Long termId
+    +Long gradeId
+    +String classType
+    +String className
+    +Long headTeacherId
+    +String classStatus
+  }
+  class EduClassMember {
+    +Long classId
+    +Long studentId
+    +Long termId
+  }
+  class EduTeachingClass {
+    +Long id
+    +Long termId
+    +String combination
+    +String className
+  }
+  class EduTeachingClassMember {
+    +Long teachingClassId
+    +Long studentId
+    +String generateTaskNo
+  }
+  EduClass "1" --> "n" EduClassMember : 行政班成员
+  EduTeachingClass "1" --> "n" EduTeachingClassMember : 教学班成员
+  note for EduClass "行政班与教学班共用 edu_class，由 class_type 区分"

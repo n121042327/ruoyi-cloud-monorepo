@@ -1,0 +1,27 @@
+classDiagram
+  class EduPromotionTask {
+    +Long id
+    +String taskNo
+    +Long sourceTermId
+    +Long targetTermId
+    +String taskStatus
+  }
+  class EduPromotionItem {
+    +Long taskId
+    +Long studentId
+    +String itemStatus
+  }
+  class EduEnrollmentChange {
+    +Long studentId
+    +String changeType
+    +String approvalStatus
+  }
+  class EduTransferOrder {
+    +String transferNo
+    +Long studentId
+    +Long fromSchoolId
+    +Long toSchoolId
+    +String transferStatus
+  }
+  EduPromotionTask "1" --> "n" EduPromotionItem : 逐条结果
+  EduEnrollmentChange "1" --> "0..1" EduTransferOrder : 跨校转学

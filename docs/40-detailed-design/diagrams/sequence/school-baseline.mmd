@@ -1,0 +1,16 @@
+sequenceDiagram
+  autonumber
+  participant O as 运营 / 租户管理员
+  participant UI as 学校初始化页
+  participant API as ruoyi-edu
+  participant DB as MySQL
+
+  O->>UI: 执行基线初始化
+  UI->>API: POST initSchoolBaseline
+  API->>API: 校验顺序：学校 → 学段 → 年级 → 学年 → 学期
+  API->>DB: BEGIN
+  API->>DB: upsert edu_school_stage
+  API->>DB: upsert edu_campus
+  API->>DB: 初始化默认学科（edu_subject + edu_subject_stage）
+  API->>DB: COMMIT
+  API-->>O: 初始化结果与差异清单

@@ -1734,6 +1734,49 @@
 - 如果错了的代价：删除 `docs/30-architecture/` 与 `tools/extract_api_catalog.py`、回滚 `file-catalog.md` 的 12 行状态即可；
   阶段 1 / 2 / 3 与已合并的 main 不受影响
 
+## D-088 交付阶段 5：详细设计与建表（42 张主表 + 173 个 operationId + 11 个模块详细设计）
+
+- 决策日期：2026-10-01
+- 授权方式：用户要求「需要我拍板的默认选推荐，执行完以后没有任何问题，提交合并」。
+  本轮所有待拍板项按推荐方案执行并在此登记；用户未逐条表态的项不作「已确认」之外的推断。
+- 交付物：
+  - 表结构事实源 `docs/40-detailed-design/database/schema.yaml`：42 张主表 + 1 张派生归档表 + 2 个视图
+  - 由同一事实源生成的 `physical-schema.md`、`er-diagram.mmd`、`domain-table-map.csv`、
+    `keys-and-indexes.md`、`check-sql.sql`、`migrations/V1` ~ `V5`
+  - `api/openapi.yaml`（OpenAPI 3.0.3，173 个 operationId / 153 条路径）、`api/error-codes.yaml`（72 个错误码）
+  - `page-action-api-map.yaml`（45 页 / 609 个动作，其中 186 个调接口）、`frontend-page-tree.yaml`（45 个路由 + 52 个浮层片段）
+  - `modules/<module>/design.md` × 11（事务边界、并发与幂等、校验规则、失败恢复、权限范围、验收要点）
+  - `diagrams/sequence/*.mmd` × 14、`diagrams/state/*.mmd` × 9、`diagrams/class/*.mmd` × 11
+  - `database/migration-plan.md`、`runtime-design.md`、`00-index.md`
+- 门禁四条（`docs/00-governance/stage-inputs.yaml` 阶段 5）逐条证据：
+  1. 逐表覆盖字段 / 主键 / 唯一键 / 外键 / 索引 —— `database/physical-schema.md`（42 表、373 业务列）
+  2. ER 图、领域对象映射与建表脚本一致 —— 三者同源，全部由 `tools/gen_schema_artifacts.py` 从 `schema.yaml` 生成
+  3. MySQL 8 空库安装与存量升级路径 —— `evidence/stage5-detailed-design/2026-10-01_mysql8-empty-install.log`、
+     `2026-10-01_mysql8-upgrade-path.log`（MySQL 8.4.11；表 43 / 视图 2 / 外键 32 / 唯一约束 49；`check-sql.sql` 0 行输出）
+  4. OpenAPI 校验 —— `evidence/stage5-detailed-design/2026-10-01_openapi-validate.log`（`openapi-spec-validator` 通过，
+     operationId 173 个且无重复）
+- 阶段 5 的 4 项架构级修订（前 2 项在批次 5-0/5-1 已记录，本轮补齐证据；后 2 项为本轮实证发现）：
+  1. `edu_audit_log` 不用 MySQL 原生分区（分区要求所有唯一键含分区列，会破坏 `(request_id, object_id, action_type)`
+     的幂等语义）→ 改为同构归档表 `edu_audit_log_archive` + 归档批次留痕
+  2. `edu_class_member` 拆表：本表只存行政班，教学班成员另表 `edu_teaching_class_member`
+     （MySQL 唯一索引无法表达「仅 administrative 生效」）
+  3. `GAP-061`：`edu_student_field_change` 增加生成列 `pending_guard` + 唯一键 `uk_sfc_pending`，
+     把「同一学生同一字段只允许一条待审核」下沉到数据库
+  4. `GAP-062`：`edu_activation_code` 增加生成列 `active_guard` + 唯一键 `uk_activation_active`，
+     把「同一学生同时只有一个未使用激活码」下沉到数据库
+  - 生成列语义实证：`evidence/stage5-detailed-design/2026-10-01_generated-column-guard.log` 9 / 9 通过，
+    包括真实的 `Duplicate entry '1:guardian_phone' for key 'uk_sfc_pending'` 与 `Duplicate entry '2' for key 'uk_activation_active'`
+- 实证发现（写入 `database/migration-plan.md` 第 4、7 节）：
+  V1 ~ V5 每个脚本都是 `SET FOREIGN_KEY_CHECKS=0` + `DROP TABLE IF EXISTS` + `CREATE TABLE`，
+  因此「可重复执行」的真实语义是**清空并重建**：结构收敛一致，但表中数据会被清空。
+  生产增量变更必须另立 `V6+`，不得重放 V1 ~ V5。
+- 本轮同批回归：`python tools/make_hifi_coverage.py` 退出码 0（阶段 2 与阶段 3 的页面编号 / 动作编号 / 状态片段集合一致）；
+  `python tools/check_docs.py` 通过
+- 阶段状态：阶段 5 已产出待验收；阶段 6（生产前端）与阶段 7（生产后端）以本目录为输入，本轮不启动
+- 如果错了的代价：删除 `docs/40-detailed-design/` 与 `tools/gen_schema_artifacts.py`、`tools/gen_api_and_map.py`、
+  `tools/gen_stage5_docs.py`，回滚 `schema.yaml` 的 4 处修订与 `file-catalog.md` 的阶段 5 状态行即可；
+  阶段 1 / 2 / 3 / 4 与已合并的 main 不受影响（`schema.yaml` 未被上游引用）
+
 ## 待裁决
 
 | 编号 | 事项 | 关联 GAP | 需要谁决定 |

@@ -1,0 +1,8 @@
+stateDiagram-v2
+  [*] --> active : 新建班级
+  active --> disabled : 停用（有在读学生时只能停用）
+  disabled --> active : 启用
+  active --> [*] : 删除（仅无学生、无引用时）
+  note right of disabled
+    停用保留历史成员关系
+  end note

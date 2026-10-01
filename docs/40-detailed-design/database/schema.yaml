@@ -1,0 +1,1221 @@
+schema_version: "1.0"
+purpose: |
+  教育域物理表结构的**唯一事实源**。阶段 5 的以下产物全部由 tools/gen_schema_artifacts.py 从本文件生成：
+    database/physical-schema.md、database/domain-table-map.csv、database/er-diagram.mmd、
+    database/keys-and-indexes.md、database/check-sql.sql、migrations/V1__edu_*.sql
+  这样保证门禁要求的「er-diagram 与 domain-table-map 与建表脚本三者一致」可以被脚本证明。
+dialect: MySQL 8
+conventions:
+  charset: utf8mb4
+  collation: utf8mb4_general_ci
+  engine: InnoDB
+  id: bigint unsigned NOT NULL AUTO_INCREMENT（平台级与业务表统一）
+  id_note: "`id` 由生成器自动注入为第一列主键；本文件的 columns 只列业务列（tenant_id / school_id 同理按 scope 注入）"
+  audit_columns: "create_by / create_time / update_by / update_time（表的 with_audit 为 true 时自动追加）"
+  soft_delete: "del_flag char(1) DEFAULT '0'（表的 soft_delete 为 true 时自动追加；历史与学籍类表禁止物理删除）"
+  foreign_keys: 同服务内核心关系使用物理外键且禁止级联删除（ON DELETE RESTRICT / UPDATE RESTRICT）
+  tenant_scope:
+    platform: 平台级实体，不带 tenant_id（edu_student / edu_guardian），读取走两段式（DS-DENY-09）
+    tenant: 带 tenant_id（学校租户）
+    school: 带 tenant_id + school_id
+tables:
+  # ==================== 5-0 学生模块 ====================
+  - name: edu_student
+    cn: 学生主体
+    module: student
+    batch: "5-0"
+    scope: platform
+    with_audit: true
+    soft_delete: true
+    note: |
+      平台级实体，**不设 tenant_id**（D-030 / D-037）。学校侧一律经 edu_student_enrollment 或
+      edu_class_member 两段式取数（DS-DENY-09）。学号系统统一发号、永不回收，导入时忽略源学号（BR-STU-001）。
+    columns:
+      - { name: student_no, type: varchar(32), nullable: false, comment: 学号（平台唯一；入学年份 4 位 + 全局序号 6 位） }
+      - { name: national_student_no, type: varchar(64), nullable: true, comment: 全国学籍号（G/L 开头；非空时平台唯一） }
+      - { name: student_name, type: varchar(50), nullable: false, comment: 学生姓名 }
+      - { name: gender, type: char(1), nullable: true, enum_ref: gender, comment: 性别 1 男 / 2 女 / 0 未知 }
+      - { name: id_type, type: varchar(20), nullable: true, comment: 证件类型 }
+      - { name: id_card_no, type: varchar(64), nullable: true, sensitive: true, comment: 证件号码（非空时平台唯一；掩码展示） }
+      - { name: birth_date, type: date, nullable: true, sensitive: true, comment: 出生日期 }
+      - { name: enroll_year, type: smallint, nullable: false, comment: 入学年份 }
+      - { name: graduation_date, type: date, nullable: true, comment: 毕业日期 }
+      - { name: photo_url, type: varchar(255), nullable: true, comment: 学籍照片引用（文件服务） }
+      - { name: remark, type: varchar(500), nullable: true, comment: 备注 }
+    unique_keys:
+      - { name: uk_student_no, columns: [student_no], note: 学号平台唯一，永不回收 }
+      - { name: uk_national_student_no, columns: [national_student_no], note: 非空时唯一（MySQL 唯一索引允许多个 NULL） }
+      - { name: uk_id_card_no, columns: [id_card_no], note: 非空时唯一（GAP-020 平台唯一） }
+    indexes:
+      - { name: idx_student_name, columns: [student_name] }
+      - { name: idx_enroll_year, columns: [enroll_year] }
+
+  - name: edu_student_enrollment
+    cn: 在校记录
+    module: student
+    batch: "5-0"
+    scope: school
+    with_audit: true
+    soft_delete: true
+    note: |
+      学校侧的学生身份。学籍状态的**唯一流转入口**是升班与学籍异动模块（DP-01）；
+      本表只承载当前状态，历史变更在 edu_enrollment_change。
+    columns:
+      - { name: student_id, type: bigint unsigned, nullable: false, comment: 学生主体 ID }
+      - { name: enroll_date, type: date, nullable: false, comment: 入校日期 }
+      - { name: enrollment_status, type: varchar(20), nullable: false, enum_ref: enrollment_status, comment: 学籍状态（在读 / 休学 / 转入未报到 /  graduated 等） }
+      - { name: status_effective_date, type: date, nullable: true, comment: 当前状态生效日期 }
+      - { name: leave_date, type: date, nullable: true, comment: 离校日期（毕业 / 转出 / 开除等终态时写入） }
+      - { name: campus_id, type: bigint unsigned, nullable: true, comment: 校区（入校时归属，参考信息） }
+      - { name: entry_grade_id, type: bigint unsigned, nullable: true, comment: 入校年级 }
+      - { name: remark, type: varchar(500), nullable: true, comment: 备注 }
+    unique_keys:
+      - { name: uk_enrollment_student_school, columns: [student_id, school_id], note: 同一学生同一学校一条在校记录 }
+    indexes:
+      - { name: idx_enrollment_school_status, columns: [school_id, enrollment_status] }
+      - { name: idx_enrollment_tenant, columns: [tenant_id] }
+    foreign_keys:
+      - { name: fk_enrollment_student, columns: [student_id], ref_table: edu_student, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+
+  - name: edu_guardian
+    cn: 监护人主体
+    module: student
+    batch: "5-0"
+    scope: platform
+    with_audit: true
+    soft_delete: true
+    note: |
+      平台级实体，**不设 tenant_id**（D-030 / GAP-015）。手机号是家长登录名候选且平台唯一，
+      一个家长可对应多个孩子（跨租户、多对多）。账号关联 sys_user。
+    columns:
+      - { name: guardian_name, type: varchar(50), nullable: false, comment: 监护人姓名 }
+      - { name: guardian_phone, type: varchar(20), nullable: false, sensitive: true, comment: 手机号（平台唯一；家长登录名） }
+      - { name: id_card_no, type: varchar(64), nullable: true, sensitive: true, comment: 证件号码（可选） }
+      - { name: user_id, type: bigint unsigned, nullable: true, comment: 关联系统账号（家长小程序端登录后写入） }
+      - { name: status, type: char(1), nullable: false, default: "'1'", comment: 状态 1 正常 / 0 停用 }
+    unique_keys:
+      - { name: uk_guardian_phone, columns: [guardian_phone], note: 手机号平台唯一（一个家长一个账号） }
+    indexes:
+      - { name: idx_guardian_user, columns: [user_id] }
+
+  - name: edu_student_guardian
+    cn: 监护人与学生关联
+    module: student
+    batch: "5-0"
+    scope: platform
+    with_audit: true
+    soft_delete: true
+    note: |
+      跨租户多对多关系 + 学校侧审核。绑定上限 3（BR-ACCOUNT-018 同口径）；
+      解绑需班主任确认（GAP-015）；审核未过可重提，但同一学生同一字段同时只允许一条待审核。
+    columns:
+      - { name: student_id, type: bigint unsigned, nullable: false, comment: 学生主体 ID }
+      - { name: guardian_id, type: bigint unsigned, nullable: false, comment: 监护人主体 ID }
+      - { name: relation, type: varchar(20), nullable: false, comment: 关系（father / mother / other） }
+      - { name: is_primary, type: char(1), nullable: false, default: "'0'", comment: 是否主要联系人 }
+      - { name: bind_status, type: varchar(20), nullable: false, default: "'pending'", comment: 绑定状态（pending 待审核 / approved 已通过 / rejected 已驳回 / unbinding 待解绑） }
+      - { name: source, type: varchar(20), nullable: true, comment: 来源（qrcode 扫码绑定 / teacher 教师录入 / import 导入） }
+      - { name: audit_by, type: bigint unsigned, nullable: true, comment: 审核人（班主任） }
+      - { name: audit_time, type: datetime, nullable: true, comment: 审核时间 }
+      - { name: audit_opinion, type: varchar(500), nullable: true, comment: 审核意见（驳回必填） }
+      - { name: bind_time, type: datetime, nullable: true, comment: 绑定时间 }
+      - { name: unbind_time, type: datetime, nullable: true, comment: 解绑时间 }
+    unique_keys:
+      - { name: uk_student_guardian, columns: [student_id, guardian_id], note: 同一学生同一监护人只有一条关系记录 }
+    indexes:
+      - { name: idx_sg_guardian, columns: [guardian_id, bind_status] }
+      - { name: idx_sg_student, columns: [student_id, bind_status] }
+    foreign_keys:
+      - { name: fk_sg_student, columns: [student_id], ref_table: edu_student, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+      - { name: fk_sg_guardian, columns: [guardian_id], ref_table: edu_guardian, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+
+  - name: edu_student_field_change
+    cn: 学生资料变更申请
+    module: student
+    batch: "5-0"
+    scope: school
+    with_audit: true
+    soft_delete: true
+    note: |
+      字段级可编辑性矩阵的落点：非班主任角色（如家长、学生本人）修改关键字段时走申请。
+      同一学生同一字段同时只允许一条待审核（GAP-018）。
+    columns:
+      - { name: student_id, type: bigint unsigned, nullable: false, comment: 学生主体 ID }
+      - { name: field_name, type: varchar(64), nullable: false, comment: 申请修改的字段名 }
+      - { name: old_value, type: varchar(500), nullable: true, comment: 原值（敏感字段需掩码） }
+      - { name: new_value, type: varchar(500), nullable: true, comment: 申请值 }
+      - { name: apply_by_user_id, type: bigint unsigned, nullable: false, comment: 申请人 }
+      - { name: apply_reason, type: varchar(500), nullable: true, comment: 申请原因 }
+      - { name: status, type: varchar(20), nullable: false, default: "'pending'", comment: 待审核 / 已通过 / 已驳回 / 已撤销 }
+      - { name: audit_by, type: bigint unsigned, nullable: true, comment: 审核人（班主任 / 教务主任） }
+      - { name: audit_time, type: datetime, nullable: true, comment: 审核时间 }
+      - { name: audit_opinion, type: varchar(500), nullable: true, comment: 审核意见 }
+    generated_columns:
+      - name: pending_guard
+        type: varchar(96)
+        nullable: true
+        stored: true
+        generated: "CASE WHEN status = 'pending' AND del_flag = '0' THEN CONCAT(student_id, ':', field_name) ELSE NULL END"
+        comment: 待审核唯一键：仅 pending 且未删除时取值，用于保证同一学生同一字段同时只有一条待审核
+    unique_keys:
+      - { name: uk_sfc_pending, columns: [pending_guard], note: 同一学生同一字段同时只允许一条待审核（DB 级强制，GAP-018） }
+    indexes:
+      - { name: idx_sfc_pending, columns: [student_id, field_name, status], note: 待审核申请列表查询（唯一性由 uk_sfc_pending 强制） }
+      - { name: idx_sfc_school, columns: [school_id, status] }
+    foreign_keys:
+      - { name: fk_sfc_student, columns: [student_id], ref_table: edu_student, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+
+  - name: edu_activation_code
+    cn: 一次性激活凭据
+    module: student
+    batch: "5-0"
+    scope: school
+    with_audit: false
+    soft_delete: false
+    note: |
+      班主任打印密码条分发 → 学生首登即设密码 → 激活码用完即废 → 丢码由班主任重置（D-039 / GAP-021）。
+      同一学生同一时刻只允许一个未使用的激活码，由生成列 `active_guard` + `uk_activation_active` 在数据库层强制。
+    columns:
+      - { name: student_id, type: bigint unsigned, nullable: false, comment: 学生主体 ID }
+      - { name: code, type: varchar(64), nullable: false, comment: 一次性激活码（全局唯一） }
+      - { name: status, type: varchar(20), nullable: false, default: "'unused'", comment: 未使用 / 已使用 / 已作废 }
+      - { name: issue_batch_no, type: varchar(32), nullable: true, comment: 打印批次号（班主任一次打印一个批次） }
+      - { name: print_time, type: datetime, nullable: true, comment: 打印（查看）时间 }
+      - { name: used_time, type: datetime, nullable: true, comment: 使用时间 }
+      - { name: used_ip, type: varchar(64), nullable: true, comment: 使用时来源 IP }
+      - { name: reset_by, type: bigint unsigned, nullable: true, comment: 重置人（班主任） }
+      - { name: reset_time, type: datetime, nullable: true, comment: 重置时间 }
+      - { name: create_time, type: datetime, nullable: false, default: CURRENT_TIMESTAMP, comment: 创建时间 }
+    generated_columns:
+      - name: active_guard
+        type: bigint unsigned
+        nullable: true
+        stored: true
+        generated: "CASE WHEN status = 'unused' THEN student_id ELSE NULL END"
+        comment: 有效激活码唯一键：仅 unused 时取值，保证同一学生同一时刻只有一个未使用激活码
+    unique_keys:
+      - { name: uk_activation_code, columns: [code] }
+      - { name: uk_activation_active, columns: [active_guard], note: 同一学生同一时刻只允许一个未使用激活码（DB 级强制） }
+    indexes:
+      - { name: idx_activation_student, columns: [student_id, status] }
+      - { name: idx_activation_batch, columns: [issue_batch_no] }
+    foreign_keys:
+      - { name: fk_activation_student, columns: [student_id], ref_table: edu_student, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+
+  # ==================== 5-0 教师模块 ====================
+  - name: edu_teacher
+    cn: 教师主体
+    module: teacher
+    batch: "5-0"
+    scope: school
+    with_audit: true
+    soft_delete: true
+    note: |
+      教师主体带所属学校（`school_id`）。跨校任教不复制教师记录：由 edu_teaching_assignment
+      （带任教学校 `school_id`）与 edu_user_role 表达，避免"同一教师多行"被误认为重复（BR-TEACHER-001）。
+      账号信息（login_name / last_login_time）在 sys_user，本表不重复存。
+    columns:
+      - { name: teacher_no, type: varchar(32), nullable: false, comment: 工号（学校租户内唯一） }
+      - { name: teacher_name, type: varchar(50), nullable: false, comment: 姓名 }
+      - { name: gender, type: char(1), nullable: true, enum_ref: gender, comment: 性别 }
+      - { name: phone, type: varchar(20), nullable: true, sensitive: true, comment: 联系电话 }
+      - { name: email, type: varchar(100), nullable: true, comment: 邮箱 }
+      - { name: hire_date, type: date, nullable: true, comment: 入职日期 }
+      - { name: employment_status, type: varchar(20), nullable: false, default: "'active'", enum_ref: employment_status, comment: 在职 / 离职 / 调离 }
+      - { name: leave_date, type: date, nullable: true, comment: 离职或调离生效日期 }
+      - { name: user_id, type: bigint unsigned, nullable: true, comment: 关联系统账号 }
+      - { name: remark, type: varchar(500), nullable: true, comment: 备注 }
+    unique_keys:
+      - { name: uk_teacher_no, columns: [tenant_id, teacher_no], note: 工号学校租户内唯一（BR-TEACHER-007） }
+    indexes:
+      - { name: idx_teacher_school, columns: [tenant_id, school_id] }
+      - { name: idx_teacher_name, columns: [teacher_name] }
+      - { name: idx_teacher_user, columns: [user_id] }
+
+  - name: edu_user_role
+    cn: 用户教育角色（学校级）
+    module: teacher
+    batch: "5-0"
+    scope: school
+    with_audit: true
+    soft_delete: true
+    note: |
+      只承载与具体班级、年级无关的学校级角色（校领导 / 教务主任）。
+      年级主任在 edu_grade_leader，班主任在 edu_class.head_teacher_id，都不写本表（DP-01 / DP-02）。
+    columns:
+      - { name: user_id, type: bigint unsigned, nullable: false, comment: 系统用户 }
+      - { name: teacher_id, type: bigint unsigned, nullable: true, comment: 教师（如该用户是教师） }
+      - { name: edu_role, type: varchar(30), nullable: false, enum_ref: edu_role, comment: 学校级教育角色 }
+      - { name: status, type: char(1), nullable: false, default: "'1'", comment: 1 启用 / 0 停用 }
+      - { name: start_date, type: date, nullable: true, comment: 任职开始日期 }
+      - { name: end_date, type: date, nullable: true, comment: 任职结束日期 }
+    unique_keys:
+      - { name: uk_user_role, columns: [tenant_id, school_id, user_id, edu_role] }
+    indexes:
+      - { name: idx_user_role_user, columns: [user_id, status], note: 数据范围解析的入口索引 }
+
+  - name: edu_grade_leader
+    cn: 年级主任任职
+    module: teacher
+    batch: "5-0"
+    scope: school
+    with_audit: true
+    soft_delete: false
+    note: 按学年学期生效；一个年级可有多名主任（is_primary 标主要负责人）。数据范围 DS-05 的权威来源。
+    columns:
+      - { name: grade_id, type: bigint unsigned, nullable: false, comment: 年级 }
+      - { name: term_id, type: bigint unsigned, nullable: false, comment: 学年学期 }
+      - { name: user_id, type: bigint unsigned, nullable: false, comment: 年级主任 }
+      - { name: teacher_id, type: bigint unsigned, nullable: true, comment: 教师 }
+      - { name: is_primary, type: char(1), nullable: false, default: "'0'", comment: 是否主要负责人 }
+      - { name: status, type: char(1), nullable: false, default: "'1'", comment: 1 在职 / 0 离任 }
+    unique_keys:
+      - { name: uk_grade_leader, columns: [term_id, grade_id, user_id] }
+    indexes:
+      - { name: idx_grade_leader_user_term, columns: [user_id, term_id, status], note: 数据范围解析入口 }
+      - { name: idx_grade_leader_grade, columns: [grade_id, term_id] }
+    foreign_keys:
+      - { name: fk_grade_leader_grade, columns: [grade_id], ref_table: edu_grade, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+
+  - name: edu_teaching_assignment
+    cn: 任教关系
+    module: teacher
+    batch: "5-0"
+    scope: school
+    with_audit: true
+    soft_delete: false
+    note: |
+      "某学期某学科某班由某教师授课"的稳定事实（不含上课时间与教室）。
+      任课教师的数据范围 DS-07 与字段裁剪（本人所授学科）都依据本表（BR-TEACHER-003）。
+      `school_id` 是**任教学校**，可与教师所属学校不同，用于表达跨校任教。
+    columns:
+      - { name: term_id, type: bigint unsigned, nullable: false, comment: 学年学期 }
+      - { name: teacher_id, type: bigint unsigned, nullable: false, comment: 教师 }
+      - { name: subject_id, type: bigint unsigned, nullable: false, comment: 学科 }
+      - { name: class_type, type: varchar(20), nullable: false, enum_ref: class_type, comment: administrative 行政班 / teaching 教学班 }
+      - { name: class_id, type: bigint unsigned, nullable: false, comment: 行政班或教学班 ID }
+      - { name: status, type: char(1), nullable: false, default: "'1'", comment: 1 有效 / 0 失效 }
+    unique_keys:
+      - { name: uk_assignment, columns: [term_id, teacher_id, subject_id, class_type, class_id] }
+    indexes:
+      - { name: idx_assignment_teacher_term, columns: [teacher_id, term_id, status], note: 数据范围解析入口 }
+      - { name: idx_assignment_class_term, columns: [term_id, class_type, class_id, status] }
+      - { name: idx_assignment_tenant, columns: [tenant_id, school_id] }
+    foreign_keys:
+      - { name: fk_assignment_teacher, columns: [teacher_id], ref_table: edu_teacher, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+      - { name: fk_assignment_subject, columns: [subject_id], ref_table: edu_subject, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+
+  # ==================== 5-1 年级模块 ====================
+  - name: edu_grade
+    cn: 年级
+    module: grade
+    batch: "5-1"
+    scope: school
+    with_audit: true
+    soft_delete: true
+    note: |
+      年级与学段固定映射（学段内序号：小学 1–6、初中 / 高中 1–3，RV-GRD-03）；
+      年级不能跨学段改名（BR-GRADE-006）。有班级或学生关系时不允许删除，只允许归档（BR-GRADE-004）。
+    columns:
+      - { name: stage_code, type: varchar(20), nullable: false, enum_ref: stage_code, comment: 学段 }
+      - { name: enroll_year, type: smallint, nullable: false, comment: 入学年份（如 2026） }
+      - { name: grade_level, type: tinyint, nullable: false, comment: 学段内序号（小学 1–6、初中 / 高中 1–3） }
+      - { name: grade_name, type: varchar(50), nullable: false, comment: 年级名称（如 2026 级 高一） }
+      - { name: class_count, type: int, nullable: false, default: "0", comment: 班级数（冗余统计，写入时维护） }
+      - { name: student_count, type: int, nullable: false, default: "0", comment: 在读学生数（冗余统计） }
+      - { name: grade_status, type: varchar(20), nullable: false, default: "'normal'", enum_ref: grade_status, comment: 正常 / 已归档 }
+    unique_keys:
+      - { name: uk_grade_seq, columns: [school_id, stage_code, enroll_year, grade_level], note: BR-GRADE-002 }
+      - { name: uk_grade_name, columns: [school_id, stage_code, grade_name], note: BR-GRADE-003 }
+    indexes:
+      - { name: idx_grade_school_status, columns: [tenant_id, school_id, grade_status] }
+      - { name: idx_grade_enroll_year, columns: [school_id, enroll_year] }
+
+  # ==================== 5-1 班级模块 ====================
+  - name: edu_class
+    cn: 班级（行政班 / 教学班容器）
+    module: class
+    batch: "5-1"
+    scope: school
+    with_audit: true
+    soft_delete: true
+    note: |
+      行政班与教学班共用本表，由 class_type 区分：行政班设班主任（head_teacher_id）、参与 DS-06 解析；
+      教学班不设班主任、不参与 DS-06（BR-CLASS-007 / REQ-CLS-039）。
+      容量只提示不拦截（BR-CLASS-005）。有在读学生时不允许删除，只允许停用（BR-CLASS-006）。
+    columns:
+      - { name: term_id, type: bigint unsigned, nullable: false, comment: 学年学期 }
+      - { name: grade_id, type: bigint unsigned, nullable: true, comment: 年级（教学班按组合生成时可空；行政班必填） }
+      - { name: stage_code, type: varchar(20), nullable: false, enum_ref: stage_code, comment: 学段 }
+      - { name: class_name, type: varchar(100), nullable: false, comment: 班级名称 }
+      - { name: class_type, type: varchar(20), nullable: false, enum_ref: class_type, comment: administrative / teaching }
+      - { name: class_capacity, type: int, nullable: true, comment: 容量上限（只提示不拦截） }
+      - { name: head_teacher_id, type: bigint unsigned, nullable: true, comment: 班主任（行政班唯一在任；教学班为空） }
+      - { name: head_teacher_start_date, type: date, nullable: true, comment: 班主任任职开始日期 }
+      - { name: head_teacher_end_date, type: date, nullable: true, comment: 班主任任职结束日期（学年切换时保留历史） }
+      - { name: campus_id, type: bigint unsigned, nullable: true, comment: 校区（参考信息，不参与权限判定） }
+      - { name: classroom, type: varchar(50), nullable: true, comment: 教室（自由文本） }
+      - { name: subject_combination, type: varchar(64), nullable: true, comment: 教学班的组合 / 单学科标识（教学班使用） }
+      - { name: class_status, type: varchar(16), nullable: false, default: "'active'", enum_ref: class_status, comment: active 在读 / disabled 已停用 }
+    unique_keys:
+      - { name: uk_class_name, columns: [school_id, term_id, stage_code, class_name], note: BR-CLASS-003 }
+      - { name: uk_class_teaching, columns: [school_id, term_id, subject_combination, class_type], note: 同一学期同一组合只有一个教学班（幂等生成的前提，REQ-STR-057） }
+    indexes:
+      - { name: idx_class_school_term_status, columns: [school_id, term_id, class_status] }
+      - { name: idx_class_head_teacher, columns: [head_teacher_id, class_status], note: 数据范围解析入口（DS-06） }
+      - { name: idx_class_grade, columns: [school_id, grade_id] }
+      - { name: idx_class_campus, columns: [school_id, campus_id, class_status] }
+    foreign_keys:
+      - { name: fk_class_grade, columns: [grade_id], ref_table: edu_grade, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+      - { name: fk_class_term, columns: [term_id], ref_table: edu_term, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+      - { name: fk_class_head_teacher, columns: [head_teacher_id], ref_table: edu_teacher, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+
+  - name: edu_class_member
+    cn: 班级成员关系（花名册）
+    module: class
+    batch: "5-1"
+    scope: school
+    with_audit: true
+    soft_delete: false
+    note: |
+      本表只承载**行政班**花名册（class_type 恒为 administrative）。
+      教学班成员在 edu_teaching_class_member —— 两套独立关系分别落表（BR-CLASS-001），
+      避免"同一名学生在同一学期既写行政班关系又写教学班关系"造成一处事实两处存储（DP-01）。
+      关系追加式：离开时写 leave_date 并置 status，不物理删除（保留历史，BR-PROMO-012 同口径）。
+    columns:
+      - { name: term_id, type: bigint unsigned, nullable: false, comment: 学年学期 }
+      - { name: class_id, type: bigint unsigned, nullable: false, comment: 行政班 }
+      - { name: class_type, type: varchar(20), nullable: false, default: "'administrative'", enum_ref: class_type, comment: 恒为 administrative（教学班成员在 edu_teaching_class_member） }
+      - { name: student_id, type: bigint unsigned, nullable: false, comment: 学生主体 ID（平台级，经本表两段式取数） }
+      - { name: student_enrollment_id, type: bigint unsigned, nullable: true, comment: 在校记录（学校侧身份） }
+      - { name: join_date, type: date, nullable: false, comment: 加入日期 }
+      - { name: leave_date, type: date, nullable: true, comment: 离开日期 }
+      - { name: status, type: char(1), nullable: false, default: "'1'", comment: 1 在班 / 0 已离开 }
+      - { name: gender_snapshot, type: char(1), nullable: true, comment: 性别快照（花名册排序与展示） }
+    unique_keys:
+      - { name: uk_class_member_admin, columns: [term_id, student_id], note: 行政班唯一：同一学年学期一名学生只能属于一个行政班（BR-STU-003）；教学班成员另表存放，因此本键可由 MySQL 直接表达，不需要部分唯一索引 }
+    indexes:
+      - { name: idx_member_class, columns: [class_id, class_type, status] }
+      - { name: idx_member_student, columns: [term_id, student_id, class_type] }
+    foreign_keys:
+      - { name: fk_member_class, columns: [class_id], ref_table: edu_class, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+      - { name: fk_member_student, columns: [student_id], ref_table: edu_student, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+
+  - name: edu_teaching_class
+    cn: 教学班
+    module: class
+    batch: "5-1"
+    scope: school
+    with_audit: true
+    soft_delete: true
+    note: |
+      教学班主体，与行政班完全独立（BR-CLASS-001）。不设班主任、不参与 DS-06 解析。
+      成员由"按组合生成"触发写入（REQ-STR-056），手工增删成员不开放。
+    columns:
+      - { name: term_id, type: bigint unsigned, nullable: false, comment: 学年学期 }
+      - { name: grade_id, type: bigint unsigned, nullable: true, comment: 年级 }
+      - { name: class_name, type: varchar(100), nullable: false, comment: 教学班名称（如 高一 · 物化生 A 层） }
+      - { name: combination, type: varchar(64), nullable: false, comment: 组合或单学科标识（如 物理+化学+生物 或 单学科：物理） }
+      - { name: member_count, type: int, nullable: false, default: "0", comment: 成员数（冗余统计） }
+      - { name: teaching_class_status, type: varchar(16), nullable: false, default: "'active'", enum_ref: class_status, comment: active 正常 / disabled 已停用 }
+    unique_keys:
+      - { name: uk_teaching_class, columns: [school_id, term_id, combination, class_name], note: 幂等生成：同一学期同一组合同一名称只建一次 }
+    indexes:
+      - { name: idx_tclass_school_term, columns: [school_id, term_id, teaching_class_status] }
+      - { name: idx_tclass_grade, columns: [grade_id, term_id] }
+    foreign_keys:
+      - { name: fk_tclass_term, columns: [term_id], ref_table: edu_term, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+
+  - name: edu_teaching_class_member
+    cn: 教学班成员关系
+    module: class
+    batch: "5-1"
+    scope: school
+    with_audit: true
+    soft_delete: false
+    note: |
+      归班级管理模块写入（唯一写入入口）：由"按组合生成"触发（REQ-STR-056），
+      手工调整也在班级模块，选科模块只触发与核对。成员来自选科结果，可跨行政班（BR-STU-004）。
+    columns:
+      - { name: teaching_class_id, type: bigint unsigned, nullable: false, comment: 教学班 }
+      - { name: term_id, type: bigint unsigned, nullable: false, comment: 学年学期 }
+      - { name: student_id, type: bigint unsigned, nullable: false, comment: 学生主体 ID }
+      - { name: source, type: varchar(20), nullable: false, default: "'generate'", comment: generate 生成 / manual 手工调整 }
+      - { name: generate_task_no, type: varchar(32), nullable: true, comment: 生成任务的幂等键（REQ-STR-057） }
+      - { name: join_date, type: date, nullable: false, comment: 加入日期 }
+      - { name: leave_date, type: date, nullable: true, comment: 离开日期 }
+      - { name: status, type: char(1), nullable: false, default: "'1'", comment: 1 在班 / 0 已离开 }
+    unique_keys:
+      - { name: uk_tclass_member, columns: [teaching_class_id, student_id], note: 同一教学班同一学生只允许一条有效关系（幂等） }
+    indexes:
+      - { name: idx_tcm_student, columns: [term_id, student_id] }
+      - { name: idx_tcm_task, columns: [generate_task_no] }
+    foreign_keys:
+      - { name: fk_tcm_class, columns: [teaching_class_id], ref_table: edu_teaching_class, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+      - { name: fk_tcm_student, columns: [student_id], ref_table: edu_student, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+
+  # ==================== 5-2 升班与学籍异动 ====================
+  - name: edu_promotion_task
+    cn: 升班任务
+    module: promotion
+    batch: "5-2"
+    scope: school
+    with_audit: true
+    soft_delete: true
+    note: |
+      升班按学年**追加**下一学年的班级与学生关系，不改写历史（BR-PROMO-001）。
+      同一源学期与目标学期的未结束任务唯一（REQ-PRM-005）。
+    columns:
+      - { name: task_no, type: varchar(32), nullable: false, comment: 任务编号（对外标识，唯一） }
+      - { name: source_term_id, type: bigint unsigned, nullable: false, comment: 源学年学期 }
+      - { name: target_term_id, type: bigint unsigned, nullable: false, comment: 目标学年学期 }
+      - { name: scope_note, type: varchar(500), nullable: true, comment: 范围说明 }
+      - { name: task_status, type: varchar(20), nullable: false, default: "'draft'", enum_ref: promotion_task_status, comment: 草稿 / 排队中 / 执行中 / 已完成 / 部分失败 / 失败 / 已取消 / 已归档 }
+      - { name: total_count, type: int, nullable: false, default: "0", comment: 涉及学生总数 }
+      - { name: success_count, type: int, nullable: false, default: "0", comment: 成功数 }
+      - { name: failed_count, type: int, nullable: false, default: "0", comment: 失败数 }
+      - { name: repeat_count, type: int, nullable: false, default: "0", comment: 留级数 }
+      - { name: graduate_count, type: int, nullable: false, default: "0", comment: 毕业数 }
+      - { name: async_task_no, type: varchar(32), nullable: true, comment: 关联异步任务号 }
+      - { name: start_time, type: datetime, nullable: true, comment: 开始执行时间 }
+      - { name: finish_time, type: datetime, nullable: true, comment: 结束时间 }
+      - { name: cancel_reason, type: varchar(500), nullable: true, comment: 取消原因（取消时必填） }
+    unique_keys:
+      - { name: uk_promotion_task_no, columns: [task_no] }
+    indexes:
+      - { name: idx_promotion_task_term, columns: [school_id, source_term_id, target_term_id, task_status] }
+      - { name: idx_promotion_task_tenant, columns: [tenant_id, task_status] }
+    foreign_keys:
+      - { name: fk_promotion_source_term, columns: [source_term_id], ref_table: edu_term, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+      - { name: fk_promotion_target_term, columns: [target_term_id], ref_table: edu_term, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+
+  - name: edu_promotion_item
+    cn: 升班明细
+    module: promotion
+    batch: "5-2"
+    scope: school
+    with_audit: false
+    soft_delete: false
+    note: |
+      逐学生结果。幂等键 = (task_id, student_id)（REQ-PRM-029）；
+      重试只处理失败 / 跳过项，不重复写已成功的行（REQ-PRM-032 / 037）。
+    columns:
+      - { name: task_id, type: bigint unsigned, nullable: false, comment: 升班任务 }
+      - { name: student_id, type: bigint unsigned, nullable: false, comment: 学生主体 ID }
+      - { name: source_class_id, type: bigint unsigned, nullable: true, comment: 源班级 }
+      - { name: target_class_id, type: bigint unsigned, nullable: true, comment: 目标班级 }
+      - { name: result_type, type: varchar(20), nullable: true, enum_ref: promotion_result_type, comment: 升级 / 留级 / 转班 / 毕业 / 跳过 }
+      - { name: item_status, type: varchar(20), nullable: false, default: "'pending'", enum_ref: promotion_item_status, comment: 待处理 / 成功 / 失败 / 已跳过 }
+      - { name: error_msg, type: varchar(500), nullable: true, comment: 失败原因 }
+      - { name: adjust_mode, type: varchar(20), nullable: true, comment: 调整方式（手工指定目标班级时写入） }
+      - { name: create_time, type: datetime, nullable: false, default: CURRENT_TIMESTAMP, comment: 创建时间 }
+    unique_keys:
+      - { name: uk_promotion_item, columns: [task_id, student_id], note: 幂等键（REQ-PRM-029） }
+    indexes:
+      - { name: idx_promotion_item_status, columns: [task_id, item_status] }
+      - { name: idx_promotion_item_student, columns: [student_id] }
+    foreign_keys:
+      - { name: fk_promotion_item_task, columns: [task_id], ref_table: edu_promotion_task, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+      - { name: fk_promotion_item_student, columns: [student_id], ref_table: edu_student, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+
+  - name: edu_enrollment_change
+    cn: 学籍异动记录
+    module: promotion
+    batch: "5-2"
+    scope: school
+    with_audit: true
+    soft_delete: false
+    note: |
+      追加式，不更新不删除（BR-PROMO-012）。学籍状态的**唯一流转入口**（DP-01）：
+      开除在义务教育阶段不可用且后端拒绝（REQ-PRM-043）；退学 / 开除 / 死亡需校级管理员审批。
+    columns:
+      - { name: student_id, type: bigint unsigned, nullable: false, comment: 学生主体 ID }
+      - { name: school_record_id, type: bigint unsigned, nullable: true, comment: 在校记录 }
+      - { name: change_type, type: varchar(30), nullable: false, comment: 异动类型（休学 / 复学 / 转学 / 退学 / 开除 / 出国 / 失踪 / 死亡 / 转入未报到 / 报到 / 升班） }
+      - { name: before_status, type: varchar(20), nullable: true, enum_ref: enrollment_status, comment: 变更前状态 }
+      - { name: after_status, type: varchar(20), nullable: false, enum_ref: enrollment_status, comment: 变更后状态 }
+      - { name: effective_date, type: date, nullable: false, comment: 生效日期 }
+      - { name: reason, type: varchar(500), nullable: false, comment: 原因（必填） }
+      - { name: approval_status, type: varchar(20), nullable: true, comment: 需审批的异动：待审批 / 已通过 / 已驳回 }
+      - { name: approve_by, type: bigint unsigned, nullable: true, comment: 审批人（校级管理员） }
+      - { name: approve_time, type: datetime, nullable: true, comment: 审批时间 }
+      - { name: approve_opinion, type: varchar(500), nullable: true, comment: 审批意见 }
+      - { name: operator, type: bigint unsigned, nullable: false, comment: 操作人 }
+      - { name: operate_time, type: datetime, nullable: false, default: CURRENT_TIMESTAMP, comment: 操作时间 }
+    unique_keys: []
+    indexes:
+      - { name: idx_change_student, columns: [student_id, operate_time] }
+      - { name: idx_change_school, columns: [school_id, change_type, effective_date] }
+      - { name: idx_change_approval, columns: [school_id, approval_status] }
+    foreign_keys:
+      - { name: fk_change_student, columns: [student_id], ref_table: edu_student, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+
+  - name: edu_transfer_order
+    cn: 跨校转学单
+    module: promotion
+    batch: "5-2"
+    scope: school
+    with_audit: true
+    soft_delete: false
+    note: |
+      接收动作本身即审批（已确认 3）；接收前不计入在读数（REQ-PRM-053）；
+      未报到前可撤销接收（REQ-PRM-054）。同一学生未完成转学单唯一（REQ-PRM-057）。
+      转学单只暴露必要字段给转入校（学号 / 姓名 / 性别 / 原学校 / 原年级，REQ-PRM-055）。
+    columns:
+      - { name: transfer_no, type: varchar(32), nullable: false, comment: 转学单号（唯一） }
+      - { name: student_id, type: bigint unsigned, nullable: false, comment: 学生主体 ID }
+      - { name: from_tenant_id, type: varchar(20), nullable: false, comment: 转出学校租户 }
+      - { name: from_school_id, type: bigint unsigned, nullable: false, comment: 转出学校 }
+      - { name: from_grade_id, type: bigint unsigned, nullable: true, comment: 原年级 }
+      - { name: to_tenant_id, type: varchar(20), nullable: false, comment: 转入学校租户 }
+      - { name: to_school_id, type: bigint unsigned, nullable: false, comment: 转入学校 }
+      - { name: to_grade_id, type: bigint unsigned, nullable: true, comment: 目标年级 }
+      - { name: to_class_id, type: bigint unsigned, nullable: true, comment: 目标班级 }
+      - { name: transfer_status, type: varchar(20), nullable: false, default: "'pending'", comment: 待接收 / 已接收 / 已报到 / 已撤销 / 已驳回 }
+      - { name: apply_by, type: bigint unsigned, nullable: false, comment: 申请人（转出校） }
+      - { name: apply_time, type: datetime, nullable: false, default: CURRENT_TIMESTAMP, comment: 申请时间 }
+      - { name: accept_by, type: bigint unsigned, nullable: true, comment: 接收人（转入校，接收即审批） }
+      - { name: accept_time, type: datetime, nullable: true, comment: 接收时间 }
+      - { name: check_in_time, type: datetime, nullable: true, comment: 报到时间 }
+      - { name: cancel_by, type: bigint unsigned, nullable: true, comment: 撤销人 }
+      - { name: cancel_time, type: datetime, nullable: true, comment: 撤销时间 }
+      - { name: remark, type: varchar(500), nullable: true, comment: 备注 }
+    unique_keys:
+      - { name: uk_transfer_no, columns: [transfer_no] }
+    indexes:
+      - { name: idx_transfer_student_status, columns: [student_id, transfer_status] }
+      - { name: idx_transfer_to_school, columns: [to_school_id, transfer_status] }
+      - { name: idx_transfer_from_school, columns: [from_school_id, transfer_status] }
+    foreign_keys:
+      - { name: fk_transfer_student, columns: [student_id], ref_table: edu_student, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+
+  # ==================== 5-2 选科 ====================
+  - name: edu_stream_config
+    cn: 选科配置
+    module: stream
+    batch: "5-2"
+    scope: school
+    with_audit: true
+    soft_delete: false
+    note: |
+      按学校 + 学年学期唯一（REQ-STR-004）。截止时间按当前时间**实时比较**，不依赖定时任务刷状态（REQ-STR-005）。
+    columns:
+      - { name: term_id, type: bigint unsigned, nullable: false, comment: 学年学期 }
+      - { name: stream_open_from, type: datetime, nullable: false, comment: 开放期起点 }
+      - { name: stream_deadline, type: datetime, nullable: false, comment: 截止时间 }
+      - { name: overdue_requires_approval, type: tinyint(1), nullable: false, default: "1", comment: 逾期变更是否需校级管理员审批（BR-STREAM-005） }
+      - { name: config_status, type: varchar(20), nullable: false, default: "'active'", comment: 生效 / 已失效 }
+    unique_keys:
+      - { name: uk_stream_config, columns: [school_id, term_id], note: 同一学校同一学期只允许一份生效配置（REQ-STR-004） }
+    indexes:
+      - { name: idx_stream_config_tenant, columns: [tenant_id, term_id] }
+    foreign_keys:
+      - { name: fk_stream_config_term, columns: [term_id], ref_table: edu_term, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+
+  - name: edu_student_stream
+    cn: 学生选科
+    module: stream
+    batch: "5-2"
+    scope: school
+    with_audit: true
+    soft_delete: false
+    note: |
+      学生当前生效的选科组合。同一学生同一学期唯一（BR-STREAM-007）。
+      组合不在库里拼字符串：由 primary_subject_code + secondary_subject_codes 派生展示（CR-016）。
+      截止前自助修改立即生效；截止后只能走变更申请，审批通过前保持原值（BR-STREAM-006）。
+    columns:
+      - { name: term_id, type: bigint unsigned, nullable: false, comment: 学年学期 }
+      - { name: student_id, type: bigint unsigned, nullable: false, comment: 学生主体 ID }
+      - { name: primary_subject_code, type: varchar(20), nullable: false, comment: 首选科目（物理 / 历史） }
+      - { name: secondary_subject_codes, type: varchar(64), nullable: false, comment: 再选科目（两个编码，逗号分隔，按学科排序号排序） }
+      - { name: effective_time, type: datetime, nullable: false, default: CURRENT_TIMESTAMP, comment: 生效时间 }
+      - { name: stream_status, type: varchar(20), nullable: false, default: "'effective'", comment: 生效 / 待审批（有待审批变更时前端展示"审批中"，本字段仍为生效） }
+    unique_keys:
+      - { name: uk_student_stream, columns: [term_id, student_id], note: BR-STREAM-007 }
+    indexes:
+      - { name: idx_stream_stat, columns: [term_id, primary_subject_code, secondary_subject_codes], note: 组合分布统计（REQ-STR-049） }
+      - { name: idx_stream_school, columns: [school_id, term_id] }
+    foreign_keys:
+      - { name: fk_student_stream_student, columns: [student_id], ref_table: edu_student, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+
+  - name: edu_stream_change_request
+    cn: 选科变更申请
+    module: stream
+    batch: "5-2"
+    scope: school
+    with_audit: true
+    soft_delete: false
+    note: |
+      截止后的变更单，含审批轨迹。同一学生同一学期**同时只允许一条待审批**（REQ-STR-029 / BR-STREAM-007）。
+      审批人是校级管理员，教务主任不能自审（REQ-STR-034）；通过前保持原组合不变（REQ-STR-032）。
+    columns:
+      - { name: request_no, type: varchar(32), nullable: false, comment: 申请单号（唯一） }
+      - { name: student_id, type: bigint unsigned, nullable: false, comment: 学生主体 ID }
+      - { name: term_id, type: bigint unsigned, nullable: false, comment: 学年学期 }
+      - { name: before_combination, type: varchar(64), nullable: false, comment: 原组合（展示用文本） }
+      - { name: after_combination, type: varchar(64), nullable: false, comment: 新组合（展示用文本） }
+      - { name: primary_subject_code, type: varchar(20), nullable: false, comment: 新的首选科目 }
+      - { name: secondary_subject_codes, type: varchar(64), nullable: false, comment: 新的再选科目 }
+      - { name: request_status, type: varchar(20), nullable: false, default: "'pending'", enum_ref: stream_request_status, comment: 草稿 / 待审批 / 已通过 / 已驳回 / 已撤销 }
+      - { name: reason, type: varchar(500), nullable: false, comment: 申请原因（必填） }
+      - { name: apply_by, type: bigint unsigned, nullable: false, comment: 发起人（学生本人或班主任代发起） }
+      - { name: apply_by_role, type: varchar(30), nullable: true, comment: 发起人角色（student / homeroom） }
+      - { name: apply_time, type: datetime, nullable: false, default: CURRENT_TIMESTAMP, comment: 提交时间 }
+      - { name: approve_by, type: bigint unsigned, nullable: true, comment: 审批人（校级管理员） }
+      - { name: approve_time, type: datetime, nullable: true, comment: 审批时间 }
+      - { name: approve_opinion, type: varchar(500), nullable: true, comment: 审批意见（驳回必填） }
+      - { name: cancel_time, type: datetime, nullable: true, comment: 撤回时间 }
+    unique_keys:
+      - { name: uk_stream_request_no, columns: [request_no] }
+    indexes:
+      - { name: idx_stream_request_pending, columns: [school_id, request_status, apply_time], note: 审批待办按提交时间升序（REQ-STR-035）；同一学生待审批唯一由业务层 + 本索引兜底 }
+      - { name: idx_stream_request_student, columns: [term_id, student_id, request_status] }
+    foreign_keys:
+      - { name: fk_stream_request_student, columns: [student_id], ref_table: edu_student, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+
+  - name: edu_stream_history
+    cn: 选科历史
+    module: stream
+    batch: "5-2"
+    scope: school
+    with_audit: false
+    soft_delete: false
+    note: 追加式，不可删除不可修改（REQ-STR-043）；跨学年学期保留（REQ-STR-044）。
+    columns:
+      - { name: student_id, type: bigint unsigned, nullable: false, comment: 学生主体 ID }
+      - { name: term_id, type: bigint unsigned, nullable: false, comment: 学年学期 }
+      - { name: before_combination, type: varchar(64), nullable: true, comment: 原组合 }
+      - { name: after_combination, type: varchar(64), nullable: false, comment: 新组合 }
+      - { name: change_type, type: varchar(20), nullable: false, comment: 首次提交 / 开放期内自助变更 / 变更申请通过 }
+      - { name: request_no, type: varchar(32), nullable: true, comment: 关联变更申请单号 }
+      - { name: reason, type: varchar(500), nullable: true, comment: 变更原因 }
+      - { name: operator, type: bigint unsigned, nullable: false, comment: 操作人 }
+      - { name: operate_time, type: datetime, nullable: false, default: CURRENT_TIMESTAMP, comment: 操作时间 }
+    unique_keys: []
+    indexes:
+      - { name: idx_stream_history_student, columns: [student_id, operate_time] }
+      - { name: idx_stream_history_term, columns: [term_id, school_id] }
+    foreign_keys:
+      - { name: fk_stream_history_student, columns: [student_id], ref_table: edu_student, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+
+  # ==================== 5-2 学科与配置 ====================
+  - name: edu_subject
+    cn: 学科
+    module: subject
+    batch: "5-2"
+    scope: school
+    with_audit: true
+    soft_delete: true
+    note: |
+      "一条学科主体 + 学段启用表"（RV-SUB-04）：编码校内唯一，同一学科在不同学段启用只加启用记录，
+      不拆多条主体。删除前检查三类引用（任教关系 / 教学班 / 学生选科），有引用时只允许停用。
+    columns:
+      - { name: subject_code, type: varchar(32), nullable: false, enum_ref: subject_code, comment: 学科编码（校内唯一） }
+      - { name: subject_name, type: varchar(50), nullable: false, comment: 学科名称 }
+      - { name: sort_no, type: int, nullable: false, default: "0", comment: 排序号（决定再选科目的展示顺序，REQ-STR-017） }
+      - { name: stream_enabled, type: char(1), nullable: false, default: "'0'", comment: 是否参与 3+1+2 }
+      - { name: stream_role, type: varchar(20), nullable: false, default: "'none'", comment: primary 首选 / secondary 再选 / none 不参与 }
+      - { name: subject_status, type: varchar(16), nullable: false, default: "'active'", comment: 正常 / 已停用 }
+    unique_keys:
+      - { name: uk_subject_code, columns: [tenant_id, school_id, subject_code], note: BR-SUBJECT-001 }
+      - { name: uk_subject_name, columns: [school_id, subject_name] }
+    indexes:
+      - { name: idx_subject_school, columns: [tenant_id, school_id, subject_status] }
+      - { name: idx_subject_stream, columns: [school_id, stream_enabled, stream_role] }
+
+  - name: edu_subject_stage
+    cn: 学科与学段启用
+    module: subject
+    batch: "5-2"
+    scope: school
+    with_audit: true
+    soft_delete: false
+    note: 同一学科同一学段一条记录；(subject_id, stage_code) 唯一。
+    columns:
+      - { name: subject_id, type: bigint unsigned, nullable: false, comment: 学科 }
+      - { name: stage_code, type: varchar(20), nullable: false, enum_ref: stage_code, comment: 学段 }
+      - { name: status, type: char(1), nullable: false, default: "'1'", comment: 1 启用 / 0 停用 }
+    unique_keys:
+      - { name: uk_subject_stage, columns: [subject_id, stage_code] }
+    indexes:
+      - { name: idx_subject_stage_school, columns: [school_id, stage_code, status] }
+    foreign_keys:
+      - { name: fk_subject_stage_subject, columns: [subject_id], ref_table: edu_subject, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+
+  # ==================== 5-2 学校与租户 ====================
+  - name: edu_school
+    cn: 学校
+    module: school
+    batch: "5-2"
+    scope: school
+    with_audit: true
+    soft_delete: true
+    note: |
+      "一个学校对应一个租户"（BR-ORG-002）：本表 `tenant_id` 唯一，且 `school_id = tenant_id` 的映射在接入时写入。
+      层级不超过三级（运营方 → 集团 → 学校，BR-ORG-003）。
+    columns:
+      - { name: school_code, type: varchar(50), nullable: false, comment: 学校编码（父租户内唯一） }
+      - { name: school_name, type: varchar(100), nullable: false, comment: 学校名称 }
+      - { name: short_name, type: varchar(50), nullable: true, comment: 简称 }
+      - { name: parent_tenant_id, type: varchar(20), nullable: true, comment: 上级租户（集团 / 运营方） }
+      - { name: root_tenant_id, type: varchar(20), nullable: true, comment: 根租户（运营方） }
+      - { name: school_type, type: varchar(20), nullable: true, comment: 学校类型（公办 / 民办 / 其他） }
+      - { name: address, type: varchar(255), nullable: true, comment: 地址 }
+      - { name: phone, type: varchar(20), nullable: true, comment: 联系电话 }
+      - { name: school_status, type: varchar(16), nullable: false, default: "'active'", comment: 正常 / 已停用 }
+    unique_keys:
+      - { name: uk_school_tenant, columns: [tenant_id], note: 一个学校对应一个租户（BR-ORG-002） }
+      - { name: uk_school_code, columns: [parent_tenant_id, school_code], note: BR-ORG-011 }
+    indexes:
+      - { name: idx_school_name, columns: [school_name] }
+      - { name: idx_school_status, columns: [school_status] }
+
+  - name: edu_campus
+    cn: 校区
+    module: school
+    batch: "5-2"
+    scope: school
+    with_audit: true
+    soft_delete: true
+    note: 校区不参与数据权限判定，只用于组织与统计（BR-ORG-009 / GAP-045）。
+    columns:
+      - { name: campus_code, type: varchar(50), nullable: false, comment: 校区编码 }
+      - { name: campus_name, type: varchar(100), nullable: false, comment: 校区名称 }
+      - { name: address, type: varchar(255), nullable: true, comment: 地址 }
+      - { name: leader_name, type: varchar(50), nullable: true, comment: 负责人 }
+      - { name: leader_phone, type: varchar(20), nullable: true, comment: 负责人电话 }
+      - { name: campus_status, type: varchar(16), nullable: false, default: "'active'", comment: 正常 / 已停用 }
+    unique_keys:
+      - { name: uk_campus_name, columns: [school_id, campus_name] }
+      - { name: uk_campus_code, columns: [school_id, campus_code] }
+    indexes:
+      - { name: idx_campus_school, columns: [tenant_id, school_id, campus_status] }
+
+  - name: edu_school_stage
+    cn: 学校开设学段
+    module: school
+    batch: "5-2"
+    scope: school
+    with_audit: true
+    soft_delete: false
+    note: 学校实际开设的学段；未开设的学段在学科与年级配置里置灰（REQ-SUB-026 同口径）。
+    columns:
+      - { name: stage_code, type: varchar(20), nullable: false, enum_ref: stage_code, comment: 学段 }
+      - { name: status, type: char(1), nullable: false, default: "'1'", comment: 1 开设 / 0 停开 }
+    unique_keys:
+      - { name: uk_school_stage, columns: [school_id, stage_code] }
+    indexes:
+      - { name: idx_school_stage_tenant, columns: [tenant_id, status] }
+
+  # ==================== 5-2 学年学期 ====================
+  - name: edu_academic_year
+    cn: 学年
+    module: term
+    batch: "5-2"
+    scope: school
+    with_audit: true
+    soft_delete: false
+    note: |
+      学年日期必须连续不重叠：前一年结束日 = 后一年开始日 − 1 天（RV-TERM-08）。
+      归档后仍可按时间范围检索历史（学年归档见阶段 2 的 `PAGE-TERM-ARCHIVE`）。
+    columns:
+      - { name: academic_year_code, type: varchar(20), nullable: false, comment: 学年编码（如 2026-2027） }
+      - { name: start_date, type: date, nullable: false, comment: 开始日期 }
+      - { name: end_date, type: date, nullable: false, comment: 结束日期 }
+      - { name: academic_year_status, type: varchar(16), nullable: false, default: "'normal'", comment: 未开始 / 进行中 / 已归档 }
+    unique_keys:
+      - { name: uk_academic_year_code, columns: [tenant_id, school_id, academic_year_code], note: BR-TERM-003 }
+    indexes:
+      - { name: idx_academic_year_range, columns: [school_id, start_date, end_date] }
+
+  - name: edu_term
+    cn: 学期
+    module: term
+    batch: "5-2"
+    scope: school
+    with_audit: true
+    soft_delete: false
+    note: 同一学校同一学年只能有一个当前学期（BR-TERM-002）；学年日期连续不重叠（RV-TERM-08）。
+    columns:
+      - { name: academic_year_id, type: bigint unsigned, nullable: false, comment: 学年 }
+      - { name: term_code, type: varchar(20), nullable: false, comment: 学期编码（如 1 / 2） }
+      - { name: term_name, type: varchar(50), nullable: false, comment: 学期名称（第一学期 / 第二学期） }
+      - { name: start_date, type: date, nullable: false, comment: 开始日期 }
+      - { name: end_date, type: date, nullable: false, comment: 结束日期 }
+      - { name: is_current, type: char(1), nullable: false, default: "'0'", comment: 是否当前学期 }
+      - { name: term_status, type: varchar(16), nullable: false, default: "'normal'", comment: 正常 / 已归档 }
+    unique_keys:
+      - { name: uk_term_code, columns: [academic_year_id, term_code] }
+    indexes:
+      - { name: idx_term_school_current, columns: [school_id, is_current], note: 同一学校同一学年只允许一个当前学期（业务层 + 本索引兜底） }
+      - { name: idx_term_range, columns: [school_id, start_date, end_date] }
+    foreign_keys:
+      - { name: fk_term_year, columns: [academic_year_id], ref_table: edu_academic_year, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+
+  # ==================== 5-2 导入导出与异步任务 ====================
+  - name: edu_import_template
+    cn: 导入模板
+    module: importexport
+    batch: "5-2"
+    scope: tenant
+    with_audit: true
+    soft_delete: false
+    note: 模板声明与版本号；模板过期后仍可下载但强提示（IMP-Q-05 / BR-IMP-007）。
+    columns:
+      - { name: module_code, type: varchar(30), nullable: false, comment: 模块（student / teacher / class_roster） }
+      - { name: template_version, type: varchar(20), nullable: false, comment: 模板版本（如 student-v3） }
+      - { name: column_count, type: int, nullable: false, comment: 列数 }
+      - { name: file_id, type: bigint unsigned, nullable: true, comment: 模板文件引用 }
+      - { name: expire_time, type: datetime, nullable: true, comment: 版本过期时间（过期后强提示） }
+      - { name: status, type: char(1), nullable: false, default: "'1'", comment: 1 当前版本 / 0 历史版本 }
+    unique_keys:
+      - { name: uk_import_template, columns: [module_code, template_version] }
+    indexes:
+      - { name: idx_import_template_current, columns: [module_code, status] }
+
+  - name: edu_import_batch
+    cn: 导入批次
+    module: importexport
+    batch: "5-2"
+    scope: school
+    with_audit: true
+    soft_delete: false
+    note: |
+      批次号是幂等键（BR-IMP-014）：同一批次重复执行不产生重复数据（BR-IMP-009）。
+      结果文件 7 天 / 任务元数据 90 天（IMP-Q-02）。
+    columns:
+      - { name: batch_no, type: varchar(32), nullable: false, comment: 批次号（全局唯一，幂等键） }
+      - { name: module_code, type: varchar(30), nullable: false, comment: 模块 }
+      - { name: template_version, type: varchar(20), nullable: true, comment: 使用的模板版本 }
+      - { name: async_task_no, type: varchar(32), nullable: true, comment: 关联异步任务号 }
+      - { name: source_file_id, type: bigint unsigned, nullable: true, comment: 上传文件引用 }
+      - { name: result_file_id, type: bigint unsigned, nullable: true, comment: 结果文件引用（含学号对照表） }
+      - { name: failed_file_id, type: bigint unsigned, nullable: true, comment: 失败明细文件引用 }
+      - { name: row_total, type: int, nullable: false, default: "0", comment: 总行数 }
+      - { name: valid_count, type: int, nullable: false, default: "0", comment: 校验通过行数 }
+      - { name: invalid_count, type: int, nullable: false, default: "0", comment: 校验失败行数 }
+      - { name: success_count, type: int, nullable: false, default: "0", comment: 执行成功行数 }
+      - { name: skipped_count, type: int, nullable: false, default: "0", comment: 跳过行数（幂等跳过） }
+      - { name: import_status, type: varchar(20), nullable: false, default: "'validated'", comment: 已校验 / 排队中 / 执行中 / 已完成 / 部分失败 / 失败 / 已取消 }
+      - { name: operator_id, type: bigint unsigned, nullable: false, comment: 操作人 }
+    unique_keys:
+      - { name: uk_import_batch_no, columns: [batch_no] }
+    indexes:
+      - { name: idx_import_batch_school, columns: [school_id, import_status, create_time] }
+      - { name: idx_import_batch_operator, columns: [operator_id, create_time] }
+    foreign_keys:
+      - { name: fk_import_batch_task, columns: [async_task_no], ref_table: edu_async_task, ref_columns: [task_no], on_delete: RESTRICT, on_update: RESTRICT }
+
+  - name: edu_import_error
+    cn: 导入行结果（失败与跳过明细）
+    module: importexport
+    batch: "5-2"
+    scope: school
+    with_audit: false
+    soft_delete: false
+    note: 逐行结果；`(batch_no, row_no)` 唯一。失败原因必须可直接指导修正（含行号 + 对象 + 原因）。
+    columns:
+      - { name: batch_no, type: varchar(32), nullable: false, comment: 批次号 }
+      - { name: row_no, type: int, nullable: false, comment: 行号（Excel 行号，含表头偏移） }
+      - { name: result, type: varchar(20), nullable: false, comment: invalid 校验失败 / failed 执行失败 / skipped 跳过 }
+      - { name: fail_reason, type: varchar(500), nullable: false, comment: 失败或跳过原因 }
+      - { name: object_name, type: varchar(100), nullable: true, comment: 对象标识（姓名 / 学号等） }
+      - { name: raw_data, type: json, nullable: true, comment: 原始行数据（用于对照修正） }
+      - { name: create_time, type: datetime, nullable: false, default: CURRENT_TIMESTAMP, comment: 创建时间 }
+    unique_keys:
+      - { name: uk_import_error_row, columns: [batch_no, row_no] }
+    indexes:
+      - { name: idx_import_error_result, columns: [batch_no, result] }
+
+  - name: edu_async_task
+    cn: 异步任务
+    module: importexport
+    batch: "5-2"
+    scope: school
+    with_audit: true
+    soft_delete: false
+    note: |
+      任务中心的主表。状态推进 queued → running → succeeded / partial_failed / failed（REQ-IMP-034）；
+      只有 queued 可取消；failed / partial_failed 可重试且沿用原幂等键（REQ-IMP-037）；
+      默认只显示本人发起的任务（REQ-IMP-032）。
+    columns:
+      - { name: task_no, type: varchar(32), nullable: false, comment: 任务编号（全局唯一，幂等键） }
+      - { name: task_type, type: varchar(30), nullable: false, enum_ref: async_task_type, comment: import / export / promotion / teaching_class / archive }
+      - { name: task_status, type: varchar(20), nullable: false, default: "'queued'", enum_ref: async_task_status, comment: 排队中 / 执行中 / 已完成 / 部分失败 / 失败 / 已取消 / 死信 }
+      - { name: progress_percent, type: tinyint unsigned, nullable: false, default: "0", comment: 进度百分比 }
+      - { name: owner_id, type: bigint unsigned, nullable: false, comment: 发起人 }
+      - { name: owner_role, type: varchar(30), nullable: true, comment: 发起人角色快照 }
+      - { name: params_summary, type: json, nullable: true, comment: 参数摘要（模块 / 模板 / 筛选条件等） }
+      - { name: total_count, type: int, nullable: false, default: "0", comment: 总数 }
+      - { name: success_count, type: int, nullable: false, default: "0", comment: 成功数 }
+      - { name: failed_count, type: int, nullable: false, default: "0", comment: 失败数 }
+      - { name: skipped_count, type: int, nullable: false, default: "0", comment: 跳过数 }
+      - { name: result_file_id, type: bigint unsigned, nullable: true, comment: 结果文件引用 }
+      - { name: failed_file_id, type: bigint unsigned, nullable: true, comment: 失败明细文件引用 }
+      - { name: queue_position, type: int, nullable: true, comment: 排队位置（queue 状态时展示，REQ-IMP-049） }
+      - { name: retry_count, type: tinyint unsigned, nullable: false, default: "0", comment: 已重试次数 }
+      - { name: batch_no, type: varchar(32), nullable: true, comment: 关联批次号（导入 / 升班类任务） }
+      - { name: start_time, type: datetime, nullable: true, comment: 开始执行时间 }
+      - { name: finish_time, type: datetime, nullable: true, comment: 结束时间 }
+      - { name: error_msg, type: varchar(500), nullable: true, comment: 失败原因 }
+    unique_keys:
+      - { name: uk_async_task_no, columns: [task_no] }
+    indexes:
+      - { name: idx_async_task_owner, columns: [owner_id, create_time], note: 默认只看本人任务（REQ-IMP-032） }
+      - { name: idx_async_task_school_status, columns: [school_id, task_status, create_time] }
+      - { name: idx_async_task_type, columns: [task_type, task_status] }
+
+  - name: edu_async_task_retry
+    cn: 任务重试记录
+    module: importexport
+    batch: "5-2"
+    scope: school
+    with_audit: false
+    soft_delete: false
+    note: 每次重试一条记录；`(task_no, retry_no)` 唯一。与死信配合判定"是否超过最大重试次数"（REQ-IMP-039）。
+    columns:
+      - { name: task_no, type: varchar(32), nullable: false, comment: 任务编号 }
+      - { name: retry_no, type: tinyint unsigned, nullable: false, comment: 第几次重试（从 1 开始） }
+      - { name: result, type: varchar(20), nullable: false, comment: success / failed / timeout }
+      - { name: error_msg, type: varchar(500), nullable: true, comment: 本次失败原因 }
+      - { name: create_time, type: datetime, nullable: false, default: CURRENT_TIMESTAMP, comment: 重试时间 }
+    unique_keys:
+      - { name: uk_task_retry, columns: [task_no, retry_no] }
+    indexes:
+      - { name: idx_task_retry_task, columns: [task_no, create_time] }
+    foreign_keys:
+      - { name: fk_task_retry_task, columns: [task_no], ref_table: edu_async_task, ref_columns: [task_no], on_delete: RESTRICT, on_update: RESTRICT }
+
+  - name: edu_dead_letter_task
+    cn: 死信任务
+    module: importexport
+    batch: "5-2"
+    scope: school
+    with_audit: false
+    soft_delete: false
+    note: |
+      超过最大重试次数的任务进入死信，运维查看与重放（REQ-IMP-038）；
+      重放复用原批次号与幂等键，重放原因必填并写审计；记录只追加与重放，不提供删除。
+    columns:
+      - { name: task_no, type: varchar(32), nullable: false, comment: 任务编号（唯一） }
+      - { name: task_type, type: varchar(30), nullable: false, enum_ref: async_task_type, comment: 任务类型 }
+      - { name: dead_time, type: datetime, nullable: false, comment: 进入死信时间 }
+      - { name: retry_count, type: tinyint unsigned, nullable: false, comment: 已重试次数 }
+      - { name: last_error, type: varchar(500), nullable: false, comment: 最后一次错误 }
+      - { name: batch_no, type: varchar(32), nullable: true, comment: 原批次号 }
+      - { name: replay_status, type: varchar(20), nullable: false, default: "'replayable'", comment: replayable 待重放 / replayed 已重放 }
+      - { name: replay_by, type: bigint unsigned, nullable: true, comment: 重放人 }
+      - { name: replay_time, type: datetime, nullable: true, comment: 重放时间 }
+      - { name: replay_reason, type: varchar(500), nullable: true, comment: 重放原因（必填，写审计） }
+      - { name: replay_task_status, type: varchar(20), nullable: true, comment: 重放后的执行结果，用于追溯 }
+    unique_keys:
+      - { name: uk_dead_letter_task, columns: [task_no] }
+    indexes:
+      - { name: idx_dead_letter_status, columns: [replay_status, dead_time] }
+      - { name: idx_dead_letter_type, columns: [task_type, dead_time] }
+
+  - name: edu_file_ref
+    cn: 文件引用
+    module: importexport
+    batch: "5-2"
+    scope: school
+    with_audit: false
+    soft_delete: false
+    note: |
+      数据库只保存文件引用，不保存二进制（REQ-IMP-041）。
+      下载走短时签名、与登录态绑定（REQ-IMP-042），每次下载写审计（REQ-IMP-043）；
+      引用带租户前缀，缓存键必须含租户（REQ-IMP-046）。
+    columns:
+      - { name: file_id, type: bigint unsigned, nullable: false, comment: 文件 ID（唯一） }
+      - { name: file_kind, type: varchar(30), nullable: false, enum_ref: file_kind, comment: import_source / export_result / failed_rows / template / photo }
+      - { name: file_name, type: varchar(255), nullable: false, comment: 原始文件名 }
+      - { name: storage_key, type: varchar(500), nullable: false, comment: 对象存储键（含租户与学校前缀） }
+      - { name: content_type, type: varchar(100), nullable: true, comment: MIME 类型 }
+      - { name: file_size, type: bigint, nullable: false, default: "0", comment: 字节数 }
+      - { name: biz_type, type: varchar(30), nullable: true, comment: 业务类型（import / export / task） }
+      - { name: biz_id, type: varchar(64), nullable: true, comment: 业务标识（批次号 / 任务号） }
+      - { name: expire_time, type: datetime, nullable: true, comment: 有效期（结果文件默认 7 天） }
+      - { name: download_count, type: int, nullable: false, default: "0", comment: 下载次数 }
+      - { name: create_time, type: datetime, nullable: false, default: CURRENT_TIMESTAMP, comment: 创建时间 }
+    unique_keys:
+      - { name: uk_file_id, columns: [file_id] }
+    indexes:
+      - { name: idx_file_biz, columns: [biz_type, biz_id] }
+      - { name: idx_file_expire, columns: [expire_time] }
+
+  # ==================== 5-2 审计 ====================
+  - name: edu_audit_log
+    cn: 操作日志
+    module: audit
+    batch: "5-2"
+    scope: school
+    with_audit: false
+    soft_delete: false
+    note: |
+      只允许追加，任何业务代码不得更新或删除（BR-AUDIT-003 / NFR-AUDIT-05）。
+      关键写操作与其日志在同一事务内提交（REQ-AUD-035）。
+      归档方式：**不启用原生分区**（MySQL 分区要求所有唯一键都含分区列，会破坏 `(request_id, object_id, action_type)` 的幂等语义）；
+      改为"迁移到同构归档表 + 归档批次留痕"：`edu_audit_log_archive` 与在线表同构，
+      归档 = 按时间范围搬过去并写 `edu_audit_archive_batch`，检索时按范围决定查在线表还是归档表（REQ-AUD-033）。
+      「运营访问记录」与「登录与安全事件」不单独建主表，由本表派生视图（见 views）。
+    columns:
+      - { name: action_type, type: varchar(30), nullable: false, enum_ref: audit_action_type, comment: create / update / delete / import / export / approve / grant / login / status_change }
+      - { name: module_code, type: varchar(30), nullable: false, comment: 所属模块 }
+      - { name: object_type, type: varchar(50), nullable: false, comment: 对象类型（student / class / teacher / stream 等） }
+      - { name: object_id, type: varchar(64), nullable: false, comment: 对象标识 }
+      - { name: object_name, type: varchar(200), nullable: true, comment: 对象名称（便于阅读，如 高一 (1) 班） }
+      - { name: operator_id, type: bigint unsigned, nullable: true, comment: 操作人；平台运营访问时为运营账号 }
+      - { name: operator_role, type: varchar(30), nullable: true, comment: 操作人角色快照 }
+      - { name: client_ip, type: varchar(64), nullable: true, comment: 来源 IP }
+      - { name: request_id, type: varchar(64), nullable: true, comment: 请求标识（用于幂等写入与排障） }
+      - { name: batch_no, type: varchar(32), nullable: true, comment: 批次号（批量操作共用） }
+      - { name: action_result, type: varchar(16), nullable: false, default: "'success'", comment: success / failed }
+      - { name: source, type: varchar(16), nullable: false, default: "'web'", comment: web / api / job / mq }
+      - { name: detail, type: varchar(500), nullable: true, comment: 说明（驳回意见、失败原因等） }
+      - { name: log_time, type: datetime, nullable: false, default: CURRENT_TIMESTAMP, comment: 记录时间（分区键） }
+    unique_keys:
+      - { name: uk_audit_idempotent, columns: [request_id, object_id, action_type], note: 幂等写入（PRD 7.1：request_id + object_id + action_type） }
+    indexes:
+      - { name: idx_audit_time, columns: [log_time] }
+      - { name: idx_audit_operator, columns: [operator_id, log_time] }
+      - { name: idx_audit_object, columns: [object_type, object_id, log_time], note: 对象变更时间线（REQ-AUD-023） }
+      - { name: idx_audit_school_type, columns: [school_id, action_type, log_time] }
+      - { name: idx_audit_tenant, columns: [tenant_id, log_time] }
+
+  - name: edu_audit_change
+    cn: 日志变更明细
+    module: audit
+    batch: "5-2"
+    scope: school
+    with_audit: false
+    soft_delete: false
+    note: |
+      只记录**发生变化的字段**（REQ-AUD-003）；日志本身不含敏感字段明文，
+      只记录字段名与掩码后的值（REQ-AUD-010）。
+    columns:
+      - { name: log_id, type: bigint unsigned, nullable: false, comment: 操作日志 ID }
+      - { name: field_name, type: varchar(64), nullable: false, comment: 字段名 }
+      - { name: before_value, type: varchar(1000), nullable: true, comment: 变更前值（敏感字段掩码） }
+      - { name: after_value, type: varchar(1000), nullable: true, comment: 变更后值（敏感字段掩码） }
+    unique_keys:
+      - { name: uk_audit_change, columns: [log_id, field_name] }
+    indexes:
+      - { name: idx_audit_change_field, columns: [field_name] }
+    foreign_keys:
+      - { name: fk_audit_change_log, columns: [log_id], ref_table: edu_audit_log, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+
+  - name: edu_audit_archive_batch
+    cn: 日志归档批次
+    module: audit
+    batch: "5-2"
+    scope: tenant
+    with_audit: false
+    soft_delete: false
+    note: |
+      超过在线保留窗口（默认 12 个月）的日志按时间归档，归档后仍可按时间范围检索（REQ-AUD-033）；
+      保留期内（不少于 3 年）不得清理（REQ-AUD-032）；归档与归档检索动作本身写日志（REQ-AUD-034）。
+    columns:
+      - { name: archive_no, type: varchar(32), nullable: false, comment: 归档批次号（唯一） }
+      - { name: range_start, type: date, nullable: false, comment: 归档范围开始 }
+      - { name: range_end, type: date, nullable: false, comment: 归档范围结束 }
+      - { name: row_count, type: bigint, nullable: false, default: "0", comment: 归档行数 }
+      - { name: file_id, type: bigint unsigned, nullable: true, comment: 归档文件引用 }
+      - { name: archive_status, type: varchar(16), nullable: false, default: "'running'", comment: running 进行中 / done 已完成 / failed 失败 }
+      - { name: operator_id, type: bigint unsigned, nullable: true, comment: 操作人 }
+      - { name: archive_time, type: datetime, nullable: true, comment: 完成时间 }
+      - { name: error_msg, type: varchar(500), nullable: true, comment: 失败原因 }
+    unique_keys:
+      - { name: uk_archive_no, columns: [archive_no] }
+    indexes:
+      - { name: idx_archive_range, columns: [range_start, range_end] }
+      - { name: idx_archive_status, columns: [archive_status] }
+
+  # ==================== 5-2 数据权限（横切） ====================
+  - name: edu_data_grant
+    cn: 数据共享授权（仅教学资源）
+    module: datascope
+    batch: "5-2"
+    scope: tenant
+    with_audit: true
+    soft_delete: false
+    note: |
+      授权对象**仅限教学资源**（题库习题、试卷等）；学生、班级、年级、教师、成绩、学籍等业务数据一律不跨校共享
+      （BR-DATA-018）。授权由运营人员直接创建生效，**不设审批**（BR-DATA-017）；可撤销、有有效期（BR-DATA-013）；
+      授权与每次访问都留审计（BR-DATA-012）；到期或撤销后历史记录保留（BR-DATA-016）。
+    columns:
+      - { name: grant_no, type: varchar(32), nullable: false, comment: 业务编号（幂等键，唯一） }
+      - { name: grantor_user_id, type: bigint unsigned, nullable: false, comment: 授权人（运营方用户） }
+      - { name: grantee_type, type: varchar(20), nullable: false, comment: tenant / user / role }
+      - { name: grantee_id, type: varchar(64), nullable: false, comment: 被授权对象 ID }
+      - { name: title, type: varchar(200), nullable: false, comment: 事由标题 }
+      - { name: reason, type: varchar(500), nullable: false, comment: 共享原因 }
+      - { name: resource_types, type: varchar(200), nullable: false, comment: 资源类型集合（逗号分隔，如 question_bank_item,exam_paper） }
+      - { name: resource_scope, type: json, nullable: true, comment: 资源范围细化（哪些题库 / 试卷；为空表示该类型全部） }
+      - { name: effective_start, type: datetime, nullable: false, comment: 生效时间 }
+      - { name: effective_end, type: datetime, nullable: true, comment: 失效时间（为空表示长期有效） }
+      - { name: grant_status, type: varchar(20), nullable: false, default: "'draft'", comment: 草稿 / 生效 / 已撤销 / 已过期 }
+      - { name: revoke_by, type: bigint unsigned, nullable: true, comment: 撤销人 }
+      - { name: revoke_time, type: datetime, nullable: true, comment: 撤销时间 }
+      - { name: revoke_reason, type: varchar(500), nullable: true, comment: 撤销原因 }
+    unique_keys:
+      - { name: uk_grant_no, columns: [grant_no] }
+    indexes:
+      - { name: idx_grant_grantee, columns: [grantee_type, grantee_id, grant_status] }
+      - { name: idx_grant_effective, columns: [grant_status, effective_end] }
+
+  - name: edu_data_grant_scope
+    cn: 授权范围明细
+    module: datascope
+    batch: "5-2"
+    scope: tenant
+    with_audit: false
+    soft_delete: false
+    note: 一条授权可覆盖多个学校与多种资源；首轮只允许 read / export，不开放 write（BR-DATA-015）。
+    columns:
+      - { name: grant_id, type: bigint unsigned, nullable: false, comment: 所属授权 }
+      - { name: scope_type, type: varchar(20), nullable: false, comment: school_tenant / grade / class }
+      - { name: scope_id, type: varchar(64), nullable: false, comment: 范围对象 ID }
+      - { name: resource_code, type: varchar(64), nullable: false, comment: 资源编码（取自权限矩阵，如 question_bank_item） }
+      - { name: access_level, type: varchar(20), nullable: false, comment: 首轮仅 read / export，不开放 write（BR-DATA-015） }
+      - { name: create_time, type: datetime, nullable: false, default: CURRENT_TIMESTAMP, comment: 创建时间 }
+    unique_keys:
+      - { name: uk_grant_scope, columns: [grant_id, scope_type, scope_id, resource_code, access_level] }
+    indexes:
+      - { name: idx_grant_scope_resource, columns: [resource_code, access_level] }
+    foreign_keys:
+      - { name: fk_grant_scope_grant, columns: [grant_id], ref_table: edu_data_grant, ref_columns: [id], on_delete: RESTRICT, on_update: RESTRICT }
+
+derived_tables:
+  - name: edu_audit_log_archive
+    based_on: edu_audit_log
+    module: audit
+    batch: "5-2"
+    ddl: "CREATE TABLE edu_audit_log_archive LIKE edu_audit_log;"
+    note: |
+      归档落点：与在线表同构（含全部索引）。归档 = 按时间范围把行搬进本表并写 edu_audit_archive_batch；
+      搬移后在线表变轻，归档数据仍可按时间范围检索（REQ-AUD-033），保留期内不清理（REQ-AUD-032）。
+      选择"同构归档表"而不是 MySQL 原生分区的原因见 edu_audit_log 的 note。
+
+views:
+  - name: v_edu_audit_operator_access
+    cn: 运营访问记录（派生视图）
+    module: audit
+    batch: "5-2"
+    note: |
+      审计 PRD 7.1 明确"由操作日志派生视图，不单独建主表"。
+      运营访问记录 = operator_role = 'platform_ops' 的操作日志，并按被访问租户归属（BR-AUDIT-005）。
+    definition_from: edu_audit_log
+    filter: "operator_role = 'platform_ops'"
+    columns: [id, log_time, operator_id, object_type, object_id, action_type, "detail AS purpose", client_ip, tenant_id, school_id]
+    note2: 审计 PRD 的「用途说明」在操作日志里就是 `detail`，视图中以 `purpose` 别名对外（与阶段 2 / 3 原型的列名一致）。
+
+  - name: v_edu_audit_security_event
+    cn: 登录与安全事件（派生视图）
+    module: audit
+    batch: "5-2"
+    note: |
+      审计 PRD 7.1 明确"由操作日志派生，action_type = login"。
+      事件范围：登录失败、账号锁定、激活码查看与重置、学号变更、权限变更（REQ-AUD-007）。
+    definition_from: edu_audit_log
+    filter: "action_type IN ('login','account_locked','activation_view','activation_reset','student_no_change','permission_change')"
+    columns: [id, log_time, action_type, operator_id, operator_role, object_id, action_result, client_ip, detail]

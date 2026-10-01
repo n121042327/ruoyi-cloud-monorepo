@@ -1,0 +1,18 @@
+sequenceDiagram
+  autonumber
+  participant U as 用户
+  participant API as ruoyi-edu
+  participant MQ as RabbitMQ
+  participant W as 导出消费者
+  participant DB as MySQL
+
+  U->>API: POST exportData
+  API->>API: 行数估算；> 2000 行转异步
+  API->>DB: INSERT edu_async_task（task_no 幂等）
+  API->>MQ: edu.export.generate
+  MQ->>W: 消费
+  W->>API: 重新解析数据范围（DS-DENY-04）
+  W->>DB: 生成文件 + edu_file_ref（7 天有效）
+  U->>API: downloadTaskResult
+  API->>API: 再次解析范围后签发下载
+  API-->>U: 文件（行数可能少于列表，页面有说明）

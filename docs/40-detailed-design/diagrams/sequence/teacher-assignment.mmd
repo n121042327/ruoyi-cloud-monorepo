@@ -1,0 +1,18 @@
+sequenceDiagram
+  autonumber
+  participant A as 教务主任
+  participant UI as 教师管理页
+  participant API as ruoyi-edu
+  participant DB as MySQL
+  participant R as Redis
+
+  A->>UI: 批量设置任教关系
+  UI->>API: POST batchSaveTeachingAssignment
+  API->>API: 校验学科启用、班级学期一致、教师在职
+  API->>DB: BEGIN
+  API->>DB: DELETE 旧关系（按 term + teacher）
+  API->>DB: INSERT edu_teaching_assignment（uk_assignment 幂等）
+  API->>DB: COMMIT
+  API->>R: DEL edu:<tenant>:scope:teaching:<user>:<term>
+  API-->>A: 成功条数 + 跳过条数
+  Note over API,R: 缓存删除失败时靠范围版本号兜底（C-04）
