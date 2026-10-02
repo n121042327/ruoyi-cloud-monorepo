@@ -4,23 +4,23 @@
 
 ```mermaid
 flowchart TB
-  subgraph 客户端
+  subgraph client["客户端"]
     PC["PC 浏览器<br/>apps/plus-ui（Vue 3 + Element Plus）"]
     MOBILE["后续：Pad / 小程序<br/>（首轮不实现）"]
   end
 
-  subgraph 接入层
+  subgraph access["接入层"]
     GW["网关 ruoyi-gateway<br/>路由 / 鉴权 / 限流"]
     AUTH["认证 ruoyi-auth<br/>Sa-Token"]
   end
 
-  subgraph 业务层
+  subgraph business["业务层"]
     EDU["教育域服务 ruoyi-edu<br/>11 个业务模块（单服务内分模块）"]
     SYS["平台基础 ruoyi-system<br/>租户 / 用户 / 角色 / 菜单 / 字典"]
     JOB["任务调度 ruoyi-job（SnailJob）<br/>归档、过期授权、定时一致性检查"]
   end
 
-  subgraph 能力层（公共组件）
+  subgraph capability["能力层（公共组件）"]
     TENANT["ruoyi-common-tenant<br/>租户隔离"]
     DATAPERM["ruoyi-edu 的 datascope<br/>教育域数据权限（自定义）"]
     OSS["ruoyi-common-oss<br/>文件引用与短时签名"]
@@ -29,7 +29,7 @@ flowchart TB
     AUDIT["ruoyi-edu 的审计切面<br/>操作 / 敏感访问 / 运营留痕"]
   end
 
-  subgraph 存储
+  subgraph storage["存储"]
     MYSQL[("MySQL 8")]
     REDISDB[("Redis")]
     RMQ[("RabbitMQ")]
@@ -63,10 +63,10 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-  subgraph 浏览器
+  subgraph browser["浏览器"]
     B["Chrome / Edge"]
   end
-  subgraph Docker 宿主机
+  subgraph host["Docker 宿主机"]
     NX["nginx<br/>静态资源 + 反向代理"]
     GW["ruoyi-gateway"]
     AUTH["ruoyi-auth"]
@@ -77,7 +77,7 @@ flowchart LR
     REDIS[("redis")]
     RMQ[("rabbitmq")]
   end
-  subgraph 外部存储
+  subgraph external["外部存储"]
     NAS["NAS / 本地卷<br/>上传与导出文件"]
   end
   B -->|HTTPS| NX
@@ -105,6 +105,45 @@ flowchart LR
 | 应用区 | gateway / auth / system / edu / job | 只对 DMZ 与彼此开放 | 除网关外不对用户直接暴露端口 |
 | 数据区 | MySQL / Redis / RabbitMQ | 只对应用区开放 | 不对宿主机外部暴露端口；凭据走环境变量（不进仓库） |
 | 存储区 | NAS / 本地卷 | 只对 edu 开放 | 文件不落地应用服务器临时目录（`REQ-IMP-045`） |
+
+```mermaid
+%% 部署视图（对应 02-architecture.md 第 3 节）
+flowchart TB
+  subgraph DMZ["DMZ 分区"]
+    NX["nginx<br/>:443"]
+  end
+  subgraph APP["应用区"]
+    GW["ruoyi-gateway"]
+    AUTH["ruoyi-auth"]
+    SYS["ruoyi-system"]
+    EDU["ruoyi-edu"]
+    JOB["ruoyi-job"]
+  end
+  subgraph DATA["数据区（不对外暴露端口）"]
+    MYSQL[("MySQL 8<br/>业务库")]
+    REDIS[("Redis<br/>缓存与令牌")]
+    RMQ[("RabbitMQ<br/>异步任务与死信")]
+  end
+  subgraph STORE["存储区"]
+    NAS["NAS / 本地卷<br/>上传与导出文件"]
+  end
+  USER["用户浏览器"] --> NX
+  NX --> GW
+  GW --> AUTH
+  GW --> SYS
+  GW --> EDU
+  AUTH --> REDIS
+  SYS --> MYSQL
+  EDU --> MYSQL
+  EDU --> REDIS
+  EDU --> RMQ
+  EDU --> NAS
+  JOB --> MYSQL
+  JOB --> RMQ
+  NOTE["首轮不启用：Seata / Elasticsearch"]
+  DATA -.- NOTE
+
+```
 
 图源：[`diagrams/deployment.mmd`](diagrams/deployment.mmd)。
 

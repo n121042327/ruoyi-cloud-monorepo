@@ -44,7 +44,22 @@
 | `docs/00-governance/change-requests/CR-004.md` | 变更申请：补齐教师模块字段字典并统一「校领导」对教师主体只读口径（已批准并执行） | `review` |
 | `docs/00-governance/change-requests/CR-005.md` | 变更申请：补齐年级模块的权限口径与字段字典（待批准，关联 GAP-034 ~ GAP-037） | `review` |
 | `docs/00-governance/change-requests/CR-006.md` | 变更申请：新增系统超级管理员角色 `super_admin`（已批准并执行，关联 D-057 / BR-ORG-014） | `review` |
-| `docs/00-governance/traceability.yaml` | 追踪矩阵骨架 | `review` |
+| `docs/00-governance/traceability.yaml` | 追踪矩阵：626 条需求全量（生成物）；接口链 580 条、表链 537 条，178 个 operationId 全部可追溯到需求（GAP-081 已闭合） | `review` |
+| `docs/00-governance/delivery-gap-remediation.md` | 五项交付缺口核查与补齐方案（样板方案已确认，验收待确认） | `review` |
+| `docs/00-governance/filter-logic-audit.md` | 全部 45 页筛选顺序与学校上下文静态核查 | `review` |
+| `docs/00-governance/change-requests/CR-020.md` | 学生追踪、映射与筛选 v2 样板变更记录 | `review` |
+| `docs/00-governance/change-requests/CR-021.md` | 编班四列、组合定位与两类班级支持的补充版本 | `review` |
+| `docs/10-prd/modules/class/import-template-v2.md` | 编班模板补充：用户已确认组合定位、姓名核对、行政班与教学班一起支持 | `review` |
+| `prototypes/functional/v2/pages/student-list.html` | 学生业务样板：筛选级联、学校上下文复位与顺序调整，待人工验收 | `review` |
+| `prototypes/functional/v2/assets/prototype-shell.js` | v2 业务外壳：增加角色变更通知，v1 保留 | `review` |
+| `prototypes/functional/v2/layout-spec.yaml` | 学生筛选 v2 差异规则 | `review` |
+| `prototypes/high-fidelity/v2/pages/student-list.html` | 同步业务样板的高保真 v2 页面 | `review` |
+| `prototypes/high-fidelity/v2/assets/hifi-shell.js` | v2 高保真外壳：角色控件禁用与角色变更通知 | `review` |
+| `prototypes/high-fidelity/v2/component-mapping.yaml` | 学生单文件及已有浮层 207 个元素映射样板 | `review` |
+| `evidence/stage2-prototype-v2/README.md` | 本批产物、验证边界、验收方法与历史证据说明 | `review` |
+| `evidence/governance/2026-10-01_filter-inventory.yaml` | 45 个页面筛选区域源码清单 | `review` |
+| `tools/build_student_sample_mapping.py` | 从本批浏览器快照生成或核对组件映射 | `review` |
+| `evidence/governance/2026-10-01_delivery-gap-audit.log` | 五项缺口静态核查与文档一致性检查证据，不含交互验收 | `review` |
 | `docs/00-governance/task-packet.md` | 任务包模板 | `review` |
 | `docs/00-governance/baseline-manifest.schema.json` | 冻结清单 Schema | `review` |
 | `apps/plus-ui/AGENTS.md` | 前端子级约定（组件映射、代码写法、视觉规范） | `review` |
@@ -428,3 +443,185 @@
 | `docs/50-delivery/test-plan.md` | 测试计划（含越权、并发、幂等用例） | `planned` |
 | `docs/50-delivery/deployment-guide.md` | Docker 部署说明 | `planned` |
 | `docs/50-delivery/known-issues.md` | 已知问题与延后项 | `planned` |
+
+## 2026-10-01 字段布局与班级 v2 批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/page-field-layout.md` | 用户明确要求的字段布局约束 | `review` |
+| `docs/00-governance/change-requests/CR-022.md` | 规则落盘与班级列表 v2 变更 | `review` |
+| `prototypes/functional/v2/pages/class-list.html` | 班级查询布局与学校上下文修复 | `review` |
+| `prototypes/high-fidelity/v2/pages/class-list.html` | 班级列表 v2 高保真 | `review` |
+
+## 2026-10-01 教师、年级 v2 批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-023.md` | 教师与年级查询布局、学校上下文变更 | `review` |
+| `prototypes/functional/v2/pages/teacher-list.html` | 教师业务原型 v2 | `review` |
+| `prototypes/functional/v2/pages/grade-list.html` | 年级业务原型 v2 | `review` |
+| `prototypes/high-fidelity/v2/pages/teacher-list.html` | 教师高保真 v2 | `review` |
+| `prototypes/high-fidelity/v2/pages/grade-list.html` | 年级高保真 v2 | `review` |
+
+## 2026-10-01 升班与异动历史 v2 批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-024.md` | 升班与异动历史查询变更 | `review` |
+| `prototypes/functional/v2/pages/promotion-list.html` | 升班任务业务原型 v2 | `review` |
+| `prototypes/functional/v2/pages/promotion-history.html` | 异动历史业务原型 v2 | `review` |
+| `prototypes/high-fidelity/v2/pages/promotion-list.html` | 升班任务高保真 v2 | `review` |
+| `prototypes/high-fidelity/v2/pages/promotion-history.html` | 异动历史高保真 v2 | `review` |
+
+## 2026-10-01 班级、教师表格与编辑表单批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-025.md` | 班级、教师字段分组和列序变更 | `review` |
+| `tools/align_table_form_layout.py` | 仅整理四个 v2 页面，避免重复处理 | `review` |
+
+## 2026-10-01 教师编辑表单数据绑定批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-026.md` | 教师编辑按点击行绑定目标数据 | `review` |
+| `evidence/stage2-prototype-v2/verify-teacher-edit-binding.html` | 教师编辑绑定回归（业务 / 高保真各 14 项） | `review` |
+
+## 2026-10-01 学生、年级表格与表单布局批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-027.md` | 学生、年级表格列序与表单分区变更 | `review` |
+| `tools/align_student_grade_layout.py` | 仅整理学生、年级四个 v2 页面，重复执行安全 | `review` |
+| `evidence/stage2-prototype-v2/verify-student-grade-layout.html` | 学生、年级布局回归（两层各 17 项） | `review` |
+
+## 2026-10-01 学生学籍异动、调班与异动登记浮层批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-028.md` | 三个学生浮层的字段分组与顺序变更 | `review` |
+| `tools/align_student_overlay_layout.py` | 按分组配置重建三个浮层的字段块，重复执行结果一致 | `review` |
+| `evidence/stage2-prototype-v2/verify-student-overlay-layout.html` | 浮层分组回归（业务 / 高保真各 13 项） | `review` |
+| `evidence/stage2-prototype-v2/2026-10-01_student-overlay-layout.log` | 本批通过计数与冻结检查日志 | `review` |
+
+## 2026-10-02 学生调班对齐与教师非在职行批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-029.md` | 学生调班与班级模块对齐（GAP-077 裁决 A） | `review` |
+| `docs/00-governance/change-requests/CR-030.md` | 教师非在职行入口（GAP-075 裁决 A） | `review` |
+| `evidence/stage2-prototype-v2/verify-student-transfer-alignment.html` | 学生调班字段与接口对齐回归（两层各 8 项） | `review` |
+| `evidence/stage2-prototype-v2/verify-teacher-inactive-rows.html` | 教师非在职行入口回归（两层各 8 项） | `review` |
+| `evidence/stage2-prototype-v2/verify-student-overlay-layout-cr029.html` | CR-028 浮层分组回归按新口径的副本（两层各 13 项） | `review` |
+| `evidence/stage2-prototype-v2/verify-student-layout-list-cr029.html` | 学生模块回归按新接口名的副本（28 项） | `review` |
+| `evidence/stage2-prototype-v2/verify-teacher-edit-binding-cr030.html` | 教师编辑绑定回归按新口径的副本（两层各 14 项） | `review` |
+| `evidence/stage2-prototype-v2/2026-10-02_transfer-teacher-batch-verification.log` | 本批通过计数、契约重生成与冻结检查日志 | `review` |
+
+## 2026-10-02 年级浮层字段分组批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-031.md` | 年级详情 / 指定年级主任 / 归档 / 删除浮层分组 | `review` |
+| `evidence/stage2-prototype-v2/verify-grade-overlay-layout.html` | 年级四个浮层的分组与校验回归（两层各 12 项） | `review` |
+| `evidence/stage2-prototype-v2/verify-teacher-grade-detail-cr031.html` | 详情入口回归副本（修正失效断言与 iframe 就绪竞态，6 项） | `review` |
+| `evidence/stage2-prototype-v2/2026-10-02_grade-overlay-batch-verification.log` | 本批通过计数与冻结检查日志 | `review` |
+
+## 2026-10-02 架构图 Mermaid 渲染修复
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-032.md` | Mermaid 渲染缺陷修复说明 | `review` |
+| `tools/check_mermaid.py` | subgraph 标题写法静态检查（无 Node 依赖） | `review` |
+| `evidence/governance/2026-10-02_mermaid-check.log` | 修复前后 103 张图的解析结果与负例自检 | `review` |
+
+## 2026-10-02 学生详情抽屉字段分组
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-033.md` | 学生详情抽屉分组变更 | `review` |
+| `evidence/stage2-prototype-v2/verify-student-detail-layout.html` | 学生详情分组回归（两层各 8 项） | `review` |
+| `evidence/stage2-prototype-v2/2026-10-02_student-detail-batch-verification.log` | 本批通过计数与冻结检查日志 | `review` |
+
+## 2026-10-02 学校级联收窄与撤销离职口径批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-034.md` | GAP-047 下拉收窄与 GAP-078 撤销口径 | `review` |
+| `evidence/stage2-prototype-v2/verify-school-cascade.html` | 学校变化后下拉收窄回归（两层各 8 项） | `review` |
+| `evidence/stage2-prototype-v2/verify-teacher-inactive-rows-cr034.html` | 非在职行回归副本（TI-07 改按 REQ-TCH-071） | `review` |
+| `evidence/stage2-prototype-v2/2026-10-02_school-cascade-batch-verification.log` | 本批通过计数与冻结检查日志 | `review` |
+
+## 2026-10-02 学生列表契约样板批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-035.md` | GAP-066 学生列表契约与批量调班收敛 | `review` |
+| `tools/check_api_contract.py` | v2 原型 data-api 与 PRD 查询参数的契约一致性检查 | `review` |
+| `evidence/stage2-prototype-v2/2026-10-02_student-contract-batch-verification.log` | 本批通过计数与冻结检查日志 | `review` |
+| `README.md` | 仓库根导航与上手说明（用户要求新增） | `review` |
+
+## 2026-10-02 孤儿接口引用清理批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-036.md` | GAP-079 孤儿接口引用清理 | `review` |
+| `evidence/stage2-prototype-v2/2026-10-02_orphan-api-batch-verification.log` | 本批通过计数与冻结检查日志 | `review` |
+
+## 2026-10-02 补齐缺失接口契约批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-037.md` | GAP-080 补 6 个缺失接口契约 | `review` |
+| `evidence/governance/2026-10-02_contract-completion.log` | 生成器重跑与契约检查结果 | `review` |
+
+## 2026-10-02 人工验收指南
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/acceptance-guide.md` | 回答「在哪验收、怎么验收」：打开方式、hash 参数、逐页核对清单、复跑命令 | `review` |
+
+## 2026-10-02 学年学期样例批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-038.md` | GAP-067 学年学期样例确认与统一 | `review` |
+| `evidence/stage2-prototype-v2/verify-term-sample.html` | 学期选项集合与归属标注回归（两层各 8 项） | `review` |
+| `evidence/stage2-prototype-v2/2026-10-02_term-sample-batch-verification.log` | 本批通过计数与冻结检查日志 | `review` |
+
+## 2026-10-02 追踪矩阵与组件映射全量批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-039.md` | GAP-063 / GAP-064 从样板扩展为全量 | `review` |
+| `tools/gen_traceability.py` | 从 PRD / 验收用例 / 导航 / 页面树生成追踪矩阵骨架，保留人工字段 | `review` |
+| `docs/00-governance/traceability.yaml` | 626 条需求追踪记录 + 模块接口索引（生成物） | `review` |
+| `tools/build_component_mapping_all.py` | 解析 45 个高保真页面生成逐元素组件映射 | `review` |
+| `prototypes/high-fidelity/v2/component-mapping-all-pages.yaml` | 45 页 / 1361 条元素映射（生成物） | `review` |
+| `tools/check_gap_register.py` | 缺项表重复键检查（YAML 重复键会静默覆盖） | `review` |
+| `evidence/governance/2026-10-02_traceability-mapping.log` | 本批生成结果与检查输出 | `review` |
+
+## 2026-10-02 需求到接口与表的逐条对应批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-040.md` | GAP-081 学生与班级模块的逐条对应 | `review` |
+| `docs/00-governance/requirement-links.yaml` | 人工维护的需求 → 接口 / 表对应表（159 条） | `review` |
+| `evidence/governance/2026-10-02_requirement-links.log` | 本批生成结果与检查输出 | `review` |
+
+## 2026-10-02 需求对应教师与年级批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-041.md` | GAP-081 教师与年级模块的逐条对应 | `review` |
+| `evidence/governance/2026-10-02_requirement-links-teacher-grade.log` | 本批生成结果与检查输出 | `review` |
+
+## 2026-10-02 需求逐条挂接收口与契约补齐批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-042.md` | GAP-081 剩余 7 个模块 356 条逐条挂接，并把 7 个漏挂接口挂回需求 | `review` |
+| `docs/00-governance/change-requests/CR-043.md` | GAP-082 / GAP-083 补 6 个接口（学生激活码 4 + 教师 2） | `review` |
+| `docs/00-governance/requirement-links.yaml` | 人工维护的需求 → 接口 / 表对应表（626 条全量，11 个模块） | `review` |
+| `docs/00-governance/traceability.yaml` | 626 条需求追踪 + 需求级接口追溯（接口链 580 / 表链 537，生成物） | `review` |
+| `evidence/governance/2026-10-02_requirement-links-all-modules.log` | 本批生成结果与四个检查脚本输出 | `review` |
+| `evidence/governance/2026-10-02_contract-completion-gap082-083.log` | 契约补齐后的 operationId 数与检查输出 | `review` |

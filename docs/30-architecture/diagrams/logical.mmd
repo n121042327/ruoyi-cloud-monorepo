@@ -1,22 +1,22 @@
 %% 逻辑架构（对应 02-architecture.md 第 1 节）
 flowchart TB
-  subgraph 客户端
+  subgraph client["客户端"]
     PC["PC 浏览器<br/>apps/plus-ui"]
     MOBILE["后续：Pad / 小程序"]
   end
 
-  subgraph 接入层
+  subgraph access["接入层"]
     GW["ruoyi-gateway"]
     AUTH["ruoyi-auth（Sa-Token）"]
   end
 
-  subgraph 业务层
+  subgraph business["业务层"]
     EDU["ruoyi-edu<br/>11 个业务模块"]
     SYS["ruoyi-system"]
     JOB["ruoyi-job（SnailJob）"]
   end
 
-  subgraph 能力层
+  subgraph capability["能力层"]
     TENANT["ruoyi-common-tenant"]
     DATAPERM["edu.datascope（自建）"]
     OSS["ruoyi-common-oss"]
@@ -25,7 +25,7 @@ flowchart TB
     AUDIT["edu.audit（自建）"]
   end
 
-  subgraph 存储
+  subgraph storage["存储"]
     MYSQL[("MySQL 8")]
     REDISDB[("Redis")]
     RMQ[("RabbitMQ")]

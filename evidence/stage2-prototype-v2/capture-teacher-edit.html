@@ -1,0 +1,16 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>教师编辑截图脚手架</title>
+<style>html,body{margin:0;padding:0;height:100%;overflow:hidden}iframe{display:block;width:1440px;height:900px;border:0}</style>
+<iframe id="frame"></iframe>
+<script>
+var p=new URLSearchParams(location.search),layer=p.get('layer')==='functional'?'functional':'high-fidelity',no=p.get('no')||'YX2019001',frame=document.querySelector('#frame');
+frame.onload=function(){
+  var d=frame.contentDocument,w=frame.contentWindow;
+  if(!d.querySelector('#teacher-rows'))return;
+  w.PrototypeShell.applyRole(p.get('role')||'academic_director');
+  var row=Array.from(d.querySelectorAll('#teacher-rows tr')).filter(function(r){
+    return r.querySelector('[data-field="teacher_no"]').textContent.trim()===no;
+  })[0];
+  if(row) row.querySelector('[data-action-id="ACT-TCH-006"]').click();
+};
+frame.src='../../prototypes/'+layer+'/v2/pages/teacher-list.html';
+</script></html>

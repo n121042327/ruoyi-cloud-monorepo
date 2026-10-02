@@ -1,0 +1,18 @@
+verify-student-grade-layout.html?layer=functional exit=0 ['合计 17 条，通过 17 条，失败 0 条']
+verify-student-grade-layout.html?layer=hifi exit=0 ['合计 17 条，通过 17 条，失败 0 条']
+verify-student-layout-list.html exit=0 ['合计 28 / 28 条，通过 28 条，不通过 0 条 —— 全部通过']
+verify-grade-layout-list.html exit=0 ['合计 38 / 38 条，通过 38 条，不通过 0 条 —— 全部通过']
+verify-student-cascade.html?layer=functional exit=0 ['合计 20 / 20 条，通过 20 条，不通过 0 条']
+verify-student-cascade.html?layer=hifi exit=0 ['合计 20 / 20 条，通过 20 条，不通过 0 条']
+smoke verify-class-layout-list.html exit=0 ['合计 39 / 39 条，通过 39 条，不通过 0 条 —— 全部通过']
+smoke verify-teacher-edit-binding.html?layer=hifi exit=0 ['合计 14 条，通过 14 条，失败 0 条']
+['python', 'tools/check_docs.py'] exit=0
+=== 文档一致性核查 ===
+通过：未发现问题
+
+['git', 'diff', '--check'] exit=0
+
+['git', 'diff', 'HEAD', '--', 'prototypes/functional/v1', 'prototypes/high-fidelity/v1', 'docs/10-prd/modules/student/PRD.md', 'docs/10-prd/modules/grade/PRD.md'] exit=0
+
+frozen v1 + student/grade PRD unchanged: PASS
+UTF-8 no BOM + LF: PASS; manual acceptance: pending; API/permission: not executed; commit/push/merge: not executed

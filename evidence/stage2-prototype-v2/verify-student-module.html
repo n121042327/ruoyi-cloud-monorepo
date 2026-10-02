@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>批次 2-5（学生详情 / 学籍异动 / 调班 / 跨校转学 / 异动历史）交互验证</title>
+<style>
+  body { margin: 14px; background: #fff; color: #24292f; font: 13px/1.55 Consolas, "Microsoft YaHei", monospace; }
+  h1 { font-size: 17px; margin: 0 0 8px; }
+  ol { margin: 0 0 10px; padding-left: 22px; }
+  li.ok { color: #1a7f37; }
+  li.bad { color: #c0392b; font-weight: 700; }
+  p.sum { font-weight: 700; }
+  p.sum.bad { color: #c0392b; }
+  .frames { display: flex; flex-wrap: wrap; gap: 8px; }
+  iframe { width: 680px; height: 440px; border: 1px solid #dcdfe6; }
+</style>
+</head>
+<body>
+<h1>批次 2-5（学生详情抽屉 / 学籍异动 / 调班 / 异动登记 / 跨校转学两侧 / 异动历史）交互验证（真实事件派发）</h1>
+<ol id="results"><li>运行中…</li></ol>
+<div class="frames">
+  <iframe id="f-stu" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v2/pages/student-list.html"></iframe>
+  <iframe id="f-ct" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/student-cross-transfer.html"></iframe>
+  <iframe id="f-pt" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/promotion-transfer.html"></iframe>
+  <iframe id="f-ph" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/promotion-history.html"></iframe>
+</div>
+<script>
+(function () {
+  'use strict';
+  var RESULTS = [];
+  var F = { stu: document.getElementById('f-stu'), ct: document.getElementById('f-ct'),
+            pt: document.getElementById('f-pt'), ph: document.getElementById('f-ph') };
+
+  function rec(id, name, pass, detail) { RESULTS.push({ id: id, name: name, pass: Boolean(pass), detail: detail || '' }); }
+  function d(k) { return F[k].contentDocument; }
+  function w(k) { return F[k].contentWindow; }
+  function q(k, sel) { return d(k).querySelector(sel); }
+  function qa(k, sel) { return Array.prototype.slice.call(d(k).querySelectorAll(sel)); }
+  function text(k, sel) { var n = q(k, sel); return n ? n.textContent.replace(/\s+/g, ' ').trim() : ''; }
+  function attr(k, sel, name) { var n = q(k, sel); return n ? n.getAttribute(name) : null; }
+  function hasClass(k, sel, cls) { var n = q(k, sel); return Boolean(n && n.classList.contains(cls)); }
+  function openPanels(k) {
+    return qa(k, '.overlay.open').map(function (n) { return n.getAttribute('data-demo-panel'); });
+  }
+  function shown(k, sel) {
+    return qa(k, sel).filter(function (n) { return !n.classList.contains('role-hidden') && !n.classList.contains('state-hidden'); });
+  }
+  function click(k, sel) {
+    var n = q(k, sel);
+    if (!n) throw new Error('找不到元素 ' + sel);
+    n.click();
+    return n;
+  }
+  function setVal(k, sel, value) {
+    var n = q(k, sel);
+    n.value = value;
+    n.dispatchEvent(new (w(k).Event)('change', { bubbles: true }));
+  }
+  function delay(k) { return new Promise(function (r) { w(k).setTimeout(r, 60); }); }
+  function role(k, code, label) {
+    var btn = qa(k, '[data-demo="role-switcher"] .pbtn').filter(function (b) { return b.textContent.trim() === label; })[0];
+    if (btn) { btn.click(); return delay(k); }
+    w(k).PrototypeShell.applyRole(code);
+    return delay(k);
+  }
+  function lastToast(k) {
+    var nodes = qa(k, '.toast-host .toast');
+    var n = nodes[nodes.length - 1];
+    return n ? n.textContent.replace(/\s+/g, ' ').trim() : '';
+  }
+  function frameReady(k) {
+    return new Promise(function (resolve) {
+      if (d(k) && d(k).readyState === 'complete' && d(k).querySelector('#page-root')) { resolve(); return; }
+      F[k].addEventListener('load', function () { w(k).setTimeout(resolve, 250); });
+    });
+  }
+  function allReady() { return Promise.all(Object.keys(F).map(frameReady)); }
+  function stepVisible(k, n) { return !hasClass(k, '[data-step-content="' + n + '"]', 'state-hidden'); }
+
+  var steps = [
+    function (next) {
+      return allReady().then(function () {
+        var row = qa('stu', '#student-rows tr[data-role="row"]')[0];
+        var name = row.children[2].textContent.trim();
+        row.children[1].click();
+        return delay('stu').then(function () {
+          rec('SM-01', '学生列表点数据行打开学生详情抽屉（PAGE-STU-DETAIL），标题与学号跟随该行',
+            openPanels('stu').indexOf('PAGE-STU-DETAIL') !== -1
+            && text('stu', '#sd-name').indexOf(name) !== -1
+            && text('stu', '#sd-no') === row.children[1].textContent.trim(),
+            '标题=' + text('stu', '#sd-name') + ' / 学号=' + text('stu', '#sd-no'));
+          next();
+        });
+      });
+    },
+    function (next) {
+      var sections = ['basic', 'guardian', 'history'].filter(function (b) {
+        return Boolean(q('stu', '[data-demo-panel="PAGE-STU-DETAIL"] [data-block="' + b + '"]'));
+      });
+      rec('SM-02', '详情抽屉含基本信息 / 监护人 / 变更记录三个分区（含 PAGE-STU-HISTORY 区块）',
+        sections.length === 3 && Boolean(q('stu', '[data-page="PAGE-STU-HISTORY"]')),
+        '分区：' + sections.join(','));
+      next();
+    },
+    function (next) {
+      var items = qa('stu', '[data-page="PAGE-STU-HISTORY"] .timeline > li').length;
+      rec('SM-03', '变更记录区块是 PAGE-STU-HISTORY：时间线 3 条 + 「查看全部」指向审计日志（不可删除口径）',
+        items === 3 && attr('stu', '[data-page="PAGE-STU-HISTORY"] [data-action-id="ACT-STU-029"]', 'data-nav') === 'PAGE-AUDIT-LOG-LIST'
+        && text('stu', '[data-page="PAGE-STU-HISTORY"]').indexOf('不可删除') !== -1,
+        items + ' 条');
+      next();
+    },
+    function (next) {
+      rec('SM-04', '监护人区：编辑走 saveStudentGuardian、解绑走 unbindStudentGuardian（都需 person.student_guardian:update），并写明上限 3',
+        attr('stu', '[data-action-id="ACT-STU-024"]', 'data-api') === 'saveStudentGuardian'
+        && attr('stu', '[data-action-id="ACT-STU-034"]', 'data-api') === 'unbindStudentGuardian'
+        && text('stu', '[data-block="guardian"]').indexOf('上限 3') !== -1,
+        attr('stu', '[data-action-id="ACT-STU-024"]', 'data-api'));
+      next();
+    },
+    function (next) {
+      var idcardBtn = q('stu', '[data-block="basic"] [data-action-id="ACT-STU-023"]');
+      var phoneBtn = qa('stu', '[data-block="basic"] [data-action-id="ACT-STU-023"]')[1];
+      rec('SM-05', '敏感字段默认掩码；证件号需 read_sensitive（仅教务主任/超管），联系电话需 read_contact（含班主任）',
+        Boolean(idcardBtn) && idcardBtn.getAttribute('data-permission') === 'person.student:read_sensitive'
+        && idcardBtn.getAttribute('data-role-visible') === 'academic_director,super_admin'
+        && Boolean(phoneBtn) && phoneBtn.getAttribute('data-permission') === 'person.student_contact:read_contact',
+        (idcardBtn ? idcardBtn.getAttribute('data-permission') : '—') + ' / ' + (phoneBtn ? phoneBtn.getAttribute('data-permission') : '—'));
+      next();
+    },
+    function (next) {
+      var row = qa('stu', '#student-rows tr[data-role="row"]')[1];
+      var name = row.children[2].textContent.trim();
+      var no = row.children[1].textContent.trim();
+      row.children[1].click();
+      return delay('stu').then(function () {
+        rec('SM-06', '切到第二行：同一抽屉复用，标题 / 学号 / 班级跟随该行',
+          text('stu', '#sd-name') === name && text('stu', '#sd-no') === no,
+          text('stu', '#sd-name') + ' / ' + text('stu', '#sd-no'));
+        next();
+      });
+    },
+    function (next) {
+      click('stu', '#student-rows tr[data-role="row"] [data-action-id="ACT-STU-007"]');
+      return delay('stu').then(function () {
+        var hasDisabled = qa('stu', '#st-target option[disabled]').length >= 1;
+        rec('SM-07', '行内「调班」打开 PAGE-STU-TRANSFER 并带入学生与当前班级；已停用班级在下拉里不可选',
+          openPanels('stu').indexOf('PAGE-STU-TRANSFER') !== -1 && hasDisabled
+          && text('stu', '#st-name').length > 0,
+          '停用选项 ' + qa('stu', '#st-target option[disabled]').length + ' 个');
+        next();
+      });
+    },
+    function (next) {
+      var field = q('stu', '#st-target').closest('.field');
+      click('stu', '[data-demo-panel="PAGE-STU-TRANSFER"] [data-action-id="ACT-STU-032"]');
+      return delay('stu').then(function () {
+        rec('SM-08', '未选目标班级点「确认调班」：字段级校验拦截（走 transferStudentClass，不改学籍状态）',
+          field.classList.contains('has-error')
+          && attr('stu', '[data-action-id="ACT-STU-032"]', 'data-api') === 'transferStudentClass'
+          && attr('stu', '[data-action-id="ACT-STU-032"]', 'data-permission') === 'org.class:update',
+          '字段错误=' + field.classList.contains('has-error'));
+        w('stu').PrototypeShell.closePanel('all');
+        next();
+      });
+    },
+    function (next) {
+      click('stu', '#student-rows tr[data-role="row"] [data-action-id="ACT-STU-006"]');
+      return delay('stu').then(function () {
+        rec('SM-09', '行内「异动」打开 PAGE-STU-STATUS，并带入学生与当前状态',
+          openPanels('stu').indexOf('PAGE-STU-STATUS') !== -1
+          && text('stu', '#ss-name').length > 0 && text('stu', '#ss-current').indexOf('当前状态') !== -1,
+          text('stu', '#ss-current'));
+        next();
+      });
+    },
+    function (next) {
+      var disabled = qa('stu', '#ss-type option[disabled]').length;
+      setVal('stu', '#ss-type', 'withdraw');
+      return delay('stu').then(function () {
+        rec('SM-10', '异动弹窗：类型下拉含「开除」的不可用项（义务教育阶段禁止）；选「退学」→ 提示变更为需校级管理员审批',
+          disabled >= 1 && text('stu', '#ss-approve-text').indexOf('退学') !== -1
+          && text('stu', '#ss-approve-text').indexOf('校级管理员审批') !== -1,
+          text('stu', '#ss-approve-text'));
+        next();
+      });
+    },
+    function (next) {
+      setVal('stu', '#ss-type', '');
+      click('stu', '[data-demo-panel="PAGE-STU-STATUS"] [data-action-id="ACT-STU-030"]');
+      return delay('stu').then(function () {
+        var field = q('stu', '#ss-type').closest('.field');
+        rec('SM-11', '未选异动类型点「提交异动」：字段级校验拦截；提交走 changeEnrollmentStatus + enrollment.status:update',
+          field.classList.contains('has-error')
+          && attr('stu', '[data-action-id="ACT-STU-030"]', 'data-api') === 'changeEnrollmentStatus'
+          && attr('stu', '[data-action-id="ACT-STU-030"]', 'data-permission') === 'enrollment.status:update',
+          '字段错误=' + field.classList.contains('has-error'));
+        next();
+      });
+    },
+    function (next) {
+      click('stu', '[data-demo-panel="PAGE-STU-DETAIL"] [data-action-id="ACT-STU-028"]');
+      return delay('stu').then(function () {
+        rec('SM-12', '详情「异动登记（升班口径）」打开 PAGE-PRM-CHANGE，与 PAGE-STU-STATUS 同字段、同接口 changeEnrollmentStatus',
+          openPanels('stu').indexOf('PAGE-PRM-CHANGE') !== -1
+          && attr('stu', '[data-action-id="ACT-PRM-044"]', 'data-api') === 'changeEnrollmentStatus'
+          && text('stu', '[data-demo-panel="PAGE-PRM-CHANGE"]').indexOf('同一写入口') !== -1,
+          '已打开：' + openPanels('stu').join(','));
+        next();
+      });
+    },
+    function (next) {
+      var tables = ['PAGE-STU-STATUS', 'PAGE-STU-TRANSFER', 'PAGE-PRM-CHANGE'].filter(function (id) {
+        return qa('stu', '[data-demo-panel="' + id + '"] table').length > 0;
+      });
+      rec('SM-13', '三个弹窗内都不放表格（用 form-grid 渲染）', tables.length === 0,
+        tables.length ? '含表格：' + tables.join(',') : '三窗无表格');
+      w('stu').PrototypeShell.closePanel('all');
+      next();
+    },
+    function (next) {
+      var codes = ['loading', 'empty', 'error', 'forbidden', 'submitting'];
+      var missing = codes.filter(function (c) { return !q('stu', '[data-demo-state-panel="' + c + '"]'); });
+      rec('SM-14', '学生列表原有的五类状态片段未被破坏（回归）', missing.length === 0,
+        missing.length ? '缺 ' + missing.join(',') : '全部存在');
+      next();
+    },
+    function (next) {
+      var body = text('ct', '[data-block="step1"]');
+      rec('CT-01', '转出校向导默认第 1 步：只列可发起转学的学生，并写明休学 / 转入未报到不可发起（REQ-PRM-057 / BR-STU-012）',
+        stepVisible('ct', 1) && qa('ct', '#ct-rows tr').length === 4
+        && body.indexOf('休学') !== -1 && body.indexOf('转入未报到') !== -1,
+        qa('ct', '#ct-rows tr').length + ' 行');
+      next();
+    },
+    function (next) {
+      click('ct', '#btn-next');
+      var body = text('ct', '[data-block="step2"]');
+      rec('CT-02', '第 2 步写明转学单只暴露必要字段：学号 / 姓名 / 性别 / 原学校 / 原年级，不含证件号与监护人（REQ-PRM-055）',
+        stepVisible('ct', 2) && body.indexOf('不暴露证件号与监护人信息') !== -1,
+        body.slice(0, 60));
+      next();
+    },
+    function (next) {
+      click('ct', '#btn-next');
+      var body = text('ct', '[data-block="step3"]');
+      rec('CT-03', '第 3 步：学号保持不变 + 状态机 + 未完成转学单不允许再次发起；提交走 addTransfer',
+        stepVisible('ct', 3) && body.indexOf('学号') !== -1 && body.indexOf('REQ-PRM-057') !== -1
+        && attr('ct', '#btn-submit', 'data-api') === 'addTransfer',
+        attr('ct', '#btn-submit', 'data-api'));
+      next();
+    },
+    function (next) {
+      click('ct', '#btn-submit');
+      return delay('ct').then(function () {
+        click('ct', '#btn-next');
+        return delay('ct').then(function () {
+          rec('CT-04', '第 4 步给出转学单号与状态；「撤销申请」走 cancelTransfer（未接收时不产生转出记录）',
+            stepVisible('ct', 4) && text('ct', '[data-block="step4"]').indexOf('TRF-20261008-0001') !== -1
+            && attr('ct', '#btn-cancel-flow', 'data-api') === 'cancelTransfer',
+            '转学单号在步骤 4 = ' + (text('ct', '[data-block="step4"]').indexOf('TRF-20261008-0001') !== -1));
+          next();
+        });
+      });
+    },
+    function (next) {
+      var body = text('pt', '[data-block="step1"]');
+      rec('PT-01', '转入校向导第 1 步：待接收清单含转出校信息，并写明接收前不计入在读（REQ-PRM-053）',
+        stepVisible('pt', 1) && qa('pt', '#ct-rows tr').length === 2 && body.indexOf('转出校') !== -1,
+        qa('pt', '#ct-rows tr').length + ' 行');
+      next();
+    },
+    function (next) {
+      click('pt', '#btn-next');
+      click('pt', '#btn-next');
+      return delay('pt').then(function () {
+        rec('PT-02', '「接收」走 acceptTransfer + enrollment.transfer:approve，并写明接收动作本身即审批（已确认 3）',
+          stepVisible('pt', 3) && attr('pt', '#btn-submit', 'data-api') === 'acceptTransfer'
+          && attr('pt', '#btn-submit', 'data-permission') === 'enrollment.transfer:approve',
+          attr('pt', '#btn-submit', 'data-api') + ' / ' + attr('pt', '#btn-submit', 'data-permission'));
+        next();
+      });
+    },
+    function (next) {
+      var body = text('pt', '[data-block="step4"]');
+      var checkIn = qa('pt', '[data-step-content="4"] [data-api="checkInTransfer"]').length;
+      rec('PT-03', '报到动作在结果步骤可见并走 checkInTransfer（报到后转在读、进入在读名单）',
+        checkIn >= 1, '报到入口 ' + checkIn + ' 个');
+      next();
+    },
+    function (next) {
+      rec('PT-04', '转入校可撤销接收（cancelTransfer，REQ-PRM-054）；空态写明「没有待接收的转学单」',
+        attr('pt', '#btn-cancel-flow', 'data-api') === 'cancelTransfer'
+        && text('pt', '[data-demo-state-panel="empty"]').indexOf('没有待接收的转学单') !== -1,
+        attr('pt', '#btn-cancel-flow', 'data-api'));
+      next();
+    },
+    function (next) {
+      var body = text('ph', '[data-block="toolbar"]');
+      rec('PH-01', '异动历史默认 4 行样例 + 共 34 条，并写明追加式不可删除（BR-PROMO-012 / REQ-PRM-048）',
+        qa('ph', '#ph-rows tr').length === 4 && text('ph', '#ph-total').indexOf('34') !== -1
+        && body.indexOf('不更新不删除') !== -1,
+        text('ph', '#ph-total'));
+      next();
+    },
+    function (next) {
+      setVal('ph', '#ph-type', 'suspend');
+      var n1 = shown('ph', '#ph-rows tr').length;
+      click('ph', '[data-action-id="ACT-COM-002"]');
+      var n2 = shown('ph', '#ph-rows tr').length;
+      rec('PH-02', '按异动类型筛选（休学 → 1 行），重置后回到 4 行',
+        n1 === 1 && n2 === 4, n1 + ' 行 → 重置后 ' + n2 + ' 行');
+      next();
+    },
+    function (next) {
+      var btn = q('ph', '#ph-rows tr [data-action-id="ACT-PRM-047"]');
+      rec('PH-03', '行内「查看学生」带 ACT-PRM-047 + person.student:read + 跳 PAGE-STU-LIST',
+        Boolean(btn) && btn.getAttribute('data-nav') === 'PAGE-STU-LIST'
+        && btn.getAttribute('data-permission') === 'person.student:read',
+        btn ? btn.getAttribute('data-nav') : '（缺失）');
+      next();
+    },
+    function (next) {
+      var entry = q('ph', '[data-action-id="ACT-PRM-046"]');
+      rec('PH-04', '「异动登记」入口唯一：跳到学生列表并由 data-panel-hash 打开 PAGE-PRM-CHANGE',
+        Boolean(entry) && entry.getAttribute('data-nav') === 'PAGE-STU-LIST'
+        && entry.getAttribute('data-panel-hash') === 'PAGE-PRM-CHANGE',
+        entry ? (entry.getAttribute('data-nav') + ' #' + entry.getAttribute('data-panel-hash')) : '（缺失）');
+      next();
+    },
+    function (next) {
+      return role('ph', 'platform_ops', '平台运营').then(function () {
+        var hint = text('ph', '[data-role="scope-hint"]');
+        rec('PH-05', '平台运营：只读范围提示 + 无「异动登记」入口（role-hidden），导出按钮保留（需逐次授权）',
+          hint.indexOf('DS-01') !== -1 && hasClass('ph', '[data-action-id="ACT-PRM-046"]', 'role-hidden')
+          && !hasClass('ph', '[data-action-id="ACT-PRM-048"]', 'role-hidden'),
+          hint);
+        next();
+      });
+    },
+    function (next) {
+      return role('ph', 'academic_director', '教务主任').then(function () {
+        var codes = ['loading', 'empty', 'error', 'forbidden', 'submitting'];
+        var missing = codes.filter(function (c) { return !q('ph', '[data-demo-state-panel="' + c + '"]'); });
+        rec('PH-06', '异动历史五类状态片段齐全；切回教务主任后「异动登记」入口恢复可见',
+          missing.length === 0 && !hasClass('ph', '[data-action-id="ACT-PRM-046"]', 'role-hidden'),
+          missing.length ? '缺 ' + missing.join(',') : '全部存在');
+        next();
+      });
+    }
+  ];
+
+  var EXPECTED = 28;
+  var rendered = false;
+
+  function render() {
+    rendered = true;
+    var ol = document.getElementById('results');
+    ol.innerHTML = '';
+    var pass = 0;
+    RESULTS.forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = r.pass ? 'ok' : 'bad';
+      li.textContent = (r.pass ? '通过  ' : '不通过 ') + r.id + '  ' + r.name + (r.detail ? '  —— ' + r.detail : '');
+      ol.appendChild(li);
+      if (r.pass) pass += 1;
+    });
+    var p = document.createElement('p');
+    p.className = pass === EXPECTED ? 'sum' : 'sum bad';
+    p.textContent = '合计 ' + RESULTS.length + ' / ' + EXPECTED + ' 条，通过 ' + pass + ' 条，不通过 '
+      + (RESULTS.length - pass) + ' 条' + (pass === EXPECTED && RESULTS.length === EXPECTED ? ' —— 全部通过' : '');
+    ol.appendChild(p);
+  }
+
+  function run(index) {
+    if (index >= steps.length) { render(); return; }
+    var called = false;
+    function next() { if (called) return; called = true; run(index + 1); }
+    var out;
+    try {
+      out = steps[index](next);
+    } catch (err) {
+      rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步抛异常（后续步骤已跳过）',
+        false, String((err && err.message) || err));
+      run(index + 1);
+      return;
+    }
+    if (out && typeof out.then === 'function') {
+      out.catch(function (err) {
+        rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步的异步断言失败',
+          false, String((err && err.message) || err));
+        next();
+      });
+    }
+  }
+
+  var started = false;
+  window.addEventListener('load', function () {
+    if (started) return;
+    started = true;
+    window.setTimeout(function () { run(0); }, 700);
+    window.setTimeout(function () {
+      if (!rendered) {
+        rec('WATCHDOG', '运行超时：断言链未在 40 秒内跑完（上面是已完成的断言）', false, '请检查是否有未返回的异步步骤');
+        render();
+      }
+    }, 40000);
+  });
+})();
+</script>
+</body>
+</html>

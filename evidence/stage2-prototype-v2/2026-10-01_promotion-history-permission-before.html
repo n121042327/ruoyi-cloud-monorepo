@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>升班与异动查询回归</title>
+</head><body><p id="summary">合计 9 条，通过 7 条，失败 2 条</p><ol id="results"><li>PL-01 通过 查询区有教育信息分组</li><li>PL-02 通过 查询操作独立</li><li>PH-05 通过 仅展示当前样例，历史学期暂禁</li><li>PH-01 通过 学期与年级在异动类型之前</li><li>PH-02 通过 生效日期精确筛选单条休学记录</li><li>PH-03 通过 无匹配日期为空</li><li>PH-04 通过 重置日期恢复四条样例</li><li>PL-11 失败 无读取权限角色不能通过正常态参数显示内容</li><li>PL-12 失败 任课教师的无权限形态不被链接状态覆盖</li></ol><iframe id="frame" style="width:1440px;height:900px" src="../../prototypes/functional/v2/pages/promotion-history.html#role=platform_ops"></iframe>
+<script>
+var params=new URLSearchParams(location.search),isHistory=params.get('page')==='history',frame=document.querySelector('#frame');
+frame.onload=function(){
+ var d=frame.contentDocument,w=frame.contentWindow,checks=[];
+ if(!d.querySelector('[data-block="filter"]'))return;
+ function q(s){return d.querySelector(s);}
+ function set(s,v){q(s).value=v;q(s).dispatchEvent(new w.Event('change',{bubbles:true}));}
+ function test(id,ok,note){checks.push(id+' '+(ok?'通过':'失败')+' '+note);}
+ function rows(){return Array.from(d.querySelectorAll(isHistory?'#ph-rows tr':'#prm-rows tr')).filter(r=>!r.classList.contains('state-hidden')&&!r.classList.contains('role-hidden'));}
+ try{
+ w.PrototypeShell.applyRole('platform_ops');
+ var filter=q('[data-block="filter"]'),op=filter.querySelector('[aria-label="查询操作"]');
+ test('PL-01',filter.querySelector('h3')&&filter.querySelector('h3').textContent==='教育信息','查询区有教育信息分组');
+ test('PL-02',op&&op.querySelector('[data-action-id="ACT-COM-001"]')&&!op.querySelector('input,select'),'查询操作独立');
+ if(isHistory){
+ test('PH-05',q('#ph-term').disabled&&q('#ph-term').options.length===1&&q('#ph-term').value==='202601','仅展示当前样例，历史学期暂禁');
+ test('PH-01',Array.from(filter.querySelectorAll('select')).map(n=>n.id).join(',')==='ph-term,ph-grade,ph-type','学期与年级在异动类型之前');
+ set('#ph-date','2026-09-10');
+ test('PH-02',rows().length===1&&rows()[0].dataset.student==='2026000003','生效日期精确筛选单条休学记录');
+ set('#ph-date','2026-09-02');test('PH-03',rows().length===0,'无匹配日期为空');
+ q('[data-block="filter"] [data-action-id="ACT-COM-002"]').click();test('PH-04',q('#ph-date').value===''&&rows().length===4,'重置日期恢复四条样例');
+ }else{
+ set('#f-school','202');test('PL-03',rows().length>0&&rows().every(r=>r.dataset.school==='202'),'平台运营切学校');
+ w.PrototypeShell.applyRole('academic_director');
+ test('PL-04',q('#f-school').value==='201'&&q('#f-school').disabled,'切学校角色恢复本校并锁定');
+ test('PL-05',rows().length>0&&rows().every(r=>r.dataset.school==='201'),'恢复本校列表');
+ w.PrototypeShell.applyParams({role:'academic_director',school:'202'});
+ test('PL-06',q('#f-school').value==='201'&&rows().length>0,'学校角色深链接不锁在他校空查询');
+ w.PrototypeShell.applyRole('super_admin');w.PrototypeShell.openPanel('DIALOG-PRM-CANCEL');
+ set('#f-school','202');test('PL-07',!q('[data-demo-panel="DIALOG-PRM-CANCEL"]').classList.contains('open'),'实际切校关闭旧任务确认');
+ w.PrototypeShell.applyParams({role:'super_admin',school:'201',panel:'DIALOG-PRM-CANCEL'});
+ test('PL-08',q('[data-demo-panel="DIALOG-PRM-CANCEL"]').classList.contains('open'),'链接先切校再开目标浮层');
+ w.PrototypeShell.applyRole('academic_director');test('PL-09',q('[data-demo-panel="DIALOG-PRM-CANCEL"]').classList.contains('open'),'同校切角色保留浮层');
+ test('PL-10',Array.from(filter.querySelectorAll('select')).map(n=>n.id).join(',')==='f-school,f-src,f-tgt,f-status,f-creator','学校、源学期、目标学期顺序');
+ }
+ w.PrototypeShell.applyParams({role:'tenant_admin',state:'normal'});
+ test('PL-11',w.PrototypeShell.currentState()==='forbidden','无读取权限角色不能通过正常态参数显示内容');
+ w.PrototypeShell.applyParams({role:'subject_teacher',state:'normal'});
+ test('PL-12',w.PrototypeShell.currentState()==='forbidden','任课教师的无权限形态不被链接状态覆盖');
+ }catch(e){checks.push('PL-ERROR 失败 '+e.stack);}
+ document.querySelector('#results').innerHTML=checks.map(s=>'<li>'+s+'</li>').join('');
+ document.querySelector('#summary').textContent='合计 '+checks.length+' 条，通过 '+checks.filter(s=>s.includes(' 通过 ')).length+' 条，失败 '+checks.filter(s=>s.includes(' 失败 ')).length+' 条';
+};
+frame.src='../../prototypes/'+(params.get('layer')==='hifi'?'high-fidelity':'functional')+'/'+(params.get('version')||'v2')+'/pages/promotion-'+(isHistory?'history':'list')+'.html#role=platform_ops';
+</script>
+</body></html>

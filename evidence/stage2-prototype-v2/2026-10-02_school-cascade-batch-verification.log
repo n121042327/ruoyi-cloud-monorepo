@@ -1,0 +1,59 @@
+CR-034 学校变化后的下拉收窄（GAP-047）与撤销离职口径（GAP-078）验证日志
+执行日期：2026-10-02
+工作目录：D:\work\person_work\ruoyi-cloud-monorepo
+
+命令模板（Chrome headless）：
+  chrome --headless=new --disable-gpu --allow-file-access-from-files
+         --user-data-dir=<临时目录> --virtual-time-budget=30000 --dump-dom
+         file:///D:/work/person_work/ruoyi-cloud-monorepo/evidence/stage2-prototype-v2/<验证器>.html?layer=<functional|hifi>&version=<v1|v2>
+
+一、本批新增验证
+
+  verify-school-cascade.html（8 项 × 2 层）
+    v1 functional 基线（修改前）：合计 8 条，通过 3 条，失败 5 条
+      证据 2026-10-02_school-cascade-v1-functional.html
+    v2 functional：合计 8 条，通过 8 条，失败 0 条
+    v2 hifi：合计 8 条，通过 8 条，失败 0 条
+      证据 2026-10-02_school-cascade-v2-functional.html / -v2-hifi.html
+    覆盖：年级页切到学校 202 后 入学年份只剩 2026、年级主任只剩「未指定」、学段只剩初中与全部、
+          切回 201 后三项恢复、失效学段 chip 隐藏且取消选中；教师页切到 202 后 任教年级 / 任教班级
+          只剩「全部」、切回 201 后各 3 项恢复、任教学科不受学校影响。
+
+  verify-teacher-inactive-rows-cr034.html（CR-030 版副本，TI-07 改按 REQ-TCH-071）
+    v2 functional：合计 8 条，通过 8 条，失败 0 条
+    v2 hifi：合计 8 条，通过 8 条，失败 0 条
+      证据 2026-10-02_teacher-inactive-rows-cr034-functional.html / -hifi.html
+
+二、既有回归（本批改动后复跑）
+
+  verify-teacher-grade-context.html：functional 13 / 13，hifi 13 / 13
+  verify-grade-overlay-layout.html：functional 12 / 12，hifi 12 / 12
+  verify-student-cascade.html：functional 20 / 20，hifi 20 / 20
+  verify-table-form-layout.html：functional 8 / 8，hifi 8 / 8
+  verify-grade-layout-list.html：38 / 38
+  证据：2026-10-02_<验证器>-cr034-*.html
+
+  本批通过合计：8 × 2 + 8 × 2 + 13 × 2 + 12 × 2 + 20 × 2 + 8 × 2 + 38 = 176 项。
+
+三、文档与冻结检查
+
+  python tools/check_docs.py      -> 通过：未发现问题（退出码 0）
+  python tools/check_mermaid.py   -> 通过：未发现问题
+  git diff --check                -> 无输出（退出码 0）
+  git status --short -- prototypes/functional/v1/pages prototypes/high-fidelity/v1
+                                  -> 空输出，冻结 v1 页面未改动
+  prototypes/{functional,high-fidelity}/v2/pages/{grade-list,teacher-list}.html
+                                  -> UTF-8 无 BOM、LF；两份文件除 head 外逐行一致
+
+四、截图
+
+  evidence/stage2-prototype-v2/2026-10-02_grade-filter-school-202-cr034_1440x560.png
+  evidence/stage2-prototype-v2/2026-10-02_teacher-filter-school-202-cr034_1440x560.png
+
+五、缺项口径
+
+  GAP-047 与 GAP-078 按「按推荐走」关闭（见 gap-register 的 answer / resolution）。
+  GAP-063 / 064 / 066 / 067 记入 answer 后保持 open：
+    063、064 的样板已交付，下一步是人工验收后逐模块 / 逐页扩展；
+    066 需要新版本补学生列表契约并收敛批量调班 operationId，单独成批；
+    067 需要用户提供两校学年学期样例，本批不编造。

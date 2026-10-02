@@ -1,0 +1,23 @@
+verify-table-form-layout.html?page=class&layer=functional exit=0 ['合计 8 条，通过 8 条，失败 0 条']
+verify-table-form-layout.html?page=class&layer=hifi exit=0 ['合计 8 条，通过 8 条，失败 0 条']
+verify-table-form-layout.html?page=teacher&layer=functional exit=0 ['合计 7 条，通过 7 条，失败 0 条']
+verify-table-form-layout.html?page=teacher&layer=hifi exit=0 ['合计 7 条，通过 7 条，失败 0 条']
+verify-class-layout-list.html exit=0 ['合计 39 / 39 条，通过 39 条，不通过 0 条 —— 全部通过']
+verify-class-layout-dialogs.html exit=0 ['合计 36 / 36 条，通过 36 条，不通过 0 条 —— 全部通过']
+verify-teacher-grade-carrier.html exit=0 ['合计 14 条，通过 14 条，不通过 0 条 —— 全部通过']
+verify-teacher-grade-detail.html exit=0 ['合计 6 / 6 条，通过 6 条，不通过 0 条 —— 全部通过']
+verify-class-context.html?layer=functional exit=0 ['合计 10 条，通过 10 条，失败 0 条']
+verify-class-context.html?layer=hifi exit=0 ['合计 10 条，通过 10 条，失败 0 条']
+verify-teacher-grade-context.html?page=teacher&layer=functional exit=0 ['合计 13 条，通过 13 条，失败 0 条']
+verify-teacher-grade-context.html?page=teacher&layer=hifi exit=0 ['合计 13 条，通过 13 条，失败 0 条']
+['python', 'tools/check_docs.py'] exit=0
+=== 文档一致性核查 ===
+通过：未发现问题
+
+['git', 'diff', '--check'] exit=0
+
+['git', 'diff', 'HEAD', '--', 'prototypes/functional/v1', 'prototypes/high-fidelity/v1', 'docs/10-prd/modules/class/PRD.md'] exit=0
+
+frozen baselines unchanged: PASS
+generator repeated execution leaves current four pages unchanged: PASS
+UTF-8 no BOM LF: PASS; independent field/order/code review: no blocking findings; human acceptance: pending; backend permission/API: not executed; commit/push/merge: not executed

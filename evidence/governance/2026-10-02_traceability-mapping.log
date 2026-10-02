@@ -1,0 +1,45 @@
+CR-039 追踪矩阵与逐元素映射全量扩展验证日志
+执行日期：2026-10-02
+工作目录：D:\work\person_work\ruoyi-cloud-monorepo
+
+一、需求追踪矩阵（GAP-063）
+
+  生成器：python tools/gen_traceability.py
+  输出：docs/00-governance/traceability.yaml（626 条需求 / 11 个模块 / 17,xxx 行 / 约 639 KB）
+    已有接口链（人工判断保留）：8 条（REQ-STU-001～008）
+    挂上验收用例：582 条
+    module_api_index：11 个模块 / 178 个 operationId
+       audit 10 / class 23 / grade 12 / import-export 14 / promotion 21 / school 16 /
+       stream 17 / student 21 / subject 12 / teacher 20 / term 12
+  幂等：连续两次运行文件哈希不变
+  样例（保留人工链）：REQ-STU-001 current=prototypes/functional/v2/pages/student-list.html
+                                  frozen=prototypes/functional/v1/pages/student-list.html
+                                  api=[listStudent]
+  样例（新骨架）：REQ-GRD-001 api=[] tables=[] status=未开始，notes 写明「待人工核对（GAP-081）」
+
+二、逐元素组件映射（GAP-064）
+
+  生成器：python tools/build_component_mapping_all.py
+  输出：prototypes/high-fidelity/v2/component-mapping-all-pages.yaml（约 366 KB）
+    页数：45 / 元素：1361（id 全部唯一）
+    by_kind：button 655 / input 219 / select 136 / textarea 21 / table 60 /
+             pagination 21 / declared（data-component 的其他元素）197 / panel 52
+    选择器：607 条在页内唯一，其余为行内重复模式，如实标注 selector_unique=false
+    每页附 manifest_counts（page-manifest.yaml 原口径），两个口径并列便于逐页比对
+  幂等：连续两次运行文件哈希不变
+
+三、检查
+
+  python tools/check_docs.py         -> 通过：未发现问题（退出码 0）
+  python tools/check_gap_register.py -> 通过：未发现重复键
+  python tools/check_api_contract.py -> 通过：接口契约一致（178 个 operationId / 112 处 data-api 引用零孤儿）
+  python tools/check_mermaid.py      -> 通过：未发现问题
+  git diff --check                   -> 无输出（退出码 0）
+  git status --short -- prototypes/functional/v1 prototypes/high-fidelity/v1
+                                     -> 空输出，冻结 v1 与 content-samples.json 未改动
+
+四、缺项口径
+
+  GAP-063、GAP-064 关闭（用户已批注样板「已验收」，本批完成全量扩展）。
+  新增 GAP-081：需求到接口与表的逐条对应关系待人工核对（626 条中已核对 8 条），
+  推荐按模块推进，先做学生与班级；生产代码与测试仍未产出，不在本批范围。

@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<title>PAGE-CLS-CREATE / BATCH / COPY / LEADER 交互验证</title>
+<style>
+  body { margin: 14px; background: #fff; color: #24292f;
+         font: 13px/1.55 Consolas, "Microsoft YaHei", monospace; }
+  h1 { font-size: 17px; margin: 0 0 8px; }
+  ol { margin: 0 0 10px; padding-left: 22px; }
+  li.ok { color: #1a7f37; }
+  li.bad { color: #c0392b; font-weight: 700; }
+  p.sum { font-weight: 700; }
+  iframe { width: 1440px; height: 780px; border: 1px solid #dcdfe6; }
+  iframe.small { height: 500px; }
+</style>
+</head>
+<body>
+<h1>班级模块四个弹窗 交互验证（真实事件派发，非人工目视）</h1>
+<ol id="results"><li class="ok">通过  CDL-01  工具条「新建」打开 PAGE-CLS-CREATE 弹窗片段（data-nav + data-overlay=dialog）  —— PAGE-CLS-CREATE / dialog</li><li class="ok">通过  CDL-02  工具条「批量生成」打开 PAGE-CLS-BATCH 弹窗片段  —— PAGE-CLS-BATCH / dialog</li><li class="ok">通过  CDL-03  四个弹窗均为 el-dialog 载体，且不含 drawer-* 钩子（D-059 / CR-009）  —— 4/4 一致</li><li class="ok">通过  CDL-04  四个弹窗内均不含表格：清单 / 预览 / 任职历史一律用列表渲染（layout-spec 规则）  —— 表格式内容 0 处</li><li class="ok">通过  CDL-05  教务主任行内渲染「编辑」「指定班主任」，各自指向对应弹窗  —— ACT-CLS-004,ACT-CLS-005,ACT-CLS-006,ACT-CLS-016 / PAGE-CLS-CREATE / PAGE-CLS-LEADER</li><li class="ok">通过  CDL-06  教学班行不渲染「指定班主任」，点「编辑」给批次 2-7 提示且不打开行政班表单  —— actions=ACT-CLS-004,ACT-CLS-005,ACT-CLS-016 / toast=教学班的维护入口在批次 2-7 的教学班管理页（PAGE-CLS-TEACHIN</li><li class="ok">通过  CDL-07  校领导是只读角色：行内只保留「详情」，编辑与指定班主任都不渲染  —— actions=ACT-CLS-004</li><li class="ok">通过  CDL-08  新建态默认值：学年学期=当前、年级=高一、类型=行政班、名称按规则生成「高一 (4) 班」、容量 45  —— 202601 / 202601 / 高一 (4) 班 / 容量 45</li><li class="ok">通过  CDL-09  「教学班」选项列出但置灰，并写明创建入口是批次 2-7 的 addTeachingClass（GAP-048）  —— disabled=true / hint 命中 addTeachingClass=true</li><li class="ok">通过  CDL-10  必填校验：清空班级名称后保存 → 字段级错误 + 顶部汇总 + 弹窗不关闭  —— has-error=true / 文案=请填写班级名称</li><li class="ok">通过  CDL-11  唯一性冲突：同校同学年学期同学段重名（高一 (2) 班）被前端先拦一次，1.3 秒后仍未出现「已保存」  —— 冲突块可见=true / 已保存块隐藏=true</li><li class="ok">通过  CDL-12  保存成功后弹窗不关闭，给出「继续新增 / 进入班级详情 / 立即编班」三个后续动作（REQ-CLS-018）  —— 动作数=3 / 弹窗仍开=true</li><li class="ok">通过  CDL-13  「继续新增」清空名称与班主任，保留学年学期 / 年级 / 类型 / 容量，并收起「已保存」块  —— 高一 (4) 班 / 班主任=（空） / 容量=45</li><li class="ok">通过  CDL-14  编辑态：学年学期 / 年级不可修改（REQ-CLS-022）、有花名册后类型只读（REQ-CLS-023）、班主任只读并指向行内入口（REQ-CLS-024），字段带入被点行  —— 名称=高一 (1) 班 / 班主任=邓丽娟 / 教室=本部教学楼 A203</li><li class="ok">通过  CDL-15  编辑态保持原名不算冲突；保存成功后按编辑口径关闭弹窗（三个后续动作只在新建态出现）  —— 弹窗已关闭=true</li><li class="ok">通过  CDL-16  批量生成默认预览：高一 序号 1–6 → 6 行，其中 3 行「已存在，跳过」（REQ-CLS-020 / BR-CLASS-003）  —— 预览=6 行 / 冲突=3 行 / 将处理 6 个</li><li class="ok">通过  CDL-17  冲突提示块写明跳过数量与「不覆盖、不改名」口径  —— 已存在，将跳过 本次将跳过 3 个已存在的班级名称；不覆盖、不改名，已存在的班级保持原样（BR-CLASS-003）。</li><li class="ok">通过  CDL-18  序号区间倒置（起 5 止 3）被拦：字段级错误 + 汇总 + 弹窗不关闭  —— 文案=结束序号必须不小于起始序号</li><li class="ok">通过  CDL-19  区间 1–100 时预览只展开前 30 行并给出说明行（原型渲染保护，不编造业务上限）  —— 渲染 31 个节点 / 末行=区间共 100 个，原型只展开前 30 个；提交时按真实区间处理。</li><li class="ok">通过  CDL-20  序号 7–8 无冲突：两行「将生成」，冲突块隐藏  —— 预览=2 行 / 冲突块隐藏=true</li><li class="ok">通过  CDL-21  复制弹窗列出源班级 9 项配置，其中花名册 / 班主任 / 任职历史明确标为「不复制」（REQ-CLS-061）  —— 9 行 / 不复制=花名册,班主任,班主任任职历史</li><li class="ok">通过  CDL-22  复制默认值：目标学年学期=当前、目标年级=源班级年级、新名称按规则生成  —— 202601 / 202601 / 高一 (4) 班</li><li class="ok">通过  CDL-23  复制名称与已有班级重名时被拦：冲突块 + 字段级错误 + 弹窗不关闭  —— 冲突块可见=true</li><li class="ok">通过  CDL-24  教学班的复制入口给提示（只支持行政班）且不打开弹窗  —— 教学班的成员来自选科结果，复制班级只支持行政班；教学班的维护入口在批次 2-7 的教学班管理</li><li class="ok">通过  CDL-25  确认复制复用 addClass（PRD 第 8 节无 copyClass，见 GAP-049），提示写明不复制花名册与班主任  —— addClass / org.class:create</li><li class="ok">通过  CDL-26  有在任班主任的行：标题「变更班主任」，当前班主任 1 行、任职历史 1 行 + 说明  —— 标题=变更班主任 / 任职历史节点=2</li><li class="ok">通过  CDL-27  未指定班主任的班级：标题「指定班主任」，当前班主任与任职历史都给空态文案  —— 当前=该班级当前没有在任班主任：未指定会让本班的数据范围（DS</li><li class="ok">通过  CDL-28  新任班主任下拉只允许本校在职教师：非本校（苏睿）、离职（高洪波）、调离（苗雨欣）列出但不可选  —— 不可选=苏睿,高洪波,苗雨欣 / 8 名本校在职可选=true</li><li class="ok">通过  CDL-29  切到历史学年学期后保存被拦：只读提示 + 弹窗不关闭（REQ-CLS-050）  —— 历史学年学期只读，不能新增或变更班主任；请切换到当前学年学期（REQ-CLS-0</li><li class="ok">通过  CDL-30  未选新任班主任时保存触发必填校验：字段级错误 + 汇总 + 弹窗不关闭  —— 文案=请选择新任班主任</li><li class="ok">通过  CDL-31  班主任保存走 PRD 第 8 节登记的 assignHeadTeacher（POST /edu/class/{id}/head-teacher），权限点 org.class:update  —— assignHeadTeacher / org.class:update</li><li class="ok">通过  CDL-32  保存前检查写明四条：学期只读 / 本校在职 / 一名在任（REQ-CLS-049）/ 缓存立即失效（REQ-CLS-025 / 051）  ——  保存前检查 ① 学年学期已选且不是历史学期；② 新班主任在本校在职；③ 同一班级同一时间只允许一名在任班主任 （REQ-CLS-049）；④ </li><li class="ok">通过  CDL-33  只读角色（校领导）打开新建弹窗：8 个字段全部禁用并显示只读说明，保存按钮不渲染  —— 可编辑字段=0 / role-readonly=8 / 保存隐藏=true</li><li class="ok">通过  CDL-34  平台运营：新建 / 批量生成 / 直接导出都不渲染，只保留「导出（需授权）」入口  —— 三按钮隐藏=true / 授权导出口可见=true</li><li class="ok">通过  CDL-35  深链接带 class=&lt;班级名称&gt; 时直接打开该班级的编辑态并带入字段（班级详情→列表页的回跳口径）  —— 编辑 / 高一 (2) 班 / 班主任=冯振国</li><li class="ok">通过  CDL-36  班级详情的「编辑班级」跳到班级列表页并直接把弹窗打开在该班级上（写入入口只在班级模块，DP-01）  —— 跳到 班级管理列表 — 业务原型 v1（批次 2-3a 样板） / 带入 高一 (1) 班</li><p class="sum">合计 36 / 36 条，通过 36 条，不通过 0 条 —— 全部通过</p></ol>
+<iframe id="frame" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v2/pages/class-list.html"></iframe>
+<iframe id="frame2" class="small" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/class-detail.html"></iframe>
+<script>
+(function () {
+  'use strict';
+  var RESULTS = [];
+  var frame = document.getElementById('frame');
+  var frame2 = document.getElementById('frame2');
+
+  function rec(id, name, pass, detail) {
+    RESULTS.push({ id: id, name: name, pass: Boolean(pass), detail: detail || '' });
+  }
+  function doc() { return frame.contentDocument; }
+  function win() { return frame.contentWindow; }
+  function q(sel) { return doc().querySelector(sel); }
+  function panel(id) { return doc().querySelector('[data-demo-panel="' + id + '"]'); }
+  function isOpen(id) { var p = panel(id); return Boolean(p && p.classList.contains('open')); }
+  function byId(id) { return doc().getElementById(id); }
+  function clickAct(id) {
+    var node = doc().querySelector('[data-action-id="' + id + '"]');
+    if (!node) throw new Error('找不到动作元素 ' + id);
+    node.click();
+    return node;
+  }
+  function rows() { return Array.prototype.slice.call(doc().querySelectorAll('#class-rows tr')); }
+  function rowOf(fragment) {
+    return rows().filter(function (tr) { return tr.children[0].textContent.indexOf(fragment) !== -1; })[0];
+  }
+  function actionsOf(row) {
+    return Array.prototype.map.call(row.querySelectorAll('td.actions [data-action-id]'), function (b) {
+      return b.getAttribute('data-action-id');
+    });
+  }
+  function openMore(row) {
+    var t = row.querySelector('[data-more-trigger]');
+    if (!t) return null;
+    t.click();
+    return doc().getElementById('row-more-menu');
+  }
+  function closeMore() {
+    var m = doc().getElementById('row-more-menu');
+    if (m) m.remove();
+  }
+  function toastText() {
+    var host = doc().querySelector('.toast-host');
+    return host ? host.textContent : '';
+  }
+  function clearToasts() {
+    var host = doc().querySelector('.toast-host');
+    if (host) host.innerHTML = '';
+  }
+  function setVal(node, value) {
+    node.value = value;
+    node.dispatchEvent(new (win().Event)('change', { bubbles: true }));
+  }
+  function search() { clickAct('ACT-COM-001'); }
+  function setRole(code) {
+    win().PrototypeShell.applyRole(code);
+    search();
+  }
+  function fieldOf(id) { return byId(id).closest('.field'); }
+  function summaryOf(panelId) {
+    var p = panel(panelId);
+    return p ? p.querySelector('[data-validate-summary]') : null;
+  }
+  function textOf(sel) {
+    var n = q(sel);
+    return n ? n.textContent.replace(/\s+/g, ' ').trim() : '';
+  }
+  function hintOf(id) {
+    var wrap = byId(id).closest('.field');
+    var hint = wrap ? wrap.querySelector('.hint') : null;
+    return hint ? hint.textContent.replace(/\s+/g, ' ').trim() : '';
+  }
+
+  var steps = [
+
+    /* ================= 结构（弹窗载体与入口） ================= */
+
+    function (next) {
+      var b = q('[data-action-id="ACT-CLS-001"]');
+      var ok = Boolean(b) && b.getAttribute('data-nav') === 'PAGE-CLS-CREATE'
+        && b.getAttribute('data-overlay') === 'dialog' && Boolean(panel('PAGE-CLS-CREATE'));
+      rec('CDL-01', '工具条「新建」打开 PAGE-CLS-CREATE 弹窗片段（data-nav + data-overlay=dialog）', ok,
+        b ? b.getAttribute('data-nav') + ' / ' + b.getAttribute('data-overlay') : '（无按钮）');
+      next();
+    },
+    function (next) {
+      var b = q('[data-action-id="ACT-CLS-002"]');
+      var ok = Boolean(b) && b.getAttribute('data-nav') === 'PAGE-CLS-BATCH'
+        && b.getAttribute('data-overlay') === 'dialog' && Boolean(panel('PAGE-CLS-BATCH'));
+      rec('CDL-02', '工具条「批量生成」打开 PAGE-CLS-BATCH 弹窗片段', ok,
+        b ? b.getAttribute('data-nav') + ' / ' + b.getAttribute('data-overlay') : '（无按钮）');
+      next();
+    },
+    function (next) {
+      var ids = ['PAGE-CLS-CREATE', 'PAGE-CLS-BATCH', 'PAGE-CLS-COPY', 'PAGE-CLS-LEADER'];
+      var bad = [];
+      ids.forEach(function (id) {
+        var p = panel(id);
+        if (!p) { bad.push(id + ':缺片段'); return; }
+        if (p.getAttribute('data-overlay-kind') !== 'dialog') bad.push(id + ':overlay-kind');
+        var host = p.querySelector('[data-role="dialog"]');
+        if (!host || host.getAttribute('data-component') !== 'el-dialog') bad.push(id + ':载体不是 el-dialog');
+        if (p.querySelector('[data-role="drawer"]')) bad.push(id + ':含抽屉钩子');
+        if (p.querySelector('.drawer-header')) bad.push(id + ':含 drawer-header');
+      });
+      rec('CDL-03', '四个弹窗均为 el-dialog 载体，且不含 drawer-* 钩子（D-059 / CR-009）',
+        bad.length === 0, bad.length ? bad.join(' | ') : '4/4 一致');
+      next();
+    },
+    function (next) {
+      var ids = ['PAGE-CLS-CREATE', 'PAGE-CLS-BATCH', 'PAGE-CLS-COPY', 'PAGE-CLS-LEADER'];
+      var offenders = ids.filter(function (id) {
+        var p = panel(id);
+        return p && p.querySelector('table');
+      });
+      rec('CDL-04', '四个弹窗内均不含表格：清单 / 预览 / 任职历史一律用列表渲染（layout-spec 规则）',
+        offenders.length === 0, offenders.length ? offenders.join(' | ') : '表格式内容 0 处');
+      next();
+    },
+    function (next) {
+      var row = rowOf('高一 (1) 班');
+      var acts = actionsOf(row);
+      var edit = row.querySelector('[data-action-id="ACT-CLS-005"]');
+      var leader = row.querySelector('[data-action-id="ACT-CLS-006"]');
+      var ok = acts.indexOf('ACT-CLS-005') !== -1 && acts.indexOf('ACT-CLS-006') !== -1
+        && edit.getAttribute('data-nav') === 'PAGE-CLS-CREATE'
+        && leader.getAttribute('data-nav') === 'PAGE-CLS-LEADER'
+        && Boolean(panel('PAGE-CLS-CREATE')) && Boolean(panel('PAGE-CLS-LEADER'));
+      rec('CDL-05', '教务主任行内渲染「编辑」「指定班主任」，各自指向对应弹窗', ok,
+        acts.join(',') + ' / ' + edit.getAttribute('data-nav') + ' / ' + leader.getAttribute('data-nav'));
+      next();
+    },
+    function (next) {
+      var row = rowOf('高一 物理 A 层');
+      var acts = actionsOf(row);
+      clearToasts();
+      row.querySelector('[data-action-id="ACT-CLS-005"]').click();
+      var ok = acts.indexOf('ACT-CLS-006') === -1
+        && toastText().indexOf('批次 2-7') !== -1
+        && !isOpen('PAGE-CLS-CREATE');
+      rec('CDL-06', '教学班行不渲染「指定班主任」，点「编辑」给批次 2-7 提示且不打开行政班表单', ok,
+        'actions=' + acts.join(',') + ' / toast=' + toastText().slice(0, 40));
+      next();
+    },
+    function (next) {
+      setRole('school_leader');
+      var acts = actionsOf(rowOf('高一 (1) 班'));
+      var ok = acts.join(',') === 'ACT-CLS-004';
+      rec('CDL-07', '校领导是只读角色：行内只保留「详情」，编辑与指定班主任都不渲染', ok, 'actions=' + acts.join(','));
+      setRole('academic_director');
+      next();
+    },
+
+    /* ================= 弹窗一：新建 / 编辑班级 ================= */
+
+    function (next) {
+      win().PrototypeShell.openPanel('PAGE-CLS-CREATE');
+      var ok = isOpen('PAGE-CLS-CREATE')
+        && byId('class-form-title').textContent === '新建班级'
+        && byId('class-form-mode').textContent === '新建'
+        && byId('class-form-term').value === '202601'
+        && byId('class-form-grade').value === '202601'
+        && byId('class-form-type').value === 'administrative'
+        && byId('class-form-name').value === '高一 (4) 班'
+        && byId('class-form-capacity').value === '45'
+        && byId('class-form-target').textContent === '2026 级 高一';
+      rec('CDL-08', '新建态默认值：学年学期=当前、年级=高一、类型=行政班、名称按规则生成「高一 (4) 班」、容量 45',
+        ok, byId('class-form-term').value + ' / ' + byId('class-form-grade').value + ' / '
+        + byId('class-form-name').value + ' / 容量 ' + byId('class-form-capacity').value);
+      next();
+    },
+    function (next) {
+      var opt = byId('class-form-type').querySelector('option[value="teaching"]');
+      var hint = hintOf('class-form-type');
+      var ok = Boolean(opt) && opt.disabled
+        && hint.indexOf('addTeachingClass') !== -1 && hint.indexOf('批次 2-7') !== -1;
+      rec('CDL-09', '「教学班」选项列出但置灰，并写明创建入口是批次 2-7 的 addTeachingClass（GAP-048）',
+        ok, opt ? ('disabled=' + opt.disabled + ' / hint 命中 addTeachingClass=' + (hint.indexOf('addTeachingClass') !== -1)) : '（无该选项）');
+      next();
+    },
+    function (next) {
+      setVal(byId('class-form-name'), '');
+      clickAct('ACT-CLS-033');
+      var wrap = fieldOf('class-form-name');
+      var summary = summaryOf('PAGE-CLS-CREATE');
+      var err = wrap.querySelector('.error-text').textContent;
+      var ok = wrap.classList.contains('has-error') && err.indexOf('请填写班级名称') !== -1
+        && summary && !summary.classList.contains('state-hidden') && isOpen('PAGE-CLS-CREATE');
+      rec('CDL-10', '必填校验：清空班级名称后保存 → 字段级错误 + 顶部汇总 + 弹窗不关闭', ok,
+        'has-error=' + wrap.classList.contains('has-error') + ' / 文案=' + err.slice(0, 30));
+      next();
+    },
+    function (next) {
+      setVal(byId('class-form-name'), '高一 (2) 班');
+      clickAct('ACT-CLS-033');
+      var conflict = byId('class-form-conflict');
+      window.setTimeout(function () {
+        var ok = !conflict.classList.contains('state-hidden')
+          && conflict.textContent.indexOf('BR-CLASS-003') !== -1
+          && byId('class-form-done').classList.contains('state-hidden');
+        rec('CDL-11', '唯一性冲突：同校同学年学期同学段重名（高一 (2) 班）被前端先拦一次，1.3 秒后仍未出现「已保存」',
+          ok, '冲突块可见=' + !conflict.classList.contains('state-hidden')
+          + ' / 已保存块隐藏=' + byId('class-form-done').classList.contains('state-hidden'));
+        next();
+      }, 1300);
+    },
+    function (next) {
+      setVal(byId('class-form-name'), '高一 (5) 班');
+      clickAct('ACT-CLS-033');
+      window.setTimeout(function () {
+        var done = byId('class-form-done');
+        var acts = done.querySelectorAll('[data-action-id]');
+        var ok = !done.classList.contains('state-hidden') && acts.length === 3
+          && isOpen('PAGE-CLS-CREATE') && done.textContent.indexOf('高一 (5) 班') !== -1;
+        rec('CDL-12', '保存成功后弹窗不关闭，给出「继续新增 / 进入班级详情 / 立即编班」三个后续动作（REQ-CLS-018）',
+          ok, '动作数=' + acts.length + ' / 弹窗仍开=' + isOpen('PAGE-CLS-CREATE'));
+        next();
+      }, 1400);
+    },
+    function (next) {
+      clickAct('ACT-CLS-034');
+      var ok = byId('class-form-name').value === '高一 (4) 班'
+        && byId('class-form-head').value === ''
+        && byId('class-form-term').value === '202601'
+        && byId('class-form-grade').value === '202601'
+        && byId('class-form-type').value === 'administrative'
+        && byId('class-form-capacity').value === '45'
+        && byId('class-form-done').classList.contains('state-hidden');
+      rec('CDL-13', '「继续新增」清空名称与班主任，保留学年学期 / 年级 / 类型 / 容量，并收起「已保存」块', ok,
+        byId('class-form-name').value + ' / 班主任=' + (byId('class-form-head').value || '（空）')
+        + ' / 容量=' + byId('class-form-capacity').value);
+      next();
+    },
+    function (next) {
+      win().PrototypeShell.closePanel('PAGE-CLS-CREATE');
+      rowOf('高一 (1) 班').querySelector('[data-action-id="ACT-CLS-005"]').click();
+      var lockedHint = byId('class-form-head-locked');
+      var ok = isOpen('PAGE-CLS-CREATE')
+        && byId('class-form-title').textContent === '编辑班级'
+        && byId('class-form-mode').textContent === '编辑'
+        && byId('class-form-term').disabled === true
+        && byId('class-form-grade').disabled === true
+        && byId('class-form-type').disabled === true
+        && byId('class-form-head').disabled === true
+        && !lockedHint.classList.contains('state-hidden')
+        && byId('class-form-name').value === '高一 (1) 班'
+        && byId('class-form-head').value === '邓丽娟'
+        && byId('class-form-campus').value === '2011'
+        && byId('class-form-classroom').value === '本部教学楼 A203';
+      rec('CDL-14', '编辑态：学年学期 / 年级不可修改（REQ-CLS-022）、有花名册后类型只读（REQ-CLS-023）、'
+        + '班主任只读并指向行内入口（REQ-CLS-024），字段带入被点行', ok,
+        '名称=' + byId('class-form-name').value + ' / 班主任=' + byId('class-form-head').value
+        + ' / 教室=' + byId('class-form-classroom').value);
+      next();
+    },
+    function (next) {
+      clickAct('ACT-CLS-033');
+      window.setTimeout(function () {
+        var ok = byId('class-form-conflict').classList.contains('state-hidden')
+          && !fieldOf('class-form-name').classList.contains('has-error')
+          && !isOpen('PAGE-CLS-CREATE');
+        rec('CDL-15', '编辑态保持原名不算冲突；保存成功后按编辑口径关闭弹窗（三个后续动作只在新建态出现）', ok,
+          '弹窗已关闭=' + !isOpen('PAGE-CLS-CREATE'));
+        next();
+      }, 1300);
+    },
+
+    /* ================= 弹窗二：批量生成班级 ================= */
+
+    function (next) {
+      win().PrototypeShell.openPanel('PAGE-CLS-BATCH');
+      var preview = byId('class-batch-preview');
+      var rows = Array.prototype.slice.call(preview.children);
+      var conflict = rows.filter(function (r) { return r.className.indexOf('conflict') !== -1; });
+      var ok = isOpen('PAGE-CLS-BATCH') && rows.length === 6 && conflict.length === 3
+        && byId('class-batch-count').textContent === '将处理 6 个'
+        && byId('class-batch-grade').value === '202601'
+        && byId('class-batch-from').value === '1' && byId('class-batch-to').value === '6';
+      rec('CDL-16', '批量生成默认预览：高一 序号 1–6 → 6 行，其中 3 行「已存在，跳过」（REQ-CLS-020 / BR-CLASS-003）',
+        ok, '预览=' + rows.length + ' 行 / 冲突=' + conflict.length + ' 行 / ' + byId('class-batch-count').textContent);
+      next();
+    },
+    function (next) {
+      var box = byId('class-batch-conflict');
+      var text = box.textContent.replace(/\s+/g, ' ').trim();
+      var ok = !box.classList.contains('state-hidden') && text.indexOf('跳过 3 个') !== -1
+        && text.indexOf('不覆盖') !== -1;
+      rec('CDL-17', '冲突提示块写明跳过数量与「不覆盖、不改名」口径', ok, text.slice(0, 70));
+      next();
+    },
+    function (next) {
+      setVal(byId('class-batch-from'), '5');
+      setVal(byId('class-batch-to'), '3');
+      clickAct('ACT-CLS-039');
+      var wrap = fieldOf('class-batch-from');
+      var summary = summaryOf('PAGE-CLS-BATCH');
+      var err = wrap.querySelector('.error-text').textContent;
+      var ok = wrap.classList.contains('has-error') && err.indexOf('结束序号') !== -1
+        && summary && !summary.classList.contains('state-hidden') && isOpen('PAGE-CLS-BATCH');
+      rec('CDL-18', '序号区间倒置（起 5 止 3）被拦：字段级错误 + 汇总 + 弹窗不关闭', ok, '文案=' + err.slice(0, 30));
+      next();
+    },
+    function (next) {
+      setVal(byId('class-batch-from'), '1');
+      setVal(byId('class-batch-to'), '100');
+      var rows = Array.prototype.slice.call(byId('class-batch-preview').children);
+      var last = rows[rows.length - 1];
+      var ok = last && last.className.indexOf('list-empty') !== -1
+        && last.textContent.indexOf('前 30 个') !== -1
+        && rows.length === 31;
+      rec('CDL-19', '区间 1–100 时预览只展开前 30 行并给出说明行（原型渲染保护，不编造业务上限）',
+        ok, '渲染 ' + rows.length + ' 个节点 / 末行=' + (last ? last.textContent.slice(0, 34) : '（无）'));
+      next();
+    },
+    function (next) {
+      setVal(byId('class-batch-from'), '7');
+      setVal(byId('class-batch-to'), '8');
+      var rows = Array.prototype.slice.call(byId('class-batch-preview').children);
+      var conflict = rows.filter(function (r) { return r.className.indexOf('conflict') !== -1; });
+      var ok = rows.length === 2 && conflict.length === 0
+        && byId('class-batch-conflict').classList.contains('state-hidden')
+        && byId('class-batch-count').textContent === '将处理 2 个';
+      rec('CDL-20', '序号 7–8 无冲突：两行「将生成」，冲突块隐藏', ok,
+        '预览=' + rows.length + ' 行 / 冲突块隐藏=' + byId('class-batch-conflict').classList.contains('state-hidden'));
+      next();
+    },
+
+    /* ================= 弹窗三：复制班级 ================= */
+
+    function (next) {
+      win().PrototypeShell.closePanel('PAGE-CLS-BATCH');
+      var menu = openMore(rowOf('高一 (1) 班'));
+      menu.querySelector('[data-action-id="ACT-CLS-008"]').click();
+      var summaryRows = Array.prototype.slice.call(byId('class-copy-summary').children);
+      var noCopy = summaryRows.filter(function (r) { return r.className.indexOf('conflict') !== -1; })
+        .map(function (r) { return r.children[0].textContent; });
+      var ok = isOpen('PAGE-CLS-COPY')
+        && byId('class-copy-source').textContent === '高一 (1) 班'
+        && summaryRows.length === 9
+        && noCopy.join(',') === '花名册,班主任,班主任任职历史';
+      rec('CDL-21', '复制弹窗列出源班级 9 项配置，其中花名册 / 班主任 / 任职历史明确标为「不复制」（REQ-CLS-061）',
+        ok, summaryRows.length + ' 行 / 不复制=' + noCopy.join(','));
+      next();
+    },
+    function (next) {
+      var ok = byId('class-copy-term').value === '202601'
+        && byId('class-copy-grade').value === '202601'
+        && byId('class-copy-name').value === '高一 (4) 班';
+      rec('CDL-22', '复制默认值：目标学年学期=当前、目标年级=源班级年级、新名称按规则生成', ok,
+        byId('class-copy-term').value + ' / ' + byId('class-copy-grade').value + ' / ' + byId('class-copy-name').value);
+      next();
+    },
+    function (next) {
+      setVal(byId('class-copy-name'), '高一 (2) 班');
+      clickAct('ACT-CLS-043');
+      var conflict = byId('class-copy-conflict');
+      var ok = !conflict.classList.contains('state-hidden')
+        && fieldOf('class-copy-name').classList.contains('has-error')
+        && isOpen('PAGE-CLS-COPY');
+      rec('CDL-23', '复制名称与已有班级重名时被拦：冲突块 + 字段级错误 + 弹窗不关闭', ok,
+        '冲突块可见=' + !conflict.classList.contains('state-hidden'));
+      next();
+    },
+    function (next) {
+      win().PrototypeShell.closePanel('PAGE-CLS-COPY');
+      var menu = openMore(rowOf('高一 物理 A 层'));
+      var btn = menu.querySelector('[data-action-id="ACT-CLS-008"]');
+      clearToasts();
+      btn.click();
+      var ok = !isOpen('PAGE-CLS-COPY') && toastText().indexOf('批次 2-7') !== -1;
+      rec('CDL-24', '教学班的复制入口给提示（只支持行政班）且不打开弹窗', ok, toastText().slice(0, 46));
+      next();
+    },
+    function (next) {
+      var btn = q('[data-action-id="ACT-CLS-043"]');
+      var msg = btn.getAttribute('data-demo-message');
+      var ok = btn.getAttribute('data-api') === 'addClass'
+        && btn.getAttribute('data-permission') === 'org.class:create'
+        && msg.indexOf('花名册') !== -1 && msg.indexOf('班主任') !== -1;
+      rec('CDL-25', '确认复制复用 addClass（PRD 第 8 节无 copyClass，见 GAP-049），提示写明不复制花名册与班主任',
+        ok, btn.getAttribute('data-api') + ' / ' + btn.getAttribute('data-permission'));
+      next();
+    },
+
+    /* ================= 弹窗四：指定 / 变更班主任 ================= */
+
+    function (next) {
+      rowOf('高一 (1) 班').querySelector('[data-action-id="ACT-CLS-006"]').click();
+      var current = byId('class-leader-current').children;
+      var history = byId('class-leader-history').children;
+      var ok = isOpen('PAGE-CLS-LEADER')
+        && byId('class-leader-title').textContent === '变更班主任'
+        && byId('class-leader-target').textContent === '高一 (1) 班'
+        && current.length === 1 && current[0].textContent.indexOf('邓丽娟') !== -1
+        && history.length === 2 && history[0].textContent.indexOf('邓丽娟') !== -1;
+      rec('CDL-26', '有在任班主任的行：标题「变更班主任」，当前班主任 1 行、任职历史 1 行 + 说明', ok,
+        '标题=' + byId('class-leader-title').textContent + ' / 任职历史节点=' + history.length);
+      next();
+    },
+    function (next) {
+      win().PrototypeShell.closePanel('PAGE-CLS-LEADER');
+      rowOf('高一 (3) 班').querySelector('[data-action-id="ACT-CLS-006"]').click();
+      var current = byId('class-leader-current').children;
+      var history = byId('class-leader-history').children;
+      var ok = isOpen('PAGE-CLS-LEADER')
+        && byId('class-leader-title').textContent === '指定班主任'
+        && current.length === 1 && current[0].className.indexOf('list-empty') !== -1
+        && history.length === 1 && history[0].className.indexOf('list-empty') !== -1;
+      rec('CDL-27', '未指定班主任的班级：标题「指定班主任」，当前班主任与任职历史都给空态文案', ok,
+        '当前=' + current[0].textContent.slice(0, 28));
+      next();
+    },
+    function (next) {
+      var sel = byId('class-leader-teacher');
+      var disabled = Array.prototype.filter.call(sel.options, function (o) { return o.disabled; })
+        .map(function (o) { return o.value; });
+      var mustBeUsable = ['邓丽娟', '何文博', '谢明轩', '卢佳音', '陆承志', '韦志远', '郑雅琴', '阿依努尔·艾山'];
+      var usable = mustBeUsable.every(function (name) {
+        var opt = sel.querySelector('option[value="' + name + '"]');
+        return opt && !opt.disabled;
+      });
+      var ok = disabled.join(',') === '苏睿,高洪波,苗雨欣' && usable;
+      rec('CDL-28', '新任班主任下拉只允许本校在职教师：非本校（苏睿）、离职（高洪波）、调离（苗雨欣）列出但不可选',
+        ok, '不可选=' + disabled.join(',') + ' / 8 名本校在职可选=' + usable);
+      next();
+    },
+    function (next) {
+      setVal(byId('class-leader-term'), '202501');
+      clearToasts();
+      clickAct('ACT-CLS-046');
+      var ok = isOpen('PAGE-CLS-LEADER') && toastText().indexOf('历史学年学期只读') !== -1;
+      rec('CDL-29', '切到历史学年学期后保存被拦：只读提示 + 弹窗不关闭（REQ-CLS-050）', ok, toastText().slice(0, 40));
+      next();
+    },
+    function (next) {
+      setVal(byId('class-leader-term'), '202601');
+      clickAct('ACT-CLS-046');
+      var wrap = fieldOf('class-leader-teacher');
+      var summary = summaryOf('PAGE-CLS-LEADER');
+      var err = wrap.querySelector('.error-text').textContent;
+      var ok = wrap.classList.contains('has-error') && err.indexOf('请选择新任班主任') !== -1
+        && summary && !summary.classList.contains('state-hidden') && isOpen('PAGE-CLS-LEADER');
+      rec('CDL-30', '未选新任班主任时保存触发必填校验：字段级错误 + 汇总 + 弹窗不关闭', ok, '文案=' + err.slice(0, 26));
+      next();
+    },
+    function (next) {
+      var btn = q('[data-action-id="ACT-CLS-046"]');
+      var ok = btn.getAttribute('data-api') === 'assignHeadTeacher'
+        && btn.getAttribute('data-permission') === 'org.class:update'
+        && btn.getAttribute('data-after-success') === 'close-panel';
+      rec('CDL-31', '班主任保存走 PRD 第 8 节登记的 assignHeadTeacher（POST /edu/class/{id}/head-teacher），权限点 org.class:update',
+        ok, btn.getAttribute('data-api') + ' / ' + btn.getAttribute('data-permission'));
+      next();
+    },
+    function (next) {
+      var check = panel('PAGE-CLS-LEADER').querySelector('.alert.warning').textContent.replace(/\s+/g, ' ');
+      var ok = check.indexOf('REQ-CLS-049') !== -1 && check.indexOf('REQ-CLS-025') !== -1
+        && check.indexOf('REQ-CLS-051') !== -1 && check.indexOf('在职') !== -1;
+      rec('CDL-32', '保存前检查写明四条：学期只读 / 本校在职 / 一名在任（REQ-CLS-049）/ 缓存立即失效（REQ-CLS-025 / 051）',
+        ok, check.slice(0, 72));
+      next();
+    },
+
+    /* ================= 角色与深链接 ================= */
+
+    function (next) {
+      win().PrototypeShell.applyRole('school_leader');
+      var ids = ['class-form-term', 'class-form-grade', 'class-form-type', 'class-form-name',
+        'class-form-head', 'class-form-capacity', 'class-form-campus', 'class-form-classroom'];
+      var stillEditable = ids.filter(function (id) { return !byId(id).disabled; });
+      var ro = panel('PAGE-CLS-CREATE').querySelectorAll('.field.role-readonly').length;
+      var saveHidden = q('[data-action-id="ACT-CLS-033"]').classList.contains('role-hidden');
+      var ok = stillEditable.length === 0 && ro >= 8 && saveHidden;
+      rec('CDL-33', '只读角色（校领导）打开新建弹窗：8 个字段全部禁用并显示只读说明，保存按钮不渲染',
+        ok, '可编辑字段=' + stillEditable.length + ' / role-readonly=' + ro + ' / 保存隐藏=' + saveHidden);
+      next();
+    },
+    function (next) {
+      setRole('platform_ops');
+      var hidden = ['ACT-CLS-001', 'ACT-CLS-002', 'ACT-CLS-003'].every(function (id) {
+        return q('[data-action-id="' + id + '"]').classList.contains('role-hidden');
+      });
+      var exportGranted = !q('[data-action-id="ACT-COM-007"]').classList.contains('role-hidden');
+      rec('CDL-34', '平台运营：新建 / 批量生成 / 直接导出都不渲染，只保留「导出（需授权）」入口', hidden && exportGranted,
+        '三按钮隐藏=' + hidden + ' / 授权导出口可见=' + exportGranted);
+      setRole('academic_director');
+      next();
+    },
+    function (next) {
+      win().PrototypeShell.closePanel('PAGE-CLS-CREATE');
+      win().PrototypeShell.applyParams({ panel: 'PAGE-CLS-CREATE', class: '高一 (2) 班' });
+      var ok = isOpen('PAGE-CLS-CREATE')
+        && byId('class-form-mode').textContent === '编辑'
+        && byId('class-form-name').value === '高一 (2) 班'
+        && byId('class-form-head').value === '冯振国';
+      rec('CDL-35', '深链接带 class=<班级名称> 时直接打开该班级的编辑态并带入字段（班级详情→列表页的回跳口径）',
+        ok, byId('class-form-mode').textContent + ' / ' + byId('class-form-name').value
+        + ' / 班主任=' + byId('class-form-head').value);
+      win().PrototypeShell.closePanel('PAGE-CLS-CREATE');
+      next();
+    },
+    function (next) {
+      var target = null;
+      try { target = frame2.contentDocument; } catch (err) { target = null; }
+      var trigger = target ? target.querySelector('[data-action-id="ACT-CLS-019"]') : null;
+      if (!trigger) {
+        rec('CDL-36', '班级详情的「编辑班级」跳到班级列表页并带入该班级', false, '第二个 iframe 未就绪');
+        next();
+        return;
+      }
+      var title = target.getElementById('detail-title').textContent.trim();
+      trigger.click();
+      var tries = 0;
+      (function poll() {
+        tries += 1;
+        var d = null;
+        try { d = frame2.contentDocument; } catch (err) { d = null; }
+        var loadedPanel = d && d.querySelector('[data-demo-panel="PAGE-CLS-CREATE"]');
+        var nameNode = d && d.getElementById('class-form-name');
+        var mode = d && d.getElementById('class-form-mode');
+        if (loadedPanel && nameNode && mode && mode.textContent === '编辑' && nameNode.value === title
+            && loadedPanel.classList.contains('open')) {
+          rec('CDL-36', '班级详情的「编辑班级」跳到班级列表页并直接把弹窗打开在该班级上（写入入口只在班级模块，DP-01）',
+            true, '跳到 ' + d.title + ' / 带入 ' + nameNode.value);
+          next();
+          return;
+        }
+        if (tries > 40) {
+          rec('CDL-36', '班级详情的「编辑班级」跳到班级列表页并直接把弹窗打开在该班级上', false,
+            '轮询 40 次仍未就绪（tries=' + tries + '）');
+          next();
+          return;
+        }
+        window.setTimeout(poll, 250);
+      })();
+    }
+  ];
+
+  var EXPECTED = 36;
+
+  function render() {
+    var ol = document.getElementById('results');
+    ol.innerHTML = '';
+    var pass = 0;
+    RESULTS.forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = r.pass ? 'ok' : 'bad';
+      li.textContent = (r.pass ? '通过  ' : '不通过 ') + r.id + '  ' + r.name + (r.detail ? '  —— ' + r.detail : '');
+      ol.appendChild(li);
+      if (r.pass) pass += 1;
+    });
+    var p = document.createElement('p');
+    p.className = pass === EXPECTED ? 'sum' : 'sum bad';
+    p.textContent = '合计 ' + RESULTS.length + ' / ' + EXPECTED + ' 条，通过 ' + pass + ' 条，不通过 '
+      + (RESULTS.length - pass) + ' 条' + (pass === EXPECTED && RESULTS.length === EXPECTED ? ' —— 全部通过' : '');
+    ol.appendChild(p);
+  }
+
+  function run(index) {
+    if (index >= steps.length) { render(); return; }
+    var called = false;
+    function next() {
+      if (called) return;
+      called = true;
+      run(index + 1);
+    }
+    try {
+      steps[index](next);
+    } catch (err) {
+      rec('ERR-' + String(index + 1).padStart(2, '0'), '第 ' + (index + 1) + ' 步抛异常（后续步骤已跳过）',
+        false, String(err && err.message || err));
+      run(index + 1);
+    }
+  }
+
+  var started = false;
+  frame.addEventListener('load', function () {
+    if (started) return;
+    started = true;
+    window.setTimeout(function () { run(0); }, 500);
+  });
+})();
+</script>
+
+
+</body></html>

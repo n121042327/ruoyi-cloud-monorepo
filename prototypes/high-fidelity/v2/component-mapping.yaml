@@ -1,0 +1,3553 @@
+schema_version: '1.1'
+status: 已设计
+review_status: 待人工验收
+purpose: 学生列表单文件（含已有浮层）逐元素组件映射样板；不代表 45 页已覆盖。
+source: prototypes/high-fidelity/v2/pages/student-list.html
+baseline: prototypes/high-fidelity/v1/component-mapping.yaml
+snapshot: evidence/stage2-prototype-v2/2026-10-01_student-elements.json
+coverage:
+  html_files: 1
+  interactive_elements: 207
+  page_ids:
+  - DIALOG-STU-DISCARD
+  - PAGE-PRM-CHANGE
+  - PAGE-STU-CREATE
+  - PAGE-STU-DETAIL
+  - PAGE-STU-EDIT
+  - PAGE-STU-HISTORY
+  - PAGE-STU-LIST
+  - PAGE-STU-STATUS
+  - PAGE-STU-TRANSFER
+conventions:
+  scope: 列表、原文件已有浮层、动态行按钮；共享外壳不计入本文件
+  permission: null 仅表示元素未声明独立权限，不表示允许后端访问；页面数据范围与后端校验仍适用
+  api: 原型声明原样登记；存在性及冻结契约核对见追踪记录，不以字符串存在宣称接口可用
+  runtime_disabled: 快照中的禁用状态受测试角色影响，不作为固定组件属性
+  shared_styles: 复用冻结 v1 样式，只读依赖；新外壳只供 v2 样板使用
+elements:
+- id: EL-STU-001
+  page_id: PAGE-STU-LIST
+  selector: '#f-school'
+  label: 只有平台运营可以切换学校；学校用户锁定为所属学校，跨校资源授权不放开学生数据
+  element_plus: el-select
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-select
+  action_id: null
+  permission: null
+  field: school_id
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: platform_ops
+  close_panel: null
+- id: EL-STU-002
+  page_id: PAGE-STU-LIST
+  selector: '#f-term'
+  label: term_code
+  element_plus: el-select
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-select
+  action_id: null
+  permission: null
+  field: term_code
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-003
+  page_id: PAGE-STU-LIST
+  selector: '#f-grade'
+  label: grade_name
+  element_plus: el-select
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-select
+  action_id: null
+  permission: null
+  field: grade_name
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-004
+  page_id: PAGE-STU-LIST
+  selector: '#f-class'
+  label: class_name
+  element_plus: el-select
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-select
+  action_id: null
+  permission: null
+  field: class_name
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-005
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5)
+    > span:nth-of-type(1) > button:nth-of-type(1)'
+  label: 在读
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-006
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5)
+    > span:nth-of-type(1) > button:nth-of-type(2)'
+  label: 休学
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-007
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5)
+    > span:nth-of-type(1) > button:nth-of-type(3)'
+  label: 转入未报到
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-008
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5)
+    > span:nth-of-type(1) > button:nth-of-type(4)'
+  label: 出国
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-009
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5)
+    > span:nth-of-type(1) > button:nth-of-type(5)'
+  label: 已转出
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-010
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5)
+    > span:nth-of-type(1) > button:nth-of-type(6)'
+  label: 退学
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-011
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5)
+    > span:nth-of-type(1) > button:nth-of-type(7)'
+  label: 全部
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-012
+  page_id: PAGE-STU-LIST
+  selector: '#f-keyword'
+  label: 学号 / 姓名 / 全国学籍号
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: student_name
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-013
+  page_id: PAGE-STU-LIST
+  selector: '#f-gender'
+  label: gender
+  element_plus: el-select
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-select
+  action_id: null
+  permission: null
+  field: gender
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-014
+  page_id: PAGE-STU-LIST
+  selector: '#f-year'
+  label: 如 2024 ~ 2026
+  element_plus: el-date-picker
+  props:
+    type: daterange
+    review_note: 入学年份原型声明为日期范围，生产实现需按 PRD 年份区间核对，未在本批变更
+  basis: 原型明确声明
+  declared_component: el-date-picker.daterange
+  action_id: null
+  permission: null
+  field: enroll_year
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-015
+  page_id: PAGE-STU-LIST
+  selector: '#f-id4'
+  label: 4 位数字
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: id_card_no
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-016
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4)
+    > button:nth-of-type(1)'
+  label: 搜索
+  element_plus: el-button
+  props:
+    type: primary
+  basis: 原型明确声明
+  declared_component: el-button.primary
+  action_id: ACT-COM-001
+  permission: person.student:read
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-017
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4)
+    > button:nth-of-type(2)'
+  label: 重置
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-COM-002
+  permission: person.student:read
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-018
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)'
+  label: 新增
+  element_plus: el-button
+  props:
+    type: primary
+    plain: true
+  basis: 原型明确声明
+  declared_component: el-button.primary.plain
+  action_id: ACT-STU-001
+  permission: person.student:create
+  field: null
+  api: null
+  nav: PAGE-STU-CREATE
+  role_visible: academic_director,grade_leader
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-019
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2)'
+  label: 导入
+  element_plus: el-button
+  props:
+    type: primary
+    plain: true
+  basis: 原型明确声明
+  declared_component: el-button.primary.plain
+  action_id: ACT-STU-002
+  permission: data.import:import
+  field: null
+  api: null
+  nav: PAGE-STU-IMPORT
+  role_visible: academic_director
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-020
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(3)'
+  label: 导出
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-STU-003
+  permission: data.export:export
+  field: null
+  api: exportStudent
+  nav: null
+  role_visible: academic_director,grade_leader,homeroom,school_leader
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-021
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(4)'
+  label: 下载模板
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-STU-004
+  permission: data.import:import
+  field: null
+  api: downloadStudentImportTemplate
+  nav: null
+  role_visible: academic_director
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-022
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(5)'
+  label: 导出（需授权）
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-COM-007
+  permission: data.export:export
+  field: null
+  api: null
+  nav: null
+  role_visible: platform_ops
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-023
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(6)'
+  label: 批量导出
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-STU-019
+  permission: data.export:export
+  field: null
+  api: exportStudent
+  nav: null
+  role_visible: academic_director,grade_leader,homeroom,school_leader
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-024
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(7)'
+  label: 批量调班
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-STU-020
+  permission: org.class:update
+  field: null
+  api: batchTransferStudent
+  nav: null
+  role_visible: academic_director,grade_leader
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-025
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(1)'
+  label: 隐藏搜索
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-COM-003
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-026
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(2)'
+  label: 可选列：全国学籍号、证件号（掩码）、监护人姓名、出生日期
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-COM-004
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-027
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(3)'
+  label: 刷新
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-COM-005
+  permission: null
+  field: null
+  api: listStudent
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-028
+  page_id: PAGE-STU-LIST
+  selector: '#student-table > thead:nth-of-type(1) > tr:nth-of-type(1) > th:nth-of-type(1) > input:nth-of-type(1)'
+  label: ''
+  element_plus: el-table-column
+  props:
+    type: selection
+  basis: 表格勾选列
+  declared_component: null
+  action_id: ACT-COM-008
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-029
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(1)'
+  label: 2026000001 王梓萱 女 高中 2026 级 高一 高一 (1) 班 在读 2026 136****7781 2026-09-2410:12 编辑异动调班
+  element_plus: el-table
+  props:
+    event: row-click
+  basis: 表格行入口
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: PAGE-STU-DETAIL
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-030
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(1) > td:nth-of-type(1) > input:nth-of-type(1)'
+  label: ''
+  element_plus: el-table-column
+  props:
+    type: selection
+  basis: 表格勾选列
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-031
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(1) > td:nth-of-type(12) > button:nth-of-type(1)'
+  label: 编辑
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-005
+  permission: person.student:update
+  field: null
+  api: null
+  nav: PAGE-STU-EDIT
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-032
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(1) > td:nth-of-type(12) > button:nth-of-type(2)'
+  label: 异动
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-006
+  permission: enrollment.transfer:create
+  field: null
+  api: null
+  nav: PAGE-STU-STATUS
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-033
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(1) > td:nth-of-type(12) > button:nth-of-type(3)'
+  label: 调班
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-007
+  permission: org.class:update
+  field: null
+  api: null
+  nav: PAGE-STU-TRANSFER
+  role_visible: academic_director,grade_leader
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-034
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(2)'
+  label: 2026000002 李俊逸 男 高中 2026 级 高一 高一 (1) 班 在读 2026 150****3320 2026-09-2410:15 编辑异动调班
+  element_plus: el-table
+  props:
+    event: row-click
+  basis: 表格行入口
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: PAGE-STU-DETAIL
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-035
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(2) > td:nth-of-type(1) > input:nth-of-type(1)'
+  label: ''
+  element_plus: el-table-column
+  props:
+    type: selection
+  basis: 表格勾选列
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-036
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(2) > td:nth-of-type(12) > button:nth-of-type(1)'
+  label: 编辑
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-005
+  permission: person.student:update
+  field: null
+  api: null
+  nav: PAGE-STU-EDIT
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-037
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(2) > td:nth-of-type(12) > button:nth-of-type(2)'
+  label: 异动
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-006
+  permission: enrollment.transfer:create
+  field: null
+  api: null
+  nav: PAGE-STU-STATUS
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-038
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(2) > td:nth-of-type(12) > button:nth-of-type(3)'
+  label: 调班
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-007
+  permission: org.class:update
+  field: null
+  api: null
+  nav: PAGE-STU-TRANSFER
+  role_visible: academic_director,grade_leader
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-039
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(3)'
+  label: 2026000003 陈思远 男 高中 2026 级 高一 高一 (1) 班 休学 2026 138****9008 2026-09-2016:40 编辑异动调班
+  element_plus: el-table
+  props:
+    event: row-click
+  basis: 表格行入口
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: PAGE-STU-DETAIL
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-040
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(3) > td:nth-of-type(1) > input:nth-of-type(1)'
+  label: ''
+  element_plus: el-table-column
+  props:
+    type: selection
+  basis: 表格勾选列
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-041
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(3) > td:nth-of-type(12) > button:nth-of-type(1)'
+  label: 编辑
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-005
+  permission: person.student:update
+  field: null
+  api: null
+  nav: PAGE-STU-EDIT
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-042
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(3) > td:nth-of-type(12) > button:nth-of-type(2)'
+  label: 异动
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-006
+  permission: enrollment.transfer:create
+  field: null
+  api: null
+  nav: PAGE-STU-STATUS
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-043
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(3) > td:nth-of-type(12) > button:nth-of-type(3)'
+  label: 调班
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-007
+  permission: org.class:update
+  field: null
+  api: null
+  nav: PAGE-STU-TRANSFER
+  role_visible: academic_director,grade_leader
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-044
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(4)'
+  label: 2026000004 赵一诺 女 高中 2026 级 高一 高一 (2) 班 在读 2026 — 2026-09-2411:02 编辑异动调班
+  element_plus: el-table
+  props:
+    event: row-click
+  basis: 表格行入口
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: PAGE-STU-DETAIL
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-045
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(4) > td:nth-of-type(1) > input:nth-of-type(1)'
+  label: ''
+  element_plus: el-table-column
+  props:
+    type: selection
+  basis: 表格勾选列
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-046
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(4) > td:nth-of-type(12) > button:nth-of-type(1)'
+  label: 编辑
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-005
+  permission: person.student:update
+  field: null
+  api: null
+  nav: PAGE-STU-EDIT
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-047
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(4) > td:nth-of-type(12) > button:nth-of-type(2)'
+  label: 异动
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-006
+  permission: enrollment.transfer:create
+  field: null
+  api: null
+  nav: PAGE-STU-STATUS
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-048
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(4) > td:nth-of-type(12) > button:nth-of-type(3)'
+  label: 调班
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-007
+  permission: org.class:update
+  field: null
+  api: null
+  nav: PAGE-STU-TRANSFER
+  role_visible: academic_director,grade_leader
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-049
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(5)'
+  label: 2026000005 周子涵 男 高中 2026 级 高一 — 转入未报到 2026 159****4413 2026-09-2809:05 编辑异动调班
+  element_plus: el-table
+  props:
+    event: row-click
+  basis: 表格行入口
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: PAGE-STU-DETAIL
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-050
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(5) > td:nth-of-type(1) > input:nth-of-type(1)'
+  label: ''
+  element_plus: el-table-column
+  props:
+    type: selection
+  basis: 表格勾选列
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-051
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(5) > td:nth-of-type(12) > button:nth-of-type(1)'
+  label: 编辑
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-005
+  permission: person.student:update
+  field: null
+  api: null
+  nav: PAGE-STU-EDIT
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-052
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(5) > td:nth-of-type(12) > button:nth-of-type(2)'
+  label: 异动
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-006
+  permission: enrollment.transfer:create
+  field: null
+  api: null
+  nav: PAGE-STU-STATUS
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-053
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(5) > td:nth-of-type(12) > button:nth-of-type(3)'
+  label: 调班
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-007
+  permission: org.class:update
+  field: null
+  api: null
+  nav: PAGE-STU-TRANSFER
+  role_visible: academic_director,grade_leader
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-054
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(6)'
+  label: 2026000006 吴雨桐 女 高中 2026 级 高一 高一 (3) 班 在读 2026 137****2205 2026-09-2411:20 编辑异动调班
+  element_plus: el-table
+  props:
+    event: row-click
+  basis: 表格行入口
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: PAGE-STU-DETAIL
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-055
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(6) > td:nth-of-type(1) > input:nth-of-type(1)'
+  label: ''
+  element_plus: el-table-column
+  props:
+    type: selection
+  basis: 表格勾选列
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-056
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(6) > td:nth-of-type(12) > button:nth-of-type(1)'
+  label: 编辑
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-005
+  permission: person.student:update
+  field: null
+  api: null
+  nav: PAGE-STU-EDIT
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-057
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(6) > td:nth-of-type(12) > button:nth-of-type(2)'
+  label: 异动
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-006
+  permission: enrollment.transfer:create
+  field: null
+  api: null
+  nav: PAGE-STU-STATUS
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-058
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(6) > td:nth-of-type(12) > button:nth-of-type(3)'
+  label: 调班
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-007
+  permission: org.class:update
+  field: null
+  api: null
+  nav: PAGE-STU-TRANSFER
+  role_visible: academic_director,grade_leader
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-059
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(7)'
+  label: 2025000001 徐昊然 男 高中 2025 级 高二 高二 (1) 班 出国 2025 186****7712 2026-09-1814:30 编辑异动调班
+  element_plus: el-table
+  props:
+    event: row-click
+  basis: 表格行入口
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: PAGE-STU-DETAIL
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-060
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(7) > td:nth-of-type(1) > input:nth-of-type(1)'
+  label: ''
+  element_plus: el-table-column
+  props:
+    type: selection
+  basis: 表格勾选列
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-061
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(7) > td:nth-of-type(12) > button:nth-of-type(1)'
+  label: 编辑
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-005
+  permission: person.student:update
+  field: null
+  api: null
+  nav: PAGE-STU-EDIT
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-062
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(7) > td:nth-of-type(12) > button:nth-of-type(2)'
+  label: 异动
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-006
+  permission: enrollment.transfer:create
+  field: null
+  api: null
+  nav: PAGE-STU-STATUS
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-063
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(7) > td:nth-of-type(12) > button:nth-of-type(3)'
+  label: 调班
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-007
+  permission: org.class:update
+  field: null
+  api: null
+  nav: PAGE-STU-TRANSFER
+  role_visible: academic_director,grade_leader
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-064
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(8)'
+  label: 2025000002 孙悠然 女 高中 2025 级 高二 高二 (1) 班 在读 2025 135****6631 2026-09-2412:01 编辑异动调班
+  element_plus: el-table
+  props:
+    event: row-click
+  basis: 表格行入口
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: PAGE-STU-DETAIL
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-065
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(8) > td:nth-of-type(1) > input:nth-of-type(1)'
+  label: ''
+  element_plus: el-table-column
+  props:
+    type: selection
+  basis: 表格勾选列
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-066
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(8) > td:nth-of-type(12) > button:nth-of-type(1)'
+  label: 编辑
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-005
+  permission: person.student:update
+  field: null
+  api: null
+  nav: PAGE-STU-EDIT
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-067
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(8) > td:nth-of-type(12) > button:nth-of-type(2)'
+  label: 异动
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-006
+  permission: enrollment.transfer:create
+  field: null
+  api: null
+  nav: PAGE-STU-STATUS
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-068
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(8) > td:nth-of-type(12) > button:nth-of-type(3)'
+  label: 调班
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-007
+  permission: org.class:update
+  field: null
+  api: null
+  nav: PAGE-STU-TRANSFER
+  role_visible: academic_director,grade_leader
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-069
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(9)'
+  label: 2024000001 马嘉懿 男 高中 2024 级 高三 高三 (1) 班 在读 2024 139****0091 2026-09-2412:30 编辑异动调班
+  element_plus: el-table
+  props:
+    event: row-click
+  basis: 表格行入口
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: PAGE-STU-DETAIL
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-070
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(9) > td:nth-of-type(1) > input:nth-of-type(1)'
+  label: ''
+  element_plus: el-table-column
+  props:
+    type: selection
+  basis: 表格勾选列
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-071
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(9) > td:nth-of-type(12) > button:nth-of-type(1)'
+  label: 编辑
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-005
+  permission: person.student:update
+  field: null
+  api: null
+  nav: PAGE-STU-EDIT
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-072
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(9) > td:nth-of-type(12) > button:nth-of-type(2)'
+  label: 异动
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-006
+  permission: enrollment.transfer:create
+  field: null
+  api: null
+  nav: PAGE-STU-STATUS
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-073
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(9) > td:nth-of-type(12) > button:nth-of-type(3)'
+  label: 调班
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-007
+  permission: org.class:update
+  field: null
+  api: null
+  nav: PAGE-STU-TRANSFER
+  role_visible: academic_director,grade_leader
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-074
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(10)'
+  label: 2026000101 朱书瑶 女 初中 2026 级 初一 初一 (1) 班 在读 2026 — 2026-09-2209:40 编辑异动调班
+  element_plus: el-table
+  props:
+    event: row-click
+  basis: 表格行入口
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: PAGE-STU-DETAIL
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-075
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(10) > td:nth-of-type(1) > input:nth-of-type(1)'
+  label: ''
+  element_plus: el-table-column
+  props:
+    type: selection
+  basis: 表格勾选列
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-076
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(10) > td:nth-of-type(12) > button:nth-of-type(1)'
+  label: 编辑
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-005
+  permission: person.student:update
+  field: null
+  api: null
+  nav: PAGE-STU-EDIT
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-077
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(10) > td:nth-of-type(12) > button:nth-of-type(2)'
+  label: 异动
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-006
+  permission: enrollment.transfer:create
+  field: null
+  api: null
+  nav: PAGE-STU-STATUS
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-078
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(10) > td:nth-of-type(12) > button:nth-of-type(3)'
+  label: 调班
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-007
+  permission: org.class:update
+  field: null
+  api: null
+  nav: PAGE-STU-TRANSFER
+  role_visible: academic_director,grade_leader
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-079
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(11)'
+  label: 2026000011 欧阳慕容芷若 女 高中 2026 级 高一 高一 (1) 班 在读 2026 137****9922 2026-09-2908:12 编辑异动调班
+  element_plus: el-table
+  props:
+    event: row-click
+  basis: 表格行入口
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: PAGE-STU-DETAIL
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-080
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(11) > td:nth-of-type(1) > input:nth-of-type(1)'
+  label: ''
+  element_plus: el-table-column
+  props:
+    type: selection
+  basis: 表格勾选列
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-081
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(11) > td:nth-of-type(12) > button:nth-of-type(1)'
+  label: 编辑
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-005
+  permission: person.student:update
+  field: null
+  api: null
+  nav: PAGE-STU-EDIT
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-082
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(11) > td:nth-of-type(12) > button:nth-of-type(2)'
+  label: 异动
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-006
+  permission: enrollment.transfer:create
+  field: null
+  api: null
+  nav: PAGE-STU-STATUS
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-083
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(11) > td:nth-of-type(12) > button:nth-of-type(3)'
+  label: 调班
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-007
+  permission: org.class:update
+  field: null
+  api: null
+  nav: PAGE-STU-TRANSFER
+  role_visible: academic_director,grade_leader
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-084
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(12)'
+  label: 2026000012 阿依古丽·买买提 女 高中 2026 级 高一 高一 (2) 班 在读 2026 135****6677 2026-09-2908:20 编辑异动调班
+  element_plus: el-table
+  props:
+    event: row-click
+  basis: 表格行入口
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: PAGE-STU-DETAIL
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-085
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(12) > td:nth-of-type(1) > input:nth-of-type(1)'
+  label: ''
+  element_plus: el-table-column
+  props:
+    type: selection
+  basis: 表格勾选列
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-086
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(12) > td:nth-of-type(12) > button:nth-of-type(1)'
+  label: 编辑
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-005
+  permission: person.student:update
+  field: null
+  api: null
+  nav: PAGE-STU-EDIT
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-087
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(12) > td:nth-of-type(12) > button:nth-of-type(2)'
+  label: 异动
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-006
+  permission: enrollment.transfer:create
+  field: null
+  api: null
+  nav: PAGE-STU-STATUS
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-088
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(12) > td:nth-of-type(12) > button:nth-of-type(3)'
+  label: 调班
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-007
+  permission: org.class:update
+  field: null
+  api: null
+  nav: PAGE-STU-TRANSFER
+  role_visible: academic_director,grade_leader
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-089
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(13)'
+  label: 2024000009 罗一鸣 男 高中 2024 级 高三 高三 (1) 班 已转出 2024 138****4411 2026-08-3017:05 编辑终态 · 无异动入口
+  element_plus: el-table
+  props:
+    event: row-click
+  basis: 表格行入口
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: PAGE-STU-DETAIL
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-090
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(13) > td:nth-of-type(1) > input:nth-of-type(1)'
+  label: ''
+  element_plus: el-table-column
+  props:
+    type: selection
+  basis: 表格勾选列
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-091
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(13) > td:nth-of-type(12) > button:nth-of-type(1)'
+  label: 编辑
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-005
+  permission: person.student:update
+  field: null
+  api: null
+  nav: PAGE-STU-EDIT
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-092
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(14)'
+  label: 2024000010 韦清和 男 高中 2024 级 高三 高三 (1) 班 退学 2024 139****7700 2026-09-0509:00 编辑终态 · 无异动入口
+  element_plus: el-table
+  props:
+    event: row-click
+  basis: 表格行入口
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: PAGE-STU-DETAIL
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-093
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(14) > td:nth-of-type(1) > input:nth-of-type(1)'
+  label: ''
+  element_plus: el-table-column
+  props:
+    type: selection
+  basis: 表格勾选列
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-094
+  page_id: PAGE-STU-LIST
+  selector: '#student-rows > tr:nth-of-type(14) > td:nth-of-type(12) > button:nth-of-type(1)'
+  label: 编辑
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-005
+  permission: person.student:update
+  field: null
+  api: null
+  nav: PAGE-STU-EDIT
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-095
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(3) > div:nth-of-type(2)
+    > button:nth-of-type(1)'
+  label: ‹
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-096
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(3) > div:nth-of-type(2)
+    > button:nth-of-type(2)'
+  label: '1'
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-097
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(3) > div:nth-of-type(2)
+    > button:nth-of-type(3)'
+  label: '2'
+  element_plus: el-pagination
+  props: {}
+  basis: 分页控件
+  declared_component: pagination
+  action_id: ACT-COM-006
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-098
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(3) > div:nth-of-type(2)
+    > button:nth-of-type(4)'
+  label: '3'
+  element_plus: el-pagination
+  props: {}
+  basis: 分页控件
+  declared_component: pagination
+  action_id: ACT-COM-006
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-099
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(3) > div:nth-of-type(2)
+    > button:nth-of-type(5)'
+  label: …
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-100
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(3) > div:nth-of-type(2)
+    > button:nth-of-type(6)'
+  label: '7'
+  element_plus: el-pagination
+  props: {}
+  basis: 分页控件
+  declared_component: pagination
+  action_id: ACT-COM-006
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-101
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(3) > div:nth-of-type(2)
+    > button:nth-of-type(7)'
+  label: ›
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-102
+  page_id: PAGE-STU-LIST
+  selector: '#empty-v1'
+  label: 筛选无结果
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-103
+  page_id: PAGE-STU-LIST
+  selector: '#empty-v2'
+  label: 无数据范围
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-104
+  page_id: PAGE-STU-LIST
+  selector: '#empty-action'
+  label: 清空筛选条件
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-105
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(6) > div:nth-of-type(1)
+    > div:nth-of-type(5) > button:nth-of-type(1)'
+  label: 重试
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-COM-005
+  permission: null
+  field: null
+  api: listStudent
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-106
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(6) > div:nth-of-type(1)
+    > div:nth-of-type(5) > button:nth-of-type(2)'
+  label: 反馈问题
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-107
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(7) > div:nth-of-type(1)
+    > div:nth-of-type(4) > button:nth-of-type(1)'
+  label: 返回入口
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-108
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(9) > div:nth-of-type(1)
+    > div:nth-of-type(4) > button:nth-of-type(1)'
+  label: 查看任务中心
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: PAGE-IMP-TASK-LIST
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-109
+  page_id: PAGE-STU-LIST
+  selector: '#page-root > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(9) > div:nth-of-type(1)
+    > div:nth-of-type(4) > button:nth-of-type(2)'
+  label: 取消任务
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-110
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"]'
+  label: PAGE-STU-CREATE
+  element_plus: el-dialog
+  props: {}
+  basis: 已声明浮层载体
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-111
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)'
+  label: 关闭
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: PAGE-STU-CREATE
+- id: EL-STU-112
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3)
+    > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)'
+  label: student_no
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: student_no
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-113
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3)
+    > div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)'
+  label: G / L 开头，可留空
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: national_student_no
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-114
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3)
+    > div:nth-of-type(1) > div:nth-of-type(3) > input:nth-of-type(1)'
+  label: 请输入姓名
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: student_name
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-115
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3)
+    > div:nth-of-type(1) > div:nth-of-type(4) > select:nth-of-type(1)'
+  label: gender
+  element_plus: el-select
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-select
+  action_id: null
+  permission: null
+  field: gender
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-116
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3)
+    > div:nth-of-type(1) > div:nth-of-type(5) > input:nth-of-type(1)'
+  label: enroll_year
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: enroll_year
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-117
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3)
+    > div:nth-of-type(1) > div:nth-of-type(6) > select:nth-of-type(1)'
+  label: stage_code
+  element_plus: el-select
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-select
+  action_id: null
+  permission: null
+  field: stage_code
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-118
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3)
+    > div:nth-of-type(1) > div:nth-of-type(7) > select:nth-of-type(1)'
+  label: grade_name
+  element_plus: el-select
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-select
+  action_id: null
+  permission: null
+  field: grade_name
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-119
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3)
+    > div:nth-of-type(1) > div:nth-of-type(8) > select:nth-of-type(1)'
+  label: class_name
+  element_plus: el-select
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-select
+  action_id: null
+  permission: null
+  field: class_name
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-120
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3)
+    > div:nth-of-type(1) > div:nth-of-type(9) > select:nth-of-type(1)'
+  label: enrollment_status
+  element_plus: el-select
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-select
+  action_id: null
+  permission: null
+  field: enrollment_status
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-121
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3)
+    > div:nth-of-type(1) > div:nth-of-type(10) > input:nth-of-type(1)'
+  label: ''
+  element_plus: el-date-picker
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-date-picker
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-122
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3)
+    > div:nth-of-type(1) > div:nth-of-type(11) > div:nth-of-type(1) > button:nth-of-type(1)'
+  label: 上传照片
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-STU-021
+  permission: person.student:create
+  field: null
+  api: uploadStudentPhoto
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-123
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3)
+    > div:nth-of-type(1) > div:nth-of-type(11) > div:nth-of-type(1) > button:nth-of-type(2)'
+  label: 查看原图
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-STU-022
+  permission: read_sensitive
+  field: null
+  api: getStudentPhoto
+  nav: null
+  role_visible: academic_director,school_leader,platform_ops
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-124
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4)
+    > div:nth-of-type(1) > div:nth-of-type(1) > select:nth-of-type(1)'
+  label: id_type
+  element_plus: el-select
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-select
+  action_id: null
+  permission: null
+  field: id_type
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-125
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4)
+    > div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)'
+  label: 18 位，可留空
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: id_card_no
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-126
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4)
+    > div:nth-of-type(1) > div:nth-of-type(3) > input:nth-of-type(1)'
+  label: YYYY-MM-DD
+  element_plus: el-date-picker
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-date-picker
+  action_id: null
+  permission: null
+  field: birth_date
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-127
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4)
+    > div:nth-of-type(1) > div:nth-of-type(4) > input:nth-of-type(1)'
+  label: 11 位手机号
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: student_phone
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-128
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4)
+    > div:nth-of-type(1) > div:nth-of-type(5) > input:nth-of-type(1)'
+  label: 省 / 市 / 区 + 详细地址（可留空）
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: address
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-129
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(5)
+    > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)'
+  label: 监护人姓名
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: guardian_name
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-130
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(5)
+    > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > select:nth-of-type(1)'
+  label: relation
+  element_plus: el-select
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-select
+  action_id: null
+  permission: null
+  field: relation
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-131
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(5)
+    > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > input:nth-of-type(1)'
+  label: 11 位手机号
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: guardian_phone
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-132
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(5)
+    > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > span:nth-of-type(1) >
+    input:nth-of-type(1)'
+  label: ''
+  element_plus: el-radio
+  props: {}
+  basis: 原生输入类型
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-133
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(5)
+    > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > input:nth-of-type(1)'
+  label: 如：仅工作日 18:00 后联系
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-134
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(5)
+    > div:nth-of-type(3) > button:nth-of-type(1)'
+  label: 添加监护人
+  element_plus: el-button
+  props:
+    type: primary
+    plain: true
+  basis: 原型明确声明
+  declared_component: el-button.primary.plain
+  action_id: ACT-STU-015
+  permission: person.student_guardian:update
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-135
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(5)
+    > div:nth-of-type(3) > button:nth-of-type(2)'
+  label: 删除本行
+  element_plus: el-button
+  props:
+    type: danger
+    plain: true
+  basis: 原型明确声明
+  declared_component: el-button.danger.plain
+  action_id: ACT-STU-016
+  permission: person.student_guardian:update
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-136
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(5)
+    > div:nth-of-type(3) > button:nth-of-type(3)'
+  label: 设为主要联系人
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-STU-017
+  permission: person.student_guardian:update
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-137
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(1)'
+  label: 取消
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-STU-014
+  permission: person.student:create
+  field: null
+  api: null
+  nav: DIALOG-STU-DISCARD
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-138
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(2)'
+  label: 上一步
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-STU-012
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-139
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(3)'
+  label: 下一步
+  element_plus: el-button
+  props:
+    type: primary
+  basis: 原型明确声明
+  declared_component: el-button.primary
+  action_id: ACT-STU-011
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-140
+  page_id: PAGE-STU-CREATE
+  selector: '[data-demo-panel="PAGE-STU-CREATE"] > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(4)'
+  label: 保存
+  element_plus: el-button
+  props:
+    type: primary
+  basis: 原型明确声明
+  declared_component: el-button.primary
+  action_id: ACT-STU-013
+  permission: person.student:create
+  field: null
+  api: addStudent
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-141
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"]'
+  label: PAGE-STU-EDIT
+  element_plus: el-dialog
+  props: {}
+  basis: 已声明浮层载体
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-142
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)'
+  label: 关闭
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: PAGE-STU-EDIT
+- id: EL-STU-143
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4) >
+    div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)'
+  label: student_no
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: student_no
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-144
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4) >
+    div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)'
+  label: national_student_no
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: national_student_no
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-145
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4) >
+    div:nth-of-type(1) > div:nth-of-type(3) > input:nth-of-type(1)'
+  label: student_name
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: student_name
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-146
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4) >
+    div:nth-of-type(1) > div:nth-of-type(4) > select:nth-of-type(1)'
+  label: gender
+  element_plus: el-select
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-select
+  action_id: null
+  permission: null
+  field: gender
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-147
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4) >
+    div:nth-of-type(1) > div:nth-of-type(5) > input:nth-of-type(1)'
+  label: enroll_year
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: enroll_year
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-148
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4) >
+    div:nth-of-type(1) > div:nth-of-type(6) > input:nth-of-type(1)'
+  label: ''
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-149
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4) >
+    div:nth-of-type(1) > div:nth-of-type(7) > input:nth-of-type(1)'
+  label: class_name
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: class_name
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-150
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4) >
+    div:nth-of-type(1) > div:nth-of-type(8) > input:nth-of-type(1)'
+  label: enrollment_status
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: enrollment_status
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-151
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(5) >
+    div:nth-of-type(1) > div:nth-of-type(1) > select:nth-of-type(1)'
+  label: id_type
+  element_plus: el-select
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-select
+  action_id: null
+  permission: null
+  field: id_type
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-152
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(5) >
+    div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)'
+  label: id_card_no
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: id_card_no
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-153
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(5) >
+    div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > button:nth-of-type(1)'
+  label: 查看完整证件号
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-STU-010
+  permission: read_sensitive
+  field: null
+  api: viewStudentIdCard
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-154
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(5) >
+    div:nth-of-type(1) > div:nth-of-type(3) > input:nth-of-type(1)'
+  label: birth_date
+  element_plus: el-date-picker
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-date-picker
+  action_id: null
+  permission: null
+  field: birth_date
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-155
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(5) >
+    div:nth-of-type(1) > div:nth-of-type(4) > input:nth-of-type(1)'
+  label: student_phone
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: student_phone
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-156
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(5) >
+    div:nth-of-type(1) > div:nth-of-type(5) > input:nth-of-type(1)'
+  label: address
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: address
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-157
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) >
+    div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)'
+  label: guardian_name
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: guardian_name
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-158
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) >
+    div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > select:nth-of-type(1)'
+  label: relation
+  element_plus: el-select
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-select
+  action_id: null
+  permission: null
+  field: relation
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-159
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) >
+    div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > input:nth-of-type(1)'
+  label: guardian_phone
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: guardian_phone
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-160
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) >
+    div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > span:nth-of-type(1) > input:nth-of-type(1)'
+  label: ''
+  element_plus: el-radio
+  props: {}
+  basis: 原生输入类型
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-161
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) >
+    div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)'
+  label: guardian_name
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: guardian_name
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-162
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) >
+    div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > select:nth-of-type(1)'
+  label: relation
+  element_plus: el-select
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-select
+  action_id: null
+  permission: null
+  field: relation
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-163
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) >
+    div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > input:nth-of-type(1)'
+  label: guardian_phone
+  element_plus: el-input
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-input
+  action_id: null
+  permission: null
+  field: guardian_phone
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-164
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) >
+    div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > span:nth-of-type(1) > input:nth-of-type(1)'
+  label: ''
+  element_plus: el-radio
+  props: {}
+  basis: 原生输入类型
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-165
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) >
+    div:nth-of-type(4) > button:nth-of-type(1)'
+  label: 添加监护人
+  element_plus: el-button
+  props:
+    type: primary
+    plain: true
+  basis: 原型明确声明
+  declared_component: el-button.primary.plain
+  action_id: ACT-STU-015
+  permission: person.student_guardian:update
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-166
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) >
+    div:nth-of-type(4) > button:nth-of-type(2)'
+  label: 删除本行
+  element_plus: el-button
+  props:
+    type: danger
+    plain: true
+  basis: 原型明确声明
+  declared_component: el-button.danger.plain
+  action_id: ACT-STU-016
+  permission: person.student_guardian:update
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-167
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(1)'
+  label: 取消
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-STU-014
+  permission: person.student:update
+  field: null
+  api: null
+  nav: DIALOG-STU-DISCARD
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-168
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(2)'
+  label: 上一步
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-STU-012
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-169
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(3)'
+  label: 下一步
+  element_plus: el-button
+  props:
+    type: primary
+  basis: 原型明确声明
+  declared_component: el-button.primary
+  action_id: ACT-STU-011
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-170
+  page_id: PAGE-STU-EDIT
+  selector: '[data-demo-panel="PAGE-STU-EDIT"] > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(4)'
+  label: 保存
+  element_plus: el-button
+  props:
+    type: primary
+  basis: 原型明确声明
+  declared_component: el-button.primary
+  action_id: ACT-STU-013
+  permission: person.student:update
+  field: null
+  api: updateStudent
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-171
+  page_id: DIALOG-STU-DISCARD
+  selector: '[data-demo-panel="DIALOG-STU-DISCARD"]'
+  label: DIALOG-STU-DISCARD
+  element_plus: el-dialog
+  props: {}
+  basis: 已声明浮层载体
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-172
+  page_id: DIALOG-STU-DISCARD
+  selector: '[data-demo-panel="DIALOG-STU-DISCARD"] > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(1)'
+  label: 继续填写
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: DIALOG-STU-DISCARD
+- id: EL-STU-173
+  page_id: DIALOG-STU-DISCARD
+  selector: '[data-demo-panel="DIALOG-STU-DISCARD"] > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(2)'
+  label: 放弃并关闭
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: all
+- id: EL-STU-174
+  page_id: PAGE-STU-DETAIL
+  selector: '[data-demo-panel="PAGE-STU-DETAIL"]'
+  label: PAGE-STU-DETAIL
+  element_plus: el-drawer
+  props: {}
+  basis: 已声明浮层载体
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-175
+  page_id: PAGE-STU-DETAIL
+  selector: '[data-demo-panel="PAGE-STU-DETAIL"] > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)'
+  label: 关闭
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: PAGE-STU-DETAIL
+- id: EL-STU-176
+  page_id: PAGE-STU-DETAIL
+  selector: '[data-demo-panel="PAGE-STU-DETAIL"] > div:nth-of-type(1) > div:nth-of-type(2) > section:nth-of-type(1)
+    > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1) > button:nth-of-type(1)'
+  label: 查看完整
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-023
+  permission: person.student:read_sensitive
+  field: null
+  api: '-'
+  nav: null
+  role_visible: academic_director,super_admin
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-177
+  page_id: PAGE-STU-DETAIL
+  selector: '[data-demo-panel="PAGE-STU-DETAIL"] > div:nth-of-type(1) > div:nth-of-type(2) > section:nth-of-type(1)
+    > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > button:nth-of-type(1)'
+  label: 查看完整
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-023
+  permission: person.student_contact:read_contact
+  field: null
+  api: '-'
+  nav: null
+  role_visible: academic_director,grade_leader,homeroom,super_admin
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-178
+  page_id: PAGE-STU-DETAIL
+  selector: '[data-demo-panel="PAGE-STU-DETAIL"] > div:nth-of-type(1) > div:nth-of-type(2) > section:nth-of-type(2)
+    > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)'
+  label: 编辑监护人信息
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-STU-024
+  permission: person.student_guardian:update
+  field: null
+  api: saveStudentGuardian
+  nav: null
+  role_visible: academic_director,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-179
+  page_id: PAGE-STU-DETAIL
+  selector: '[data-demo-panel="PAGE-STU-DETAIL"] > div:nth-of-type(1) > div:nth-of-type(2) > section:nth-of-type(2)
+    > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > button:nth-of-type(1)'
+  label: 解绑
+  element_plus: el-button
+  props:
+    type: primary
+    link: true
+  basis: 原型明确声明
+  declared_component: el-button.link.primary
+  action_id: ACT-STU-034
+  permission: person.student_guardian:update
+  field: null
+  api: unbindStudentGuardian
+  nav: null
+  role_visible: academic_director,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-180
+  page_id: PAGE-STU-HISTORY
+  selector: '[data-demo-panel="PAGE-STU-DETAIL"] > div:nth-of-type(1) > div:nth-of-type(2) > section:nth-of-type(3)
+    > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)'
+  label: 查看全部
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-STU-029
+  permission: audit.log:read
+  field: null
+  api: null
+  nav: PAGE-AUDIT-LOG-LIST
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-181
+  page_id: PAGE-STU-DETAIL
+  selector: '[data-demo-panel="PAGE-STU-DETAIL"] > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(1)'
+  label: 编辑
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-STU-005
+  permission: person.student:update
+  field: null
+  api: null
+  nav: PAGE-STU-EDIT
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-182
+  page_id: PAGE-STU-DETAIL
+  selector: '[data-demo-panel="PAGE-STU-DETAIL"] > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(2)'
+  label: 学籍异动
+  element_plus: el-button
+  props:
+    type: primary
+    plain: true
+  basis: 原型明确声明
+  declared_component: el-button.primary.plain
+  action_id: ACT-STU-025
+  permission: enrollment.status:update
+  field: null
+  api: null
+  nav: PAGE-STU-STATUS
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-183
+  page_id: PAGE-STU-DETAIL
+  selector: '[data-demo-panel="PAGE-STU-DETAIL"] > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(3)'
+  label: 调班
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-STU-026
+  permission: org.class:update
+  field: null
+  api: null
+  nav: PAGE-STU-TRANSFER
+  role_visible: academic_director,grade_leader
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-184
+  page_id: PAGE-STU-DETAIL
+  selector: '[data-demo-panel="PAGE-STU-DETAIL"] > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(4)'
+  label: 跨校转学
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-STU-027
+  permission: enrollment.transfer:create
+  field: null
+  api: null
+  nav: PAGE-STU-CROSS-TRANSFER
+  role_visible: academic_director
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-185
+  page_id: PAGE-STU-DETAIL
+  selector: '[data-demo-panel="PAGE-STU-DETAIL"] > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(5)'
+  label: 异动登记（升班口径）
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-STU-028
+  permission: enrollment.transfer:create
+  field: null
+  api: null
+  nav: PAGE-PRM-CHANGE
+  role_visible: academic_director,grade_leader,homeroom
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-186
+  page_id: PAGE-STU-DETAIL
+  selector: '[data-demo-panel="PAGE-STU-DETAIL"] > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(6)'
+  label: 关闭
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: PAGE-STU-DETAIL
+- id: EL-STU-187
+  page_id: PAGE-STU-STATUS
+  selector: '[data-demo-panel="PAGE-STU-STATUS"]'
+  label: PAGE-STU-STATUS
+  element_plus: el-dialog
+  props: {}
+  basis: 已声明浮层载体
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-188
+  page_id: PAGE-STU-STATUS
+  selector: '[data-demo-panel="PAGE-STU-STATUS"] > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)'
+  label: 关闭
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: PAGE-STU-STATUS
+- id: EL-STU-189
+  page_id: PAGE-STU-STATUS
+  selector: '#ss-type'
+  label: 请选择异动类型 休学（在读 → 休学） 出国（在读 → 出国，保留学籍） 登记失踪（在读 → 失踪） 转出（在读 → 已转出） 退学（需校级管理员审批） 开除（义务教育阶段不可用；高中阶段需校级管理员审批）
+  element_plus: el-select
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-select
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-190
+  page_id: PAGE-STU-STATUS
+  selector: '#ss-date'
+  label: ''
+  element_plus: el-date-picker
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-date-picker
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-191
+  page_id: PAGE-STU-STATUS
+  selector: '#ss-class'
+  label: 不需要（休学 / 出国 / 转出等） 2026 级 高一 (1) 班 2026 级 高一 (2) 班
+  element_plus: el-select
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-select
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-192
+  page_id: PAGE-STU-STATUS
+  selector: '#ss-reason'
+  label: 如：家长申请休学一学期，附医院证明
+  element_plus: el-input
+  props:
+    type: textarea
+  basis: 原型明确声明
+  declared_component: el-input.textarea
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-193
+  page_id: PAGE-STU-STATUS
+  selector: '[data-demo-panel="PAGE-STU-STATUS"] > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(1)'
+  label: 取消
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-STU-031
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: PAGE-STU-STATUS
+- id: EL-STU-194
+  page_id: PAGE-STU-STATUS
+  selector: '[data-demo-panel="PAGE-STU-STATUS"] > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(2)'
+  label: 提交异动
+  element_plus: el-button
+  props:
+    type: primary
+  basis: 原型明确声明
+  declared_component: el-button.primary
+  action_id: ACT-STU-030
+  permission: enrollment.status:update
+  field: null
+  api: changeEnrollmentStatus
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-195
+  page_id: PAGE-STU-TRANSFER
+  selector: '[data-demo-panel="PAGE-STU-TRANSFER"]'
+  label: PAGE-STU-TRANSFER
+  element_plus: el-dialog
+  props: {}
+  basis: 已声明浮层载体
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-196
+  page_id: PAGE-STU-TRANSFER
+  selector: '[data-demo-panel="PAGE-STU-TRANSFER"] > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)'
+  label: 关闭
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: PAGE-STU-TRANSFER
+- id: EL-STU-197
+  page_id: PAGE-STU-TRANSFER
+  selector: '#st-target'
+  label: 请选择目标班级 2026 级 高一 (2) 班（在读 2 / 容量 45） 2026 级 高一 (3) 班（在读 1 / 容量 45） 2026 级 高一 (4) 班（已停用，不可选）
+  element_plus: el-select
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-select
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-198
+  page_id: PAGE-STU-TRANSFER
+  selector: '#st-reason'
+  label: 如：随班调整 / 家长申请
+  element_plus: el-input
+  props:
+    type: textarea
+  basis: 原型明确声明
+  declared_component: el-input.textarea
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-199
+  page_id: PAGE-STU-TRANSFER
+  selector: '[data-demo-panel="PAGE-STU-TRANSFER"] > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(1)'
+  label: 取消
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-STU-033
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: PAGE-STU-TRANSFER
+- id: EL-STU-200
+  page_id: PAGE-STU-TRANSFER
+  selector: '[data-demo-panel="PAGE-STU-TRANSFER"] > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(2)'
+  label: 确认调班
+  element_plus: el-button
+  props:
+    type: primary
+  basis: 原型明确声明
+  declared_component: el-button.primary
+  action_id: ACT-STU-032
+  permission: org.class:update
+  field: null
+  api: transferStudentClass
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-201
+  page_id: PAGE-PRM-CHANGE
+  selector: '[data-demo-panel="PAGE-PRM-CHANGE"]'
+  label: PAGE-PRM-CHANGE
+  element_plus: el-dialog
+  props: {}
+  basis: 已声明浮层载体
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-202
+  page_id: PAGE-PRM-CHANGE
+  selector: '[data-demo-panel="PAGE-PRM-CHANGE"] > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)'
+  label: 关闭
+  element_plus: el-button
+  props: {}
+  basis: 按 v1 通用按钮规则
+  declared_component: null
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: PAGE-PRM-CHANGE
+- id: EL-STU-203
+  page_id: PAGE-PRM-CHANGE
+  selector: '#pc-type'
+  label: 请选择异动类型 休学 复学 出国（保留学籍） 登记失踪 转出（含跨校转学） 退学（校级管理员审批） 死亡登记（校级管理员 + 证明材料）
+  element_plus: el-select
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-select
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-204
+  page_id: PAGE-PRM-CHANGE
+  selector: '#pc-date'
+  label: ''
+  element_plus: el-date-picker
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-date-picker
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-205
+  page_id: PAGE-PRM-CHANGE
+  selector: '#pc-reason'
+  label: ''
+  element_plus: el-input
+  props:
+    type: textarea
+  basis: 原型明确声明
+  declared_component: el-input.textarea
+  action_id: null
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null
+- id: EL-STU-206
+  page_id: PAGE-PRM-CHANGE
+  selector: '[data-demo-panel="PAGE-PRM-CHANGE"] > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(1)'
+  label: 取消
+  element_plus: el-button
+  props: {}
+  basis: 原型明确声明
+  declared_component: el-button
+  action_id: ACT-PRM-045
+  permission: null
+  field: null
+  api: null
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: PAGE-PRM-CHANGE
+- id: EL-STU-207
+  page_id: PAGE-PRM-CHANGE
+  selector: '[data-demo-panel="PAGE-PRM-CHANGE"] > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(2)'
+  label: 提交登记
+  element_plus: el-button
+  props:
+    type: primary
+  basis: 原型明确声明
+  declared_component: el-button.primary
+  action_id: ACT-PRM-044
+  permission: enrollment.status:update
+  field: null
+  api: changeEnrollmentStatus
+  nav: null
+  role_visible: null
+  role_enabled: null
+  close_panel: null

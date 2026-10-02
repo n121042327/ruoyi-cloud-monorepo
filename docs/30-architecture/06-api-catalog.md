@@ -47,22 +47,22 @@
 **异步（入队后立即返回任务号）**：导入执行、导出（> 2000 行）、升班预览与执行、教学班生成（> 1 万人）、
 归档区间检索（> 30 秒）、任务重试与死信重放。异步接口统一返回 `task_no`，进度与结果在异步任务中心查询。
 
-## 4. 接口总览（共 173 个 operationId）
+## 4. 接口总览（共 184 个 operationId）
 
 | 模块 | 接口数 |
 |---|---|
 | 审计与操作日志（`audit`） | 10 |
-| 班级管理（`class`） | 22 |
-| 年级管理（`grade`） | 11 |
+| 班级管理（`class`） | 23 |
+| 年级管理（`grade`） | 12 |
 | 导入导出与异步任务（`import-export`） | 14 |
-| 升班与学籍异动（`promotion`） | 20 |
+| 升班与学籍异动（`promotion`） | 21 |
 | 学校与租户（`school`） | 16 |
 | 3+1+2 选科与教学班（`stream`） | 17 |
-| 学生管理（`student`） | 19 |
+| 学生管理（`student`） | 25 |
 | 学科与配置（`subject`） | 12 |
-| 教师管理（`teacher`） | 20 |
+| 教师管理（`teacher`） | 22 |
 | 学年学期（`term`） | 12 |
-| **合计** | **173** |
+| **合计** | **184** |
 
 ## 5.1 审计与操作日志（`audit`）
 
@@ -100,11 +100,12 @@
 | 15 | `importRosterValidate` | POST | `/edu/class/roster/import/validate` | 编班校验 | `org.class` | 写入 / 触发 | 同步 |
 | 16 | `importRosterExecute` | POST | `/edu/class/roster/import/execute` | 编班执行（异步） | `org.class` | 写入 / 触发 | 异步 |
 | 17 | `exportClassRoster` | POST | `/edu/class/{id}/roster/export` | 花名册导出 | `org.class` | 写入 / 触发 | 异步 |
-| 18 | `listTeachingClass` | GET | `/edu/teaching-class/list` | 教学班列表 | `org.teaching_class` | 查询 | 同步 |
-| 19 | `addTeachingClass` | POST | `/edu/teaching-class` | 新建教学班 | `org.teaching_class` | 写入 / 触发 | 同步 |
-| 20 | `getTeachingClass` | GET | `/edu/teaching-class/{id}` | 教学班详情（`CR-017` 补登记：详情抽屉的数据来源） | `org.teaching_class` | 查询 | 同步 |
-| 21 | `disableTeachingClass` | POST | `/edu/teaching-class/{id}/disable` | 停用教学班（`CR-017` 补登记：原因必填、写审计、历史成员保留） | `org.teaching_class` | 写入 / 触发 | 同步 |
-| 22 | `listTeachingClassRoster` | GET | `/edu/teaching-class/{id}/roster` | 教学班成员清单（`CR-017` 补登记：只读，成员写入仍由生成流程触发） | `org.teaching_class` | 查询 | 同步 |
+| 18 | `exportClass` | POST | `/edu/class/export` | 班级列表导出（`CR-037` 补登记：沿用 `exportStudent` / `exportTeacher` 的模块级写法，≤ 2000 行直接下载、超出转异步） | `org.class` | 写入 / 触发 | 异步 |
+| 19 | `listTeachingClass` | GET | `/edu/teaching-class/list` | 教学班列表 | `org.teaching_class` | 查询 | 同步 |
+| 20 | `addTeachingClass` | POST | `/edu/teaching-class` | 新建教学班 | `org.teaching_class` | 写入 / 触发 | 同步 |
+| 21 | `getTeachingClass` | GET | `/edu/teaching-class/{id}` | 教学班详情（`CR-017` 补登记：详情抽屉的数据来源） | `org.teaching_class` | 查询 | 同步 |
+| 22 | `disableTeachingClass` | POST | `/edu/teaching-class/{id}/disable` | 停用教学班（`CR-017` 补登记：原因必填、写审计、历史成员保留） | `org.teaching_class` | 写入 / 触发 | 同步 |
+| 23 | `listTeachingClassRoster` | GET | `/edu/teaching-class/{id}/roster` | 教学班成员清单（`CR-017` 补登记：只读，成员写入仍由生成流程触发） | `org.teaching_class` | 查询 | 同步 |
 
 ## 5.3 年级管理（`grade`）
 
@@ -121,6 +122,7 @@
 | 9 | `saveGradeLeader` | POST | `/edu/grade/{id}/leader` | 指定年级主任 | `org.grade` | 写入 / 触发 | 同步 |
 | 10 | `removeGradeLeader` | DELETE | `/edu/grade/{id}/leader/{leaderId}` | 解除任职 | `org.grade` | 逻辑删除 | 同步 |
 | 11 | `getGradePromotionView` | GET | `/edu/grade/promotion-view` | 学年升级只读视图 | `org.grade` | 查询 | 同步 |
+| 12 | `exportGrade` | POST | `/edu/grade/export` | 年级列表导出（`CR-037` 补登记：模块级导出，≤ 2000 行直接下载、超出转异步） | `org.grade` | 写入 / 触发 | 异步 |
 
 ## 5.4 导入导出与异步任务（`import-export`）
 
@@ -146,25 +148,26 @@
 | # | operationId | 方法 | 路径 | 说明 | 权限资源 | 动作 | 同步/异步 |
 |---|---|---|---|---|---|---|---|
 | 1 | `listPromotionTask` | GET | `/edu/promotion/task/list` | 任务列表 | `promotion.batch` | 查询 | 同步 |
-| 2 | `getPromotionTask` | GET | `/edu/promotion/task/{id}` | 任务详情 | `promotion.batch` | 查询 | 同步 |
-| 3 | `addPromotionTask` | POST | `/edu/promotion/task` | 创建任务 | `promotion.batch` | 写入 / 触发 | 同步 |
-| 4 | `previewPromotionTask` | POST | `/edu/promotion/task/{id}/preview` | 生成预览 | `promotion.batch` | 写入 / 触发 | 同步 |
-| 5 | `updatePromotionItem` | PUT | `/edu/promotion/task/{id}/item` | 调整单条去向 | `promotion.batch` | 更新 | 同步 |
-| 6 | `batchUpdatePromotionItem` | PUT | `/edu/promotion/task/{id}/item/batch` | 批量调整 | `promotion.batch` | 更新 | 同步 |
-| 7 | `validatePromotionTask` | POST | `/edu/promotion/task/{id}/validate` | 校验 | `promotion.batch` | 写入 / 触发 | 同步 |
-| 8 | `executePromotionTask` | POST | `/edu/promotion/task/{id}/execute` | 执行（异步） | `promotion.batch` | 写入 / 触发 | 异步 |
-| 9 | `retryPromotionTask` | POST | `/edu/promotion/task/{id}/retry` | 只重试失败项 | `promotion.batch` | 写入 / 触发 | 同步 |
-| 10 | `cancelPromotionTask` | POST | `/edu/promotion/task/{id}/cancel` | 取消 | `promotion.batch` | 写入 / 触发 | 同步 |
-| 11 | `exportPromotionPreview` | POST | `/edu/promotion/task/{id}/preview/export` | 预览导出 | `promotion.batch` | 写入 / 触发 | 同步 |
-| 12 | `exportPromotionResult` | POST | `/edu/promotion/task/{id}/result/export` | 结果报告导出 | `promotion.batch` | 写入 / 触发 | 同步 |
-| 13 | `listEnrollmentChange` | GET | `/edu/enrollment/change/list` | 异动记录 | `enrollment.status` | 查询 | 同步 |
-| 14 | `addEnrollmentChange` | POST | `/edu/enrollment/change` | 发起异动 | `enrollment.status` | 写入 / 触发 | 同步 |
-| 15 | `approveEnrollmentChange` | POST | `/edu/enrollment/change/{id}/approve` | 审批异动 | `enrollment.status` | 写入 / 触发 | 同步 |
-| 16 | `listTransfer` | GET | `/edu/enrollment/transfer/list` | 转学单列表 | `enrollment.status` | 查询 | 同步 |
-| 17 | `addTransfer` | POST | `/edu/enrollment/transfer` | 发起转出 | `enrollment.status` | 写入 / 触发 | 同步 |
-| 18 | `acceptTransfer` | POST | `/edu/enrollment/transfer/{id}/accept` | 转入校接收 | `enrollment.status` | 写入 / 触发 | 同步 |
-| 19 | `checkInTransfer` | POST | `/edu/enrollment/transfer/{id}/check-in` | 报到 | `enrollment.status` | 写入 / 触发 | 同步 |
-| 20 | `cancelTransfer` | POST | `/edu/enrollment/transfer/{id}/cancel` | 撤销接收 | `enrollment.status` | 写入 / 触发 | 同步 |
+| 2 | `exportPromotionTask` | POST | `/edu/promotion/task/export` | 任务列表导出（`CR-037` 补登记：模块级导出，≤ 2000 行直接下载、超出转异步） | `promotion.batch` | 写入 / 触发 | 异步 |
+| 3 | `getPromotionTask` | GET | `/edu/promotion/task/{id}` | 任务详情 | `promotion.batch` | 查询 | 同步 |
+| 4 | `addPromotionTask` | POST | `/edu/promotion/task` | 创建任务 | `promotion.batch` | 写入 / 触发 | 同步 |
+| 5 | `previewPromotionTask` | POST | `/edu/promotion/task/{id}/preview` | 生成预览 | `promotion.batch` | 写入 / 触发 | 同步 |
+| 6 | `updatePromotionItem` | PUT | `/edu/promotion/task/{id}/item` | 调整单条去向 | `promotion.batch` | 更新 | 同步 |
+| 7 | `batchUpdatePromotionItem` | PUT | `/edu/promotion/task/{id}/item/batch` | 批量调整 | `promotion.batch` | 更新 | 同步 |
+| 8 | `validatePromotionTask` | POST | `/edu/promotion/task/{id}/validate` | 校验 | `promotion.batch` | 写入 / 触发 | 同步 |
+| 9 | `executePromotionTask` | POST | `/edu/promotion/task/{id}/execute` | 执行（异步） | `promotion.batch` | 写入 / 触发 | 异步 |
+| 10 | `retryPromotionTask` | POST | `/edu/promotion/task/{id}/retry` | 只重试失败项 | `promotion.batch` | 写入 / 触发 | 同步 |
+| 11 | `cancelPromotionTask` | POST | `/edu/promotion/task/{id}/cancel` | 取消 | `promotion.batch` | 写入 / 触发 | 同步 |
+| 12 | `exportPromotionPreview` | POST | `/edu/promotion/task/{id}/preview/export` | 预览导出 | `promotion.batch` | 写入 / 触发 | 同步 |
+| 13 | `exportPromotionResult` | POST | `/edu/promotion/task/{id}/result/export` | 结果报告导出 | `promotion.batch` | 写入 / 触发 | 同步 |
+| 14 | `listEnrollmentChange` | GET | `/edu/enrollment/change/list` | 异动记录 | `enrollment.status` | 查询 | 同步 |
+| 15 | `addEnrollmentChange` | POST | `/edu/enrollment/change` | 发起异动 | `enrollment.status` | 写入 / 触发 | 同步 |
+| 16 | `approveEnrollmentChange` | POST | `/edu/enrollment/change/{id}/approve` | 审批异动 | `enrollment.status` | 写入 / 触发 | 同步 |
+| 17 | `listTransfer` | GET | `/edu/enrollment/transfer/list` | 转学单列表 | `enrollment.status` | 查询 | 同步 |
+| 18 | `addTransfer` | POST | `/edu/enrollment/transfer` | 发起转出 | `enrollment.status` | 写入 / 触发 | 同步 |
+| 19 | `acceptTransfer` | POST | `/edu/enrollment/transfer/{id}/accept` | 转入校接收 | `enrollment.status` | 写入 / 触发 | 同步 |
+| 20 | `checkInTransfer` | POST | `/edu/enrollment/transfer/{id}/check-in` | 报到 | `enrollment.status` | 写入 / 触发 | 同步 |
+| 21 | `cancelTransfer` | POST | `/edu/enrollment/transfer/{id}/cancel` | 撤销接收 | `enrollment.status` | 写入 / 触发 | 同步 |
 
 ## 5.6 学校与租户（`school`）
 
@@ -222,16 +225,22 @@
 | 7 | `listStudentChangeLog` | GET | `/edu/student/{id}/change-log` | 变更记录 | `person.student` | 查询 | 同步 |
 | 8 | `listEnrollmentStatusOption` | GET | `/edu/student/{id}/status-options` | 当前状态可执行的异动 | `person.student` | 查询 | 同步 |
 | 9 | `changeEnrollmentStatus` | POST | `/edu/student/{id}/enrollment-change` | 学籍异动 | `person.student` | 写入 / 触发 | 同步 |
-| 10 | `transferStudentClass` | POST | `/edu/student/{id}/class-transfer` | 调班 | `person.student` | 写入 / 触发 | 同步 |
-| 11 | `crossSchoolTransfer` | POST | `/edu/student/cross-school-transfer` | 跨校转学 | `person.student` | 写入 / 触发 | 同步 |
-| 12 | `importStudentValidate` | POST | `/edu/student/import/validate` | 导入校验 | `person.student` | 写入 / 触发 | 同步 |
-| 13 | `importStudentExecute` | POST | `/edu/student/import/execute` | 导入执行（异步） | `person.student` | 写入 / 触发 | 异步 |
-| 14 | `downloadStudentImportTemplate` | GET | `/edu/student/import/template` | 模板下载 | `person.student` | 查询 | 同步 |
-| 15 | `exportStudent` | POST | `/edu/student/export` | 导出 | `person.student` | 写入 / 触发 | 异步 |
-| 16 | `resetStudentPassword` | POST | `/edu/student/{id}/reset-password` | 重置密码 | `person.student` | 写入 / 触发 | 同步 |
-| 17 | `listStudentGuardian` | GET | `/edu/student/{id}/guardian` | 监护人列表 | `person.student` | 查询 | 同步 |
-| 18 | `saveStudentGuardian` | POST | `/edu/student/{id}/guardian` | 新增 / 修改监护人 | `person.student` | 写入 / 触发 | 同步 |
-| 19 | `unbindStudentGuardian` | POST | `/edu/student/{id}/guardian/{guardianId}/unbind` | 解绑（需审核） | `person.student` | 写入 / 触发 | 同步 |
+| 10 | `crossSchoolTransfer` | POST | `/edu/student/cross-school-transfer` | 跨校转学 | `person.student` | 写入 / 触发 | 同步 |
+| 11 | `importStudentValidate` | POST | `/edu/student/import/validate` | 导入校验 | `person.student` | 写入 / 触发 | 同步 |
+| 12 | `importStudentExecute` | POST | `/edu/student/import/execute` | 导入执行（异步） | `person.student` | 写入 / 触发 | 异步 |
+| 13 | `downloadStudentImportTemplate` | GET | `/edu/student/import/template` | 模板下载 | `person.student` | 查询 | 同步 |
+| 14 | `exportStudent` | POST | `/edu/student/export` | 导出 | `person.student` | 写入 / 触发 | 异步 |
+| 15 | `uploadStudentPhoto` | POST | `/edu/student/{id}/photo` | 上传 / 更换学生照片（`CR-037` 补登记：单张，走统一文件服务） | `person.student` | 写入 / 触发 | 同步 |
+| 16 | `getStudentPhoto` | GET | `/edu/student/{id}/photo` | 查看照片原图（`CR-037` 补登记：需 `read_sensitive`，写敏感数据访问日志） | `person.student` | 查询 | 同步 |
+| 17 | `viewStudentIdCard` | GET | `/edu/student/{id}/id-card` | 查看完整证件号（`CR-037` 补登记：需 `read_sensitive`，写敏感数据访问日志） | `person.student` | 查询 | 同步 |
+| 18 | `resetStudentPassword` | POST | `/edu/student/{id}/reset-password` | 重置密码 | `person.student` | 写入 / 触发 | 同步 |
+| 19 | `listStudentGuardian` | GET | `/edu/student/{id}/guardian` | 监护人列表 | `person.student` | 查询 | 同步 |
+| 20 | `saveStudentGuardian` | POST | `/edu/student/{id}/guardian` | 新增 / 修改监护人 | `person.student` | 写入 / 触发 | 同步 |
+| 21 | `unbindStudentGuardian` | POST | `/edu/student/{id}/guardian/{guardianId}/unbind` | 解绑（需审核） | `person.student` | 写入 / 触发 | 同步 |
+| 22 | `getStudentActivationCode` | GET | `/edu/student/{id}/activation-code` | 查看激活码（`CR-043` 补登记：默认掩码，`reveal=true` 揭示明文并逐条写审计） | `person.student` | 查询 | 同步 |
+| 23 | `printStudentActivationSlip` | POST | `/edu/student/activation-slip/print` | 批量打印密码条（`CR-043` 补登记：每行「姓名 / 学号 / 登录名 / 激活码」） | `person.student` | 写入 / 触发 | 同步 |
+| 24 | `exportStudentActivationCode` | POST | `/edu/student/activation-code/export` | 导出未激活学生加密清单（`CR-043` 补登记：教务主任权限，写审计并记录行数） | `person.student` | 写入 / 触发 | 异步 |
+| 25 | `activateStudentAccount` | POST | `/edu/student/{id}/activate` | 班主任代学生激活并设置密码（`CR-043` 补登记：写审计） | `person.student` | 写入 / 触发 | 同步 |
 
 ## 5.9 学科与配置（`subject`）
 
@@ -274,6 +283,8 @@
 | 18 | `importTeacherExecute` | POST | `/edu/teacher/import/execute` | 导入执行（异步） | `person.teacher` | 写入 / 触发 | 异步 |
 | 19 | `downloadTeacherImportTemplate` | GET | `/edu/teacher/import/template` | 模板下载 | `person.teacher` | 查询 | 同步 |
 | 20 | `exportTeacher` | POST | `/edu/teacher/export` | 导出 | `person.teacher` | 写入 / 触发 | 同步 |
+| 21 | `enableTeacherAccount` | POST | `/edu/teacher/{id}/account/enable` | 启用账号（`CR-043` 补登记：与停用对称，写审计） | `person.teacher` | 写入 / 触发 | 同步 |
+| 22 | `copyTeachingAssignment` | POST | `/edu/teacher/assignment/copy` | 复制上一学年任教关系（`CR-043` 补登记：预览 + 冲突清单 + 异步执行） | `person.teacher` | 写入 / 触发 | 异步 |
 
 ## 5.11 学年学期（`term`）
 

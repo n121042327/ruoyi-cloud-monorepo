@@ -230,10 +230,10 @@ student_form:
     - id: ACT-STU-020
       element: 批量调班
       trigger: 勾选多行后点击
-      condition: 当前学年学期且在数据范围内
+      condition: 当前学年学期且在数据范围内（CR-035 / GAP-066 后：批量调班复用班级模块的 transferClass，单条 = 调班，多条 = 批量迁移）
       permission: "academic_director / org.class / update"
       confirm: 需要，提示"将把 N 名学生调整到 X 班；逐条校验范围，任一条越权则整体拒绝"
-      api: batchTransferStudent
+      api: transferClass
       result: 打开批量调班弹窗（目标班级 + 生效日期 + 原因），确认后执行并写审计
       audit: 是
       batch: "2-1"
@@ -313,7 +313,7 @@ teacher_list:
     - id: ACT-TCH-006
       element: 行内编辑
       trigger: 点击行内按钮
-      condition: 有 person.teacher:update 且行在数据范围内
+      condition: 有 person.teacher:update、行在数据范围内且当前状态为在职（CR-030 / GAP-075 裁决 A）
       permission: "academic_director / tenant_admin / person.teacher / update"
       api: "-"
       result: 打开 PAGE-TCH-EDIT 抽屉，按字段级权限渲染只读与可写；详情页内的"编辑"复用同一动作
@@ -323,7 +323,7 @@ teacher_list:
     - id: ACT-TCH-007
       element: 行内角色
       trigger: 点击行内按钮
-      condition: 有 person.teacher:update 权限
+      condition: 有 person.teacher:update 权限且当前状态为在职（CR-030 / GAP-075 裁决 A）
       permission: "academic_director / tenant_admin / person.teacher / update"
       api: "-"
       result: 打开 PAGE-TCH-ROLE 弹窗；选年级主任时必须选学年学期与年级
@@ -334,7 +334,7 @@ teacher_list:
     - id: ACT-TCH-008
       element: 行内任教
       trigger: 点击行内按钮
-      condition: 有 person.teaching_assignment 的 read 权限
+      condition: 有 person.teaching_assignment 的 read 权限且当前状态为在职（CR-030 / GAP-075 裁决 A）
       permission: "person.teaching_assignment:read"
       api: "-"
       result: 打开 PAGE-TCH-ASSIGN 任教关系页，默认按当前学年学期加载
@@ -353,6 +353,16 @@ teacher_list:
       audit: 是
       batch: "2-2"
       pages: [PAGE-TCH-LIST, PAGE-TCH-DETAIL]
+    - id: ACT-TCH-040
+      element: 行内撤销离职 / 调离登记
+      trigger: 点击行内按钮
+      condition: 有 person.teacher:update 且当前状态为离职或调离（CR-030 / GAP-075 裁决 A）
+      permission: "academic_director / tenant_admin / person.teacher / update"
+      api: revokeTeacherLeave
+      result: 打开 DIALOG-TCH-REVOKE 二次确认；撤销后该教师恢复在职、账号自动重新启用，教育角色不自动恢复（REQ-TCH-071），原登记与本次撤销都写审计（REQ-TCH-062）
+      audit: 是
+      batch: "2-2"
+      pages: [PAGE-TCH-LIST]
     - id: ACT-TCH-010
       element: 点击行
       trigger: 单击数据行
@@ -594,7 +604,7 @@ teacher_role:
       condition: 有 person.teacher:update 权限，且任职范围在操作人管理范围内
       permission: "academic_director / tenant_admin / person.teacher / update"
       confirm: 需要，提示"角色变更后立即失效该用户的数据范围缓存，并写入审计（原角色、新角色、生效日期）"
-      api: saveTeacherEduRole
+      api: saveTeacherRole
       result: 保存学校级角色与年级主任任职；随后刷新详情页的教育角色分区与列表的教育角色列
       audit: 是
       batch: "2-2"

@@ -61,7 +61,11 @@ ASYNC_HINTS = ("executeImport", "exportData", "exportStudent", "exportClassRoste
                "exportStreamSelection", "exportOperationLog", "exportOperatorAccess",
                "executeTeachingClassGenerate", "previewTeachingClassGenerate",
                "searchArchivedLog", "batchAddClass", "initSchoolBaseline", "executePromotion",
-               "applyPromotion", "importRosterExecute")
+               "applyPromotion", "importRosterExecute",
+               # CR-037 补登记的三个模块级导出
+               "exportClass", "exportGrade", "exportPromotionTask",
+               # CR-043 补登记的激活码导出与任教关系复制
+               "exportStudentActivationCode", "copyTeachingAssignment")
 
 
 def resource_of(path: str) -> str:

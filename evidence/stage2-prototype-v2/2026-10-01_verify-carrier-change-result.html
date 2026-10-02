@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<title>CR-008 载体变更回归验证</title>
+<style>
+  body { margin: 14px; background: #fff; color: #24292f; font: 13px/1.55 Consolas, "Microsoft YaHei", monospace; }
+  h1 { font-size: 17px; margin: 0 0 8px; }
+  ol { margin: 0 0 10px; padding-left: 22px; }
+  li.ok { color: #1a7f37; }
+  li.bad { color: #c0392b; font-weight: 700; }
+  p.sum { font-weight: 700; }
+  iframe { width: 1440px; height: 620px; border: 1px solid #dcdfe6; }
+</style>
+</head>
+<body>
+<h1>CR-008 载体变更回归：表单→弹窗、详情→抽屉（真实事件派发）</h1>
+<ol id="results"><li class="ok">通过  SC-01  学生「新增」打开的是弹窗而不是抽屉  —— 弹窗</li><li class="ok">通过  SC-02  弹窗内已无 drawer-header / drawer-body / drawer-footer 钩子</li><li class="ok">通过  SC-03  学生行内「编辑」打开的是弹窗  —— 弹窗</li><li class="ok">通过  SC-04  编辑弹窗内已无 drawer-* 钩子</li><li class="ok">通过  SC-05  放弃确认仍是弹窗（sm）</li><li class="ok">通过  TC-01  教师「新增」打开的是弹窗（三步仍在弹窗内）  —— 弹窗</li><li class="ok">通过  TC-02  新增弹窗内已无 drawer-* 钩子</li><li class="ok">通过  TC-03  空表单点「下一步」仍被校验拦住（载体变更不影响步骤条）  —— 当前步骤 1</li><li class="ok">通过  TC-04  教师行内「编辑」打开的是弹窗  —— 弹窗</li><li class="ok">通过  TC-05  编辑弹窗内已无 drawer-* 钩子</li><li class="ok">通过  TC-06  教育角色分配仍是弹窗</li><li class="ok">通过  TC-07  角色分配弹窗内的 header 钩子已改为 dialog-header</li><li class="ok">通过  TC-08  教师详情**仍然是抽屉**（详情类不改载体）  —— 抽屉</li><li class="ok">通过  TC-09  详情内「编辑」也打开弹窗（不是抽屉套抽屉）</li><p id="carrier-summary" class="sum">合计 14 条，通过 14 条，不通过 0 条 —— 全部通过</p></ol>
+<iframe id="frame" src="file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/teacher-list.html"></iframe>
+<script>
+(function () {
+  'use strict';
+  var STUDENT = 'file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v2/pages/student-list.html';
+  var TEACHER = 'file:///D:/work/person_work/ruoyi-cloud-monorepo/prototypes/functional/v1/pages/teacher-list.html';
+  var frame = document.getElementById('frame');
+  var RESULTS = [];
+
+  function rec(id, name, pass, detail) {
+    RESULTS.push({ id: id, name: name, pass: Boolean(pass), detail: detail || '' });
+  }
+  function doc() { return frame.contentDocument; }
+  function w() { return frame.contentWindow; }
+  function closeAll() { w().PrototypeShell.closePanel('all'); }
+  function q(sel) { return doc().querySelector(sel); }
+  function panel(id) { return doc().querySelector('[data-demo-panel="' + id + '"]'); }
+  function isDialog(id) {
+    var p = panel(id);
+    return Boolean(p && p.querySelector(':scope > .dialog'));
+  }
+  function isDrawer(id) {
+    var p = panel(id);
+    return Boolean(p && p.querySelector(':scope > .drawer'));
+  }
+  function cleanHooks(id) {
+    var p = panel(id);
+    if (!p) return false;
+    return p.querySelectorAll('.drawer-header, .drawer-body, .drawer-footer').length === 0;
+  }
+  function load(url, next) {
+    frame.addEventListener('load', function handler() {
+      frame.removeEventListener('load', handler);
+      window.setTimeout(next, 300);
+    });
+    frame.src = url;
+  }
+  function render() {
+    var ol = document.getElementById('results');
+    if (document.getElementById('carrier-summary')) return;
+    ol.innerHTML = '';
+    var pass = 0;
+    RESULTS.forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = r.pass ? 'ok' : 'bad';
+      li.textContent = (r.pass ? '通过  ' : '不通过 ') + r.id + '  ' + r.name + (r.detail ? '  —— ' + r.detail : '');
+      ol.appendChild(li);
+      if (r.pass) pass += 1;
+    });
+    var p = document.createElement('p');
+    p.id = 'carrier-summary';
+    p.className = pass === RESULTS.length ? 'sum' : 'sum bad';
+    p.textContent = '合计 ' + RESULTS.length + ' 条，通过 ' + pass + ' 条，不通过 ' + (RESULTS.length - pass) + ' 条'
+      + (pass === RESULTS.length ? ' —— 全部通过' : '');
+    ol.appendChild(p);
+  }
+
+  // 出错或被卡住时也要把已跑的结果渲染出来，便于定位断点
+  window.onerror = function (msg) {
+    rec('ERR', 'harness 运行时报错（后续步骤未执行）：' + msg, false, '');
+    render();
+  };
+  window.setTimeout(function () {
+    if (!document.getElementById('carrier-summary')) {
+      rec('ERR', 'harness 超时未跑完（上方为已执行的结果）', false, '');
+      render();
+    }
+  }, 9000);
+
+  function clickFirst(sel, onMissingId, name) {
+    var node = doc().querySelector(sel);
+    if (!node) {
+      rec(onMissingId, name, false, '找不到元素 ' + sel);
+      return false;
+    }
+    node.click();
+    return true;
+  }
+
+  /* ---------------- 学生列表（批次 2-1） ---------------- */
+  function runStudent() {
+    q('[data-action-id="ACT-STU-001"]').click();
+    window.setTimeout(function () {
+      rec('SC-01', '学生「新增」打开的是弹窗而不是抽屉', isDialog('PAGE-STU-CREATE'),
+        isDrawer('PAGE-STU-CREATE') ? '仍是抽屉' : '弹窗');
+      rec('SC-02', '弹窗内已无 drawer-header / drawer-body / drawer-footer 钩子', cleanHooks('PAGE-STU-CREATE'), '');
+      closeAll();
+      if (!clickFirst('#student-rows tr:first-child td.actions [data-action-id="ACT-STU-005"]',
+                      'SC-03', '学生行内「编辑」打开的是弹窗')) { render(); return; }
+      window.setTimeout(function () {
+        rec('SC-03', '学生行内「编辑」打开的是弹窗', isDialog('PAGE-STU-EDIT'),
+          isDrawer('PAGE-STU-EDIT') ? '仍是抽屉' : '弹窗');
+        rec('SC-04', '编辑弹窗内已无 drawer-* 钩子', cleanHooks('PAGE-STU-EDIT'), '');
+        var cancel = q('[data-demo-panel="PAGE-STU-EDIT"] [data-nav="DIALOG-STU-DISCARD"]');
+        if (cancel) cancel.click();
+        window.setTimeout(function () {
+          rec('SC-05', '放弃确认仍是弹窗（sm）', isDialog('DIALOG-STU-DISCARD'), '');
+          closeAll();
+          load(TEACHER, runTeacher);
+        }, 120);
+      }, 150);
+    }, 150);
+  }
+
+  /* ---------------- 教师列表（批次 2-2） ---------------- */
+  function runTeacher() {
+    q('[data-action-id="ACT-TCH-001"]').click();
+    window.setTimeout(function () {
+      rec('TC-01', '教师「新增」打开的是弹窗（三步仍在弹窗内）', isDialog('PAGE-TCH-CREATE'),
+        isDrawer('PAGE-TCH-CREATE') ? '仍是抽屉' : '弹窗');
+      rec('TC-02', '新增弹窗内已无 drawer-* 钩子', cleanHooks('PAGE-TCH-CREATE'), '');
+      var next1 = q('[data-demo-panel="PAGE-TCH-CREATE"] [data-step-btn="next"]');
+      next1.click();
+      window.setTimeout(function () {
+        var blocked = panel('PAGE-TCH-CREATE').getAttribute('data-current-step') === '1';
+        rec('TC-03', '空表单点「下一步」仍被校验拦住（载体变更不影响步骤条）', blocked,
+          '当前步骤 ' + panel('PAGE-TCH-CREATE').getAttribute('data-current-step'));
+        closeAll();
+        q('#teacher-rows tr:first-child [data-action-id="ACT-TCH-006"]').click();
+        window.setTimeout(function () {
+          rec('TC-04', '教师行内「编辑」打开的是弹窗', isDialog('PAGE-TCH-EDIT'),
+            isDrawer('PAGE-TCH-EDIT') ? '仍是抽屉' : '弹窗');
+          rec('TC-05', '编辑弹窗内已无 drawer-* 钩子', cleanHooks('PAGE-TCH-EDIT'), '');
+          closeAll();
+          q('#teacher-rows tr:first-child [data-action-id="ACT-TCH-007"]').click();
+          window.setTimeout(function () {
+            rec('TC-06', '教育角色分配仍是弹窗', isDialog('PAGE-TCH-ROLE'), '');
+            rec('TC-07', '角色分配弹窗内的 header 钩子已改为 dialog-header', cleanHooks('PAGE-TCH-ROLE'), '');
+            closeAll();
+            q('#teacher-rows tr:first-child').click();
+            window.setTimeout(function () {
+              rec('TC-08', '教师详情**仍然是抽屉**（详情类不改载体）', isDrawer('PAGE-TCH-DETAIL'),
+                isDrawer('PAGE-TCH-DETAIL') ? '抽屉' : '不是抽屉');
+              var edit = q('[data-demo-panel="PAGE-TCH-DETAIL"] [data-nav="PAGE-TCH-EDIT"]');
+              if (edit) edit.click();
+              window.setTimeout(function () {
+                rec('TC-09', '详情内「编辑」也打开弹窗（不是抽屉套抽屉）', isDialog('PAGE-TCH-EDIT'), '');
+                closeAll();
+                render();
+              }, 150);
+            }, 200);
+          }, 150);
+        }, 150);
+      }, 150);
+    }, 150);
+  }
+
+  load(STUDENT, runStudent);
+})();
+</script>
+
+
+</body></html>

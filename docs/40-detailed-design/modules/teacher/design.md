@@ -52,8 +52,10 @@
 | `importTeacherExecute` | POST | `/edu/teacher/import/execute` | 导入执行（异步） | `person.teacher` | 异步 |
 | `downloadTeacherImportTemplate` | GET | `/edu/teacher/import/template` | 模板下载 | `person.teacher` | 同步 |
 | `exportTeacher` | POST | `/edu/teacher/export` | 导出 | `person.teacher` | 同步 |
+| `enableTeacherAccount` | POST | `/edu/teacher/{id}/account/enable` | 启用账号（`CR-043` 补登记：与停用对称，写审计） | `person.teacher` | 同步 |
+| `copyTeachingAssignment` | POST | `/edu/teacher/assignment/copy` | 复制上一学年任教关系（`CR-043` 补登记：预览 + 冲突清单 + 异步执行） | `person.teacher` | 异步 |
 
-共 20 个接口。请求 / 响应契约见 `docs/40-detailed-design/api/openapi.yaml`，错误码见 `docs/40-detailed-design/api/error-codes.yaml`。
+共 22 个接口。请求 / 响应契约见 `docs/40-detailed-design/api/openapi.yaml`，错误码见 `docs/40-detailed-design/api/error-codes.yaml`。
 
 ## 4. 页面与动作落点
 

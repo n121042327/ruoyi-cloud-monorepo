@@ -1,0 +1,47 @@
+CR-037 补齐 6 个缺失接口契约（GAP-080）验证日志
+执行日期：2026-10-02
+工作目录：D:\work\person_work\ruoyi-cloud-monorepo
+
+一、背景
+
+  CR-036 收口 GAP-079 时，8 个孤儿 data-api 中 2 条改名对齐，余下 6 条确认缺契约（GAP-080）。
+  本批按推荐补齐，未改任何原型页面。
+
+二、新增接口
+
+  class.exportClass            POST /edu/class/export            班级列表导出（模块级导出 + 异步阈值）
+  grade.exportGrade            POST /edu/grade/export            年级列表导出
+  promotion.exportPromotionTask POST /edu/promotion/task/export   升班任务列表导出
+  student.uploadStudentPhoto   POST /edu/student/{id}/photo      上传 / 更换学生照片（单张，统一文件服务）
+  student.getStudentPhoto      GET  /edu/student/{id}/photo      查看照片原图（read_sensitive，写访问日志）
+  student.viewStudentIdCard    GET  /edu/student/{id}/id-card    查看完整证件号（read_sensitive，写访问日志）
+
+三、生成器重跑
+
+  python tools/extract_api_catalog.py -> 11 个模块 / 178 个 operationId（原 173）
+  python tools/gen_api_and_map.py     -> OpenAPI 178 个 operationId，157 条路径；页面动作映射 45 页 / 609 个动作
+  python tools/gen_stage5_docs.py     -> 11 个模块详细设计 / 接口 178 个
+  三个导出 operationId 已加入 ASYNC_HINTS，catalog 的同步/异步列标为「异步」，与 exportStudent / exportClassRoster 同口径。
+
+四、契约检查（本批的强校验）
+
+  tools/check_api_contract.py 的 KNOWN_ORPHANS 清空为空集后运行：
+    OpenAPI operationId：178 个
+    原型 data-api 引用：112 处 —— 全部命中 OpenAPI，孤儿引用 0
+    查询参数对齐：listStudent -> docs/10-prd/modules/student/PRD.md（12 个参数）
+    listStudent 参数齐备：14 个
+    -> 通过：接口契约一致（退出码 0）
+
+五、其余检查
+
+  python tools/check_docs.py      -> 通过：未发现问题（退出码 0）
+  python tools/check_mermaid.py   -> 通过：未发现问题
+  git diff --check                -> 无输出（退出码 0）
+  git status --short -- prototypes/functional/v1/pages prototypes/high-fidelity/v1
+                                  -> 空输出，冻结 v1 页面未改动
+
+六、口径说明
+
+  本批只补「接口清单与契约」，接口尚未实现——功能状态仍为「已设计」，实现属阶段 6 / 7。
+  未改原型页面，因此本批不涉及浏览器交互回归。
+  GAP-080 关闭；当前 open：GAP-063 / GAP-064 / GAP-067。

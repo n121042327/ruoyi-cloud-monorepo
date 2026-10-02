@@ -1,0 +1,35 @@
+CR-041 需求到接口与表的逐条对应（GAP-081，教师与年级）验证日志
+执行日期：2026-10-02
+工作目录：D:\work\person_work\ruoyi-cloud-monorepo
+
+一、对应表新增
+
+  docs/00-governance/requirement-links.yaml 新增两块：
+    teacher 71 条
+    grade   40 条
+  依据：模块 PRD 第 8 节的 operationId 与说明、40-detailed-design/database/schema.yaml 的表名与注释
+  按依据写明无接口的 4 条：REQ-TCH-034（页面提示）、REQ-TCH-065（审计模块承载）、
+  REQ-TCH-047 与 REQ-TCH-070（GAP-083）
+
+二、矩阵结果
+
+  python tools/gen_traceability.py -> 626 条需求 / 11 个模块 / 已有接口链 257 条 / 有验收用例 582 条
+  coverage_summary：linked_to_api 149 → 257，linked_to_tables 145 → 245
+  累计完成挂接 270 / 626（student 97 + class 62 + teacher 71 + grade 40）
+  幂等：连续两次运行哈希不变
+
+三、检查
+
+  python tools/check_docs.py         -> 通过：未发现问题（退出码 0）
+  python tools/check_gap_register.py -> 通过：未发现重复键
+  python tools/check_api_contract.py -> 通过：接口契约一致
+  python tools/check_mermaid.py      -> 通过：未发现问题
+  git diff --check                   -> 无输出（退出码 0）
+  git status --short -- prototypes/functional/v1 prototypes/high-fidelity/v1
+                                     -> 空输出，原型与冻结 v1 未改动
+
+四、缺项口径
+
+  GAP-081 保持 open：进度 270 / 626，剩余 7 个模块 356 条。
+  新增 GAP-083：教师模块「复制上一学年任教关系」与「启用账号」缺接口契约。
+  当前 open：GAP-081、GAP-082、GAP-083。

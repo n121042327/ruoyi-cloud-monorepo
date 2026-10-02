@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>学生学籍异动 / 调班 / 异动登记浮层字段分组回归（CR-028）</title>
+</head><body><p id="summary">合计 13 条，通过 13 条，失败 0 条</p><ol id="results"><li>SO-01 通过 学籍异动分组顺序：异动信息|复学 / 报到安排|异动说明</li><li>SO-02 通过 异动信息组按触发字段在前、生效日期在后：异动类型|生效日期</li><li>SO-03 通过 条件班级与原因各自成组：复学/报到后的班级 / 原因</li><li>SO-04 通过 「需要审批」提示留在异动类型所在组</li><li>SO-05 通过 校验汇总在字段分区之外，且每个浮层只有一条</li><li>SO-06 通过 分组内没有动作按钮，提交与取消固定在页脚</li><li>SO-07 通过 异动登记分组与字段：异动信息|异动说明 -&gt; 异动类型|生效日期 / 原因</li><li>SO-08 通过 调班分组与字段：班级关系|调班说明 -&gt; 目标班级 / 调班原因</li><li>SO-09 通过 调班未新增生效日期字段，并标注 GAP-077</li><li>SO-10 通过 同一浮层内没有同义字段重复成组，且只有一个分区容器</li><li>SO-11 通过 每个分区的可见标题与分组名一致</li><li>SO-12 通过 分区后必填校验仍能定位字段并给出汇总</li><li>SO-13 通过 调班必填校验仍生效</li></ol>
+<iframe id="fs" style="width:1440px;height:820px" src="../../prototypes/high-fidelity/v2/pages/student-list.html#role=super_admin"></iframe>
+<script>
+var params=new URLSearchParams(location.search);
+var layer=params.get('layer')==='hifi'?'high-fidelity':'functional';
+var version=params.get('version')||'v2';
+var checks=[],ready=0;
+function rec(id,ok,note){checks.push(id+' '+(ok?'通过':'失败')+' '+(note||''));}
+function labels(scope){
+  if(!scope) return [];
+  return Array.from(scope.querySelectorAll('.field')).map(function(f){
+    var l=f.querySelector('label');
+    return l?l.textContent.replace(/\s+/g,'').replace(/\*$/,''):'';
+  });
+}
+function finish(){
+  document.querySelector('#results').innerHTML=checks.map(function(s){return '<li>'+s+'</li>';}).join('');
+  var pass=checks.filter(function(s){return s.indexOf(' 通过 ')!==-1;}).length;
+  document.querySelector('#summary').textContent='合计 '+checks.length+' 条，通过 '+pass+' 条，失败 '+(checks.length-pass)+' 条';
+}
+
+document.querySelector('#fs').addEventListener('load',function(){
+  var d=this.contentDocument,w=this.contentWindow;
+  if(!d.querySelector('#student-rows')){ rec('SO-00',false,'页面未加载'); finish(); return; }
+  try{
+    w.PrototypeShell.applyRole('super_admin');
+    var status=d.querySelector('[data-demo-panel="PAGE-STU-STATUS"]');
+    var transfer=d.querySelector('[data-demo-panel="PAGE-STU-TRANSFER"]');
+    var change=d.querySelector('[data-demo-panel="PAGE-PRM-CHANGE"]');
+    var panels={ 'PAGE-STU-STATUS':status, 'PAGE-STU-TRANSFER':transfer, 'PAGE-PRM-CHANGE':change };
+    function groups(panel){
+      return Array.from(panel.querySelectorAll('section[data-layout-group]')).map(function(s){
+        return s.getAttribute('data-layout-group');});
+    }
+    function groupOf(panel,name){ return panel.querySelector('section[data-layout-group="'+name+'"]'); }
+    function sectionTitles(panel){
+      return Array.from(panel.querySelectorAll('section[data-layout-group] > h3')).map(function(h){
+        return h.textContent.trim();});
+    }
+
+    rec('SO-01',groups(status).join(',')==='异动信息,复学 / 报到安排,异动说明',
+        '学籍异动分组顺序：'+groups(status).join('|'));
+    rec('SO-02',labels(groupOf(status,'异动信息')).join(',')==='异动类型,生效日期',
+        '异动信息组按触发字段在前、生效日期在后：'+labels(groupOf(status,'异动信息')).join('|'));
+    rec('SO-03',labels(groupOf(status,'复学 / 报到安排')).join(',')==='复学/报到后的班级'
+        &&labels(groupOf(status,'异动说明')).join(',')==='原因',
+        '条件班级与原因各自成组：'+labels(groupOf(status,'复学 / 报到安排')).join('|')+' / '+labels(groupOf(status,'异动说明')).join('|'));
+    var approve=status.querySelector('#ss-approve-alert');
+    rec('SO-04',Boolean(approve&&approve.closest('section[data-layout-group]')
+        &&approve.closest('section[data-layout-group]').getAttribute('data-layout-group')==='异动信息'),
+        '「需要审批」提示留在异动类型所在组');
+    rec('SO-05',Object.keys(panels).every(function(id){
+          var s=panels[id].querySelector('[data-validate-summary]');
+          var n=panels[id].querySelectorAll('[data-validate-summary]').length;
+          return s&&n===1&&!s.closest('section[data-layout-group]');}),
+        '校验汇总在字段分区之外，且每个浮层只有一条');
+    rec('SO-06',Object.keys(panels).every(function(id){
+          var inSection=panels[id].querySelectorAll('section[data-layout-group] button[data-action-id]').length;
+          var footer=panels[id].querySelector('.dialog-footer');
+          var footerActions=footer?footer.querySelectorAll('button[data-action-id]').length:0;
+          return inSection===0&&footerActions===2;}),
+        '分组内没有动作按钮，提交与取消固定在页脚');
+    rec('SO-07',groups(change).join(',')==='异动信息,异动说明'
+        &&labels(groupOf(change,'异动信息')).join(',')==='异动类型,生效日期'
+        &&labels(groupOf(change,'异动说明')).join(',')==='原因',
+        '异动登记分组与字段：'+groups(change).join('|')+' -> '+labels(groupOf(change,'异动信息')).join('|')+' / '+labels(groupOf(change,'异动说明')).join('|'));
+    rec('SO-08',groups(transfer).join(',')==='班级关系,调班说明'
+        &&labels(groupOf(transfer,'班级关系')).join(',')==='目标班级'
+        &&labels(groupOf(transfer,'调班说明')).join(',')==='调班原因',
+        '调班分组与字段：'+groups(transfer).join('|')+' -> '+labels(groupOf(transfer,'班级关系')).join('|')+' / '+labels(groupOf(transfer,'调班说明')).join('|'));
+    var gapNote=transfer.querySelector('section[data-layout-group="班级关系"] p');
+    rec('SO-09',!transfer.querySelector('[data-field="effective_date"]')
+        &&Boolean(gapNote&&gapNote.textContent.indexOf('GAP-077')!==-1),
+        '调班未新增生效日期字段，并标注 GAP-077');
+    rec('SO-10',Object.keys(panels).every(function(id){
+          var seen={},dup=false;
+          Array.from(panels[id].querySelectorAll('section[data-layout-group] .field')).forEach(function(f){
+            var l=f.querySelector('label');
+            var t=l?l.textContent.replace(/\s+/g,'').replace(/\*$/,''):'';
+            if(seen[t]) dup=true;
+            seen[t]=true;});
+          return !dup&&panels[id].querySelectorAll('.layout-sections').length===1;}),
+        '同一浮层内没有同义字段重复成组，且只有一个分区容器');
+    rec('SO-11',sectionTitles(status).join(',')===groups(status).join(',')
+        &&sectionTitles(change).join(',')===groups(change).join(',')
+        &&sectionTitles(transfer).join(',')===groups(transfer).join(','),
+        '每个分区的可见标题与分组名一致');
+
+    status.querySelector('#ss-type').value='';
+    status.querySelector('[data-action-id="ACT-STU-030"]').click();
+    var bad=status.querySelector('[data-field="change_type"]');
+    var sum=status.querySelector('[data-validate-summary]');
+    rec('SO-12',bad.classList.contains('has-error')&&!sum.classList.contains('state-hidden'),
+        '分区后必填校验仍能定位字段并给出汇总');
+
+    transfer.querySelector('#st-target').value='';
+    transfer.querySelector('[data-action-id="ACT-STU-032"]').click();
+    var tsum=transfer.querySelector('[data-validate-summary]');
+    rec('SO-13',!tsum.classList.contains('state-hidden')
+        &&transfer.querySelector('[data-field="class_id"]').classList.contains('has-error'),
+        '调班必填校验仍生效');
+  }catch(e){rec('SO-ERROR',false,e.stack);}
+  finish();
+});
+
+document.querySelector('#fs').src='../../prototypes/'+layer+'/'+version+'/pages/student-list.html#role=super_admin';
+</script>
+</body></html>

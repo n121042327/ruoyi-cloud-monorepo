@@ -11,8 +11,8 @@ conventions:
   carrier_rule: 表单类浮层 = el-dialog；详情类 = el-drawer；含表格或分页 = 独立路由页（D-059 / CR-015）
 totals:
   routes: 45
-  fragments: 52
-  operation_ids: 173
+  fragments: 53
+  operation_ids: 184
 routes:
 - page_id: PAGE-STU-LIST
   name_cn: 学生管理列表
@@ -582,6 +582,13 @@ fragments:
   batch: 2-2
 - page_id: PAGE-TCH-LEAVE
   name_cn: 离职与调离登记
+  module: teacher
+  carrier: dialog
+  size: sm
+  parent: PAGE-TCH-LIST
+  batch: 2-2
+- page_id: DIALOG-TCH-REVOKE
+  name_cn: 撤销离职与调离登记
   module: teacher
   carrier: dialog
   size: sm

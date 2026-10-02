@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>学生调班与班级模块对齐回归（CR-029）</title>
+</head><body><p id="summary">合计 8 条，通过 2 条，失败 6 条</p><ol id="results"><li>ST-01 失败 调班分组： -&gt; </li><li>ST-02 失败 生效日期必填 / 组件 / 默认值：false / - / -</li><li>ST-03 失败 原因字段名为 remark，标签保持「调班原因」</li><li>ST-04 失败 确认调班走 transferClass + org.class:update</li><li>ST-05 通过 弹窗内不再保留 GAP-077 的待裁决说明</li><li>ST-06 失败 两个必填字段同时缺省时都被标红并给出汇总</li><li>ST-07 通过 行内调班仍带入该行学生与原班级：高一 (1) 班</li><li>ST-08 失败 学生侧字段 目标班级|调班原因 ；班级侧字段 源班级（只读）|目标班级|生效日期|调班原因</li></ol>
+<iframe id="fs" style="width:1440px;height:820px" src="../../prototypes/functional/v1/pages/student-list.html#role=super_admin"></iframe>
+<iframe id="fc" style="width:1440px;height:820px" src="../../prototypes/functional/v1/pages/class-detail.html#role=super_admin"></iframe>
+<script>
+var params=new URLSearchParams(location.search);
+var layer=params.get('layer')==='hifi'?'high-fidelity':'functional';
+var version=params.get('version')||'v2';
+var checks=[],ready=0;
+function rec(id,ok,note){checks.push(id+' '+(ok?'通过':'失败')+' '+(note||''));}
+function labels(scope){
+  if(!scope) return [];
+  return Array.from(scope.querySelectorAll('.field')).map(function(f){
+    var l=f.querySelector('label');
+    return l?l.textContent.replace(/\s+/g,'').replace(/\*$/,''):'';
+  });
+}
+function groupOf(root,name){ return root.querySelector('[data-layout-group="'+name+'"]'); }
+function groupNames(root){
+  return Array.from(root.querySelectorAll('section[data-layout-group]')).map(function(s){
+    return s.getAttribute('data-layout-group');});
+}
+function finish(){ if(++ready<2) return;
+  document.querySelector('#results').innerHTML=checks.map(function(s){return '<li>'+s+'</li>';}).join('');
+  var pass=checks.filter(function(s){return s.indexOf(' 通过 ')!==-1;}).length;
+  document.querySelector('#summary').textContent='合计 '+checks.length+' 条，通过 '+pass+' 条，失败 '+(checks.length-pass)+' 条';
+}
+
+var studentFieldLabels=[], classFieldLabels=[], studentDone=false, classDone=false, compared=false;
+function compareBoth(){
+  if(compared||!studentDone||!classDone) return;
+  compared=true;
+  var same=studentFieldLabels.length>0&&classFieldLabels.length>0
+      &&studentFieldLabels.indexOf('生效日期')!==-1&&classFieldLabels.indexOf('生效日期')!==-1
+      &&studentFieldLabels.indexOf('调班原因')!==-1&&classFieldLabels.indexOf('调班原因')!==-1;
+  rec('ST-08',same,'学生侧字段 '+studentFieldLabels.join('|')+' ；班级侧字段 '+classFieldLabels.join('|'));
+}
+
+document.querySelector('#fs').addEventListener('load',function(){
+  var d=this.contentDocument,w=this.contentWindow;
+  if(!d.querySelector('#student-rows')){ rec('ST-00',false,'学生页未加载'); studentDone=true; compareBoth(); finish(); return; }
+  try{
+    w.PrototypeShell.applyRole('super_admin');
+    var transfer=d.querySelector('[data-demo-panel="PAGE-STU-TRANSFER"]');
+    studentFieldLabels=labels(transfer);
+    rec('ST-01',groupNames(transfer).join(',')==='班级关系,调班说明'
+        &&labels(groupOf(transfer,'班级关系')).join(',')==='目标班级,生效日期',
+        '调班分组：'+groupNames(transfer).join('|')+' -> '+labels(groupOf(transfer,'班级关系')).join('|'));
+    var date=transfer.querySelector('[data-field="effective_date"] input');
+    rec('ST-02',Boolean(date)&&date.hasAttribute('data-required')
+        &&date.getAttribute('data-component')==='el-date-picker'&&date.value==='2026-09-01',
+        '生效日期必填 / 组件 / 默认值：'+Boolean(date)+' / '+(date?date.getAttribute('data-component'):'-')+' / '+(date?date.value:'-'));
+    rec('ST-03',!transfer.querySelector('[data-field="reason"]')
+        &&Boolean(transfer.querySelector('[data-field="remark"]'))
+        &&labels(groupOf(transfer,'调班说明')).join(',')==='调班原因',
+        '原因字段名为 remark，标签保持「调班原因」');
+    var submit=transfer.querySelector('[data-action-id="ACT-STU-032"]');
+    rec('ST-04',submit.getAttribute('data-api')==='transferClass'
+        &&submit.getAttribute('data-permission')==='org.class:update'
+        &&transfer.outerHTML.indexOf('transferStudentClass')===-1,
+        '确认调班走 transferClass + org.class:update');
+    rec('ST-05',transfer.textContent.indexOf('GAP-077')===-1,
+        '弹窗内不再保留 GAP-077 的待裁决说明');
+    var target=transfer.querySelector('#st-target');
+    var effective=transfer.querySelector('#st-effective');
+    if(target) target.value='';
+    if(effective) effective.value='';
+    submit.click();
+    var summary=transfer.querySelector('[data-validate-summary]');
+    var classWrap=transfer.querySelector('[data-field="class_id"]');
+    var dateWrap=transfer.querySelector('[data-field="effective_date"]');
+    rec('ST-06',Boolean(summary&&classWrap&&dateWrap)
+        &&!summary.classList.contains('state-hidden')
+        &&classWrap.classList.contains('has-error')&&dateWrap.classList.contains('has-error'),
+        '两个必填字段同时缺省时都被标红并给出汇总');
+    rec('ST-07',Boolean(d.querySelector('#st-name'))&&d.querySelector('#st-from').textContent.length>0,
+        '行内调班仍带入该行学生与原班级：'+d.querySelector('#st-from').textContent);
+  }catch(e){rec('ST-ERROR',false,e.stack);}
+  studentDone=true;
+  compareBoth();
+  finish();
+});
+
+document.querySelector('#fc').addEventListener('load',function(){
+  var d=this.contentDocument;
+  if(!d.querySelector('[data-demo-panel="PAGE-CLS-TRANSFER"]')){ rec('ST-09',false,'班级模块调班弹窗未加载'); classDone=true; finish(); return; }
+  try{
+    var cls=d.querySelector('[data-demo-panel="PAGE-CLS-TRANSFER"]');
+    classFieldLabels=labels(cls);
+  }catch(e){rec('ST-ERROR2',false,e.stack);}
+  classDone=true;
+  compareBoth();
+  finish();
+});
+
+document.querySelector('#fs').src='../../prototypes/'+layer+'/'+version+'/pages/student-list.html#role=super_admin';
+document.querySelector('#fc').src='../../prototypes/functional/v1/pages/class-detail.html#role=super_admin';
+</script>
+</body></html>

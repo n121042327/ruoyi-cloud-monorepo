@@ -1,0 +1,33 @@
+CR-040 需求到接口与表的逐条对应（GAP-081，学生与班级）验证日志
+执行日期：2026-10-02
+工作目录：D:\work\person_work\ruoyi-cloud-monorepo
+
+一、新增人工对应表
+
+  docs/00-governance/requirement-links.yaml
+    学生 97 条 + 班级 62 条 = 159 条
+    依据：模块 PRD 第 8 节的 operationId 与说明、40-detailed-design/database/schema.yaml 的表名与注释
+    api 为空的 10 条都在 note 里写明原因（第 8 节无对应接口 / 由认证服务承载 / 复用既有接口）
+
+二、生成器更新与结果
+
+  tools/gen_traceability.py 新增 parse_links()，把对应表合并进 traceability.yaml（优先于历史值）
+  python tools/gen_traceability.py -> 626 条需求 / 11 个模块 / 已有接口链 149 条 / 有验收用例 582 条
+  coverage_summary：linked_to_api 8 → 149，linked_to_tables 8 → 145
+  幂等：连续两次运行哈希不变
+
+三、检查
+
+  python tools/check_docs.py         -> 通过：未发现问题（退出码 0）
+  python tools/check_gap_register.py -> 通过：未发现重复键
+  python tools/check_api_contract.py -> 通过：接口契约一致
+  python tools/check_mermaid.py      -> 通过：未发现问题
+  git diff --check                   -> 无输出（退出码 0）
+  git status --short -- prototypes/functional/v1 prototypes/high-fidelity/v1
+                                     -> 空输出，原型与冻结 v1 未改动
+
+四、缺项口径
+
+  GAP-081 保持 open，进度记为「学生与班级完成（159 / 626），其余 9 个模块 467 条待推进」。
+  新增 GAP-082：学生激活码的查看 / 打印 / 加密清单下载 / 代激活四项缺接口契约。
+  当前 open：GAP-081、GAP-082。

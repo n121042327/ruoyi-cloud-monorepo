@@ -1659,6 +1659,65 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/class_Request'
+  /edu/class/export:
+    post:
+      tags:
+      - class
+      operationId: exportClass
+      summary: 班级列表导出（`CR-037` 补登记：沿用 `exportStudent` / `exportTeacher` 的模块级写法，≤ 2000 行直接下载、超出转异步）
+      description: '班级列表导出（`CR-037` 补登记：沿用 `exportStudent` / `exportTeacher` 的模块级写法，≤ 2000 行直接下载、超出转异步）
+
+
+        - 权限资源：`org.class`（动作映射规则见 06-api-catalog.md 第 2 节）
+
+        - 同步 / 异步：异步
+
+        - 请求与响应字段：见 `docs/10-prd/06-field-dictionary.yaml` 与该模块 PRD 第 7 节
+
+        - 数据范围：接口层按 `DataScopeResolver` 解析后注入（见 30-architecture/09-permission-architecture.md）'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '400':
+          description: 参数或业务规则校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '401':
+          description: 未登录或令牌失效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '403':
+          description: 功能权限或数据范围拒绝（DS-DENY-01 / 02）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '500':
+          description: 服务异常（返回请求编号）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '202':
+          description: 已入队（返回 task_no，进度与结果在异步任务中心查询）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/class_Request'
   /edu/teaching-class/list:
     get:
       tags:
@@ -2581,6 +2640,65 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
+  /edu/grade/export:
+    post:
+      tags:
+      - grade
+      operationId: exportGrade
+      summary: 年级列表导出（`CR-037` 补登记：模块级导出，≤ 2000 行直接下载、超出转异步）
+      description: '年级列表导出（`CR-037` 补登记：模块级导出，≤ 2000 行直接下载、超出转异步）
+
+
+        - 权限资源：`org.grade`（动作映射规则见 06-api-catalog.md 第 2 节）
+
+        - 同步 / 异步：异步
+
+        - 请求与响应字段：见 `docs/10-prd/06-field-dictionary.yaml` 与该模块 PRD 第 7 节
+
+        - 数据范围：接口层按 `DataScopeResolver` 解析后注入（见 30-architecture/09-permission-architecture.md）'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '400':
+          description: 参数或业务规则校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '401':
+          description: 未登录或令牌失效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '403':
+          description: 功能权限或数据范围拒绝（DS-DENY-01 / 02）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '500':
+          description: 服务异常（返回请求编号）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '202':
+          description: 已入队（返回 task_no，进度与结果在异步任务中心查询）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/grade_Request'
   /edu/import/template:
     get:
       tags:
@@ -3460,6 +3578,65 @@ paths:
           minimum: 1
           maximum: 200
           default: 20
+  /edu/promotion/task/export:
+    post:
+      tags:
+      - promotion
+      operationId: exportPromotionTask
+      summary: 任务列表导出（`CR-037` 补登记：模块级导出，≤ 2000 行直接下载、超出转异步）
+      description: '任务列表导出（`CR-037` 补登记：模块级导出，≤ 2000 行直接下载、超出转异步）
+
+
+        - 权限资源：`promotion.batch`（动作映射规则见 06-api-catalog.md 第 2 节）
+
+        - 同步 / 异步：异步
+
+        - 请求与响应字段：见 `docs/10-prd/06-field-dictionary.yaml` 与该模块 PRD 第 7 节
+
+        - 数据范围：接口层按 `DataScopeResolver` 解析后注入（见 30-architecture/09-permission-architecture.md）'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '400':
+          description: 参数或业务规则校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '401':
+          description: 未登录或令牌失效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '403':
+          description: 功能权限或数据范围拒绝（DS-DENY-01 / 02）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '500':
+          description: 服务异常（返回请求编号）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '202':
+          description: 已入队（返回 task_no，进度与结果在异步任务中心查询）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/promotion_Request'
   /edu/promotion/task/{id}:
     get:
       tags:
@@ -6526,6 +6703,78 @@ paths:
           minimum: 1
           maximum: 200
           default: 20
+      - name: schoolId
+        in: query
+        schema:
+          type: string
+        required: false
+        description: 学校上下文；学校用户固定本校，平台运营与超级管理员可切换
+      - name: termId
+        in: query
+        schema:
+          type: string
+        required: false
+        description: 学年学期
+      - name: gradeId
+        in: query
+        schema:
+          type: string
+        required: false
+        description: 年级
+      - name: classId
+        in: query
+        schema:
+          type: string
+        required: false
+        description: 班级
+      - name: enrollmentStatus
+        in: query
+        schema:
+          type: string
+        required: false
+        description: 学籍状态，多值以逗号分隔
+      - name: gender
+        in: query
+        schema:
+          type: string
+        required: false
+        description: 性别
+      - name: enrollYear
+        in: query
+        schema:
+          type: string
+        required: false
+        description: 入学年份
+      - name: stageCode
+        in: query
+        schema:
+          type: string
+        required: false
+        description: 学段
+      - name: keyword
+        in: query
+        schema:
+          type: string
+        required: false
+        description: 关键字，命中范围：学号 / 姓名 / 全国学籍号
+      - name: idCardSuffix
+        in: query
+        schema:
+          type: string
+        required: false
+        description: 证件号后四位，需 `person.student:read_sensitive`
+      - name: sortBy
+        in: query
+        schema:
+          type: string
+        required: false
+        description: 排序字段：studentNo / studentName / enrollYear / className / updateTime
+      - name: sortOrder
+        in: query
+        schema:
+          type: string
+        required: false
+        description: 排序方向：asc / desc
   /edu/student/{id}:
     get:
       tags:
@@ -6996,66 +7245,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/student_Request'
-  /edu/student/{id}/class-transfer:
-    post:
-      tags:
-      - student
-      operationId: transferStudentClass
-      summary: 调班
-      description: '调班
-
-
-        - 权限资源：`person.student`（动作映射规则见 06-api-catalog.md 第 2 节）
-
-        - 同步 / 异步：同步
-
-        - 请求与响应字段：见 `docs/10-prd/06-field-dictionary.yaml` 与该模块 PRD 第 7 节
-
-        - 数据范围：接口层按 `DataScopeResolver` 解析后注入（见 30-architecture/09-permission-architecture.md）'
-      responses:
-        '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Result'
-        '400':
-          description: 参数或业务规则校验失败
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Result'
-        '401':
-          description: 未登录或令牌失效
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Result'
-        '403':
-          description: 功能权限或数据范围拒绝（DS-DENY-01 / 02）
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Result'
-        '500':
-          description: 服务异常（返回请求编号）
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Result'
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-        description: 主键一律序列化为字符串（禁止前端 Number() 转换，见 06-field-dictionary 的 id 说明）
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/student_Request'
   /edu/student/cross-school-transfer:
     post:
       tags:
@@ -7327,6 +7516,173 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/student_Request'
+  /edu/student/{id}/photo:
+    post:
+      tags:
+      - student
+      operationId: uploadStudentPhoto
+      summary: 上传 / 更换学生照片（`CR-037` 补登记：单张，走统一文件服务）
+      description: '上传 / 更换学生照片（`CR-037` 补登记：单张，走统一文件服务）
+
+
+        - 权限资源：`person.student`（动作映射规则见 06-api-catalog.md 第 2 节）
+
+        - 同步 / 异步：同步
+
+        - 请求与响应字段：见 `docs/10-prd/06-field-dictionary.yaml` 与该模块 PRD 第 7 节
+
+        - 数据范围：接口层按 `DataScopeResolver` 解析后注入（见 30-architecture/09-permission-architecture.md）'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '400':
+          description: 参数或业务规则校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '401':
+          description: 未登录或令牌失效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '403':
+          description: 功能权限或数据范围拒绝（DS-DENY-01 / 02）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '500':
+          description: 服务异常（返回请求编号）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: 主键一律序列化为字符串（禁止前端 Number() 转换，见 06-field-dictionary 的 id 说明）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/student_Request'
+    get:
+      tags:
+      - student
+      operationId: getStudentPhoto
+      summary: 查看照片原图（`CR-037` 补登记：需 `read_sensitive`，写敏感数据访问日志）
+      description: '查看照片原图（`CR-037` 补登记：需 `read_sensitive`，写敏感数据访问日志）
+
+
+        - 权限资源：`person.student`（动作映射规则见 06-api-catalog.md 第 2 节）
+
+        - 同步 / 异步：同步
+
+        - 请求与响应字段：见 `docs/10-prd/06-field-dictionary.yaml` 与该模块 PRD 第 7 节
+
+        - 数据范围：接口层按 `DataScopeResolver` 解析后注入（见 30-architecture/09-permission-architecture.md）'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '400':
+          description: 参数或业务规则校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '401':
+          description: 未登录或令牌失效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '403':
+          description: 功能权限或数据范围拒绝（DS-DENY-01 / 02）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '500':
+          description: 服务异常（返回请求编号）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: 主键一律序列化为字符串（禁止前端 Number() 转换，见 06-field-dictionary 的 id 说明）
+  /edu/student/{id}/id-card:
+    get:
+      tags:
+      - student
+      operationId: viewStudentIdCard
+      summary: 查看完整证件号（`CR-037` 补登记：需 `read_sensitive`，写敏感数据访问日志）
+      description: '查看完整证件号（`CR-037` 补登记：需 `read_sensitive`，写敏感数据访问日志）
+
+
+        - 权限资源：`person.student`（动作映射规则见 06-api-catalog.md 第 2 节）
+
+        - 同步 / 异步：同步
+
+        - 请求与响应字段：见 `docs/10-prd/06-field-dictionary.yaml` 与该模块 PRD 第 7 节
+
+        - 数据范围：接口层按 `DataScopeResolver` 解析后注入（见 30-architecture/09-permission-architecture.md）'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '400':
+          description: 参数或业务规则校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '401':
+          description: 未登录或令牌失效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '403':
+          description: 功能权限或数据范围拒绝（DS-DENY-01 / 02）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '500':
+          description: 服务异常（返回请求编号）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: 主键一律序列化为字符串（禁止前端 Number() 转换，见 06-field-dictionary 的 id 说明）
   /edu/student/{id}/reset-password:
     post:
       tags:
@@ -7570,6 +7926,232 @@ paths:
           type: string
         description: 主键一律序列化为字符串（禁止前端 Number() 转换，见 06-field-dictionary 的 id 说明）
       - name: guardianId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: 主键一律序列化为字符串（禁止前端 Number() 转换，见 06-field-dictionary 的 id 说明）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/student_Request'
+  /edu/student/{id}/activation-code:
+    get:
+      tags:
+      - student
+      operationId: getStudentActivationCode
+      summary: 查看激活码（`CR-043` 补登记：默认掩码，`reveal=true` 揭示明文并逐条写审计）
+      description: '查看激活码（`CR-043` 补登记：默认掩码，`reveal=true` 揭示明文并逐条写审计）
+
+
+        - 权限资源：`person.student`（动作映射规则见 06-api-catalog.md 第 2 节）
+
+        - 同步 / 异步：同步
+
+        - 请求与响应字段：见 `docs/10-prd/06-field-dictionary.yaml` 与该模块 PRD 第 7 节
+
+        - 数据范围：接口层按 `DataScopeResolver` 解析后注入（见 30-architecture/09-permission-architecture.md）'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '400':
+          description: 参数或业务规则校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '401':
+          description: 未登录或令牌失效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '403':
+          description: 功能权限或数据范围拒绝（DS-DENY-01 / 02）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '500':
+          description: 服务异常（返回请求编号）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: 主键一律序列化为字符串（禁止前端 Number() 转换，见 06-field-dictionary 的 id 说明）
+  /edu/student/activation-slip/print:
+    post:
+      tags:
+      - student
+      operationId: printStudentActivationSlip
+      summary: 批量打印密码条（`CR-043` 补登记：每行「姓名 / 学号 / 登录名 / 激活码」）
+      description: '批量打印密码条（`CR-043` 补登记：每行「姓名 / 学号 / 登录名 / 激活码」）
+
+
+        - 权限资源：`person.student`（动作映射规则见 06-api-catalog.md 第 2 节）
+
+        - 同步 / 异步：同步
+
+        - 请求与响应字段：见 `docs/10-prd/06-field-dictionary.yaml` 与该模块 PRD 第 7 节
+
+        - 数据范围：接口层按 `DataScopeResolver` 解析后注入（见 30-architecture/09-permission-architecture.md）'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '400':
+          description: 参数或业务规则校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '401':
+          description: 未登录或令牌失效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '403':
+          description: 功能权限或数据范围拒绝（DS-DENY-01 / 02）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '500':
+          description: 服务异常（返回请求编号）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/student_Request'
+  /edu/student/activation-code/export:
+    post:
+      tags:
+      - student
+      operationId: exportStudentActivationCode
+      summary: 导出未激活学生加密清单（`CR-043` 补登记：教务主任权限，写审计并记录行数）
+      description: '导出未激活学生加密清单（`CR-043` 补登记：教务主任权限，写审计并记录行数）
+
+
+        - 权限资源：`person.student`（动作映射规则见 06-api-catalog.md 第 2 节）
+
+        - 同步 / 异步：异步
+
+        - 请求与响应字段：见 `docs/10-prd/06-field-dictionary.yaml` 与该模块 PRD 第 7 节
+
+        - 数据范围：接口层按 `DataScopeResolver` 解析后注入（见 30-architecture/09-permission-architecture.md）'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '400':
+          description: 参数或业务规则校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '401':
+          description: 未登录或令牌失效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '403':
+          description: 功能权限或数据范围拒绝（DS-DENY-01 / 02）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '500':
+          description: 服务异常（返回请求编号）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '202':
+          description: 已入队（返回 task_no，进度与结果在异步任务中心查询）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/student_Request'
+  /edu/student/{id}/activate:
+    post:
+      tags:
+      - student
+      operationId: activateStudentAccount
+      summary: 班主任代学生激活并设置密码（`CR-043` 补登记：写审计）
+      description: '班主任代学生激活并设置密码（`CR-043` 补登记：写审计）
+
+
+        - 权限资源：`person.student`（动作映射规则见 06-api-catalog.md 第 2 节）
+
+        - 同步 / 异步：同步
+
+        - 请求与响应字段：见 `docs/10-prd/06-field-dictionary.yaml` 与该模块 PRD 第 7 节
+
+        - 数据范围：接口层按 `DataScopeResolver` 解析后注入（见 30-architecture/09-permission-architecture.md）'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '400':
+          description: 参数或业务规则校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '401':
+          description: 未登录或令牌失效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '403':
+          description: 功能权限或数据范围拒绝（DS-DENY-01 / 02）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '500':
+          description: 服务异常（返回请求编号）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+      parameters:
+      - name: id
         in: path
         required: true
         schema:
@@ -9401,6 +9983,125 @@ paths:
                 $ref: '#/components/schemas/Result'
         '500':
           description: 服务异常（返回请求编号）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/teacher_Request'
+  /edu/teacher/{id}/account/enable:
+    post:
+      tags:
+      - teacher
+      operationId: enableTeacherAccount
+      summary: 启用账号（`CR-043` 补登记：与停用对称，写审计）
+      description: '启用账号（`CR-043` 补登记：与停用对称，写审计）
+
+
+        - 权限资源：`person.teacher`（动作映射规则见 06-api-catalog.md 第 2 节）
+
+        - 同步 / 异步：同步
+
+        - 请求与响应字段：见 `docs/10-prd/06-field-dictionary.yaml` 与该模块 PRD 第 7 节
+
+        - 数据范围：接口层按 `DataScopeResolver` 解析后注入（见 30-architecture/09-permission-architecture.md）'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '400':
+          description: 参数或业务规则校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '401':
+          description: 未登录或令牌失效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '403':
+          description: 功能权限或数据范围拒绝（DS-DENY-01 / 02）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '500':
+          description: 服务异常（返回请求编号）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: 主键一律序列化为字符串（禁止前端 Number() 转换，见 06-field-dictionary 的 id 说明）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/teacher_Request'
+  /edu/teacher/assignment/copy:
+    post:
+      tags:
+      - teacher
+      operationId: copyTeachingAssignment
+      summary: 复制上一学年任教关系（`CR-043` 补登记：预览 + 冲突清单 + 异步执行）
+      description: '复制上一学年任教关系（`CR-043` 补登记：预览 + 冲突清单 + 异步执行）
+
+
+        - 权限资源：`person.teacher`（动作映射规则见 06-api-catalog.md 第 2 节）
+
+        - 同步 / 异步：异步
+
+        - 请求与响应字段：见 `docs/10-prd/06-field-dictionary.yaml` 与该模块 PRD 第 7 节
+
+        - 数据范围：接口层按 `DataScopeResolver` 解析后注入（见 30-architecture/09-permission-architecture.md）'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '400':
+          description: 参数或业务规则校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '401':
+          description: 未登录或令牌失效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '403':
+          description: 功能权限或数据范围拒绝（DS-DENY-01 / 02）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '500':
+          description: 服务异常（返回请求编号）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '202':
+          description: 已入队（返回 task_no，进度与结果在异步任务中心查询）
           content:
             application/json:
               schema:

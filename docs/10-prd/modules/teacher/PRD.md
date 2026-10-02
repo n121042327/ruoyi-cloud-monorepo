@@ -4,7 +4,7 @@
 |---|---|
 | 模块 | 教师管理（`teacher`） |
 | 文档路径 | `docs/10-prd/modules/teacher/PRD.md` |
-| 版本 | 1.0.3-draft |
+| 版本 | 1.0.6-draft |
 | 状态 | `frozen`（2026-09-30 冻结，见 D-045、CR-001） |
 | 批次 | 1-2（按学生管理 PRD 样板结构产出） |
 | 上游依赖 | 见 1.4 |
@@ -17,6 +17,9 @@
 | 1.0.1-draft | 2026-09-30 | 按验收意见新增 `REQ-TCH-070`（复制上一学年任教关系）；第 12 节三项设计选择标记为已确认 | Codex |
 | 1.0.2-draft | 2026-09-30 | `CR-004`：4.4 字段级可编辑性矩阵统一为「校领导只读」（与 `05-permission-matrix.yaml` 对齐）；`REQ-TCH-022` 的「校级管理员」给出映射（= 租户管理员 `tenant_admin`） | Codex |
 | 1.0.3-draft | 2026-09-30 | 见 `CR-008`：6.1 的「新增教师」「编辑教师」载体由抽屉改为**弹窗**（与 `apps/plus-ui` 一致）；「教师详情」保持抽屉。页面与交互内容未变 | Codex |
+| 1.0.4-draft | 2026-10-02 | 见 `CR-030`（GAP-075 裁决 A）：6.1 补登记撤销片段 `DIALOG-TCH-REVOKE`（二次确认弹窗）；6.3 补「非在职行只保留查看与撤销离职登记」的交互。4.9 的 `REQ-TCH-062` 原文不变，本版只把该要求的入口与可见性写清 | Codex |
+| 1.0.5-draft | 2026-10-02 | 见 `CR-034`（GAP-078 裁决 A）：4.9 新增 `REQ-TCH-071`——撤销离职 / 调离登记后账号自动重新启用，教育角色不自动恢复，由管理员重新分配 | Codex |
+| 1.0.6-draft | 2026-10-02 | 见 `CR-043`（`GAP-083` 裁决 A）：第 8 节补 2 个接口——`enableTeacherAccount`（启用账号，与停用对称，写审计）与 `copyTeachingAssignment`（复制上一学年任教关系，预览 + 异步）；对应 `REQ-TCH-047` / `REQ-TCH-070` | Codex |
 
 ## 0. 怎么读这份文档
 
@@ -358,6 +361,7 @@ erDiagram
 | `REQ-TCH-060` | 登记离职后，该教师不可再新增任教关系，已有任教关系按生效日期保留历史 | `BR-TEACHER-006` |
 | `REQ-TCH-061` | 离职登记后账号自动停用，教育角色自动失效 | `BR-ORG-010` 同口径 |
 | `REQ-TCH-062` | 离职与调离可撤销（误操作纠正），但撤销本身也写审计 | `BR-AUDIT-001` |
+| `REQ-TCH-071` | 撤销离职 / 调离登记后账号自动重新启用；离职前的教育角色不自动恢复，由管理员重新分配（`CR-034` / `A-078`） | `BR-TEACHER-006` |
 
 ### 4.10 审计
 
@@ -437,6 +441,7 @@ erDiagram
 | `PAGE-TCH-ASSIGN` | 任教关系设置 | 独立页（双栏：教师视角 / 班级视角） | 教务主任、年级主任 |
 | `PAGE-TCH-IMPORT` | 教师导入向导 | 独立页 | 教务主任、租户管理员 |
 | `PAGE-TCH-LEAVE` | 离职 / 调离登记 | 弹窗 | 教务主任、租户管理员 |
+| `DIALOG-TCH-REVOKE` | 撤销离职 / 调离登记 | 弹窗（二次确认） | 教务主任、租户管理员 |
 
 > 载体口径（2026-09-30，`CR-008` / `D-059`）：**表单类浮层统一用弹窗**；**详情类用抽屉**；含表格或分页的内容用独立页。
 
@@ -458,6 +463,10 @@ erDiagram
 | 点击"设置任教" | 进入任教关系页，默认按当前学年学期加载 |
 | 点击"班主任"标签 | 跳转到对应班级详情（班级模块） |
 | 点击"导出" | 行数 ≤ 2000 直接下载，否则转异步 |
+
+> 非在职行（离职 / 调离）的入口口径见 `CR-030`（`GAP-075` 裁决 A）：只保留「查看」（点击行进详情，历史任教关系只读可查）
+> 与「撤销离职登记」；「编辑」「角色」「任教」入口关闭，与 `REQ-TCH-060`（离职后不可再新增任教关系）、
+> `REQ-TCH-061`（账号停用、教育角色失效）保持同一口径。撤销走 `DIALOG-TCH-REVOKE` 二次确认，接口 `revokeTeacherLeave`（`REQ-TCH-062`）。
 
 ### 6.4 页面状态
 
@@ -526,6 +535,8 @@ erDiagram
 | `importTeacherExecute` | POST | `/edu/teacher/import/execute` | 导入执行（异步） |
 | `downloadTeacherImportTemplate` | GET | `/edu/teacher/import/template` | 模板下载 |
 | `exportTeacher` | POST | `/edu/teacher/export` | 导出 |
+| `enableTeacherAccount` | POST | `/edu/teacher/{id}/account/enable` | 启用账号（`CR-043` 补登记：与停用对称，写审计） |
+| `copyTeachingAssignment` | POST | `/edu/teacher/assignment/copy` | 复制上一学年任教关系（`CR-043` 补登记：预览 + 冲突清单 + 异步执行） |
 
 接口层要求与其他模块一致：声明数据范围与功能权限、字段名可追到字段字典、
 主键序列化为字符串、错误码在阶段 5 统一。
@@ -565,6 +576,7 @@ erDiagram
 | `REQ-TCH-063` ~ `REQ-TCH-065` 审计 | — | `BR-AUDIT-001` ~ `BR-AUDIT-005` | `AC-TCH-063` ~ `AC-TCH-065` |
 | `REQ-TCH-066` ~ `REQ-TCH-069` 性能 | — | `NFR-PERF-02`、`NFR-PERF-03`、`NFR-PERF-06` | `AC-TCH-301` ~ `AC-TCH-304` |
 | `REQ-TCH-070` 复制上学年任教关系 | `SCN-TEACHER-01` | `BR-TEACHER-003`、`BR-TEACHER-004`、`BR-IMP-002` | `AC-TCH-070` |
+| `REQ-TCH-071` 撤销离职后的账号与角色口径 | `SCN-TEACHER-01` | `BR-TEACHER-006` | `AC-TCH-071` |
 | 权限与数据范围 | `SCN-TEACHER-01` | `BR-DATA-001` ~ `BR-DATA-017`、`DS-DENY-01` ~ `DS-DENY-09` | `AC-TCH-101` ~ `AC-TCH-110` |
 | 兼容与可访问性 | — | `NFR-COMPAT-01` ~ `NFR-COMPAT-03`、`NFR-A11Y-01` ~ `NFR-A11Y-04` | `AC-TCH-401` ~ `AC-TCH-404` |
 

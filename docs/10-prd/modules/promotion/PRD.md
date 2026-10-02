@@ -427,6 +427,7 @@ erDiagram
 | 建议 operationId | 方法 | 路径 | 说明 |
 |---|---|---|---|
 | `listPromotionTask` | GET | `/edu/promotion/task/list` | 任务列表 |
+| `exportPromotionTask` | POST | `/edu/promotion/task/export` | 任务列表导出（`CR-037` 补登记：模块级导出，≤ 2000 行直接下载、超出转异步） |
 | `getPromotionTask` | GET | `/edu/promotion/task/{id}` | 任务详情 |
 | `addPromotionTask` | POST | `/edu/promotion/task` | 创建任务 |
 | `previewPromotionTask` | POST | `/edu/promotion/task/{id}/preview` | 生成预览 |

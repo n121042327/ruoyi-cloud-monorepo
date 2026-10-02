@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>教师非在职行入口回归（CR-030 / GAP-075 裁决 A）</title>
+</head><body><p id="summary">合计 8 条，通过 8 条，失败 0 条</p><ol id="results"><li>TI-01 通过 非在职行不再提供编辑 / 角色 / 任教入口</li><li>TI-02 通过 非在职行提供撤销离职登记入口，权限与目标浮层正确</li><li>TI-03 通过 非在职行操作列只保留 1 个入口，且不再提供离职登记入口</li><li>TI-04 通过 在职行四个入口保持不变，且没有撤销入口</li><li>TI-05 通过 点撤销离职登记打开 DIALOG-TCH-REVOKE 并带入该教师：高洪波</li><li>TI-06 通过 撤销弹窗含分区、影响说明与备注，确认动作走 revokeTeacherLeave</li><li>TI-07 通过 撤销口径按 REQ-TCH-071 写清：账号重新启用、教育角色不自动恢复，不再挂 GAP-078</li><li>TI-08 通过 非在职行点击行仍可查看详情（历史关系只读可查）</li></ol><iframe id="frame" style="width:1440px;height:900px" src="../../prototypes/high-fidelity/v2/pages/teacher-list.html#role=super_admin"></iframe>
+<script>
+var params=new URLSearchParams(location.search),frame=document.querySelector('#frame');
+var layer=params.get('layer')==='hifi'?'high-fidelity':'functional';
+var version=params.get('version')||'v2';
+frame.onload=function(){
+  var d=frame.contentDocument,w=frame.contentWindow,checks=[];
+  if(!d.querySelector('#teacher-rows')){ document.querySelector('#summary').textContent='页面未加载'; return; }
+  function q(s){return d.querySelector(s);}
+  function test(id,ok,note){checks.push(id+' '+(ok?'通过':'失败')+' '+(note||''));}
+  function row(no){return Array.from(q('#teacher-rows').children).find(function(r){
+    var c=r.querySelector('[data-field="teacher_no"]');return c&&c.textContent===no;});}
+  function has(r,id){return Boolean(r.querySelector('[data-action-id="'+id+'"]'));}
+  try{
+    w.PrototypeShell.applyRole('super_admin');
+    var off=q('#teacher-rows tr[data-status="离职"]');
+    var onJob=row('YX2019001');
+    test('TI-01',Boolean(off)&&!has(off,'ACT-TCH-006')&&!has(off,'ACT-TCH-007')&&!has(off,'ACT-TCH-008'),
+      '非在职行不再提供编辑 / 角色 / 任教入口');
+    var revoke=off.querySelector('[data-action-id="ACT-TCH-040"]');
+    test('TI-02',Boolean(revoke)&&revoke.getAttribute('data-permission')==='person.teacher:update'
+      &&revoke.getAttribute('data-nav')==='DIALOG-TCH-REVOKE',
+      '非在职行提供撤销离职登记入口，权限与目标浮层正确');
+    test('TI-03',off.querySelectorAll('td.actions button').length===1&&!has(off,'ACT-TCH-009'),
+      '非在职行操作列只保留 1 个入口，且不再提供离职登记入口');
+    test('TI-04',Boolean(onJob)&&has(onJob,'ACT-TCH-006')&&has(onJob,'ACT-TCH-007')
+      &&has(onJob,'ACT-TCH-008')&&has(onJob,'ACT-TCH-009')&&!has(onJob,'ACT-TCH-040'),
+      '在职行四个入口保持不变，且没有撤销入口');
+    var panel=q('[data-demo-panel="DIALOG-TCH-REVOKE"]');
+    if(revoke&&panel){
+      revoke.click();
+      test('TI-05',panel.classList.contains('open')&&q('#revoke-target').textContent==='高洪波',
+        '点撤销离职登记打开 DIALOG-TCH-REVOKE 并带入该教师：'+q('#revoke-target').textContent);
+      var confirmBtn=panel.querySelector('[data-action-id="ACT-TCH-040"]');
+      test('TI-06',Boolean(panel.querySelector('[data-layout-group="撤销信息"]'))
+        &&Boolean(panel.querySelector('.alert.warning'))
+        &&Boolean(panel.querySelector('[data-field="remark"]'))
+        &&Boolean(confirmBtn)&&confirmBtn.getAttribute('data-api')==='revokeTeacherLeave'
+        &&confirmBtn.getAttribute('data-permission')==='person.teacher:update',
+        '撤销弹窗含分区、影响说明与备注，确认动作走 revokeTeacherLeave');
+      test('TI-07',panel.textContent.indexOf('REQ-TCH-071')!==-1
+        &&panel.textContent.indexOf('账号自动重新启用')!==-1
+        &&panel.textContent.indexOf('教育角色不自动恢复')!==-1
+        &&panel.textContent.indexOf('GAP-078')===-1,
+        '撤销口径按 REQ-TCH-071 写清：账号重新启用、教育角色不自动恢复，不再挂 GAP-078');
+    }else{
+      test('TI-05',false,'未找到撤销入口或其弹窗');
+      test('TI-06',false,'未找到撤销入口或其弹窗');
+      test('TI-07',false,'未找到撤销入口或其弹窗');
+    }
+    w.PrototypeShell.closePanel('all');
+    off.click();
+    test('TI-08',q('[data-demo-panel="PAGE-TCH-DETAIL"]').classList.contains('open'),
+      '非在职行点击行仍可查看详情（历史关系只读可查）');
+    w.PrototypeShell.closePanel('all');
+  }catch(e){checks.push('TI-ERROR 失败 '+e.stack);}
+  document.querySelector('#results').innerHTML=checks.map(function(s){return '<li>'+s+'</li>';}).join('');
+  var pass=checks.filter(function(s){return s.indexOf(' 通过 ')!==-1;}).length;
+  document.querySelector('#summary').textContent='合计 '+checks.length+' 条，通过 '+pass+' 条，失败 '+(checks.length-pass)+' 条';
+};
+frame.src='../../prototypes/'+layer+'/'+version+'/pages/teacher-list.html#role=super_admin';
+</script>
+</body></html>

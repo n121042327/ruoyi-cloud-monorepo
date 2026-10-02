@@ -1,0 +1,62 @@
+CR-031 年级详情 / 指定年级主任 / 归档 / 删除浮层字段分组验证日志
+执行日期：2026-10-02
+工作目录：D:\work\person_work\ruoyi-cloud-monorepo
+
+命令模板（Chrome headless）：
+  chrome --headless=new --disable-gpu --allow-file-access-from-files
+         --user-data-dir=<临时目录> --virtual-time-budget=30000 --dump-dom
+         file:///D:/work/person_work/ruoyi-cloud-monorepo/evidence/stage2-prototype-v2/<验证器>.html?layer=<functional|hifi>&version=<v1|v2>
+
+一、本批新增验证：verify-grade-overlay-layout.html（12 项 × 2 层）
+
+  v1 functional 基线（修改前）：合计 12 条，通过 5 条，失败 7 条
+    证据 2026-10-02_grade-overlay-layout-v1-functional.html
+  v2 functional：合计 12 条，通过 12 条，失败 0 条
+  v2 hifi：合计 12 条，通过 12 条，失败 0 条
+    证据 2026-10-02_grade-overlay-layout-v2-functional.html / -v2-hifi.html
+
+  覆盖：四个浮层的分组顺序、详情教育信息字段顺序、状态独立成组、详情其余分区保留、
+        学年学期必填校验、删除与归档原因必填校验、行内新增行宽度、校验汇总在分区之外、
+        页脚与分组动作边界（分组内只有 ACT-GRD-024 添加与 ACT-GRD-027 移除）。
+
+二、既有回归（本批改动后复跑）
+
+  verify-grade-layout-list.html（年级列表 CR-027 版，38 项）
+    合计 38 / 38 条，通过 38 条，不通过 0 条 —— 全部通过（连续两次运行一致）
+    证据 2026-10-02_grade-layout-list-cr031-result-1.html / -2.html
+
+  verify-teacher-grade-detail-cr031.html（详情入口，6 项）
+    合计 6 / 6 条，通过 6 条，不通过 0 条 —— 全部通过
+    证据 2026-10-02_teacher-grade-detail-cr031-result.html
+
+  本批通过合计：12 × 2 + 38 + 6 = 68 项。
+
+三、验证器修正（副本，原版保留）
+
+  verify-teacher-grade-detail.html 停在「运行中」的两处原因（CR-030 起挂起，与本批改动无关）：
+    1) rowOf() 按 tr.children[0]（第一列）匹配年级名称；CR-027 已把年级表第一列改为「学段」，
+       取不到行后在第一步抛 TypeError。副本改为匹配整行文本。
+    2) 三个 iframe 都在脚本之前声明，本地文件可能在本脚本挂 load 监听前就已加载完成，
+       pending 永不归零。副本补轮询 contentDocument.readyState 与 10 秒超时兜底。
+  修正后 RD-01 ~ RD-06 全部通过。
+
+四、文档与冻结检查
+
+  python tools/check_docs.py   -> 通过：未发现问题（退出码 0）
+  git diff --check             -> 无输出（退出码 0）
+  git status --short -- prototypes/functional/v1/pages prototypes/high-fidelity/v1
+                               -> 空输出，冻结 v1 页面未改动
+  prototypes/{functional,high-fidelity}/v2/pages/grade-list.html
+                               -> UTF-8 无 BOM、LF；两份文件除 head（视觉层与外壳引用）外逐行一致
+
+五、截图（1440 × 900）
+
+  evidence/stage2-prototype-v2/2026-10-02_grade-detail-layout-cr031_1440x900.png
+  evidence/stage2-prototype-v2/2026-10-02_grade-leader-layout-cr031_1440x900.png
+  evidence/stage2-prototype-v2/2026-10-02_grade-archive-layout-cr031_1440x900.png
+  evidence/stage2-prototype-v2/2026-10-02_grade-delete-layout-cr031_1440x900.png
+
+六、口径说明
+
+  以上计数均为脚本与浏览器实际输出。字段分组与布局通过不代表业务规则通过：本批未新增缺项，
+  既有 GAP-047 / 063 / 064 / 066 / 067 / 078 仍 open；人工验收未进行，接口与数据权限未执行。

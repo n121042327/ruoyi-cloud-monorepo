@@ -1,0 +1,40 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>表格与表单布局回归</title>
+<p id="summary">运行中</p><ol id="results"></ol><iframe id="frame" style="width:1440px;height:900px"></iframe>
+<script>
+var params=new URLSearchParams(location.search),page=params.get('page')==='teacher'?'teacher':'class',frame=document.querySelector('#frame');
+frame.onload=function(){
+ var d=frame.contentDocument,w=frame.contentWindow,checks=[];
+ function q(s){return d.querySelector(s);}
+ function test(id,ok,note){checks.push(id+' '+(ok?'通过':'失败')+' '+note);}
+ try{
+ w.PrototypeShell.applyRole('super_admin');
+ var table=q(page==='class'?'#class-table':'#teacher-table');
+ if(!table)throw new Error('missing table '+w.location.href);
+ var headers=Array.from(table.querySelectorAll('thead th'));
+ test('TF-01',headers.filter(n=>n.dataset.field!=='_selection'&&!n.classList.contains('actions')).every(n=>n.dataset.layoutGroup),'数据列都有业务分组标识');
+ test('TF-02',headers[headers.length-1].classList.contains('actions'),'操作列独立放在最右侧');
+ var root=q(page==='class'?'[data-demo-panel="PAGE-CLS-CREATE"]':'[data-demo-panel="PAGE-TCH-EDIT"]');
+ test('TF-03',root.querySelectorAll('[data-layout-group] h3').length>=2,'编辑表单通过标题分组');
+ if(page==='class'){
+ test('TF-04',headers.filter(n=>n.dataset.field&&n.dataset.field!=='actions').map(n=>n.dataset.field).join(',')==='campus_id,grade_id,class_name,class_type,head_teacher_id,classroom,class_capacity,student_count,class_status','校区、年级、班级排列在前，管理统计相邻');
+ var row=Array.from(q('#class-rows').children).find(r=>r.dataset.grade==='202601'&&r.dataset.head==='邓丽娟');
+ row.querySelector('[data-action-id="ACT-CLS-005"]').click();
+ test('TF-05',q('#class-form-name').value==='高一 (1) 班'&&q('#class-form-campus').value==='2011'&&q('#class-form-classroom').value==='本部教学楼 A203','调序后编辑仍读取正确班级和校区教室');
+ test('TF-06',Array.from(root.querySelectorAll('.field[data-field]')).map(n=>n.dataset.field).join(',')==='campus_id,term_id,grade_id,class_name,class_type,head_teacher_id,classroom,class_capacity','班级表单教育字段在前，容量归管理信息');
+ test('TF-07',q('#class-form-head').value==='邓丽娟'&&q('#class-form-capacity').value==='45','调序后班主任与容量未串列');
+ }else{
+ var row=Array.from(q('#teacher-rows').children).find(r=>r.dataset.keyword.includes('苏睿'));
+ row.querySelector('[data-action-id="ACT-TCH-006"]').click();
+ test('TF-05',root.querySelector('[data-field="teacher_name"]').value==='苏睿'&&root.querySelector('[data-field="teacher_no"]').value==='YXWY2017001','教师编辑对象仍正确');
+ var groups=Array.from(root.querySelectorAll('[data-layout-group]')).map(n=>n.dataset.layoutGroup);
+ test('TF-06',groups.join(',')==='基础信息,教育信息,职业信息,联系方式,补充信息','教师编辑语义分组顺序');
+ test('TF-07',root.querySelector('[data-layout-group="联系方式"] [data-field="teacher_phone"]')&&root.querySelector('[data-layout-group="联系方式"] [data-field="email"]')&&!root.querySelector('[data-layout-group="联系方式"] [data-field="hire_date"]'),'联系方式不混入入职日期');
+ }
+ var body=root.querySelector('.dialog-body');
+ test('TF-08',body.scrollWidth<=body.clientWidth+1,'分组表单控件不造成横向溢出');
+ }catch(e){checks.push('TF-ERROR 失败 '+e.stack);}
+ document.querySelector('#results').innerHTML=checks.map(s=>'<li>'+s+'</li>').join('');
+ document.querySelector('#summary').textContent='合计 '+checks.length+' 条，通过 '+checks.filter(s=>s.includes(' 通过 ')).length+' 条，失败 '+checks.filter(s=>s.includes(' 失败 ')).length+' 条';
+};
+frame.src='../../prototypes/'+(params.get('layer')==='hifi'?'high-fidelity':'functional')+'/'+(params.get('version')||'v2')+'/pages/'+page+'-list.html#role=super_admin';
+</script></html>

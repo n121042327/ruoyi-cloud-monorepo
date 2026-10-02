@@ -1,0 +1,109 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>年级详情 / 指定年级主任 / 归档 / 删除浮层字段分组回归（CR-031）</title>
+<p id="summary">运行中</p><ol id="results"></ol><iframe id="frame" style="width:1440px;height:900px"></iframe>
+<script>
+var params=new URLSearchParams(location.search),frame=document.querySelector('#frame');
+var layer=params.get('layer')==='hifi'?'high-fidelity':'functional';
+var version=params.get('version')||'v2';
+frame.onload=function(){
+  var d=frame.contentDocument,w=frame.contentWindow,checks=[];
+  if(!d.querySelector('#grade-rows')){ document.querySelector('#summary').textContent='页面未加载'; return; }
+  function q(s){return d.querySelector(s);}
+  function test(id,ok,note){checks.push(id+' '+(ok?'通过':'失败')+' '+(note||''));}
+  function groups(panel){
+    return Array.from(panel.querySelectorAll('section[data-layout-group]')).map(function(s){
+      return s.getAttribute('data-layout-group');});
+  }
+  function groupOf(panel,name){ return panel.querySelector('section[data-layout-group="'+name+'"]'); }
+  function labels(scope){
+    if(!scope) return [];
+    return Array.from(scope.querySelectorAll('.field')).map(function(f){
+      var l=f.querySelector('label');
+      return l?l.textContent.replace(/\s+/g,'').replace(/\*$/,''):'';
+    });
+  }
+  function summaryOut(panel){
+    var s=panel.querySelector('[data-validate-summary]');
+    return Boolean(s)&&!s.closest('section[data-layout-group]');
+  }
+  try{
+    w.PrototypeShell.applyRole('super_admin');
+    var del=q('[data-demo-panel="DIALOG-GRD-DELETE"]');
+    var detail=q('[data-demo-panel="PAGE-GRD-DETAIL"]');
+    var leader=q('[data-demo-panel="PAGE-GRD-LEADER"]');
+    var archive=q('[data-demo-panel="PAGE-GRD-ARCHIVE"]');
+
+    test('GO-01',groups(del).join(',')==='删除影响,删除说明'
+      &&del.querySelectorAll('section[data-layout-group="删除影响"] .alert').length===2
+      &&labels(groupOf(del,'删除说明')).join(',')==='删除原因',
+      '删除确认分组：'+groups(del).join('|'));
+    var delArea=del.querySelector('[data-field="remark"] textarea');
+    delArea.value='';
+    del.querySelector('[data-action-id="ACT-GRD-010"]').click();
+    var delSum=del.querySelector('[data-validate-summary]');
+    test('GO-02',del.querySelector('[data-field="remark"]').classList.contains('has-error')
+      &&Boolean(delSum)&&!delSum.classList.contains('state-hidden'),
+      '删除原因必填校验仍生效');
+
+    test('GO-03',groups(detail).join(',')==='教育信息,管理信息'
+      &&labels(groupOf(detail,'教育信息')).join(',')==='所属学校,学段,入学年份,学段内序号,年级名称,年级名称规则',
+      '年级详情教育信息顺序：'+labels(groupOf(detail,'教育信息')).join('|'));
+    test('GO-04',labels(groupOf(detail,'管理信息')).join(',')==='状态',
+      '状态独立成组，不与教育信息混组：'+labels(groupOf(detail,'管理信息')).join('|'));
+    var cards=Array.from(detail.querySelectorAll('[data-block="section"] h3')).map(function(h){return h.textContent.trim();});
+    test('GO-05',cards.join(',').indexOf('下辖班级')!==-1&&cards.join(',').indexOf('在读学生统计')!==-1
+      &&cards.join(',').indexOf('年级主任任职历史')!==-1&&cards.join(',').indexOf('变更记录')!==-1
+      &&d.querySelector('[data-detail-field="school"]').textContent.trim().length>0,
+      '详情其余分区保留且按 data-detail-field 填充：'+cards.join('|'));
+
+    test('GO-06',groups(leader).join(',')==='任职信息,新增任职'
+      &&labels(groupOf(leader,'任职信息')).join(',')==='学年学期,当前任职清单'
+      &&labels(groupOf(leader,'新增任职')).join(',')==='添加年级主任',
+      '指定年级主任分组：'+groups(leader).join('|'));
+    var term=q('#grade-leader-term');
+    term.value='';
+    leader.querySelector('[data-action-id="ACT-GRD-026"]').click();
+    test('GO-07',leader.querySelector('[data-field="term_id"]').classList.contains('has-error')
+      &&!leader.querySelector('[data-validate-summary]').classList.contains('state-hidden'),
+      '学年学期必填校验仍生效');
+    var inline=q('#grade-leader-teacher').closest('.form-inline');
+    var dateInput=q('#grade-leader-effective');
+    w.PrototypeShell.openPanel('PAGE-GRD-LEADER');
+    test('GO-08',q('#grade-leader-teacher').offsetWidth<inline.offsetWidth-40
+      &&dateInput.offsetWidth<inline.offsetWidth-40,
+      '行内新增行保持横向：'+q('#grade-leader-teacher').offsetWidth+' / '+dateInput.offsetWidth+' / '+inline.offsetWidth);
+    w.PrototypeShell.closePanel('all');
+
+    test('GO-09',groups(archive).join(',')==='归档影响,归档说明'
+      &&Boolean(groupOf(archive,'归档影响').querySelector('.alert.warning'))
+      &&Boolean(archive.querySelector('#grade-archive-classes'))
+      &&labels(groupOf(archive,'归档说明')).join(',')==='归档原因',
+      '归档确认分组：'+groups(archive).join('|'));
+    var arcArea=archive.querySelector('[data-field="remark"] textarea');
+    arcArea.value='';
+    archive.querySelector('[data-action-id="ACT-GRD-029"]').click();
+    test('GO-10',archive.querySelector('[data-field="remark"]').classList.contains('has-error')
+      &&!archive.querySelector('[data-validate-summary]').classList.contains('state-hidden'),
+      '归档原因必填校验仍生效');
+
+    test('GO-11',[del,leader,archive].every(summaryOut),
+      '校验汇总都在字段分区之外');
+    test('GO-12',[del,leader,archive].every(function(p){
+        var footer=p.querySelector('.dialog-footer');
+        var inSection=Array.from(p.querySelectorAll('section[data-layout-group] button[data-action-id]'))
+          .map(function(b){return b.getAttribute('data-action-id');})
+          .filter(function(id){return id!=='ACT-GRD-024'&&id!=='ACT-GRD-027';});
+        return inSection.length===0&&Boolean(footer)&&footer.querySelectorAll('button[data-action-id]').length===2;})
+      &&Boolean(detail.querySelector('.drawer-footer button[data-action-id]')),
+      '提交与取消固定在页脚；分组内只有子清单行动作（添加 / 移除）（' + [del,leader,archive].map(function(p){
+        var f=p.querySelector('.dialog-footer');
+        var ids=Array.from(p.querySelectorAll('section[data-layout-group] button[data-action-id]'))
+          .map(function(b){return b.getAttribute('data-action-id');}).join('+');
+        return p.getAttribute('data-demo-panel')+'=footer'+(f?f.querySelectorAll('button[data-action-id]').length:0)+'/group['+ids+']';}).join(' / ')
+        +' / drawer=' + Boolean(detail.querySelector('.drawer-footer button[data-action-id]')) + '）');
+  }catch(e){checks.push('GO-ERROR 失败 '+e.stack);}
+  document.querySelector('#results').innerHTML=checks.map(function(s){return '<li>'+s+'</li>';}).join('');
+  var pass=checks.filter(function(s){return s.indexOf(' 通过 ')!==-1;}).length;
+  document.querySelector('#summary').textContent='合计 '+checks.length+' 条，通过 '+pass+' 条，失败 '+(checks.length-pass)+' 条';
+};
+frame.src='../../prototypes/'+layer+'/'+version+'/pages/grade-list.html#role=super_admin';
+</script></html>

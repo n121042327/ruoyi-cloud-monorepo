@@ -1,0 +1,38 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>教师编辑目标绑定回归</title>
+<p id="summary">运行中</p><ol id="results"></ol><iframe id="frame" style="width:1440px;height:900px"></iframe>
+<script>
+var params=new URLSearchParams(location.search),frame=document.querySelector('#frame');
+frame.onload=function(){
+ var d=frame.contentDocument,w=frame.contentWindow,checks=[];
+ if(!d.querySelector('#teacher-rows'))return;
+ function q(s){return d.querySelector(s);}
+ function field(n){return q('[data-demo-panel="PAGE-TCH-EDIT"] [data-field="'+n+'"]');}
+ function test(id,ok,note){checks.push(id+' '+(ok?'通过':'失败')+' '+note);}
+ function row(no){return Array.from(q('#teacher-rows').children).find(r=>r.querySelector('[data-field="teacher_no"]').textContent===no);}
+ function edit(no){w.PrototypeShell.closePanel('all');row(no).querySelector('[data-action-id="ACT-TCH-006"]').click();}
+ try{
+ w.PrototypeShell.applyRole('super_admin');
+ edit('YXWY2017001');test('EB-01',field('email').value==='surui@yunxi-wgy.edu.cn','完整苏睿样例保留邮件');
+ edit('YX2019001');
+ test('EB-02',field('teacher_no').value==='YX2019001'&&field('teacher_name').value==='郑雅琴'&&field('gender').value==='女','点郑雅琴编辑绑定目标身份');
+ test('EB-03',field('school_id').value==='云溪实验学校'&&field('teacher_phone').value==='138****2210','学校与手机号来自目标教师');
+ test('EB-04',field('email').value===''&&field('hire_date').value===''&&field('email').placeholder.includes('样例未提供'),'缺失字段清空并标注，不沿用苏睿');
+ test('EB-05',q('[data-demo-panel="PAGE-TCH-EDIT"] [data-role-chip="academic_director"]').classList.contains('on')&&!q('[data-demo-panel="PAGE-TCH-EDIT"] [data-role-chip="grade_leader"]').classList.contains('on'),'教育角色选中态来自目标教师');
+ edit('YX2018003');test('EB-06',field('teacher_name').value==='邓丽娟'&&field('email').value==='denglj@yunxi.edu.cn'&&field('hire_date').value==='2018-08-15','切到完整邓丽娟样例恢复其字段');
+ edit('YX2010005');test('EB-07',field('teacher_name').value==='韦志远'&&field('teacher_phone').value===''&&field('email').value==='','无手机号的教师不沿用上一人数据');
+ edit('YX2021008');test('EB-08',field('teacher_name').value==='阿依努尔·艾山'&&field('gender').value==='女','间隔号姓名与性别正确');
+ w.PrototypeShell.closePanel('all');row('YX2019001').click();
+ w.PrototypeShell.openPanel('PAGE-TCH-EDIT');test('EB-09',field('teacher_name').value==='郑雅琴'&&field('email').value==='','列表详情再打开编辑仍是同一目标');
+ test('EB-13',q('[data-demo-panel="PAGE-TCH-DETAIL"] [data-detail-field="account_login"]').textContent==='样例未提供','非完整详情不再残留其他教师账号');
+ var roster=[['YX2019001','郑雅琴'],['YX2015007','何文博'],['YX2018003','邓丽娟'],['YX2016009','冯振国'],['YX2014002','谢明轩'],['YX2020015','卢佳音'],['YXWY2017001','苏睿'],['YX2009002','陆承志'],['YX2010005','韦志远'],['YX2021008','阿依努尔·艾山']];
+ test('EB-11',roster.every(function(pair){edit(pair[0]);return field('teacher_no').value===pair[0]&&field('teacher_name').value===pair[1];}),'十条在职样例逐行编辑均绑定正确身份');
+ test('EB-12',!row('YX2013006').querySelector('[data-action-id="ACT-TCH-009"]')&&row('YX2013006').textContent.indexOf('非在职 · 仅可查看')!==-1,'离职行不再提供离职登记入口，改为非在职说明');
+ edit('YX2013006');
+ test('EB-14',field('teacher_no').value==='YX2013006'&&field('teacher_name').value==='高洪波'&&field('employment_status').value==='离职','离职教师编辑绑定本人且状态为离职');
+ w.PrototypeShell.applyRole('school_leader');test('EB-10',field('teacher_name').disabled&&field('email').disabled,'只读角色字段权限保持');
+ }catch(e){checks.push('EB-ERROR 失败 '+e.stack);}
+ document.querySelector('#results').innerHTML=checks.map(s=>'<li>'+s+'</li>').join('');
+ document.querySelector('#summary').textContent='合计 '+checks.length+' 条，通过 '+checks.filter(s=>s.includes(' 通过 ')).length+' 条，失败 '+checks.filter(s=>s.includes(' 失败 ')).length+' 条';
+};
+frame.src='../../prototypes/'+(params.get('layer')==='hifi'?'high-fidelity':'functional')+'/v2/pages/teacher-list.html#role=super_admin';
+</script></html>

@@ -1,0 +1,42 @@
+CR-036 孤儿接口引用清理（GAP-079）验证日志
+执行日期：2026-10-02
+工作目录：D:\work\person_work\ruoyi-cloud-monorepo
+
+一、缺陷与处理
+
+  CR-035 新增的 tools/check_api_contract.py 首次运行报出 16 处未登记的孤儿 data-api（8 个字符串 × 两层）。
+  逐条核对 PRD 第 8 节后分两类：
+    改名对齐（2 条）：saveTeacherEduRole → saveTeacherRole、saveTeacherLeave → leaveTeacher
+    确认缺契约（6 条）：exportClass / exportGrade / exportPromotionTask /
+                        uploadStudentPhoto / getStudentPhoto / viewStudentIdCard → 登记为 GAP-080
+
+二、契约检查
+
+  python tools/check_api_contract.py -> 通过：接口契约一致（退出码 0）
+    OpenAPI operationId：172 个
+    原型 data-api 引用：112 处；余下 12 处（6 个字符串 × 两层）为已登记的 GAP-080，仅提示
+    查询参数对齐：listStudent -> docs/10-prd/modules/student/PRD.md（12 个参数）
+    listStudent 参数齐备：14 个
+
+  python tools/gen_api_and_map.py -> OpenAPI 172 个 operationId，152 条路径；页面动作映射 45 页 / 609 个动作
+    核对：page-action-api-map.yaml 里不再出现 saveTeacherEduRole / saveTeacherLeave
+
+三、回归
+
+  verify-teacher-inactive-rows-cr034.html：functional 8 / 8，hifi 8 / 8
+    证据 2026-10-02_teacher-inactive-rows-cr036-functional.html / -hifi.html
+  verify-teacher-edit-binding-cr030.html：functional 14 / 14，hifi 14 / 14
+    证据 2026-10-02_teacher-edit-binding-cr036-functional.html / -hifi.html
+  本批通过合计：8 × 2 + 14 × 2 = 44 项。
+
+四、文档与冻结检查
+
+  python tools/check_docs.py      -> 通过：未发现问题（退出码 0）
+  python tools/check_mermaid.py   -> 通过：未发现问题
+  git diff --check                -> 无输出（退出码 0）
+  git status --short -- prototypes/functional/v1/pages prototypes/high-fidelity/v1
+                                  -> 空输出，冻结 v1 页面未改动
+
+五、缺项
+
+  GAP-079 关闭；新增 GAP-080（6 条缺契约，blocking stage6 / stage8）。

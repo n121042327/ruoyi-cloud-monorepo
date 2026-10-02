@@ -46,18 +46,24 @@
 | `listStudentChangeLog` | GET | `/edu/student/{id}/change-log` | 变更记录 | `person.student` | 同步 |
 | `listEnrollmentStatusOption` | GET | `/edu/student/{id}/status-options` | 当前状态可执行的异动 | `person.student` | 同步 |
 | `changeEnrollmentStatus` | POST | `/edu/student/{id}/enrollment-change` | 学籍异动 | `person.student` | 同步 |
-| `transferStudentClass` | POST | `/edu/student/{id}/class-transfer` | 调班 | `person.student` | 同步 |
 | `crossSchoolTransfer` | POST | `/edu/student/cross-school-transfer` | 跨校转学 | `person.student` | 同步 |
 | `importStudentValidate` | POST | `/edu/student/import/validate` | 导入校验 | `person.student` | 同步 |
 | `importStudentExecute` | POST | `/edu/student/import/execute` | 导入执行（异步） | `person.student` | 异步 |
 | `downloadStudentImportTemplate` | GET | `/edu/student/import/template` | 模板下载 | `person.student` | 同步 |
 | `exportStudent` | POST | `/edu/student/export` | 导出 | `person.student` | 异步 |
+| `uploadStudentPhoto` | POST | `/edu/student/{id}/photo` | 上传 / 更换学生照片（`CR-037` 补登记：单张，走统一文件服务） | `person.student` | 同步 |
+| `getStudentPhoto` | GET | `/edu/student/{id}/photo` | 查看照片原图（`CR-037` 补登记：需 `read_sensitive`，写敏感数据访问日志） | `person.student` | 同步 |
+| `viewStudentIdCard` | GET | `/edu/student/{id}/id-card` | 查看完整证件号（`CR-037` 补登记：需 `read_sensitive`，写敏感数据访问日志） | `person.student` | 同步 |
 | `resetStudentPassword` | POST | `/edu/student/{id}/reset-password` | 重置密码 | `person.student` | 同步 |
 | `listStudentGuardian` | GET | `/edu/student/{id}/guardian` | 监护人列表 | `person.student` | 同步 |
 | `saveStudentGuardian` | POST | `/edu/student/{id}/guardian` | 新增 / 修改监护人 | `person.student` | 同步 |
 | `unbindStudentGuardian` | POST | `/edu/student/{id}/guardian/{guardianId}/unbind` | 解绑（需审核） | `person.student` | 同步 |
+| `getStudentActivationCode` | GET | `/edu/student/{id}/activation-code` | 查看激活码（`CR-043` 补登记：默认掩码，`reveal=true` 揭示明文并逐条写审计） | `person.student` | 同步 |
+| `printStudentActivationSlip` | POST | `/edu/student/activation-slip/print` | 批量打印密码条（`CR-043` 补登记：每行「姓名 / 学号 / 登录名 / 激活码」） | `person.student` | 同步 |
+| `exportStudentActivationCode` | POST | `/edu/student/activation-code/export` | 导出未激活学生加密清单（`CR-043` 补登记：教务主任权限，写审计并记录行数） | `person.student` | 异步 |
+| `activateStudentAccount` | POST | `/edu/student/{id}/activate` | 班主任代学生激活并设置密码（`CR-043` 补登记：写审计） | `person.student` | 同步 |
 
-共 19 个接口。请求 / 响应契约见 `docs/40-detailed-design/api/openapi.yaml`，错误码见 `docs/40-detailed-design/api/error-codes.yaml`。
+共 25 个接口。请求 / 响应契约见 `docs/40-detailed-design/api/openapi.yaml`，错误码见 `docs/40-detailed-design/api/error-codes.yaml`。
 
 ## 4. 页面与动作落点
 

@@ -362,6 +362,7 @@ erDiagram
 | `saveGradeLeader` | POST | `/edu/grade/{id}/leader` | 指定年级主任 |
 | `removeGradeLeader` | DELETE | `/edu/grade/{id}/leader/{leaderId}` | 解除任职 |
 | `getGradePromotionView` | GET | `/edu/grade/promotion-view` | 学年升级只读视图 |
+| `exportGrade` | POST | `/edu/grade/export` | 年级列表导出（`CR-037` 补登记：模块级导出，≤ 2000 行直接下载、超出转异步） |
 
 ---
 

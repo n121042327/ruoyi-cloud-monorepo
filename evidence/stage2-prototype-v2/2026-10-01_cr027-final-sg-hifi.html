@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>学生、年级表格与表单布局回归</title>
+</head><body><p id="summary">合计 17 条，通过 17 条，失败 0 条</p><ol id="results"><li>SG-01 通过 学生表头都有业务分组标识</li><li>SG-02 通过 学生数据列顺序：student_no|student_name|gender|enroll_year|stage_code|grade_name|class_name|enrollment_status|student_phone|update_time</li><li>SG-03 通过 操作列仍独立在最右</li><li>SG-04 通过 每个数据单元格都登记了字段名，选择列与操作列独立</li><li>SG-05 通过 按字段读取后详情仍绑定该行学号</li><li>SG-06 通过 新建学生分组顺序：基础信息|教育信息|补充信息|证件信息|联系方式</li><li>SG-07 通过 基础信息组字段</li><li>SG-08 通过 教育信息组按父级到子级排列</li><li>SG-09 通过 证件与联系方式不混组</li><li>SG-10 通过 监护人分组标题存在</li><li>SG-11 通过 编辑学生教育信息组</li><li>GG-01 通过 年级表头都有业务分组标识</li><li>GG-02 通过 年级数据列顺序：stage_code|enroll_year|grade_name|grade_level|leader_user_id|class_count|student_count|grade_status</li><li>GG-03 通过 班级数跳转仍在班级数列</li><li>GG-04 通过 新建年级教育信息组</li><li>GG-05 通过 按字段读取后编辑仍绑定该行年级</li><li>GG-06 通过 批量预览小学 6 项、冲突 1 项</li></ol>
+<iframe id="fs" style="width:1440px;height:820px" src="../../prototypes/high-fidelity/v2/pages/student-list.html#role=super_admin"></iframe>
+<iframe id="fg" style="width:1440px;height:820px" src="../../prototypes/high-fidelity/v2/pages/grade-list.html#role=super_admin"></iframe>
+<script>
+var params=new URLSearchParams(location.search);
+var layer=params.get('layer')==='hifi'?'high-fidelity':'functional';
+var version=params.get('version')||'v2';
+var checks=[],ready=0;
+function rec(id,ok,note){checks.push(id+' '+(ok?'通过':'失败')+' '+(note||''));}
+function labels(scope){
+  if(!scope) return [];
+  return Array.from(scope.querySelectorAll('.field')).map(function(f){
+    var l=f.querySelector('label');
+    return l?l.textContent.replace(/\s+/g,'').replace(/\*$/,''):'';
+  });
+}
+function groupOf(root,name){
+  return root.querySelector('[data-layout-group="'+name+'"]');
+}
+function finish(){ if(++ready<2) return;
+  document.querySelector('#results').innerHTML=checks.map(function(s){return '<li>'+s+'</li>';}).join('');
+  var pass=checks.filter(function(s){return s.indexOf(' 通过 ')!==-1;}).length;
+  document.querySelector('#summary').textContent='合计 '+checks.length+' 条，通过 '+pass+' 条，失败 '+(checks.length-pass)+' 条';
+}
+
+document.querySelector('#fs').addEventListener('load',function(){
+  var d=this.contentDocument,w=this.contentWindow;
+  if(!d.querySelector('#student-rows')) { finish(); return; }
+  try{
+    w.PrototypeShell.applyRole('super_admin');
+    var table=d.querySelector('#student-table');
+    var heads=Array.from(table.querySelectorAll('thead th'));
+    rec('SG-01',heads.every(function(h){return h.dataset.layoutGroup;}),'学生表头都有业务分组标识');
+    var fields=heads.filter(function(h){return h.dataset.field;}).map(function(h){return h.dataset.field;});
+    rec('SG-02',fields.join(',')==='student_no,student_name,gender,enroll_year,stage_code,grade_name,class_name,enrollment_status,student_phone,update_time','学生数据列顺序：'+fields.join('|'));
+    rec('SG-03',heads[heads.length-1].classList.contains('actions'),'操作列仍独立在最右');
+    var row=Array.from(d.querySelectorAll('#student-rows tr'))[1];
+    rec('SG-04',row.querySelectorAll('td[data-field]').length===10&&Boolean(row.querySelector('td.actions')),
+        '每个数据单元格都登记了字段名，选择列与操作列独立');
+    row.querySelector('td[data-field="student_name"]').click();
+    rec('SG-05',d.querySelector('#sd-no').textContent===row.querySelector('td[data-field="student_no"]').textContent.replace(/\s+/g,' ').trim(),
+        '按字段读取后详情仍绑定该行学号');
+
+    var create=d.querySelector('[data-demo-panel="PAGE-STU-CREATE"]');
+    var groups=Array.from(create.querySelectorAll('section[data-layout-group]')).map(function(s){return s.dataset.layoutGroup;});
+    rec('SG-06',groups.join(',')==='基础信息,教育信息,补充信息,证件信息,联系方式','新建学生分组顺序：'+groups.join('|'));
+    rec('SG-07',labels(groupOf(create,'基础信息')).join(',')==='学号,全国学籍号,姓名,性别','基础信息组字段');
+    rec('SG-08',labels(groupOf(create,'教育信息')).join(',')==='入学年份,学段,年级,行政班,学籍状态,入学日期','教育信息组按父级到子级排列');
+    rec('SG-09',labels(groupOf(create,'证件信息')).join(',')==='证件类型,证件号码,出生日期'
+        &&labels(groupOf(create,'联系方式')).join(',')==='学生手机号,联系地址','证件与联系方式不混组');
+    rec('SG-10',Boolean(create.querySelector('h3[data-layout-group="监护人信息"]')),'监护人分组标题存在');
+    var edit=d.querySelector('[data-demo-panel="PAGE-STU-EDIT"]');
+    rec('SG-11',labels(groupOf(edit,'教育信息')).join(',')==='入学年份,学段/年级,行政班,学籍状态','编辑学生教育信息组');
+  }catch(e){rec('SG-ERROR',false,e.stack);}
+  finish();
+});
+
+document.querySelector('#fg').addEventListener('load',function(){
+  var d=this.contentDocument,w=this.contentWindow;
+  if(!d.querySelector('#grade-rows')) { finish(); return; }
+  try{
+    w.PrototypeShell.applyRole('super_admin');
+    var table=d.querySelector('#grade-table');
+    var heads=Array.from(table.querySelectorAll('thead th'));
+    var fields=heads.filter(function(h){return h.dataset.field;}).map(function(h){return h.dataset.field;});
+    rec('GG-01',heads.every(function(h){return h.dataset.layoutGroup;}),'年级表头都有业务分组标识');
+    rec('GG-02',fields.join(',')==='stage_code,enroll_year,grade_name,grade_level,leader_user_id,class_count,student_count,grade_status','年级数据列顺序：'+fields.join('|'));
+    var first=Array.from(d.querySelectorAll('#grade-rows tr')).find(function(tr){
+      return tr.querySelector('td[data-field="grade_name"]').textContent.indexOf('2026 级 小学一年级')!==-1;});
+    rec('GG-03',Boolean(first&&first.querySelector('td[data-field="class_count"] button')),
+        '班级数跳转仍在班级数列');
+    var create=d.querySelector('[data-demo-panel="PAGE-GRD-CREATE"]');
+    rec('GG-04',labels(groupOf(create,'教育信息')).join(',')==='所属学校,学段,入学年份,学段内序号,年级名称','新建年级教育信息组');
+    first.querySelector('[data-action-id="ACT-GRD-004"]').click();
+    rec('GG-05',d.querySelector('#grade-form-name').value.indexOf('2026 级 小学一年级')!==-1
+        &&d.querySelector('#grade-form-stage').value==='primary','按字段读取后编辑仍绑定该行年级');
+    w.PrototypeShell.closePanel('all');
+    d.querySelector('[data-action-id="ACT-GRD-002"]').click();
+    var stage=d.querySelector('#grade-batch-stage'),enroll=d.querySelector('#grade-batch-enroll');
+    stage.value='primary';stage.dispatchEvent(new w.Event('change',{bubbles:true}));
+    enroll.value='2026';enroll.dispatchEvent(new w.Event('change',{bubbles:true}));
+    window.setTimeout(function(){
+      var preview=d.querySelector('#grade-batch-preview');
+      rec('GG-06',preview.children.length===6&&preview.querySelectorAll('.list-row.conflict').length>=1,
+          '批量预览小学 6 项、冲突 '+preview.querySelectorAll('.list-row.conflict').length+' 项');
+      w.PrototypeShell.closePanel('all');
+      finish();
+    },260);
+    return;
+  }catch(e){rec('GG-ERROR',false,e.stack);}
+  finish();
+});
+
+document.querySelector('#fs').src='../../prototypes/'+layer+'/'+version+'/pages/student-list.html#role=super_admin';
+document.querySelector('#fg').src='../../prototypes/'+layer+'/'+version+'/pages/grade-list.html#role=super_admin';
+</script>
+</body></html>

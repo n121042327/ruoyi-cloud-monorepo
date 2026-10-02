@@ -4,7 +4,7 @@
 |---|---|
 | 模块 | 学生管理（`student`） |
 | 文档路径 | `docs/10-prd/modules/student/PRD.md` |
-| 版本 | 1.0.5 |
+| 版本 | 1.0.7 |
 | 状态 | `frozen`（2026-09-30 冻结，见 D-045、CR-001；CR-002、CR-003 后仍为 `frozen`） |
 | 批次 | 1-1（首轮样板，验收通过后作为其余模块的写作基准） |
 | 上游依赖 | 见 1.4 |
@@ -19,6 +19,8 @@
 | 1.0.3 | 2026-09-30 | 见 `CR-002`：5.2 数据范围删除"共享授权可扩大学生可见范围"，改为学生数据不跨校共享（`BR-DATA-018`） | Codex |
 | 1.0.4 | 2026-09-30 | 见 `CR-003`：4.3 表单新增"学生照片"与 `FD-enroll_date`；`REQ-STU-027` 改为首轮不做学号修改；4.4 矩阵说明同步；6.2 操作栏明确批量导出与批量调班；6.3 补批量交互 | Codex |
 | 1.0.5 | 2026-09-30 | 见 `CR-008`：6.1 的「新增学生」「编辑学生」载体由抽屉改为**弹窗**（与 `apps/plus-ui` 的 `el-dialog` 习惯一致）；「学生详情」保持抽屉。页面与交互内容未变 | Codex |
+| 1.0.6 | 2026-10-02 | 见 `CR-029`：调班与班级模块对齐（`A-077` 裁决）——7.3 调班审计补「生效日期」；第 8 节删除 `transferStudentClass`，调班统一复用班级模块的 `transferClass`（`DP-01`：学生班级归属的唯一写入入口是班级管理）；6.1 的 `PAGE-STU-TRANSFER` 字段与 6.1 原文一致，不新增字段定义 | Codex |
+| 1.0.7 | 2026-10-02 | 见 `CR-043`（`GAP-082` 裁决 A）：第 8 节补 4 个激活码相关接口——`getStudentActivationCode`（默认掩码，揭示写审计）、`printStudentActivationSlip`（批量密码条）、`exportStudentActivationCode`（加密清单，写审计并记行数）、`activateStudentAccount`（班主任代激活）；对应 `REQ-STU-087` / `088` / `089` / `092` | Codex |
 
 ## 0. 怎么读这份文档
 
@@ -668,7 +670,7 @@ stateDiagram-v2
 | 编辑学生 | 变更前后值、操作人、时间 |
 | 修改学号 | 变更前后值、操作人、授权角色、时间 |
 | 学籍异动 | 类型、原状态、新状态、生效日期、原因、操作人 |
-| 调班 | 原班级、新班级、学年学期、操作人 |
+| 调班 | 原班级、新班级、学年学期、生效日期、操作人 |
 | 敏感字段全量查看 | 查看人、被查看对象、字段、时间 |
 | 导出 | 筛选条件、行数、耗时、导出人 |
 | 导入 | 批次号、总行数、成功数、失败数、操作人 |
@@ -690,16 +692,49 @@ stateDiagram-v2
 | `listStudentChangeLog` | GET | `/edu/student/{id}/change-log` | 变更记录 |
 | `listEnrollmentStatusOption` | GET | `/edu/student/{id}/status-options` | 当前状态可执行的异动 |
 | `changeEnrollmentStatus` | POST | `/edu/student/{id}/enrollment-change` | 学籍异动 |
-| `transferStudentClass` | POST | `/edu/student/{id}/class-transfer` | 调班 |
 | `crossSchoolTransfer` | POST | `/edu/student/cross-school-transfer` | 跨校转学 |
 | `importStudentValidate` | POST | `/edu/student/import/validate` | 导入校验 |
 | `importStudentExecute` | POST | `/edu/student/import/execute` | 导入执行（异步） |
 | `downloadStudentImportTemplate` | GET | `/edu/student/import/template` | 模板下载 |
 | `exportStudent` | POST | `/edu/student/export` | 导出 |
+| `uploadStudentPhoto` | POST | `/edu/student/{id}/photo` | 上传 / 更换学生照片（`CR-037` 补登记：单张，走统一文件服务） |
+| `getStudentPhoto` | GET | `/edu/student/{id}/photo` | 查看照片原图（`CR-037` 补登记：需 `read_sensitive`，写敏感数据访问日志） |
+| `viewStudentIdCard` | GET | `/edu/student/{id}/id-card` | 查看完整证件号（`CR-037` 补登记：需 `read_sensitive`，写敏感数据访问日志） |
 | `resetStudentPassword` | POST | `/edu/student/{id}/reset-password` | 重置密码 |
 | `listStudentGuardian` | GET | `/edu/student/{id}/guardian` | 监护人列表 |
 | `saveStudentGuardian` | POST | `/edu/student/{id}/guardian` | 新增 / 修改监护人 |
 | `unbindStudentGuardian` | POST | `/edu/student/{id}/guardian/{guardianId}/unbind` | 解绑（需审核） |
+| `getStudentActivationCode` | GET | `/edu/student/{id}/activation-code` | 查看激活码（`CR-043` 补登记：默认掩码，`reveal=true` 揭示明文并逐条写审计） |
+| `printStudentActivationSlip` | POST | `/edu/student/activation-slip/print` | 批量打印密码条（`CR-043` 补登记：每行「姓名 / 学号 / 登录名 / 激活码」） |
+| `exportStudentActivationCode` | POST | `/edu/student/activation-code/export` | 导出未激活学生加密清单（`CR-043` 补登记：教务主任权限，写审计并记录行数） |
+| `activateStudentAccount` | POST | `/edu/student/{id}/activate` | 班主任代学生激活并设置密码（`CR-043` 补登记：写审计） |
+
+> 调班（`PAGE-STU-TRANSFER`）复用班级模块的 `transferClass`（`POST /edu/class/roster/transfer`，权限 `org.class:update`），
+> 本模块不再单列 operationId（`CR-029`；`DP-01`：学生班级归属的唯一写入入口是班级管理）。
+> 原 `transferStudentClass`（`POST /edu/student/{id}/class-transfer`）已废弃，不再出现在接口清单中。
+> 批量调班同样复用 `transferClass`（单条 = 调班，多条 = 批量迁移，与 `D-067` 的批量迁学生口径一致）；
+> 原型与 `page-actions.yaml` 里的 `batchTransferStudent` 只是历史字符串，不是有效 operationId（`CR-035` / `GAP-066`）。
+
+### 8.1 `listStudent` 查询参数（阶段 4 / 5 契约依据）
+
+> 本表由 `tools/gen_api_and_map.py` 读取并写入 `docs/40-detailed-design/api/openapi.yaml`；
+> 小节标题固定写成 ``### 8.N `<operationId>` 查询参数``，表格列固定为「参数 | 位置 | 类型 | 必填 | 说明」。
+> 分页参数 `pageNum` / `pageSize` 由生成器统一追加，不在此表重复。
+
+| 参数 | 位置 | 类型 | 必填 | 说明 |
+|---|---|---|---|---|
+| schoolId | query | string | 否 | 学校上下文；学校用户固定本校，平台运营与超级管理员可切换 |
+| termId | query | string | 否 | 学年学期 |
+| gradeId | query | string | 否 | 年级 |
+| classId | query | string | 否 | 班级 |
+| enrollmentStatus | query | string | 否 | 学籍状态，多值以逗号分隔 |
+| gender | query | string | 否 | 性别 |
+| enrollYear | query | string | 否 | 入学年份 |
+| stageCode | query | string | 否 | 学段 |
+| keyword | query | string | 否 | 关键字，命中范围：学号 / 姓名 / 全国学籍号 |
+| idCardSuffix | query | string | 否 | 证件号后四位，需 `person.student:read_sensitive` |
+| sortBy | query | string | 否 | 排序字段：studentNo / studentName / enrollYear / className / updateTime |
+| sortOrder | query | string | 否 | 排序方向：asc / desc |
 
 接口层要求：
 

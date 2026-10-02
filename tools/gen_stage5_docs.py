@@ -3,7 +3,7 @@
 
 事实源（全部来自已冻结的上游产物，禁止在生成器里另造业务规则）：
   docs/40-detailed-design/database/schema.yaml   表结构事实源
-  docs/30-architecture/06-api-catalog.md         173 个 operationId
+  docs/30-architecture/06-api-catalog.md         operationId 清单（数量由脚本读取，随上游变化）
   docs/40-detailed-design/api/openapi.yaml       接口契约（本阶段生成）
   docs/40-detailed-design/page-action-api-map.yaml  页面动作映射（本阶段生成）
   docs/10-prd/modules/<module>/PRD.md            需求编号来源
@@ -2181,7 +2181,7 @@ def gen_index(tables, derived, views, ops):
         "| 阶段 4 产物 | 阶段 5 落点 |",
         "|---|---|",
         "| `05-data-ownership.md`（33 张表的归属） | `schema.yaml` 的 `module` 字段 + `domain-table-map.csv` |",
-        "| `06-api-catalog.md`（173 个 operationId） | `api/openapi.yaml` + `modules/<m>/design.md` 第 3 节 |",
+        "| `06-api-catalog.md`（" + str(total_ops) + " 个 operationId） | `api/openapi.yaml` + `modules/<m>/design.md` 第 3 节 |",
         "| `07-sync-async-boundary.md` | `runtime-design.md` 第 1、2 节 |",
         "| `08-cache-strategy.md` | `runtime-design.md` 第 4 节 |",
         "| `09-permission-architecture.md` | 各模块 design.md 第 9 节 |",

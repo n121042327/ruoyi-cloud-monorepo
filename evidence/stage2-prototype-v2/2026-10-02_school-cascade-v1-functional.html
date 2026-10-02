@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>学校变化后下拉收窄回归（CR-034 / GAP-047）</title>
+</head><body><p id="summary">合计 8 条，通过 3 条，失败 5 条</p><ol id="results"><li>SC-06 失败 教师页切到学校 202 后：任教年级 |202601|202501|202401 / 任教班级 |20260101|20260102|20250101</li><li>SC-07 通过 教师页切回学校 201 后任教年级 4 项 / 任教班级 4 项</li><li>SC-08 通过 任教学科是平台级配置，不随学校收窄：8 项</li><li>SC-01 失败 年级页切到学校 202 后的入学年份选项：|2026|2025|2024|2023|2022|2021</li><li>SC-02 失败 年级页切到学校 202 后的年级主任选项：|__none|何文博|郑雅琴|谢明轩|卢佳音|韦志远|阿依努尔·艾山</li><li>SC-03 失败 年级页切到学校 202 后可见学段：primary|junior|senior|__all</li><li>SC-04 通过 切回学校 201 后选项恢复：年份 7 项 / 年级主任 8 项 / 学段 4 项</li><li>SC-05 失败 切到学校 202 后失效的「小学」学段被隐藏并取消选中</li></ol>
+<iframe id="fg" style="width:1440px;height:760px" src="../../prototypes/functional/v1/pages/grade-list.html#role=super_admin"></iframe>
+<iframe id="ft" style="width:1440px;height:760px" src="../../prototypes/functional/v1/pages/teacher-list.html#role=super_admin"></iframe>
+<script>
+var params=new URLSearchParams(location.search);
+var layer=params.get('layer')==='hifi'?'high-fidelity':'functional';
+var version=params.get('version')||'v2';
+var checks=[],ready=0;
+function rec(id,ok,note){checks.push(id+' '+(ok?'通过':'失败')+' '+(note||''));}
+function finish(){ if(++ready<2) return;
+  document.querySelector('#results').innerHTML=checks.map(function(s){return '<li>'+s+'</li>';}).join('');
+  var pass=checks.filter(function(s){return s.indexOf(' 通过 ')!==-1;}).length;
+  document.querySelector('#summary').textContent='合计 '+checks.length+' 条，通过 '+pass+' 条，失败 '+(checks.length-pass)+' 条';
+}
+function pick(w,d,id,value){
+  var node=d.getElementById(id);
+  node.value=value;
+  node.dispatchEvent(new w.Event('change',{bubbles:true}));
+}
+function values(d,id){ return Array.from(d.getElementById(id).options).map(function(o){return o.value;}); }
+function visibleChips(d,attr){
+  return Array.from(d.querySelectorAll('[data-block="filter"] ['+attr+']')).filter(function(c){
+    return !c.classList.contains('state-hidden');}).map(function(c){ return c.getAttribute(attr); });
+}
+
+document.querySelector('#fg').addEventListener('load',function(){
+  var d=this.contentDocument,w=this.contentWindow;
+  if(!d.querySelector('#grade-rows')){ rec('SC-00',false,'年级页未加载'); finish(); return; }
+  try{
+    w.PrototypeShell.applyRole('super_admin');
+    pick(w,d,'f-school','202');
+    rec('SC-01',values(d,'f-enroll').join(',')==',2026','年级页切到学校 202 后的入学年份选项：'+values(d,'f-enroll').join('|'));
+    rec('SC-02',values(d,'f-leader').join(',')===',__none','年级页切到学校 202 后的年级主任选项：'+values(d,'f-leader').join('|'));
+    rec('SC-03',visibleChips(d,'data-stage-chip').join(',')==='junior,__all','年级页切到学校 202 后可见学段：'+visibleChips(d,'data-stage-chip').join('|'));
+    pick(w,d,'f-school','201');
+    rec('SC-04',values(d,'f-enroll').length===7&&values(d,'f-leader').length===8
+      &&visibleChips(d,'data-stage-chip').length===4,
+      '切回学校 201 后选项恢复：年份 '+values(d,'f-enroll').length+' 项 / 年级主任 '+values(d,'f-leader').length+' 项 / 学段 '+visibleChips(d,'data-stage-chip').length+' 项');
+    d.querySelector('[data-stage-chip="primary"]').click();
+    pick(w,d,'f-school','202');
+    rec('SC-05',!d.querySelector('[data-stage-chip="primary"]').classList.contains('on')
+      &&d.querySelector('[data-stage-chip="primary"]').classList.contains('state-hidden'),
+      '切到学校 202 后失效的「小学」学段被隐藏并取消选中');
+  }catch(e){checks.push('SC-ERROR-G 失败 '+e.stack);}
+  finish();
+});
+
+document.querySelector('#ft').addEventListener('load',function(){
+  var d=this.contentDocument,w=this.contentWindow;
+  if(!d.querySelector('#teacher-rows')){ rec('SC-00',false,'教师页未加载'); finish(); return; }
+  try{
+    w.PrototypeShell.applyRole('super_admin');
+    pick(w,d,'f-school','202');
+    rec('SC-06',values(d,'f-grade').join(',')===''&&values(d,'f-class').join(',')==='',
+      '教师页切到学校 202 后：任教年级 '+values(d,'f-grade').join('|')+' / 任教班级 '+values(d,'f-class').join('|'));
+    pick(w,d,'f-school','201');
+    rec('SC-07',values(d,'f-grade').length===4&&values(d,'f-class').length===4,
+      '教师页切回学校 201 后任教年级 '+values(d,'f-grade').length+' 项 / 任教班级 '+values(d,'f-class').length+' 项');
+    rec('SC-08',values(d,'f-subject').length===8,
+      '任教学科是平台级配置，不随学校收窄：'+values(d,'f-subject').length+' 项');
+  }catch(e){checks.push('SC-ERROR-T 失败 '+e.stack);}
+  finish();
+});
+
+document.querySelector('#fg').src='../../prototypes/'+layer+'/'+version+'/pages/grade-list.html#role=super_admin';
+document.querySelector('#ft').src='../../prototypes/'+layer+'/'+version+'/pages/teacher-list.html#role=super_admin';
+</script>
+</body></html>

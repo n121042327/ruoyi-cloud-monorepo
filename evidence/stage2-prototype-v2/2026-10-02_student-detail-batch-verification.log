@@ -1,0 +1,50 @@
+CR-033 学生详情抽屉字段分组验证日志
+执行日期：2026-10-02
+工作目录：D:\work\person_work\ruoyi-cloud-monorepo
+
+命令模板（Chrome headless）：
+  chrome --headless=new --disable-gpu --allow-file-access-from-files
+         --user-data-dir=<临时目录> --virtual-time-budget=30000 --dump-dom
+         file:///D:/work/person_work/ruoyi-cloud-monorepo/evidence/stage2-prototype-v2/<验证器>.html?layer=<functional|hifi>&version=<v1|v2>
+
+一、本批新增验证：verify-student-detail-layout.html（8 项 × 2 层）
+
+  v1 functional 基线（修改前）：合计 8 条，通过 1 条，失败 7 条
+    证据 2026-10-02_student-detail-layout-v1-functional.html
+  v2 functional：合计 8 条，通过 8 条，失败 0 条
+  v2 hifi：合计 8 条，通过 8 条，失败 0 条
+    证据 2026-10-02_student-detail-layout-v2-functional.html / -v2-hifi.html
+
+  覆盖：四组顺序（基础信息 / 教育信息 / 证件信息 / 联系方式）、基础信息组内顺序、
+        教育信息组字段、证件与联系方式不混组、卡片标题与其余两张卡片、
+        按 id 填充（点第二行后 sd-f-no / sd-f-name / sd-f-class 跟随该行）、
+        抽屉页脚五个操作、同义字段不重复成组。
+
+二、既有回归
+
+  verify-student-layout-list-cr029.html（学生模块，28 项）
+    合计 28 / 28 条，通过 28 条，不通过 0 条 —— 全部通过
+    证据 2026-10-02_student-layout-list-cr033-result.html
+
+  本批通过合计：8 × 2 + 28 = 44 项。
+
+三、文档与冻结检查
+
+  python tools/check_docs.py      -> 通过：未发现问题（退出码 0）
+  python tools/check_mermaid.py   -> 通过：未发现问题
+  git diff --check                -> 无输出（退出码 0）
+  git status --short -- prototypes/functional/v1/pages prototypes/high-fidelity/v1
+                                  -> 空输出，冻结 v1 页面未改动
+  prototypes/{functional,high-fidelity}/v2/pages/student-list.html
+                                  -> UTF-8 无 BOM、LF；两份文件除 head 外逐行一致
+
+四、截图（1440 × 1100）
+
+  evidence/stage2-prototype-v2/2026-10-02_student-detail-layout-cr033_1440x1100.png
+  evidence/stage2-prototype-v2/2026-10-02_student-detail-layout-cr033-hifi_1440x1100.png
+
+五、口径说明
+
+  以上计数均为脚本与浏览器实际输出。字段分组通过不代表业务规则通过：
+  本批未新增缺项；GAP-047 / 063 / 064 / 066 / 067 / 078 仍 open；
+  人工验收未进行，接口与数据权限未执行。
