@@ -40,12 +40,9 @@ REQUIRED_PARAMS = {"listStudent": ["schoolId", "termId", "gradeId", "classId", "
 # 这些字符串来自原型交付时的写法，逐条核对前不擅自改指到别的接口（CR-035 的 GAP-066 已明确
 # 「不得直接把原型字符串视为有效接口」）。清单登记在 docs/00-governance/gap-register.yaml 的 GAP-079；
 # 新出现的孤儿引用会让本脚本失败，已登记的不再重复报警。
-# CR-036 已把 saveTeacherEduRole → saveTeacherRole、saveTeacherLeave → leaveTeacher 改名对齐；
-# 余下 6 条确认是缺契约，登记为 GAP-080，补契约前先保留为已知项。
-KNOWN_ORPHANS = {
-    "exportClass", "exportGrade", "exportPromotionTask",
-    "uploadStudentPhoto", "getStudentPhoto", "viewStudentIdCard",
-}
+# CR-036 改名对齐了 2 条，CR-037 给余下 6 条补了契约（GAP-080 关闭），
+# 因此这里现在是空的：任何孤儿引用都应判失败。
+KNOWN_ORPHANS: set[str] = set()
 
 QUERY_SECTION_RE = re.compile(r"^#{2,4}\s+[\d.]*\s*`([A-Za-z][A-Za-z0-9]+)`\s*查询参数", re.M)
 QUERY_ROW_RE = re.compile(

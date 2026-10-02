@@ -16,7 +16,7 @@
 | 3 | [`03-module-division.md`](03-module-division.md) | 模块怎么分、服务边界在哪、包结构怎么放 | 11 个模块 PRD、`DP-01` |
 | 4 | [`04-tech-selection.md`](04-tech-selection.md) | 用哪些技术、为什么、哪些不能动 | `stack-lock.md`、实际 `pom.xml` / `package.json` |
 | 5 | [`05-data-ownership.md`](05-data-ownership.md) | 哪张表归哪个模块、谁是唯一写入入口 | 各模块 PRD 第 7 节、`10-data-permission-schema.md` |
-| 6 | [`06-api-catalog.md`](06-api-catalog.md) | 有哪些接口（173 个 operationId） | 各模块 PRD 第 8 节（工具生成） |
+| 6 | [`06-api-catalog.md`](06-api-catalog.md) | 有哪些接口（184 个 operationId） | 各模块 PRD 第 8 节（工具生成） |
 | 7 | [`07-sync-async-boundary.md`](07-sync-async-boundary.md) | 哪些同步、哪些异步、消息怎么设计 | `NFR-MQ-*`、导入导出 PRD |
 | 8 | [`08-cache-strategy.md`](08-cache-strategy.md) | Redis 键怎么设计、什么时机失效 | `NFR-CACHE-*`、`10-data-permission-schema.md` |
 | 9 | [`09-permission-architecture.md`](09-permission-architecture.md) | 数据权限怎么落地（四层范围 + 集团跨租户） | `05-permission-matrix.yaml`、`08-data-scope-model.md`、`10-data-permission-schema.md` |
@@ -44,7 +44,7 @@ flowchart LR
 | 架构图、模块划分、技术选型、数据归属、接口清单齐备 | `02` / `03` / `04` / `05` / `06` 五份文档 + `diagrams/` 四个图源 | 见各文件「结论」小节 |
 | 数据权限架构能表达校级 / 年级 / 班级 / 个人四层，且不依赖租户管理员放行 | `09-permission-architecture.md` 第 2 ~ 5 节（范围来源表 + 解析流程 + 拒绝规则 + 与 `ruoyi-common-tenant` 的关系） | 四层齐全；明确不继承租户管理员放行逻辑（`DS-DENY-05` / `DP-05`） |
 | 集团跨学校租户的查询方案明确 | `09-permission-architecture.md` 第 6 节（集团自有数据 / 运营授权共享 / 平台全平台三种路径的取舍） | 集团默认**不跨租户**读下属学校教学数据；跨校读取只经「运营方数据共享授权」（限教学资源）与「平台运营 `DS-01`」两条路径 |
-| 接口清单覆盖原型中每一个动作 | `06-api-catalog.md`（173 个 operationId，由 `tools/extract_api_catalog.py` 从 PRD 生成）+ 阶段 5 的 `page-action-api-map.yaml`（覆盖 403 个动作编号） | 阶段 4 交付接口全集；动作级映射在阶段 5 完成（门禁项在阶段 5 复核） |
+| 接口清单覆盖原型中每一个动作 | `06-api-catalog.md`（184 个 operationId，由 `tools/extract_api_catalog.py` 从 PRD 生成）+ 阶段 5 的 `page-action-api-map.yaml`（覆盖 609 个动作，其中 186 个调接口） | 阶段 4 交付接口全集；动作级映射在阶段 5 完成（门禁项在阶段 5 复核） |
 
 ## 4. 批次记录
 

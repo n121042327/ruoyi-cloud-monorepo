@@ -1,0 +1,673 @@
+schema_version: "1.0"
+purpose: |
+  需求到接口与表的逐条对应（GAP-081）。依据只有两类：
+  模块 PRD 第 8 节的 operationId 与说明、docs/40-detailed-design/database/schema.yaml 的表名与注释。
+  没有依据的不填：api 为空表示第 8 节没有对应接口（在 note 写明），不是遗漏。
+  本文件是人工维护的上游，由 tools/gen_traceability.py 合并进 traceability.yaml。
+modules:
+  student:
+    change_request: docs/00-governance/change-requests/CR-040.md
+    links:
+      REQ-STU-001: {api: [listStudent], tables: [edu_student, edu_student_enrollment, edu_class_member]}
+      REQ-STU-002: {api: [listStudent], tables: [edu_student, edu_student_enrollment, edu_class_member]}
+      REQ-STU-003: {api: [listStudent], tables: [edu_student]}
+      REQ-STU-004: {api: [listStudent], tables: [edu_student]}
+      REQ-STU-005: {api: [listStudent], tables: [edu_student]}
+      REQ-STU-006: {api: [listStudent], tables: [edu_student, edu_student_enrollment, edu_class_member]}
+      REQ-STU-007: {api: [listStudent], tables: [edu_student, edu_student_guardian, edu_guardian]}
+      REQ-STU-008: {api: [listStudent], tables: [edu_student_enrollment, edu_class_member]}
+      REQ-STU-009: {api: [addStudent, updateStudent, changeEnrollmentStatus, transferClass, exportStudent, importStudentExecute], tables: []}
+      REQ-STU-010: {api: [], tables: [], note: 用户偏好持久化尚无设计落点（PRD 第 10 节未定），第 8 节没有对应接口。}
+      REQ-STU-011: {api: [getStudent], tables: [edu_student, edu_student_enrollment, edu_class_member, edu_student_guardian, edu_guardian, edu_student_field_change]}
+      REQ-STU-012: {api: [getStudent], tables: [edu_student]}
+      REQ-STU-013: {api: [getStudent, viewStudentIdCard, getStudentPhoto], tables: [edu_student, edu_audit_log]}
+      REQ-STU-014: {api: [getStudent], tables: [edu_student_enrollment]}
+      REQ-STU-015: {api: [listStudentChangeLog], tables: [edu_student_field_change, edu_enrollment_change, edu_audit_log]}
+      REQ-STU-016: {api: [addStudent, uploadStudentPhoto], tables: [edu_student, edu_student_enrollment, edu_student_guardian, edu_file_ref]}
+      REQ-STU-017: {api: [addStudent], tables: [edu_student]}
+      REQ-STU-018: {api: [addStudent], tables: [edu_student]}
+      REQ-STU-019: {api: [addStudent], tables: [edu_student, edu_student_guardian]}
+      REQ-STU-020: {api: [addStudent], tables: [edu_student]}
+      REQ-STU-021: {api: [addStudent], tables: [edu_class_member]}
+      REQ-STU-022: {api: [saveStudentGuardian], tables: [edu_student_guardian, edu_guardian]}
+      REQ-STU-023: {api: [addStudent], tables: [edu_student], note: 登录账号落在平台账号表（共享 ruoyi-system），不在教育域 42 张表内。}
+      REQ-STU-024: {api: [addStudent], tables: [edu_student]}
+      REQ-STU-025: {api: [addStudent], tables: [edu_audit_log]}
+      REQ-STU-026: {api: [updateStudent, uploadStudentPhoto], tables: [edu_student, edu_file_ref]}
+      REQ-STU-027: {api: [], tables: [], note: 首轮不提供学号修改入口（GAP-030 裁决 B，延后实现）；第 8 节的 updateStudentNo 属高级操作，首轮不开放。}
+      REQ-STU-028: {api: [updateStudent, saveStudentGuardian], tables: [edu_student, edu_student_guardian]}
+      REQ-STU-029: {api: [updateStudent], tables: [edu_student, edu_class_member]}
+      REQ-STU-030: {api: [getStudent], tables: [edu_student_guardian]}
+      REQ-STU-031: {api: [updateStudent], tables: [edu_audit_log]}
+      REQ-STU-032: {api: [updateStudent], tables: [edu_student]}
+      REQ-STU-033: {api: [listStudent, getStudent], tables: [edu_student_enrollment]}
+      REQ-STU-034: {api: [listEnrollmentStatusOption, changeEnrollmentStatus], tables: [edu_enrollment_change, edu_student_enrollment]}
+      REQ-STU-035: {api: [changeEnrollmentStatus], tables: [edu_enrollment_change]}
+      REQ-STU-036: {api: [changeEnrollmentStatus], tables: [edu_enrollment_change]}
+      REQ-STU-037: {api: [listStudent, changeEnrollmentStatus], tables: [edu_student_enrollment]}
+      REQ-STU-038: {api: [changeEnrollmentStatus], tables: [edu_enrollment_change, edu_class_member]}
+      REQ-STU-039: {api: [crossSchoolTransfer], tables: [edu_transfer_order, edu_class_member]}
+      REQ-STU-040: {api: [crossSchoolTransfer], tables: [edu_student]}
+      REQ-STU-041: {api: [listStudentChangeLog], tables: [edu_enrollment_change, edu_audit_log]}
+      REQ-STU-042: {api: [transferClass], tables: [edu_class_member]}
+      REQ-STU-043: {api: [transferClass], tables: [edu_class_member]}
+      REQ-STU-044: {api: [transferClass], tables: [edu_class]}
+      REQ-STU-045: {api: [listTeachingClassRoster], tables: [edu_teaching_class_member]}
+      REQ-STU-046: {api: [getStudent, listStudent], tables: [edu_class_member]}
+      REQ-STU-047: {api: [listStudentGuardian], tables: [edu_student_guardian, edu_guardian]}
+      REQ-STU-048: {api: [listStudentGuardian], tables: [edu_student_guardian]}
+      REQ-STU-049: {api: [saveStudentGuardian], tables: [edu_student_guardian, edu_student_field_change]}
+      REQ-STU-050: {api: [unbindStudentGuardian], tables: [edu_student_guardian, edu_student_field_change]}
+      REQ-STU-051: {api: [], tables: [edu_guardian, edu_student_guardian], note: 首轮不实现家长端界面与认领接口（PRD 明确延后）；表结构与关系已建。}
+      REQ-STU-052: {api: [downloadStudentImportTemplate], tables: [edu_import_template]}
+      REQ-STU-053: {api: [importStudentValidate], tables: [edu_import_batch, edu_import_error]}
+      REQ-STU-054: {api: [importStudentValidate], tables: [edu_import_error]}
+      REQ-STU-055: {api: [importStudentValidate], tables: [edu_import_error]}
+      REQ-STU-056: {api: [importStudentExecute], tables: [edu_import_batch, edu_async_task]}
+      REQ-STU-057: {api: [importStudentExecute], tables: [edu_student]}
+      REQ-STU-058: {api: [importStudentExecute], tables: [edu_import_batch, edu_student]}
+      REQ-STU-059: {api: [importStudentExecute], tables: [edu_import_batch]}
+      REQ-STU-060: {api: [importStudentValidate], tables: [edu_import_error]}
+      REQ-STU-061: {api: [importStudentExecute], tables: [edu_async_task]}
+      REQ-STU-062: {api: [importStudentExecute], tables: [edu_class_member]}
+      REQ-STU-063: {api: [exportStudent], tables: [edu_student, edu_student_enrollment]}
+      REQ-STU-064: {api: [exportStudent], tables: [edu_student_enrollment]}
+      REQ-STU-065: {api: [exportStudent], tables: [edu_audit_log]}
+      REQ-STU-066: {api: [exportStudent], tables: [edu_student]}
+      REQ-STU-067: {api: [exportStudent], tables: [edu_class_member]}
+      REQ-STU-068: {api: [exportStudent], tables: [edu_async_task]}
+      REQ-STU-069: {api: [addStudent, importStudentExecute], tables: [edu_student]}
+      REQ-STU-070: {api: [addStudent, importStudentExecute], tables: [edu_student]}
+      REQ-STU-071: {api: [addStudent], tables: [edu_activation_code]}
+      REQ-STU-072: {api: [updateStudentNo], tables: [edu_student], note: 接口登记在 PRD 第 8 节，但首轮按 REQ-STU-027 不开放入口。}
+      REQ-STU-073: {api: [resetStudentPassword], tables: [edu_activation_code, edu_audit_log]}
+      REQ-STU-074: {api: [addStudent], tables: [edu_student]}
+      REQ-STU-075: {api: [removeStudent], tables: [edu_student, edu_student_enrollment]}
+      REQ-STU-076: {api: [removeStudent], tables: [edu_student]}
+      REQ-STU-077: {api: [removeStudent], tables: [edu_student]}
+      REQ-STU-078: {api: [removeStudent], tables: [edu_audit_log]}
+      REQ-STU-079: {api: [listStudent], tables: []}
+      REQ-STU-080: {api: [addStudent, updateStudent], tables: []}
+      REQ-STU-081: {api: [importStudentValidate], tables: []}
+      REQ-STU-082: {api: [getStudent], tables: []}
+      REQ-STU-083: {api: [listStudent, getStudent], tables: [edu_student_enrollment, edu_class_member]}
+      REQ-STU-084: {api: [listStudent, getStudent], tables: [edu_student]}
+      REQ-STU-085: {api: [listStudent, getStudent], tables: [edu_student]}
+      REQ-STU-086: {api: [addStudent, resetStudentPassword], tables: [edu_activation_code]}
+      REQ-STU-087: {api: [getStudentActivationCode], tables: [edu_activation_code, edu_audit_log]}
+      REQ-STU-088: {api: [printStudentActivationSlip], tables: [edu_activation_code]}
+      REQ-STU-089: {api: [exportStudentActivationCode], tables: [edu_activation_code, edu_audit_log, edu_file_ref]}
+      REQ-STU-090: {api: [], tables: [edu_activation_code], note: 首次登录与设置密码由认证服务（ruoyi-auth）承载，不在教育域接口清单内。}
+      REQ-STU-091: {api: [], tables: [], note: 登录限流属认证服务（ruoyi-auth）能力，不在教育域接口清单内。}
+      REQ-STU-092: {api: [activateStudentAccount], tables: [edu_activation_code, edu_audit_log]}
+      REQ-STU-093: {api: [acceptTransfer, checkInTransfer, cancelTransfer], tables: [edu_transfer_order, edu_student_enrollment]}
+      REQ-STU-094: {api: [changeEnrollmentStatus], tables: [edu_enrollment_change]}
+      REQ-STU-095: {api: [listEnrollmentStatusOption, changeEnrollmentStatus], tables: [edu_enrollment_change]}
+      REQ-STU-096: {api: [changeEnrollmentStatus], tables: [edu_enrollment_change]}
+      REQ-STU-097: {api: [changeEnrollmentStatus], tables: [edu_enrollment_change, edu_student_enrollment]}
+  class:
+    change_request: docs/00-governance/change-requests/CR-040.md
+    links:
+      REQ-CLS-001: {api: [listClass], tables: [edu_class]}
+      REQ-CLS-002: {api: [listClass], tables: [edu_class]}
+      REQ-CLS-003: {api: [listClass], tables: [edu_class, edu_teacher]}
+      REQ-CLS-004: {api: [listClass], tables: [edu_class, edu_class_member, edu_teacher]}
+      REQ-CLS-005: {api: [listClass], tables: [edu_class]}
+      REQ-CLS-006: {api: [addClass, updateClass, addClassRoster, assignHeadTeacher, mergeClass, disableClass, exportClass], tables: []}
+      REQ-CLS-007: {api: [listClass], tables: [edu_class, edu_class_member]}
+      REQ-CLS-008: {api: [listClass], tables: [edu_term]}
+      REQ-CLS-009: {api: [getClass], tables: [edu_class, edu_class_member, edu_teaching_assignment, edu_grade_leader]}
+      REQ-CLS-010: {api: [listClassRoster], tables: [edu_class_member, edu_student]}
+      REQ-CLS-011: {api: [listClassTeachingAssignment], tables: [edu_teaching_assignment, edu_subject]}
+      REQ-CLS-012: {api: [listClassRoster], tables: [edu_class_member, edu_student]}
+      REQ-CLS-013: {api: [getClass], tables: [edu_class]}
+      REQ-CLS-014: {api: [addClass], tables: [edu_class]}
+      REQ-CLS-015: {api: [addClass], tables: [edu_class]}
+      REQ-CLS-016: {api: [addClass], tables: [edu_class]}
+      REQ-CLS-017: {api: [addClass], tables: [edu_class]}
+      REQ-CLS-018: {api: [addClass], tables: [edu_class]}
+      REQ-CLS-019: {api: [addClass], tables: [edu_audit_log]}
+      REQ-CLS-020: {api: [batchAddClass], tables: [edu_class]}
+      REQ-CLS-021: {api: [updateClass], tables: [edu_class]}
+      REQ-CLS-022: {api: [updateClass], tables: [edu_class]}
+      REQ-CLS-023: {api: [updateClass], tables: [edu_class, edu_class_member]}
+      REQ-CLS-024: {api: [assignHeadTeacher], tables: [edu_class]}
+      REQ-CLS-025: {api: [assignHeadTeacher], tables: [edu_class]}
+      REQ-CLS-026: {api: [updateClass], tables: [edu_audit_log]}
+      REQ-CLS-027: {api: [addClassRoster], tables: [edu_student, edu_class_member]}
+      REQ-CLS-028: {api: [addClassRoster, transferClass], tables: [edu_class_member]}
+      REQ-CLS-029: {api: [addClassRoster], tables: [edu_class_member]}
+      REQ-CLS-030: {api: [removeClassRoster], tables: [edu_class_member]}
+      REQ-CLS-031: {api: [transferClass], tables: [edu_class_member]}
+      REQ-CLS-032: {api: [listClassRoster, getClass], tables: [edu_class_member]}
+      REQ-CLS-033: {api: [exportClassRoster], tables: [edu_class_member, edu_audit_log]}
+      REQ-CLS-034: {api: [exportClassRoster], tables: [edu_teaching_assignment]}
+      REQ-CLS-035: {api: [importRosterValidate], tables: [edu_import_template, edu_import_batch]}
+      REQ-CLS-036: {api: [importRosterValidate, importRosterExecute], tables: [edu_import_batch, edu_async_task]}
+      REQ-CLS-037: {api: [importRosterExecute], tables: [edu_import_batch]}
+      REQ-CLS-038: {api: [addTeachingClass, listTeachingClass], tables: [edu_teaching_class, edu_subject]}
+      REQ-CLS-039: {api: [addTeachingClass], tables: [edu_teaching_class]}
+      REQ-CLS-040: {api: [addTeachingClass], tables: [edu_teaching_class_member]}
+      REQ-CLS-041: {api: [addTeachingClass], tables: [edu_teaching_class_member, edu_class_member]}
+      REQ-CLS-042: {api: [listClassTeachingAssignment, listTeachingClass, getTeachingClass], tables: [edu_teaching_assignment, edu_teaching_class]}
+      REQ-CLS-043: {api: [disableClass, disableTeachingClass], tables: [edu_class, edu_class_member], note: 教学班停用沿用同一停用口径（CR-017 补登记 DIALOG-TCL-DISABLE，原因必填、写审计、历史成员保留）。}
+      REQ-CLS-044: {api: [disableClass], tables: [edu_class, edu_class_member]}
+      REQ-CLS-045: {api: [mergeClass], tables: [edu_class, edu_class_member], note: 首轮不做班级合并（PRD 明确延后），接口仅登记。}
+      REQ-CLS-046: {api: [removeClass], tables: [edu_class]}
+      REQ-CLS-047: {api: [disableClass, removeClass], tables: [edu_audit_log]}
+      REQ-CLS-048: {api: [assignHeadTeacher], tables: [edu_class]}
+      REQ-CLS-049: {api: [assignHeadTeacher], tables: [edu_class]}
+      REQ-CLS-050: {api: [assignHeadTeacher], tables: [edu_class]}
+      REQ-CLS-051: {api: [assignHeadTeacher], tables: [edu_class]}
+      REQ-CLS-052: {api: [addClass, updateClass, importRosterExecute, removeClassRoster, transferClass, assignHeadTeacher, disableClass, removeClass, copyClass, batchTransferClass], tables: [edu_audit_log], note: copyClass 与 batchTransferClass 在第 8 节没有独立 operationId：复制班级复用 addClass、批量迁学生复用 transferClass（GAP-049 与 D-067 的处理原则）。}
+      REQ-CLS-053: {api: [addClass, updateClass, transferClass], tables: [edu_audit_log, edu_audit_change]}
+      REQ-CLS-054: {api: [exportClassRoster], tables: [edu_audit_log]}
+      REQ-CLS-055: {api: [listClass], tables: []}
+      REQ-CLS-056: {api: [listClassRoster], tables: []}
+      REQ-CLS-057: {api: [importRosterExecute], tables: []}
+      REQ-CLS-058: {api: [mergeClass], tables: [], note: 首轮不做班级合并（PRD 明确延后）。}
+      REQ-CLS-059: {api: [], tables: [edu_class_member], note: 容量设计针对关系表本身，没有单独接口。}
+      REQ-CLS-060: {api: [assignHeadTeacher], tables: []}
+      REQ-CLS-061: {api: [addClass], tables: [edu_class], note: 复制班级复用 addClass（GAP-049 裁决 A），不新增 operationId。}
+      REQ-CLS-062: {api: [transferClass], tables: [edu_class_member], note: 批量迁学生复用 transferClass（D-067：单条 = 调班，多条 = 批量迁移）。}
+  teacher:
+    change_request: docs/00-governance/change-requests/CR-041.md
+    links:
+      REQ-TCH-001: {api: [listTeacher], tables: [edu_teacher]}
+      REQ-TCH-002: {api: [listTeacher], tables: [edu_teacher, edu_user_role, edu_teaching_assignment, edu_subject]}
+      REQ-TCH-003: {api: [listTeacher], tables: [edu_teacher]}
+      REQ-TCH-004: {api: [listTeacher], tables: [edu_teacher]}
+      REQ-TCH-005: {api: [listTeacher], tables: [edu_teacher, edu_user_role, edu_teaching_assignment]}
+      REQ-TCH-006: {api: [listTeacher], tables: [edu_teacher]}
+      REQ-TCH-007: {api: [addTeacher, updateTeacher, saveTeacherRole, saveTeachingAssignment, importTeacherExecute, exportTeacher], tables: []}
+      REQ-TCH-008: {api: [listTeacher], tables: [edu_teaching_assignment, edu_school]}
+      REQ-TCH-009: {api: [getTeacher, listTeacherRole], tables: [edu_teacher, edu_user_role, edu_teaching_assignment, edu_grade_leader, edu_class]}
+      REQ-TCH-010: {api: [getTeacher], tables: [edu_teacher]}
+      REQ-TCH-011: {api: [listTeachingAssignment], tables: [edu_teaching_assignment, edu_term]}
+      REQ-TCH-012: {api: [getTeacher], tables: [edu_class]}
+      REQ-TCH-013: {api: [getTeacher], tables: [edu_teacher]}
+      REQ-TCH-014: {api: [addTeacher], tables: [edu_teacher]}
+      REQ-TCH-015: {api: [addTeacher], tables: [edu_teacher]}
+      REQ-TCH-016: {api: [addTeacher], tables: [edu_teacher]}
+      REQ-TCH-017: {api: [addTeacher], tables: [edu_teacher, edu_school]}
+      REQ-TCH-018: {api: [addTeacher], tables: [edu_teacher], note: 登录账号落在平台账号表（共享 ruoyi-system），不在教育域 42 张表内。}
+      REQ-TCH-019: {api: [addTeacher], tables: [edu_teacher]}
+      REQ-TCH-020: {api: [addTeacher], tables: [edu_audit_log]}
+      REQ-TCH-021: {api: [updateTeacher], tables: [edu_teacher]}
+      REQ-TCH-022: {api: [updateTeacherNo], tables: [edu_teacher, edu_audit_log]}
+      REQ-TCH-023: {api: [updateTeacher], tables: [edu_teacher]}
+      REQ-TCH-024: {api: [updateTeacher], tables: [edu_audit_log]}
+      REQ-TCH-025: {api: [updateTeacher], tables: [edu_teacher]}
+      REQ-TCH-026: {api: [saveTeacherRole], tables: [edu_user_role]}
+      REQ-TCH-027: {api: [saveTeacherRole], tables: [edu_grade_leader, edu_term]}
+      REQ-TCH-028: {api: [saveTeacherRole], tables: [edu_user_role]}
+      REQ-TCH-029: {api: [saveTeacherRole], tables: [edu_user_role]}
+      REQ-TCH-030: {api: [saveTeacherRole], tables: [edu_user_role, edu_grade_leader]}
+      REQ-TCH-031: {api: [saveTeacherRole, removeTeacherRole], tables: [edu_user_role]}
+      REQ-TCH-032: {api: [saveTeacherRole, removeTeacherRole], tables: [edu_audit_log]}
+      REQ-TCH-033: {api: [getTeacher], tables: [edu_class]}
+      REQ-TCH-034: {api: [], tables: [], note: 页面提示性需求（区分教育角色与系统角色），没有对应接口。}
+      REQ-TCH-035: {api: [saveTeachingAssignment], tables: [edu_teaching_assignment, edu_term, edu_subject, edu_class]}
+      REQ-TCH-036: {api: [saveTeachingAssignment], tables: [edu_teaching_assignment]}
+      REQ-TCH-037: {api: [saveTeachingAssignment], tables: [edu_teaching_assignment]}
+      REQ-TCH-038: {api: [batchSaveTeachingAssignment], tables: [edu_teaching_assignment]}
+      REQ-TCH-039: {api: [batchSaveTeachingAssignment], tables: [edu_teaching_assignment]}
+      REQ-TCH-040: {api: [removeTeachingAssignment], tables: [edu_teaching_assignment]}
+      REQ-TCH-041: {api: [saveTeachingAssignment, removeTeachingAssignment], tables: [edu_teaching_assignment]}
+      REQ-TCH-042: {api: [saveTeachingAssignment], tables: [edu_term, edu_subject, edu_class]}
+      REQ-TCH-043: {api: [listTeachingAssignment], tables: [edu_teaching_assignment, edu_term]}
+      REQ-TCH-044: {api: [listTeachingAssignment], tables: [edu_teaching_assignment, edu_subject]}
+      REQ-TCH-045: {api: [addTeacher], tables: [edu_teacher]}
+      REQ-TCH-046: {api: [addTeacher, resetTeacherPassword], tables: [edu_teacher]}
+      REQ-TCH-047: {api: [disableTeacherAccount, enableTeacherAccount], tables: [edu_teacher, edu_audit_log]}
+      REQ-TCH-048: {api: [resetTeacherPassword], tables: [edu_audit_log]}
+      REQ-TCH-049: {api: [leaveTeacher], tables: [edu_teacher, edu_teaching_assignment]}
+      REQ-TCH-050: {api: [downloadTeacherImportTemplate], tables: [edu_import_template]}
+      REQ-TCH-051: {api: [importTeacherValidate], tables: [edu_import_batch, edu_import_error]}
+      REQ-TCH-052: {api: [importTeacherValidate], tables: [edu_import_error]}
+      REQ-TCH-053: {api: [importTeacherExecute], tables: [edu_async_task]}
+      REQ-TCH-054: {api: [importTeacherExecute], tables: [edu_import_batch]}
+      REQ-TCH-055: {api: [importTeacherExecute], tables: [edu_teacher, edu_user_role]}
+      REQ-TCH-056: {api: [exportTeacher], tables: [edu_teacher]}
+      REQ-TCH-057: {api: [exportTeacher], tables: [edu_audit_log]}
+      REQ-TCH-058: {api: [exportTeacher], tables: [edu_teaching_assignment]}
+      REQ-TCH-059: {api: [leaveTeacher], tables: [edu_teacher]}
+      REQ-TCH-060: {api: [leaveTeacher], tables: [edu_teaching_assignment]}
+      REQ-TCH-061: {api: [leaveTeacher], tables: [edu_teacher, edu_user_role]}
+      REQ-TCH-062: {api: [revokeTeacherLeave], tables: [edu_teacher, edu_audit_log]}
+      REQ-TCH-063: {api: [addTeacher, updateTeacher, updateTeacherNo, saveTeacherRole, removeTeacherRole, saveTeachingAssignment, removeTeachingAssignment, disableTeacherAccount, resetTeacherPassword], tables: [edu_audit_log]}
+      REQ-TCH-064: {api: [addTeacher, updateTeacher, saveTeacherRole, saveTeachingAssignment], tables: [edu_audit_log, edu_audit_change]}
+      REQ-TCH-065: {api: [], tables: [edu_audit_log], note: 平台运营访问留痕由审计模块的运营访问记录承载（audit 模块），教师模块没有对应接口。}
+      REQ-TCH-066: {api: [listTeacher], tables: []}
+      REQ-TCH-067: {api: [batchSaveTeachingAssignment], tables: []}
+      REQ-TCH-068: {api: [saveTeacherRole, saveTeachingAssignment], tables: []}
+      REQ-TCH-069: {api: [importTeacherValidate], tables: []}
+      REQ-TCH-070: {api: [copyTeachingAssignment], tables: [edu_teaching_assignment, edu_term]}
+      REQ-TCH-071: {api: [revokeTeacherLeave], tables: [edu_teacher, edu_user_role]}
+  grade:
+    change_request: docs/00-governance/change-requests/CR-041.md
+    links:
+      REQ-GRD-001: {api: [listGrade], tables: [edu_grade]}
+      REQ-GRD-002: {api: [listGrade], tables: [edu_grade]}
+      REQ-GRD-003: {api: [listGrade, exportGrade], tables: [edu_grade, edu_class, edu_grade_leader]}
+      REQ-GRD-004: {api: [listGrade, exportGrade], tables: [edu_grade]}
+      REQ-GRD-005: {api: [addGrade, batchAddGrade, updateGrade, saveGradeLeader, archiveGrade], tables: []}
+      REQ-GRD-006: {api: [listGrade], tables: [edu_class, edu_class_member]}
+      REQ-GRD-007: {api: [getGrade], tables: [edu_grade, edu_class, edu_grade_leader]}
+      REQ-GRD-008: {api: [getGrade], tables: [edu_class]}
+      REQ-GRD-009: {api: [getGrade], tables: [edu_class_member]}
+      REQ-GRD-010: {api: [getGrade], tables: [edu_grade]}
+      REQ-GRD-011: {api: [addGrade], tables: [edu_grade]}
+      REQ-GRD-012: {api: [addGrade], tables: [edu_grade]}
+      REQ-GRD-013: {api: [addGrade], tables: [edu_grade]}
+      REQ-GRD-014: {api: [addGrade], tables: [edu_grade]}
+      REQ-GRD-015: {api: [batchAddGrade], tables: [edu_grade]}
+      REQ-GRD-016: {api: [addGrade], tables: [edu_audit_log]}
+      REQ-GRD-017: {api: [updateGrade], tables: [edu_grade]}
+      REQ-GRD-018: {api: [updateGrade], tables: [edu_grade]}
+      REQ-GRD-019: {api: [updateGrade], tables: [edu_grade, edu_class]}
+      REQ-GRD-020: {api: [updateGrade], tables: [edu_grade]}
+      REQ-GRD-021: {api: [saveGradeLeader], tables: [edu_grade_leader]}
+      REQ-GRD-022: {api: [saveGradeLeader], tables: [edu_grade_leader, edu_term]}
+      REQ-GRD-023: {api: [saveGradeLeader], tables: [edu_grade_leader]}
+      REQ-GRD-024: {api: [saveGradeLeader], tables: [edu_grade_leader]}
+      REQ-GRD-025: {api: [saveGradeLeader], tables: [edu_grade_leader]}
+      REQ-GRD-026: {api: [listGradeLeader, saveTeacherRole], tables: [edu_grade_leader, edu_user_role]}
+      REQ-GRD-027: {api: [saveGradeLeader, removeGradeLeader], tables: [edu_audit_log]}
+      REQ-GRD-028: {api: [removeGrade, archiveGrade], tables: [edu_grade, edu_class]}
+      REQ-GRD-029: {api: [archiveGrade], tables: [edu_grade]}
+      REQ-GRD-030: {api: [removeGrade], tables: [edu_grade]}
+      REQ-GRD-031: {api: [removeGrade, archiveGrade], tables: [edu_audit_log]}
+      REQ-GRD-032: {api: [getGradePromotionView], tables: [edu_grade]}
+      REQ-GRD-033: {api: [getGradePromotionView], tables: [edu_grade]}
+      REQ-GRD-034: {api: [getGradePromotionView], tables: [edu_grade]}
+      REQ-GRD-035: {api: [addGrade, updateGrade, batchAddGrade, saveGradeLeader, removeGradeLeader, archiveGrade, removeGrade], tables: [edu_audit_log]}
+      REQ-GRD-036: {api: [addGrade, updateGrade, saveGradeLeader, archiveGrade], tables: [edu_audit_log, edu_audit_change]}
+      REQ-GRD-037: {api: [listGrade], tables: []}
+      REQ-GRD-038: {api: [getGrade], tables: []}
+      REQ-GRD-039: {api: [batchAddGrade], tables: []}
+      REQ-GRD-040: {api: [saveGradeLeader], tables: []}
+
+  audit:
+    change_request: docs/00-governance/change-requests/CR-042.md
+    links:
+      REQ-AUD-001: {api: [], tables: [edu_audit_log], note: 记录所有写操作由各业务模块在同一事务内调用审计组件完成，本模块第 8 节不对外暴露写入接口。}
+      REQ-AUD-002: {api: [], tables: [edu_audit_log], note: 字段清单落在 edu_audit_log 表结构，写入由审计组件完成。}
+      REQ-AUD-003: {api: [], tables: [edu_audit_change]}
+      REQ-AUD-004: {api: [], tables: [edu_audit_log]}
+      REQ-AUD-005: {api: [], tables: [edu_audit_log, edu_import_batch]}
+      REQ-AUD-006: {api: [], tables: [edu_audit_log, edu_data_grant, edu_data_grant_scope]}
+      REQ-AUD-007: {api: [listSecurityEvent], tables: [edu_audit_log]}
+      REQ-AUD-008: {api: [listSensitiveAccess], tables: [edu_audit_log]}
+      REQ-AUD-009: {api: [], tables: [edu_audit_log], note: 只在揭示全量或申请明文导出时记录，判定在审计组件内完成。}
+      REQ-AUD-010: {api: [], tables: [edu_audit_log], note: 库内只存字段名与掩码值，无对外接口。}
+      REQ-AUD-011: {api: [exportOperationLog], tables: [edu_audit_log]}
+      REQ-AUD-012: {api: [listSensitiveAccess], tables: [edu_audit_log]}
+      REQ-AUD-013: {api: [listOperatorAccess], tables: [edu_audit_log]}
+      REQ-AUD-014: {api: [listOperatorAccess], tables: [edu_audit_log]}
+      REQ-AUD-015: {api: [listOperatorAccess], tables: [edu_audit_log]}
+      REQ-AUD-016: {api: [exportOperatorAccess], tables: [edu_audit_log, edu_file_ref]}
+      REQ-AUD-017: {api: [], tables: [edu_audit_log], note: 保留期属存储策略，不在接口层。}
+      REQ-AUD-018: {api: [listOperationLog], tables: [edu_audit_log]}
+      REQ-AUD-019: {api: [listOperationLog], tables: []}
+      REQ-AUD-020: {api: [listOperationLog], tables: []}
+      REQ-AUD-021: {api: [listOperationLog], tables: []}
+      REQ-AUD-022: {api: [getOperationLog], tables: [edu_audit_log, edu_audit_change]}
+      REQ-AUD-023: {api: [listObjectChangeLog], tables: [edu_audit_change]}
+      REQ-AUD-024: {api: [listOperationLog, getOperationLog], tables: []}
+      REQ-AUD-025: {api: [], tables: [edu_audit_log], note: 第 8 节接口层要求 4 明确接口层不提供更新与删除方法。}
+      REQ-AUD-026: {api: [exportOperationLog], tables: [edu_file_ref]}
+      REQ-AUD-027: {api: [exportOperationLog], tables: []}
+      REQ-AUD-028: {api: [exportOperationLog], tables: []}
+      REQ-AUD-029: {api: [exportOperationLog], tables: [edu_file_ref, edu_audit_log]}
+      REQ-AUD-030: {api: [], tables: [edu_audit_log], note: 只允许追加写入属存储层约束。}
+      REQ-AUD-031: {api: [], tables: [edu_audit_log], note: 数据库账号权限回收落在迁移脚本，不在接口层。}
+      REQ-AUD-032: {api: [], tables: [edu_audit_log], note: 保留期属存储策略。}
+      REQ-AUD-033: {api: [listArchiveBatch, searchArchivedLog], tables: [edu_audit_archive_batch, edu_audit_log]}
+      REQ-AUD-034: {api: [listArchiveBatch, searchArchivedLog], tables: [edu_audit_archive_batch, edu_audit_log]}
+      REQ-AUD-035: {api: [], tables: [edu_audit_log], note: 同事务提交由审计组件与业务事务集成实现。}
+      REQ-AUD-036: {api: [], tables: [edu_audit_log, edu_async_task_retry]}
+      REQ-AUD-037: {api: [], tables: [edu_audit_log], note: 写入失败阈值与只读降级由审计组件实现。}
+      REQ-AUD-038: {api: [], tables: [edu_audit_log], note: 告警记录复用审计日志表，运维页面在系统告警模块。}
+      REQ-AUD-039: {api: [listOperationLog, exportOperationLog], tables: [edu_audit_log]}
+      REQ-AUD-040: {api: [listOperationLog, listOperatorAccess, listSensitiveAccess], tables: []}
+
+  import-export:
+    change_request: docs/00-governance/change-requests/CR-042.md
+    links:
+      REQ-IMP-001: {api: [listImportTemplate, downloadImportTemplate, validateImportFile, executeImport], tables: [edu_import_template]}
+      REQ-IMP-002: {api: [listImportTemplate, downloadImportTemplate], tables: [edu_import_template]}
+      REQ-IMP-003: {api: [listImportTemplate, downloadImportTemplate], tables: [edu_import_template]}
+      REQ-IMP-004: {api: [validateImportFile], tables: []}
+      REQ-IMP-005: {api: [validateImportFile], tables: [edu_import_batch, edu_import_error]}
+      REQ-IMP-006: {api: [validateImportFile, downloadImportFailedRows], tables: [edu_import_error]}
+      REQ-IMP-007: {api: [validateImportFile], tables: [edu_import_error]}
+      REQ-IMP-008: {api: [downloadImportFailedRows], tables: [edu_import_error, edu_file_ref]}
+      REQ-IMP-009: {api: [validateImportFile], tables: [edu_import_error]}
+      REQ-IMP-010: {api: [validateImportFile], tables: [edu_import_error]}
+      REQ-IMP-011: {api: [validateImportFile], tables: [edu_import_error]}
+      REQ-IMP-012: {api: [validateImportFile, executeImport], tables: [edu_import_batch, edu_import_error]}
+      REQ-IMP-013: {api: [validateImportFile], tables: [edu_import_error]}
+      REQ-IMP-014: {api: [validateImportFile], tables: [edu_import_batch]}
+      REQ-IMP-015: {api: [executeImport], tables: [edu_import_batch, edu_async_task]}
+      REQ-IMP-016: {api: [executeImport], tables: [edu_import_batch]}
+      REQ-IMP-017: {api: [executeImport], tables: [edu_import_batch]}
+      REQ-IMP-018: {api: [executeImport, downloadImportResult], tables: [edu_import_error, edu_file_ref]}
+      REQ-IMP-019: {api: [downloadImportFailedRows, downloadImportResult], tables: [edu_import_batch, edu_import_error]}
+      REQ-IMP-020: {api: [downloadImportResult], tables: [edu_import_batch, edu_file_ref]}
+      REQ-IMP-021: {api: [downloadImportResult], tables: [edu_import_batch, edu_student]}
+      REQ-IMP-022: {api: [downloadImportResult], tables: [edu_file_ref]}
+      REQ-IMP-023: {api: [downloadImportResult, downloadTaskResult], tables: [edu_async_task, edu_file_ref, edu_audit_log]}
+      REQ-IMP-024: {api: [exportData], tables: []}
+      REQ-IMP-025: {api: [exportData], tables: []}
+      REQ-IMP-026: {api: [exportData], tables: [edu_file_ref]}
+      REQ-IMP-027: {api: [exportData], tables: []}
+      REQ-IMP-028: {api: [exportData], tables: [edu_audit_log]}
+      REQ-IMP-029: {api: [exportData, listAsyncTask], tables: [edu_async_task]}
+      REQ-IMP-030: {api: [exportData], tables: [edu_audit_log]}
+      REQ-IMP-031: {api: [exportData, downloadTaskResult], tables: [edu_file_ref]}
+      REQ-IMP-032: {api: [listAsyncTask], tables: [edu_async_task]}
+      REQ-IMP-033: {api: [getAsyncTask], tables: [edu_async_task]}
+      REQ-IMP-034: {api: [getAsyncTask, cancelAsyncTask], tables: [edu_async_task]}
+      REQ-IMP-035: {api: [getAsyncTask], tables: []}
+      REQ-IMP-036: {api: [getAsyncTask, downloadTaskResult], tables: [edu_file_ref]}
+      REQ-IMP-037: {api: [retryAsyncTask], tables: [edu_async_task, edu_async_task_retry]}
+      REQ-IMP-038: {api: [listDeadLetterTask, replayDeadLetterTask], tables: [edu_dead_letter_task]}
+      REQ-IMP-039: {api: [], tables: [edu_async_task_retry], note: 重试次数、退避与并发配置属配置项，不在接口层。}
+      REQ-IMP-040: {api: [listAsyncTask], tables: [edu_async_task]}
+      REQ-IMP-041: {api: [], tables: [edu_file_ref], note: 文件二进制存文件服务，库内只留引用。}
+      REQ-IMP-042: {api: [downloadImportResult, downloadTaskResult], tables: [edu_file_ref]}
+      REQ-IMP-043: {api: [downloadTaskResult], tables: [edu_audit_log]}
+      REQ-IMP-044: {api: [validateImportFile], tables: []}
+      REQ-IMP-045: {api: [], tables: [edu_file_ref], note: 不落本地临时目录属文件服务实现约束。}
+      REQ-IMP-046: {api: [], tables: [edu_file_ref], note: 租户与学校前缀落在文件引用与缓存键规范。}
+      REQ-IMP-047: {api: [executeImport], tables: [edu_import_batch]}
+      REQ-IMP-048: {api: [], tables: [edu_import_batch], note: 并发上限属配置项。}
+      REQ-IMP-049: {api: [executeImport, listAsyncTask], tables: [edu_async_task]}
+      REQ-IMP-050: {api: [executeImport, exportData], tables: []}
+      REQ-IMP-051: {api: [validateImportFile], tables: []}
+      REQ-IMP-052: {api: [listAsyncTask], tables: [edu_async_task]}
+
+  promotion:
+    change_request: docs/00-governance/change-requests/CR-042.md
+    links:
+      REQ-PRM-001: {api: [listPromotionTask, exportPromotionTask], tables: [edu_promotion_task]}
+      REQ-PRM-002: {api: [listPromotionTask], tables: []}
+      REQ-PRM-003: {api: [listPromotionTask, getPromotionTask], tables: [edu_promotion_task]}
+      REQ-PRM-004: {api: [listPromotionTask], tables: []}
+      REQ-PRM-005: {api: [addPromotionTask], tables: [edu_promotion_task]}
+      REQ-PRM-006: {api: [getPromotionTask], tables: []}
+      REQ-PRM-007: {api: [addPromotionTask], tables: [edu_promotion_task]}
+      REQ-PRM-008: {api: [addPromotionTask], tables: [edu_academic_year, edu_term]}
+      REQ-PRM-009: {api: [addPromotionTask], tables: [edu_grade, edu_class]}
+      REQ-PRM-010: {api: [addPromotionTask], tables: [edu_student_enrollment]}
+      REQ-PRM-011: {api: [addPromotionTask, previewPromotionTask], tables: [edu_promotion_task]}
+      REQ-PRM-012: {api: [addPromotionTask], tables: [edu_audit_log]}
+      REQ-PRM-013: {api: [previewPromotionTask], tables: [edu_promotion_item]}
+      REQ-PRM-014: {api: [previewPromotionTask], tables: [edu_promotion_item, edu_grade, edu_class]}
+      REQ-PRM-015: {api: [previewPromotionTask, executePromotionTask], tables: [edu_promotion_item, edu_student_enrollment]}
+      REQ-PRM-016: {api: [previewPromotionTask], tables: [edu_promotion_item]}
+      REQ-PRM-017: {api: [updatePromotionItem], tables: [edu_promotion_item]}
+      REQ-PRM-018: {api: [batchUpdatePromotionItem], tables: [edu_promotion_item]}
+      REQ-PRM-019: {api: [exportPromotionPreview], tables: [edu_file_ref]}
+      REQ-PRM-020: {api: [previewPromotionTask], tables: [edu_promotion_item]}
+      REQ-PRM-021: {api: [previewPromotionTask], tables: [edu_promotion_task, edu_promotion_item]}
+      REQ-PRM-022: {api: [validatePromotionTask], tables: [edu_grade, edu_class, edu_student_enrollment, edu_promotion_item]}
+      REQ-PRM-023: {api: [validatePromotionTask], tables: [edu_promotion_item]}
+      REQ-PRM-024: {api: [validatePromotionTask], tables: [edu_class]}
+      REQ-PRM-025: {api: [validatePromotionTask, updatePromotionItem], tables: [edu_promotion_item]}
+      REQ-PRM-026: {api: [validatePromotionTask], tables: [edu_promotion_item]}
+      REQ-PRM-027: {api: [executePromotionTask], tables: [edu_promotion_task, edu_async_task]}
+      REQ-PRM-028: {api: [executePromotionTask], tables: [edu_promotion_item]}
+      REQ-PRM-029: {api: [executePromotionTask], tables: [edu_promotion_item]}
+      REQ-PRM-030: {api: [executePromotionTask], tables: [edu_class, edu_class_member, edu_student_enrollment]}
+      REQ-PRM-031: {api: [getPromotionTask], tables: [edu_promotion_task]}
+      REQ-PRM-032: {api: [retryPromotionTask], tables: [edu_promotion_item]}
+      REQ-PRM-033: {api: [], tables: [], note: 数据范围缓存失效由执行流程内部触发，无独立接口。}
+      REQ-PRM-034: {api: [exportPromotionResult], tables: [edu_file_ref]}
+      REQ-PRM-035: {api: [addPromotionTask], tables: [edu_promotion_task]}
+      REQ-PRM-036: {api: [executePromotionTask, retryPromotionTask], tables: [edu_audit_log]}
+      REQ-PRM-037: {api: [listEnrollmentChange, addEnrollmentChange], tables: [edu_enrollment_change]}
+      REQ-PRM-038: {api: [addEnrollmentChange], tables: [edu_enrollment_change]}
+      REQ-PRM-039: {api: [addEnrollmentChange], tables: [edu_enrollment_change, edu_student_enrollment]}
+      REQ-PRM-040: {api: [addEnrollmentChange], tables: [edu_enrollment_change, edu_class_member, edu_student_enrollment]}
+      REQ-PRM-041: {api: [addEnrollmentChange], tables: [edu_enrollment_change, edu_class_member]}
+      REQ-PRM-042: {api: [addEnrollmentChange], tables: [edu_enrollment_change]}
+      REQ-PRM-043: {api: [addEnrollmentChange, approveEnrollmentChange], tables: [edu_enrollment_change]}
+      REQ-PRM-044: {api: [addEnrollmentChange], tables: [edu_enrollment_change, edu_file_ref]}
+      REQ-PRM-045: {api: [addEnrollmentChange], tables: [edu_enrollment_change]}
+      REQ-PRM-046: {api: [addEnrollmentChange], tables: [edu_enrollment_change]}
+      REQ-PRM-047: {api: [addEnrollmentChange], tables: [edu_enrollment_change]}
+      REQ-PRM-048: {api: [listEnrollmentChange], tables: [edu_enrollment_change]}
+      REQ-PRM-049: {api: [], tables: [edu_student_enrollment], note: 异动生效后的权限缓存刷新由执行流程内部触发。}
+      REQ-PRM-050: {api: [addTransfer, acceptTransfer], tables: [edu_transfer_order]}
+      REQ-PRM-051: {api: [addTransfer, acceptTransfer, checkInTransfer], tables: [edu_transfer_order, edu_student_enrollment, edu_class_member]}
+      REQ-PRM-052: {api: [addTransfer], tables: [edu_transfer_order, edu_student]}
+      REQ-PRM-053: {api: [acceptTransfer], tables: [edu_transfer_order, edu_student_enrollment]}
+      REQ-PRM-054: {api: [cancelTransfer], tables: [edu_transfer_order]}
+      REQ-PRM-055: {api: [listTransfer], tables: [edu_transfer_order]}
+      REQ-PRM-056: {api: [addTransfer, acceptTransfer, checkInTransfer, cancelTransfer], tables: [edu_audit_log]}
+      REQ-PRM-057: {api: [addTransfer], tables: [edu_transfer_order]}
+      REQ-PRM-058: {api: [addPromotionTask, previewPromotionTask, executePromotionTask, retryPromotionTask, cancelPromotionTask], tables: [edu_audit_log]}
+      REQ-PRM-059: {api: [addEnrollmentChange, approveEnrollmentChange, addTransfer, acceptTransfer, checkInTransfer, cancelTransfer], tables: [edu_audit_log]}
+      REQ-PRM-060: {api: [], tables: [edu_audit_log]}
+      REQ-PRM-061: {api: [previewPromotionTask], tables: [edu_promotion_item]}
+      REQ-PRM-062: {api: [executePromotionTask], tables: [edu_async_task]}
+      REQ-PRM-063: {api: [addEnrollmentChange], tables: []}
+      REQ-PRM-064: {api: [acceptTransfer, checkInTransfer], tables: []}
+      REQ-PRM-065: {api: [], tables: [], note: 缓存失效延迟在服务内部保证，无独立接口。}
+      REQ-PRM-066: {api: [executePromotionTask, retryPromotionTask], tables: [edu_promotion_item]}
+
+  school:
+    change_request: docs/00-governance/change-requests/CR-042.md
+    links:
+      REQ-SCH-001: {api: [listSchool], tables: [edu_school]}
+      REQ-SCH-002: {api: [listSchool], tables: []}
+      REQ-SCH-003: {api: [listSchool], tables: []}
+      REQ-SCH-004: {api: [listSchool], tables: [edu_school]}
+      REQ-SCH-005: {api: [listSchool, getCurrentSchool], tables: [edu_school]}
+      REQ-SCH-006: {api: [listSchool], tables: []}
+      REQ-SCH-007: {api: [addSchool, updateSchool, listCampus, listSchoolStage, disableSchool], tables: []}
+      REQ-SCH-008: {api: [exportSchool], tables: [edu_file_ref, edu_audit_log]}
+      REQ-SCH-009: {api: [getSchool], tables: [edu_school, edu_campus, edu_school_stage]}
+      REQ-SCH-010: {api: [getSchoolSummary], tables: [edu_grade, edu_class, edu_student_enrollment, edu_teacher]}
+      REQ-SCH-011: {api: [getSchool], tables: [edu_school]}
+      REQ-SCH-012: {api: [getSchool], tables: []}
+      REQ-SCH-013: {api: [addSchool], tables: [edu_school]}
+      REQ-SCH-014: {api: [addSchool], tables: [edu_school]}
+      REQ-SCH-015: {api: [addSchool], tables: [edu_school]}
+      REQ-SCH-016: {api: [addSchool, updateSchoolCode], tables: [edu_school]}
+      REQ-SCH-017: {api: [addSchool], tables: [edu_school]}
+      REQ-SCH-018: {api: [addSchool], tables: [edu_school]}
+      REQ-SCH-019: {api: [initSchoolBaseline], tables: [edu_academic_year, edu_term, edu_subject, edu_user_role]}
+      REQ-SCH-020: {api: [addSchool], tables: [edu_audit_log]}
+      REQ-SCH-021: {api: [updateSchool], tables: [edu_school]}
+      REQ-SCH-022: {api: [updateSchool], tables: [edu_school]}
+      REQ-SCH-023: {api: [updateSchoolCode], tables: [edu_school, edu_audit_log]}
+      REQ-SCH-024: {api: [updateSchool], tables: [edu_school]}
+      REQ-SCH-025: {api: [updateSchool], tables: [edu_audit_log]}
+      REQ-SCH-026: {api: [saveCampus], tables: [edu_campus]}
+      REQ-SCH-027: {api: [saveCampus], tables: [edu_campus]}
+      REQ-SCH-028: {api: [listCampus], tables: [edu_campus]}
+      REQ-SCH-029: {api: [saveCampus], tables: [edu_campus, edu_class]}
+      REQ-SCH-030: {api: [removeCampus], tables: [edu_campus, edu_class]}
+      REQ-SCH-031: {api: [saveCampus, removeCampus], tables: [edu_audit_log]}
+      REQ-SCH-032: {api: [saveSchoolStage], tables: [edu_school_stage]}
+      REQ-SCH-033: {api: [listSchoolStage, saveSchoolStage], tables: [edu_school_stage, edu_grade]}
+      REQ-SCH-034: {api: [saveSchoolStage], tables: [edu_school_stage, edu_grade]}
+      REQ-SCH-035: {api: [saveSchoolStage], tables: [edu_audit_log]}
+      REQ-SCH-036: {api: [disableSchool, enableSchool], tables: [edu_school]}
+      REQ-SCH-037: {api: [disableSchool], tables: [edu_school]}
+      REQ-SCH-038: {api: [disableSchool], tables: [edu_school]}
+      REQ-SCH-039: {api: [disableSchool, enableSchool], tables: [edu_audit_log]}
+      REQ-SCH-040: {api: [addSchool, updateSchool, updateSchoolCode, saveCampus, saveSchoolStage, disableSchool, enableSchool], tables: [edu_audit_log]}
+      REQ-SCH-041: {api: [], tables: [edu_audit_log]}
+      REQ-SCH-042: {api: [], tables: [edu_audit_log], note: 运营访问留痕由审计模块记录并经 listOperatorAccess / exportOperatorAccess 导出。}
+      REQ-SCH-043: {api: [listSchool], tables: []}
+      REQ-SCH-044: {api: [getSchoolSummary], tables: []}
+      REQ-SCH-045: {api: [initSchoolBaseline], tables: []}
+
+  stream:
+    change_request: docs/00-governance/change-requests/CR-042.md
+    links:
+      REQ-STR-001: {api: [getStreamConfig, saveStreamConfig], tables: [edu_stream_config, edu_term]}
+      REQ-STR-002: {api: [saveStreamConfig], tables: [edu_stream_config]}
+      REQ-STR-003: {api: [getStreamConfig], tables: [edu_stream_config, edu_term]}
+      REQ-STR-004: {api: [saveStreamConfig], tables: [edu_stream_config]}
+      REQ-STR-005: {api: [getStreamConfig, submitMyStream], tables: [edu_stream_config]}
+      REQ-STR-006: {api: [saveStreamConfig], tables: [edu_audit_log]}
+      REQ-STR-007: {api: [getStreamConfig, getMyStream], tables: [edu_stream_config]}
+      REQ-STR-008: {api: [getStreamConfig, getMyStream], tables: [edu_stream_config]}
+      REQ-STR-009: {api: [getStreamOption, submitMyStream], tables: [edu_student_stream]}
+      REQ-STR-010: {api: [getStreamOption, submitMyStream], tables: [edu_student_stream]}
+      REQ-STR-011: {api: [submitMyStream], tables: []}
+      REQ-STR-012: {api: [submitMyStream], tables: [edu_student_stream]}
+      REQ-STR-013: {api: [getStreamOption, submitMyStream], tables: [edu_student_stream]}
+      REQ-STR-014: {api: [getStreamOption], tables: [edu_subject]}
+      REQ-STR-015: {api: [getStreamOption], tables: [edu_subject]}
+      REQ-STR-016: {api: [listStreamSelection, getStreamStat], tables: [edu_student_stream, edu_subject]}
+      REQ-STR-017: {api: [getStreamOption, getMyStream], tables: []}
+      REQ-STR-018: {api: [getMyStream, getStreamOption, getStreamConfig], tables: [edu_student_stream, edu_stream_config]}
+      REQ-STR-019: {api: [submitMyStream], tables: []}
+      REQ-STR-020: {api: [submitMyStream], tables: [edu_student_stream]}
+      REQ-STR-021: {api: [getMyStream, submitMyStream], tables: []}
+      REQ-STR-022: {api: [getMyStream], tables: [edu_student_stream]}
+      REQ-STR-023: {api: [submitMyStream], tables: [edu_stream_history, edu_audit_log]}
+      REQ-STR-024: {api: [submitMyStream], tables: [edu_student_stream, edu_audit_log]}
+      REQ-STR-025: {api: [updateMyStream], tables: [edu_student_stream, edu_stream_history]}
+      REQ-STR-026: {api: [updateMyStream, addStreamChangeRequest], tables: [edu_stream_change_request]}
+      REQ-STR-027: {api: [addStreamChangeRequest], tables: [edu_stream_change_request]}
+      REQ-STR-028: {api: [addStreamChangeRequest], tables: [edu_stream_change_request]}
+      REQ-STR-029: {api: [addStreamChangeRequest], tables: [edu_stream_change_request]}
+      REQ-STR-030: {api: [cancelStreamChangeRequest], tables: [edu_stream_change_request]}
+      REQ-STR-031: {api: [listStreamChangeRequest, addStreamChangeRequest], tables: [edu_stream_change_request]}
+      REQ-STR-032: {api: [approveStreamChangeRequest], tables: [edu_student_stream]}
+      REQ-STR-033: {api: [addStreamChangeRequest, cancelStreamChangeRequest, approveStreamChangeRequest], tables: [edu_audit_log]}
+      REQ-STR-034: {api: [approveStreamChangeRequest], tables: []}
+      REQ-STR-035: {api: [listStreamChangeRequest], tables: [edu_stream_change_request]}
+      REQ-STR-036: {api: [approveStreamChangeRequest], tables: [edu_student_stream, edu_stream_history]}
+      REQ-STR-037: {api: [approveStreamChangeRequest], tables: [edu_stream_change_request]}
+      REQ-STR-038: {api: [listStreamChangeRequest], tables: [edu_stream_change_request]}
+      REQ-STR-039: {api: [approveStreamChangeRequest], tables: [edu_audit_log]}
+      REQ-STR-040: {api: [], tables: [], note: 审批通过后的缓存失效由服务内部触发，无独立接口。}
+      REQ-STR-041: {api: [listStreamHistory], tables: [edu_stream_history]}
+      REQ-STR-042: {api: [listStreamHistory], tables: [edu_stream_history]}
+      REQ-STR-043: {api: [], tables: [edu_stream_history], note: 只追加不可改属存储层约束。}
+      REQ-STR-044: {api: [getMyStream, listStreamHistory], tables: [edu_student_stream, edu_stream_history]}
+      REQ-STR-045: {api: [getMyStream, listStreamHistory], tables: [edu_student_stream]}
+      REQ-STR-046: {api: [listStreamSelection, listUnselectedStudent], tables: [edu_student_stream, edu_class_member]}
+      REQ-STR-047: {api: [listStreamSelection, getStreamStat], tables: [edu_student_stream]}
+      REQ-STR-048: {api: [listStreamSelection, getStreamStat], tables: []}
+      REQ-STR-049: {api: [getStreamStat], tables: [edu_student_stream]}
+      REQ-STR-050: {api: [getStreamStat, listStreamSelection], tables: [edu_student_stream]}
+      REQ-STR-051: {api: [listUnselectedStudent], tables: [edu_student_stream, edu_student_enrollment]}
+      REQ-STR-052: {api: [exportStreamSelection], tables: [edu_file_ref, edu_audit_log]}
+      REQ-STR-053: {api: [listStreamSelection, exportStreamSelection], tables: []}
+      REQ-STR-054: {api: [executeTeachingClassGenerate], tables: [edu_teaching_class, edu_teaching_class_member]}
+      REQ-STR-055: {api: [previewTeachingClassGenerate], tables: [edu_teaching_class, edu_teaching_class_member]}
+      REQ-STR-056: {api: [executeTeachingClassGenerate], tables: [edu_teaching_class, edu_teaching_class_member]}
+      REQ-STR-057: {api: [executeTeachingClassGenerate], tables: [edu_teaching_class, edu_teaching_class_member]}
+      REQ-STR-058: {api: [previewTeachingClassGenerate, executeTeachingClassGenerate], tables: [edu_teaching_class]}
+      REQ-STR-059: {api: [previewTeachingClassGenerate, getStreamStat], tables: [edu_teaching_class_member]}
+      REQ-STR-060: {api: [previewTeachingClassGenerate, executeTeachingClassGenerate], tables: [edu_teaching_class_member, edu_student_stream]}
+      REQ-STR-061: {api: [saveStreamConfig, submitMyStream, updateMyStream, addStreamChangeRequest, approveStreamChangeRequest, executeTeachingClassGenerate], tables: [edu_audit_log]}
+      REQ-STR-062: {api: [], tables: [edu_audit_log]}
+      REQ-STR-063: {api: [], tables: [edu_audit_log], note: 运营访问留痕由审计模块记录并经 listOperatorAccess / exportOperatorAccess 导出。}
+      REQ-STR-064: {api: [getMyStream], tables: []}
+      REQ-STR-065: {api: [submitMyStream], tables: []}
+      REQ-STR-066: {api: [getStreamStat], tables: []}
+      REQ-STR-067: {api: [previewTeachingClassGenerate], tables: [edu_teaching_class_member]}
+      REQ-STR-068: {api: [getStreamConfig], tables: []}
+      REQ-STR-069: {api: [submitMyStream], tables: [edu_student_stream]}
+
+  subject:
+    change_request: docs/00-governance/change-requests/CR-042.md
+    links:
+      REQ-SUB-001: {api: [listSubject], tables: [edu_subject]}
+      REQ-SUB-002: {api: [listSubject], tables: [edu_subject, edu_subject_stage]}
+      REQ-SUB-003: {api: [listSubject], tables: []}
+      REQ-SUB-004: {api: [listSubject, listSubjectOption], tables: [edu_subject_stage]}
+      REQ-SUB-005: {api: [listSubject], tables: []}
+      REQ-SUB-006: {api: [addSubject, updateSubject, saveSubjectStage, disableSubject, enableSubject], tables: []}
+      REQ-SUB-007: {api: [addSubject], tables: [edu_subject]}
+      REQ-SUB-008: {api: [addSubject], tables: [edu_subject]}
+      REQ-SUB-009: {api: [addSubject], tables: [edu_subject]}
+      REQ-SUB-010: {api: [addSubject, saveSubjectStage], tables: [edu_subject_stage]}
+      REQ-SUB-011: {api: [batchInitSubject], tables: [edu_subject, edu_subject_stage]}
+      REQ-SUB-012: {api: [addSubject], tables: [edu_audit_log]}
+      REQ-SUB-013: {api: [updateSubject, saveSubjectStage], tables: [edu_subject, edu_subject_stage]}
+      REQ-SUB-014: {api: [updateSubject], tables: [edu_subject, edu_audit_log]}
+      REQ-SUB-015: {api: [checkSubjectReference, updateSubject], tables: [edu_teaching_assignment, edu_teaching_class, edu_student_stream]}
+      REQ-SUB-016: {api: [updateSubject], tables: [edu_audit_log]}
+      REQ-SUB-017: {api: [saveSubjectStreamRole], tables: [edu_subject]}
+      REQ-SUB-018: {api: [saveSubjectStreamRole], tables: [edu_subject]}
+      REQ-SUB-019: {api: [saveSubjectStreamRole], tables: [edu_subject]}
+      REQ-SUB-020: {api: [saveSubjectStreamRole], tables: [edu_subject]}
+      REQ-SUB-021: {api: [saveSubjectStreamRole], tables: [edu_subject]}
+      REQ-SUB-022: {api: [saveSubjectStreamRole], tables: [edu_student_stream]}
+      REQ-SUB-023: {api: [saveSubjectStreamRole], tables: []}
+      REQ-SUB-024: {api: [listSubject, getSubject], tables: [edu_subject]}
+      REQ-SUB-025: {api: [saveSubjectStage], tables: [edu_subject_stage]}
+      REQ-SUB-026: {api: [saveSubjectStage], tables: [edu_subject_stage, edu_school_stage]}
+      REQ-SUB-027: {api: [saveSubjectStage], tables: [edu_subject_stage]}
+      REQ-SUB-028: {api: [checkSubjectReference, saveSubjectStage], tables: [edu_teaching_assignment, edu_teaching_class]}
+      REQ-SUB-029: {api: [listSubjectOption, disableSubject], tables: [edu_subject]}
+      REQ-SUB-030: {api: [checkSubjectReference, removeSubject], tables: [edu_subject, edu_class, edu_teaching_assignment, edu_student_stream]}
+      REQ-SUB-031: {api: [checkSubjectReference, removeSubject], tables: [edu_subject]}
+      REQ-SUB-032: {api: [], tables: [edu_subject], note: 禁止物理删除属数据库层约束，第 8 节不提供物理删除方法。}
+      REQ-SUB-033: {api: [disableSubject, enableSubject, removeSubject], tables: [edu_audit_log]}
+      REQ-SUB-034: {api: [checkSubjectReference], tables: [edu_teaching_assignment, edu_teaching_class, edu_student_stream]}
+      REQ-SUB-035: {api: [checkSubjectReference], tables: []}
+      REQ-SUB-036: {api: [checkSubjectReference, removeSubject, disableSubject], tables: []}
+      REQ-SUB-037: {api: [addSubject, updateSubject, saveSubjectStreamRole, saveSubjectStage, disableSubject, enableSubject, removeSubject], tables: [edu_audit_log]}
+      REQ-SUB-038: {api: [], tables: [edu_audit_log]}
+      REQ-SUB-039: {api: [listSubject], tables: []}
+      REQ-SUB-040: {api: [listSubjectOption], tables: []}
+      REQ-SUB-041: {api: [checkSubjectReference], tables: []}
+      REQ-SUB-042: {api: [], tables: [], note: 缓存失效延迟在服务内部保证，无独立接口。}
+
+  term:
+    change_request: docs/00-governance/change-requests/CR-042.md
+    links:
+      REQ-TERM-001: {api: [listAcademicYear], tables: [edu_academic_year]}
+      REQ-TERM-002: {api: [listAcademicYear], tables: [edu_academic_year, edu_term]}
+      REQ-TERM-003: {api: [listAcademicYear], tables: []}
+      REQ-TERM-004: {api: [listAcademicYear, getCurrentTerm], tables: [edu_term]}
+      REQ-TERM-005: {api: [listAcademicYear], tables: []}
+      REQ-TERM-006: {api: [addAcademicYear, updateAcademicYear, getAcademicYear, listTerm, setCurrentTerm, archiveAcademicYear], tables: []}
+      REQ-TERM-007: {api: [addAcademicYear], tables: [edu_academic_year]}
+      REQ-TERM-008: {api: [addAcademicYear], tables: [edu_academic_year]}
+      REQ-TERM-009: {api: [addAcademicYear], tables: [edu_academic_year]}
+      REQ-TERM-010: {api: [addAcademicYear], tables: [edu_academic_year]}
+      REQ-TERM-011: {api: [addAcademicYear, getAcademicYear], tables: [edu_academic_year]}
+      REQ-TERM-012: {api: [addAcademicYear, saveTerm], tables: [edu_academic_year, edu_term]}
+      REQ-TERM-013: {api: [addAcademicYear], tables: [edu_audit_log]}
+      REQ-TERM-014: {api: [listTerm, saveTerm], tables: [edu_term]}
+      REQ-TERM-015: {api: [saveTerm], tables: [edu_term]}
+      REQ-TERM-016: {api: [saveTerm], tables: [edu_academic_year, edu_term]}
+      REQ-TERM-017: {api: [saveTerm], tables: [edu_term]}
+      REQ-TERM-018: {api: [saveTerm], tables: [edu_term]}
+      REQ-TERM-019: {api: [checkTermReference, removeTerm], tables: [edu_class, edu_teaching_assignment, edu_class_member]}
+      REQ-TERM-020: {api: [saveTerm, removeTerm], tables: [edu_audit_log]}
+      REQ-TERM-021: {api: [setCurrentTerm], tables: [edu_term]}
+      REQ-TERM-022: {api: [setCurrentTerm], tables: [edu_term]}
+      REQ-TERM-023: {api: [setCurrentTerm], tables: [edu_academic_year, edu_term]}
+      REQ-TERM-024: {api: [setCurrentTerm], tables: []}
+      REQ-TERM-025: {api: [getCurrentTerm], tables: []}
+      REQ-TERM-026: {api: [setCurrentTerm], tables: [edu_audit_log]}
+      REQ-TERM-027: {api: [getCurrentTerm], tables: [edu_term]}
+      REQ-TERM-028: {api: [checkTermReference, archiveAcademicYear], tables: [edu_academic_year]}
+      REQ-TERM-029: {api: [checkTermReference], tables: [edu_class, edu_teaching_assignment, edu_class_member, edu_student_stream]}
+      REQ-TERM-030: {api: [archiveAcademicYear, listAcademicYear], tables: [edu_academic_year, edu_term]}
+      REQ-TERM-031: {api: [listAcademicYear, listTerm], tables: []}
+      REQ-TERM-032: {api: [], tables: [edu_academic_year, edu_term], note: 禁止物理删除属数据库层约束，第 8 节不提供物理删除方法。}
+      REQ-TERM-033: {api: [revokeArchiveAcademicYear], tables: [edu_academic_year, edu_audit_log]}
+      REQ-TERM-034: {api: [checkTermReference], tables: [edu_class, edu_teaching_assignment, edu_class_member, edu_student_stream]}
+      REQ-TERM-035: {api: [checkTermReference], tables: []}
+      REQ-TERM-036: {api: [checkTermReference, removeTerm, archiveAcademicYear], tables: []}
+      REQ-TERM-037: {api: [addAcademicYear, updateAcademicYear, saveTerm, setCurrentTerm, archiveAcademicYear, revokeArchiveAcademicYear], tables: [edu_audit_log]}
+      REQ-TERM-038: {api: [], tables: [edu_audit_log]}
+      REQ-TERM-039: {api: [listAcademicYear], tables: []}
+      REQ-TERM-040: {api: [getCurrentTerm], tables: []}
+      REQ-TERM-041: {api: [checkTermReference], tables: []}
+      REQ-TERM-042: {api: [], tables: [], note: 默认上下文同步由缓存刷新与前端上下文完成，无独立接口。}

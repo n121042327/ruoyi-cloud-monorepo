@@ -4,7 +4,7 @@
 |---|---|
 | 模块 | 教师管理（`teacher`） |
 | 文档路径 | `docs/10-prd/modules/teacher/PRD.md` |
-| 版本 | 1.0.5-draft |
+| 版本 | 1.0.6-draft |
 | 状态 | `frozen`（2026-09-30 冻结，见 D-045、CR-001） |
 | 批次 | 1-2（按学生管理 PRD 样板结构产出） |
 | 上游依赖 | 见 1.4 |
@@ -19,6 +19,7 @@
 | 1.0.3-draft | 2026-09-30 | 见 `CR-008`：6.1 的「新增教师」「编辑教师」载体由抽屉改为**弹窗**（与 `apps/plus-ui` 一致）；「教师详情」保持抽屉。页面与交互内容未变 | Codex |
 | 1.0.4-draft | 2026-10-02 | 见 `CR-030`（GAP-075 裁决 A）：6.1 补登记撤销片段 `DIALOG-TCH-REVOKE`（二次确认弹窗）；6.3 补「非在职行只保留查看与撤销离职登记」的交互。4.9 的 `REQ-TCH-062` 原文不变，本版只把该要求的入口与可见性写清 | Codex |
 | 1.0.5-draft | 2026-10-02 | 见 `CR-034`（GAP-078 裁决 A）：4.9 新增 `REQ-TCH-071`——撤销离职 / 调离登记后账号自动重新启用，教育角色不自动恢复，由管理员重新分配 | Codex |
+| 1.0.6-draft | 2026-10-02 | 见 `CR-043`（`GAP-083` 裁决 A）：第 8 节补 2 个接口——`enableTeacherAccount`（启用账号，与停用对称，写审计）与 `copyTeachingAssignment`（复制上一学年任教关系，预览 + 异步）；对应 `REQ-TCH-047` / `REQ-TCH-070` | Codex |
 
 ## 0. 怎么读这份文档
 
@@ -534,6 +535,8 @@ erDiagram
 | `importTeacherExecute` | POST | `/edu/teacher/import/execute` | 导入执行（异步） |
 | `downloadTeacherImportTemplate` | GET | `/edu/teacher/import/template` | 模板下载 |
 | `exportTeacher` | POST | `/edu/teacher/export` | 导出 |
+| `enableTeacherAccount` | POST | `/edu/teacher/{id}/account/enable` | 启用账号（`CR-043` 补登记：与停用对称，写审计） |
+| `copyTeachingAssignment` | POST | `/edu/teacher/assignment/copy` | 复制上一学年任教关系（`CR-043` 补登记：预览 + 冲突清单 + 异步执行） |
 
 接口层要求与其他模块一致：声明数据范围与功能权限、字段名可追到字段字典、
 主键序列化为字符串、错误码在阶段 5 统一。

@@ -1,0 +1,51 @@
+CR-038 学年学期样例确认与统一（GAP-067 选项 A1）验证日志
+执行日期：2026-10-02
+工作目录：D:\work\person_work\ruoyi-cloud-monorepo
+
+命令模板（Chrome headless）：
+  chrome --headless=new --disable-gpu --allow-file-access-from-files
+         --user-data-dir=<临时目录> --virtual-time-budget=30000 --dump-dom
+         file:///D:/work/person_work/ruoyi-cloud-monorepo/evidence/stage2-prototype-v2/<验证器>.html?layer=<functional|hifi>&version=<v1|v2>
+
+一、确认的样例（用户选择 A1）
+
+  202601 2026-2027 学年 第一学期（当前）
+  202602 2026-2027 学年 第二学期
+  202502 2025-2026 学年 第二学期（已归档）
+  202501 2025-2026 学年 第一学期（已归档）
+  归属：云溪实验学校（201）与云溪外国语学校（202）共用，页面上以 option 的 data-school="201,202" 表达。
+
+二、本批新增验证：verify-term-sample.html（8 项 × 2 层）
+
+  v1 functional 基线（修改前）：合计 8 条，通过 2 条，失败 6 条
+    证据 2026-10-02_term-sample-v1-functional.html
+  v2 functional：合计 8 条，通过 8 条，失败 0 条
+  v2 hifi：合计 8 条，通过 8 条，失败 0 条
+    证据 2026-10-02_term-sample-v2-functional.html / -v2-hifi.html
+  覆盖：学生页 / 班级页 / 升班页源学期三项的选项集合与归属标注、切到学校 202 后选项不变、
+        升班目标学期仍为 202601 / 202701。
+
+三、既有回归（本批改动后复跑）
+
+  verify-student-layout-list-cr029.html（学生模块 28 项）：28 / 28 通过
+  verify-class-layout-list.html（班级列表 39 项）：39 / 39 通过
+  verify-promotion-layout.html：functional 12 / 12，hifi 12 / 12
+  verify-student-cascade.html：functional 20 / 20，hifi 20 / 20
+  证据：2026-10-02_<验证器>-cr038-*.html
+
+  本批通过合计：8 × 2 + 28 + 39 + 12 × 2 + 20 × 2 = 147 项。
+
+四、文档与冻结检查
+
+  python tools/check_docs.py      -> 通过：未发现问题（退出码 0）
+  python tools/check_mermaid.py   -> 通过：未发现问题
+  python tools/check_api_contract.py -> 通过：接口契约一致
+  git diff --check                -> 无输出（退出码 0）
+  git status --short -- prototypes/functional/v1/pages prototypes/high-fidelity/v1
+                                  -> 空输出，冻结 v1 页面与 content-samples.json 未改动
+  prototypes/{functional,high-fidelity}/v2/pages/{student-list,class-list,promotion-list}.html
+                                  -> 三对文件除 head 外逐行一致
+
+五、缺项口径
+
+  GAP-067 关闭。剩余 open：GAP-063 / GAP-064（样板已交付，待人工验收后扩展）。

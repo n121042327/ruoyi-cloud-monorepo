@@ -50,13 +50,14 @@
 | `importRosterValidate` | POST | `/edu/class/roster/import/validate` | 编班校验 | `org.class` | 同步 |
 | `importRosterExecute` | POST | `/edu/class/roster/import/execute` | 编班执行（异步） | `org.class` | 异步 |
 | `exportClassRoster` | POST | `/edu/class/{id}/roster/export` | 花名册导出 | `org.class` | 异步 |
+| `exportClass` | POST | `/edu/class/export` | 班级列表导出（`CR-037` 补登记：沿用 `exportStudent` / `exportTeacher` 的模块级写法，≤ 2000 行直接下载、超出转异步） | `org.class` | 异步 |
 | `listTeachingClass` | GET | `/edu/teaching-class/list` | 教学班列表 | `org.teaching_class` | 同步 |
 | `addTeachingClass` | POST | `/edu/teaching-class` | 新建教学班 | `org.teaching_class` | 同步 |
 | `getTeachingClass` | GET | `/edu/teaching-class/{id}` | 教学班详情（`CR-017` 补登记：详情抽屉的数据来源） | `org.teaching_class` | 同步 |
 | `disableTeachingClass` | POST | `/edu/teaching-class/{id}/disable` | 停用教学班（`CR-017` 补登记：原因必填、写审计、历史成员保留） | `org.teaching_class` | 同步 |
 | `listTeachingClassRoster` | GET | `/edu/teaching-class/{id}/roster` | 教学班成员清单（`CR-017` 补登记：只读，成员写入仍由生成流程触发） | `org.teaching_class` | 同步 |
 
-共 22 个接口。请求 / 响应契约见 `docs/40-detailed-design/api/openapi.yaml`，错误码见 `docs/40-detailed-design/api/error-codes.yaml`。
+共 23 个接口。请求 / 响应契约见 `docs/40-detailed-design/api/openapi.yaml`，错误码见 `docs/40-detailed-design/api/error-codes.yaml`。
 
 ## 4. 页面与动作落点
 

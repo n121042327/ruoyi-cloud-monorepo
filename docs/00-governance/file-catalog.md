@@ -44,7 +44,7 @@
 | `docs/00-governance/change-requests/CR-004.md` | 变更申请：补齐教师模块字段字典并统一「校领导」对教师主体只读口径（已批准并执行） | `review` |
 | `docs/00-governance/change-requests/CR-005.md` | 变更申请：补齐年级模块的权限口径与字段字典（待批准，关联 GAP-034 ~ GAP-037） | `review` |
 | `docs/00-governance/change-requests/CR-006.md` | 变更申请：新增系统超级管理员角色 `super_admin`（已批准并执行，关联 D-057 / BR-ORG-014） | `review` |
-| `docs/00-governance/traceability.yaml` | 追踪矩阵：已填学生列表 10 条样板，均为部分覆盖；全量 625 条尚未完成 | `review` |
+| `docs/00-governance/traceability.yaml` | 追踪矩阵：626 条需求全量（生成物）；接口链 580 条、表链 537 条，178 个 operationId 全部可追溯到需求（GAP-081 已闭合） | `review` |
 | `docs/00-governance/delivery-gap-remediation.md` | 五项交付缺口核查与补齐方案（样板方案已确认，验收待确认） | `review` |
 | `docs/00-governance/filter-logic-audit.md` | 全部 45 页筛选顺序与学校上下文静态核查 | `review` |
 | `docs/00-governance/change-requests/CR-020.md` | 学生追踪、映射与筛选 v2 样板变更记录 | `review` |
@@ -566,3 +566,62 @@
 |---|---|---|
 | `docs/00-governance/change-requests/CR-036.md` | GAP-079 孤儿接口引用清理 | `review` |
 | `evidence/stage2-prototype-v2/2026-10-02_orphan-api-batch-verification.log` | 本批通过计数与冻结检查日志 | `review` |
+
+## 2026-10-02 补齐缺失接口契约批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-037.md` | GAP-080 补 6 个缺失接口契约 | `review` |
+| `evidence/governance/2026-10-02_contract-completion.log` | 生成器重跑与契约检查结果 | `review` |
+
+## 2026-10-02 人工验收指南
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/acceptance-guide.md` | 回答「在哪验收、怎么验收」：打开方式、hash 参数、逐页核对清单、复跑命令 | `review` |
+
+## 2026-10-02 学年学期样例批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-038.md` | GAP-067 学年学期样例确认与统一 | `review` |
+| `evidence/stage2-prototype-v2/verify-term-sample.html` | 学期选项集合与归属标注回归（两层各 8 项） | `review` |
+| `evidence/stage2-prototype-v2/2026-10-02_term-sample-batch-verification.log` | 本批通过计数与冻结检查日志 | `review` |
+
+## 2026-10-02 追踪矩阵与组件映射全量批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-039.md` | GAP-063 / GAP-064 从样板扩展为全量 | `review` |
+| `tools/gen_traceability.py` | 从 PRD / 验收用例 / 导航 / 页面树生成追踪矩阵骨架，保留人工字段 | `review` |
+| `docs/00-governance/traceability.yaml` | 626 条需求追踪记录 + 模块接口索引（生成物） | `review` |
+| `tools/build_component_mapping_all.py` | 解析 45 个高保真页面生成逐元素组件映射 | `review` |
+| `prototypes/high-fidelity/v2/component-mapping-all-pages.yaml` | 45 页 / 1361 条元素映射（生成物） | `review` |
+| `tools/check_gap_register.py` | 缺项表重复键检查（YAML 重复键会静默覆盖） | `review` |
+| `evidence/governance/2026-10-02_traceability-mapping.log` | 本批生成结果与检查输出 | `review` |
+
+## 2026-10-02 需求到接口与表的逐条对应批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-040.md` | GAP-081 学生与班级模块的逐条对应 | `review` |
+| `docs/00-governance/requirement-links.yaml` | 人工维护的需求 → 接口 / 表对应表（159 条） | `review` |
+| `evidence/governance/2026-10-02_requirement-links.log` | 本批生成结果与检查输出 | `review` |
+
+## 2026-10-02 需求对应教师与年级批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-041.md` | GAP-081 教师与年级模块的逐条对应 | `review` |
+| `evidence/governance/2026-10-02_requirement-links-teacher-grade.log` | 本批生成结果与检查输出 | `review` |
+
+## 2026-10-02 需求逐条挂接收口与契约补齐批次
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-042.md` | GAP-081 剩余 7 个模块 356 条逐条挂接，并把 7 个漏挂接口挂回需求 | `review` |
+| `docs/00-governance/change-requests/CR-043.md` | GAP-082 / GAP-083 补 6 个接口（学生激活码 4 + 教师 2） | `review` |
+| `docs/00-governance/requirement-links.yaml` | 人工维护的需求 → 接口 / 表对应表（626 条全量，11 个模块） | `review` |
+| `docs/00-governance/traceability.yaml` | 626 条需求追踪 + 需求级接口追溯（接口链 580 / 表链 537，生成物） | `review` |
+| `evidence/governance/2026-10-02_requirement-links-all-modules.log` | 本批生成结果与四个检查脚本输出 | `review` |
+| `evidence/governance/2026-10-02_contract-completion-gap082-083.log` | 契约补齐后的 operationId 数与检查输出 | `review` |

@@ -457,6 +457,7 @@ erDiagram
 | `importRosterValidate` | POST | `/edu/class/roster/import/validate` | 编班校验 |
 | `importRosterExecute` | POST | `/edu/class/roster/import/execute` | 编班执行（异步） |
 | `exportClassRoster` | POST | `/edu/class/{id}/roster/export` | 花名册导出 |
+| `exportClass` | POST | `/edu/class/export` | 班级列表导出（`CR-037` 补登记：沿用 `exportStudent` / `exportTeacher` 的模块级写法，≤ 2000 行直接下载、超出转异步） |
 | `listTeachingClass` | GET | `/edu/teaching-class/list` | 教学班列表 |
 | `addTeachingClass` | POST | `/edu/teaching-class` | 新建教学班 |
 | `getTeachingClass` | GET | `/edu/teaching-class/{id}` | 教学班详情（`CR-017` 补登记：详情抽屉的数据来源） |

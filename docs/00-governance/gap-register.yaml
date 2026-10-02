@@ -2017,8 +2017,17 @@ gaps:
       均标为部分覆盖；缺生产代码、后端测试、部分 API 契约，不能宣称 625 条追踪已补齐。
       样板待人工验收；本项保持 open。
     answer: 用户于 2026-10-02 批注「按推荐走」：采用选项 A——先补学生列表样板，人工验收后按模块扩展。
-    progress2: 样板链已在 2026-10-01 补齐（REQ-STU-001～010 + REQ-CLS-035 共 11 条，含原型、接口、表、验收用例与计划路径；生产代码与测试留空并写明原因）。按 A 的下一步是样板人工验收后逐模块扩展；本项保持 open，未替用户记为已验收。
-    status: open
+    progress2: 样板链已在 2026-10-01 补齐（REQ-STU-001～010 + REQ-CLS-035 共 11 条，含原型、接口、表、验收用例与计划路径；生产代码与测试留空并写明原因）。
+    acceptance: 用户于 2026-10-02 批注「已验收」，确认样板粒度可用。
+    resolution: |
+      按 CR-039 扩展到全部 11 个模块：新增 tools/gen_traceability.py，从各模块 PRD 的需求表、acceptance.md
+      的验收用例、navigation.yaml + page-manifest.yaml 的原型页码、frontend-page-tree.yaml 的计划路径
+      机械连接，生成 626 条需求记录（原 11 条），其中 582 条挂上验收用例；同时输出 module_api_index，
+      按模块列出 178 个 operationId，满足 CHK-ORPHAN-API 的模块级粗粒度追溯。
+      已有人工判断的字段（api_operation_ids / tables / status / notes）在重跑时保留，不覆盖。
+      需求到接口与表的逐条精化另立 GAP-081；生产代码与测试仍未产出，状态保持「未开始 / 部分覆盖」。
+    resolved_at: "2026-10-02"
+    status: closed
 
   - id: GAP-064
     title: 高保真逐元素映射只有学生样板，且覆盖统计与明细不一致
@@ -2041,8 +2050,117 @@ gaps:
       学生列表文件及已有浮层共 207 个元素已逐条登记，选择器唯一性与快照比对通过。
       待用户验收；其余页面未补，本项保持 open。
     answer: 用户于 2026-10-02 批注「按推荐走」：采用选项 A——保留 v1、新增 v2 映射样板，验收后每批补 2—3 页。
-    progress2: v2 映射样板已在 2026-10-01 交付（学生列表 207 个元素）；按 A 的下一步是样板人工验收后每批扩展 2—3 页。本项保持 open。
-    status: open
+    progress2: v2 映射样板已在 2026-10-01 交付（学生列表 207 个元素）。
+    acceptance: 用户于 2026-10-02 批注「已验收」，确认样板粒度可用。
+    resolution: |
+      按 CR-039 从样板扩展为全量：新增 tools/build_component_mapping_all.py，逐页解析
+      prototypes/high-fidelity/v1/pages 下的 45 个高保真页面（含同页浮层片段），把每个可交互元素
+      登记为 {selector, component, props, basis}，并按页输出元素计数与覆盖口径；
+      学生列表的 v2 逐元素样板保持独立，作为 v2 页面的精修参考。
+      覆盖度以「页内可交互元素条数 == 映射条数」校验，避免用覆盖统计替代逐元素检查。
+    resolved_at: "2026-10-02"
+    status: closed
+
+  - id: GAP-081
+    title: 需求到接口与表的逐条对应关系尚未人工核对（626 条中已核对 8 条）
+    discovered_at: 2026-10-02
+    discovered_by: Codex CR-039 生成追踪矩阵骨架时
+    evidence: |
+      docs/00-governance/traceability.yaml 现有 626 条需求记录，其中 api_operation_ids 与 tables 非空的
+      只有 8 条（REQ-STU-001～008，学生列表样板）。其余 618 条按模块挂了原型、验收用例与计划路径，
+      但没有逐条写明对应哪个 operationId 与哪张表。
+      模块级接口索引（module_api_index）已列出 11 个模块共 178 个 operationId。
+    impact: 阶段 8 的 CHK-ORPHAN-API（每个 operationId 能追溯到至少一条 REQ）与 CHK-ORPHAN-CODE、CHK-PERMISSION 目前只有模块级依据；逐条精化前不能声称「每条需求都有接口与存储追踪」。
+    options:
+      - A 按模块推进：每批把一个模块的需求逐条挂到接口与表上，用 06-api-catalog.md / schema.yaml 的说明作依据，先做学生与班级两个模块（推荐）
+      - B 留到阶段 8 联调验收时随接口与测试一起补，届时 tracker 与代码同步生成
+    recommended: A。模块级索引已经能挡住「孤儿接口」的粗粒度问题；按模块逐条精化可以在阶段 6 开工前把前端要用的接口边界定清楚，避免边写边改。
+    blocking: false
+    blocks_stages:
+      - stage8
+    owner: 用户
+    progress: |
+      CR-040 按推荐 A 先做学生与班级两个模块：新增人工维护的
+      docs/00-governance/requirement-links.yaml（依据只有模块 PRD 第 8 节与 schema.yaml 的表注释），
+      由 tools/gen_traceability.py 合并进矩阵。学生 97 条 + 班级 62 条共 159 条已逐条挂上接口与表，
+      其中 149 条有接口、145 条有表，10 条按依据写明「第 8 节无对应接口」并说明原因。
+      CR-041 继续做教师 71 条与年级 40 条：累计 270 / 626 完成挂接（其中 257 条有接口、245 条有表）。
+      剩余 7 个模块（356 条：audit 40 / import-export 52 / promotion 66 / school 45 / stream 69 /
+      subject 42 / term 42）待按同样方式推进；生产代码与测试仍未产出。
+      CR-042 一次性补齐剩余 7 个模块 356 条，并把此前漏挂的 7 个 operationId 补挂到既有需求
+      （教学班 3 条、exportGrade、uploadStudentPhoto、listTeacherRole、getAcademicYear），
+      使 178 个 operationId 全部能追溯到至少一条需求。
+    answer: 用户于 2026-10-02 要求「继续，一次性搞完」，即把剩余模块一次做完，不再按每批 2 个模块推进。
+    resolution: |
+      按推荐 A 完成全部 626 条需求的逐条挂接：接口链 580 条、表链 537 条，其余按依据写明
+      「第 8 节没有对应接口」或「属存储层 / 缓存 / 其他模块承载」（共 46 条），不是遗漏。
+      CHK-ORPHAN-API 由模块级升级为需求级：178 个 operationId 每个都至少被一条需求引用
+      （CR-043 补到 184 个后同样全部可追溯）。
+      复核方式：python tools/gen_traceability.py 后读 coverage_summary（linked_to_api / linked_to_tables），
+      并核对 module_api_index 与需求 api_operation_ids 的差集为空。
+    resolved_at: "2026-10-02"
+    status: closed
+
+  - id: GAP-083
+    title: 教师模块的「复制上一学年任教关系」与「启用账号」缺接口契约
+    discovered_at: 2026-10-02
+    discovered_by: Codex CR-041 逐条核对教师模块需求时
+    evidence: |
+      REQ-TCH-070 要求提供「复制上一学年任教关系」：选择源与目标学年学期、按 教师 + 学科 + 班级 整体复制，
+      复制前展示预览与冲突清单、确认后异步执行；验收用例 AC-TCH-070 已按此描述，
+      但教师 PRD 第 8 节没有对应 operationId（既没有 copyTeachingAssignment，也没有同义条目）。
+      REQ-TCH-047 要求提供「停用 / 启用账号」两个入口，第 8 节只有 disableTeacherAccount（停用），
+      没有启用账号的 operationId。
+      数据落点已有：edu_teaching_assignment、edu_term、edu_teacher。
+    impact: 两项都已有需求与验收用例，但没有接口：阶段 6 生成前端调用时无处可挂，阶段 8 的 CHK-ORPHAN-CODE 缺落点。
+    options:
+      - A 补两个 operationId：copyTeachingAssignment（POST，异步）与 enableTeacherAccount（POST），权限沿用 teacher 的 update，并写审计（推荐）
+      - B 复制功能改由「批量设置任教关系」手工替代、账号启用并入停用接口的开关参数
+    recommended: A。复制上一学年任教关系已在验收用例里定了交互（预览 + 异步），用批量设置替代会丢掉预览与冲突清单；账号启用与停用对称，做成同一接口的开关参数会让审计看不出动作方向。
+    blocking: false
+    blocks_stages:
+      - stage6
+      - stage8
+    owner: 用户
+    answer: 用户于 2026-10-02 要求「生成生产代码之前的任务做完，需要确认的按推荐来」，本项采用推荐 A。
+    resolution: |
+      按 CR-043 补两个 operationId：`copyTeachingAssignment`（POST /edu/teacher/assignment/copy，异步、
+      带预览与冲突清单）与 `enableTeacherAccount`（POST /edu/teacher/{id}/account/enable）；
+      教师 PRD 升 1.0.6-draft，requirement-links 的 REQ-TCH-047 / REQ-TCH-070 改为指向新接口。
+      重跑 extract_api_catalog.py 与 gen_api_and_map.py 后 operationId 178 → 184，check_api_contract.py 通过。
+    resolved_at: "2026-10-02"
+    status: closed
+
+  - id: GAP-082
+    title: 学生激活码的查看、打印与加密清单下载缺接口契约
+    discovered_at: 2026-10-02
+    discovered_by: Codex CR-040 逐条核对学生模块需求时
+    evidence: |
+      学生 PRD 第 8 节没有以下需求的 operationId：
+        REQ-STU-087 班主任查看本班未激活学生的激活码（默认掩码、揭示写审计）
+        REQ-STU-088 班主任批量打印本班密码条（姓名 / 学号 / 登录名 / 激活码）
+        REQ-STU-089 教务主任下载全校未激活学生的加密清单（写审计并记录行数）
+        REQ-STU-092 小学低年级由班主任代学生完成激活并设置密码（写审计）
+      数据落点已有：edu_activation_code（一次性激活凭据）、edu_audit_log。
+    impact: 四项都要读或写激活码，属敏感操作；缺接口契约时阶段 6 无法生成前端调用，阶段 8 的 CHK-ORPHAN-CODE 也缺落点。认证侧（首次登录、设置密码、登录限流，REQ-STU-090 / 091）由 ruoyi-auth 承载，不在教育域接口清单内，不属本项。
+    options:
+      - A 按既有模式补 4 个 operationId（查看激活码 / 打印密码条 / 下载加密清单 / 代激活），全部要求 read_sensitive 或教务主任权限并写审计（推荐）
+      - B 留到阶段 6 实现账号模块时再补，届时与认证侧接口一起定
+    recommended: A。激活码是敏感数据，接口与审计口径应与学生照片、证件号全量查看放在同一批契约里定，避免阶段 6 各写一套。
+    blocking: false
+    blocks_stages:
+      - stage6
+      - stage8
+    owner: 用户
+    answer: 用户于 2026-10-02 要求「生成生产代码之前的任务做完，需要确认的按推荐来」，本项采用推荐 A。
+    resolution: |
+      按 CR-043 补 4 个 operationId：`getStudentActivationCode`（默认掩码，reveal 揭示写审计）、
+      `printStudentActivationSlip`（批量密码条）、`exportStudentActivationCode`（加密清单，写审计并记行数）、
+      `activateStudentAccount`（班主任代激活）；学生 PRD 升 1.0.7，
+      requirement-links 的 REQ-STU-087 / 088 / 089 / 092 改为指向新接口。
+      认证侧（首次登录、设置密码、登录限流，REQ-STU-090 / 091）仍由 ruoyi-auth 承载，不属本项。
+    resolved_at: "2026-10-02"
+    status: closed
 
   - id: GAP-065
     title: 学生 PRD 的年级联动与通用级联并列规则矛盾
@@ -2110,9 +2228,25 @@ gaps:
     blocking: true
     blocks_stages: [stage6]
     owner: 用户
-    answer: 用户于 2026-10-02 批注「按推荐走」：采用选项 A。选项 A 需要用户提供或确认两校的学年学期样例，仓库现有 calendar 样例没有 school_id，本批不能编造。
-    progress: CR-034 已把 学段 / 入学年份 / 年级主任 / 任教年级 / 任教班级 按学校收窄；学年学期是唯一仍按全量展示的筛选项，等待两校学期样例后补。本项保持 open。
-    status: open
+    answer: 用户于 2026-10-02 答复「按推荐做」：采用 A1——两校共用集团统一的四个学年学期（此前已先答复过一次「A」，即确认要按真实归属补样例）。
+    progress: |
+      CR-034 已把 学段 / 入学年份 / 年级主任 / 任教年级 / 任教班级 按学校收窄；学年学期是当时唯一仍按全量展示的筛选项。
+      仓库现有 calendar 只有 2025-2026（归档）与 2026-2027 两个学年、且只有 2026-2027 的两个学期，
+      三个列表页手写的学期选项还互不相同（学生页有 202502、班级页有 202501、样例里都没有），因此不再从现有数据反推，
+      改为向用户提出 A1 / A2 两个可确认的选项。
+    resolution: |
+      按 CR-038 落地：
+      1) 确认样例：2026-2027 学年 第一学期（202601，当前）、2026-2027 学年 第二学期（202602）、
+         2025-2026 学年 第二学期（202502，已归档）、2025-2026 学年 第一学期（202501，已归档），
+         云溪实验学校（201）与云溪外国语学校（202）共用。
+      2) 学生列表 f-term、班级列表 f-term、升班任务列表 f-src 的选项统一为该清单，每个 option 带
+         data-school="201,202"；学生页与班级页的学校切换重建逻辑把学期一并纳入。
+      3) 修正了此前的样例不一致：学生页原来只有 202502、班级页原来只有 202501，两页现在都是四项。
+      4) 升班任务的目标学期（f-tgt：202601 / 202701）是升班自己的目标学年样例，不在本清单范围；
+         异动历史的 ph-term 仍按 GAP-072 保持禁用（记录本身缺学期归属）。
+      人工验收待确认。
+    resolved_at: "2026-10-02"
+    status: closed
 
   - id: GAP-079
     title: v2 原型里有 8 个 data-api 字符串在 OpenAPI 中不存在（孤儿接口引用）
@@ -2172,7 +2306,16 @@ gaps:
       - stage6
       - stage8
     owner: 用户
-    status: open
+    resolution: |
+      按 CR-037 补齐：class.exportClass（POST /edu/class/export）、grade.exportGrade（POST /edu/grade/export）、
+      promotion.exportPromotionTask（POST /edu/promotion/task/export）三个模块级导出沿用 exportStudent /
+      exportTeacher 的写法；student.uploadStudentPhoto（POST /edu/student/{id}/photo）、
+      student.getStudentPhoto（GET /edu/student/{id}/photo）、student.viewStudentIdCard（GET /edu/student/{id}/id-card）
+      按 GAP-027 的结论挂统一文件服务与敏感字段读取，后两者需 read_sensitive 并写敏感数据访问日志（学生 PRD 7.3）。
+      重跑生成器后 operationId 173 → 178；tools/check_api_contract.py 的已知孤儿清单清空，v2 原型 112 处 data-api
+      引用全部命中 OpenAPI，孤儿引用为 0。人工验收待确认；接口实现属阶段 6 / 7。
+    resolved_at: "2026-10-02"
+    status: closed
 
   - id: GAP-068
     title: 编班表列已确认，但学生核对与目标班级定位细则缺失
@@ -2494,3 +2637,4 @@ open_questions_for_user:
   - "阶段 2 批次 2-9 已产出待验收：异步任务列表（8 列 7 行 + PAGE-IMP-TASK-DETAIL 详情抽屉 + PAGE-IMP-EXPORT 导出配置弹窗）、死信任务（7 列 3 行 + 重试与并发配置统计卡 + DIALOG-DLQ-REPLAY 重放确认）；动作 ACT-TASK-001 ~ 051 已登记；harness verify-task 22 / 22 通过，见 D-083。"
   - "新增 GAP-060 并已关闭：死信重放需要二次确认但导入导出 PRD 6.1 未登记片段。用户授权默认取推荐，按 CR-019 补登记 DIALOG-DLQ-REPLAY，导入导出 PRD 升 1.0.1-draft，见 D-083。"
   - "**阶段 2（业务原型）已收尾**：2-1 ~ 2-9 共 9 批全部产出待验收，累计 45 个页面文件承载 96 个页面编号，19 个 harness 全绿（合计 508 条断言），check_docs 通过。下一步按用户授权合并本地 main，然后进阶段 3（独立高保真原型）。"
+  - "**2026-10-02 生产代码前的治理项已全部关闭**：按 CR-042 完成 GAP-081 的 626 条需求逐条挂接（接口链 580 / 表链 537，178 个 operationId 全部可追溯到需求）；按 CR-043 补齐 GAP-082（学生激活码 4 个接口）与 GAP-083（教师启用账号 / 复制任教关系 2 个接口），operationId 178 → 184。缺项表当前无 open 项（其余为已落地并留结论的 closed / answered 记录），阶段 6 的输入文件已齐；接口与表仍是设计态，实现与测试属阶段 6 / 7 / 8。"

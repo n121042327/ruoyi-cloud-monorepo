@@ -1,0 +1,67 @@
+# CR-042 证据：GAP-081 剩余 7 个模块逐条挂接 + 需求级接口追溯（2026-10-02）
+
+$ python tools/gen_traceability.py   (exit 0)
+已生成 docs\00-governance\traceability.yaml：626 条需求 / 11 个模块 / 已有接口链 580 条 / 有验收用例 582 条
+
+$ python tools/gen_traceability.py   (exit 1)
+Traceback (most recent call last):
+  File "D:\work\person_work\ruoyi-cloud-monorepo\tools\gen_traceability.py", line 244, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "D:\work\person_work\ruoyi-cloud-monorepo\tools\gen_traceability.py", line 235, in main
+    with io.open(OUT, "w", encoding="utf-8", newline="\n") as fh:
+         ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument: 'D:\\work\\person_work\\ruoyi-cloud-monorepo\\docs\\00-governance\\traceability.yaml'
+
+$ python tools/check_docs.py   (exit 0)
+=== 文档一致性核查 ===
+通过：未发现问题
+
+$ python tools/check_mermaid.py   (exit 0)
+=== Mermaid 结构检查（103 张图）===
+通过：未发现问题
+
+$ python tools/check_api_contract.py   (exit 0)
+OpenAPI operationId：184 个
+原型 data-api 引用：112 处
+查询参数对齐：listStudent -> docs/10-prd/modules/student/PRD.md（12 个参数）
+listStudent 参数齐备：14 个
+
+通过：接口契约一致
+
+$ python tools/check_gap_register.py   (exit 0)
+=== 缺项登记表重复键检查（83 条）===
+通过：未发现重复键
+
+$ git diff --check   (exit 0)
+warning: in the working copy of 'docs/00-governance/decisions.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/00-governance/delivery-gap-remediation.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/00-governance/file-catalog.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/00-governance/gap-register.yaml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/00-governance/traceability.yaml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/10-prd/modules/class/PRD.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/10-prd/modules/grade/PRD.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/10-prd/modules/promotion/PRD.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/10-prd/modules/student/PRD.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/10-prd/modules/teacher/PRD.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/30-architecture/00-index.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/30-architecture/06-api-catalog.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/00-index.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/api/openapi.yaml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/frontend-page-tree.yaml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/modules/class/design.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/modules/grade/design.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/modules/promotion/design.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/modules/student/design.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/modules/teacher/design.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prototypes/functional/v2/layout-spec.yaml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prototypes/functional/v2/pages/class-list.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prototypes/functional/v2/pages/promotion-list.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prototypes/functional/v2/pages/student-list.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prototypes/high-fidelity/v2/pages/class-list.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prototypes/high-fidelity/v2/pages/promotion-list.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prototypes/high-fidelity/v2/pages/student-list.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tools/check_api_contract.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tools/extract_api_catalog.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tools/gen_stage5_docs.py', LF will be replaced by CRLF the next time Git touches it
+

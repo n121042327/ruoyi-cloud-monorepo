@@ -51,9 +51,10 @@ table.el-table th[data-layout-group]::after { content:attr(data-layout-group); d
         <div class="form-item">
           <label for="f-term">学年学期</label>
           <select class="select" id="f-term" data-role="field" data-field="term_code" data-component="el-select">
-            <option value="202601" selected>2026-2027 学年 第一学期（当前）</option>
-            <option value="202602">2026-2027 学年 第二学期</option>
-            <option value="202502">2025-2026 学年 第二学期（归档）</option>
+            <option value="202601" data-school="201,202" selected>2026-2027 学年 第一学期（当前）</option>
+            <option value="202602" data-school="201,202">2026-2027 学年 第二学期</option>
+            <option value="202502" data-school="201,202">2025-2026 学年 第二学期（已归档）</option>
+            <option value="202501" data-school="201,202">2025-2026 学年 第一学期（已归档）</option>
           </select>
         </div>
         <div class="form-item">
@@ -1431,6 +1432,8 @@ table.el-table th[data-layout-group]::after { content:attr(data-layout-group); d
   }
 
   // CR-020：只使用已有班级样例的学校归属，保留静态清单中的空班。
+  // CR-038：学年学期按用户确认的「两校共用集团统一四个学期」样例收窄（归在 data-school）。
+  var termOptions = Array.prototype.map.call(document.getElementById('f-term').options, function (o) { return o.cloneNode(true); });
   var gradeOptions = Array.prototype.map.call(document.getElementById('f-grade').options, function (o) { return o.cloneNode(true); });
   var classOptions = Array.prototype.map.call(document.getElementById('f-class').options, function (o) { return o.cloneNode(true); });
   function rebuildSelect(id, options, accept) {
@@ -1441,6 +1444,9 @@ table.el-table th[data-layout-group]::after { content:attr(data-layout-group); d
   }
   function rebuildFilterOptions() {
     var school = readValue('f-school');
+    rebuildSelect('f-term', termOptions, function (o) {
+      return (o.getAttribute('data-school') || '').split(',').indexOf(school) !== -1;
+    });
     rebuildSelect('f-grade', gradeOptions, function (o) { return o.getAttribute('data-school') === school; });
     var grade = readValue('f-grade');
     rebuildSelect('f-class', classOptions, function (o) {

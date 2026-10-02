@@ -133,9 +133,10 @@ table.el-table th[data-layout-group]::after { content:attr(data-layout-group); d
           <select class="select" id="f-term" style="min-width:190px" data-role="field" data-field="term_id"
                   data-component="el-select" data-filter="term"
                   title="默认加载当前学年学期；历史学年可切换查询，但历史花名册只读（REQ-CLS-032）">
-            <option value="202601" selected>2026-2027 学年 第一学期（当前）</option>
-            <option value="202602">2026-2027 学年 第二学期</option>
-            <option value="202501">2025-2026 学年 第一学期（已归档）</option>
+            <option value="202601" data-school="201,202" selected>2026-2027 学年 第一学期（当前）</option>
+            <option value="202602" data-school="201,202">2026-2027 学年 第二学期</option>
+            <option value="202502" data-school="201,202">2025-2026 学年 第二学期（已归档）</option>
+            <option value="202501" data-school="201,202">2025-2026 学年 第一学期（已归档）</option>
           </select>
         </div>
         <div class="form-item">
@@ -1011,8 +1012,20 @@ table.el-table th[data-layout-group]::after { content:attr(data-layout-group); d
     node.value = values.indexOf(current) !== -1 ? current : '';
   }
 
+  // CR-038：学年学期按用户确认的「两校共用集团统一四个学期」样例收窄（归在 option 的 data-school）。
+  var termOptions = Array.prototype.map.call(q('#f-term').options, function (o) { return o.cloneNode(true); });
+  function rebuildTermOptions(school) {
+    var node = q('#f-term'), current = node.value;
+    node.innerHTML = '';
+    termOptions.forEach(function (o) {
+      if ((o.getAttribute('data-school') || '').split(',').indexOf(school) !== -1) node.appendChild(o.cloneNode(true));
+    });
+    node.value = Array.prototype.some.call(node.options, function (o) { return o.value === current; }) ? current : '';
+  }
+
   function rebuildFilterOptions() {
     var school = q('#f-school').value;
+    rebuildTermOptions(school);
     var grades = {};
     var campuses = {};
     var heads = {};

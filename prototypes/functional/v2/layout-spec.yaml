@@ -145,8 +145,11 @@ filter_cascade:
     - prototypes/functional/v1/content-samples.json 的 classes[].school_id / grade_id
     - v1 学生列表已有下拉选项（保留无学生的空班，不从当前学生行反推全部班级）
   term_scope:
-    result: 未执行（CR-030 / CR-034 后仍是唯一未按学校收窄的筛选项）
-    reason: calendar 样例没有学校归属，不能据此推导各校可用学期；本批不编造学期范围。GAP-067 的推荐 A 需要用户提供两校学期样例。
+    result: 已确认（CR-038 / GAP-067 裁决 A1）
+    sample: 两校共用集团统一的四个学年学期——2026-2027 学年 第一学期（202601，当前）、2026-2027 学年 第二学期（202602）、2025-2026 学年 第二学期（202502，已归档）、2025-2026 学年 第一学期（202501，已归档）。
+    attribution: 学期选项在页面上以 option 的 data-school="201,202" 表达归属；切校时按归属重建，两校相同因此选项不变，机制已就位。
+    coverage: 学生列表 f-term、班级列表 f-term、升班任务列表 f-src 使用该清单；升班任务的目标学期（f-tgt）仍用升班自己的目标学年样例（202601 / 202701），不在本清单范围内。
+    history: 异动历史的 ph-term 保持禁用（GAP-072：记录本身没有学期归属，与本清单无关）。
   teacher_grade_pages:
     change_request: docs/00-governance/change-requests/CR-034.md
     grade_list: 学校变化后重建 f-enroll（入学年份）与 f-leader（年级主任）选项，并隐藏该校没有的学段 chip、清掉失效选中值；归属取自 content-samples.json 的 grades[].school_id / stage_code / grade_leaders。

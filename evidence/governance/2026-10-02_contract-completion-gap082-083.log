@@ -1,0 +1,156 @@
+# CR-043 证据：GAP-082 / GAP-083 契约补齐（operationId 178 → 184，2026-10-02）
+
+$ python tools/extract_api_catalog.py   (exit 0)
+生成 docs\30-architecture\06-api-catalog.md：11 个模块 / 184 个 operationId
+
+$ python tools/gen_api_and_map.py   (exit 0)
+OpenAPI：184 个 operationId，163 条路径
+前端页面树：45 个路由 + 53 个浮层片段
+页面动作映射：45 页 / 609 个动作（其中 186 个调接口，423 个纯前端动作）
+
+$ python tools/gen_stage5_docs.py   (exit 0)
+written: docs/40-detailed-design/modules/audit/design.md
+written: docs/40-detailed-design/modules/class/design.md
+written: docs/40-detailed-design/modules/grade/design.md
+written: docs/40-detailed-design/modules/import-export/design.md
+written: docs/40-detailed-design/modules/promotion/design.md
+written: docs/40-detailed-design/modules/school/design.md
+written: docs/40-detailed-design/modules/stream/design.md
+written: docs/40-detailed-design/modules/student/design.md
+written: docs/40-detailed-design/modules/subject/design.md
+written: docs/40-detailed-design/modules/teacher/design.md
+written: docs/40-detailed-design/modules/term/design.md
+written: docs/40-detailed-design/api/error-codes.yaml
+written: docs/40-detailed-design/api/error-codes.md
+written: docs/40-detailed-design/diagrams/sequence/student-enroll.mmd
+written: docs/40-detailed-design/diagrams/sequence/student-import.mmd
+written: docs/40-detailed-design/diagrams/sequence/teacher-assignment.mmd
+written: docs/40-detailed-design/diagrams/sequence/class-roster-import.mmd
+written: docs/40-detailed-design/diagrams/sequence/class-transfer.mmd
+written: docs/40-detailed-design/diagrams/sequence/promotion-execute.mmd
+written: docs/40-detailed-design/diagrams/sequence/stream-submit.mmd
+written: docs/40-detailed-design/diagrams/sequence/teaching-class-generate.mmd
+written: docs/40-detailed-design/diagrams/sequence/data-grant.mmd
+written: docs/40-detailed-design/diagrams/sequence/school-baseline.mmd
+written: docs/40-detailed-design/diagrams/sequence/import-execute.mmd
+written: docs/40-detailed-design/diagrams/sequence/export-generate.mmd
+written: docs/40-detailed-design/diagrams/sequence/audit-write.mmd
+written: docs/40-detailed-design/diagrams/sequence/audit-archive.mmd
+written: docs/40-detailed-design/diagrams/state/student-enrollment-status.mmd
+written: docs/40-detailed-design/diagrams/state/guardian-bind.mmd
+written: docs/40-detailed-design/diagrams/state/teacher-account-status.mmd
+written: docs/40-detailed-design/diagrams/state/class-status.mmd
+written: docs/40-detailed-design/diagrams/state/promotion-task.mmd
+written: docs/40-detailed-design/diagrams/state/stream-change-request.mmd
+written: docs/40-detailed-design/diagrams/state/term-archive.mmd
+written: docs/40-detailed-design/diagrams/state/async-task.mmd
+written: docs/40-detailed-design/diagrams/state/archive-batch.mmd
+written: docs/40-detailed-design/diagrams/class/student-domain.mmd
+written: docs/40-detailed-design/diagrams/class/teacher-domain.mmd
+written: docs/40-detailed-design/diagrams/class/grade-domain.mmd
+written: docs/40-detailed-design/diagrams/class/class-domain.mmd
+written: docs/40-detailed-design/diagrams/class/promotion-domain.mmd
+written: docs/40-detailed-design/diagrams/class/stream-domain.mmd
+written: docs/40-detailed-design/diagrams/class/subject-domain.mmd
+written: docs/40-detailed-design/diagrams/class/school-domain.mmd
+written: docs/40-detailed-design/diagrams/class/term-domain.mmd
+written: docs/40-detailed-design/diagrams/class/task-domain.mmd
+written: docs/40-detailed-design/diagrams/class/audit-domain.mmd
+written: docs/40-detailed-design/database/migration-plan.md
+written: docs/40-detailed-design/runtime-design.md
+written: docs/40-detailed-design/00-index.md
+阶段 5 文档生成完成：11 个模块详细设计 / 72 个错误码 / 14 张时序图 / 9 张状态机 / 11 张领域模型 / 接口 184 个
+
+$ python tools/check_api_contract.py   (exit 0)
+OpenAPI operationId：184 个
+原型 data-api 引用：112 处
+查询参数对齐：listStudent -> docs/10-prd/modules/student/PRD.md（12 个参数）
+listStudent 参数齐备：14 个
+
+通过：接口契约一致
+
+$ python tools/check_docs.py   (exit 0)
+=== 文档一致性核查 ===
+通过：未发现问题
+
+$ python tools/check_mermaid.py   (exit 0)
+=== Mermaid 结构检查（103 张图）===
+通过：未发现问题
+
+$ git diff --check   (exit 0)
+warning: in the working copy of 'docs/00-governance/decisions.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/00-governance/delivery-gap-remediation.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/00-governance/file-catalog.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/00-governance/gap-register.yaml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/00-governance/traceability.yaml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/10-prd/modules/class/PRD.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/10-prd/modules/grade/PRD.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/10-prd/modules/promotion/PRD.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/10-prd/modules/student/PRD.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/10-prd/modules/teacher/PRD.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/30-architecture/00-index.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/30-architecture/06-api-catalog.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/00-index.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/api/error-codes.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/api/error-codes.yaml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/api/openapi.yaml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/database/migration-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/class/audit-domain.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/class/class-domain.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/class/grade-domain.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/class/promotion-domain.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/class/school-domain.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/class/stream-domain.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/class/student-domain.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/class/subject-domain.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/class/task-domain.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/class/teacher-domain.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/class/term-domain.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/sequence/audit-archive.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/sequence/audit-write.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/sequence/class-roster-import.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/sequence/class-transfer.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/sequence/data-grant.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/sequence/export-generate.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/sequence/import-execute.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/sequence/promotion-execute.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/sequence/school-baseline.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/sequence/stream-submit.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/sequence/student-enroll.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/sequence/student-import.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/sequence/teacher-assignment.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/sequence/teaching-class-generate.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/state/archive-batch.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/state/async-task.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/state/class-status.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/state/guardian-bind.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/state/promotion-task.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/state/stream-change-request.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/state/student-enrollment-status.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/state/teacher-account-status.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/diagrams/state/term-archive.mmd', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/frontend-page-tree.yaml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/modules/audit/design.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/modules/class/design.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/modules/grade/design.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/modules/import-export/design.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/modules/promotion/design.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/modules/school/design.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/modules/stream/design.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/modules/student/design.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/modules/subject/design.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/modules/teacher/design.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/modules/term/design.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/page-action-api-map.yaml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/40-detailed-design/runtime-design.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prototypes/functional/v2/layout-spec.yaml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prototypes/functional/v2/pages/class-list.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prototypes/functional/v2/pages/promotion-list.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prototypes/functional/v2/pages/student-list.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prototypes/high-fidelity/v2/pages/class-list.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prototypes/high-fidelity/v2/pages/promotion-list.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prototypes/high-fidelity/v2/pages/student-list.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tools/check_api_contract.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tools/extract_api_catalog.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tools/gen_stage5_docs.py', LF will be replaced by CRLF the next time Git touches it
+

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>学年学期样例归属回归（CR-038 / GAP-067）</title>
+</head><body><p id="summary">合计 8 条，通过 2 条，失败 6 条</p><ol id="results"><li>TS-04 失败 班级页学期选项：202601|202602|202501</li><li>TS-05 失败 切到学校 202 后学期选项不变：202601|202602|202501</li><li>TS-01 失败 学生页学期选项：202601|202602|202502</li><li>TS-02 失败 学生页学期选项都带两校归属：-|-|-</li><li>TS-03 失败 切到学校 202 后学期选项不变：202601|202602|202502</li><li>TS-06 失败 升班任务源学期选项：202502|202601|202602</li><li>TS-07 通过 源学期选项带两校归属</li><li>TS-08 通过 目标学期仍按升班自己的目标学年样例：202601|202701</li></ol>
+<iframe id="fs" style="width:1440px;height:700px" src="../../prototypes/functional/v1/pages/student-list.html#role=super_admin"></iframe>
+<iframe id="fc" style="width:1440px;height:700px" src="../../prototypes/functional/v1/pages/class-list.html#role=super_admin"></iframe>
+<iframe id="fp" style="width:1440px;height:700px" src="../../prototypes/functional/v1/pages/promotion-list.html#role=super_admin"></iframe>
+<script>
+var params=new URLSearchParams(location.search);
+var layer=params.get('layer')==='hifi'?'high-fidelity':'functional';
+var version=params.get('version')||'v2';
+var checks=[],ready=0;
+var TERMS='202601,202602,202502,202501';
+function rec(id,ok,note){checks.push(id+' '+(ok?'通过':'失败')+' '+(note||''));}
+function finish(){ if(++ready<3) return;
+  document.querySelector('#results').innerHTML=checks.map(function(s){return '<li>'+s+'</li>';}).join('');
+  var pass=checks.filter(function(s){return s.indexOf(' 通过 ')!==-1;}).length;
+  document.querySelector('#summary').textContent='合计 '+checks.length+' 条，通过 '+pass+' 条，失败 '+(checks.length-pass)+' 条';
+}
+function pick(w,d,id,value){
+  var node=d.getElementById(id);
+  node.value=value;
+  node.dispatchEvent(new w.Event('change',{bubbles:true}));
+}
+function values(d,id){ return Array.from(d.getElementById(id).options).map(function(o){return o.value;}).filter(function(v){return v;}); }
+function schools(d,id){ return Array.from(d.getElementById(id).options).map(function(o){return o.getAttribute('data-school')||'-';}); }
+
+document.querySelector('#fs').addEventListener('load',function(){
+  var d=this.contentDocument,w=this.contentWindow;
+  if(!d.querySelector('#student-rows')){ rec('TS-00',false,'学生页未加载'); finish(); return; }
+  try{
+    w.PrototypeShell.applyRole('super_admin');
+    rec('TS-01',values(d,'f-term').join(',')===TERMS,'学生页学期选项：'+values(d,'f-term').join('|'));
+    rec('TS-02',schools(d,'f-term').every(function(s){return s==='201,202';}),'学生页学期选项都带两校归属：'+schools(d,'f-term').join('|'));
+    pick(w,d,'f-school','202');
+    rec('TS-03',values(d,'f-term').join(',')===TERMS,'切到学校 202 后学期选项不变：'+values(d,'f-term').join('|'));
+  }catch(e){checks.push('TS-ERROR-S 失败 '+e.stack);}
+  finish();
+});
+
+document.querySelector('#fc').addEventListener('load',function(){
+  var d=this.contentDocument,w=this.contentWindow;
+  if(!d.querySelector('#class-rows')){ rec('TS-00',false,'班级页未加载'); finish(); return; }
+  try{
+    w.PrototypeShell.applyRole('super_admin');
+    rec('TS-04',values(d,'f-term').join(',')===TERMS,'班级页学期选项：'+values(d,'f-term').join('|'));
+    pick(w,d,'f-school','202');
+    rec('TS-05',values(d,'f-term').join(',')===TERMS,'切到学校 202 后学期选项不变：'+values(d,'f-term').join('|'));
+  }catch(e){checks.push('TS-ERROR-C 失败 '+e.stack);}
+  finish();
+});
+
+document.querySelector('#fp').addEventListener('load',function(){
+  var d=this.contentDocument;
+  if(!d.querySelector('#promotion-rows')&&!d.querySelector('[data-block="filter"]')){ rec('TS-00',false,'升班页未加载'); finish(); return; }
+  try{
+    rec('TS-06',values(d,'f-src').join(',')===TERMS,'升班任务源学期选项：'+values(d,'f-src').join('|'));
+    rec('TS-07',schools(d,'f-src').every(function(s){return s==='201,202'||s==='-';}),'源学期选项带两校归属');
+    rec('TS-08',values(d,'f-tgt').join(',')==='202601,202701','目标学期仍按升班自己的目标学年样例：'+values(d,'f-tgt').join('|'));
+  }catch(e){checks.push('TS-ERROR-P 失败 '+e.stack);}
+  finish();
+});
+
+document.querySelector('#fs').src='../../prototypes/'+layer+'/'+version+'/pages/student-list.html#role=super_admin';
+document.querySelector('#fc').src='../../prototypes/'+layer+'/'+version+'/pages/class-list.html#role=super_admin';
+document.querySelector('#fp').src='../../prototypes/'+layer+'/'+version+'/pages/promotion-list.html#role=super_admin';
+</script>
+</body></html>

@@ -37,8 +37,9 @@
 | `saveGradeLeader` | POST | `/edu/grade/{id}/leader` | 指定年级主任 | `org.grade` | 同步 |
 | `removeGradeLeader` | DELETE | `/edu/grade/{id}/leader/{leaderId}` | 解除任职 | `org.grade` | 同步 |
 | `getGradePromotionView` | GET | `/edu/grade/promotion-view` | 学年升级只读视图 | `org.grade` | 同步 |
+| `exportGrade` | POST | `/edu/grade/export` | 年级列表导出（`CR-037` 补登记：模块级导出，≤ 2000 行直接下载、超出转异步） | `org.grade` | 异步 |
 
-共 11 个接口。请求 / 响应契约见 `docs/40-detailed-design/api/openapi.yaml`，错误码见 `docs/40-detailed-design/api/error-codes.yaml`。
+共 12 个接口。请求 / 响应契约见 `docs/40-detailed-design/api/openapi.yaml`，错误码见 `docs/40-detailed-design/api/error-codes.yaml`。
 
 ## 4. 页面与动作落点
 

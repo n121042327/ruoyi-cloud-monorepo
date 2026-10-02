@@ -34,6 +34,7 @@
 | operationId | 方法 | 路径 | 说明 | 权限资源 | 同步/异步 |
 |---|---|---|---|---|---|
 | `listPromotionTask` | GET | `/edu/promotion/task/list` | 任务列表 | `promotion.batch` | 同步 |
+| `exportPromotionTask` | POST | `/edu/promotion/task/export` | 任务列表导出（`CR-037` 补登记：模块级导出，≤ 2000 行直接下载、超出转异步） | `promotion.batch` | 异步 |
 | `getPromotionTask` | GET | `/edu/promotion/task/{id}` | 任务详情 | `promotion.batch` | 同步 |
 | `addPromotionTask` | POST | `/edu/promotion/task` | 创建任务 | `promotion.batch` | 同步 |
 | `previewPromotionTask` | POST | `/edu/promotion/task/{id}/preview` | 生成预览 | `promotion.batch` | 同步 |
@@ -54,7 +55,7 @@
 | `checkInTransfer` | POST | `/edu/enrollment/transfer/{id}/check-in` | 报到 | `enrollment.status` | 同步 |
 | `cancelTransfer` | POST | `/edu/enrollment/transfer/{id}/cancel` | 撤销接收 | `enrollment.status` | 同步 |
 
-共 20 个接口。请求 / 响应契约见 `docs/40-detailed-design/api/openapi.yaml`，错误码见 `docs/40-detailed-design/api/error-codes.yaml`。
+共 21 个接口。请求 / 响应契约见 `docs/40-detailed-design/api/openapi.yaml`，错误码见 `docs/40-detailed-design/api/error-codes.yaml`。
 
 ## 4. 页面与动作落点
 

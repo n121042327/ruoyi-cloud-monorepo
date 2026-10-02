@@ -2100,3 +2100,31 @@
 ## D-111 — 孤儿接口引用清理（2026-10-02）
 
 按 CR-036 收口 GAP-079。8 个孤儿字符串分成两类：**改名对齐 2 条**——`saveTeacherEduRole → saveTeacherRole`、`saveTeacherLeave → leaveTeacher`（依据教师 PRD 第 8 节的同名 operationId），v2 教师页与 `page-actions.yaml` 同步，生成器 `API_ALIASES` 兜住冻结 v1 的历史字符串；**确认缺契约 6 条**——`exportClass` / `exportGrade` / `exportPromotionTask` / `uploadStudentPhoto` / `getStudentPhoto` / `viewStudentIdCard` 在各自模块 PRD 第 8 节都没有对应条目，另立 **GAP-080**（blocking stage6 / stage8），推荐按 `exportStudent` / `exportTeacher` 的模块级写法补导出、按 GAP-027 的结论把学生照片与证件号查看挂到统一文件服务与敏感字段读取接口，本批只登记不擅改。本批 44 项回归通过；`check_api_contract.py`、`check_docs.py`、`check_mermaid.py` 通过；冻结 v1 页面未改。
+
+## D-112 — 补齐 6 个缺失接口契约（2026-10-02）
+
+按 CR-037 落地 GAP-080（选项 A）。班级 / 年级 / 升班三个模块级导出（`exportClass` / `exportGrade` / `exportPromotionTask`）沿用 `exportStudent` / `exportTeacher` 的写法并标为异步；学生照片上传与查看原图（`uploadStudentPhoto` / `getStudentPhoto`）按 GAP-027 的结论挂统一文件服务，证件号全量查看（`viewStudentIdCard`）对应学生 PRD 7.3 的敏感字段访问审计，后两者需 `read_sensitive` 并写访问日志。重跑生成器后 operationId 173 → 178，`openapi.yaml` 178 个 / 157 条路径。本批把 `tools/check_api_contract.py` 的已知孤儿清单清空为空集，因此 v2 原型 112 处 `data-api` 引用必须全部命中 OpenAPI——结果孤儿引用为 0，`check_api_contract.py` / `check_docs.py` / `check_mermaid.py` 全绿。本批只补接口清单与契约，接口实现属阶段 6 / 7，功能状态仍为「已设计」；未改原型页面，不涉及浏览器回归；冻结 v1 未改。
+
+## D-113 — 学年学期样例确认（2026-10-02）
+
+用户答复「按推荐做」，GAP-067 采用 A1：**两校共用集团统一的四个学年学期**——2026-2027 第一学期（当前）、2026-2027 第二学期、2025-2026 第二学期（已归档）、2025-2026 第一学期（已归档），云溪实验学校与云溪外国语学校共用。按 CR-038 落地：学生列表 `f-term`、班级列表 `f-term`、升班任务列表 `f-src` 的选项统一为这四项并标注 `data-school="201,202"`（切校时按归属重建，两校相同所以不变，机制已就位）；顺带修掉此前学生页只有 `202502`、班级页只有 `202501` 的样例不一致；升班的目标学期与异动历史禁用项保持原状。冻结的 `content-samples.json` 与 v1 页面未改，样例以本决策与 `layout-spec.yaml` 的 `filter_cascade.term_scope` 为准。本批 147 项通过（新验证器两层各 8 项 + 学生模块 28 + 班级列表 39 + 升班布局 12×2 + 学生级联 20×2）。至此 GAP-047 / 067 / 078 / 079 / 080 全部关闭，仅剩 GAP-063 / 064 待用户验收样板后扩展。
+
+## D-114 — 追踪矩阵与逐元素映射全量扩展（2026-10-02）
+
+用户批注 GAP-063 / 064 的样板「已验收」，并要求把生成生产代码之前的任务做完。按 CR-039：新增 `tools/gen_traceability.py`，从 11 个模块的 PRD 需求表、`acceptance.md`、导航与页面清单、前端页面树机械连接，生成 **626 条需求记录**（原 11 条），582 条挂上验收用例，并新增 `module_api_index`（11 个模块 / 178 个 operationId）满足 `CHK-ORPHAN-API` 的模块级追溯；人工判断字段在重跑时原样保留。新增 `tools/build_component_mapping_all.py`，逐页解析 45 个高保真页面，输出 **1361 条元素映射**（页内唯一 id + selector + Element Plus 组件 + 判定依据），选择器唯一性如实标注（607 条唯一，其余为行内重复模式），每页附 `manifest_counts` 供逐页比对。两个生成器均验证幂等；四个检查脚本全绿；冻结 v1 与 `content-samples.json` 未动。需求到接口与表的**逐条**精化另立 **GAP-081**（626 条中已核对 8 条），推荐按模块推进、先做学生与班级。至此阶段 2/3 的返工与阶段 4/5 的契约、追踪、映射全部就绪，阶段 6 的输入文件已齐。
+
+## D-115 — 需求到接口与表的逐条对应（学生与班级，2026-10-02）
+
+按 GAP-081 的推荐 A，新增人工维护的 `docs/00-governance/requirement-links.yaml`，把学生 97 条与班级 62 条需求逐条挂到接口与表上，依据只有模块 PRD 第 8 节与 `schema.yaml` 的表注释。结果：159 条完成挂接，其中 149 条有接口、145 条有表；10 条按依据写明「第 8 节无对应接口」，包括用户偏好持久化（REQ-STU-010）、首轮不开放学号修改（REQ-STU-027 / GAP-030）、家长端延后（REQ-STU-051），以及由认证服务承载的首次登录与限流（REQ-STU-090 / 091）。复用关系都写了依据：复制班级复用 `addClass`（GAP-049）、批量迁学生复用 `transferClass`（D-067）。`gen_traceability.py` 增加合并逻辑，矩阵的 `linked_to_api` 从 8 升到 149、`linked_to_tables` 从 8 升到 145。逐条核对同时暴露一组缺契约——学生激活码的查看 / 打印 / 加密清单下载 / 代激活四项（GAP-082），推荐补 4 个接口并统一审计口径。GAP-081 保持 open，剩余 9 个模块 467 条按同样方式推进；当前 open 只有 GAP-081、GAP-082。
+
+## D-116 — 需求到接口与表的逐条对应（教师与年级，2026-10-02）
+
+按 CR-041 继续 GAP-081：教师 71 条与年级 40 条完成逐条挂接。教师侧列表 / 详情 / 新增编辑、角色、任教关系（单条与批量）、离职与撤销、导入导出分别对应到各自接口；年级侧列表详情、新建与批量生成、归档与删除、年级主任、只读升班视图同样逐条落到接口与 `edu_grade_leader` 等表。按依据写明无接口的 4 条（页面提示性需求、审计模块承载的运营留痕、以及见 GAP-083 的两条）。矩阵累计 **270 / 626**（接口链 257、表链 245）。逐条核对同时暴露 **GAP-083**：教师模块「复制上一学年任教关系」（验收用例 AC-TCH-070 已定交互，第 8 节无 operationId）与「启用账号」缺契约，推荐补 `copyTeachingAssignment`（异步）与 `enableTeacherAccount` 两个接口并写审计。剩余 7 个模块 356 条按同样方式推进；当前 open 为 GAP-081 / 082 / 083。
+
+## D-117 — 需求到接口与表的逐条对应（剩余 7 个模块，2026-10-02）
+
+用户要求「继续，一次性搞完」。按 CR-042 把 GAP-081 剩余的 audit 40 / import-export 52 / promotion 66 / school 45 / stream 69 / subject 42 / term 42 共 **356 条**一次性挂完，依据仍只有模块 PRD 第 8 节与 `schema.yaml` 的表名语义。审计模块的写入侧需求（记录所有写操作、只追加、降级策略）按事实写「由审计组件在同一事务内完成，本模块第 8 节不对外暴露写入接口」，不硬凑接口；存储层与缓存类需求同样写明无独立接口。本批顺带修掉一组此前漏挂的接口：`listTeachingClass` / `getTeachingClass` / `disableTeachingClass`、`exportGrade`、`uploadStudentPhoto`、`listTeacherRole`、`getAcademicYear` 七个 operationId 挂回既有需求，`CHK-ORPHAN-API` 由此从模块级升级为**需求级**——178 个 operationId 每个都至少被一条需求引用。矩阵最终 **626 / 626** 完成逐条挂接（接口链 580、表链 537；其余 46 条按依据写明无接口）。四个检查脚本全绿，冻结 v1 未改。至此 GAP-081 关闭，只剩 GAP-082 / 083 两条契约缺口。
+
+## D-118 — 补齐激活码与教师账号 / 任教关系复制接口（2026-10-02）
+
+按 CR-043 落地 GAP-082 与 GAP-083 的推荐 A。**学生**（PRD 升 1.0.7）第 8 节补 4 个 operationId：`getStudentActivationCode`（默认掩码，`reveal=true` 揭示明文并逐条写审计）、`printStudentActivationSlip`（批量密码条，每行姓名 / 学号 / 登录名 / 激活码）、`exportStudentActivationCode`（未激活学生加密清单，写审计并记录行数）、`activateStudentAccount`（班主任代激活并设置密码，写审计），数据落 `edu_activation_code`，查看与导出写 `edu_audit_log`。**教师**（PRD 升 1.0.6-draft）第 8 节补 2 个：`enableTeacherAccount`（与停用对称，写审计）与 `copyTeachingAssignment`（复制上一学年任教关系，预览 + 冲突清单 + 异步，已加入 `ASYNC_HINTS`）。重跑 `extract_api_catalog.py` 与 `gen_api_and_map.py` 后 operationId **178 → 184**，OpenAPI 184 个 / 163 条路径；`requirement-links.yaml` 中 6 条原「无接口」需求改挂新接口，接口链 575 → 580。`check_api_contract.py` / `check_docs.py` / `check_mermaid.py` / `check_gap_register.py` 全绿。缺项表当前无 open 项，阶段 6 的输入文件已齐；接口与表仍是设计态，实现与测试属阶段 6 / 7 / 8。
