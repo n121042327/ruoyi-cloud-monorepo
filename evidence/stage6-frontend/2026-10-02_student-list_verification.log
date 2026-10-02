@@ -1,0 +1,22 @@
+# 阶段 6 证据：学生管理列表（首批样板）
+命令与结果（2026-10-02）：
+
+$ python tools/check_fe_page_structure.py   (exit 0)
+=== PAGE-STU-LIST 学生管理列表 ===
+  查询区字段顺序一致：9 项（学校 → 学年学期 → 年级 → 班级 → 学籍状态 → 关键字 → 性别 → 入学年份 → 证件号后四位）
+  表格列顺序与分组一致：11 列（学号(基础信息) → 姓名(基础信息) → 性别(基础信息) → 入学年份(教育信息) → 学段(教育信息) → 年级(教育信息) → 班级(教育信息) → 学籍状态(教育信息) → 联系电话(联系方式) → 更新时间(管理信息) → 操作(操作)）
+
+通过：生产页面结构与应用原型一致
+
+$ pnpm --filter @edu/plus-ui typecheck   (exit 1)
+error TS 总数：51（基线 51，本批新增 0）
+新增文件相关报错：无
+
+$ pnpm --filter @edu/plus-ui lint:eslint   (exit 1)
+汇总：✖ 124 problems (124 errors, 0 warnings)（基线 125 项，本批新增 0，且修掉 dynamicRoutes 空数组的 1 项既有格式错误）
+新增文件相关报错：无
+
+$ pnpm --filter @edu/plus-ui run build:prod   (exit 0)
+构建结果：成功（✓ built in）
+产物：dist/assets/StudentFormDialog-4bdBUvMk.js                                                   0.29 kB │ gzip:   0.20 kB；dist/assets/StudentFormDialog.vue_vue_type_script_setup_true_lang-B29fjVZo.js               8.36 kB │ gzip:   3.18 kB
+

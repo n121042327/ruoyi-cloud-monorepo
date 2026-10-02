@@ -92,8 +92,24 @@ export const constantRoutes: RouteRecordRaw[] = [
 ];
 
 // 动态路由，基于用户权限动态去加载
+//
+// 教育域页面在阶段 6 逐批交付，交付一批在此登记一条静态路由，便于开发与交互对照；
+// 阶段 8 由后端菜单（sys_menu）下发同名路由后，本处条目拆除（见 CR-044）。
 export const dynamicRoutes: RouteRecordRaw[] = [
-
+  {
+    path: '/edu/student/list',
+    component: Layout,
+    hidden: true,
+    permissions: ['person.student:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/student/stu_list/index.vue'),
+        name: 'EduStudentList',
+        meta: { title: '学生管理', icon: 'user' }
+      }
+    ]
+  }
 ];
 
 /**

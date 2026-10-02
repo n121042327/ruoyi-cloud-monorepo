@@ -625,3 +625,16 @@
 | `docs/00-governance/traceability.yaml` | 626 条需求追踪 + 需求级接口追溯（接口链 580 / 表链 537，生成物） | `review` |
 | `evidence/governance/2026-10-02_requirement-links-all-modules.log` | 本批生成结果与四个检查脚本输出 | `review` |
 | `evidence/governance/2026-10-02_contract-completion-gap082-083.log` | 契约补齐后的 operationId 数与检查输出 | `review` |
+
+## 2026-10-02 阶段 6 首批：学生管理列表页
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-044.md` | 阶段 6 首批（学生管理列表页）交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/student/stu_list/index.vue` | 学生管理列表页（查询区 / 工具栏 / 表格 / 分页 / 无权限态） | `已实现` |
+| `apps/plus-ui/src/views/edu/student/stu_list/composables/useStudentList.ts` | 列表页查询、分页、导出与级联逻辑 | `已实现` |
+| `apps/plus-ui/src/views/edu/student/stu_list/components/StudentFormDialog.vue` | 新增 / 编辑弹窗（基础信息 + 教育信息） | `已实现` |
+| `apps/plus-ui/src/api/edu/**` | 教育域接口层：student / school / term / grade / class | `已实现` |
+| `apps/plus-ui/src/enums/edu/StudentEnum.ts` | 学段 / 性别 / 学籍状态枚举（取自字段字典） | `已实现` |
+| `tools/check_fe_page_structure.py` | 生产页面 ←→ 原型的结构对照检查（阶段 6 交互对照的可执行部分） | `review` |
+| `evidence/stage6-frontend/2026-10-02_student-list_verification.log` | 类型检查 / Lint / 构建 / 结构对照证据 | `review` |
