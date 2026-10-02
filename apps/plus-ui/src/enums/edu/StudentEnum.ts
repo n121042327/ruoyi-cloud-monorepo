@@ -40,6 +40,34 @@ export const GENDER_OPTIONS = [
   { value: GenderEnum.FEMALE, label: '女' }
 ];
 
+/** 证件类型（原型 student-list.html 的 id_type 选项；可留空） */
+export enum IdTypeEnum {
+  ID_CARD = '居民身份证',
+  PASSPORT = '护照',
+  HK_MO_TW_RESIDENCE = '港澳台居民居住证'
+}
+
+export const ID_TYPE_OPTIONS = [
+  { value: IdTypeEnum.ID_CARD, label: '居民身份证' },
+  { value: IdTypeEnum.PASSPORT, label: '护照' },
+  { value: IdTypeEnum.HK_MO_TW_RESIDENCE, label: '港澳台居民居住证' }
+];
+
+/** 与监护人关系（原型 student-list.html 的 relation 选项） */
+export enum GuardianRelationEnum {
+  FATHER = '父亲',
+  MOTHER = '母亲',
+  GRANDPARENT = '祖父母',
+  OTHER = '其他'
+}
+
+export const GUARDIAN_RELATION_OPTIONS = [
+  { value: GuardianRelationEnum.FATHER, label: '父亲' },
+  { value: GuardianRelationEnum.MOTHER, label: '母亲' },
+  { value: GuardianRelationEnum.GRANDPARENT, label: '祖父母' },
+  { value: GuardianRelationEnum.OTHER, label: '其他' }
+];
+
 /** 学籍状态（`enrollment_status`，共 12 个，其中 7 个终态） */
 export enum EnrollmentStatusEnum {
   PENDING_ENROLL = 'pending_enroll',

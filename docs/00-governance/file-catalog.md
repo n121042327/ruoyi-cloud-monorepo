@@ -638,3 +638,12 @@
 | `apps/plus-ui/src/enums/edu/StudentEnum.ts` | 学段 / 性别 / 学籍状态枚举（取自字段字典） | `已实现` |
 | `tools/check_fe_page_structure.py` | 生产页面 ←→ 原型的结构对照检查（阶段 6 交互对照的可执行部分） | `review` |
 | `evidence/stage6-frontend/2026-10-02_student-list_verification.log` | 类型检查 / Lint / 构建 / 结构对照证据 | `review` |
+
+## 2026-10-02 阶段 6 第二批：学生详情抽屉与三步向导
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-045.md` | 学生详情抽屉 + 新增编辑三步向导的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/student/stu_list/components/StudentDetailDrawer.vue` | 只读详情抽屉（四个字段分组 + 监护人 + 变更记录） | `已实现` |
+| `apps/plus-ui/src/views/edu/student/stu_list/components/StudentFormDialog.vue` | 新增 / 编辑三步向导（学籍信息 / 证件与联系 / 监护人） | `已实现` |
+| `evidence/stage6-frontend/2026-10-02_student-detail-and-form-wizard_verification.log` | 本批类型检查 / Lint / 构建 / 结构对照证据 | `review` |

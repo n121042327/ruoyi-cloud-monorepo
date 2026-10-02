@@ -1,6 +1,6 @@
 import request from '@/utils/request';
 import { AxiosPromise } from 'axios';
-import { StudentForm, StudentQuery, StudentVO } from './types';
+import { GuardianForm, GuardianVO, StudentChangeLogVO, StudentForm, StudentQuery, StudentVO } from './types';
 import { parseStrEmpty } from '@/utils/ruoyi';
 
 /**
@@ -54,9 +54,62 @@ export const updateStudent = (data: StudentForm) => {
   });
 };
 
+/**
+ * 查询学生监护人列表
+ *
+ * 对应 operationId `listStudentGuardian`（GET /edu/student/{id}/guardian）。
+ */
+export const listStudentGuardian = (studentId: string): AxiosPromise<GuardianVO[]> => {
+  return request({
+    url: `/edu/student/${studentId}/guardian`,
+    method: 'get'
+  });
+};
+
+/**
+ * 新增 / 修改监护人（班主任为唯一写入口）
+ *
+ * 对应 operationId `saveStudentGuardian`（POST /edu/student/{id}/guardian）。
+ */
+export const saveStudentGuardian = (studentId: string, data: GuardianForm) => {
+  return request({
+    url: `/edu/student/${studentId}/guardian`,
+    method: 'post',
+    data
+  });
+};
+
+/**
+ * 查询学生变更记录（只读，来自审计模块）
+ *
+ * 对应 operationId `listStudentChangeLog`（GET /edu/student/{id}/change-log）。
+ */
+export const listStudentChangeLog = (studentId: string): AxiosPromise<StudentChangeLogVO[]> => {
+  return request({
+    url: `/edu/student/${studentId}/change-log`,
+    method: 'get'
+  });
+};
+
+/**
+ * 查看完整证件号（需 `person.student:read_sensitive`，写敏感数据访问日志）
+ *
+ * 对应 operationId `viewStudentIdCard`（GET /edu/student/{id}/id-card）。
+ */
+export const viewStudentIdCard = (studentId: string): AxiosPromise<{ idCardNo: string }> => {
+  return request({
+    url: `/edu/student/${studentId}/id-card`,
+    method: 'get'
+  });
+};
+
 export default {
   listStudent,
   getStudent,
   addStudent,
-  updateStudent
+  updateStudent,
+  listStudentGuardian,
+  saveStudentGuardian,
+  listStudentChangeLog,
+  viewStudentIdCard
 };

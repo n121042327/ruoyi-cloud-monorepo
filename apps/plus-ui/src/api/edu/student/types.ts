@@ -60,13 +60,21 @@ export interface StudentVO extends BaseEntity {
   className: string;
   /** 学籍状态 */
   enrollmentStatus: string;
+  /** 证件号（后端返回掩码值；明文经 viewStudentIdCard 单独获取） */
+  idCardNo?: string;
+  /** 证件类型 */
+  idType?: string;
+  /** 出生日期 */
+  birthDate?: string;
+  /** 联系地址 */
+  address?: string;
   /** 联系电话（默认掩码展示） */
   studentPhone: string;
   /** 学生照片文件 ID */
   photoFileId?: string;
 }
 
-/** 学生新增 / 编辑表单（本批交付「基础信息 + 教育信息」两组；证件与联系、监护人属下一批） */
+/** 学生新增 / 编辑表单（对应原型 PAGE-STU-CREATE 的三步：学籍信息 / 证件与联系 / 监护人） */
 export interface StudentForm {
   studentId?: string;
   /** 全国学籍号，可空；以 G / L 开头 */
@@ -77,4 +85,44 @@ export interface StudentForm {
   stageCode: string;
   gradeId: string;
   classId?: string;
+  /** 证件信息 */
+  idType?: string;
+  idCardNo?: string;
+  birthDate?: string;
+  /** 联系方式 */
+  studentPhone?: string;
+  address?: string;
+  /** 学生照片文件 ID（上传接口在阶段 6 后续批次） */
+  photoFileId?: string;
+}
+
+/** 监护人（上限 3，对应 REQ-STU-022） */
+export interface GuardianForm {
+  guardianId?: string;
+  guardianName: string;
+  relation: string;
+  guardianPhone?: string;
+  /** 是否主要联系人；同一学生最多一条 */
+  isPrimary?: boolean;
+  remark?: string;
+}
+
+/** 监护人列表行 */
+export interface GuardianVO extends GuardianForm {
+  guardianId: string;
+  /** 手机号掩码 */
+  guardianPhoneMasked?: string;
+}
+
+/** 学生变更记录（来自审计模块，只读） */
+export interface StudentChangeLogVO {
+  changeId: string;
+  /** 变更类型：班级变更 / 学籍状态 / 监护人变更 等 */
+  changeType: string;
+  /** 变更标签，如「调班」「在读 → 在读」 */
+  changeTag?: string;
+  /** 变更摘要，含前后值与操作人 */
+  summary: string;
+  operatorName?: string;
+  changeTime: string;
 }

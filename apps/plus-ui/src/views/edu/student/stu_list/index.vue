@@ -90,7 +90,11 @@
         </template>
 
         <el-table v-loading="loading" border :data="studentList">
-          <el-table-column v-if="columns[0].visible" label="学号" prop="studentNo" width="130" data-layout-group="基础信息" />
+          <el-table-column v-if="columns[0].visible" label="学号" prop="studentNo" width="130" data-layout-group="基础信息">
+            <template #default="scope">
+              <el-button link type="primary" @click="handleDetail(scope.row)">{{ scope.row.studentNo }}</el-button>
+            </template>
+          </el-table-column>
           <el-table-column
             v-if="columns[1].visible"
             label="姓名"
@@ -158,12 +162,14 @@
       </el-card>
 
       <student-form-dialog ref="formDialogRef" :school-id="queryParams.schoolId" @success="getList" />
+      <student-detail-drawer ref="detailDrawerRef" @edit="handleEditFromDrawer" />
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, getCurrentInstance, ref } from 'vue';
+import StudentDetailDrawer from './components/StudentDetailDrawer.vue';
 import StudentFormDialog from './components/StudentFormDialog.vue';
 import { useStudentList } from './composables/useStudentList';
 import { ENROLLMENT_STATUS_FILTER_OPTIONS, ENROLLMENT_STATUS_LABEL, GENDER_OPTIONS, STAGE_CODE_LABEL } from '@/enums/edu/StudentEnum';
@@ -197,12 +203,23 @@ const {
 } = useStudentList();
 
 const formDialogRef = ref<InstanceType<typeof StudentFormDialog>>();
+const detailDrawerRef = ref<InstanceType<typeof StudentDetailDrawer>>();
 
 /** 页面级读权限：无权限时不渲染内容（路由侧另有菜单权限兜底） */
 const canRead = computed(() => checkPermi(['person.student:read']));
 
 const handleAdd = () => {
   formDialogRef.value?.open();
+};
+
+/** 点击学号打开只读详情抽屉（原型 PAGE-STU-DETAIL） */
+const handleDetail = (row: StudentVO) => {
+  detailDrawerRef.value?.open(row.studentId);
+};
+
+/** 抽屉内「编辑」：关闭抽屉并打开编辑弹窗 */
+const handleEditFromDrawer = (row: StudentVO) => {
+  handleUpdate(row);
 };
 
 const handleUpdate = (row: StudentVO) => {

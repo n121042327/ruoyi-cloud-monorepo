@@ -37,6 +37,28 @@ CHECKS = [
     }
 ]
 
+# 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）
+OVERLAY_CHECKS = [
+    {
+        "page_id": "PAGE-STU-DETAIL",
+        "name": "学生详情抽屉",
+        "prototype": "prototypes/functional/v2/pages/student-list.html",
+        "vue": "apps/plus-ui/src/views/edu/student/stu_list/components/StudentDetailDrawer.vue",
+        "groups": ["基础信息", "教育信息", "证件信息", "联系方式", "监护人", "变更记录"],
+    },
+    {
+        "page_id": "PAGE-STU-CREATE",
+        "name": "新增 / 编辑三步向导",
+        "prototype": "prototypes/functional/v2/pages/student-list.html",
+        "vue": "apps/plus-ui/src/views/edu/student/stu_list/components/StudentFormDialog.vue",
+        "steps": [
+            ("学籍信息", ["基础信息", "教育信息"]),
+            ("证件与联系", ["证件信息", "联系方式"]),
+            ("监护人", ["监护人"]),
+        ],
+    },
+]
+
 FILTER_SECTION_START = 'data-role="filter"'
 FILTER_SECTION_END = 'data-role="table"'
 
@@ -178,6 +200,36 @@ def main() -> int:
         vue = read(check["vue"])
         check_filter(check, prototype_html, vue)
         check_columns(check, prototype_html, vue)
+
+    for check in OVERLAY_CHECKS:
+        vue_path = os.path.join(REPO_ROOT, check["vue"])
+        if not os.path.isfile(vue_path):
+            problems.append("缺少文件：%s" % rel(vue_path))
+            continue
+        print("=== %s %s ===" % (check["page_id"], check["name"]))
+        overlay = read(check["vue"])
+        # 操作列是独立分组，且已在页面级检查里单独校验，不参与字段分组顺序
+        groups = [g for g in re.findall(r'data-layout-group="([^"]+)"', overlay) if g != "操作"]
+        expected_groups = list(check.get("groups") or [])
+        for _, step_groups in check.get("steps") or []:
+            expected_groups.extend(step_groups)
+        if expected_groups and groups != expected_groups:
+            problems.append(
+                "%s 分组顺序与原型不一致\n      原型：%s\n      生产：%s"
+                % (check["page_id"], " → ".join(expected_groups), " → ".join(groups))
+            )
+        else:
+            print("  分组顺序一致：%s" % " → ".join(groups))
+        if check.get("steps"):
+            titles = re.findall(r'<el-step\s+title="([^"]+)"', overlay)
+            expected_titles = [title for title, _ in check["steps"]]
+            if titles != expected_titles:
+                problems.append(
+                    "%s 向导步骤与原型不一致：原型 %s，生产 %s"
+                    % (check["page_id"], " / ".join(expected_titles), " / ".join(titles))
+                )
+            else:
+                print("  向导步骤一致：%s" % " → ".join(titles))
 
     if problems:
         print("")
