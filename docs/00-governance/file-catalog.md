@@ -716,3 +716,11 @@
 | `apps/plus-ui/src/views/edu/student/stu_import/index.vue` | 学生批量导入 4 步向导 | `已实现` |
 | `apps/plus-ui/src/api/edu/importExport/**` | 导入导出模块接口层（模板 / 校验 / 执行 / 失败行 / 结果 / 任务详情） | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_student-import_verification.log` | 本批生成结果与门禁证据 | `review` |
+
+## 2026-10-08 阶段 7 起步：ruoyi-edu 服务模块
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-054.md` | 阶段 7 骨架与第一条纵切的交付记录 | `review` |
+| `services/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-edu/**` | 教育业务服务模块（pom / 启动类 / 学生模块纵切 / application.yml） | `已实现` |
+| `evidence/stage7-backend/2026-10-08_ruoyi-edu_compile.log` | 编译验证输出 | `review` |

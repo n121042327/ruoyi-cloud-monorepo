@@ -1,0 +1,32 @@
+# 阶段 7 证据：ruoyi-edu 模块编译（CR-054，2026-10-08）
+
+$ cd services/RuoYi-Cloud-Plus && mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile   (exit 0)
+
+[INFO] ruoyi-common-excel ................................. SUCCESS [  0.238 s]
+[INFO] ruoyi-api .......................................... SUCCESS [  0.078 s]
+[INFO] ruoyi-api-system ................................... SUCCESS [  0.221 s]
+[INFO] ruoyi-common-redis ................................. SUCCESS [  0.419 s]
+[INFO] ruoyi-common-satoken ............................... SUCCESS [  0.254 s]
+[INFO] ruoyi-common-security .............................. SUCCESS [  0.235 s]
+[INFO] ruoyi-common-log ................................... SUCCESS [  0.387 s]
+[INFO] ruoyi-common-doc ................................... SUCCESS [  0.222 s]
+[INFO] ruoyi-common-web ................................... SUCCESS [  0.372 s]
+[INFO] ruoyi-common-encrypt ............................... SUCCESS [  0.230 s]
+[INFO] ruoyi-common-dubbo ................................. SUCCESS [  0.235 s]
+[INFO] ruoyi-common-seata ................................. SUCCESS [  0.244 s]
+[INFO] ruoyi-common-mybatis ............................... SUCCESS [  0.398 s]
+[INFO] ruoyi-common-tenant ................................ SUCCESS [  0.257 s]
+[INFO] ruoyi-common-service-impl .......................... SUCCESS [  0.243 s]
+[INFO] ruoyi-common-idempotent ............................ SUCCESS [  0.185 s]
+[INFO] ruoyi-common-sensitive ............................. SUCCESS [  0.128 s]
+[INFO] ruoyi-modules ...................................... SUCCESS [  0.073 s]
+[INFO] ruoyi-edu .......................................... SUCCESS [  0.427 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  7.297 s
+[INFO] Finished at: 2026-10-08T00:16:16+08:00
+[INFO] ------------------------------------------------------------------------
+
+说明：本次只验证编译；未启动服务、未连接数据库、未跑接口测试（用户明确不要求 docker 测试）。
+AGENTS 第 9 节口径：编译通过不等于测试通过。
