@@ -559,6 +559,34 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/edu/stream/approve',
+    component: Layout,
+    hidden: true,
+    permissions: ['stream.change_request:approve'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/stream/str_approve/index.vue'),
+        name: 'EduStreamApprove',
+        meta: { title: '选科变更审批', icon: 'check' }
+      }
+    ]
+  },
+  {
+    path: '/edu/stream/generate-class',
+    component: Layout,
+    hidden: true,
+    permissions: ['stream.selection:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/stream/str_gen_class/index.vue'),
+        name: 'EduStreamGenClass',
+        meta: { title: '按组合生成教学班', icon: 'tree' }
+      }
+    ]
+  },
+  {
     path: '/edu/school/init',
     component: Layout,
     hidden: true,

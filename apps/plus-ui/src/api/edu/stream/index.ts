@@ -3,6 +3,9 @@ import { AxiosPromise } from 'axios';
 import {
   MyStreamForm,
   MyStreamVO,
+  StreamApproveForm,
+  StreamChangeRequestQuery,
+  StreamChangeRequestVO,
   StreamChangeForm,
   StreamConfigForm,
   StreamConfigVO,
@@ -11,6 +14,7 @@ import {
   StreamSelectionQuery,
   StreamSelectionVO,
   StreamStatVO,
+  TeachingClassGeneratePreviewVO,
   UnselectedStudentVO
 } from './types';
 
@@ -170,6 +174,81 @@ export const addStreamChangeRequest = (data: StreamChangeForm) => {
   });
 };
 
+/**
+ * 选科变更申请待办列表（PAGE-STR-APPROVE）
+ *
+ * 对应 operationId `listStreamChangeRequest`（GET /edu/stream/change/list）。
+ */
+export const listStreamChangeRequest = (query?: StreamChangeRequestQuery): AxiosPromise<StreamChangeRequestVO[]> => {
+  return request({
+    url: '/edu/stream/change/list',
+    method: 'get',
+    params: query
+  });
+};
+
+/**
+ * 审批变更申请（通过即生效 / 驳回；驳回意见必填，REQ-STR-037 / 039）
+ *
+ * 对应 operationId `approveStreamChangeRequest`（POST /edu/stream/change/{id}/approve，权限 `stream.change_request:approve`）。
+ */
+export const approveStreamChangeRequest = (data: StreamApproveForm) => {
+  return request({
+    url: `/edu/stream/change/${data.requestId}/approve`,
+    method: 'post',
+    data
+  });
+};
+
+/**
+ * 撤销变更申请（申请人侧撤回未审批的申请）
+ *
+ * 对应 operationId `cancelStreamChangeRequest`（POST /edu/stream/change/{id}/cancel）。
+ */
+export const cancelStreamChangeRequest = (requestId: string) => {
+  return request({
+    url: `/edu/stream/change/${requestId}/cancel`,
+    method: 'post'
+  });
+};
+
+/**
+ * 教学班生成预览（PAGE-STR-GEN-CLASS，幂等：只读不写）
+ *
+ * 对应 operationId `previewTeachingClassGenerate`（POST /edu/stream/teaching-class/preview）。
+ */
+export const previewTeachingClassGenerate = (data: {
+  termId?: string;
+  gradeId?: string;
+  generateMode?: string;
+  classNameRule?: string;
+}): AxiosPromise<TeachingClassGeneratePreviewVO> => {
+  return request({
+    url: '/edu/stream/teaching-class/preview',
+    method: 'post',
+    data
+  });
+};
+
+/**
+ * 执行教学班生成（幂等：同一批次重复提交不产生重复教学班）
+ *
+ * 对应 operationId `executeTeachingClassGenerate`（POST /edu/stream/teaching-class/generate）。
+ */
+export const executeTeachingClassGenerate = (data: {
+  termId?: string;
+  gradeId?: string;
+  generateMode?: string;
+  classNameRule?: string;
+  batchNo?: string;
+}) => {
+  return request({
+    url: '/edu/stream/teaching-class/generate',
+    method: 'post',
+    data
+  });
+};
+
 export default {
   getStreamConfig,
   saveStreamConfig,
@@ -182,5 +261,10 @@ export default {
   listStreamSelection,
   getStreamStat,
   exportStreamSelection,
-  addStreamChangeRequest
+  addStreamChangeRequest,
+  listStreamChangeRequest,
+  approveStreamChangeRequest,
+  cancelStreamChangeRequest,
+  previewTeachingClassGenerate,
+  executeTeachingClassGenerate
 };

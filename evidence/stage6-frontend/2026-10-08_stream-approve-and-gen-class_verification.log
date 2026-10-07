@@ -1,0 +1,13 @@
+# 阶段 6 证据：选科变更审批 + 按组合生成教学班（CR-077，2026-10-08）
+
+check_fe_page_structure=0（新增 PAGE-STR-APPROVE 8 列 / PAGE-STR-GEN-CLASS 5 列两条对照）
+check_api_contract=0  check_docs=0  check_gap_register=0  check_mermaid=0
+typecheck exit=1 error TS=51（基线 51）
+lint exit=1 ✖ 124 problems (124 errors, 0 warnings)
+build exit=0 成功
+
+补记：
+1) 继续按 D-150 的经验把非主表内容拆到 components/：审批弹窗（DIALOG-STR-APPROVE）与核对结果表都在
+   子组件里，两个页面文件只保留主表列，结构对照首轮即通过。
+2) 首轮 lint = 131，统一 CRLF 后 `eslint --fix` 回到 124；typecheck 首轮即 51。
+

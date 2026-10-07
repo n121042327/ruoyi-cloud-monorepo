@@ -286,6 +286,24 @@ CHECKS = [
         "extra_columns": {"组合": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留组合列"},
         "filter_note": "v1 原型整页没有查询区标记，生产页按当前学年学期上下文取数（getStreamStat），不额外增加查询项",
     },
+    {
+        "page_id": "PAGE-STR-APPROVE",
+        "name": "选科变更审批",
+        "prototype": "prototypes/functional/v1/pages/stream-approve.html",
+        "vue": "apps/plus-ui/src/views/edu/stream/str_approve/index.vue",
+        "deferred_groups": {},
+        "extra_columns": {"申请单号": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留申请单号列"},
+        "filter_note": "v1 原型的查询区由裸 select / input（data-role=\"filter\"）组成，没有 <label> 文本，查询项无法由原型提取；生产页按 PRD 6.1 补状态 / 年级 / 关键词三项",
+    },
+    {
+        "page_id": "PAGE-STR-GEN-CLASS",
+        "name": "按组合生成教学班",
+        "prototype": "prototypes/functional/v1/pages/stream-generate-class.html",
+        "vue": "apps/plus-ui/src/views/edu/stream/str_gen_class/index.vue",
+        "deferred_groups": {},
+        "extra_columns": {"组合": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留组合列"},
+        "filter_note": "v1 原型是「选择方式与范围 → 生成预览 → 执行与进度 → 核对结果」的四步向导，整页没有查询区；生产页按原型步骤实现，不比对查询项",
+    },
 ]
 
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）

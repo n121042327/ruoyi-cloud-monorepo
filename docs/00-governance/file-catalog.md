@@ -925,3 +925,14 @@
 | `apps/plus-ui/src/views/edu/stream/str_stat/index.vue` | 组合分布统计（PAGE-STR-STAT） | `已实现` |
 | `apps/plus-ui/src/views/edu/stream/str_stat/components/SubjectStatTable.vue` | 学科选择人数表 | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_stream-list-and-stat_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第三十三批：选科变更审批 + 按组合生成教学班
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-077.md` | 选科变更审批 / 按组合生成教学班的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/stream/str_approve/index.vue` | 选科变更审批（PAGE-STR-APPROVE） | `已实现` |
+| `apps/plus-ui/src/views/edu/stream/str_approve/components/ApproveDialog.vue` | 审批弹窗（DIALOG-STR-APPROVE） | `已实现` |
+| `apps/plus-ui/src/views/edu/stream/str_gen_class/index.vue` | 按组合生成教学班四步向导（PAGE-STR-GEN-CLASS） | `已实现` |
+| `apps/plus-ui/src/views/edu/stream/str_gen_class/components/CheckResultTable.vue` | 核对结果表 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_stream-approve-and-gen-class_verification.log` | 本批门禁证据 | `review` |

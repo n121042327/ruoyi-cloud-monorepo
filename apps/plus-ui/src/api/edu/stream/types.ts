@@ -163,3 +163,80 @@ export interface StreamChangeForm {
   secondarySubjectCodes: string[];
   reason: string;
 }
+
+/**
+ * 选科变更申请单（PAGE-STR-APPROVE）
+ *
+ * 审批通过后学生选科立即生效，教学班名单不会自动同步，需人工触发增量生成并核对差异（REQ-STR-060）。
+ */
+export interface StreamChangeRequestVO {
+  requestId: string;
+  /** 申请单号，如 SC-2026-0031 */
+  requestNo?: string;
+  studentId?: string;
+  studentNo?: string;
+  studentName?: string;
+  gradeName?: string;
+  className?: string;
+  /** 原组合（当前生效） */
+  beforeCombination?: string;
+  /** 新组合（申请） */
+  afterCombination?: string;
+  /** 申请原因 */
+  reason?: string;
+  /** 提交时间 */
+  applyTime?: string;
+  /** 状态：待审批 / 已通过 / 已驳回 / 已撤销 */
+  status?: string;
+}
+
+/** 变更申请查询参数 */
+export interface StreamChangeRequestQuery extends Partial<PageQuery> {
+  status?: string;
+  gradeId?: string;
+  keyword?: string;
+  termId?: string;
+}
+
+/** 审批动作（approveStreamChangeRequest） */
+export interface StreamApproveForm {
+  requestId: string;
+  /** 审批结果：true 通过并生效 / false 驳回 */
+  approved: boolean;
+  /** 审批意见：驳回必填（≥ 5 字，REQ-STR-037） */
+  opinion?: string;
+}
+
+/** 教学班生成预览行（PAGE-STR-GEN-CLASS 主表） */
+export interface TeachingClassGenerateRowVO {
+  subjectCombination?: string;
+  className?: string;
+  memberCount?: number;
+  /** 是否已存在同组合教学班 */
+  existing?: boolean;
+  /** 将执行的动作：新建 / 增量并入 / 跳过 */
+  action?: string;
+}
+
+/** 教学班生成预览（previewTeachingClassGenerate） */
+export interface TeachingClassGeneratePreviewVO {
+  termId?: string;
+  termName?: string;
+  gradeId?: string;
+  gradeName?: string;
+  /** 生成方式：combination（按完整组合）/ subject（按单学科） */
+  generateMode?: string;
+  /** 预计新增与并入的教学班数 */
+  planCount?: number;
+  rows?: TeachingClassGenerateRowVO[];
+}
+
+/** 生成后的核对行（教学班人数 vs 选科统计人数） */
+export interface TeachingClassCheckRowVO {
+  className?: string;
+  memberCount?: number;
+  statCount?: number;
+  diff?: number;
+  /** 核对结果：一致 / 存在差异 */
+  result?: string;
+}
