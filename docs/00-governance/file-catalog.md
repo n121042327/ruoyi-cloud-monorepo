@@ -680,3 +680,12 @@
 | `docs/00-governance/change-requests/CR-049.md` | 批量能力与异动登记入口的交付、GAP-085 登记与门禁记录 | `review` |
 | `apps/plus-ui/src/views/edu/student/stu_list/index.vue` | 学生列表页（本批补多选列与两个批量按钮） | `已实现` |
 | `evidence/stage6-frontend/2026-10-07_student-batch-actions_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |
+
+## 2026-10-07 阶段 6 第七批：跨校转学（转出校）向导
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-050.md` | GAP-085 裁决 A 的契约收敛与转出校向导交付记录 | `review` |
+| `apps/plus-ui/src/views/edu/student/stu_cross_transfer/index.vue` | 跨校转学（转出校）4 步向导 | `已实现` |
+| `apps/plus-ui/src/api/edu/promotion/**` | 升班与学籍异动模块接口层（转学单发起 / 撤销 / 待接收清单） | `已实现` |
+| `evidence/stage6-frontend/2026-10-07_cross-transfer-out_verification.log` | 本批生成结果与门禁证据 | `review` |

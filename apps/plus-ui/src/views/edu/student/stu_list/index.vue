@@ -177,6 +177,7 @@
         @status="handleStatus"
         @transfer="handleTransfer"
         @promotion-change="handlePromotionChange"
+        @cross-transfer="handleCrossTransfer"
       />
       <student-status-dialog ref="statusDialogRef" :school-id="queryParams.schoolId" @success="getList" />
       <student-status-dialog ref="promotionDialogRef" mode="promotion" :school-id="queryParams.schoolId" @success="getList" />
@@ -187,6 +188,7 @@
 
 <script setup lang="ts">
 import { computed, getCurrentInstance, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import StudentDetailDrawer from './components/StudentDetailDrawer.vue';
 import StudentFormDialog from './components/StudentFormDialog.vue';
@@ -200,6 +202,7 @@ import { checkPermi } from '@/utils/permission';
 defineOptions({ name: 'EduStudentList' });
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const router = useRouter();
 
 const {
   loading,
@@ -260,6 +263,11 @@ const handleTransfer = (row: StudentVO) => {
 /** 异动登记（升班口径）：与学生侧「学籍异动」同一字段、同一接口 */
 const handlePromotionChange = (row: StudentVO) => {
   promotionDialogRef.value?.open(row);
+};
+
+/** 跨校转学：跳转转出校向导（学号带过去，步骤 1 预选） */
+const handleCrossTransfer = (row: StudentVO) => {
+  router.push({ path: '/edu/student/cross-transfer', query: { studentId: row.studentId } });
 };
 
 const handleSelectionChange = (rows: StudentVO[]) => {

@@ -2615,7 +2615,16 @@ gaps:
       - stage6
       - stage8
     owner: 用户
-    status: open
+    answer: 用户于 2026-10-07 批注「按推荐，继续」，采纳推荐 A：统一用升班模块的 `addTransfer`。
+    resolution: |
+      按 CR-050 落地：学生 PRD 升 1.0.9，第 8 节删除 `crossSchoolTransfer` 并加注「跨校转学复用升班模块的
+      `addTransfer`，与接收 / 报到 / 撤销同组」；requirement-links 的 REQ-STU-039 / 040 改挂 `addTransfer`。
+      重跑 extract_api_catalog.py / gen_api_and_map.py / gen_stage5_docs.py 后 operationId 185 → 184，
+      OpenAPI 184 个 / 163 条路径；check_api_contract.py 通过（v2 原型没有引用被删除的接口）。
+      跨校转学的两个向导页面按 `addTransfer` 实现（`PAGE-STU-CROSS-TRANSFER` 本批交付，
+      `PAGE-PRM-TRANSFER` 用同一组接口的接收 / 报到）。
+    resolved_at: "2026-10-07"
+    status: closed
 
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"

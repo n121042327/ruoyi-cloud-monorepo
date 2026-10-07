@@ -46,8 +46,8 @@ modules:
       REQ-STU-036: {api: [changeEnrollmentStatus], tables: [edu_enrollment_change]}
       REQ-STU-037: {api: [listStudent, changeEnrollmentStatus], tables: [edu_student_enrollment]}
       REQ-STU-038: {api: [changeEnrollmentStatus], tables: [edu_enrollment_change, edu_class_member]}
-      REQ-STU-039: {api: [crossSchoolTransfer], tables: [edu_transfer_order, edu_class_member]}
-      REQ-STU-040: {api: [crossSchoolTransfer], tables: [edu_student]}
+      REQ-STU-039: {api: [addTransfer], tables: [edu_transfer_order, edu_class_member], note: 跨校转学统一走升班模块的 addTransfer（CR-050 / GAP-085 裁决 A）。}
+      REQ-STU-040: {api: [addTransfer], tables: [edu_student], note: 学号跨校保持不变，学生主体不迁移（BR-STU-020）；接口统一为 addTransfer（CR-050）。}
       REQ-STU-041: {api: [listStudentChangeLog], tables: [edu_enrollment_change, edu_audit_log]}
       REQ-STU-042: {api: [transferClass], tables: [edu_class_member]}
       REQ-STU-043: {api: [transferClass], tables: [edu_class_member]}

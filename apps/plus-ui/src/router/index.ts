@@ -109,6 +109,20 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: { title: '学生管理', icon: 'user' }
       }
     ]
+  },
+  {
+    path: '/edu/student/cross-transfer',
+    component: Layout,
+    hidden: true,
+    permissions: ['enrollment.transfer:create'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/student/stu_cross_transfer/index.vue'),
+        name: 'EduStudentCrossTransfer',
+        meta: { title: '跨校转学', icon: 'swap' }
+      }
+    ]
   }
 ];
 

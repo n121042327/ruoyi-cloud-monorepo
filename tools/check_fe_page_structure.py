@@ -71,6 +71,18 @@ OVERLAY_CHECKS = [
         "vue": "apps/plus-ui/src/views/edu/student/stu_list/components/StudentTransferDialog.vue",
         "groups": ["班级关系", "调班说明"],
     },
+    {
+        "page_id": "PAGE-STU-CROSS-TRANSFER",
+        "name": "跨校转学（转出校）向导",
+        "prototype": "prototypes/functional/v1/pages/student-cross-transfer.html",
+        "vue": "apps/plus-ui/src/views/edu/student/stu_cross_transfer/index.vue",
+        "steps": [
+            ("选择学生", ["选择学生"]),
+            ("选择转入校与目标班级", ["选择转入校与目标班级"]),
+            ("确认与提交", ["确认与提交"]),
+            ("结果", ["结果"]),
+        ],
+    },
 ]
 
 FILTER_SECTION_START = 'data-role="filter"'

@@ -47,7 +47,7 @@
 **异步（入队后立即返回任务号）**：导入执行、导出（> 2000 行）、升班预览与执行、教学班生成（> 1 万人）、
 归档区间检索（> 30 秒）、任务重试与死信重放。异步接口统一返回 `task_no`，进度与结果在异步任务中心查询。
 
-## 4. 接口总览（共 185 个 operationId）
+## 4. 接口总览（共 184 个 operationId）
 
 | 模块 | 接口数 |
 |---|---|
@@ -58,11 +58,11 @@
 | 升班与学籍异动（`promotion`） | 21 |
 | 学校与租户（`school`） | 16 |
 | 3+1+2 选科与教学班（`stream`） | 17 |
-| 学生管理（`student`） | 26 |
+| 学生管理（`student`） | 25 |
 | 学科与配置（`subject`） | 12 |
 | 教师管理（`teacher`） | 22 |
 | 学年学期（`term`） | 12 |
-| **合计** | **185** |
+| **合计** | **184** |
 
 ## 5.1 审计与操作日志（`audit`）
 
@@ -225,23 +225,22 @@
 | 7 | `listStudentChangeLog` | GET | `/edu/student/{id}/change-log` | 变更记录 | `person.student` | 查询 | 同步 |
 | 8 | `listEnrollmentStatusOption` | GET | `/edu/student/{id}/status-options` | 当前状态可执行的异动 | `person.student` | 查询 | 同步 |
 | 9 | `changeEnrollmentStatus` | POST | `/edu/student/{id}/enrollment-change` | 学籍异动 | `person.student` | 写入 / 触发 | 同步 |
-| 10 | `crossSchoolTransfer` | POST | `/edu/student/cross-school-transfer` | 跨校转学 | `person.student` | 写入 / 触发 | 同步 |
-| 11 | `importStudentValidate` | POST | `/edu/student/import/validate` | 导入校验 | `person.student` | 写入 / 触发 | 同步 |
-| 12 | `importStudentExecute` | POST | `/edu/student/import/execute` | 导入执行（异步） | `person.student` | 写入 / 触发 | 异步 |
-| 13 | `downloadStudentImportTemplate` | GET | `/edu/student/import/template` | 模板下载 | `person.student` | 查询 | 同步 |
-| 14 | `exportStudent` | POST | `/edu/student/export` | 导出 | `person.student` | 写入 / 触发 | 异步 |
-| 15 | `uploadStudentPhoto` | POST | `/edu/student/{id}/photo` | 上传 / 更换学生照片（`CR-037` 补登记：单张，走统一文件服务） | `person.student` | 写入 / 触发 | 同步 |
-| 16 | `getStudentPhoto` | GET | `/edu/student/{id}/photo` | 查看照片原图（`CR-037` 补登记：需 `read_sensitive`，写敏感数据访问日志） | `person.student` | 查询 | 同步 |
-| 17 | `viewStudentIdCard` | GET | `/edu/student/{id}/id-card` | 查看完整证件号（`CR-037` 补登记：需 `read_sensitive`，写敏感数据访问日志） | `person.student` | 查询 | 同步 |
-| 18 | `resetStudentPassword` | POST | `/edu/student/{id}/reset-password` | 重置密码 | `person.student` | 写入 / 触发 | 同步 |
-| 19 | `listStudentGuardian` | GET | `/edu/student/{id}/guardian` | 监护人列表 | `person.student` | 查询 | 同步 |
-| 20 | `saveStudentGuardian` | POST | `/edu/student/{id}/guardian` | 新增 / 修改监护人 | `person.student` | 写入 / 触发 | 同步 |
-| 21 | `unbindStudentGuardian` | POST | `/edu/student/{id}/guardian/{guardianId}/unbind` | 解绑（需审核） | `person.student` | 写入 / 触发 | 同步 |
-| 22 | `getStudentActivationCode` | GET | `/edu/student/{id}/activation-code` | 查看激活码（`CR-043` 补登记：默认掩码，`reveal=true` 揭示明文并逐条写审计） | `person.student` | 查询 | 同步 |
-| 23 | `printStudentActivationSlip` | POST | `/edu/student/activation-slip/print` | 批量打印密码条（`CR-043` 补登记：每行「姓名 / 学号 / 登录名 / 激活码」） | `person.student` | 写入 / 触发 | 同步 |
-| 24 | `exportStudentActivationCode` | POST | `/edu/student/activation-code/export` | 导出未激活学生加密清单（`CR-043` 补登记：教务主任权限，写审计并记录行数） | `person.student` | 写入 / 触发 | 异步 |
-| 25 | `activateStudentAccount` | POST | `/edu/student/{id}/activate` | 班主任代学生激活并设置密码（`CR-043` 补登记：写审计） | `person.student` | 写入 / 触发 | 同步 |
-| 26 | `viewStudentPhone` | GET | `/edu/student/{id}/phone` | 查看完整联系电话（`CR-046` 补登记：需 `read_contact`，写敏感数据访问日志，与 `viewStudentIdCard` 对称） | `person.student` | 查询 | 同步 |
+| 10 | `importStudentValidate` | POST | `/edu/student/import/validate` | 导入校验 | `person.student` | 写入 / 触发 | 同步 |
+| 11 | `importStudentExecute` | POST | `/edu/student/import/execute` | 导入执行（异步） | `person.student` | 写入 / 触发 | 异步 |
+| 12 | `downloadStudentImportTemplate` | GET | `/edu/student/import/template` | 模板下载 | `person.student` | 查询 | 同步 |
+| 13 | `exportStudent` | POST | `/edu/student/export` | 导出 | `person.student` | 写入 / 触发 | 异步 |
+| 14 | `uploadStudentPhoto` | POST | `/edu/student/{id}/photo` | 上传 / 更换学生照片（`CR-037` 补登记：单张，走统一文件服务） | `person.student` | 写入 / 触发 | 同步 |
+| 15 | `getStudentPhoto` | GET | `/edu/student/{id}/photo` | 查看照片原图（`CR-037` 补登记：需 `read_sensitive`，写敏感数据访问日志） | `person.student` | 查询 | 同步 |
+| 16 | `viewStudentIdCard` | GET | `/edu/student/{id}/id-card` | 查看完整证件号（`CR-037` 补登记：需 `read_sensitive`，写敏感数据访问日志） | `person.student` | 查询 | 同步 |
+| 17 | `resetStudentPassword` | POST | `/edu/student/{id}/reset-password` | 重置密码 | `person.student` | 写入 / 触发 | 同步 |
+| 18 | `listStudentGuardian` | GET | `/edu/student/{id}/guardian` | 监护人列表 | `person.student` | 查询 | 同步 |
+| 19 | `saveStudentGuardian` | POST | `/edu/student/{id}/guardian` | 新增 / 修改监护人 | `person.student` | 写入 / 触发 | 同步 |
+| 20 | `unbindStudentGuardian` | POST | `/edu/student/{id}/guardian/{guardianId}/unbind` | 解绑（需审核） | `person.student` | 写入 / 触发 | 同步 |
+| 21 | `getStudentActivationCode` | GET | `/edu/student/{id}/activation-code` | 查看激活码（`CR-043` 补登记：默认掩码，`reveal=true` 揭示明文并逐条写审计） | `person.student` | 查询 | 同步 |
+| 22 | `printStudentActivationSlip` | POST | `/edu/student/activation-slip/print` | 批量打印密码条（`CR-043` 补登记：每行「姓名 / 学号 / 登录名 / 激活码」） | `person.student` | 写入 / 触发 | 同步 |
+| 23 | `exportStudentActivationCode` | POST | `/edu/student/activation-code/export` | 导出未激活学生加密清单（`CR-043` 补登记：教务主任权限，写审计并记录行数） | `person.student` | 写入 / 触发 | 异步 |
+| 24 | `activateStudentAccount` | POST | `/edu/student/{id}/activate` | 班主任代学生激活并设置密码（`CR-043` 补登记：写审计） | `person.student` | 写入 / 触发 | 同步 |
+| 25 | `viewStudentPhone` | GET | `/edu/student/{id}/phone` | 查看完整联系电话（`CR-046` 补登记：需 `read_contact`，写敏感数据访问日志，与 `viewStudentIdCard` 对称） | `person.student` | 查询 | 同步 |
 
 ## 5.9 学科与配置（`subject`）
 
