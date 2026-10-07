@@ -2196,3 +2196,7 @@
 ## D-135 — 阶段 6 第十六批：操作日志列表页（2026-10-08）
 
 按 CR-060 交付审计模块首屏：查询区 4 项（时间范围 → 操作人 → 操作类型 → 结果）、表格 9 列（时间 / 操作人 / 角色 / 操作类型 / 对象类型 / 对象标识 / 结果 / 来源 IP / 操作），结果列以标签区分成功与失败。新增 `api/edu/audit/**`（`listOperationLog` / `getOperationLog`），筛选维度按审计 PRD 4.4（时间范围 / 操作人 / 对象 / 操作类型 / 批次号 / 关键字）；路由登记 `/edu/audit/log/list`（`audit.log:read`）。日志表只允许追加，页面与接口层都不提供编辑 / 删除入口。结构对照检查器新增 `filter_note`：v1 `audit-log-list.html` 整页没有查询区标记，但审计 PRD 4.4 明确要求这些筛选，处理方式是「只核对生产页查询项 + 写明依据」，而不是悄悄跳过。门禁：结构对照 15 项全通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线，新增 0）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_audit-log-list_verification.log`。阶段 6 累计 11 条生产路由；剩余队列：审计其余 6 页、异步任务 4 页、校区 / 开通初始化 / 学年学期弹窗、班级详情与花名册、编班导入、升班向导、选科与教学班。
+
+## D-136 — 阶段 6 第十七批：操作日志详情抽屉（2026-10-08，循环批次）
+
+循环批次（automation 6）交付审计模块的日志详情抽屉：操作信息（操作人 / 角色快照 / 操作类型 / 执行结果 / 操作时间 / 来源 IP / 请求标识 / 批次号）、对象信息（对象类型 / 对象标识 / 租户·学校 / 用途说明）、变更明细（字段 / 变更前 / 变更后 diff）。`OperationLogVO` 补 `changes` / `purpose`，新增 `AuditChangeVO`；列表页「详情」按钮打开抽屉，先用列表行填充再取 `getOperationLog`，取详情失败时退回列表行数据、不空白。口径：变更明细只列变化字段（`REQ-AUD-003`）、日志不可改删（`REQ-AUD-025` / `030`）、日志不含敏感明文（`REQ-AUD-010`）。门禁：结构对照 15 项通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_audit-log-detail_verification.log`。下一轮：对象变更时间线（`listObjectChangeLog`）。

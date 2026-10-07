@@ -774,3 +774,11 @@
 | `apps/plus-ui/src/views/edu/audit/audit_log_list/index.vue` | 操作日志列表页 | `已实现` |
 | `apps/plus-ui/src/api/edu/audit/**` | 审计接口层（操作日志查询与详情） | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_audit-log-list_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |
+
+## 2026-10-08 阶段 6 第十七批：操作日志详情抽屉
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-061.md` | 日志详情抽屉的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/audit/audit_log_list/components/LogDetailDrawer.vue` | 操作日志详情抽屉（操作信息 / 对象信息 / 变更明细） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_audit-log-detail_verification.log` | 本批门禁证据 | `review` |

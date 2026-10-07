@@ -5,6 +5,14 @@
  * 日志表只允许追加写入，接口层不提供更新与删除方法（审计 PRD 第 8 节接口层要求 4）。
  */
 
+/** 变更明细（edu_audit_change：只记录发生变化的字段） */
+export interface AuditChangeVO {
+  fieldName: string;
+  fieldLabel?: string;
+  beforeValue?: string;
+  afterValue?: string;
+}
+
 /** 操作日志列表行 */
 export interface OperationLogVO {
   logId: string;
@@ -30,6 +38,10 @@ export interface OperationLogVO {
   requestId?: string;
   /** 批次号（批量操作与导入执行用） */
   batchNo?: string;
+  /** 变更明细（仅详情接口返回，diff 形式） */
+  changes?: AuditChangeVO[];
+  /** 用途说明（敏感字段全量查看时必填，REQ-AUD-008） */
+  purpose?: string;
 }
 
 /** 操作日志查询参数 */

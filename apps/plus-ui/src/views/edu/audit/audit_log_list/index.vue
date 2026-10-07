@@ -57,8 +57,8 @@
           </el-table-column>
           <el-table-column label="来源 IP" prop="sourceIp" width="140" data-layout-group="操作信息" />
           <el-table-column fixed="right" label="操作" width="100" data-layout-group="操作">
-            <template #default>
-              <el-button link type="primary" @click="handleDetail">详情</el-button>
+            <template #default="scope">
+              <el-button link type="primary" @click="detailDrawerRef?.open(scope.row)">详情</el-button>
             </template>
           </el-table-column>
 
@@ -75,6 +75,8 @@
           @pagination="getList"
         />
       </el-card>
+
+      <log-detail-drawer ref="detailDrawerRef" />
     </template>
   </div>
 </template>
@@ -84,6 +86,7 @@ import { computed, getCurrentInstance, onMounted, reactive, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { listOperationLog } from '@/api/edu/audit';
 import type { OperationLogQuery, OperationLogVO } from '@/api/edu/audit/types';
+import LogDetailDrawer from './components/LogDetailDrawer.vue';
 import { checkPermi } from '@/utils/permission';
 
 defineOptions({ name: 'EduAuditLogList' });
@@ -141,9 +144,7 @@ const handleExport = () => {
   );
 };
 
-const handleDetail = () => {
-  ElMessage.info('日志详情抽屉在阶段 6 的下一批交付');
-};
+const detailDrawerRef = ref<InstanceType<typeof LogDetailDrawer>>();
 
 onMounted(getList);
 </script>
