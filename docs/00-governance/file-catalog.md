@@ -798,3 +798,11 @@
 | `docs/00-governance/change-requests/CR-063.md` | 运营访问记录的交付与门禁记录 | `review` |
 | `apps/plus-ui/src/views/edu/audit/audit_ops_access/index.vue` | 运营访问记录页 | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_audit-ops-access_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第二十批：敏感数据访问记录
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-064.md` | 敏感数据访问记录的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/audit/audit_sensitive_access/index.vue` | 敏感数据访问记录页 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_audit-sensitive-access_verification.log` | 本批门禁证据 | `review` |

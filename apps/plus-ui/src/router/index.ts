@@ -263,6 +263,20 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: { title: '运营访问记录', icon: 'list' }
       }
     ]
+  },
+  {
+    path: '/edu/audit/sensitive-access',
+    component: Layout,
+    hidden: true,
+    permissions: ['audit.log:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/audit/audit_sensitive_access/index.vue'),
+        name: 'EduAuditSensitiveAccess',
+        meta: { title: '敏感数据访问', icon: 'list' }
+      }
+    ]
   }
 ];
 

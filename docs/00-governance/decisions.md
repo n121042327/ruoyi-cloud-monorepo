@@ -2208,3 +2208,7 @@
 ## D-138 — 阶段 6 第十九批：运营访问记录（2026-10-08，循环批次）
 
 循环批次（automation 6）交付运营访问记录页（`/edu/audit/operator-access`）：表格 7 列（访问时间 / 运营账号 / 对象类型 / 对象标识 / 访问动作 / 用途说明 / 来源 IP）+ 分页 + 导出，页面说明运营访问归属被访问租户、租户可自助查询与导出（`REQ-AUD-013` / `015` / `016`）；接口层补 `listOperatorAccess`。结构对照沿用 v1 适配：原型的「访问时间」列没有 `data-role` 标记，用 `extra_columns` 显式登记（与操作日志页的「时间」列同一情形）。门禁：结构对照 16 项通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_audit-ops-access_verification.log`。阶段 6 累计 13 条生产路由；下轮：敏感数据访问 / 登录与安全事件 / 归档管理。
+
+## D-139 — 阶段 6 第二十批：敏感数据访问记录（2026-10-08，循环批次）
+
+循环批次（automation 6）交付敏感数据访问记录页（`/edu/audit/sensitive-access`）：表格 7 列（访问时间 / 查看人 / 角色 / 对象 / 敏感字段 / 访问方式 / 用途说明）+ 分页，页面说明「掩码展示不记录、只有揭示全量或明文导出才记录、日志不含敏感明文」（`REQ-AUD-008` / `009` / `010`）；接口层补 `listSensitiveAccess`，`OperationLogVO` 补 `fieldName` / `accessType`。结构对照沿用同一套 v1 适配（`extra_columns` 登记未标记的「访问时间」列）。门禁：结构对照 17 项通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_audit-sensitive-access_verification.log`。阶段 6 累计 14 条生产路由；下轮：登录与安全事件、归档管理。

@@ -52,9 +52,23 @@ export const listOperatorAccess = (query?: OperationLogQuery): AxiosPromise<Oper
   });
 };
 
+/**
+ * 敏感数据访问记录（查看人 / 对象 / 字段 / 时间 / 用途说明，REQ-AUD-008 / 012）
+ *
+ * 对应 operationId `listSensitiveAccess`（GET /edu/audit/sensitive-access/list）。
+ */
+export const listSensitiveAccess = (query?: OperationLogQuery): AxiosPromise<OperationLogVO[]> => {
+  return request({
+    url: '/edu/audit/sensitive-access/list',
+    method: 'get',
+    params: query
+  });
+};
+
 export default {
   listOperationLog,
   getOperationLog,
   listObjectChangeLog,
-  listOperatorAccess
+  listOperatorAccess,
+  listSensitiveAccess
 };

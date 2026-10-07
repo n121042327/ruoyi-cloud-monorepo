@@ -42,6 +42,10 @@ export interface OperationLogVO {
   changes?: AuditChangeVO[];
   /** 用途说明（敏感字段全量查看时必填，REQ-AUD-008） */
   purpose?: string;
+  /** 被访问的敏感字段名（敏感数据访问记录用） */
+  fieldName?: string;
+  /** 访问方式：掩码展示 / 揭示全量 / 明文导出（REQ-AUD-009） */
+  accessType?: string;
 }
 
 /** 操作日志查询参数 */
