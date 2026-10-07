@@ -126,3 +126,31 @@ export interface StudentChangeLogVO {
   operatorName?: string;
   changeTime: string;
 }
+
+/** 当前状态可执行的异动选项（GET /edu/student/{id}/status-options） */
+export interface EnrollmentStatusOptionVO {
+  /** 异动动作码，如 suspend / abroad / missing / transfer_out / withdraw */
+  value: string;
+  /** 展示文案，含状态流转，如「休学（在读 → 休学）」 */
+  label: string;
+  /** 是否需要校级管理员审批 */
+  needApproval?: boolean;
+  /** 是否必须指定复学 / 报到后的班级 */
+  needClass?: boolean;
+  /** 当前状态下不可用（如义务教育阶段的开除） */
+  disabled?: boolean;
+  /** 不可用原因 */
+  disabledReason?: string;
+}
+
+/** 学籍异动提交（POST /edu/student/{id}/enrollment-change） */
+export interface EnrollmentChangeForm {
+  /** 异动类型（字段字典 change_type，必填） */
+  changeType: string;
+  /** 生效日期（effective_date，必填） */
+  effectiveDate: string;
+  /** 复学 / 报到后的班级（class_id，条件必填） */
+  classId?: string;
+  /** 原因（reason，必填，至少 5 个字） */
+  reason: string;
+}

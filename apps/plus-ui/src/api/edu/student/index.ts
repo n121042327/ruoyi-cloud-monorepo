@@ -1,6 +1,15 @@
 import request from '@/utils/request';
 import { AxiosPromise } from 'axios';
-import { GuardianForm, GuardianVO, StudentChangeLogVO, StudentForm, StudentQuery, StudentVO } from './types';
+import {
+  EnrollmentChangeForm,
+  EnrollmentStatusOptionVO,
+  GuardianForm,
+  GuardianVO,
+  StudentChangeLogVO,
+  StudentForm,
+  StudentQuery,
+  StudentVO
+} from './types';
 import { parseStrEmpty } from '@/utils/ruoyi';
 
 /**
@@ -156,6 +165,31 @@ export const getStudentPhoto = (studentId: string): AxiosPromise<Blob> => {
   });
 };
 
+/**
+ * 当前状态可执行的异动（选项随状态变化；终态没有出口）
+ *
+ * 对应 operationId `listEnrollmentStatusOption`（GET /edu/student/{id}/status-options）。
+ */
+export const listEnrollmentStatusOption = (studentId: string): AxiosPromise<EnrollmentStatusOptionVO[]> => {
+  return request({
+    url: `/edu/student/${studentId}/status-options`,
+    method: 'get'
+  });
+};
+
+/**
+ * 学籍异动（原状态 → 新状态，写审计）
+ *
+ * 对应 operationId `changeEnrollmentStatus`（POST /edu/student/{id}/enrollment-change）。
+ */
+export const changeEnrollmentStatus = (studentId: string, data: EnrollmentChangeForm) => {
+  return request({
+    url: `/edu/student/${studentId}/enrollment-change`,
+    method: 'post',
+    data
+  });
+};
+
 export default {
   listStudent,
   getStudent,
@@ -168,5 +202,7 @@ export default {
   viewStudentPhone,
   unbindStudentGuardian,
   uploadStudentPhoto,
-  getStudentPhoto
+  getStudentPhoto,
+  listEnrollmentStatusOption,
+  changeEnrollmentStatus
 };

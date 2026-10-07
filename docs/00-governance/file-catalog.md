@@ -663,3 +663,12 @@
 | `docs/00-governance/change-requests/CR-047.md` | 学生照片上传 / 查看原图与监护人编辑 / 解绑的交付与门禁记录 | `review` |
 | `apps/plus-ui/src/views/edu/student/stu_list/components/GuardianTable.vue` | 可复用监护人编辑表格（向导与详情抽屉共用） | `已实现` |
 | `evidence/stage6-frontend/2026-10-07_student-photo-and-guardian_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |
+
+## 2026-10-07 阶段 6 第五批：学籍异动与调班浮层
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-048.md` | 学籍异动与调班弹窗的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/student/stu_list/components/StudentStatusDialog.vue` | 学籍异动弹窗（异动信息 / 复学报到安排 / 异动说明） | `已实现` |
+| `apps/plus-ui/src/views/edu/student/stu_list/components/StudentTransferDialog.vue` | 调班弹窗（班级关系 / 调班说明） | `已实现` |
+| `evidence/stage6-frontend/2026-10-07_student-status-and-transfer_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |

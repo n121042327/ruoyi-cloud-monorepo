@@ -57,6 +57,20 @@ OVERLAY_CHECKS = [
             ("监护人", ["监护人"]),
         ],
     },
+    {
+        "page_id": "PAGE-STU-STATUS",
+        "name": "学籍异动弹窗",
+        "prototype": "prototypes/functional/v2/pages/student-list.html",
+        "vue": "apps/plus-ui/src/views/edu/student/stu_list/components/StudentStatusDialog.vue",
+        "groups": ["异动信息", "复学 / 报到安排", "异动说明"],
+    },
+    {
+        "page_id": "PAGE-STU-TRANSFER",
+        "name": "调班弹窗",
+        "prototype": "prototypes/functional/v2/pages/student-list.html",
+        "vue": "apps/plus-ui/src/views/edu/student/stu_list/components/StudentTransferDialog.vue",
+        "groups": ["班级关系", "调班说明"],
+    },
 ]
 
 FILTER_SECTION_START = 'data-role="filter"'

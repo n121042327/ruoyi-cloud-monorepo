@@ -141,9 +141,11 @@
           </el-table-column>
 
           <!-- 操作列：固定最右，独立分组（page-field-layout 第 4 节） -->
-          <el-table-column fixed="right" label="操作" width="120" data-layout-group="操作">
+          <el-table-column fixed="right" label="操作" width="240" data-layout-group="操作">
             <template #default="scope">
               <el-button v-hasPermi="['person.student:update']" link type="primary" icon="Edit" @click="handleUpdate(scope.row)">编辑</el-button>
+              <el-button v-hasPermi="['enrollment.status:update']" link type="primary" @click="handleStatus(scope.row)"> 学籍异动 </el-button>
+              <el-button v-hasPermi="['org.class:update']" link type="primary" @click="handleTransfer(scope.row)">调班</el-button>
             </template>
           </el-table-column>
 
@@ -162,7 +164,9 @@
       </el-card>
 
       <student-form-dialog ref="formDialogRef" :school-id="queryParams.schoolId" @success="getList" />
-      <student-detail-drawer ref="detailDrawerRef" @edit="handleEditFromDrawer" />
+      <student-detail-drawer ref="detailDrawerRef" @edit="handleEditFromDrawer" @status="handleStatus" @transfer="handleTransfer" />
+      <student-status-dialog ref="statusDialogRef" :school-id="queryParams.schoolId" @success="getList" />
+      <student-transfer-dialog ref="transferDialogRef" :school-id="queryParams.schoolId" @success="getList" />
     </template>
   </div>
 </template>
@@ -171,6 +175,8 @@
 import { computed, getCurrentInstance, ref } from 'vue';
 import StudentDetailDrawer from './components/StudentDetailDrawer.vue';
 import StudentFormDialog from './components/StudentFormDialog.vue';
+import StudentStatusDialog from './components/StudentStatusDialog.vue';
+import StudentTransferDialog from './components/StudentTransferDialog.vue';
 import { useStudentList } from './composables/useStudentList';
 import { ENROLLMENT_STATUS_FILTER_OPTIONS, ENROLLMENT_STATUS_LABEL, GENDER_OPTIONS, STAGE_CODE_LABEL } from '@/enums/edu/StudentEnum';
 import type { StudentForm, StudentVO } from '@/api/edu/student/types';
@@ -204,6 +210,8 @@ const {
 
 const formDialogRef = ref<InstanceType<typeof StudentFormDialog>>();
 const detailDrawerRef = ref<InstanceType<typeof StudentDetailDrawer>>();
+const statusDialogRef = ref<InstanceType<typeof StudentStatusDialog>>();
+const transferDialogRef = ref<InstanceType<typeof StudentTransferDialog>>();
 
 /** 页面级读权限：无权限时不渲染内容（路由侧另有菜单权限兜底） */
 const canRead = computed(() => checkPermi(['person.student:read']));
@@ -220,6 +228,16 @@ const handleDetail = (row: StudentVO) => {
 /** 抽屉内「编辑」：关闭抽屉并打开编辑弹窗 */
 const handleEditFromDrawer = (row: StudentVO) => {
   handleUpdate(row);
+};
+
+/** 学籍异动：状态写入入口只有这一个（PRD 4.4） */
+const handleStatus = (row: StudentVO) => {
+  statusDialogRef.value?.open(row);
+};
+
+/** 调班：复用班级模块的 transferClass（DP-01） */
+const handleTransfer = (row: StudentVO) => {
+  transferDialogRef.value?.open(row);
 };
 
 const handleUpdate = (row: StudentVO) => {

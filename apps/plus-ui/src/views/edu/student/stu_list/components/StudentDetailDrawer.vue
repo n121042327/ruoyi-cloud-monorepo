@@ -136,6 +136,8 @@
 
     <template #footer>
       <el-button v-hasPermi="['person.student:update']" @click="handleEdit">编辑</el-button>
+      <el-button v-hasPermi="['enrollment.status:update']" type="primary" plain @click="handleStatus">学籍异动</el-button>
+      <el-button v-hasPermi="['org.class:update']" @click="handleTransfer">调班</el-button>
       <el-button @click="visible = false">关闭</el-button>
     </template>
 
@@ -167,7 +169,7 @@ import { ENROLLMENT_STATUS_LABEL, STAGE_CODE_LABEL } from '@/enums/edu/StudentEn
 import GuardianTable from './GuardianTable.vue';
 import { checkRole } from '@/utils/permission';
 
-const emit = defineEmits<{ edit: [student: StudentVO] }>();
+const emit = defineEmits<{ edit: [student: StudentVO]; status: [student: StudentVO]; transfer: [student: StudentVO] }>();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
 const visible = ref(false);
@@ -228,6 +230,14 @@ const handleRevealPhone = async () => {
 
 const handleEdit = () => {
   emit('edit', detail.value as StudentVO);
+};
+
+const handleStatus = () => {
+  emit('status', detail.value as StudentVO);
+};
+
+const handleTransfer = () => {
+  emit('transfer', detail.value as StudentVO);
 };
 
 const loadGuardians = async () => {
