@@ -268,6 +268,24 @@ CHECKS = [
         "deferred_groups": {},
         "filter_note": "原型是「首选科目 + 再选科目 + 当前结果」的单页表单，整页没有查询区与表格；生产页按 BR-STREAM-001 / 002 固定集合实现，不比对查询项",
     },
+    {
+        "page_id": "PAGE-STR-LIST",
+        "name": "选科清单",
+        "prototype": "prototypes/functional/v1/pages/stream-list.html",
+        "vue": "apps/plus-ui/src/views/edu/stream/str_list/index.vue",
+        "deferred_groups": {},
+        "extra_columns": {"学号": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留学号列"},
+        "filter_note": "v1 原型整页没有查询区标记，生产页按 PRD 6.1 补学年学期 / 年级 / 首选 / 状态 / 关键词五项",
+    },
+    {
+        "page_id": "PAGE-STR-STAT",
+        "name": "组合分布统计",
+        "prototype": "prototypes/functional/v1/pages/stream-stat.html",
+        "vue": "apps/plus-ui/src/views/edu/stream/str_stat/index.vue",
+        "deferred_groups": {},
+        "extra_columns": {"组合": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留组合列"},
+        "filter_note": "v1 原型整页没有查询区标记，生产页按当前学年学期上下文取数（getStreamStat），不额外增加查询项",
+    },
 ]
 
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）

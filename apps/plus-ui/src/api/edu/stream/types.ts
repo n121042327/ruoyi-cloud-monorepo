@@ -87,3 +87,79 @@ export interface StreamHistoryVO {
   operator?: string;
   reason?: string;
 }
+
+/** 选科清单行（PAGE-STR-LIST） */
+export interface StreamSelectionVO {
+  studentId: string;
+  studentNo?: string;
+  studentName?: string;
+  gradeId?: string;
+  gradeName?: string;
+  className?: string;
+  primarySubjectCode?: string;
+  primarySubjectName?: string;
+  secondarySubjectCodes?: string[];
+  secondarySubjectNames?: string[];
+  /** 组合展示名，如「物理 + 化学 + 生物」 */
+  combination?: string;
+  /** 状态：已生效 / 待审批 / 未选择 */
+  status?: string;
+}
+
+/** 选科清单查询参数 */
+export interface StreamSelectionQuery extends Partial<PageQuery> {
+  termId?: string;
+  gradeId?: string;
+  classId?: string;
+  primarySubjectCode?: string;
+  combination?: string;
+  status?: string;
+  keyword?: string;
+}
+
+/** 组合分布统计行（PAGE-STR-STAT 第一张表） */
+export interface StreamStatCombinationVO {
+  subjectCombination?: string;
+  primarySubjectCode?: string;
+  primarySubjectName?: string;
+  secondarySubjectCodes?: string[];
+  secondarySubjectNames?: string[];
+  memberCount?: number;
+  /** 占比（按已选科人数为分母） */
+  ratio?: string;
+}
+
+/** 学科选择人数行（PAGE-STR-STAT 第二张表） */
+export interface StreamStatSubjectVO {
+  subjectName?: string;
+  /** 选科角色：首选 / 再选 */
+  streamRole?: string;
+  memberCount?: number;
+  ratio?: string;
+  /** 占比分母说明 */
+  ratioBase?: string;
+}
+
+/** 组合分布统计（PAGE-STR-STAT） */
+export interface StreamStatVO {
+  termId?: string;
+  termName?: string;
+  /** 已选科人数 */
+  selectedCount?: number;
+  /** 未选科人数 */
+  unselectedCount?: number;
+  /** 首选分布：物理 / 历史 */
+  primaryDistribution?: Array<{ subjectName?: string; memberCount?: number; ratio?: string }>;
+  /** 组合明细 */
+  combinations?: StreamStatCombinationVO[];
+  /** 学科选择人数 */
+  subjects?: StreamStatSubjectVO[];
+}
+
+/** 选科变更申请（PAGE-STR-CHANGE） */
+export interface StreamChangeForm {
+  studentId: string;
+  primarySubjectCode: string;
+  secondarySubjectCodes: string[];
+  reason: string;
+}

@@ -531,6 +531,34 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/edu/stream/list',
+    component: Layout,
+    hidden: true,
+    permissions: ['stream.selection:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/stream/str_list/index.vue'),
+        name: 'EduStreamList',
+        meta: { title: '选科清单', icon: 'list' }
+      }
+    ]
+  },
+  {
+    path: '/edu/stream/stat',
+    component: Layout,
+    hidden: true,
+    permissions: ['stream.selection:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/stream/str_stat/index.vue'),
+        name: 'EduStreamStat',
+        meta: { title: '组合分布统计', icon: 'chart' }
+      }
+    ]
+  },
+  {
     path: '/edu/school/init',
     component: Layout,
     hidden: true,

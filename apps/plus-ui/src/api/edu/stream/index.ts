@@ -1,6 +1,18 @@
 import request from '@/utils/request';
 import { AxiosPromise } from 'axios';
-import { MyStreamForm, MyStreamVO, StreamConfigForm, StreamConfigVO, StreamHistoryVO, StreamOptionVO, UnselectedStudentVO } from './types';
+import {
+  MyStreamForm,
+  MyStreamVO,
+  StreamChangeForm,
+  StreamConfigForm,
+  StreamConfigVO,
+  StreamHistoryVO,
+  StreamOptionVO,
+  StreamSelectionQuery,
+  StreamSelectionVO,
+  StreamStatVO,
+  UnselectedStudentVO
+} from './types';
 
 /**
  * 查询选科配置（开放期与逾期审批口径）
@@ -105,6 +117,59 @@ export const listStreamHistory = (query?: { studentId?: string; termId?: string 
   });
 };
 
+/**
+ * 查询选科清单（PAGE-STR-LIST）
+ *
+ * 对应 operationId `listStreamSelection`（GET /edu/stream/selection/list）。
+ */
+export const listStreamSelection = (query?: StreamSelectionQuery): AxiosPromise<StreamSelectionVO[]> => {
+  return request({
+    url: '/edu/stream/selection/list',
+    method: 'get',
+    params: query
+  });
+};
+
+/**
+ * 组合分布统计（PAGE-STR-STAT；图表与明细表同源）
+ *
+ * 对应 operationId `getStreamStat`（GET /edu/stream/stat）。
+ */
+export const getStreamStat = (query?: { termId?: string; gradeId?: string }): AxiosPromise<StreamStatVO> => {
+  return request({
+    url: '/edu/stream/stat',
+    method: 'get',
+    params: query
+  });
+};
+
+/**
+ * 导出选科清单（PAGE-STR-LIST，权限 `data.export:export`）
+ *
+ * 对应 operationId `exportStreamSelection`（GET /edu/stream/export）。
+ */
+export const exportStreamSelection = (query?: StreamSelectionQuery) => {
+  return request({
+    url: '/edu/stream/export',
+    method: 'get',
+    params: query,
+    responseType: 'blob'
+  });
+};
+
+/**
+ * 提交选科变更申请（截止后走审批，PAGE-STR-CHANGE，BR-STREAM-005）
+ *
+ * 对应 operationId `addStreamChangeRequest`（POST /edu/stream/change，权限 `stream.change_request:create`）。
+ */
+export const addStreamChangeRequest = (data: StreamChangeForm) => {
+  return request({
+    url: '/edu/stream/change',
+    method: 'post',
+    data
+  });
+};
+
 export default {
   getStreamConfig,
   saveStreamConfig,
@@ -113,5 +178,9 @@ export default {
   submitMyStream,
   updateMyStream,
   listUnselectedStudent,
-  listStreamHistory
+  listStreamHistory,
+  listStreamSelection,
+  getStreamStat,
+  exportStreamSelection,
+  addStreamChangeRequest
 };

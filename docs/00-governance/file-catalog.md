@@ -913,3 +913,15 @@
 | `apps/plus-ui/src/views/edu/stream/str_student/index.vue` | 学生选科（PAGE-STR-STUDENT） | `已实现` |
 | `apps/plus-ui/src/views/edu/stream/str_student/components/StreamHistoryDialog.vue` | 选科历史弹窗 | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_stream-config-and-student_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第三十二批：选科清单 + 组合分布统计
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-076.md` | 选科清单 / 组合分布统计的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/stream/str_list/index.vue` | 选科清单（PAGE-STR-LIST） | `已实现` |
+| `apps/plus-ui/src/views/edu/stream/str_list/components/StreamChangeDialog.vue` | 选科变更申请弹窗（PAGE-STR-CHANGE） | `已实现` |
+| `apps/plus-ui/src/views/edu/stream/str_list/components/StreamHistorySection.vue` | 变更记录时间线（PAGE-STR-HISTORY） | `已实现` |
+| `apps/plus-ui/src/views/edu/stream/str_stat/index.vue` | 组合分布统计（PAGE-STR-STAT） | `已实现` |
+| `apps/plus-ui/src/views/edu/stream/str_stat/components/SubjectStatTable.vue` | 学科选择人数表 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_stream-list-and-stat_verification.log` | 本批门禁证据 | `review` |
