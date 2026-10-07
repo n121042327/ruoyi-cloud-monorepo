@@ -503,6 +503,34 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/edu/stream/config',
+    component: Layout,
+    hidden: true,
+    permissions: ['stream.config:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/stream/str_config/index.vue'),
+        name: 'EduStreamConfig',
+        meta: { title: '选科配置', icon: 'set' }
+      }
+    ]
+  },
+  {
+    path: '/edu/stream/selection',
+    component: Layout,
+    hidden: true,
+    permissions: ['stream.selection:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/stream/str_student/index.vue'),
+        name: 'EduStreamStudent',
+        meta: { title: '学生选科', icon: 'form' }
+      }
+    ]
+  },
+  {
     path: '/edu/school/init',
     component: Layout,
     hidden: true,

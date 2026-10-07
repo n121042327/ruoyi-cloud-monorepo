@@ -252,6 +252,22 @@ CHECKS = [
         "extra_columns": {"教学班名称": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留教学班名称列"},
         "filter_note": "v1 原型的查询区由 3 个裸 select（data-role=\"filter\"）组成，没有 <label> 文本，因此查询项无法由原型提取；生产页按 PRD 6.1 补学年学期 / 年级 / 组合 · 学科 / 状态四项",
     },
+    {
+        "page_id": "PAGE-STR-CONFIG",
+        "name": "选科配置",
+        "prototype": "prototypes/functional/v1/pages/stream-config.html",
+        "vue": "apps/plus-ui/src/views/edu/stream/str_config/index.vue",
+        "deferred_groups": {},
+        "filter_note": "原型是「固定规则卡 + 开放期表单」的单页配置，整页没有查询区与表格；生产页按原型的分组（固定规则 / 开放期与审批）实现，不比对查询项",
+    },
+    {
+        "page_id": "PAGE-STR-STUDENT",
+        "name": "学生选科",
+        "prototype": "prototypes/functional/v1/pages/stream-selection.html",
+        "vue": "apps/plus-ui/src/views/edu/stream/str_student/index.vue",
+        "deferred_groups": {},
+        "filter_note": "原型是「首选科目 + 再选科目 + 当前结果」的单页表单，整页没有查询区与表格；生产页按 BR-STREAM-001 / 002 固定集合实现，不比对查询项",
+    },
 ]
 
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）

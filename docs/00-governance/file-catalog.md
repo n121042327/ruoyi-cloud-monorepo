@@ -900,3 +900,16 @@
 | `apps/plus-ui/src/views/edu/class/cls_teaching/components/TeachingClassDetailDrawer.vue` | 教学班详情抽屉（DRAWER-CLS-TEACHING） | `已实现` |
 | `apps/plus-ui/src/views/edu/class/cls_teaching/components/TeachingClassDisableDialog.vue` | 教学班停用弹窗（DIALOG-TCL-DISABLE） | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_class-import-and-teaching_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第三十一批：选科配置 + 学生选科
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-075.md` | 选科配置 / 学生选科的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/api/edu/stream/index.ts` | 选科接口层（8 个 operationId） | `已实现` |
+| `apps/plus-ui/src/api/edu/stream/types.ts` | 选科接口类型 | `已实现` |
+| `apps/plus-ui/src/views/edu/stream/str_config/index.vue` | 选科配置（PAGE-STR-CONFIG） | `已实现` |
+| `apps/plus-ui/src/views/edu/stream/str_config/components/UnselectedStudentDialog.vue` | 未选科学生催办弹窗 | `已实现` |
+| `apps/plus-ui/src/views/edu/stream/str_student/index.vue` | 学生选科（PAGE-STR-STUDENT） | `已实现` |
+| `apps/plus-ui/src/views/edu/stream/str_student/components/StreamHistoryDialog.vue` | 选科历史弹窗 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_stream-config-and-student_verification.log` | 本批门禁证据 | `review` |
