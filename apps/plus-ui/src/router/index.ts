@@ -179,6 +179,20 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: { title: '年级管理', icon: 'tree' }
       }
     ]
+  },
+  {
+    path: '/edu/teacher/list',
+    component: Layout,
+    hidden: true,
+    permissions: ['person.teacher:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/teacher/tch_list/index.vue'),
+        name: 'EduTeacherList',
+        meta: { title: '教师管理', icon: 'user' }
+      }
+    ]
   }
 ];
 

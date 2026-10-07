@@ -49,6 +49,13 @@ CHECKS = [
         "vue": "apps/plus-ui/src/views/edu/grade/grd_list/index.vue",
         "deferred_groups": {},
     },
+    {
+        "page_id": "PAGE-TCH-LIST",
+        "name": "教师管理列表",
+        "prototype": "prototypes/functional/v2/pages/teacher-list.html",
+        "vue": "apps/plus-ui/src/views/edu/teacher/tch_list/index.vue",
+        "deferred_groups": {},
+    },
 ]
 
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）
