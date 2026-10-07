@@ -2184,3 +2184,7 @@
 ## D-132 — 阶段 6 第十三批：学科与配置列表页（2026-10-08）
 
 按 CR-057 交付学科与配置列表页：查询区 4 项、表格 6 列（学科名称 / 启用学段 / 参与 3+1+2 / 选科角色 / 排序号 / 状态）。结构对照检查器本次扩展了**冻结 v1 原型**的适配——v1 页面没有 `data-layout-group`，这类页面只对照列名与列序（原型有分组时才逐列比分组），避免「用分组缺失掩盖列序错误」。工具栏暂不放新建 / 配置学段 / 启停用（弹窗在下一批），也不放导出——**学科模块第 8 节没有 export 操作**，宁可不放按钮，也不调用不存在的 operationId。门禁：结构对照 12 项全通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线，新增 0）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_subject-list_verification.log`。阶段 6 累计 8 条生产路由；剩余队列：学校、学年学期、审计、异步任务、班级详情与花名册、编班导入、升班向导、选科与教学班。
+
+## D-133 — 阶段 6 第十四批：学年学期列表页（2026-10-08）
+
+按 CR-058 交付学年学期列表页：表格 7 列（学年 / 开始日期 / 结束日期 / 学期数 / 当前学年学期 / 状态 / 操作），行内「设为当前」走 `setCurrentTerm` 并二次确认；学期管理与归档留待下一批。接口层补 `listAcademicYear` / `setCurrentTerm` 与 `AcademicYearVO` / `AcademicYearQuery`；路由登记 `/edu/term/list`（`org.term:read`）。结构对照检查器本批补了三处 v1 适配：列解析限定在主表内（避免把展开行 / 嵌套小表的表头算进来）、操作列在原型无标记时按列名识别、新增 `deferred_labels`（按列名登记本批不做的列，如学科页的操作列）与 `extra_columns`（生产页保留、原型未标记的列，如学年页的「学年」列）。门禁：结构对照 13 项全通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线，新增 0）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_term-list_verification.log`。阶段 6 累计 9 条生产路由；剩余队列：学校、审计、异步任务、班级详情与花名册、编班导入、升班向导、选科与教学班。

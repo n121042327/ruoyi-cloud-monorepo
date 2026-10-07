@@ -62,6 +62,15 @@ CHECKS = [
         "prototype": "prototypes/functional/v1/pages/subject-list.html",
         "vue": "apps/plus-ui/src/views/edu/subject/sub_list/index.vue",
         "deferred_groups": {},
+        "deferred_labels": {"操作": "行内动作（编辑 / 配置学段 / 启停用 / 引用检查）与对应弹窗在下一批交付"},
+    },
+    {
+        "page_id": "PAGE-TERM-LIST",
+        "name": "学年学期列表",
+        "prototype": "prototypes/functional/v1/pages/term-list.html",
+        "vue": "apps/plus-ui/src/views/edu/term/term_list/index.vue",
+        "deferred_groups": {},
+        "extra_columns": {"学年": "v1 原型的「学年」列没有 data-role 标记，生产页保留学年编码列"},
     },
 ]
 
@@ -168,13 +177,21 @@ def parse_prototype_filter(html: str) -> list[str]:
 
 def parse_prototype_columns(html: str) -> list[dict]:
     columns = []
+    # 只解析主表：页面里可能还有展开行 / 嵌套的小表，限定到 data-role="table" 所在的这张表
+    marker = html.find('data-role="table"')
+    if marker >= 0:
+        end = html.find("</table>", marker)
+        if end > 0:
+            html = html[marker:end]
     for m in re.finditer(r"<th([^>]*)>(.*?)</th>", html, re.S):
         attrs, inner = m.group(1), m.group(2)
-        if 'data-role="column"' not in attrs and 'data-layout-group="操作"' not in attrs:
+        label_text = re.sub(r"<[^>]+>", "", inner).strip()
+        # 数据列靠 data-role="column" 识别；操作列在部分原型里没有 data-* 标记，按列名兜住
+        if 'data-role="column"' not in attrs and 'data-layout-group="操作"' not in attrs and label_text != "操作":
             continue
         field = re.search(r'data-field="([^"]+)"', attrs)
         group = re.search(r'data-layout-group="([^"]+)"', attrs)
-        label = re.sub(r"<[^>]+>", "", inner).strip()
+        label = label_text
         columns.append(
             {
                 "field": field.group(1) if field else "",
@@ -233,13 +250,27 @@ def check_columns(check: dict, prototype_html: str, vue: str) -> None:
     expected = parse_prototype_columns(prototype_html)
     deferred = check.get("deferred_groups") or {}
     expected_kept = []
+    deferred_labels = check.get("deferred_labels") or {}
     for col in expected:
         if col["group"] in deferred:
             print("  原型列 %s（分组「%s」）本批不做：%s" % (col["label"], col["group"], deferred[col["group"]]))
             continue
+        if col["label"] in deferred_labels:
+            print("  原型列 %s 本批不做：%s" % (col["label"], deferred_labels[col["label"]]))
+            continue
         expected_kept.append(col)
 
     actual = parse_vue_columns(vue)
+    # 生产页可以保留原型未标记的列（v1 原型部分 th 没有 data-role），登记后不参与逐列比对
+    extra_columns = check.get("extra_columns") or {}
+    if extra_columns:
+        kept_actual = []
+        for col in actual:
+            if col["label"] in extra_columns:
+                print("  生产页保留列 %s：%s" % (col["label"], extra_columns[col["label"]]))
+                continue
+            kept_actual.append(col)
+        actual = kept_actual
     ok = True
     if len(expected_kept) != len(actual):
         problems.append(

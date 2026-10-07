@@ -207,6 +207,20 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: { title: '学科与配置', icon: 'list' }
       }
     ]
+  },
+  {
+    path: '/edu/term/list',
+    component: Layout,
+    hidden: true,
+    permissions: ['org.term:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/term/term_list/index.vue'),
+        name: 'EduTermList',
+        meta: { title: '学年学期', icon: 'date' }
+      }
+    ]
   }
 ];
 
