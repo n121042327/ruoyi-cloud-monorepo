@@ -46,6 +46,14 @@ export interface OperationLogVO {
   fieldName?: string;
   /** 访问方式：掩码展示 / 揭示全量 / 明文导出（REQ-AUD-009） */
   accessType?: string;
+  /** 安全事件：事件类型 / 账号 / 说明 */
+  eventType?: string;
+  account?: string;
+  detail?: string;
+  /** 归档批次：归档范围 / 行数 / 状态 / 归档时间 */
+  archiveRange?: string;
+  rowCount?: number;
+  archiveTime?: string;
 }
 
 /** 操作日志查询参数 */

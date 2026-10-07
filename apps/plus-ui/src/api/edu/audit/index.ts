@@ -65,10 +65,38 @@ export const listSensitiveAccess = (query?: OperationLogQuery): AxiosPromise<Ope
   });
 };
 
+/**
+ * 登录与安全事件（登录失败 / 账号锁定 / 激活码查看与重置 / 学号变更 / 权限变更，REQ-AUD-007）
+ *
+ * 对应 operationId `listSecurityEvent`（GET /edu/audit/security-event/list）。
+ */
+export const listSecurityEvent = (query?: OperationLogQuery): AxiosPromise<OperationLogVO[]> => {
+  return request({
+    url: '/edu/audit/security-event/list',
+    method: 'get',
+    params: query
+  });
+};
+
+/**
+ * 归档批次列表（超过在线保留窗口的日志按时间归档，REQ-AUD-033 / 034）
+ *
+ * 对应 operationId `listArchiveBatch`（GET /edu/audit/archive/list）。
+ */
+export const listArchiveBatch = (query?: OperationLogQuery): AxiosPromise<OperationLogVO[]> => {
+  return request({
+    url: '/edu/audit/archive/list',
+    method: 'get',
+    params: query
+  });
+};
+
 export default {
   listOperationLog,
   getOperationLog,
   listObjectChangeLog,
   listOperatorAccess,
-  listSensitiveAccess
+  listSensitiveAccess,
+  listSecurityEvent,
+  listArchiveBatch
 };

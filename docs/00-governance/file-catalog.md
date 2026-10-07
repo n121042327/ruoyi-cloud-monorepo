@@ -806,3 +806,12 @@
 | `docs/00-governance/change-requests/CR-064.md` | 敏感数据访问记录的交付与门禁记录 | `review` |
 | `apps/plus-ui/src/views/edu/audit/audit_sensitive_access/index.vue` | 敏感数据访问记录页 | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_audit-sensitive-access_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第二十一批：登录与安全事件 + 归档管理
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-065.md` | 两页的交付与门禁记录（审计模块收官） | `review` |
+| `apps/plus-ui/src/views/edu/audit/audit_security_event/index.vue` | 登录与安全事件页 | `已实现` |
+| `apps/plus-ui/src/views/edu/audit/audit_archive/index.vue` | 归档管理页 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_audit-security-event-and-archive_verification.log` | 本批门禁证据 | `review` |

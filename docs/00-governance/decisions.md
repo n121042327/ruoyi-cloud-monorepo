@@ -2212,3 +2212,7 @@
 ## D-139 — 阶段 6 第二十批：敏感数据访问记录（2026-10-08，循环批次）
 
 循环批次（automation 6）交付敏感数据访问记录页（`/edu/audit/sensitive-access`）：表格 7 列（访问时间 / 查看人 / 角色 / 对象 / 敏感字段 / 访问方式 / 用途说明）+ 分页，页面说明「掩码展示不记录、只有揭示全量或明文导出才记录、日志不含敏感明文」（`REQ-AUD-008` / `009` / `010`）；接口层补 `listSensitiveAccess`，`OperationLogVO` 补 `fieldName` / `accessType`。结构对照沿用同一套 v1 适配（`extra_columns` 登记未标记的「访问时间」列）。门禁：结构对照 17 项通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_audit-sensitive-access_verification.log`。阶段 6 累计 14 条生产路由；下轮：登录与安全事件、归档管理。
+
+## D-140 — 阶段 6 第二十一批：登录与安全事件 + 归档管理（2026-10-08，循环批次）
+
+循环批次（automation 6）一次交付审计模块最后两页：**登录与安全事件**（`/edu/audit/security-event`，7 列 + 结果标签）与**归档管理**（`/edu/audit/archive`，6 列）；接口层补 `listSecurityEvent` / `listArchiveBatch`，`OperationLogVO` 补 `eventType` / `account` / `detail` / `archiveRange` / `rowCount` / `archiveTime`。口径：安全事件覆盖登录失败与账号锁定等（`REQ-AUD-007`、`REQ-STU-091`）；保留不少于 3 年、超期归档、归档后可检索且归档动作写日志（`REQ-AUD-032` / `033` / `034`）。归档页原型的「操作」列（归档区间检索 `searchArchivedLog`）用 `deferred_labels` 显式登记为延后项，不悄悄删列。门禁：结构对照 19 项通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_audit-security-event-and-archive_verification.log`。**审计模块 7 页全部交付**；阶段 6 累计 16 条生产路由。下轮起进入异步任务 4 页。

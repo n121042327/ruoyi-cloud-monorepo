@@ -105,6 +105,23 @@ CHECKS = [
         "deferred_groups": {},
         "extra_columns": {"访问时间": "v1 原型的访问时间列没有 data-role 标记，生产页保留访问时间列"},
     },
+    {
+        "page_id": "PAGE-AUDIT-SECURITY-EVENT",
+        "name": "登录与安全事件",
+        "prototype": "prototypes/functional/v1/pages/audit-security-event.html",
+        "vue": "apps/plus-ui/src/views/edu/audit/audit_security_event/index.vue",
+        "deferred_groups": {},
+        "extra_columns": {"时间": "v1 原型的时间列没有 data-role 标记，生产页保留时间列"},
+    },
+    {
+        "page_id": "PAGE-AUDIT-ARCHIVE",
+        "name": "归档管理",
+        "prototype": "prototypes/functional/v1/pages/audit-archive.html",
+        "vue": "apps/plus-ui/src/views/edu/audit/audit_archive/index.vue",
+        "deferred_groups": {},
+        "deferred_labels": {"操作": "归档区间检索（searchArchivedLog）在后续轮次交付"},
+        "extra_columns": {"归档批次": "v1 原型的归档批次列没有 data-role 标记，生产页保留归档批次列"},
+    },
 ]
 
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）
