@@ -4,7 +4,7 @@
 |---|---|
 | 模块 | 学生管理（`student`） |
 | 文档路径 | `docs/10-prd/modules/student/PRD.md` |
-| 版本 | 1.0.7 |
+| 版本 | 1.0.8 |
 | 状态 | `frozen`（2026-09-30 冻结，见 D-045、CR-001；CR-002、CR-003 后仍为 `frozen`） |
 | 批次 | 1-1（首轮样板，验收通过后作为其余模块的写作基准） |
 | 上游依赖 | 见 1.4 |
@@ -21,6 +21,7 @@
 | 1.0.5 | 2026-09-30 | 见 `CR-008`：6.1 的「新增学生」「编辑学生」载体由抽屉改为**弹窗**（与 `apps/plus-ui` 的 `el-dialog` 习惯一致）；「学生详情」保持抽屉。页面与交互内容未变 | Codex |
 | 1.0.6 | 2026-10-02 | 见 `CR-029`：调班与班级模块对齐（`A-077` 裁决）——7.3 调班审计补「生效日期」；第 8 节删除 `transferStudentClass`，调班统一复用班级模块的 `transferClass`（`DP-01`：学生班级归属的唯一写入入口是班级管理）；6.1 的 `PAGE-STU-TRANSFER` 字段与 6.1 原文一致，不新增字段定义 | Codex |
 | 1.0.7 | 2026-10-02 | 见 `CR-043`（`GAP-082` 裁决 A）：第 8 节补 4 个激活码相关接口——`getStudentActivationCode`（默认掩码，揭示写审计）、`printStudentActivationSlip`（批量密码条）、`exportStudentActivationCode`（加密清单，写审计并记行数）、`activateStudentAccount`（班主任代激活）；对应 `REQ-STU-087` / `088` / `089` / `092` | Codex |
+| 1.0.8 | 2026-10-07 | 见 `CR-046`（`GAP-084` 裁决 A）：第 8 节补 `viewStudentPhone`（查看完整联系电话，权限 `person.student_contact` 的 `read_contact`，写敏感数据访问日志）；与 `viewStudentIdCard` 对称，对应 `REQ-STU-013` | Codex |
 
 ## 0. 怎么读这份文档
 
@@ -708,6 +709,7 @@ stateDiagram-v2
 | `printStudentActivationSlip` | POST | `/edu/student/activation-slip/print` | 批量打印密码条（`CR-043` 补登记：每行「姓名 / 学号 / 登录名 / 激活码」） |
 | `exportStudentActivationCode` | POST | `/edu/student/activation-code/export` | 导出未激活学生加密清单（`CR-043` 补登记：教务主任权限，写审计并记录行数） |
 | `activateStudentAccount` | POST | `/edu/student/{id}/activate` | 班主任代学生激活并设置密码（`CR-043` 补登记：写审计） |
+| `viewStudentPhone` | GET | `/edu/student/{id}/phone` | 查看完整联系电话（`CR-046` 补登记：需 `read_contact`，写敏感数据访问日志，与 `viewStudentIdCard` 对称） |
 
 > 调班（`PAGE-STU-TRANSFER`）复用班级模块的 `transferClass`（`POST /edu/class/roster/transfer`，权限 `org.class:update`），
 > 本模块不再单列 operationId（`CR-029`；`DP-01`：学生班级归属的唯一写入入口是班级管理）。

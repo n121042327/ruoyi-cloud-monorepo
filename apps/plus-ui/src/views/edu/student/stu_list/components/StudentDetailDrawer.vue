@@ -57,9 +57,18 @@
         <h4 class="form-section-title" data-layout-group="联系方式">联系方式</h4>
         <el-descriptions :column="1" border>
           <el-descriptions-item label="联系电话">
-            <span class="mono">{{ detail.studentPhone || '—' }}</span>
-            <!-- 联系电话明文查看的接口契约未在阶段 4 登记（原型 data-api="-"），见 GAP-084；本批保持掩码。 -->
-            <el-tag size="small" type="warning" class="ml-2">明文查看待契约（GAP-084）</el-tag>
+            <span class="mono">{{ phoneFull || detail.studentPhone || '—' }}</span>
+            <el-button
+              v-hasPermi="['person.student_contact:read_contact']"
+              link
+              type="primary"
+              class="ml-2"
+              :disabled="!detail.studentId"
+              @click="handleRevealPhone"
+            >
+              查看完整
+            </el-button>
+            <div class="hint">默认掩码；查看全量需要 read_contact 且写敏感数据访问日志。</div>
           </el-descriptions-item>
           <el-descriptions-item label="联系地址">{{ detail.address || '—' }}</el-descriptions-item>
         </el-descriptions>
@@ -118,7 +127,7 @@
 <script setup lang="ts">
 import { computed, getCurrentInstance, ref } from 'vue';
 import { ElMessage } from 'element-plus';
-import { getStudent, listStudentChangeLog, listStudentGuardian, viewStudentIdCard } from '@/api/edu/student';
+import { getStudent, listStudentChangeLog, listStudentGuardian, viewStudentIdCard, viewStudentPhone } from '@/api/edu/student';
 import type { GuardianVO, StudentChangeLogVO, StudentVO } from '@/api/edu/student/types';
 import { ENROLLMENT_STATUS_LABEL, STAGE_CODE_LABEL } from '@/enums/edu/StudentEnum';
 
@@ -132,6 +141,8 @@ const guardians = ref<GuardianVO[]>([]);
 const changeLogs = ref<StudentChangeLogVO[]>([]);
 /** 一次会话内揭示的证件号全量值；不落库、不缓存 */
 const idCardFull = ref('');
+/** 一次会话内揭示的联系电话全量值；不落库、不缓存 */
+const phoneFull = ref('');
 
 const enrollmentStatusLabel = computed(() => ENROLLMENT_STATUS_LABEL[detail.value.enrollmentStatus ?? ''] ?? '—');
 
@@ -139,6 +150,7 @@ const open = async (studentId: string) => {
   visible.value = true;
   loading.value = true;
   idCardFull.value = '';
+  phoneFull.value = '';
   try {
     const [student, guardianList, logs] = await Promise.all([getStudent(studentId), listStudentGuardian(studentId), listStudentChangeLog(studentId)]);
     detail.value = student.data ?? {};
@@ -161,6 +173,16 @@ const handleRevealIdCard = async () => {
   const res = await viewStudentIdCard(studentId);
   idCardFull.value = res.data?.idCardNo ?? '';
   ElMessage.success('已展示完整证件号，本次查看已写入敏感数据访问日志');
+};
+
+const handleRevealPhone = async () => {
+  const studentId = detail.value.studentId;
+  if (!studentId) {
+    return;
+  }
+  const res = await viewStudentPhone(studentId);
+  phoneFull.value = res.data?.studentPhone ?? '';
+  ElMessage.success('已展示完整联系电话，本次查看已写入敏感数据访问日志');
 };
 
 const handleEdit = () => {

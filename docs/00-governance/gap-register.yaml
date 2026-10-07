@@ -2576,7 +2576,16 @@ gaps:
       - stage6
       - stage8
     owner: 用户
-    status: open
+    answer: 用户于 2026-10-07 批注「同意」，采纳推荐 A：补 `viewStudentPhone`。
+    resolution: |
+      按 CR-046 落地：学生 PRD 升 1.0.8，第 8 节补 `viewStudentPhone`
+      （GET /edu/student/{id}/phone，权限 `person.student_contact` 的 `read_contact`，写敏感数据访问日志），
+      与 `viewStudentIdCard` 对称；requirement-links 的 REQ-STU-013 挂上该接口。
+      重跑 extract_api_catalog.py / gen_api_and_map.py / gen_stage5_docs.py 后 operationId 184 → 185，
+      OpenAPI 185 个 / 164 条路径；前端详情抽屉的「联系电话 · 查看完整」按 read_contact 显示并接上接口，
+      移除界面上的 GAP-084 标注。
+    resolved_at: "2026-10-07"
+    status: closed
 
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"

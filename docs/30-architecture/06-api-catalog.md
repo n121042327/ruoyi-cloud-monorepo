@@ -47,7 +47,7 @@
 **异步（入队后立即返回任务号）**：导入执行、导出（> 2000 行）、升班预览与执行、教学班生成（> 1 万人）、
 归档区间检索（> 30 秒）、任务重试与死信重放。异步接口统一返回 `task_no`，进度与结果在异步任务中心查询。
 
-## 4. 接口总览（共 184 个 operationId）
+## 4. 接口总览（共 185 个 operationId）
 
 | 模块 | 接口数 |
 |---|---|
@@ -58,11 +58,11 @@
 | 升班与学籍异动（`promotion`） | 21 |
 | 学校与租户（`school`） | 16 |
 | 3+1+2 选科与教学班（`stream`） | 17 |
-| 学生管理（`student`） | 25 |
+| 学生管理（`student`） | 26 |
 | 学科与配置（`subject`） | 12 |
 | 教师管理（`teacher`） | 22 |
 | 学年学期（`term`） | 12 |
-| **合计** | **184** |
+| **合计** | **185** |
 
 ## 5.1 审计与操作日志（`audit`）
 
@@ -241,6 +241,7 @@
 | 23 | `printStudentActivationSlip` | POST | `/edu/student/activation-slip/print` | 批量打印密码条（`CR-043` 补登记：每行「姓名 / 学号 / 登录名 / 激活码」） | `person.student` | 写入 / 触发 | 同步 |
 | 24 | `exportStudentActivationCode` | POST | `/edu/student/activation-code/export` | 导出未激活学生加密清单（`CR-043` 补登记：教务主任权限，写审计并记录行数） | `person.student` | 写入 / 触发 | 异步 |
 | 25 | `activateStudentAccount` | POST | `/edu/student/{id}/activate` | 班主任代学生激活并设置密码（`CR-043` 补登记：写审计） | `person.student` | 写入 / 触发 | 同步 |
+| 26 | `viewStudentPhone` | GET | `/edu/student/{id}/phone` | 查看完整联系电话（`CR-046` 补登记：需 `read_contact`，写敏感数据访问日志，与 `viewStudentIdCard` 对称） | `person.student` | 查询 | 同步 |
 
 ## 5.9 学科与配置（`subject`）
 

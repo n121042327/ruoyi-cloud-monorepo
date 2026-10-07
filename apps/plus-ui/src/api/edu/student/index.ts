@@ -103,6 +103,18 @@ export const viewStudentIdCard = (studentId: string): AxiosPromise<{ idCardNo: s
   });
 };
 
+/**
+ * 查看完整联系电话（需 `person.student_contact` 的 `read_contact`，写敏感数据访问日志）
+ *
+ * 对应 operationId `viewStudentPhone`（GET /edu/student/{id}/phone，CR-046 补登记）。
+ */
+export const viewStudentPhone = (studentId: string): AxiosPromise<{ studentPhone: string }> => {
+  return request({
+    url: `/edu/student/${studentId}/phone`,
+    method: 'get'
+  });
+};
+
 export default {
   listStudent,
   getStudent,
@@ -111,5 +123,6 @@ export default {
   listStudentGuardian,
   saveStudentGuardian,
   listStudentChangeLog,
-  viewStudentIdCard
+  viewStudentIdCard,
+  viewStudentPhone
 };
