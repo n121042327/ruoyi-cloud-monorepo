@@ -328,6 +328,22 @@ CHECKS = [
         "deferred_groups": {},
         "extra_columns": {"行号": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留行号列"},
     },
+    {
+        "page_id": "PAGE-403",
+        "name": "无权限（403）",
+        "prototype": "prototypes/functional/v1/pages/403.html",
+        "vue": "apps/plus-ui/src/views/error/403.vue",
+        "deferred_groups": {},
+        "filter_note": "原型是静态异常页（只有错误码 / 标题 / 说明 / 两个动作），整页没有查询区与表格；生产页按框架静态路由组件实现，组件路径按 GAP-087 裁决落在 views/error/403.vue",
+    },
+    {
+        "page_id": "PAGE-500",
+        "name": "服务异常（500）",
+        "prototype": "prototypes/functional/v1/pages/500.html",
+        "vue": "apps/plus-ui/src/views/error/500.vue",
+        "deferred_groups": {},
+        "filter_note": "原型是静态异常页（错误码 / 标题 / 说明 / 三个动作 / 请求编号与错误码元信息），整页没有查询区与表格；生产页按框架静态路由组件实现，组件路径按 GAP-087 裁决落在 views/error/500.vue",
+    },
 ]
 
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）

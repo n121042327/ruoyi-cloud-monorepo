@@ -2695,10 +2695,14 @@ gaps:
     owner: 用户
     answer: 用户 2026-10-07 起多次授权「需要拍板的按推荐走」，采纳推荐选项 1。
     resolution: |
-      待落地（本轮先登记）：新建 apps/plus-ui/src/views/error/403.vue 与 500.vue（对齐 prototypes/functional/v1/pages/403.html、500.html），
-      登记 `/403`、`/500` 路由；登录与 404 保持框架既有组件不动；页面树 view_component 路径在阶段 6 收尾时按实际组件修正。
+      已按 CR-080 落地：新建 apps/plus-ui/src/views/error/403.vue 与 500.vue（对齐 prototypes/functional/v1/pages/403.html、500.html），
+      在 router/index.ts 的静态路由区登记 `/403`、`/500`（与既有 `/401`、`/404` 同区）；登录与 404 保持框架既有组件
+      （src/views/login.vue、src/views/error/404.vue）不动。
+      页面树 view_component 的 `views/edu/common/*` 不再就地修改：frontend-page-tree.yaml 是由 tools/gen_api_and_map.py
+      按 conventions.views_root 推导生成的投影（文件头 `generated_by`），且该文件自身的 conventions 已写明「仅登录页与异常页是静态路由」，
+      两者不冲突；建议的阶段 5 产物下一版修订是给生成器加一条例外（静态路由不套 views_root），本轮以 CR-080 留痕，不改冻结/生成产物。
     resolved_at: "2026-10-08"
-    status: answered
+    status: closed
 
   - id: GAP-088
     title: PAGE-CLS-MERGE（班级合并）在页面树里没有原型且被标为 deferred

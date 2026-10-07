@@ -1,0 +1,51 @@
+# 阶段 6 路由覆盖核对（tools/check_stage6_route_coverage.py，2026-10-08）
+# 静态路由例外 4 条按 GAP-087 裁决核对：login / 403 / 404 / 500
+
+  PAGE-STU-LIST          /edu/student/list            → apps/plus-ui/src/views/edu/student/stu_list/index.vue
+  PAGE-STU-CROSS-TRANSFER /edu/student/cross-transfer  → apps/plus-ui/src/views/edu/student/stu_cross_transfer/index.vue
+  PAGE-STU-IMPORT        /edu/student/import          → apps/plus-ui/src/views/edu/student/stu_import/index.vue
+  PAGE-TCH-LIST          /edu/teacher/list            → apps/plus-ui/src/views/edu/teacher/tch_list/index.vue
+  PAGE-TCH-ASSIGN        /edu/teacher/assignment      → apps/plus-ui/src/views/edu/teacher/tch_assign/index.vue
+  PAGE-TCH-IMPORT        /edu/teacher/import          → apps/plus-ui/src/views/edu/teacher/tch_import/index.vue
+  PAGE-GRD-LIST          /edu/grade/list              → apps/plus-ui/src/views/edu/grade/grd_list/index.vue
+  PAGE-CLS-LIST          /edu/class/list              → apps/plus-ui/src/views/edu/class/cls_list/index.vue
+  PAGE-CLS-ROSTER-ADD    /edu/class/roster/add        → apps/plus-ui/src/views/edu/class/cls_roster_add/index.vue
+  PAGE-CLS-MOVE          /edu/class/move-students     → apps/plus-ui/src/views/edu/class/cls_move/index.vue
+  PAGE-CLS-ROSTER-IMPORT /edu/class/import-roster     → apps/plus-ui/src/views/edu/class/cls_roster_import/index.vue
+  PAGE-CLS-TEACHING      /edu/class/teaching          → apps/plus-ui/src/views/edu/class/cls_teaching/index.vue
+  PAGE-CLS-MERGE         /edu/class/merge             → apps/plus-ui/src/views/edu/class/cls_merge/index.vue
+  PAGE-PRM-LIST          /edu/promotion/list          → apps/plus-ui/src/views/edu/promotion/prm_list/index.vue
+  PAGE-PRM-CREATE        /edu/promotion/create        → apps/plus-ui/src/views/edu/promotion/prm_create/index.vue
+  PAGE-PRM-PREVIEW       /edu/promotion/preview       → apps/plus-ui/src/views/edu/promotion/prm_preview/index.vue
+  PAGE-PRM-VALIDATE      /edu/promotion/validate      → apps/plus-ui/src/views/edu/promotion/prm_validate/index.vue
+  PAGE-PRM-EXECUTE       /edu/promotion/execute       → apps/plus-ui/src/views/edu/promotion/prm_execute/index.vue
+  PAGE-PRM-RESULT        /edu/promotion/result        → apps/plus-ui/src/views/edu/promotion/prm_result/index.vue
+  PAGE-PRM-TRANSFER      /edu/promotion/transfer      → apps/plus-ui/src/views/edu/promotion/prm_transfer/index.vue
+  PAGE-PRM-HISTORY       /edu/promotion/history       → apps/plus-ui/src/views/edu/promotion/prm_history/index.vue
+  PAGE-SCH-LIST          /edu/school/list             → apps/plus-ui/src/views/edu/school/sch_list/index.vue
+  PAGE-SCH-CAMPUS        /edu/school/campus           → apps/plus-ui/src/views/edu/school/sch_campus/index.vue
+  PAGE-SCH-INIT          /edu/school/init             → apps/plus-ui/src/views/edu/school/sch_init/index.vue
+  PAGE-TERM-LIST         /edu/term/list               → apps/plus-ui/src/views/edu/term/term_list/index.vue
+  PAGE-TERM-TERMS        /edu/term/terms              → apps/plus-ui/src/views/edu/term/term_terms/index.vue
+  PAGE-SUB-LIST          /edu/subject/list            → apps/plus-ui/src/views/edu/subject/sub_list/index.vue
+  PAGE-STR-CONFIG        /edu/stream/config           → apps/plus-ui/src/views/edu/stream/str_config/index.vue
+  PAGE-STR-STUDENT       /edu/stream/selection        → apps/plus-ui/src/views/edu/stream/str_student/index.vue
+  PAGE-STR-LIST          /edu/stream/list             → apps/plus-ui/src/views/edu/stream/str_list/index.vue
+  PAGE-STR-STAT          /edu/stream/stat             → apps/plus-ui/src/views/edu/stream/str_stat/index.vue
+  PAGE-STR-APPROVE       /edu/stream/approve          → apps/plus-ui/src/views/edu/stream/str_approve/index.vue
+  PAGE-STR-GEN-CLASS     /edu/stream/generate-class   → apps/plus-ui/src/views/edu/stream/str_gen_class/index.vue
+  PAGE-IMP-WIZARD        /edu/import/wizard           → apps/plus-ui/src/views/edu/import-export/imp_wizard/index.vue
+  PAGE-IMP-TASK-LIST     /edu/async-task/list         → apps/plus-ui/src/views/edu/import-export/imp_task_list/index.vue
+  PAGE-IMP-DEADLETTER    /edu/async-task/dead-letter  → apps/plus-ui/src/views/edu/import-export/imp_deadletter/index.vue
+  PAGE-AUDIT-LOG-LIST    /edu/audit/log/list          → apps/plus-ui/src/views/edu/audit/audit_log_list/index.vue
+  PAGE-AUDIT-OPS-ACCESS  /edu/audit/operator-access   → apps/plus-ui/src/views/edu/audit/audit_ops_access/index.vue
+  PAGE-AUDIT-SENSITIVE-ACCESS /edu/audit/sensitive-access  → apps/plus-ui/src/views/edu/audit/audit_sensitive_access/index.vue
+  PAGE-AUDIT-SECURITY-EVENT /edu/audit/security-event    → apps/plus-ui/src/views/edu/audit/audit_security_event/index.vue
+  PAGE-AUDIT-ARCHIVE     /edu/audit/archive           → apps/plus-ui/src/views/edu/audit/audit_archive/index.vue
+  PAGE-LOGIN             /login                       → apps/plus-ui/src/views/login.vue
+  PAGE-403               /403                         → apps/plus-ui/src/views/error/403.vue
+  PAGE-404               /404                         → apps/plus-ui/src/views/error/404.vue
+  PAGE-500               /500                         → apps/plus-ui/src/views/error/500.vue
+
+路由总数：45；静态路由例外：4；缺失项：0
+通过：45 条路由在生产前端都有对应 view

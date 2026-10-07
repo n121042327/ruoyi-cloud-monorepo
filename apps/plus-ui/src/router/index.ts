@@ -63,6 +63,16 @@ export const constantRoutes: RouteRecordRaw[] = [
     hidden: true
   },
   {
+    path: '/403',
+    component: () => import('@/views/error/403.vue'),
+    hidden: true
+  },
+  {
+    path: '/500',
+    component: () => import('@/views/error/500.vue'),
+    hidden: true
+  },
+  {
     path: '',
     component: Layout,
     redirect: '/index',

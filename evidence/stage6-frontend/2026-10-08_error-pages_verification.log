@@ -1,0 +1,12 @@
+# 阶段 6 证据：403 / 500 异常页（CR-080，2026-10-08）
+
+check_fe_page_structure=0（新增 PAGE-403 / PAGE-500 两条对照，两页都无查询区无表格）
+check_api_contract=0  check_docs=0  check_gap_register=0（89 条，无 open）  check_mermaid=0
+typecheck exit=1 error TS=51（基线 51）
+lint exit=1 ✖ 124 problems (124 errors, 0 warnings)
+build exit=0 成功
+
+补记：首轮 lint = 125，统一 CRLF 后 `eslint --fix` 回到 124；typecheck 首轮即 51。
+GAP-087 已关闭：403 / 500 新建静态组件，登录与 404 复用框架既有组件，页面树的
+views/edu/common/* 是生成器按 views_root 推导的投影（该文件 conventions 已声明静态路由），不就地修改。
+

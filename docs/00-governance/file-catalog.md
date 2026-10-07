@@ -957,3 +957,12 @@
 | `apps/plus-ui/src/views/edu/import-export/imp_wizard/index.vue` | 通用导入向导（PAGE-IMP-WIZARD） | `已实现` |
 | `apps/plus-ui/src/views/edu/class/cls_merge/index.vue` | 班级合并（PAGE-CLS-MERGE，无原型，按 GAP-088 实现） | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_import-wizard-and-class-merge_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第三十六批（收尾）：403 / 500 异常页
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-080.md` | 403 / 500 的交付、GAP-087 关闭与门禁记录 | `review` |
+| `apps/plus-ui/src/views/error/403.vue` | 无权限页（PAGE-403，静态路由 `/403`） | `已实现` |
+| `apps/plus-ui/src/views/error/500.vue` | 服务异常页（PAGE-500，静态路由 `/500`） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_error-pages_verification.log` | 本批门禁证据 | `review` |
