@@ -889,3 +889,14 @@
 | `apps/plus-ui/src/views/edu/class/cls_roster_add/index.vue` | 添加学生（PAGE-CLS-ROSTER-ADD） | `已实现` |
 | `apps/plus-ui/src/views/edu/class/cls_move/index.vue` | 批量迁学生（PAGE-CLS-MOVE） | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_class-roster-add-and-move_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第三十批：编班表导入 + 教学班管理
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-074.md` | 编班表导入 / 教学班管理的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/class/cls_roster_import/index.vue` | 编班表导入四步向导（PAGE-CLS-ROSTER-IMPORT） | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_teaching/index.vue` | 教学班管理（PAGE-CLS-TEACHING） | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_teaching/components/TeachingClassDetailDrawer.vue` | 教学班详情抽屉（DRAWER-CLS-TEACHING） | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_teaching/components/TeachingClassDisableDialog.vue` | 教学班停用弹窗（DIALOG-TCL-DISABLE） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_class-import-and-teaching_verification.log` | 本批门禁证据 | `review` |

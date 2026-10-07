@@ -235,6 +235,23 @@ CHECKS = [
         "vue": "apps/plus-ui/src/views/edu/class/cls_move/index.vue",
         "deferred_groups": {},
     },
+    {
+        "page_id": "PAGE-CLS-ROSTER-IMPORT",
+        "name": "编班表导入向导",
+        "prototype": "prototypes/functional/v1/pages/class-import-roster.html",
+        "vue": "apps/plus-ui/src/views/edu/class/cls_roster_import/index.vue",
+        "deferred_groups": {},
+        "extra_columns": {"行号": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留行号列"},
+    },
+    {
+        "page_id": "PAGE-CLS-TEACHING",
+        "name": "教学班管理",
+        "prototype": "prototypes/functional/v1/pages/teaching-class-list.html",
+        "vue": "apps/plus-ui/src/views/edu/class/cls_teaching/index.vue",
+        "deferred_groups": {},
+        "extra_columns": {"教学班名称": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留教学班名称列"},
+        "filter_note": "v1 原型的查询区由 3 个裸 select（data-role=\"filter\"）组成，没有 <label> 文本，因此查询项无法由原型提取；生产页按 PRD 6.1 补学年学期 / 年级 / 组合 · 学科 / 状态四项",
+    },
 ]
 
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）

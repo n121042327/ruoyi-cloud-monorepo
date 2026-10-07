@@ -475,6 +475,34 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/edu/class/import-roster',
+    component: Layout,
+    hidden: true,
+    permissions: ['data.import:import'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/class/cls_roster_import/index.vue'),
+        name: 'EduClassRosterImport',
+        meta: { title: '编班表导入', icon: 'upload' }
+      }
+    ]
+  },
+  {
+    path: '/edu/class/teaching',
+    component: Layout,
+    hidden: true,
+    permissions: ['org.teaching_class:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/class/cls_teaching/index.vue'),
+        name: 'EduClassTeaching',
+        meta: { title: '教学班管理', icon: 'list' }
+      }
+    ]
+  },
+  {
     path: '/edu/school/init',
     component: Layout,
     hidden: true,

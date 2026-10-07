@@ -1,0 +1,16 @@
+# 阶段 6 证据：编班表导入 + 教学班管理（CR-074，2026-10-08）
+
+check_fe_page_structure=0（新增 PAGE-CLS-ROSTER-IMPORT 3 列 / PAGE-CLS-TEACHING 8 列两条对照）
+check_api_contract=0  check_docs=0  check_gap_register=0  check_mermaid=0
+typecheck exit=1 error TS=51（基线 51）
+lint exit=1 ✖ 124 problems (124 errors, 0 warnings)
+build exit=0 成功
+
+补记：
+1) 首轮 typecheck = 52（+1）：`el-statistic` 的 `:value` 只接受 number | Dayjs，把「任务编号」从
+   `el-statistic` 改成纯文本展示后回到 51。
+2) 首轮 lint = 132，统一 CRLF 后 `eslint --fix` 回到 124。
+3) 两条结构对照的既有特性再次出现：原型表头首列（行号 / 教学班名称）被 `<thead>` 吸收，
+   按 `extra_columns` 显式登记；教学班原型的查询区是 3 个裸 select、没有 `<label>`，
+   因此查询项无法由原型提取，按 `filter_note` 写明「生产页按 PRD 6.1 补四项」。
+

@@ -1,6 +1,66 @@
 import request from '@/utils/request';
 import { AxiosPromise } from 'axios';
-import { ClassForm, ClassQuery, ClassRosterAddForm, ClassRosterQuery, ClassRosterVO, ClassTransferForm, ClassVO } from './types';
+import {
+  ClassForm,
+  ClassQuery,
+  ClassRosterAddForm,
+  ClassRosterQuery,
+  ClassRosterVO,
+  ClassTransferForm,
+  ClassVO,
+  TeachingClassQuery,
+  TeachingClassVO
+} from './types';
+
+/**
+ * 查询教学班列表（行政班与教学班是两套独立关系）
+ *
+ * 对应 operationId `listTeachingClass`（GET /edu/teaching-class/list）。
+ */
+export const listTeachingClass = (query?: TeachingClassQuery): AxiosPromise<TeachingClassVO[]> => {
+  return request({
+    url: '/edu/teaching-class/list',
+    method: 'get',
+    params: query
+  });
+};
+
+/**
+ * 查询教学班详情（详情抽屉用）
+ *
+ * 对应 operationId `getTeachingClass`（GET /edu/teaching-class/{id}）。
+ */
+export const getTeachingClass = (classId: string): AxiosPromise<TeachingClassVO> => {
+  return request({
+    url: `/edu/teaching-class/${classId}`,
+    method: 'get'
+  });
+};
+
+/**
+ * 停用教学班（必填原因，写审计）
+ *
+ * 对应 operationId `disableTeachingClass`（POST /edu/teaching-class/{id}/disable）。
+ */
+export const disableTeachingClass = (classId: string, reason: string) => {
+  return request({
+    url: `/edu/teaching-class/${classId}/disable`,
+    method: 'post',
+    data: { reason }
+  });
+};
+
+/**
+ * 查询教学班成员清单（详情抽屉的成员区块）
+ *
+ * 对应 operationId `listTeachingClassRoster`（GET /edu/teaching-class/{id}/roster）。
+ */
+export const listTeachingClassRoster = (classId: string): AxiosPromise<ClassRosterVO[]> => {
+  return request({
+    url: `/edu/teaching-class/${classId}/roster`,
+    method: 'get'
+  });
+};
 
 /**
  * 查询班级花名册（PAGE-CLS-DETAIL / PAGE-CLS-MOVE 的来源名单）
@@ -98,6 +158,10 @@ export default {
   listClassRoster,
   addClassRoster,
   removeClassRoster,
+  listTeachingClass,
+  getTeachingClass,
+  disableTeachingClass,
+  listTeachingClassRoster,
   transferClass,
   addClass,
   updateClass

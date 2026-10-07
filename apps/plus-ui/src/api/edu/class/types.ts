@@ -108,3 +108,38 @@ export interface ClassRosterAddForm {
   /** 加入说明 */
   remark?: string;
 }
+
+/**
+ * 教学班（PAGE-CLS-TEACHING）
+ *
+ * 行政班与教学班是两套独立关系，选科组合不等于行政班；教学班的创建入口唯一在
+ * 「按组合生成教学班」向导（CR-017 裁决），本页只做查询、详情与停用。
+ */
+export interface TeachingClassVO {
+  classId: string;
+  /** 教学班名称，如「高一 · 物化生 A 层」 */
+  className: string;
+  termId?: string;
+  termName?: string;
+  gradeId?: string;
+  gradeName?: string;
+  /** 组合 / 学科，如「物理 + 化学 + 生物」 */
+  subjectCombination?: string;
+  /** 成员数 */
+  memberCount?: number;
+  /** 任课教师（只读展示） */
+  teacherName?: string;
+  /** 状态：正常 / 已停用 */
+  status?: string;
+  remark?: string;
+}
+
+/** 教学班查询参数（PAGE-CLS-TEACHING 查询区） */
+export interface TeachingClassQuery extends Partial<PageQuery> {
+  termId?: string;
+  gradeId?: string;
+  /** 组合 / 学科 */
+  combination?: string;
+  status?: string;
+  teacherId?: string;
+}
