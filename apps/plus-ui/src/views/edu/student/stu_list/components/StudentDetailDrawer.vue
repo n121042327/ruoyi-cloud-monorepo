@@ -78,7 +78,12 @@
         <template #header>
           <div class="flex justify-between items-center">
             <span data-layout-group="监护人">监护人（上限 3）</span>
-            <el-tag size="small" type="info">班主任为唯一写入口</el-tag>
+            <div class="flex items-center gap-2">
+              <el-tag size="small" type="info">班主任为唯一写入口</el-tag>
+              <el-button v-if="canEditGuardian" v-hasPermi="['person.student_guardian:update']" icon="Edit" @click="handleEditGuardian">
+                编辑监护人信息
+              </el-button>
+            </div>
           </div>
         </template>
         <el-table :data="guardians" border>
@@ -95,8 +100,20 @@
               <span v-else>—</span>
             </template>
           </el-table-column>
+          <el-table-column v-if="canEditGuardian" label="操作" width="90" align="center" data-layout-group="操作">
+            <template #default="scope">
+              <el-button v-hasPermi="['person.student_guardian:update']" link type="primary" @click="handleUnbindGuardian(scope.row)">
+                解绑
+              </el-button>
+            </template>
+          </el-table-column>
+          <template #empty>
+            <el-empty description="暂无监护人信息" :image-size="60" />
+          </template>
         </el-table>
-        <el-empty v-if="!guardians.length && !loading" description="暂无监护人信息" :image-size="60" />
+        <div class="hint">
+          监护人手机号不单独作为登录名；一个家长可关联多个孩子，绑定上限 3；解绑需班主任确认，同一字段同时只允许一条待审核（GAP-018）。
+        </div>
       </el-card>
 
       <el-card shadow="never" class="mt-3">
@@ -121,15 +138,34 @@
       <el-button v-hasPermi="['person.student:update']" @click="handleEdit">编辑</el-button>
       <el-button @click="visible = false">关闭</el-button>
     </template>
+
+    <!-- 编辑监护人信息：班主任 / 教务主任为写入口 -->
+    <el-dialog v-model="guardianDialog.visible" title="编辑监护人信息" width="860px" append-to-body>
+      <guardian-table ref="guardianTableRef" />
+      <template #footer>
+        <el-button @click="guardianDialog.visible = false">取消</el-button>
+        <el-button type="primary" :loading="guardianDialog.saving" @click="handleSaveGuardian">保存</el-button>
+      </template>
+    </el-dialog>
   </el-drawer>
 </template>
 
 <script setup lang="ts">
 import { computed, getCurrentInstance, ref } from 'vue';
-import { ElMessage } from 'element-plus';
-import { getStudent, listStudentChangeLog, listStudentGuardian, viewStudentIdCard, viewStudentPhone } from '@/api/edu/student';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import {
+  getStudent,
+  listStudentChangeLog,
+  listStudentGuardian,
+  saveStudentGuardian,
+  unbindStudentGuardian,
+  viewStudentIdCard,
+  viewStudentPhone
+} from '@/api/edu/student';
 import type { GuardianVO, StudentChangeLogVO, StudentVO } from '@/api/edu/student/types';
 import { ENROLLMENT_STATUS_LABEL, STAGE_CODE_LABEL } from '@/enums/edu/StudentEnum';
+import GuardianTable from './GuardianTable.vue';
+import { checkRole } from '@/utils/permission';
 
 const emit = defineEmits<{ edit: [student: StudentVO] }>();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -143,6 +179,11 @@ const changeLogs = ref<StudentChangeLogVO[]>([]);
 const idCardFull = ref('');
 /** 一次会话内揭示的联系电话全量值；不落库、不缓存 */
 const phoneFull = ref('');
+const guardianTableRef = ref<InstanceType<typeof GuardianTable>>();
+const guardianDialog = ref({ visible: false, saving: false });
+
+/** 监护人写入口：教务主任 / 班主任（与原型 data-role-visible 一致） */
+const canEditGuardian = computed(() => checkRole(['academic_director', 'homeroom']) || checkRole(['super_admin']));
 
 const enrollmentStatusLabel = computed(() => ENROLLMENT_STATUS_LABEL[detail.value.enrollmentStatus ?? ''] ?? '—');
 
@@ -187,6 +228,58 @@ const handleRevealPhone = async () => {
 
 const handleEdit = () => {
   emit('edit', detail.value as StudentVO);
+};
+
+const loadGuardians = async () => {
+  const studentId = detail.value.studentId;
+  if (!studentId) {
+    guardians.value = [];
+    return;
+  }
+  const res = await listStudentGuardian(studentId);
+  guardians.value = res.data ?? [];
+};
+
+const handleEditGuardian = () => {
+  guardianDialog.value.visible = true;
+  guardianTableRef.value?.setRows(guardians.value.map((item) => ({ ...item })));
+};
+
+const handleSaveGuardian = async () => {
+  const studentId = detail.value.studentId;
+  if (!studentId) {
+    return;
+  }
+  guardianDialog.value.saving = true;
+  try {
+    for (const guardian of guardianTableRef.value?.getRows() ?? []) {
+      await saveStudentGuardian(studentId, guardian);
+    }
+    ElMessage.success('已保存监护人信息');
+    guardianDialog.value.visible = false;
+    await loadGuardians();
+  } finally {
+    guardianDialog.value.saving = false;
+  }
+};
+
+/** 解绑：二次确认，文案含对象名（AGENTS 第 3 节：危险操作必须二次确认） */
+const handleUnbindGuardian = (row: GuardianVO) => {
+  const studentId = detail.value.studentId;
+  if (!studentId) {
+    return;
+  }
+  ElMessageBox.confirm(`确认解绑监护人「${row.guardianName}」？解绑需班主任确认，未通过可重提。`, '解绑确认', {
+    confirmButtonText: '提交解绑申请',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(async () => {
+      await unbindStudentGuardian(studentId, row.guardianId);
+      ElMessage.success('已提交解绑申请');
+      await loadGuardians();
+    })
+    .catch(() => undefined);
 };
 
 defineExpose({ open });

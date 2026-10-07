@@ -115,6 +115,47 @@ export const viewStudentPhone = (studentId: string): AxiosPromise<{ studentPhone
   });
 };
 
+/**
+ * 解绑监护人（提交解绑申请，需班主任确认；同一字段同时只允许一条待审核）
+ *
+ * 对应 operationId `unbindStudentGuardian`（POST /edu/student/{id}/guardian/{guardianId}/unbind）。
+ */
+export const unbindStudentGuardian = (studentId: string, guardianId: string) => {
+  return request({
+    url: `/edu/student/${studentId}/guardian/${guardianId}/unbind`,
+    method: 'post'
+  });
+};
+
+/**
+ * 上传 / 更换学生照片（单张，走统一文件服务）
+ *
+ * 对应 operationId `uploadStudentPhoto`（POST /edu/student/{id}/photo）。
+ */
+export const uploadStudentPhoto = (studentId: string, file: File) => {
+  const data = new FormData();
+  data.append('file', file);
+  return request({
+    url: `/edu/student/${studentId}/photo`,
+    method: 'post',
+    headers: { 'Content-Type': 'multipart/form-data' },
+    data
+  });
+};
+
+/**
+ * 查看照片原图（需 `person.student:read_sensitive`，写敏感数据访问日志）
+ *
+ * 对应 operationId `getStudentPhoto`（GET /edu/student/{id}/photo，返回二进制图片）。
+ */
+export const getStudentPhoto = (studentId: string): AxiosPromise<Blob> => {
+  return request({
+    url: `/edu/student/${studentId}/photo`,
+    method: 'get',
+    responseType: 'blob'
+  });
+};
+
 export default {
   listStudent,
   getStudent,
@@ -124,5 +165,8 @@ export default {
   saveStudentGuardian,
   listStudentChangeLog,
   viewStudentIdCard,
-  viewStudentPhone
+  viewStudentPhone,
+  unbindStudentGuardian,
+  uploadStudentPhoto,
+  getStudentPhoto
 };

@@ -52,7 +52,7 @@ OVERLAY_CHECKS = [
         "prototype": "prototypes/functional/v2/pages/student-list.html",
         "vue": "apps/plus-ui/src/views/edu/student/stu_list/components/StudentFormDialog.vue",
         "steps": [
-            ("学籍信息", ["基础信息", "教育信息"]),
+            ("学籍信息", ["基础信息", "教育信息", "补充信息"]),
             ("证件与联系", ["证件信息", "联系方式"]),
             ("监护人", ["监护人"]),
         ],

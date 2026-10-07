@@ -67,6 +67,21 @@
             </el-form-item>
           </el-col>
         </el-row>
+
+        <!-- 补充信息：学生照片（单张，走统一文件服务） -->
+        <h3 class="form-section-title" data-layout-group="补充信息">补充信息</h3>
+        <el-form-item label="学生照片">
+          <div class="flex items-center gap-3">
+            <span class="photo-thumb">{{ photoUploaded ? '已上传' : '暂无' }}</span>
+            <el-upload :show-file-list="false" :disabled="!form.studentId" accept="image/*" :http-request="handleUploadPhoto">
+              <el-button :disabled="!form.studentId" icon="Upload">上传照片</el-button>
+            </el-upload>
+            <el-button v-if="form.studentId" v-hasPermi="['person.student:read_sensitive']" icon="View" @click="handleViewPhoto">
+              查看原图
+            </el-button>
+          </div>
+          <div class="hint">单张，默认只展示缩略图；查看原图写敏感数据访问日志（GAP-027 裁决 A）。新增时先保存学生再上传照片。</div>
+        </el-form-item>
       </template>
 
       <!-- 第 2 步 -->
@@ -112,42 +127,7 @@
       <!-- 第 3 步 -->
       <template v-else>
         <h3 class="form-section-title" data-layout-group="监护人">监护人（上限 3）</h3>
-        <el-table :data="guardians" border>
-          <el-table-column label="监护人姓名" min-width="140">
-            <template #default="scope">
-              <el-input v-model="scope.row.guardianName" placeholder="请输入姓名" />
-            </template>
-          </el-table-column>
-          <el-table-column label="与学生关系" width="150">
-            <template #default="scope">
-              <el-select v-model="scope.row.relation" placeholder="请选择">
-                <el-option v-for="item in GUARDIAN_RELATION_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
-              </el-select>
-            </template>
-          </el-table-column>
-          <el-table-column label="监护人电话" width="160">
-            <template #default="scope">
-              <el-input v-model="scope.row.guardianPhone" placeholder="可留空" maxlength="11" />
-            </template>
-          </el-table-column>
-          <el-table-column label="主要联系人" width="110" align="center">
-            <template #default="scope">
-              <el-radio v-model="primaryIndex" :value="scope.$index" @change="handlePrimaryChange(scope.$index)">&nbsp;</el-radio>
-            </template>
-          </el-table-column>
-          <el-table-column label="备注" min-width="160">
-            <template #default="scope">
-              <el-input v-model="scope.row.remark" placeholder="可留空" />
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" width="90" align="center" data-layout-group="操作">
-            <template #default="scope">
-              <el-button link type="danger" @click="removeGuardian(scope.$index)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-        <el-button class="mt-2" :disabled="guardians.length >= 3" icon="Plus" @click="addGuardian">添加监护人</el-button>
-        <div class="hint mt-1">同一家长可关联多个孩子；监护人手机号是敏感字段，列表默认掩码展示（GAP-015）。</div>
+        <guardian-table ref="guardianTableRef" />
       </template>
     </el-form>
 
@@ -164,15 +144,16 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
-import type { FormInstance, FormRules } from 'element-plus';
+import type { FormInstance, FormRules, UploadRequestOptions } from 'element-plus';
 import { ElMessage } from 'element-plus';
 import { listClass } from '@/api/edu/class';
 import type { ClassVO } from '@/api/edu/class/types';
 import { listGrade } from '@/api/edu/grade';
 import type { GradeVO } from '@/api/edu/grade/types';
-import { addStudent, saveStudentGuardian, updateStudent } from '@/api/edu/student';
+import { addStudent, getStudentPhoto, saveStudentGuardian, updateStudent, uploadStudentPhoto } from '@/api/edu/student';
 import type { GuardianForm, StudentForm } from '@/api/edu/student/types';
-import { GENDER_OPTIONS, GUARDIAN_RELATION_OPTIONS, ID_TYPE_OPTIONS, STAGE_CODE_OPTIONS } from '@/enums/edu/StudentEnum';
+import GuardianTable from './GuardianTable.vue';
+import { GENDER_OPTIONS, ID_TYPE_OPTIONS, STAGE_CODE_OPTIONS } from '@/enums/edu/StudentEnum';
 
 interface Props {
   /** 当前学校上下文：决定年级与班级下拉的范围 */
@@ -190,8 +171,9 @@ const activeStep = ref(0);
 const formRef = ref<FormInstance>();
 const gradeOptions = ref<GradeVO[]>([]);
 const classOptions = ref<ClassVO[]>([]);
-const guardians = ref<GuardianForm[]>([]);
-const primaryIndex = ref(-1);
+const guardianTableRef = ref<InstanceType<typeof GuardianTable>>();
+/** 照片上传状态（缩略图由阶段 7 的文件服务返回） */
+const photoUploaded = ref(false);
 
 const defaultForm = (): StudentForm => ({
   studentId: undefined,
@@ -249,26 +231,28 @@ const handleGradeChange = async () => {
   await loadClassOptions();
 };
 
-const addGuardian = () => {
-  if (guardians.value.length >= 3) {
-    ElMessage.warning('监护人数量上限为 3');
+/** 上传照片：接口以学生 ID 为路径参数，新增时需先保存学生 */
+const handleUploadPhoto = async (options: UploadRequestOptions) => {
+  const studentId = form.studentId;
+  if (!studentId) {
+    ElMessage.warning('请先保存学生，再上传照片');
     return;
   }
-  guardians.value.push({ guardianName: '', relation: '', guardianPhone: '', isPrimary: false, remark: '' });
+  await uploadStudentPhoto(studentId, options.file as File);
+  photoUploaded.value = true;
+  ElMessage.success('已上传 1 张照片');
 };
 
-const removeGuardian = (index: number) => {
-  guardians.value.splice(index, 1);
-  if (primaryIndex.value >= guardians.value.length) {
-    primaryIndex.value = guardians.value.length - 1;
+/** 查看原图：需 read_sensitive，写敏感数据访问日志 */
+const handleViewPhoto = async () => {
+  const studentId = form.studentId;
+  if (!studentId) {
+    return;
   }
-};
-
-/** 主要联系人在同一学生下唯一 */
-const handlePrimaryChange = (index: number) => {
-  guardians.value.forEach((item, i) => {
-    item.isPrimary = i === index;
-  });
+  const blob = (await getStudentPhoto(studentId)) as unknown as Blob;
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  ElMessage.success('已打开照片原图，本次查看已写入敏感数据访问日志');
 };
 
 const handleNext = async () => {
@@ -285,8 +269,8 @@ const open = async (row?: Partial<StudentForm> & { studentNo?: string }) => {
   activeStep.value = 0;
   title.value = row?.studentId ? '编辑学生' : '新增学生';
   Object.assign(form, defaultForm(), row ?? {});
-  guardians.value = [];
-  primaryIndex.value = -1;
+  photoUploaded.value = false;
+  guardianTableRef.value?.setRows([]);
   await loadGradeOptions();
   if (form.gradeId) {
     await loadClassOptions();
@@ -307,10 +291,8 @@ const submitForm = async () => {
       studentId = created.data?.studentId;
     }
     // 监护人落 edu_student_guardian；班主任是唯一写入口（DP-01）
-    for (const guardian of guardians.value) {
-      if (!guardian.guardianName || !guardian.relation) {
-        continue;
-      }
+    const guardianRows: GuardianForm[] = guardianTableRef.value?.getRows() ?? [];
+    for (const guardian of guardianRows) {
       if (studentId) {
         await saveStudentGuardian(studentId, guardian);
       }

@@ -655,3 +655,11 @@
 | `docs/00-governance/change-requests/CR-046.md` | GAP-084 补 `viewStudentPhone` 并接上前端 | `review` |
 | `apps/plus-ui/src/views/edu/student/stu_list/components/StudentDetailDrawer.vue` | 详情抽屉（本批补联系电话「查看完整」） | `已实现` |
 | `evidence/stage6-frontend/2026-10-07_student-phone-reveal_verification.log` | 本批生成结果与门禁证据 | `review` |
+
+## 2026-10-07 阶段 6 第四批：学生照片与监护人编辑 / 解绑
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-047.md` | 学生照片上传 / 查看原图与监护人编辑 / 解绑的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/student/stu_list/components/GuardianTable.vue` | 可复用监护人编辑表格（向导与详情抽屉共用） | `已实现` |
+| `evidence/stage6-frontend/2026-10-07_student-photo-and-guardian_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |
