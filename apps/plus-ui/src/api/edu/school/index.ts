@@ -91,11 +91,28 @@ export const removeCampus = (campusId: string, reason?: string) => {
   });
 };
 
+/**
+ * 开通初始化（一键完成学年学期、学科模板、基础角色初始化；幂等）
+ *
+ * 对应 operationId `initSchoolBaseline`（POST /edu/school/{id}/init，REQ-SCH-019 / 045）。
+ */
+export const initSchoolBaseline = (
+  schoolId: string,
+  data: { stageCodes: string[]; academicYearCode: string; startDate: string; endDate: string }
+) => {
+  return request({
+    url: `/edu/school/${schoolId}/init`,
+    method: 'post',
+    data
+  });
+};
+
 export default {
   listSchool,
   getCurrentSchool,
   listCampus,
   disableSchool,
   enableSchool,
-  removeCampus
+  removeCampus,
+  initSchoolBaseline
 };

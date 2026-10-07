@@ -2228,3 +2228,7 @@
 ## D-143 — 阶段 6 第二十四批：校区管理（2026-10-08，循环批次）
 
 循环批次（automation 6）交付校区管理页（`/edu/school/campus`）：表格 7 列（校区名称 / 校区编码 / 地址 / 负责人 / 班级数 / 状态 / 操作）+ 分页，行内「停用」二次确认且必填原因（`REQ-SCH-030` / `031`）；页面按 `getCurrentSchool` 取本校后列本校校区，并说明校区不参与数据权限判定（`REQ-SCH-028`）。接口层补 `removeCampus`（带原因）与 `CampusVO` 的编码 / 地址 / 负责人 / 班级数字段。结构对照沿用 v1 适配：原型的「校区名称」列没有 `data-role` 标记 → `extra_columns` 登记。门禁：结构对照 23 项通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_school-campus_verification.log`。阶段 6 累计 20 条生产路由；下轮：开通初始化、新建学年 / 学期管理。
+
+## D-144 — 阶段 6 第二十五批：开通初始化向导（2026-10-08，循环批次）
+
+循环批次（automation 6）交付开通初始化 4 步向导（`/edu/school/init`）：学校基本信息（只读本校）→ 学段与年级（至少一个学段）→ 学年学期（学年编码 + 起止日期）→ 执行与结果（执行 `initSchoolBaseline`，给结果摘要与幂等提示）。口径：初始化一次性完成学年学期 / 学科模板 / 基础角色且幂等（`REQ-SCH-019` / `045`）；学段是年级前置（`REQ-SCH-032` / `033`）；学年编码连续两自然年且校内唯一（`REQ-TERM-008` / `009`）。门禁：结构对照 24 项通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_school-init_verification.log`。阶段 6 累计 21 条生产路由；下轮：学期管理页与新建学年弹窗，随后升班向导 6 步。

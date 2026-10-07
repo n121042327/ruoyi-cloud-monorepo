@@ -155,6 +155,18 @@ CHECKS = [
         "deferred_groups": {},
         "extra_columns": {"校区名称": "v1 原型的校区名称列没有 data-role 标记，生产页保留校区名称列"},
     },
+    {
+        "page_id": "PAGE-SCH-INIT",
+        "name": "开通初始化向导",
+        "prototype": "prototypes/functional/v1/pages/school-init.html",
+        "vue": "apps/plus-ui/src/views/edu/school/sch_init/index.vue",
+        "steps": [
+            ("学校基本信息", ["学校基本信息"]),
+            ("学段与年级", ["学段与年级"]),
+            ("学年学期", ["学年学期"]),
+            ("执行与结果", ["执行与结果"]),
+        ],
+    },
 ]
 
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）

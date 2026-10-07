@@ -361,6 +361,20 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: { title: '校区管理', icon: 'tree' }
       }
     ]
+  },
+  {
+    path: '/edu/school/init',
+    component: Layout,
+    hidden: true,
+    permissions: ['org.school:update'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/school/sch_init/index.vue'),
+        name: 'EduSchoolInit',
+        meta: { title: '开通初始化', icon: 'tree' }
+      }
+    ]
   }
 ];
 
