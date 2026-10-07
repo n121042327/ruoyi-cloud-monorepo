@@ -994,3 +994,17 @@
 | `.../service/IEduGradeService.java` + `impl/EduGradeServiceImpl.java` | 年级服务层（11 个方法） | `已实现` |
 | `.../controller/EduGradeController.java` | 年级控制器（11 个端点） | `已实现` |
 | `evidence/stage7-backend/2026-10-08_edu-grade_compile.log` | 本批编译证据（BUILD SUCCESS / 59 个 class） | `review` |
+
+## 2026-10-08 阶段 7 第四批：学年学期模块纵切
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-083.md` | 学年学期模块纵切的交付与编译证据 | `review` |
+| `.../domain/EduAcademicYear.java` | 学年实体（edu_academic_year，无 del_flag） | `已实现` |
+| `.../domain/EduTerm.java` | 学期实体（edu_term，无 del_flag，is_current 为 char(1)） | `已实现` |
+| `.../domain/bo/EduAcademicYearBo.java` / `EduTermBo.java` | 学年 / 学期业务对象（日期用 String 接收） | `已实现` |
+| `.../domain/vo/EduAcademicYearVo.java` / `EduTermVo.java` / `TermReferenceVo.java` | 学年 / 学期 / 引用检查视图对象 | `已实现` |
+| `.../mapper/EduAcademicYearMapper.java` / `EduTermMapper.java` | 学年 / 学期数据层 | `已实现` |
+| `.../service/IEduTermService.java` + `impl/EduTermServiceImpl.java` | 学年学期服务层（12 个方法，含默认学期结构与引用检查） | `已实现` |
+| `.../controller/EduTermController.java` | 学年学期控制器（12 个端点，term 模块全覆盖） | `已实现` |
+| `evidence/stage7-backend/2026-10-08_edu-term_compile.log` | 本批编译证据（BUILD SUCCESS / 83 个 class） | `review` |
