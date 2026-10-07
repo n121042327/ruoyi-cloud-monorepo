@@ -48,4 +48,20 @@ export interface AsyncTaskVO {
   failedCount?: number;
   resultFileId?: string;
   createTime?: string;
+  /** 发起人 */
+  owner?: string;
+  /** 耗时（如 12s / 3m20s） */
+  elapsed?: string;
+  /** 进度百分比（0—100） */
+  progressPercent?: number;
+  /** 进入死信时间 */
+  deadTime?: string;
+  /** 重试次数 */
+  retryCount?: number;
+  /** 最后一次错误 */
+  lastError?: string;
+  /** 原批次号 */
+  batchNo?: string;
+  /** 任务参数摘要（详情用） */
+  params?: string;
 }

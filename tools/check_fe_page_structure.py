@@ -122,6 +122,22 @@ CHECKS = [
         "deferred_labels": {"操作": "归档区间检索（searchArchivedLog）在后续轮次交付"},
         "extra_columns": {"归档批次": "v1 原型的归档批次列没有 data-role 标记，生产页保留归档批次列"},
     },
+    {
+        "page_id": "PAGE-IMP-TASK-LIST",
+        "name": "异步任务列表",
+        "prototype": "prototypes/functional/v1/pages/async-task-list.html",
+        "vue": "apps/plus-ui/src/views/edu/import-export/imp_task_list/index.vue",
+        "deferred_groups": {},
+        "extra_columns": {"任务编号": "v1 原型的任务编号列没有 data-role 标记，生产页保留任务编号列"},
+    },
+    {
+        "page_id": "PAGE-IMP-DEADLETTER",
+        "name": "死信任务",
+        "prototype": "prototypes/functional/v1/pages/dead-letter-task.html",
+        "vue": "apps/plus-ui/src/views/edu/import-export/imp_deadletter/index.vue",
+        "deferred_groups": {},
+        "extra_columns": {"任务编号": "v1 原型的任务编号列没有 data-role 标记，生产页保留任务编号列"},
+    },
 ]
 
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）

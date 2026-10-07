@@ -815,3 +815,12 @@
 | `apps/plus-ui/src/views/edu/audit/audit_security_event/index.vue` | 登录与安全事件页 | `已实现` |
 | `apps/plus-ui/src/views/edu/audit/audit_archive/index.vue` | 归档管理页 | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_audit-security-event-and-archive_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第二十二批：异步任务 + 死信任务
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-066.md` | 异步任务与死信任务的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/import-export/imp_task_list/index.vue` | 异步任务列表页 | `已实现` |
+| `apps/plus-ui/src/views/edu/import-export/imp_deadletter/index.vue` | 死信任务页 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_async-task-and-deadletter_verification.log` | 本批门禁证据 | `review` |

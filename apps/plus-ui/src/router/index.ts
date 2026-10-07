@@ -305,6 +305,34 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: { title: '归档管理', icon: 'list' }
       }
     ]
+  },
+  {
+    path: '/edu/async-task/list',
+    component: Layout,
+    hidden: true,
+    permissions: ['data.async_task:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/import-export/imp_task_list/index.vue'),
+        name: 'EduAsyncTaskList',
+        meta: { title: '异步任务', icon: 'list' }
+      }
+    ]
+  },
+  {
+    path: '/edu/async-task/dead-letter',
+    component: Layout,
+    hidden: true,
+    permissions: ['data.async_task:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/import-export/imp_deadletter/index.vue'),
+        name: 'EduAsyncDeadLetter',
+        meta: { title: '死信任务', icon: 'list' }
+      }
+    ]
   }
 ];
 
