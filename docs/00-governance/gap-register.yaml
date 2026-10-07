@@ -2767,6 +2767,48 @@ gaps:
     resolved_at: "2026-10-08"
     status: answered
 
+  - id: GAP-090
+    title: 字段字典声明了 student_phone / photo_file_id，但事实源 schema.yaml 的 edu_student 没有这两列
+    discovered_at: 2026-10-08
+    discovered_by: 阶段 7 生成班级纵切时按 schema.yaml 反查学生列（CR-081）
+    evidence: |
+      docs/10-prd/06-field-dictionary.yaml 第 332 行声明 `student_phone`（学生电话，varchar(20)，sensitive: true），
+      第 333 行声明 `photo_file_id`（学生照片，bigint，只存文件服务引用）。
+      但 docs/40-detailed-design/database/schema.yaml 第 23 ~ 51 行的 edu_student 列只有
+      student_no / national_student_no / student_name / gender / id_type / id_card_no / birth_date /
+      enroll_year / graduation_date / **photo_url**(第 43 行) / remark —— 既没有 `student_phone`，也没有 `photo_file_id`；
+      由它生成的 docs/40-detailed-design/migrations/V1__edu_student_teacher.sql 同样没有这两列。
+      阶段 7 的 CR-054 曾按字段字典写出 `studentPhone` 与 `photoFileId`，与落库脚本不一致（运行时该列不存在）。
+    expected: 同一份字段在两份阶段 5 产物里指向同一个物理列
+    actual: 字段字典有、DDL 没有；且「照片」在两处的类型都不同（bigint 文件 ID vs varchar 文件地址）
+    impact: |
+      不裁决则实体与 DDL 二选一：照字段字典写会在运行时报「Unknown column」；
+      照 DDL 写则字段字典、OpenAPI 与前端（studentPhone / photoFileId、viewStudentPhone / uploadStudentPhoto）
+      都指向不存在的列。学生电话还是敏感字段，落点决定脱敏与审计怎么实现。
+    options:
+      - 以 schema.yaml（落库事实源）为准：实体用 `photoUrl`、不做 `studentPhone`；字段字典按实际修订（照片改 `photo_url`；学生电话标注「落点待定」，另立一项在阶段 8 前定）
+      - 以字段字典为准：给 `edu_student` 加 `student_phone`、把 `photo_url` 改成 `photo_file_id`，重新生成 V1 迁移脚本与物理模型文档
+      - 拆开处理：照片按 DDL 用 `photo_url`；学生电话按「学校侧联系方式」加到 `edu_student_enrollment`（学生主体是平台级、不带联系方式的定位更干净）
+    recommended: |
+      选项 3。照片是学生个人的学籍照片，schema.yaml 的 `photo_url` 已经是可用实现，改 DDL 成本高收益低；
+      而学生电话属于「学校与家庭的联系方式」，`edu_student` 是**平台级、不设 tenant_id** 的主体表（D-030 / D-037），
+      把联系方式塞进平台级主体会让跨校数据边界变糊；放到学校侧的 `edu_student_enrollment` 更符合两段式取数（DS-DENY-09）。
+      任一方案都要改阶段 5 的冻结产物，所以推荐方案里明确「先按 DDL 写代码 + 字段字典下一版修订」。
+    blocking: false
+    blocks_stages:
+      - stage7
+      - stage8
+    owner: 用户
+    answer: 用户 2026-10-07 起多次授权「需要拍板的按推荐走」，采纳推荐选项 3。
+    resolution: |
+      按 CR-081 落地第一步：阶段 7 的学生实体 / BO / VO 与 DDL 对齐——主键改 `@TableId("id")`（仍是 `studentId` 字段名）、
+      照片改 `photoUrl`、删除不存在的 `studentPhone` 与 `address`、补 `enrollYear` 与 `graduationDate`。
+      待办（阶段 5 产物下一版修订，不在本批）：①`06-field-dictionary.yaml` 第 333 行的 `photo_file_id` 改为 `photo_url`；
+      ②第 332 行的 `student_phone` 移到 `edu_student_enrollment`（并在 schema.yaml 与该表的迁移脚本加列）；
+      ③OpenAPI 的 `viewStudentPhone` / `uploadStudentPhoto` / `getStudentPhoto` 保持不动，等列落位后直接可用。
+    resolved_at: "2026-10-08"
+    status: answered
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"

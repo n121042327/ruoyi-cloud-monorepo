@@ -33,7 +33,11 @@ public class EduStudentVo implements Serializable {
 
     private String gender;
 
-    private String enrollYear;
+    /** 入学年份 */
+    private Integer enrollYear;
+
+    /** 毕业日期 */
+    private Date graduationDate;
 
     private String stageCode;
 
@@ -54,12 +58,8 @@ public class EduStudentVo implements Serializable {
 
     private Date birthDate;
 
-    /** 联系电话（掩码） */
-    private String studentPhone;
-
-    private String address;
-
-    private Long photoFileId;
+    /** 学籍照片引用（文件服务地址） */
+    private String photoUrl;
 
     private Date updateTime;
 

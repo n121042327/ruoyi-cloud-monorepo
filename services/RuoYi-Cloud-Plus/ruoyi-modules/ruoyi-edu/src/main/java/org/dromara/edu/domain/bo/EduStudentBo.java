@@ -7,6 +7,8 @@ import lombok.EqualsAndHashCode;
 import org.dromara.common.mybatis.core.domain.BaseEntity;
 import org.dromara.edu.domain.EduStudent;
 
+import java.util.Date;
+
 /**
  * 学生业务对象 edu_student
  *
@@ -36,6 +38,12 @@ public class EduStudentBo extends BaseEntity {
     @NotBlank(message = "性别不能为空")
     private String gender;
 
+    /** 入学年份（必填；学号前 4 位与此一致） */
+    private Integer enrollYear;
+
+    /** 毕业日期 */
+    private Date graduationDate;
+
     /** 学校上下文（学校用户固定本校，平台运营与超级管理员可切换） */
     private Long schoolId;
 
@@ -50,9 +58,6 @@ public class EduStudentBo extends BaseEntity {
 
     /** 学籍状态，多值以逗号分隔 */
     private String enrollmentStatus;
-
-    /** 入学年份 */
-    private String enrollYear;
 
     /** 学段 */
     private String stageCode;
@@ -75,11 +80,8 @@ public class EduStudentBo extends BaseEntity {
     /** 证件号 */
     private String idCardNo;
 
-    /** 联系电话 */
-    private String studentPhone;
-
-    /** 联系地址 */
-    private String address;
+    /** 出生日期 */
+    private Date birthDate;
 
     /** 备注 */
     private String remark;

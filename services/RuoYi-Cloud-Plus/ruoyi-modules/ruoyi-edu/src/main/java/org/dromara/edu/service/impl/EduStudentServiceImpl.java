@@ -54,8 +54,9 @@ public class EduStudentServiceImpl implements IEduStudentService {
         add.setNationalStudentNo(student.getNationalStudentNo());
         add.setIdType(student.getIdType());
         add.setIdCardNo(student.getIdCardNo());
-        add.setStudentPhone(student.getStudentPhone());
-        add.setAddress(student.getAddress());
+        add.setBirthDate(student.getBirthDate());
+        add.setEnrollYear(student.getEnrollYear());
+        add.setGraduationDate(student.getGraduationDate());
         add.setRemark(student.getRemark());
         return baseMapper.insert(add) > 0;
     }
@@ -72,8 +73,9 @@ public class EduStudentServiceImpl implements IEduStudentService {
         update.setNationalStudentNo(student.getNationalStudentNo());
         update.setIdType(student.getIdType());
         update.setIdCardNo(student.getIdCardNo());
-        update.setStudentPhone(student.getStudentPhone());
-        update.setAddress(student.getAddress());
+        update.setBirthDate(student.getBirthDate());
+        update.setEnrollYear(student.getEnrollYear());
+        update.setGraduationDate(student.getGraduationDate());
         update.setRemark(student.getRemark());
         return baseMapper.updateById(update) > 0;
     }

@@ -966,3 +966,17 @@
 | `apps/plus-ui/src/views/error/403.vue` | 无权限页（PAGE-403，静态路由 `/403`） | `已实现` |
 | `apps/plus-ui/src/views/error/500.vue` | 服务异常页（PAGE-500，静态路由 `/500`） | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_error-pages_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 7 第二批：班级模块纵切 + 学生纵切列名修正
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-081.md` | 班级模块纵切与学生列名修正的交付与编译证据 | `review` |
+| `services/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-edu/src/main/java/org/dromara/edu/domain/EduClass.java` | 班级实体（edu_class） | `已实现` |
+| `.../domain/EduClassMember.java` | 班级成员（花名册）实体（edu_class_member，无 del_flag） | `已实现` |
+| `.../domain/bo/EduClassBo.java` / `EduClassMemberBo.java` | 班级 / 成员业务对象 | `已实现` |
+| `.../domain/vo/EduClassVo.java` / `EduClassMemberVo.java` | 班级 / 成员视图对象 | `已实现` |
+| `.../mapper/EduClassMapper.java` / `EduClassMemberMapper.java` | 班级 / 成员数据层 | `已实现` |
+| `.../service/IEduClassService.java` + `impl/EduClassServiceImpl.java` | 班级服务层（12 个方法） | `已实现` |
+| `.../controller/EduClassController.java` | 班级控制器（12 个端点） | `已实现` |
+| `evidence/stage7-backend/2026-10-08_edu-class_compile.log` | 本批编译证据（BUILD SUCCESS / 39 个 class） | `review` |
