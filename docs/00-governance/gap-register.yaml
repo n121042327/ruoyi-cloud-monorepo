@@ -2731,6 +2731,38 @@ gaps:
     resolved_at: "2026-10-08"
     status: answered
 
+  - id: GAP-089
+    title: 任教关系导出在原形里引用 exportTeachingAssignment，但契约没有该 operationId
+    discovered_at: 2026-10-08
+    discovered_by: 阶段 6 页面实现（自动化 6）
+    evidence: |
+      prototypes/functional/v1/pages/teacher-assign.html 第 41 行的导出按钮标注 `data-api="exportTeachingAssignment"`；
+      全量搜索 docs/40-detailed-design/api/openapi.yaml 无该 operationId（`exportTeachingAssignment` 命中 0 处），
+      契约里的导出只有各模块自带（exportTeacher / exportClass / exportStreamSelection …）与通用 `exportData`（POST /edu/export，第 3039 ~ 3043 行）。
+    expected: 任教关系导出有唯一、可追溯的接口
+    actual: 原型引用的接口名在契约里不存在
+    impact: |
+      不处理则该页的导出按钮没有可调用的契约；若自造一个 `exportTeachingAssignment` 又会与「operationId 必须来自
+      openapi.yaml」的阶段门禁冲突，并且与已有的通用导出引擎重复。
+    options:
+      - 统一走通用导出 `exportData`（module=teachingAssignment），并在阶段 5 产物里登记该模块的导出对象
+      - 在 OpenAPI 里新增 `exportTeachingAssignment`（POST /edu/teacher/assignment/export），保持与其它模块导出的命名一致
+      - 本批不做导出按钮，等阶段 7 后端确定导出实现后再补
+    recommended: |
+      选项 1。与 GAP-086 对「学生导入」的裁决同一口径：导出引擎、文件生成与结果文件都在导入导出模块，
+      业务模块只声明导出对象与默认列；这样不必为每个模块新增一个近乎相同的导出 operationId。
+    blocking: false
+    blocks_stages:
+      - stage6
+    owner: 用户
+    answer: 用户 2026-10-07 起多次授权「需要拍板的按推荐走」，采纳推荐选项 1。
+    resolution: |
+      按 CR-078 落地：任教关系导出改调通用 `exportData`（`apps/plus-ui/src/api/edu/importExport/index.ts` 新增该函数，
+      POST /edu/export，module=teachingAssignment）；`exportTeachingAssignment` 不落地。阶段 5 的页面树/接口清单
+      在下一版把该模块的导出对象登记到导入导出模块名下。
+    resolved_at: "2026-10-08"
+    status: answered
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"

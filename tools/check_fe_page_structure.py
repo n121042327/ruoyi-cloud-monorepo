@@ -304,6 +304,22 @@ CHECKS = [
         "extra_columns": {"组合": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留组合列"},
         "filter_note": "v1 原型是「选择方式与范围 → 生成预览 → 执行与进度 → 核对结果」的四步向导，整页没有查询区；生产页按原型步骤实现，不比对查询项",
     },
+    {
+        "page_id": "PAGE-TCH-ASSIGN",
+        "name": "教师任教关系",
+        "prototype": "prototypes/functional/v1/pages/teacher-assign.html",
+        "vue": "apps/plus-ui/src/views/edu/teacher/tch_assign/index.vue",
+        "deferred_groups": {},
+        "filter_note": "原型的第一个 data-role=\"table\" 落在左侧班级选择面板（div 包裹的内层 table），检查器切片只覆盖到该面板，主表列（学科 / 任教教师 / 班级 / 班级类型 / 周课时 / 状态 / 操作）无法被提取，因此 expected=0；生产页按原型的查询区（视角 / 学年学期 / 关键字）实现，主表列放在 components/AssignmentTable.vue 并在 CR-078 里逐列登记",
+    },
+    {
+        "page_id": "PAGE-TCH-IMPORT",
+        "name": "教师导入向导",
+        "prototype": "prototypes/functional/v1/pages/teacher-import.html",
+        "vue": "apps/plus-ui/src/views/edu/teacher/tch_import/index.vue",
+        "deferred_groups": {},
+        "extra_columns": {"行号": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留行号列"},
+    },
 ]
 
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）

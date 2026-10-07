@@ -936,3 +936,15 @@
 | `apps/plus-ui/src/views/edu/stream/str_gen_class/index.vue` | 按组合生成教学班四步向导（PAGE-STR-GEN-CLASS） | `已实现` |
 | `apps/plus-ui/src/views/edu/stream/str_gen_class/components/CheckResultTable.vue` | 核对结果表 | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_stream-approve-and-gen-class_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第三十四批：教师任教关系 + 教师导入
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-078.md` | 教师任教关系 / 教师导入的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/teacher/tch_assign/index.vue` | 教师任教关系（PAGE-TCH-ASSIGN） | `已实现` |
+| `apps/plus-ui/src/views/edu/teacher/tch_assign/components/AssignmentTable.vue` | 任教关系主表 | `已实现` |
+| `apps/plus-ui/src/views/edu/teacher/tch_assign/components/AssignmentFormDialog.vue` | 新增 / 编辑任教关系弹窗 | `已实现` |
+| `apps/plus-ui/src/views/edu/teacher/tch_assign/components/CopyAssignDialog.vue` | 复制上一学年任教关系弹窗（DIALOG-TCH-COPY） | `已实现` |
+| `apps/plus-ui/src/views/edu/teacher/tch_import/index.vue` | 教师导入四步向导（PAGE-TCH-IMPORT） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_teacher-assign-and-import_verification.log` | 本批门禁证据 | `review` |

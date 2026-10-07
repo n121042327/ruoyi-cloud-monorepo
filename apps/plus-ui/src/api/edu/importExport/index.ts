@@ -91,6 +91,31 @@ export const downloadImportResult = (batchNo: string): AxiosPromise<Blob> => {
 };
 
 /**
+ * 通用导出（同步或异步；各业务模块的导出统一走该引擎，REQ-IMP-002 / GAP-086）
+ *
+ * 对应 operationId `exportData`（POST /edu/export）。
+ */
+export const exportData = (data: {
+  /** 导出对象：如 teachingAssignment / classRoster / streamSelection */
+  module: string;
+  termId?: string;
+  classId?: string;
+  teacherId?: string;
+  gradeId?: string;
+  /** 需要导出的列；留空表示按模块默认列 */
+  columns?: string[];
+  /** 附加筛选条件透传 */
+  filters?: Record<string, unknown>;
+}): AxiosPromise<Blob> => {
+  return request({
+    url: '/edu/export',
+    method: 'post',
+    data,
+    responseType: 'blob'
+  });
+};
+
+/**
  * 查询异步任务详情（进度与结果文件）
  *
  * 对应 operationId `getAsyncTask`（GET /edu/async-task/{taskNo}）。
@@ -184,6 +209,7 @@ export default {
   executeImport,
   downloadImportFailedRows,
   downloadImportResult,
+  exportData,
   getAsyncTask,
   listAsyncTask,
   cancelAsyncTask,

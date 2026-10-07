@@ -587,6 +587,34 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/edu/teacher/assignment',
+    component: Layout,
+    hidden: true,
+    permissions: ['person.teaching_assignment:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/teacher/tch_assign/index.vue'),
+        name: 'EduTeacherAssign',
+        meta: { title: '教师任教关系', icon: 'form' }
+      }
+    ]
+  },
+  {
+    path: '/edu/teacher/import',
+    component: Layout,
+    hidden: true,
+    permissions: ['data.import:import'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/teacher/tch_import/index.vue'),
+        name: 'EduTeacherImport',
+        meta: { title: '教师导入', icon: 'upload' }
+      }
+    ]
+  },
+  {
     path: '/edu/school/init',
     component: Layout,
     hidden: true,

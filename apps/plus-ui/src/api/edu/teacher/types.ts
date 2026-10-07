@@ -41,3 +41,61 @@ export interface TeacherForm {
   entryDate?: string;
   remark?: string;
 }
+/**
+ * 任教关系行（PAGE-TCH-ASSIGN）
+ *
+ * 一个班级 + 学科 + 教师 + 学年学期构成一条任教关系；教学班与行政班都要能挂任教关系。
+ */
+export interface TeachingAssignmentVO {
+  assignmentId: string;
+  /** 学科编码与名称 */
+  subjectCode?: string;
+  subjectName?: string;
+  teacherId?: string;
+  teacherName?: string;
+  classId?: string;
+  className?: string;
+  /** 班级类型：行政班 / 教学班 */
+  classType?: string;
+  /** 周课时 */
+  weeklyHours?: number;
+  /** 生效期间 */
+  startDate?: string;
+  endDate?: string;
+  /** 状态：生效中 / 待补 / 已结束 */
+  status?: string;
+  termId?: string;
+  termName?: string;
+  /** 是否跨校任教（跨校需运营方授权且只读） */
+  crossSchool?: boolean;
+}
+
+/** 任教关系查询参数（PAGE-TCH-ASSIGN 查询区） */
+export interface TeachingAssignmentQuery extends Partial<PageQuery> {
+  /** 视角：class（按班级）/ teacher（按教师） */
+  view?: string;
+  termId?: string;
+  keyword?: string;
+  subjectId?: string;
+  classId?: string;
+  teacherId?: string;
+}
+
+/** 新增 / 编辑任教关系（saveTeachingAssignment） */
+export interface TeachingAssignmentForm {
+  assignmentId?: string;
+  termId: string;
+  subjectId: string;
+  teacherId: string;
+  classType: string;
+  classId: string;
+  weeklyHours?: number;
+  startDate?: string;
+  endDate?: string;
+}
+
+/** 复制上一学年任教关系（copyTeachingAssignment） */
+export interface TeachingAssignmentCopyForm {
+  sourceTermId: string;
+  targetTermId: string;
+}
