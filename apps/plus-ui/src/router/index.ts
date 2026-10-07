@@ -249,6 +249,20 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: { title: '操作日志', icon: 'list' }
       }
     ]
+  },
+  {
+    path: '/edu/audit/operator-access',
+    component: Layout,
+    hidden: true,
+    permissions: ['audit.log:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/audit/audit_ops_access/index.vue'),
+        name: 'EduAuditOpsAccess',
+        meta: { title: '运营访问记录', icon: 'list' }
+      }
+    ]
   }
 ];
 

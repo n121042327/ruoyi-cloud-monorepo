@@ -89,6 +89,14 @@ CHECKS = [
         "extra_columns": {"时间": "v1 原型的时间列没有 data-role 标记，生产页保留时间列"},
         "filter_note": "审计 PRD 4.4 要求按时间范围 / 操作人 / 对象 / 操作类型筛选，v1 原型未给查询区标记",
     },
+    {
+        "page_id": "PAGE-AUDIT-OPS-ACCESS",
+        "name": "运营访问记录",
+        "prototype": "prototypes/functional/v1/pages/audit-ops-access.html",
+        "vue": "apps/plus-ui/src/views/edu/audit/audit_ops_access/index.vue",
+        "deferred_groups": {},
+        "extra_columns": {"访问时间": "v1 原型的访问时间列没有 data-role 标记，生产页保留访问时间列"},
+    },
 ]
 
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）

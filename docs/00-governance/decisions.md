@@ -2204,3 +2204,7 @@
 ## D-137 — 阶段 6 第十八批：对象变更时间线（2026-10-08，循环批次）
 
 循环批次（automation 6）交付对象变更时间线：`ObjectTimelineDrawer` 按对象类型 + 对象标识调 `listObjectChangeLog`，以时间线展示该对象全部变更（动作、结果标签、操作人与角色、来源 IP），只读不可删除（`REQ-AUD-023` / `BR-AUDIT-003`）；列表行内「时间线」入口与「详情」并列。行上缺少对象类型或对象标识时直接给空态，不拼假标识调接口。门禁：结构对照 15 项通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_audit-object-timeline_verification.log`。同时补记：上一轮 CR-061 的两次 push 被 GitHub 以 `Internal Server Error` 拒绝，本轮重试成功（`0917870..fd05b91`），本地提交无丢失。下一轮：运营访问记录 / 敏感数据访问 / 登录与安全事件 / 归档管理。
+
+## D-138 — 阶段 6 第十九批：运营访问记录（2026-10-08，循环批次）
+
+循环批次（automation 6）交付运营访问记录页（`/edu/audit/operator-access`）：表格 7 列（访问时间 / 运营账号 / 对象类型 / 对象标识 / 访问动作 / 用途说明 / 来源 IP）+ 分页 + 导出，页面说明运营访问归属被访问租户、租户可自助查询与导出（`REQ-AUD-013` / `015` / `016`）；接口层补 `listOperatorAccess`。结构对照沿用 v1 适配：原型的「访问时间」列没有 `data-role` 标记，用 `extra_columns` 显式登记（与操作日志页的「时间」列同一情形）。门禁：结构对照 16 项通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_audit-ops-access_verification.log`。阶段 6 累计 13 条生产路由；下轮：敏感数据访问 / 登录与安全事件 / 归档管理。

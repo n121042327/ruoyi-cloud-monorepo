@@ -790,3 +790,11 @@
 | `docs/00-governance/change-requests/CR-062.md` | 对象变更时间线的交付与门禁记录 | `review` |
 | `apps/plus-ui/src/views/edu/audit/audit_log_list/components/ObjectTimelineDrawer.vue` | 对象变更时间线抽屉 | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_audit-object-timeline_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第十九批：运营访问记录
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-063.md` | 运营访问记录的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/audit/audit_ops_access/index.vue` | 运营访问记录页 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_audit-ops-access_verification.log` | 本批门禁证据 | `review` |

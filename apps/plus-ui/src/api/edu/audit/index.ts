@@ -39,8 +39,22 @@ export const listObjectChangeLog = (objectType: string, objectId: string): Axios
   });
 };
 
+/**
+ * 运营访问记录（租户侧自助查询：平台运营对本租户数据的访问留痕，REQ-AUD-013 / 015）
+ *
+ * 对应 operationId `listOperatorAccess`（GET /edu/audit/operator-access/list）。
+ */
+export const listOperatorAccess = (query?: OperationLogQuery): AxiosPromise<OperationLogVO[]> => {
+  return request({
+    url: '/edu/audit/operator-access/list',
+    method: 'get',
+    params: query
+  });
+};
+
 export default {
   listOperationLog,
   getOperationLog,
-  listObjectChangeLog
+  listObjectChangeLog,
+  listOperatorAccess
 };
