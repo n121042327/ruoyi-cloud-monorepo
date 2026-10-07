@@ -221,6 +221,20 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: { title: '学年学期', icon: 'date' }
       }
     ]
+  },
+  {
+    path: '/edu/school/list',
+    component: Layout,
+    hidden: true,
+    permissions: ['org.school:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/school/sch_list/index.vue'),
+        name: 'EduSchoolList',
+        meta: { title: '学校管理', icon: 'tree' }
+      }
+    ]
   }
 ];
 

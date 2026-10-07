@@ -2188,3 +2188,7 @@
 ## D-133 — 阶段 6 第十四批：学年学期列表页（2026-10-08）
 
 按 CR-058 交付学年学期列表页：表格 7 列（学年 / 开始日期 / 结束日期 / 学期数 / 当前学年学期 / 状态 / 操作），行内「设为当前」走 `setCurrentTerm` 并二次确认；学期管理与归档留待下一批。接口层补 `listAcademicYear` / `setCurrentTerm` 与 `AcademicYearVO` / `AcademicYearQuery`；路由登记 `/edu/term/list`（`org.term:read`）。结构对照检查器本批补了三处 v1 适配：列解析限定在主表内（避免把展开行 / 嵌套小表的表头算进来）、操作列在原型无标记时按列名识别、新增 `deferred_labels`（按列名登记本批不做的列，如学科页的操作列）与 `extra_columns`（生产页保留、原型未标记的列，如学年页的「学年」列）。门禁：结构对照 13 项全通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线，新增 0）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_term-list_verification.log`。阶段 6 累计 9 条生产路由；剩余队列：学校、审计、异步任务、班级详情与花名册、编班导入、升班向导、选科与教学班。
+
+## D-134 — 阶段 6 第十五批：学校管理列表页（2026-10-08）
+
+按 CR-059 交付学校管理列表页：查询区 3 项（学校名称 / 编码 → 学段 → 状态）、表格 9 列（学校名称 / 学校编码 / 开设学段 / 校区数 / 班级数 / 在读学生 / 状态 / 所属租户 / 操作），行内「停用 / 启用」做二次确认（停用需填原因，对应 `REQ-SCH-036` ~ `039`）。接口层补 `disableSchool` / `enableSchool` 与 `SchoolQuery`，扩展 `SchoolVO`；路由登记 `/edu/school/list`（`org.school:read`）。本批在结构对照上踩到一个真问题并修正：v1 `school-list.html` 的主表（`data-role="table"`）里「学校名称」列没有 `data-role` 标记，导致检查器的期望列比生产页少一列；处理方式不是放宽列数比较，而是用 `extra_columns` 显式登记「生产页保留学校名称列，原因是原型该列未标记」，与学年页的「学年」列同一机制。门禁：结构对照 14 项全通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线，新增 0）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_school-list_verification.log`。阶段 6 累计 10 条生产路由；剩余队列：审计 7 页、异步任务 4 页、校区管理 / 开通初始化 / 学年学期弹窗、班级详情与花名册、编班导入、升班向导、选科与教学班。

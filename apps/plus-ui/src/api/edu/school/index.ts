@@ -2,15 +2,30 @@ import request from '@/utils/request';
 import { AxiosPromise } from 'axios';
 import { CampusVO, SchoolVO } from './types';
 
+/** 学校列表查询参数 */
+export interface SchoolQuery extends Partial<PageQuery> {
+  /** 集团 */
+  parentTenantId?: string;
+  schoolName?: string;
+  schoolCode?: string;
+  /** 办学类型 */
+  schoolType?: string;
+  status?: string;
+  stageCode?: string;
+  /** 关键字：学校名称 / 学校编码 */
+  keyword?: string;
+}
+
 /**
  * 查询学校列表（学生列表查询区的「学校」下拉，仅平台运营可切换）
  *
  * 对应 operationId `listSchool`（GET /edu/school/list）。
  */
-export const listSchool = (): AxiosPromise<SchoolVO[]> => {
+export const listSchool = (query?: SchoolQuery): AxiosPromise<SchoolVO[]> => {
   return request({
     url: '/edu/school/list',
-    method: 'get'
+    method: 'get',
+    params: query
   });
 };
 
@@ -38,8 +53,35 @@ export const listCampus = (schoolId: string): AxiosPromise<CampusVO[]> => {
   });
 };
 
+/**
+ * 停用学校（需二次确认并填写原因；停用后该校租户下所有人员登录与写操作被拒绝，历史数据保留）
+ *
+ * 对应 operationId `disableSchool`（POST /edu/school/{id}/disable）。
+ */
+export const disableSchool = (schoolId: string, reason: string) => {
+  return request({
+    url: `/edu/school/${schoolId}/disable`,
+    method: 'post',
+    data: { reason }
+  });
+};
+
+/**
+ * 启用学校
+ *
+ * 对应 operationId `enableSchool`（POST /edu/school/{id}/enable）。
+ */
+export const enableSchool = (schoolId: string) => {
+  return request({
+    url: `/edu/school/${schoolId}/enable`,
+    method: 'post'
+  });
+};
+
 export default {
   listSchool,
   getCurrentSchool,
-  listCampus
+  listCampus,
+  disableSchool,
+  enableSchool
 };

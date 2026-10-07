@@ -3,6 +3,19 @@ export interface SchoolVO {
   schoolId: string;
   schoolName: string;
   schoolCode?: string;
+  /** 开设学段（多个以逗号分隔） */
+  stageCodes?: string;
+  campusCount?: number;
+  classCount?: number;
+  studentCount?: number;
+  /** 状态：正常 / 已停用 */
+  status?: string;
+  /** 所属租户 */
+  tenantId?: string;
+  /** 上级集团（无集团时为空） */
+  parentTenantId?: string;
+  address?: string;
+  contactPhone?: string;
   /** 是否为当前登录用户所属学校 */
   current?: boolean;
 }

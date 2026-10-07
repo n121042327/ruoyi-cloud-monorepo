@@ -72,6 +72,14 @@ CHECKS = [
         "deferred_groups": {},
         "extra_columns": {"学年": "v1 原型的「学年」列没有 data-role 标记，生产页保留学年编码列"},
     },
+    {
+        "page_id": "PAGE-SCH-LIST",
+        "name": "学校管理列表",
+        "prototype": "prototypes/functional/v1/pages/school-list.html",
+        "vue": "apps/plus-ui/src/views/edu/school/sch_list/index.vue",
+        "deferred_groups": {},
+        "extra_columns": {"学校名称": "v1 原型的「学校名称」列没有 data-role 标记，生产页保留学校名称列"},
+    },
 ]
 
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）

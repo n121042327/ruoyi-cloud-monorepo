@@ -757,3 +757,11 @@
 | `docs/00-governance/change-requests/CR-058.md` | 学年学期列表页的交付与门禁记录 | `review` |
 | `apps/plus-ui/src/views/edu/term/term_list/index.vue` | 学年学期列表页 | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_term-list_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |
+
+## 2026-10-08 阶段 6 第十五批：学校管理列表页
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-059.md` | 学校列表页的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/school/sch_list/index.vue` | 学校管理列表页 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_school-list_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |
