@@ -2224,3 +2224,7 @@
 ## D-142 — 阶段 6 第二十三批：异动历史（2026-10-08，循环批次）
 
 循环批次（automation 6）交付异动历史页（`/edu/promotion/history`）：查询区 4 项（学年学期 → 年级 → 异动类型 → 生效日期）、表格 8 列（学号 / 姓名 / 异动类型 / 生效日期 / 原状态 / 新状态 / 操作人 / 原因）+ 分页；接口层补 `listEnrollmentChange` 与相应类型。口径：异动历史可查不可删（`REQ-PRM-048`），记录含类型 / 生效日期 / 原因 / 操作人 / 原状态 / 新状态（`REQ-PRM-038`）。结构对照沿用 v2 原型适配：原型的「学号」列没有 `data-role` 标记 → `extra_columns` 显式登记；「操作」列（异动详情）→ `deferred_labels` 登记延后原因。门禁：结构对照 22 项通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_promotion-history_verification.log`。阶段 6 累计 19 条生产路由；下轮：升班向导 6 步 / 校区管理与开通初始化。
+
+## D-143 — 阶段 6 第二十四批：校区管理（2026-10-08，循环批次）
+
+循环批次（automation 6）交付校区管理页（`/edu/school/campus`）：表格 7 列（校区名称 / 校区编码 / 地址 / 负责人 / 班级数 / 状态 / 操作）+ 分页，行内「停用」二次确认且必填原因（`REQ-SCH-030` / `031`）；页面按 `getCurrentSchool` 取本校后列本校校区，并说明校区不参与数据权限判定（`REQ-SCH-028`）。接口层补 `removeCampus`（带原因）与 `CampusVO` 的编码 / 地址 / 负责人 / 班级数字段。结构对照沿用 v1 适配：原型的「校区名称」列没有 `data-role` 标记 → `extra_columns` 登记。门禁：结构对照 23 项通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_school-campus_verification.log`。阶段 6 累计 20 条生产路由；下轮：开通初始化、新建学年 / 学期管理。

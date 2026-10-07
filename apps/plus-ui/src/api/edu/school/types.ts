@@ -25,5 +25,12 @@ export interface CampusVO {
   campusId: string;
   campusName: string;
   schoolId: string;
+  /** 校区编码 */
+  campusCode?: string;
+  address?: string;
+  /** 负责人 */
+  leader?: string;
+  /** 班级数 */
+  classCount?: number;
   status?: string;
 }

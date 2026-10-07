@@ -832,3 +832,11 @@
 | `docs/00-governance/change-requests/CR-067.md` | 异动历史页的交付与门禁记录 | `review` |
 | `apps/plus-ui/src/views/edu/promotion/prm_history/index.vue` | 异动历史页 | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_promotion-history_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第二十四批：校区管理
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-068.md` | 校区管理页的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/school/sch_campus/index.vue` | 校区管理页 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_school-campus_verification.log` | 本批门禁证据 | `review` |

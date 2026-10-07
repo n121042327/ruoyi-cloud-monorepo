@@ -147,6 +147,14 @@ CHECKS = [
         "deferred_labels": {"操作": "异动详情抽屉在后续轮次交付"},
         "extra_columns": {"学号": "v2 原型的学号列没有 data-role 标记，生产页保留学号列"},
     },
+    {
+        "page_id": "PAGE-SCH-CAMPUS",
+        "name": "校区管理",
+        "prototype": "prototypes/functional/v1/pages/school-campus.html",
+        "vue": "apps/plus-ui/src/views/edu/school/sch_campus/index.vue",
+        "deferred_groups": {},
+        "extra_columns": {"校区名称": "v1 原型的校区名称列没有 data-role 标记，生产页保留校区名称列"},
+    },
 ]
 
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）

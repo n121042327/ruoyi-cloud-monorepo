@@ -78,10 +78,24 @@ export const enableSchool = (schoolId: string) => {
   });
 };
 
+/**
+ * 停用 / 删除校区（已被班级引用的校区不允许删除，只允许停用，REQ-SCH-030）
+ *
+ * 对应 operationId `removeCampus`（DELETE /edu/school/campus/{id}）。
+ */
+export const removeCampus = (campusId: string, reason?: string) => {
+  return request({
+    url: `/edu/school/campus/${campusId}`,
+    method: 'delete',
+    params: { reason }
+  });
+};
+
 export default {
   listSchool,
   getCurrentSchool,
   listCampus,
   disableSchool,
-  enableSchool
+  enableSchool,
+  removeCampus
 };

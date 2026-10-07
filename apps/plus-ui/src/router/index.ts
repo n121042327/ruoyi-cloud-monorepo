@@ -347,6 +347,20 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: { title: '异动历史', icon: 'list' }
       }
     ]
+  },
+  {
+    path: '/edu/school/campus',
+    component: Layout,
+    hidden: true,
+    permissions: ['org.school:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/school/sch_campus/index.vue'),
+        name: 'EduSchoolCampus',
+        meta: { title: '校区管理', icon: 'tree' }
+      }
+    ]
   }
 ];
 
