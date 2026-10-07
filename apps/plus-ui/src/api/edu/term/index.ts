@@ -52,9 +52,23 @@ export const setCurrentTerm = (termId: string) => {
   });
 };
 
+/**
+ * 删除学期（已被班级 / 任教关系 / 花名册引用的学期不允许删除，REQ-TERM-019）
+ *
+ * 对应 operationId `removeTerm`（DELETE /edu/term/{id}）。
+ */
+export const removeTerm = (termId: string, reason?: string) => {
+  return request({
+    url: `/edu/term/${termId}`,
+    method: 'delete',
+    params: { reason }
+  });
+};
+
 export default {
   listTerm,
   getCurrentTerm,
   listAcademicYear,
-  setCurrentTerm
+  setCurrentTerm,
+  removeTerm
 };

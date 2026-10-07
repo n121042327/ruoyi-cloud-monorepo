@@ -848,3 +848,11 @@
 | `docs/00-governance/change-requests/CR-069.md` | 开通初始化向导的交付与门禁记录 | `review` |
 | `apps/plus-ui/src/views/edu/school/sch_init/index.vue` | 开通初始化 4 步向导 | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_school-init_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第二十六批：学期管理页
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-070.md` | 学期管理页的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/term/term_terms/index.vue` | 学期管理列表页（含删除必填原因） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_term-terms_verification.log` | 本批门禁证据 | `review` |

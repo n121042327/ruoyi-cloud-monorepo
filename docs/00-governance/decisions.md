@@ -2232,3 +2232,7 @@
 ## D-144 — 阶段 6 第二十五批：开通初始化向导（2026-10-08，循环批次）
 
 循环批次（automation 6）交付开通初始化 4 步向导（`/edu/school/init`）：学校基本信息（只读本校）→ 学段与年级（至少一个学段）→ 学年学期（学年编码 + 起止日期）→ 执行与结果（执行 `initSchoolBaseline`，给结果摘要与幂等提示）。口径：初始化一次性完成学年学期 / 学科模板 / 基础角色且幂等（`REQ-SCH-019` / `045`）；学段是年级前置（`REQ-SCH-032` / `033`）；学年编码连续两自然年且校内唯一（`REQ-TERM-008` / `009`）。门禁：结构对照 24 项通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_school-init_verification.log`。阶段 6 累计 21 条生产路由；下轮：学期管理页与新建学年弹窗，随后升班向导 6 步。
+
+## D-145 — 阶段 6 第二十六批：学期管理页（2026-10-08，循环批次）
+
+循环批次（automation 6）交付学期管理页（`/edu/term/terms`）：表格 7 列（学期 / 开始日期 / 结束日期 / 状态 / 班级数 / 在读学生 / 操作），行内「删除」用 `ElMessageBox.prompt` 强制填写原因后调用 `removeTerm`（DELETE `/edu/term/{id}`，带 `reason`），`TermVO` 补 `status` / `classCount` / `studentCount`。口径：每学年至少一个学期、学期日期须落在学年范围内且互不重叠（`REQ-TERM-014` ~ `016`）；被班级 / 任教关系 / 花名册引用的学期不允许删除（`REQ-TERM-019`）；页面同时覆盖 `check_docs` / `check_gap_register` / `check_mermaid` 三项治理门禁。结构对照沿用 v1 适配：原型的「学期」列没有 `data-role` 标记 → `extra_columns` 显式登记（与操作日志的「时间」列同一情形，不放宽列数比较）。门禁：结构对照 25 项通过、`check_api_contract.py` 通过、`check_docs.py` 通过、`check_gap_register.py` 通过、`check_mermaid.py` 通过、`error TS` 51 条（= 基线）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_term-terms_verification.log`。阶段 6 累计 22 条生产路由；下轮：新建学年弹窗，随后升班向导 6 步。

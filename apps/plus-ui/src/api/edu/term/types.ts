@@ -7,6 +7,11 @@ export interface TermVO {
   /** 学期开始日期（调班生效日期默认取当前学年学期开始日） */
   startDate?: string;
   endDate?: string;
+  /** 学期状态：进行中 / 已结束 / 已归档 */
+  status?: string;
+  /** 班级数与在读学生数（学期管理页展示） */
+  classCount?: number;
+  studentCount?: number;
   /** 是否为当前学年学期 */
   current?: boolean;
 }

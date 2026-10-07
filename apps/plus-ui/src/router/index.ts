@@ -375,6 +375,20 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: { title: '开通初始化', icon: 'tree' }
       }
     ]
+  },
+  {
+    path: '/edu/term/terms',
+    component: Layout,
+    hidden: true,
+    permissions: ['org.term:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/term/term_terms/index.vue'),
+        name: 'EduTermTerms',
+        meta: { title: '学期管理', icon: 'date' }
+      }
+    ]
   }
 ];
 

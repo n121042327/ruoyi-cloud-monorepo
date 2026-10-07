@@ -167,6 +167,14 @@ CHECKS = [
             ("执行与结果", ["执行与结果"]),
         ],
     },
+    {
+        "page_id": "PAGE-TERM-TERMS",
+        "name": "学期管理",
+        "prototype": "prototypes/functional/v1/pages/term-terms.html",
+        "vue": "apps/plus-ui/src/views/edu/term/term_terms/index.vue",
+        "deferred_groups": {},
+        "extra_columns": {"学期": "v1 原型的学期列没有 data-role 标记，生产页保留学期名称列"},
+    },
 ]
 
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）
