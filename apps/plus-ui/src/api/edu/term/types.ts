@@ -37,3 +37,29 @@ export interface AcademicYearQuery extends Partial<PageQuery> {
   academicYearCode?: string;
   status?: string;
 }
+
+/** 新建 / 编辑学年的表单体（PAGE-TERM-CREATE） */
+export interface AcademicYearForm {
+  academicYearId?: string;
+  schoolId?: string;
+  /** 学年编码，格式 YYYY-YYYY（连续两个自然年，校内唯一，REQ-TERM-008 / 009） */
+  academicYearCode: string;
+  startDate?: string;
+  endDate?: string;
+  /** 创建时一并生成的学期数：2（默认）或 1（REQ-TERM-012） */
+  termCount?: number;
+}
+
+/** 学年引用检查结果（归档前展示，REQ-TERM-029 / 034） */
+export interface AcademicYearReference {
+  /** 班级数 */
+  classCount?: number;
+  /** 任教关系数 */
+  teachingRelationCount?: number;
+  /** 花名册人数 */
+  rosterCount?: number;
+  /** 选科人数 */
+  subjectChoiceCount?: number;
+  /** 是否已产生引用（有引用时只允许归档，不允许删除，REQ-TERM-028） */
+  referenced?: boolean;
+}

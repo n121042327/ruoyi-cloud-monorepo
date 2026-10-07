@@ -10,6 +10,9 @@
           <el-col :span="1.5">
             <el-button v-hasPermi="['org.term:update']" type="primary" plain icon="Refresh" @click="getList">刷新</el-button>
           </el-col>
+          <el-col :span="1.5">
+            <el-button v-hasPermi="['org.term:create']" type="primary" plain icon="Plus" @click="handleCreate">新建学年</el-button>
+          </el-col>
           <right-toolbar v-model:show-search="showSearch" :columns="columns" :search="false" @query-table="getList"></right-toolbar>
         </el-row>
       </template>
@@ -27,11 +30,17 @@
             <el-tag :type="scope.row.status === '已归档' ? 'info' : 'success'" size="small">{{ scope.row.status || '进行中' }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column fixed="right" label="操作" width="220" data-layout-group="操作">
+        <el-table-column fixed="right" label="操作" width="300" data-layout-group="操作">
           <template #default="scope">
-            <el-button v-hasPermi="['org.term:update']" link type="primary" @click="handleSetCurrent(scope.row)">设为当前</el-button>
-            <el-button v-hasPermi="['org.term:update']" link type="primary" @click="handleTerms">学期管理</el-button>
-            <el-button v-hasPermi="['org.term:remove']" link type="primary" @click="handleArchive">归档</el-button>
+            <el-button v-hasPermi="['org.term:update']" link type="primary" @click="handleEdit(scope.row)">编辑</el-button>
+            <el-button v-hasPermi="['org.term:read']" link type="primary" @click="handleTerms(scope.row)">学期管理</el-button>
+            <el-button v-if="scope.row.status !== '已归档'" v-hasPermi="['org.term:update']" link type="primary" @click="handleSetCurrent(scope.row)"
+              >设为当前</el-button
+            >
+            <el-button v-if="scope.row.status !== '已归档'" v-hasPermi="['org.term:update']" link type="primary" @click="handleArchive(scope.row)"
+              >归档</el-button
+            >
+            <el-button v-else v-hasPermi="['org.term:update']" link type="primary" @click="handleRevokeArchive(scope.row)">撤销归档</el-button>
           </template>
         </el-table-column>
 
@@ -48,23 +57,31 @@
         @pagination="getList"
       />
     </el-card>
+
+    <AcademicYearFormDialog ref="formDialogRef" @success="getList" />
+    <AcademicYearArchiveDialog ref="archiveDialogRef" @success="getList" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { listAcademicYear } from '@/api/edu/term';
+import { listAcademicYear, revokeArchiveAcademicYear, setCurrentTerm } from '@/api/edu/term';
 import type { AcademicYearQuery, AcademicYearVO } from '@/api/edu/term/types';
-import { setCurrentTerm } from '@/api/edu/term';
 import { checkPermi } from '@/utils/permission';
+import AcademicYearFormDialog from './components/AcademicYearFormDialog.vue';
+import AcademicYearArchiveDialog from './components/AcademicYearArchiveDialog.vue';
 
 defineOptions({ name: 'EduTermList' });
 
+const router = useRouter();
 const loading = ref(false);
 const showSearch = ref(true);
 const total = ref(0);
 const yearList = ref<AcademicYearVO[]>([]);
+const formDialogRef = ref<InstanceType<typeof AcademicYearFormDialog>>();
+const archiveDialogRef = ref<InstanceType<typeof AcademicYearArchiveDialog>>();
 
 const queryParams = reactive<AcademicYearQuery>({ pageNum: 1, pageSize: 20, schoolId: '', academicYearCode: '', status: '' });
 
@@ -111,12 +128,36 @@ const handleSetCurrent = async (row: AcademicYearVO) => {
   await getList();
 };
 
-const handleTerms = () => {
-  ElMessage.info('学期管理在阶段 6 的下一批交付');
+const handleTerms = (_row?: AcademicYearVO) => {
+  router.push('/edu/term/terms');
 };
 
-const handleArchive = () => {
-  ElMessage.info('学年归档在阶段 6 的下一批交付');
+/** 新建学年：打开 PAGE-TERM-CREATE 弹窗 */
+const handleCreate = () => {
+  formDialogRef.value?.open();
+};
+
+/** 编辑学年：回填表单，学年编码不可改 */
+const handleEdit = (row: AcademicYearVO) => {
+  formDialogRef.value?.open(row);
+};
+
+/** 归档学年：打开 PAGE-TERM-ARCHIVE 弹窗，先展示引用检查结果 */
+const handleArchive = (row: AcademicYearVO) => {
+  archiveDialogRef.value?.open(row);
+};
+
+/** 撤销归档：误操作纠正，写审计（REQ-TERM-033） */
+const handleRevokeArchive = async (row: AcademicYearVO) => {
+  const { value } = await ElMessageBox.prompt('撤销归档后该学年重新回到新建业务的可选列表，请输入撤销原因（至少 5 个字）', '撤销归档', {
+    confirmButtonText: '确认撤销',
+    cancelButtonText: '取消',
+    inputPattern: /^.{5,}$/,
+    inputErrorMessage: '撤销原因至少 5 个字'
+  });
+  await revokeArchiveAcademicYear(row.academicYearId, value);
+  ElMessage.success('已撤销归档');
+  await getList();
 };
 
 onMounted(getList);

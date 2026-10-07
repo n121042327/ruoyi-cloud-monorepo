@@ -247,6 +247,20 @@ OVERLAY_CHECKS = [
             ("执行与进度", ["执行与进度"]),
         ],
     },
+    {
+        "page_id": "PAGE-TERM-CREATE",
+        "name": "新建 / 编辑学年弹窗",
+        "prototype": "prototypes/functional/v1/pages/term-list.html",
+        "vue": "apps/plus-ui/src/views/edu/term/term_list/components/AcademicYearFormDialog.vue",
+        "groups": ["学年信息"],
+    },
+    {
+        "page_id": "PAGE-TERM-ARCHIVE",
+        "name": "学年归档弹窗",
+        "prototype": "prototypes/functional/v1/pages/term-list.html",
+        "vue": "apps/plus-ui/src/views/edu/term/term_list/components/AcademicYearArchiveDialog.vue",
+        "groups": ["归档信息"],
+    },
 ]
 
 FILTER_SECTION_START = 'data-role="filter"'

@@ -856,3 +856,12 @@
 | `docs/00-governance/change-requests/CR-070.md` | 学期管理页的交付与门禁记录 | `review` |
 | `apps/plus-ui/src/views/edu/term/term_terms/index.vue` | 学期管理列表页（含删除必填原因） | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_term-terms_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第二十七批：新建 / 编辑学年与学年归档弹窗
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-071.md` | 学年弹窗与归档弹窗的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/term/term_list/components/AcademicYearFormDialog.vue` | 新建 / 编辑学年弹窗（PAGE-TERM-CREATE） | `已实现` |
+| `apps/plus-ui/src/views/edu/term/term_list/components/AcademicYearArchiveDialog.vue` | 学年归档弹窗（PAGE-TERM-ARCHIVE，含引用检查） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_term-year-dialogs_verification.log` | 本批门禁证据 | `review` |
