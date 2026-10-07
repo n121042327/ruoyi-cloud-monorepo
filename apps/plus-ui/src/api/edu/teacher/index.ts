@@ -1,6 +1,6 @@
 import request from '@/utils/request';
 import { AxiosPromise } from 'axios';
-import { TeacherQuery, TeacherVO } from './types';
+import { TeacherForm, TeacherQuery, TeacherVO } from './types';
 
 /**
  * 查询教师列表（班级列表查询区与新建表单的「班主任」下拉）
@@ -15,6 +15,34 @@ export const listTeacher = (query?: TeacherQuery): AxiosPromise<TeacherVO[]> => 
   });
 };
 
+/**
+ * 新增教师（保存成功后自动创建登录账号）
+ *
+ * 对应 operationId `addTeacher`（POST /edu/teacher）。
+ */
+export const addTeacher = (data: TeacherForm) => {
+  return request({
+    url: '/edu/teacher',
+    method: 'post',
+    data
+  });
+};
+
+/**
+ * 编辑教师（工号修改需校级管理员权限并留审计，REQ-TCH-022）
+ *
+ * 对应 operationId `updateTeacher`（PUT /edu/teacher）。
+ */
+export const updateTeacher = (data: TeacherForm) => {
+  return request({
+    url: '/edu/teacher',
+    method: 'put',
+    data
+  });
+};
+
 export default {
-  listTeacher
+  listTeacher,
+  addTeacher,
+  updateTeacher
 };

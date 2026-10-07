@@ -724,3 +724,11 @@
 | `docs/00-governance/change-requests/CR-054.md` | 阶段 7 骨架与第一条纵切的交付记录 | `review` |
 | `services/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-edu/**` | 教育业务服务模块（pom / 启动类 / 学生模块纵切 / application.yml） | `已实现` |
 | `evidence/stage7-backend/2026-10-08_ruoyi-edu_compile.log` | 编译验证输出 | `review` |
+
+## 2026-10-08 阶段 6 第十一批：年级管理列表页
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-055.md` | 年级列表页的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/grade/grd_list/index.vue` | 年级管理列表页（查询区 / 工具栏 / 表格 / 分页 / 无权限态） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_grade-list_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |

@@ -165,6 +165,20 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: { title: '学生批量导入', icon: 'upload' }
       }
     ]
+  },
+  {
+    path: '/edu/grade/list',
+    component: Layout,
+    hidden: true,
+    permissions: ['org.grade:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/grade/grd_list/index.vue'),
+        name: 'EduGradeList',
+        meta: { title: '年级管理', icon: 'tree' }
+      }
+    ]
   }
 ];
 
