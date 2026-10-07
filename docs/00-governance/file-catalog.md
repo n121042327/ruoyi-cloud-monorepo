@@ -980,3 +980,17 @@
 | `.../service/IEduClassService.java` + `impl/EduClassServiceImpl.java` | 班级服务层（12 个方法） | `已实现` |
 | `.../controller/EduClassController.java` | 班级控制器（12 个端点） | `已实现` |
 | `evidence/stage7-backend/2026-10-08_edu-class_compile.log` | 本批编译证据（BUILD SUCCESS / 39 个 class） | `review` |
+
+## 2026-10-08 阶段 7 第三批：年级模块纵切
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-082.md` | 年级模块纵切的交付与编译证据 | `review` |
+| `.../domain/EduGrade.java` | 年级实体（edu_grade） | `已实现` |
+| `.../domain/EduGradeLeader.java` | 年级主任任职实体（edu_grade_leader，DS-05 权威来源） | `已实现` |
+| `.../domain/bo/EduGradeBo.java` | 年级业务对象（含批量与任职字段） | `已实现` |
+| `.../domain/vo/EduGradeVo.java` / `EduGradeLeaderVo.java` | 年级 / 任职视图对象 | `已实现` |
+| `.../mapper/EduGradeMapper.java` / `EduGradeLeaderMapper.java` | 年级 / 任职数据层 | `已实现` |
+| `.../service/IEduGradeService.java` + `impl/EduGradeServiceImpl.java` | 年级服务层（11 个方法） | `已实现` |
+| `.../controller/EduGradeController.java` | 年级控制器（11 个端点） | `已实现` |
+| `evidence/stage7-backend/2026-10-08_edu-grade_compile.log` | 本批编译证据（BUILD SUCCESS / 59 个 class） | `review` |
