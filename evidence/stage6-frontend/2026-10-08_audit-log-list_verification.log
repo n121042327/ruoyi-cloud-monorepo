@@ -1,0 +1,21 @@
+# 阶段 6 证据：操作日志列表页（CR-060，2026-10-08）
+
+$ python tools/check_fe_page_structure.py   (exit 0)
+  表格列顺序与分组一致：11 列（学号(基础信息) → 姓名(基础信息) → 性别(基础信息) → 入学年份(教育信息) → 学段(教育信息) → 年级(教育信息) → 班级(教育信息) → 学籍状态(教育信息) → 联系电话(联系方式) → 更新时间(管理信息) → 操作(操作)）
+=== PAGE-AUDIT-LOG-LIST 操作日志列表 ===
+  原型没有查询区标记，生产页查询项（4 项）：时间范围 → 操作人 → 操作类型 → 结果 —— 审计 PRD 4.4 要求按时间范围 / 操作人 / 对象 / 操作类型筛选，v1 原型未给查询区标记
+
+$ python tools/check_api_contract.py   (exit 0)
+OpenAPI operationId：181 个
+通过：接口契约一致
+
+$ pnpm --filter @edu/plus-ui typecheck   (exit 1)
+error TS 总数：51（基线 51，本批新增 0）
+
+$ pnpm --filter @edu/plus-ui lint:eslint   (exit 1)
+汇总：✖ 124 problems (124 errors, 0 warnings)（基线 124 项）
+新增文件相关报错：无
+
+$ pnpm --filter @edu/plus-ui run build:prod   (exit 0)
+构建结果：成功（built in）
+

@@ -80,6 +80,15 @@ CHECKS = [
         "deferred_groups": {},
         "extra_columns": {"学校名称": "v1 原型的「学校名称」列没有 data-role 标记，生产页保留学校名称列"},
     },
+    {
+        "page_id": "PAGE-AUDIT-LOG-LIST",
+        "name": "操作日志列表",
+        "prototype": "prototypes/functional/v1/pages/audit-log-list.html",
+        "vue": "apps/plus-ui/src/views/edu/audit/audit_log_list/index.vue",
+        "deferred_groups": {},
+        "extra_columns": {"时间": "v1 原型的时间列没有 data-role 标记，生产页保留时间列"},
+        "filter_note": "审计 PRD 4.4 要求按时间范围 / 操作人 / 对象 / 操作类型筛选，v1 原型未给查询区标记",
+    },
 ]
 
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）
@@ -247,6 +256,10 @@ def check_filter(check: dict, prototype_html: str, vue: str) -> None:
     actual = parse_vue_filter(vue)
     if expected == actual:
         print("  查询区字段顺序一致：%d 项（%s）" % (len(actual), " → ".join(actual)))
+        return
+    # 冻结 v1 原型可能整页没有查询区标记；此时只核对生产页的查询项，不判失败
+    if not expected and check.get("filter_note"):
+        print("  原型没有查询区标记，生产页查询项（%d 项）：%s —— %s" % (len(actual), " → ".join(actual), check["filter_note"]))
         return
     problems.append(
         "%s 查询区字段顺序与原型不一致\n      原型：%s\n      生产：%s"

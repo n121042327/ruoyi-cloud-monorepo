@@ -93,7 +93,8 @@
 import { computed, getCurrentInstance, onMounted, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { disableSchool, enableSchool, listSchool } from '@/api/edu/school';
-import type { SchoolQuery, SchoolVO } from '@/api/edu/school/types';
+import type { SchoolQuery } from '@/api/edu/school';
+import type { SchoolVO } from '@/api/edu/school/types';
 import { STAGE_CODE_LABEL, STAGE_CODE_OPTIONS } from '@/enums/edu/StudentEnum';
 import { checkPermi } from '@/utils/permission';
 

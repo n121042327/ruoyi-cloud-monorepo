@@ -765,3 +765,12 @@
 | `docs/00-governance/change-requests/CR-059.md` | 学校列表页的交付与门禁记录 | `review` |
 | `apps/plus-ui/src/views/edu/school/sch_list/index.vue` | 学校管理列表页 | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_school-list_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |
+
+## 2026-10-08 阶段 6 第十六批：操作日志列表页
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-060.md` | 操作日志列表页的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/audit/audit_log_list/index.vue` | 操作日志列表页 | `已实现` |
+| `apps/plus-ui/src/api/edu/audit/**` | 审计接口层（操作日志查询与详情） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_audit-log-list_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |

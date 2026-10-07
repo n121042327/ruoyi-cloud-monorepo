@@ -235,6 +235,20 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: { title: '学校管理', icon: 'tree' }
       }
     ]
+  },
+  {
+    path: '/edu/audit/log/list',
+    component: Layout,
+    hidden: true,
+    permissions: ['audit.log:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/audit/audit_log_list/index.vue'),
+        name: 'EduAuditLogList',
+        meta: { title: '操作日志', icon: 'list' }
+      }
+    ]
   }
 ];
 

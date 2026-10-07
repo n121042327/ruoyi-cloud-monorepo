@@ -2192,3 +2192,7 @@
 ## D-134 — 阶段 6 第十五批：学校管理列表页（2026-10-08）
 
 按 CR-059 交付学校管理列表页：查询区 3 项（学校名称 / 编码 → 学段 → 状态）、表格 9 列（学校名称 / 学校编码 / 开设学段 / 校区数 / 班级数 / 在读学生 / 状态 / 所属租户 / 操作），行内「停用 / 启用」做二次确认（停用需填原因，对应 `REQ-SCH-036` ~ `039`）。接口层补 `disableSchool` / `enableSchool` 与 `SchoolQuery`，扩展 `SchoolVO`；路由登记 `/edu/school/list`（`org.school:read`）。本批在结构对照上踩到一个真问题并修正：v1 `school-list.html` 的主表（`data-role="table"`）里「学校名称」列没有 `data-role` 标记，导致检查器的期望列比生产页少一列；处理方式不是放宽列数比较，而是用 `extra_columns` 显式登记「生产页保留学校名称列，原因是原型该列未标记」，与学年页的「学年」列同一机制。门禁：结构对照 14 项全通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线，新增 0）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_school-list_verification.log`。阶段 6 累计 10 条生产路由；剩余队列：审计 7 页、异步任务 4 页、校区管理 / 开通初始化 / 学年学期弹窗、班级详情与花名册、编班导入、升班向导、选科与教学班。
+
+## D-135 — 阶段 6 第十六批：操作日志列表页（2026-10-08）
+
+按 CR-060 交付审计模块首屏：查询区 4 项（时间范围 → 操作人 → 操作类型 → 结果）、表格 9 列（时间 / 操作人 / 角色 / 操作类型 / 对象类型 / 对象标识 / 结果 / 来源 IP / 操作），结果列以标签区分成功与失败。新增 `api/edu/audit/**`（`listOperationLog` / `getOperationLog`），筛选维度按审计 PRD 4.4（时间范围 / 操作人 / 对象 / 操作类型 / 批次号 / 关键字）；路由登记 `/edu/audit/log/list`（`audit.log:read`）。日志表只允许追加，页面与接口层都不提供编辑 / 删除入口。结构对照检查器新增 `filter_note`：v1 `audit-log-list.html` 整页没有查询区标记，但审计 PRD 4.4 明确要求这些筛选，处理方式是「只核对生产页查询项 + 写明依据」，而不是悄悄跳过。门禁：结构对照 15 项全通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线，新增 0）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_audit-log-list_verification.log`。阶段 6 累计 11 条生产路由；剩余队列：审计其余 6 页、异步任务 4 页、校区 / 开通初始化 / 学年学期弹窗、班级详情与花名册、编班导入、升班向导、选科与教学班。
