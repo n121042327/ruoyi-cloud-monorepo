@@ -193,6 +193,20 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: { title: '教师管理', icon: 'user' }
       }
     ]
+  },
+  {
+    path: '/edu/subject/list',
+    component: Layout,
+    hidden: true,
+    permissions: ['org.subject:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/subject/sub_list/index.vue'),
+        name: 'EduSubjectList',
+        meta: { title: '学科与配置', icon: 'list' }
+      }
+    ]
   }
 ];
 
