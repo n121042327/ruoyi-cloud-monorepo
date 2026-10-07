@@ -865,3 +865,18 @@
 | `apps/plus-ui/src/views/edu/term/term_list/components/AcademicYearFormDialog.vue` | 新建 / 编辑学年弹窗（PAGE-TERM-CREATE） | `已实现` |
 | `apps/plus-ui/src/views/edu/term/term_list/components/AcademicYearArchiveDialog.vue` | 学年归档弹窗（PAGE-TERM-ARCHIVE，含引用检查） | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_term-year-dialogs_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第二十八批：升班任务列表与四步向导
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-072.md` | 升班列表与向导的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/promotion/prm_list/index.vue` | 升班任务列表页（PAGE-PRM-LIST） | `已实现` |
+| `apps/plus-ui/src/views/edu/promotion/prm_list/components/CancelPromotionDialog.vue` | 取消升班任务二次确认弹窗 | `已实现` |
+| `apps/plus-ui/src/views/edu/promotion/prm_create/index.vue` | 新建升班任务（向导第 1 步） | `已实现` |
+| `apps/plus-ui/src/views/edu/promotion/prm_preview/index.vue` | 升班预览与调整（向导第 2 步） | `已实现` |
+| `apps/plus-ui/src/views/edu/promotion/prm_preview/components/AdjustItemDialog.vue` | 逐条调整弹窗（PAGE-PRM-ADJUST） | `已实现` |
+| `apps/plus-ui/src/views/edu/promotion/prm_validate/index.vue` | 升班校验（向导第 3 步） | `已实现` |
+| `apps/plus-ui/src/views/edu/promotion/prm_execute/index.vue` | 执行与进度（向导第 4 步） | `已实现` |
+| `apps/plus-ui/src/views/edu/promotion/prm_result/index.vue` | 执行结果与重试 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_promotion-wizard_verification.log` | 本批门禁证据 | `review` |

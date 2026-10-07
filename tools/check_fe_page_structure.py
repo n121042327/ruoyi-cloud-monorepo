@@ -175,6 +175,52 @@ CHECKS = [
         "deferred_groups": {},
         "extra_columns": {"学期": "v1 原型的学期列没有 data-role 标记，生产页保留学期名称列"},
     },
+    {
+        "page_id": "PAGE-PRM-LIST",
+        "name": "升班任务列表",
+        "prototype": "prototypes/functional/v2/pages/promotion-list.html",
+        "vue": "apps/plus-ui/src/views/edu/promotion/prm_list/index.vue",
+        "deferred_groups": {},
+        "extra_columns": {"任务编号": "v2 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留任务编号列"},
+    },
+    {
+        "page_id": "PAGE-PRM-CREATE",
+        "name": "新建升班任务",
+        "prototype": "prototypes/functional/v1/pages/promotion-create.html",
+        "vue": "apps/plus-ui/src/views/edu/promotion/prm_create/index.vue",
+        "deferred_groups": {},
+    },
+    {
+        "page_id": "PAGE-PRM-PREVIEW",
+        "name": "升班预览与调整",
+        "prototype": "prototypes/functional/v1/pages/promotion-preview.html",
+        "vue": "apps/plus-ui/src/views/edu/promotion/prm_preview/index.vue",
+        "deferred_groups": {},
+        "extra_columns": {"学号": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留学号列"},
+    },
+    {
+        "page_id": "PAGE-PRM-VALIDATE",
+        "name": "升班校验",
+        "prototype": "prototypes/functional/v1/pages/promotion-validate.html",
+        "vue": "apps/plus-ui/src/views/edu/promotion/prm_validate/index.vue",
+        "deferred_groups": {},
+        "extra_columns": {"学号": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留学号列"},
+    },
+    {
+        "page_id": "PAGE-PRM-EXECUTE",
+        "name": "执行与进度",
+        "prototype": "prototypes/functional/v1/pages/promotion-execute.html",
+        "vue": "apps/plus-ui/src/views/edu/promotion/prm_execute/index.vue",
+        "deferred_groups": {},
+    },
+    {
+        "page_id": "PAGE-PRM-RESULT",
+        "name": "执行结果与重试",
+        "prototype": "prototypes/functional/v1/pages/promotion-result.html",
+        "vue": "apps/plus-ui/src/views/edu/promotion/prm_result/index.vue",
+        "deferred_groups": {},
+        "extra_columns": {"学号": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留学号列"},
+    },
 ]
 
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）

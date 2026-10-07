@@ -349,6 +349,90 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/edu/promotion/list',
+    component: Layout,
+    hidden: true,
+    permissions: ['promotion.batch:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/promotion/prm_list/index.vue'),
+        name: 'EduPromotionTaskList',
+        meta: { title: '升班任务列表', icon: 'list' }
+      }
+    ]
+  },
+  {
+    path: '/edu/promotion/create',
+    component: Layout,
+    hidden: true,
+    permissions: ['promotion.batch:create'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/promotion/prm_create/index.vue'),
+        name: 'EduPromotionCreate',
+        meta: { title: '新建升班任务', icon: 'form' }
+      }
+    ]
+  },
+  {
+    path: '/edu/promotion/preview',
+    component: Layout,
+    hidden: true,
+    permissions: ['promotion.batch:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/promotion/prm_preview/index.vue'),
+        name: 'EduPromotionPreview',
+        meta: { title: '升班预览与调整', icon: 'form' }
+      }
+    ]
+  },
+  {
+    path: '/edu/promotion/validate',
+    component: Layout,
+    hidden: true,
+    permissions: ['promotion.batch:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/promotion/prm_validate/index.vue'),
+        name: 'EduPromotionValidate',
+        meta: { title: '升班校验', icon: 'check' }
+      }
+    ]
+  },
+  {
+    path: '/edu/promotion/execute',
+    component: Layout,
+    hidden: true,
+    permissions: ['promotion.batch:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/promotion/prm_execute/index.vue'),
+        name: 'EduPromotionExecute',
+        meta: { title: '执行与进度', icon: 'time' }
+      }
+    ]
+  },
+  {
+    path: '/edu/promotion/result',
+    component: Layout,
+    hidden: true,
+    permissions: ['promotion.batch:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/promotion/prm_result/index.vue'),
+        name: 'EduPromotionResult',
+        meta: { title: '执行结果与重试', icon: 'list' }
+      }
+    ]
+  },
+  {
     path: '/edu/school/campus',
     component: Layout,
     hidden: true,

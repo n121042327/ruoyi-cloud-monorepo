@@ -1,0 +1,16 @@
+# 阶段 6 证据：升班任务列表与四步向导（CR-072，2026-10-08）
+
+check_fe_page_structure=0（新增 PAGE-PRM-LIST / CREATE / PREVIEW / VALIDATE / EXECUTE / RESULT 六条对照）
+check_api_contract=0  check_docs=0  check_gap_register=0  check_mermaid=0
+typecheck exit=1 error TS=51（基线 51）
+lint exit=1 ✖ 124 problems (124 errors, 0 warnings)
+build exit=0 成功
+
+补记：
+1) 新增源码首轮 typecheck = 55（+4），全部是 el-tag / el-alert 的 :type 需要字面量联合类型；
+   把 PROMOTION_STATUS_TYPES 收窄为字面量联合、把校验页的 alaert 由 danger 改为 error 后回到 51。
+2) 新增源码首轮 lint = 155，先统一 CRLF、再 `eslint --fix`、再修掉一处未使用的 scope，回到 124。
+3) 结构对照暴露了检查器的一个既有特性：`<thead>` 会被 `<th([^>]*)>` 正则吸收，导致每个主表
+   的首列被当作“没有 data-role 标记”。PAGE-PRM-LIST 的「任务编号」、PREVIEW / VALIDATE / RESULT 的
+   「学号」因此按 `extra_columns` 显式登记（与 PAGE-PRM-HISTORY 的「学号」同一情形），未放宽列数比较。
+
