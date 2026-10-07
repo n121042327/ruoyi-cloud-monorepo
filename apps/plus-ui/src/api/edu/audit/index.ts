@@ -27,7 +27,20 @@ export const getOperationLog = (logId: string): AxiosPromise<OperationLogVO> => 
   });
 };
 
+/**
+ * 对象变更时间线：该对象的全部变更记录，按时间展示（REQ-AUD-023）
+ *
+ * 对应 operationId `listObjectChangeLog`（GET /edu/audit/object/{objectType}/{objectId}/timeline）。
+ */
+export const listObjectChangeLog = (objectType: string, objectId: string): AxiosPromise<OperationLogVO[]> => {
+  return request({
+    url: `/edu/audit/object/${objectType}/${objectId}/timeline`,
+    method: 'get'
+  });
+};
+
 export default {
   listOperationLog,
-  getOperationLog
+  getOperationLog,
+  listObjectChangeLog
 };

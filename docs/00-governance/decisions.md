@@ -2200,3 +2200,7 @@
 ## D-136 — 阶段 6 第十七批：操作日志详情抽屉（2026-10-08，循环批次）
 
 循环批次（automation 6）交付审计模块的日志详情抽屉：操作信息（操作人 / 角色快照 / 操作类型 / 执行结果 / 操作时间 / 来源 IP / 请求标识 / 批次号）、对象信息（对象类型 / 对象标识 / 租户·学校 / 用途说明）、变更明细（字段 / 变更前 / 变更后 diff）。`OperationLogVO` 补 `changes` / `purpose`，新增 `AuditChangeVO`；列表页「详情」按钮打开抽屉，先用列表行填充再取 `getOperationLog`，取详情失败时退回列表行数据、不空白。口径：变更明细只列变化字段（`REQ-AUD-003`）、日志不可改删（`REQ-AUD-025` / `030`）、日志不含敏感明文（`REQ-AUD-010`）。门禁：结构对照 15 项通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_audit-log-detail_verification.log`。下一轮：对象变更时间线（`listObjectChangeLog`）。
+
+## D-137 — 阶段 6 第十八批：对象变更时间线（2026-10-08，循环批次）
+
+循环批次（automation 6）交付对象变更时间线：`ObjectTimelineDrawer` 按对象类型 + 对象标识调 `listObjectChangeLog`，以时间线展示该对象全部变更（动作、结果标签、操作人与角色、来源 IP），只读不可删除（`REQ-AUD-023` / `BR-AUDIT-003`）；列表行内「时间线」入口与「详情」并列。行上缺少对象类型或对象标识时直接给空态，不拼假标识调接口。门禁：结构对照 15 项通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_audit-object-timeline_verification.log`。同时补记：上一轮 CR-061 的两次 push 被 GitHub 以 `Internal Server Error` 拒绝，本轮重试成功（`0917870..fd05b91`），本地提交无丢失。下一轮：运营访问记录 / 敏感数据访问 / 登录与安全事件 / 归档管理。

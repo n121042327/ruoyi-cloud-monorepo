@@ -782,3 +782,11 @@
 | `docs/00-governance/change-requests/CR-061.md` | 日志详情抽屉的交付与门禁记录 | `review` |
 | `apps/plus-ui/src/views/edu/audit/audit_log_list/components/LogDetailDrawer.vue` | 操作日志详情抽屉（操作信息 / 对象信息 / 变更明细） | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_audit-log-detail_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第十八批：对象变更时间线
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-062.md` | 对象变更时间线的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/audit/audit_log_list/components/ObjectTimelineDrawer.vue` | 对象变更时间线抽屉 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_audit-object-timeline_verification.log` | 本批门禁证据 | `review` |

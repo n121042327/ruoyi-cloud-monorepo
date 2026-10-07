@@ -56,9 +56,10 @@
             </template>
           </el-table-column>
           <el-table-column label="来源 IP" prop="sourceIp" width="140" data-layout-group="操作信息" />
-          <el-table-column fixed="right" label="操作" width="100" data-layout-group="操作">
+          <el-table-column fixed="right" label="操作" width="150" data-layout-group="操作">
             <template #default="scope">
               <el-button link type="primary" @click="detailDrawerRef?.open(scope.row)">详情</el-button>
+              <el-button link type="primary" @click="timelineDrawerRef?.open(scope.row)">时间线</el-button>
             </template>
           </el-table-column>
 
@@ -77,6 +78,7 @@
       </el-card>
 
       <log-detail-drawer ref="detailDrawerRef" />
+      <object-timeline-drawer ref="timelineDrawerRef" />
     </template>
   </div>
 </template>
@@ -87,6 +89,7 @@ import { ElMessage } from 'element-plus';
 import { listOperationLog } from '@/api/edu/audit';
 import type { OperationLogQuery, OperationLogVO } from '@/api/edu/audit/types';
 import LogDetailDrawer from './components/LogDetailDrawer.vue';
+import ObjectTimelineDrawer from './components/ObjectTimelineDrawer.vue';
 import { checkPermi } from '@/utils/permission';
 
 defineOptions({ name: 'EduAuditLogList' });
@@ -145,6 +148,7 @@ const handleExport = () => {
 };
 
 const detailDrawerRef = ref<InstanceType<typeof LogDetailDrawer>>();
+const timelineDrawerRef = ref<InstanceType<typeof ObjectTimelineDrawer>>();
 
 onMounted(getList);
 </script>
