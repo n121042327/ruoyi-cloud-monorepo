@@ -2587,6 +2587,36 @@ gaps:
     resolved_at: "2026-10-07"
     status: closed
 
+  - id: GAP-085
+    title: 跨校转学「转出校发起」有两个接口（升班模块 addTransfer 与学生模块 crossSchoolTransfer），未裁决用哪个
+    discovered_at: 2026-10-07
+    discovered_by: Codex 实现阶段 6 跨校转学（转出校）向导时
+    evidence: |
+      docs/10-prd/modules/promotion/PRD.md 第 8 节：`addTransfer`（POST /edu/enrollment/transfer）说明写「发起转出」，
+      与 `acceptTransfer`（接收）、`checkInTransfer`（报到）、`cancelTransfer`（撤销）同属一组转学单接口。
+      docs/10-prd/modules/student/PRD.md 第 8 节：`crossSchoolTransfer`（POST /edu/student/cross-school-transfer）说明写「跨校转学」。
+      冻结原型 prototypes/functional/v1/pages/student-cross-transfer.html 的提交按钮写 data-api="addTransfer"，
+      而该页面在 docs/40-detailed-design/frontend-page-tree.yaml 里归属学生模块（PAGE-STU-CROSS-TRANSFER，module: student）。
+      需求链同样分成两条：REQ-PRM-050 / 051（转出校发起）挂 addTransfer，REQ-STU-039 / 040 挂 crossSchoolTransfer。
+    impact: |
+      阶段 6 无法为转出校页面确定提交目标：两个接口都能表达同一个业务动作，等于「一个动作两个写入口」，
+      与 DP-01（每个字段只有一个写入入口）冲突；阶段 8 的 CHK-ORPHAN-API 会出现两条需求链指向两个接口，
+      CHK-PERMISSION 也要为同一动作维护两套权限与审计口径。本批已交付学生列表的批量导出 / 批量调班与
+      异动登记入口，跨校转学的两个向导页面等这条裁决后再做。
+    options:
+      - A 统一用升班模块的 `addTransfer`，学生模块的 `crossSchoolTransfer` 标注废弃并从学生 PRD 第 8 节移除（推荐）
+      - B 统一用学生模块的 `crossSchoolTransfer`，升班模块只保留接收 / 报到 / 撤销
+      - C 两个都保留，按调用方（学生页 / 升班页）区分
+    recommended: |
+      A。转学单是跨校业务实体，发起 → 接收 → 报到 → 撤销四步必须落在同一模块，权限与审计才能一套；
+      B 会把「发起」与「接收 / 报到」拆到两个模块，两侧要各写一套规则；C 直接违反 DP-01。
+    blocking: false
+    blocks_stages:
+      - stage6
+      - stage8
+    owner: 用户
+    status: open
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"
@@ -2675,4 +2705,4 @@ open_questions_for_user:
   - "阶段 2 批次 2-9 已产出待验收：异步任务列表（8 列 7 行 + PAGE-IMP-TASK-DETAIL 详情抽屉 + PAGE-IMP-EXPORT 导出配置弹窗）、死信任务（7 列 3 行 + 重试与并发配置统计卡 + DIALOG-DLQ-REPLAY 重放确认）；动作 ACT-TASK-001 ~ 051 已登记；harness verify-task 22 / 22 通过，见 D-083。"
   - "新增 GAP-060 并已关闭：死信重放需要二次确认但导入导出 PRD 6.1 未登记片段。用户授权默认取推荐，按 CR-019 补登记 DIALOG-DLQ-REPLAY，导入导出 PRD 升 1.0.1-draft，见 D-083。"
   - "**阶段 2（业务原型）已收尾**：2-1 ~ 2-9 共 9 批全部产出待验收，累计 45 个页面文件承载 96 个页面编号，19 个 harness 全绿（合计 508 条断言），check_docs 通过。下一步按用户授权合并本地 main，然后进阶段 3（独立高保真原型）。"
-  - "**2026-10-02 生产代码前的治理项已全部关闭**：按 CR-042 完成 GAP-081 的 626 条需求逐条挂接（接口链 580 / 表链 537，178 个 operationId 全部可追溯到需求）；按 CR-043 补齐 GAP-082（学生激活码 4 个接口）与 GAP-083（教师启用账号 / 复制任教关系 2 个接口），operationId 178 → 184。缺项表当时无 open 项（其余为已落地并留结论的 closed / answered 记录），阶段 6 的输入文件已齐。**进入阶段 6 后新增 GAP-084**（学生联系电话明文查看缺接口契约，原型里是演示项），当前唯一 open 项，推荐补 `viewStudentPhone`；未确认前前端保持掩码展示。"
+  - "**2026-10-02 生产代码前的治理项已全部关闭**：按 CR-042 完成 GAP-081 的 626 条需求逐条挂接（接口链 580 / 表链 537，178 个 operationId 全部可追溯到需求）；按 CR-043 补齐 GAP-082（学生激活码 4 个接口）与 GAP-083（教师启用账号 / 复制任教关系 2 个接口），operationId 178 → 184。缺项表当时无 open 项（其余为已落地并留结论的 closed / answered 记录），阶段 6 的输入文件已齐。**进入阶段 6 后新增两条**：GAP-084（学生联系电话明文查看缺接口契约）已按用户裁决补 `viewStudentPhone` 关闭；**GAP-085（跨校转学的「转出校发起」有两个接口，未裁决）当前 open**，推荐统一用升班模块的 `addTransfer`，未确认前跨校转学的两个向导页面不做。"

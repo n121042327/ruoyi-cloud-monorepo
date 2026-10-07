@@ -85,11 +85,18 @@
             <el-col :span="1.5">
               <el-button v-hasPermi="['person.student:export']" type="warning" plain icon="Download" @click="handleExport">导出</el-button>
             </el-col>
+            <el-col :span="1.5">
+              <el-button v-hasPermi="['data.export:export']" plain icon="Download" @click="handleBatchExport">批量导出</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button v-hasPermi="['org.class:update']" plain icon="Switch" @click="handleBatchTransfer">批量调班</el-button>
+            </el-col>
             <right-toolbar v-model:show-search="showSearch" :columns="columns" :search="true" @query-table="getList"></right-toolbar>
           </el-row>
         </template>
 
-        <el-table v-loading="loading" border :data="studentList">
+        <el-table v-loading="loading" border :data="studentList" @selection-change="handleSelectionChange">
+          <el-table-column type="selection" width="50" align="center" data-layout-group="选择" />
           <el-table-column v-if="columns[0].visible" label="学号" prop="studentNo" width="130" data-layout-group="基础信息">
             <template #default="scope">
               <el-button link type="primary" @click="handleDetail(scope.row)">{{ scope.row.studentNo }}</el-button>
@@ -164,8 +171,15 @@
       </el-card>
 
       <student-form-dialog ref="formDialogRef" :school-id="queryParams.schoolId" @success="getList" />
-      <student-detail-drawer ref="detailDrawerRef" @edit="handleEditFromDrawer" @status="handleStatus" @transfer="handleTransfer" />
+      <student-detail-drawer
+        ref="detailDrawerRef"
+        @edit="handleEditFromDrawer"
+        @status="handleStatus"
+        @transfer="handleTransfer"
+        @promotion-change="handlePromotionChange"
+      />
       <student-status-dialog ref="statusDialogRef" :school-id="queryParams.schoolId" @success="getList" />
+      <student-status-dialog ref="promotionDialogRef" mode="promotion" :school-id="queryParams.schoolId" @success="getList" />
       <student-transfer-dialog ref="transferDialogRef" :school-id="queryParams.schoolId" @success="getList" />
     </template>
   </div>
@@ -173,6 +187,7 @@
 
 <script setup lang="ts">
 import { computed, getCurrentInstance, ref } from 'vue';
+import { ElMessage } from 'element-plus';
 import StudentDetailDrawer from './components/StudentDetailDrawer.vue';
 import StudentFormDialog from './components/StudentFormDialog.vue';
 import StudentStatusDialog from './components/StudentStatusDialog.vue';
@@ -211,7 +226,9 @@ const {
 const formDialogRef = ref<InstanceType<typeof StudentFormDialog>>();
 const detailDrawerRef = ref<InstanceType<typeof StudentDetailDrawer>>();
 const statusDialogRef = ref<InstanceType<typeof StudentStatusDialog>>();
+const promotionDialogRef = ref<InstanceType<typeof StudentStatusDialog>>();
 const transferDialogRef = ref<InstanceType<typeof StudentTransferDialog>>();
+const selectedRows = ref<StudentVO[]>([]);
 
 /** 页面级读权限：无权限时不渲染内容（路由侧另有菜单权限兜底） */
 const canRead = computed(() => checkPermi(['person.student:read']));
@@ -238,6 +255,44 @@ const handleStatus = (row: StudentVO) => {
 /** 调班：复用班级模块的 transferClass（DP-01） */
 const handleTransfer = (row: StudentVO) => {
   transferDialogRef.value?.open(row);
+};
+
+/** 异动登记（升班口径）：与学生侧「学籍异动」同一字段、同一接口 */
+const handlePromotionChange = (row: StudentVO) => {
+  promotionDialogRef.value?.open(row);
+};
+
+const handleSelectionChange = (rows: StudentVO[]) => {
+  selectedRows.value = rows;
+};
+
+/** 批量操作前置校验：至少勾选 1 行（原型 ACT-STU-019 / ACT-STU-020） */
+const ensureBatchSelection = (): boolean => {
+  if (!selectedRows.value.length) {
+    ElMessage.warning('请先勾选要处理的学生；批量操作至少需要 1 行。');
+    return false;
+  }
+  return true;
+};
+
+/** 批量导出：按当前筛选 + 已勾选学生导出（导出前由后端重新解析数据范围） */
+const handleBatchExport = () => {
+  if (!ensureBatchSelection()) {
+    return;
+  }
+  proxy?.download(
+    'edu/student/export',
+    { ...queryParams, studentIds: selectedRows.value.map((item) => item.studentId).join(',') },
+    `student_${new Date().getTime()}.xlsx`
+  );
+};
+
+/** 批量调班：多条学生一次迁移，逐条校验范围，任一条越权整体拒绝 */
+const handleBatchTransfer = () => {
+  if (!ensureBatchSelection()) {
+    return;
+  }
+  transferDialogRef.value?.openBatch(selectedRows.value);
 };
 
 const handleUpdate = (row: StudentVO) => {

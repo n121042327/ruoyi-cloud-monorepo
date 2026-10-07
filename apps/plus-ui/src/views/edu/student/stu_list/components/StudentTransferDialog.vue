@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="visible" :title="`调班 · ${student.studentName ?? ''}`" width="680px" append-to-body>
+  <el-dialog v-model="visible" :title="title" width="680px" append-to-body>
     <el-alert type="info" :closable="false" title="调班只改班级关系，不改学籍状态与学号；学生班级归属的唯一写入入口在班级管理（DP-01）。" />
     <el-form ref="formRef" :model="form" :rules="rules" label-width="120px" class="mt-3">
       <!-- 班级关系：目标班级 → 生效日期 -->
@@ -52,6 +52,7 @@ const props = withDefaults(defineProps<Props>(), { schoolId: '' });
 const emit = defineEmits<{ success: [] }>();
 
 const visible = ref(false);
+const title = ref('调班');
 const submitting = ref(false);
 const formRef = ref<FormInstance>();
 const student = ref<Partial<StudentVO>>({});
@@ -92,8 +93,25 @@ const loadClassOptions = async () => {
 /** 打开弹窗：row 为学生列表行 */
 const open = async (row: StudentVO | Partial<StudentVO>) => {
   visible.value = true;
+  title.value = `调班 · ${row.studentName ?? ''}`;
   student.value = row;
   form.studentId = (row.studentId as string) ?? '';
+  form.studentIds = undefined;
+  form.targetClassId = '';
+  form.remark = '';
+  await Promise.all([loadClassOptions(), loadDefaultEffectiveDate()]);
+};
+
+/**
+ * 批量调班：一次提交多条学生班级关系（单条 = 调班，多条 = 批量迁移，D-067）。
+ * 逐条校验数据范围，任一条越权则整体拒绝（由后端保证）。
+ */
+const openBatch = async (rows: StudentVO[]) => {
+  visible.value = true;
+  title.value = `批量调班 · 已选 ${rows.length} 名学生`;
+  student.value = {};
+  form.studentId = '';
+  form.studentIds = rows.map((item) => item.studentId);
   form.targetClassId = '';
   form.remark = '';
   await Promise.all([loadClassOptions(), loadDefaultEffectiveDate()]);
@@ -112,5 +130,5 @@ const submitForm = async () => {
   }
 };
 
-defineExpose({ open });
+defineExpose({ open, openBatch });
 </script>

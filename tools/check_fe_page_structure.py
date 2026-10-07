@@ -59,7 +59,7 @@ OVERLAY_CHECKS = [
     },
     {
         "page_id": "PAGE-STU-STATUS",
-        "name": "学籍异动弹窗",
+        "name": "学籍异动弹窗（同文件按 mode=promotion 复用为 PAGE-PRM-CHANGE 异动登记）",
         "prototype": "prototypes/functional/v2/pages/student-list.html",
         "vue": "apps/plus-ui/src/views/edu/student/stu_list/components/StudentStatusDialog.vue",
         "groups": ["异动信息", "复学 / 报到安排", "异动说明"],

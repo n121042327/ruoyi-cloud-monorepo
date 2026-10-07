@@ -5,6 +5,13 @@
       :closable="false"
       title="可执行的异动由当前状态决定（listEnrollmentStatusOption）；终态（已转出 / 毕业 / 结业 / 肄业 / 开除 / 退学 / 死亡）没有任何异动出口。"
     />
+    <el-alert
+      v-if="isPromotionMode"
+      type="warning"
+      :closable="false"
+      class="mt-2"
+      title="升班与学籍异动口径：与「学籍异动」同一份字段、同一个接口；差别在阶段限制（义务教育不得开除）、审批要求（退学 / 开除 / 死亡）与生效后的数据范围缓存刷新。"
+    />
     <el-form ref="formRef" :model="form" :rules="rules" label-width="140px" class="mt-3">
       <!-- 异动信息：异动类型 → 生效日期 -->
       <h3 class="form-section-title" data-layout-group="异动信息">异动信息</h3>
@@ -60,10 +67,31 @@ import type { EnrollmentChangeForm, EnrollmentStatusOptionVO, StudentVO } from '
 interface Props {
   /** 当前学校上下文：决定「复学 / 报到后的班级」下拉范围 */
   schoolId?: string;
+  /**
+   * 入口口径：student = 学生管理的「学籍异动」；promotion = 升班模块的「异动登记（升班口径）」。
+   * 两者字段与接口完全相同（PAGE-PRM-CHANGE 与 PAGE-STU-STATUS 同一写入口），差异只在提示与选项来源。
+   */
+  mode?: 'student' | 'promotion';
 }
 
-const props = withDefaults(defineProps<Props>(), { schoolId: '' });
+const props = withDefaults(defineProps<Props>(), { schoolId: '', mode: 'student' });
 const emit = defineEmits<{ success: [] }>();
+
+const isPromotionMode = computed(() => props.mode === 'promotion');
+
+/**
+ * 升班口径的异动类型：按原型 PAGE-PRM-CHANGE 的固定清单展示；
+ * 学生口径则用 listEnrollmentStatusOption 按当前状态动态返回。
+ */
+const PROMOTION_OPTIONS: EnrollmentStatusOptionVO[] = [
+  { value: 'suspend', label: '休学' },
+  { value: 'resume', label: '复学', needClass: true },
+  { value: 'abroad', label: '出国（保留学籍）' },
+  { value: 'missing', label: '登记失踪' },
+  { value: 'transfer_out', label: '转出（含跨校转学）' },
+  { value: 'withdraw', label: '退学（校级管理员审批）', needApproval: true },
+  { value: 'deceased', label: '死亡登记（校级管理员 + 证明材料）', needApproval: true }
+];
 
 const visible = ref(false);
 const submitting = ref(false);
@@ -100,6 +128,10 @@ const rules: FormRules = {
 };
 
 const loadOptions = async (studentId: string) => {
+  if (isPromotionMode.value) {
+    options.value = PROMOTION_OPTIONS;
+    return;
+  }
   try {
     const res = await listEnrollmentStatusOption(studentId);
     options.value = res.data ?? [];

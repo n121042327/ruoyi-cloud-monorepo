@@ -672,3 +672,11 @@
 | `apps/plus-ui/src/views/edu/student/stu_list/components/StudentStatusDialog.vue` | 学籍异动弹窗（异动信息 / 复学报到安排 / 异动说明） | `已实现` |
 | `apps/plus-ui/src/views/edu/student/stu_list/components/StudentTransferDialog.vue` | 调班弹窗（班级关系 / 调班说明） | `已实现` |
 | `evidence/stage6-frontend/2026-10-07_student-status-and-transfer_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |
+
+## 2026-10-07 阶段 6 第六批：批量导出 / 批量调班 + 异动登记入口
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-049.md` | 批量能力与异动登记入口的交付、GAP-085 登记与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/student/stu_list/index.vue` | 学生列表页（本批补多选列与两个批量按钮） | `已实现` |
+| `evidence/stage6-frontend/2026-10-07_student-batch-actions_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |

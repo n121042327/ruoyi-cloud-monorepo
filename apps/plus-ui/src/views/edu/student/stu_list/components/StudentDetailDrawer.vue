@@ -138,6 +138,7 @@
       <el-button v-hasPermi="['person.student:update']" @click="handleEdit">编辑</el-button>
       <el-button v-hasPermi="['enrollment.status:update']" type="primary" plain @click="handleStatus">学籍异动</el-button>
       <el-button v-hasPermi="['org.class:update']" @click="handleTransfer">调班</el-button>
+      <el-button v-hasPermi="['enrollment.transfer:create']" @click="handlePromotionChange">异动登记（升班口径）</el-button>
       <el-button @click="visible = false">关闭</el-button>
     </template>
 
@@ -169,7 +170,12 @@ import { ENROLLMENT_STATUS_LABEL, STAGE_CODE_LABEL } from '@/enums/edu/StudentEn
 import GuardianTable from './GuardianTable.vue';
 import { checkRole } from '@/utils/permission';
 
-const emit = defineEmits<{ edit: [student: StudentVO]; status: [student: StudentVO]; transfer: [student: StudentVO] }>();
+const emit = defineEmits<{
+  edit: [student: StudentVO];
+  status: [student: StudentVO];
+  transfer: [student: StudentVO];
+  promotionChange: [student: StudentVO];
+}>();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
 const visible = ref(false);
@@ -238,6 +244,11 @@ const handleStatus = () => {
 
 const handleTransfer = () => {
   emit('transfer', detail.value as StudentVO);
+};
+
+/** 异动登记（升班口径）：与「学籍异动」同字段同接口，只换入口与提示 */
+const handlePromotionChange = () => {
+  emit('promotionChange', detail.value as StudentVO);
 };
 
 const loadGuardians = async () => {
