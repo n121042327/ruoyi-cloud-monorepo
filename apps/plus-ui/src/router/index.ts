@@ -447,6 +447,34 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/edu/class/roster/add',
+    component: Layout,
+    hidden: true,
+    permissions: ['org.class:update'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/class/cls_roster_add/index.vue'),
+        name: 'EduClassRosterAdd',
+        meta: { title: '添加学生', icon: 'user' }
+      }
+    ]
+  },
+  {
+    path: '/edu/class/move-students',
+    component: Layout,
+    hidden: true,
+    permissions: ['org.class:update'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/class/cls_move/index.vue'),
+        name: 'EduClassMove',
+        meta: { title: '批量迁学生', icon: 'swap' }
+      }
+    ]
+  },
+  {
     path: '/edu/school/init',
     component: Layout,
     hidden: true,

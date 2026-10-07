@@ -1,6 +1,45 @@
 import request from '@/utils/request';
 import { AxiosPromise } from 'axios';
-import { ClassForm, ClassQuery, ClassTransferForm, ClassVO } from './types';
+import { ClassForm, ClassQuery, ClassRosterAddForm, ClassRosterQuery, ClassRosterVO, ClassTransferForm, ClassVO } from './types';
+
+/**
+ * 查询班级花名册（PAGE-CLS-DETAIL / PAGE-CLS-MOVE 的来源名单）
+ *
+ * 对应 operationId `listClassRoster`（GET /edu/class/{id}/roster）。
+ */
+export const listClassRoster = (classId: string, query?: ClassRosterQuery): AxiosPromise<ClassRosterVO[]> => {
+  return request({
+    url: `/edu/class/${classId}/roster`,
+    method: 'get',
+    params: query
+  });
+};
+
+/**
+ * 添加学生到行政班（学生班级归属的唯一写入入口在班级管理，DP-01）
+ *
+ * 对应 operationId `addClassRoster`（POST /edu/class/{id}/roster，权限 `org.class:update`）。
+ */
+export const addClassRoster = (data: ClassRosterAddForm) => {
+  return request({
+    url: `/edu/class/${data.classId}/roster`,
+    method: 'post',
+    data
+  });
+};
+
+/**
+ * 移出学生（移出行政班，写审计且不可静默删除）
+ *
+ * 对应 operationId `removeClassRoster`（DELETE /edu/class/{id}/roster/{studentId}）。
+ */
+export const removeClassRoster = (classId: string, studentId: string, reason?: string) => {
+  return request({
+    url: `/edu/class/${classId}/roster/${studentId}`,
+    method: 'delete',
+    params: { reason }
+  });
+};
 
 /**
  * 查询班级列表（学生列表查询区的「班级」下拉）
@@ -56,6 +95,9 @@ export const updateClass = (data: ClassForm) => {
 
 export default {
   listClass,
+  listClassRoster,
+  addClassRoster,
+  removeClassRoster,
   transferClass,
   addClass,
   updateClass

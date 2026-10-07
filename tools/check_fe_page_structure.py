@@ -221,6 +221,20 @@ CHECKS = [
         "deferred_groups": {},
         "extra_columns": {"学号": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留学号列"},
     },
+    {
+        "page_id": "PAGE-CLS-ROSTER-ADD",
+        "name": "添加学生",
+        "prototype": "prototypes/functional/v1/pages/class-roster-add.html",
+        "vue": "apps/plus-ui/src/views/edu/class/cls_roster_add/index.vue",
+        "deferred_groups": {},
+    },
+    {
+        "page_id": "PAGE-CLS-MOVE",
+        "name": "批量迁学生",
+        "prototype": "prototypes/functional/v1/pages/class-move-students.html",
+        "vue": "apps/plus-ui/src/views/edu/class/cls_move/index.vue",
+        "deferred_groups": {},
+    },
 ]
 
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）

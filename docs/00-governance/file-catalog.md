@@ -880,3 +880,12 @@
 | `apps/plus-ui/src/views/edu/promotion/prm_execute/index.vue` | 执行与进度（向导第 4 步） | `已实现` |
 | `apps/plus-ui/src/views/edu/promotion/prm_result/index.vue` | 执行结果与重试 | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_promotion-wizard_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第二十九批：添加学生 + 批量迁学生
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-073.md` | 添加学生 / 批量迁学生的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/class/cls_roster_add/index.vue` | 添加学生（PAGE-CLS-ROSTER-ADD） | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_move/index.vue` | 批量迁学生（PAGE-CLS-MOVE） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_class-roster-add-and-move_verification.log` | 本批门禁证据 | `review` |

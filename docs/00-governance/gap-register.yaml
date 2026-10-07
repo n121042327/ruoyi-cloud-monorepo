@@ -2668,6 +2668,69 @@ gaps:
     resolved_at: "2026-10-08"
     status: closed
 
+  - id: GAP-087
+    title: 登录 / 403 / 404 / 500 四条路由的 view_component 指向 views/edu/common/*，与实际框架组件不符
+    discovered_at: 2026-10-08
+    discovered_by: 阶段 6 路由盘点（自动化 6）
+    evidence: |
+      docs/40-detailed-design/frontend-page-tree.yaml 第 468 ~ 511 行把 PAGE-LOGIN / PAGE-403 / PAGE-404 / PAGE-500
+      的 view_component 写成 views/edu/common/{login,403,404,500}/index.vue；
+      实际 apps/plus-ui 里 `/login` 指向 src/views/login.vue、`/404` 指向 src/views/error/404.vue（router/index.ts 第 46 ~ 57 行），
+      目录 apps/plus-ui/src/views/error/ 只有 401.vue 与 404.vue，没有 403.vue / 500.vue。
+    expected: 四条路由在生产前端都有对应 view（阶段 6 完成判据）
+    actual: 登录与 404 已有框架组件但路径与页面树不一致；403 与 500 组件根本不存在
+    impact: |
+      不处理则 45 条路由的完成判据无法闭合；若照页面树新建 views/edu/common/*，会与框架既有实现重复，
+      并让后续升级 RuoYi 模板时产生两份登录 / 404。
+    options:
+      - 登录与 404 复用框架既有组件，403 / 500 新建 views/error/403.vue 与 views/error/500.vue，并按实际组件修正页面树的 view_component
+      - 照页面树在 views/edu/common/* 下重建四个组件，替换框架既有登录与 404
+      - 四条路由全部沿用框架现状（403 / 500 不建页面，缺页时由 404 兜底）
+    recommended: |
+      选项 1。登录与 404 属 RuoYi 框架层，替换会与模板升级冲突；403 / 500 是 PRD 与原型都要求的产品页，
+      必须新建，但归属 error 目录更贴近框架约定。页面树作为阶段 5 冻结产物，按变更流程在下一版修正路径。
+    blocking: false
+    blocks_stages:
+      - stage6
+    owner: 用户
+    answer: 用户 2026-10-07 起多次授权「需要拍板的按推荐走」，采纳推荐选项 1。
+    resolution: |
+      待落地（本轮先登记）：新建 apps/plus-ui/src/views/error/403.vue 与 500.vue（对齐 prototypes/functional/v1/pages/403.html、500.html），
+      登记 `/403`、`/500` 路由；登录与 404 保持框架既有组件不动；页面树 view_component 路径在阶段 6 收尾时按实际组件修正。
+    resolved_at: "2026-10-08"
+    status: answered
+
+  - id: GAP-088
+    title: PAGE-CLS-MERGE（班级合并）在页面树里没有原型且被标为 deferred
+    discovered_at: 2026-10-08
+    discovered_by: 阶段 6 路由盘点（自动化 6）
+    evidence: |
+      docs/40-detailed-design/frontend-page-tree.yaml 第 149 ~ 159 行：PAGE-CLS-MERGE 的 prototype_file 与
+      high_fidelity_file 均为「—」，batch 标为 deferred，但 route `/edu/class/merge` 仍计入 45 条路由；
+      接口存在：docs/40-detailed-design/api/openapi.yaml 第 1061 ~ 1066 行 `mergeClass`（POST /edu/class/merge）。
+    expected: 45 条路由在生产前端都有对应 view
+    actual: 该页既无原型可做结构对照，又被阶段 5 标为 deferred，等于「列了路由但不打算做」
+    impact: |
+      不处理则完成判据无法闭合，也无法判断这个路由是该做还是该从清单里摘掉；
+      照原型标准又做不出结构对照，因为根本没有原型文件。
+    options:
+      - 按 `mergeClass` 实现一个精简合并向导（源班级多选 → 目标班级 → 影响预览 → 执行），结构对照只登记文件存在与分组，不做列比对
+      - 视为阶段 5 的登记错误，从 45 条路由清单中摘除，并在页面树与 PRD 里注明「班级合并不在首轮范围」
+      - 保持 deferred 不动，阶段 6 完成判据按 44 条计
+    recommended: |
+      选项 1。接口与权限资源都已就绪，产品上「合并班级」是编班的实际需求，做成精简向导的成本低于
+      回头改阶段 5 冻结产物；结构对照缺原型这一点在 gap 里留痕即可。
+    blocking: false
+    blocks_stages:
+      - stage6
+    owner: 用户
+    answer: 用户 2026-10-07 起多次授权「需要拍板的按推荐走」，采纳推荐选项 1。
+    resolution: |
+      待落地（本轮先登记）：按 `mergeClass` 实现 `views/edu/class/cls_merge/index.vue`（源班级多选 + 目标班级 + 影响预览 + 执行），
+      在 check_fe_page_structure.py 里只登记文件与分组、不做列比对，并在 CR 里写明「无原型」的原因。
+    resolved_at: "2026-10-08"
+    status: answered
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"

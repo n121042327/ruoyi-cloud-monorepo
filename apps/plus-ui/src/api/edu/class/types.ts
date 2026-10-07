@@ -66,3 +66,45 @@ export interface ClassTransferForm {
   /** 调班原因（remark） */
   remark?: string;
 }
+
+/**
+ * 班级花名册行（PAGE-CLS-DETAIL / PAGE-CLS-MOVE 共用）
+ *
+ * 学生主体是平台级实体，班级关系落在在校记录与班级关系两段式上；
+ * 花名册只暴露必要字段，`joinCheck` / `moveCheck` 为加入与迁移的校验结论。
+ */
+export interface ClassRosterVO {
+  studentId: string;
+  studentNo?: string;
+  studentName?: string;
+  gender?: string;
+  /** 学籍状态：在读 / 休学 / 转入未报到 / 出国保留学籍 等 */
+  enrollmentStatus?: string;
+  /** 当前行政班 */
+  currentClassId?: string;
+  currentClassName?: string;
+  /** 加入校验结论（PAGE-CLS-ROSTER-ADD） */
+  joinCheck?: string;
+  /** 迁移校验结果（PAGE-CLS-MOVE） */
+  moveCheck?: string;
+}
+
+/** 花名册查询参数 */
+export interface ClassRosterQuery extends Partial<PageQuery> {
+  keyword?: string;
+  enrollmentStatus?: string;
+  /** 生效日期（调班 / 迁移按学年追加，必填） */
+  effectiveDate?: string;
+}
+
+/** 添加学生到行政班（POST /edu/class/{id}/roster，权限 org.class:update） */
+export interface ClassRosterAddForm {
+  /** 目标班级 ID */
+  classId: string;
+  /** 选中的学生 ID 列表 */
+  studentIds: string[];
+  /** 生效日期 */
+  effectiveDate: string;
+  /** 加入说明 */
+  remark?: string;
+}

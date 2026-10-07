@@ -1,0 +1,16 @@
+# 阶段 6 证据：添加学生 + 批量迁学生（CR-073，2026-10-08）
+
+check_fe_page_structure=0（新增 PAGE-CLS-ROSTER-ADD 6 列 / PAGE-CLS-MOVE 4 列两条对照）
+check_api_contract=0  check_docs=0  check_gap_register=0（88 条，无 open）  check_mermaid=0
+typecheck exit=1 error TS=51（基线 51）
+lint exit=1 ✖ 124 problems (124 errors, 0 warnings)
+build exit=0 成功
+
+补记：新增源码首轮 lint = 131 项，先统一 CRLF 再 `eslint --fix` 后回到 124；typecheck 首轮即为 51，
+无需改动。两页的结构对照首轮即通过（PAGE-CLS-ROSTER-ADD 查询区 1 项「姓名 / 学号」+ 6 列；
+PAGE-CLS-MOVE 原型无查询区、主表 4 列）。
+
+顺带登记两条缺项并取推荐方案（本轮只登记、不改页面）：
+GAP-087 登录 / 403 / 404 / 500 的 view_component 与实际框架组件不符（推荐：登录与 404 复用框架组件、新建 403 / 500）；
+GAP-088 PAGE-CLS-MERGE 无原型且被标 deferred，但 `mergeClass` 接口存在（推荐：做精简合并向导）。
+
