@@ -1,0 +1,26 @@
+# 阶段 6 证据：班级管理列表页（CR-052）与 GAP-086 登记
+命令与结果（2026-10-08）：
+
+$ python tools/check_fe_page_structure.py   (exit 0)
+  查询区字段顺序一致：9 项（学校 → 学年学期 → 年级 → 班级 → 学籍状态 → 关键字 → 性别 → 入学年份 → 证件号后四位）
+  表格列顺序与分组一致：11 列（学号(基础信息) → 姓名(基础信息) → 性别(基础信息) → 入学年份(教育信息) → 学段(教育信息) → 年级(教育信息) → 班级(教育信息) → 学籍状态(教育信息) → 联系电话(联系方式) → 更新时间(管理信息) → 操作(操作)）
+=== PAGE-CLS-LIST 班级管理列表 ===
+  查询区字段顺序一致：7 项（学校 → 校区 → 学年学期 → 年级 → 班级类型 → 班主任 → 关键字）
+  表格列顺序与分组一致：9 列（年级(教育信息) → 班级名称(教育信息) → 类型(教育信息) → 班主任(教育信息) → 教室(教育信息) → 容量(管理信息) → 在读(管理信息) → 状态(管理信息) → 操作(操作)）
+  分组顺序一致：基础信息 → 教育信息 → 证件信息 → 联系方式 → 监护人 → 变更记录
+
+$ python tools/check_api_contract.py   (exit 0)
+OpenAPI operationId：184 个
+通过：接口契约一致
+
+$ pnpm --filter @edu/plus-ui typecheck   (exit 1)
+error TS 总数：51（基线 51，本批新增 0）
+
+$ pnpm --filter @edu/plus-ui lint:eslint   (exit 1)
+汇总：✖ 124 problems (124 errors, 0 warnings)（基线 124 项，本批无新增）
+新增文件相关报错：无
+
+$ pnpm --filter @edu/plus-ui run build:prod   (exit 0)
+构建结果：成功（built in）
+产物：dist/assets/ClassFormDialog-B6eN5OxW.js                                                     0.40 kB │ gzip:   0.24 kB；dist/assets/ClassFormDialog.vue_vue_type_script_setup_true_lang-DdC-IUCH.js                 7.74 kB │ gzip:   2.74 kB
+

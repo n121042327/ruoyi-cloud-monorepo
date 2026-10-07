@@ -225,9 +225,6 @@ module_api_index:
   - listStudentChangeLog
   - listEnrollmentStatusOption
   - changeEnrollmentStatus
-  - importStudentValidate
-  - importStudentExecute
-  - downloadStudentImportTemplate
   - exportStudent
   - uploadStudentPhoto
   - getStudentPhoto
@@ -11307,7 +11304,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-001
   title: 提供学生列表分页查询，默认每页 20 条，最大 200 条
-  source: docs/10-prd/modules/student/PRD.md:199
+  source: docs/10-prd/modules/student/PRD.md:200
   module: student
   business_rules:
   - NFR-PERF-05
@@ -11339,7 +11336,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-002
   title: 支持按学校、学年学期、年级、班级、学籍状态、性别、入学年份、学段筛选
-  source: docs/10-prd/modules/student/PRD.md:200
+  source: docs/10-prd/modules/student/PRD.md:201
   module: student
   business_rules:
   - BR-STU-012
@@ -11372,7 +11369,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-003
   title: 支持关键字检索，命中范围为学号、姓名、全国学籍号
-  source: docs/10-prd/modules/student/PRD.md:201
+  source: docs/10-prd/modules/student/PRD.md:202
   module: student
   business_rules:
   - BR-STU-022
@@ -11402,7 +11399,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-004
   title: 支持按证件号后四位精确检索，且仅对具备敏感字段读取权限的角色开放
-  source: docs/10-prd/modules/student/PRD.md:202
+  source: docs/10-prd/modules/student/PRD.md:203
   module: student
   business_rules:
   - NFR-SEC-06
@@ -11432,7 +11429,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-005
   title: 支持按学号、姓名、入学年份、班级名称、更新时间排序
-  source: docs/10-prd/modules/student/PRD.md:203
+  source: docs/10-prd/modules/student/PRD.md:204
   module: student
   business_rules: []
   permission: —
@@ -11461,7 +11458,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-006
   title: 默认列表列：学号、姓名、性别、学段、年级、班级、学籍状态、入学年份、联系电话（掩码）、更新时间
-  source: docs/10-prd/modules/student/PRD.md:204
+  source: docs/10-prd/modules/student/PRD.md:205
   module: student
   business_rules:
   - BR-STU-009
@@ -11493,7 +11490,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-007
   title: 可选列表列：全国学籍号、出生日期、证件号（掩码）、监护人姓名
-  source: docs/10-prd/modules/student/PRD.md:205
+  source: docs/10-prd/modules/student/PRD.md:206
   module: student
   business_rules:
   - BR-STU-009
@@ -11525,7 +11522,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-008
   title: 列表结果的每一行都必须通过数据范围过滤，范围为空时返回空列表
-  source: docs/10-prd/modules/student/PRD.md:206
+  source: docs/10-prd/modules/student/PRD.md:207
   module: student
   business_rules:
   - DS-DENY-03`、`NFR-SEC-03
@@ -11556,7 +11553,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-009
   title: 列表页的"新增""编辑""异动""调班""导出""导入"按钮按功能权限显示，且后端二次校验
-  source: docs/10-prd/modules/student/PRD.md:207
+  source: docs/10-prd/modules/student/PRD.md:208
   module: student
   business_rules:
   - NFR-SEC-05
@@ -11591,7 +11588,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-010
   title: 列表支持记住用户上一次的筛选条件与列配置，按用户维度存储
-  source: docs/10-prd/modules/student/PRD.md:208
+  source: docs/10-prd/modules/student/PRD.md:209
   module: student
   business_rules: []
   permission: —
@@ -11619,7 +11616,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-011
   title: 提供学生详情页，分区展示：基本信息、学籍信息、班级归属、监护人、变更记录
-  source: docs/10-prd/modules/student/PRD.md:237
+  source: docs/10-prd/modules/student/PRD.md:238
   module: student
   business_rules:
   - BR-STU-013
@@ -11653,7 +11650,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-012
   title: 详情页字段按字段级权限裁剪，无权字段不返回给前端，而不是前端隐藏
-  source: docs/10-prd/modules/student/PRD.md:238
+  source: docs/10-prd/modules/student/PRD.md:239
   module: student
   business_rules:
   - NFR-SEC-05
@@ -11682,7 +11679,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-013
   title: 证件号、手机号默认掩码展示；查看全量需独立权限并写入访问日志
-  source: docs/10-prd/modules/student/PRD.md:239
+  source: docs/10-prd/modules/student/PRD.md:240
   module: student
   business_rules:
   - NFR-SEC-06`、`NFR-AUDIT-02`、`BR-AUDIT-002
@@ -11715,7 +11712,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-014
   title: 按 ID 查询详情时，先把数据范围条件拼进查询再按 ID 取数，禁止先取数再判断
-  source: docs/10-prd/modules/student/PRD.md:240
+  source: docs/10-prd/modules/student/PRD.md:241
   module: student
   business_rules:
   - DS-DENY-07
@@ -11744,7 +11741,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-015
   title: 详情的"变更记录"展示该学生的关键字段变更与学籍异动历史，按时间倒序
-  source: docs/10-prd/modules/student/PRD.md:241
+  source: docs/10-prd/modules/student/PRD.md:242
   module: student
   business_rules:
   - BR-AUDIT-001`、`BR-PROMO-012
@@ -11775,7 +11772,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-016
   title: 提供单个新增学生入口，按分组表单录入：学籍信息、证件与联系方式、监护人
-  source: docs/10-prd/modules/student/PRD.md:247
+  source: docs/10-prd/modules/student/PRD.md:248
   module: student
   business_rules:
   - SCN-STU-01
@@ -11808,7 +11805,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-017
   title: 学号由系统统一发号，表单**不提供学号输入**，仅展示发号结果
-  source: docs/10-prd/modules/student/PRD.md:248
+  source: docs/10-prd/modules/student/PRD.md:249
   module: student
   business_rules:
   - BR-STU-001`、`BR-STU-017
@@ -11837,7 +11834,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-018
   title: 必填字段：姓名、性别、入学年份、学段、年级
-  source: docs/10-prd/modules/student/PRD.md:249
+  source: docs/10-prd/modules/student/PRD.md:250
   module: student
   business_rules:
   - BR-STU-007
@@ -11866,7 +11863,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-019
   title: 可选字段：全国学籍号、证件类型、证件号、出生日期、学生手机号、地址
-  source: docs/10-prd/modules/student/PRD.md:250
+  source: docs/10-prd/modules/student/PRD.md:251
   module: student
   business_rules:
   - BR-STU-022`、`BR-STU-013
@@ -11896,7 +11893,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-020
   title: 证件号填写时校验唯一性；全国学籍号填写时校验唯一性
-  source: docs/10-prd/modules/student/PRD.md:251
+  source: docs/10-prd/modules/student/PRD.md:252
   module: student
   business_rules:
   - BR-STU-008`、`BR-STU-022
@@ -11925,7 +11922,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-021
   title: 可指定行政班；若该学生在同一学年学期已有行政班，拒绝保存并提示冲突
-  source: docs/10-prd/modules/student/PRD.md:252
+  source: docs/10-prd/modules/student/PRD.md:253
   module: student
   business_rules:
   - BR-STU-003`、`SCN-CLASS-02
@@ -11954,7 +11951,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-022
   title: 可录入监护人信息，数量上限 3；超过时阻止提交并给出提示
-  source: docs/10-prd/modules/student/PRD.md:253
+  source: docs/10-prd/modules/student/PRD.md:254
   module: student
   business_rules:
   - BR-ACCOUNT-016`、`GB-12
@@ -11984,7 +11981,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-023
   title: 保存成功后自动创建学生登录账号，登录名为 `s` + 学号
-  source: docs/10-prd/modules/student/PRD.md:254
+  source: docs/10-prd/modules/student/PRD.md:255
   module: student
   business_rules:
   - BR-ACCOUNT-002`、`SCN-GUARDIAN-02
@@ -12014,7 +12011,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-024
   title: 保存成功返回新学号并在页面显著展示，提供"继续新增"与"查看详情"两个后续动作
-  source: docs/10-prd/modules/student/PRD.md:255
+  source: docs/10-prd/modules/student/PRD.md:256
   module: student
   business_rules:
   - SCN-STU-01
@@ -12043,7 +12040,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-025
   title: 新增操作写入审计日志，包含操作人、对象、时间与来源 IP
-  source: docs/10-prd/modules/student/PRD.md:256
+  source: docs/10-prd/modules/student/PRD.md:257
   module: student
   business_rules:
   - BR-AUDIT-001
@@ -12072,7 +12069,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-026
   title: 编辑按字段级权限控制：无写权限的字段在表单中只读，后端同样拒绝
-  source: docs/10-prd/modules/student/PRD.md:303
+  source: docs/10-prd/modules/student/PRD.md:304
   module: student
   business_rules:
   - NFR-SEC-05
@@ -12103,7 +12100,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-027
   title: '**首轮不提供学号修改入口**：学号一经发出不可改；确需更正时由平台运营创建工单处理（`GAP-030` 裁决 B，延后实现）'
-  source: docs/10-prd/modules/student/PRD.md:304
+  source: docs/10-prd/modules/student/PRD.md:305
   module: student
   business_rules:
   - BR-STU-011`、`D-052
@@ -12131,7 +12128,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-028
   title: 班主任可修改本班学生的监护人信息与联系方式
-  source: docs/10-prd/modules/student/PRD.md:305
+  source: docs/10-prd/modules/student/PRD.md:306
   module: student
   business_rules:
   - BR-STU-010`、`SCN-STU-02
@@ -12162,7 +12159,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-029
   title: 班主任不可修改学号、姓名、性别、班级归属、学籍状态
-  source: docs/10-prd/modules/student/PRD.md:306
+  source: docs/10-prd/modules/student/PRD.md:307
   module: student
   business_rules:
   - 05-permission-matrix.yaml` `homeroom.field_rules
@@ -12192,7 +12189,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-030
   title: 年级主任对监护人信息与联系方式**只读**
-  source: docs/10-prd/modules/student/PRD.md:307
+  source: docs/10-prd/modules/student/PRD.md:308
   module: student
   business_rules:
   - 05-permission-matrix.yaml` `grade_leader.forbidden
@@ -12221,7 +12218,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-031
   title: 每次编辑写入审计日志，包含变更前后值与操作人
-  source: docs/10-prd/modules/student/PRD.md:308
+  source: docs/10-prd/modules/student/PRD.md:309
   module: student
   business_rules:
   - BR-AUDIT-001
@@ -12250,7 +12247,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-032
   title: 编辑并发控制：若记录已被他人修改，提交时提示"数据已被更新，请刷新后重试"
-  source: docs/10-prd/modules/student/PRD.md:309
+  source: docs/10-prd/modules/student/PRD.md:310
   module: student
   business_rules:
   - NFR-PERF-03
@@ -12279,7 +12276,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-033
   title: 学生详情与列表均展示当前学籍状态
-  source: docs/10-prd/modules/student/PRD.md:335
+  source: docs/10-prd/modules/student/PRD.md:336
   module: student
   business_rules:
   - FD-enrollment_status
@@ -12309,7 +12306,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-034
   title: 提供异动入口，支持：转入报到、休学、复学、出国、回国复学、登记失踪、寻回复学、按口径注销、转出、毕业、结业、肄业、退学、开除、死亡登记；可选项按当前状态动态计算，非法流转不出现入口
-  source: docs/10-prd/modules/student/PRD.md:336
+  source: docs/10-prd/modules/student/PRD.md:337
   module: student
   business_rules:
   - SCN-PROMO-02`、`BR-PROMO-008`、`BR-STU-023` ~ `BR-STU-028
@@ -12340,7 +12337,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-035
   title: 异动提交前校验状态流转合法性，非法流转直接拒绝并说明原因
-  source: docs/10-prd/modules/student/PRD.md:337
+  source: docs/10-prd/modules/student/PRD.md:338
   module: student
   business_rules:
   - FD-enrollment_status.transitions`、`BR-PROMO-010
@@ -12369,7 +12366,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-036
   title: 异动必须记录：类型、生效日期、原因、操作人、原状态、新状态
-  source: docs/10-prd/modules/student/PRD.md:338
+  source: docs/10-prd/modules/student/PRD.md:339
   module: student
   business_rules:
   - BR-PROMO-012
@@ -12398,7 +12395,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-037
   title: 休学、出国（保留学籍）、转入未报到等非在读状态都保留行政班关系，但**都不计入在读名单**（在读名单只含学籍状态为在读的学生）
-  source: docs/10-prd/modules/student/PRD.md:339
+  source: docs/10-prd/modules/student/PRD.md:340
   module: student
   business_rules:
   - BR-STU-012`、`BR-PROMO-008`、`BR-STU-023`、`BR-STU-025
@@ -12429,7 +12426,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-038
   title: 复学需校验当前状态为休学，并指定复学后的班级
-  source: docs/10-prd/modules/student/PRD.md:340
+  source: docs/10-prd/modules/student/PRD.md:341
   module: student
   business_rules:
   - BR-PROMO-009
@@ -12459,7 +12456,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-039
   title: 跨校转学在同一平台内跨学校租户执行；转出校先释放行政班关系，转入校接收后生效
-  source: docs/10-prd/modules/student/PRD.md:341
+  source: docs/10-prd/modules/student/PRD.md:342
   module: student
   business_rules:
   - BR-STU-005`、`BR-PROMO-011
@@ -12490,7 +12487,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-040
   title: 跨校转学时学号保持不变，学生的登录名不变
-  source: docs/10-prd/modules/student/PRD.md:342
+  source: docs/10-prd/modules/student/PRD.md:343
   module: student
   business_rules:
   - BR-STU-020`、`BR-ACCOUNT-004
@@ -12520,7 +12517,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-041
   title: 异动历史在详情页"变更记录"中可查，且不可删除
-  source: docs/10-prd/modules/student/PRD.md:343
+  source: docs/10-prd/modules/student/PRD.md:344
   module: student
   business_rules:
   - NFR-DATA-06`、`BR-AUDIT-003
@@ -12550,7 +12547,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-042
   title: 一名学生在同一学年学期内只能属于一个行政班
-  source: docs/10-prd/modules/student/PRD.md:397
+  source: docs/10-prd/modules/student/PRD.md:398
   module: student
   business_rules:
   - BR-STU-003
@@ -12579,7 +12576,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-043
   title: 提供调班操作，仅限当前学年学期，更换行政班并保留原关系历史
-  source: docs/10-prd/modules/student/PRD.md:398
+  source: docs/10-prd/modules/student/PRD.md:399
   module: student
   business_rules:
   - BR-PROMO-007
@@ -12608,7 +12605,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-044
   title: 班级容量超限时只提示不拦截
-  source: docs/10-prd/modules/student/PRD.md:399
+  source: docs/10-prd/modules/student/PRD.md:400
   module: student
   business_rules:
   - BR-CLASS-005
@@ -12637,7 +12634,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-045
   title: 学生可同时属于多个教学班，不受行政班唯一约束影响
-  source: docs/10-prd/modules/student/PRD.md:400
+  source: docs/10-prd/modules/student/PRD.md:401
   module: student
   business_rules:
   - BR-STU-004
@@ -12666,7 +12663,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-046
   title: 历史学年的班级关系只读，不提供跨学年修改入口
-  source: docs/10-prd/modules/student/PRD.md:401
+  source: docs/10-prd/modules/student/PRD.md:402
   module: student
   business_rules:
   - BR-CLASS-008
@@ -12696,7 +12693,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-047
   title: 学生详情展示已关联监护人列表，按是否主要联系人排序
-  source: docs/10-prd/modules/student/PRD.md:407
+  source: docs/10-prd/modules/student/PRD.md:408
   module: student
   business_rules:
   - BR-ACCOUNT-005
@@ -12726,7 +12723,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-048
   title: 监护人信息展示受字段级权限约束，任课教师不可见
-  source: docs/10-prd/modules/student/PRD.md:408
+  source: docs/10-prd/modules/student/PRD.md:409
   module: student
   business_rules:
   - 05-permission-matrix.yaml` `subject_teacher.forbidden
@@ -12755,7 +12752,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-049
   title: 学校侧可代录监护人信息；家长端填报的变更必须走审核
-  source: docs/10-prd/modules/student/PRD.md:409
+  source: docs/10-prd/modules/student/PRD.md:410
   module: student
   business_rules:
   - BR-STU-015`、`SCN-STU-02
@@ -12785,7 +12782,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-050
   title: 解绑监护人需班主任审核确认，审核未通过可重新提交
-  source: docs/10-prd/modules/student/PRD.md:410
+  source: docs/10-prd/modules/student/PRD.md:411
   module: student
   business_rules:
   - BR-ACCOUNT-017`、`BR-ACCOUNT-018
@@ -12815,7 +12812,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-051
   title: 首轮不实现家长端界面与二维码认领接口，但表结构与数据关系必须建立
-  source: docs/10-prd/modules/student/PRD.md:411
+  source: docs/10-prd/modules/student/PRD.md:412
   module: student
   business_rules:
   - BR-ACCOUNT-010`、`D-033
@@ -12845,7 +12842,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-052
   title: 提供导入模板下载，模板列顺序固定，含填写说明与示例行
-  source: docs/10-prd/modules/student/PRD.md:417
+  source: docs/10-prd/modules/student/PRD.md:418
   module: student
   business_rules:
   - SCN-STU-03
@@ -12861,7 +12858,7 @@ traceability:
     planned_page: views/edu/student/stu_list/index.vue
     plan_source: docs/40-detailed-design/frontend-page-tree.yaml
   api_operation_ids:
-  - downloadStudentImportTemplate
+  - downloadImportTemplate
   tables:
   - edu_import_template
   tests:
@@ -12870,11 +12867,12 @@ traceability:
     permission: []
     prototype: []
   status: 部分覆盖
-  notes: []
+  notes:
+  - 导入统一走导入导出模块的通用接口（CR-053 / GAP-086 裁决 A）。
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-053
   title: 上传后同步解析并校验，5000 行以内校验阶段耗时 ≤ 30 秒
-  source: docs/10-prd/modules/student/PRD.md:418
+  source: docs/10-prd/modules/student/PRD.md:419
   module: student
   business_rules:
   - NFR-PERF-06
@@ -12890,7 +12888,7 @@ traceability:
     planned_page: views/edu/student/stu_list/index.vue
     plan_source: docs/40-detailed-design/frontend-page-tree.yaml
   api_operation_ids:
-  - importStudentValidate
+  - validateImportFile
   tables:
   - edu_import_batch
   - edu_import_error
@@ -12904,7 +12902,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-054
   title: 校验维度：必填缺失、格式错误、年级或班级不存在、证件号重复、全国学籍号重复、导入文件内自身重复
-  source: docs/10-prd/modules/student/PRD.md:419
+  source: docs/10-prd/modules/student/PRD.md:420
   module: student
   business_rules:
   - BR-STU-007`、`BR-STU-008`、`BR-STU-022
@@ -12920,7 +12918,7 @@ traceability:
     planned_page: views/edu/student/stu_list/index.vue
     plan_source: docs/40-detailed-design/frontend-page-tree.yaml
   api_operation_ids:
-  - importStudentValidate
+  - validateImportFile
   tables:
   - edu_import_error
   tests:
@@ -12933,7 +12931,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-055
   title: 校验结果分页展示，区分成功行与失败行，失败行给出原始行号与失败原因
-  source: docs/10-prd/modules/student/PRD.md:420
+  source: docs/10-prd/modules/student/PRD.md:421
   module: student
   business_rules:
   - BR-IMP-006
@@ -12949,7 +12947,7 @@ traceability:
     planned_page: views/edu/student/stu_list/index.vue
     plan_source: docs/40-detailed-design/frontend-page-tree.yaml
   api_operation_ids:
-  - importStudentValidate
+  - validateImportFile
   tables:
   - edu_import_error
   tests:
@@ -12962,7 +12960,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-056
   title: 用户确认后才执行导入，执行阶段异步进行并返回任务编号
-  source: docs/10-prd/modules/student/PRD.md:421
+  source: docs/10-prd/modules/student/PRD.md:422
   module: student
   business_rules:
   - BR-IMP-001`、`BR-IMP-003
@@ -12978,7 +12976,7 @@ traceability:
     planned_page: views/edu/student/stu_list/index.vue
     plan_source: docs/40-detailed-design/frontend-page-tree.yaml
   api_operation_ids:
-  - importStudentExecute
+  - executeImport
   tables:
   - edu_import_batch
   - edu_async_task
@@ -12992,7 +12990,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-057
   title: 导入时**忽略源文件中的学号列**，由系统统一发号
-  source: docs/10-prd/modules/student/PRD.md:422
+  source: docs/10-prd/modules/student/PRD.md:423
   module: student
   business_rules:
   - BR-STU-019
@@ -13008,7 +13006,7 @@ traceability:
     planned_page: views/edu/student/stu_list/index.vue
     plan_source: docs/40-detailed-design/frontend-page-tree.yaml
   api_operation_ids:
-  - importStudentExecute
+  - executeImport
   tables:
   - edu_student
   tests:
@@ -13021,7 +13019,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-058
   title: 导入完成后提供「学号对照表」下载，含原始行号、姓名、系统学号
-  source: docs/10-prd/modules/student/PRD.md:423
+  source: docs/10-prd/modules/student/PRD.md:424
   module: student
   business_rules:
   - BR-STU-019
@@ -13037,7 +13035,7 @@ traceability:
     planned_page: views/edu/student/stu_list/index.vue
     plan_source: docs/40-detailed-design/frontend-page-tree.yaml
   api_operation_ids:
-  - importStudentExecute
+  - executeImport
   tables:
   - edu_import_batch
   - edu_student
@@ -13051,7 +13049,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-059
   title: 导入必须幂等，同一批次重复提交不产生重复数据
-  source: docs/10-prd/modules/student/PRD.md:424
+  source: docs/10-prd/modules/student/PRD.md:425
   module: student
   business_rules:
   - BR-IMP-002`、`NFR-MQ-01
@@ -13067,7 +13065,7 @@ traceability:
     planned_page: views/edu/student/stu_list/index.vue
     plan_source: docs/40-detailed-design/frontend-page-tree.yaml
   api_operation_ids:
-  - importStudentExecute
+  - executeImport
   tables:
   - edu_import_batch
   tests:
@@ -13080,7 +13078,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-060
   title: 失败行可下载为 CSV，修正后可重新上传
-  source: docs/10-prd/modules/student/PRD.md:425
+  source: docs/10-prd/modules/student/PRD.md:426
   module: student
   business_rules:
   - BR-IMP-006
@@ -13096,7 +13094,7 @@ traceability:
     planned_page: views/edu/student/stu_list/index.vue
     plan_source: docs/40-detailed-design/frontend-page-tree.yaml
   api_operation_ids:
-  - importStudentValidate
+  - validateImportFile
   tables:
   - edu_import_error
   tests:
@@ -13109,7 +13107,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-061
   title: 导入导入任务的状态与进度可查询
-  source: docs/10-prd/modules/student/PRD.md:426
+  source: docs/10-prd/modules/student/PRD.md:427
   module: student
   business_rules:
   - NFR-MQ-04`、`FD-async_task_status
@@ -13138,7 +13136,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-062
   title: 导入产生的学生默认不带行政班，需在确认页选择统一目标班级或后续在班级模块编班
-  source: docs/10-prd/modules/student/PRD.md:427
+  source: docs/10-prd/modules/student/PRD.md:428
   module: student
   business_rules:
   - BR-STU-014
@@ -13167,7 +13165,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-063
   title: 导出按当前筛选条件与当前用户数据范围生成
-  source: docs/10-prd/modules/student/PRD.md:454
+  source: docs/10-prd/modules/student/PRD.md:455
   module: student
   business_rules:
   - BR-IMP-004`、`SCN-IMP-01
@@ -13197,7 +13195,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-064
   title: 导出前重新解析数据范围，不复用列表页缓存
-  source: docs/10-prd/modules/student/PRD.md:455
+  source: docs/10-prd/modules/student/PRD.md:456
   module: student
   business_rules:
   - DS-DENY-04
@@ -13226,7 +13224,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-065
   title: 导出写入审计日志，记录条件、行数、耗时、导出人
-  source: docs/10-prd/modules/student/PRD.md:456
+  source: docs/10-prd/modules/student/PRD.md:457
   module: student
   business_rules:
   - BR-IMP-005`、`NFR-AUDIT-03
@@ -13255,7 +13253,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-066
   title: 导出文件中的敏感字段默认掩码；导出全量需额外授权
-  source: docs/10-prd/modules/student/PRD.md:457
+  source: docs/10-prd/modules/student/PRD.md:458
   module: student
   business_rules:
   - NFR-SEC-06
@@ -13284,7 +13282,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-067
   title: 任课教师**禁止**导出任教班级名单
-  source: docs/10-prd/modules/student/PRD.md:458
+  source: docs/10-prd/modules/student/PRD.md:459
   module: student
   business_rules:
   - 05-permission-matrix.yaml` `subject_teacher.forbidden
@@ -13313,7 +13311,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-068
   title: 超过 2000 行的导出走异步任务，返回任务编号
-  source: docs/10-prd/modules/student/PRD.md:459
+  source: docs/10-prd/modules/student/PRD.md:460
   module: student
   business_rules:
   - NFR-PERF-05`、`NFR-MQ-04
@@ -13342,7 +13340,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-069
   title: 学生登录名 = `s` + 学号，全平台唯一
-  source: docs/10-prd/modules/student/PRD.md:468
+  source: docs/10-prd/modules/student/PRD.md:469
   module: student
   business_rules:
   - BR-ACCOUNT-002`、`D-027
@@ -13372,7 +13370,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-070
   title: 学生账号在学生创建或导入时自动生成
-  source: docs/10-prd/modules/student/PRD.md:469
+  source: docs/10-prd/modules/student/PRD.md:470
   module: student
   business_rules:
   - SCN-GUARDIAN-02
@@ -13402,7 +13400,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-071
   title: 账号创建时生成 8 位一次性激活码，状态为"未激活"；不设长期初始密码
-  source: docs/10-prd/modules/student/PRD.md:470
+  source: docs/10-prd/modules/student/PRD.md:471
   module: student
   business_rules:
   - BR-ACCOUNT-003` 需按本机制修订，见第 12 节 `GAP-021
@@ -13431,7 +13429,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-072
   title: 学号变更后登录名同步变更，且旧会话必须失效
-  source: docs/10-prd/modules/student/PRD.md:471
+  source: docs/10-prd/modules/student/PRD.md:472
   module: student
   business_rules:
   - BR-STU-021`、`D-031
@@ -13461,7 +13459,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-073
   title: 提供重置激活码入口，旧码立即失效，操作写入审计日志
-  source: docs/10-prd/modules/student/PRD.md:472
+  source: docs/10-prd/modules/student/PRD.md:473
   module: student
   business_rules:
   - BR-AUDIT-001
@@ -13491,7 +13489,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-074
   title: 小学生不采集手机号，登录不依赖短信
-  source: docs/10-prd/modules/student/PRD.md:473
+  source: docs/10-prd/modules/student/PRD.md:474
   module: student
   business_rules:
   - SCN-GUARDIAN-02
@@ -13520,7 +13518,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-075
   title: 学生记录只允许逻辑删除，且必须无在读关系
-  source: docs/10-prd/modules/student/PRD.md:499
+  source: docs/10-prd/modules/student/PRD.md:500
   module: student
   business_rules:
   - BR-STU-006
@@ -13550,7 +13548,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-076
   title: 逻辑删除后学号作废，永不回收、永不重用
-  source: docs/10-prd/modules/student/PRD.md:500
+  source: docs/10-prd/modules/student/PRD.md:501
   module: student
   business_rules:
   - BR-STU-018
@@ -13579,7 +13577,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-077
   title: 学生记录禁止物理删除，数据库层不得对此表开放删除语句
-  source: docs/10-prd/modules/student/PRD.md:501
+  source: docs/10-prd/modules/student/PRD.md:502
   module: student
   business_rules:
   - NFR-DATA-02`、`BR-AUDIT-003
@@ -13608,7 +13606,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-078
   title: 删除操作仅对教务主任及以上开放，且必须二次确认并填写原因
-  source: docs/10-prd/modules/student/PRD.md:502
+  source: docs/10-prd/modules/student/PRD.md:503
   module: student
   business_rules:
   - BR-AUDIT-001
@@ -13637,7 +13635,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-079
   title: 学生列表在 10 万学生规模下 P95 ≤ 1 秒
-  source: docs/10-prd/modules/student/PRD.md:775
+  source: docs/10-prd/modules/student/PRD.md:778
   module: student
   business_rules:
   - NFR-PERF-02
@@ -13664,7 +13662,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-080
   title: 学生新增 / 编辑 P95 ≤ 2 秒
-  source: docs/10-prd/modules/student/PRD.md:776
+  source: docs/10-prd/modules/student/PRD.md:779
   module: student
   business_rules:
   - NFR-PERF-03
@@ -13692,7 +13690,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-081
   title: 导入校验 5000 行 ≤ 30 秒
-  source: docs/10-prd/modules/student/PRD.md:777
+  source: docs/10-prd/modules/student/PRD.md:780
   module: student
   business_rules:
   - NFR-PERF-06
@@ -13719,7 +13717,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-082
   title: 学生详情首次打开 ≤ 1 秒
-  source: docs/10-prd/modules/student/PRD.md:778
+  source: docs/10-prd/modules/student/PRD.md:781
   module: student
   business_rules:
   - NFR-PERF-02
@@ -13746,7 +13744,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-083
   title: 学校侧任何学生查询必须经在校记录 / 班级关系做两段式取数，禁止直接查询学生主体表
-  source: docs/10-prd/modules/student/PRD.md:546
+  source: docs/10-prd/modules/student/PRD.md:547
   module: student
   business_rules: []
   permission: —
@@ -13775,7 +13773,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-084
   title: 学生主体表的任何查询都必须显式携带数据范围条件，包括运营方
-  source: docs/10-prd/modules/student/PRD.md:547
+  source: docs/10-prd/modules/student/PRD.md:548
   module: student
   business_rules: []
   permission: —
@@ -13803,7 +13801,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-085
   title: 学生主体表的查询条件必须能追到 `DS-DENY-01` ~ `DS-DENY-09` 中的具体一条
-  source: docs/10-prd/modules/student/PRD.md:548
+  source: docs/10-prd/modules/student/PRD.md:549
   module: student
   business_rules: []
   permission: —
@@ -13831,7 +13829,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-086
   title: 激活码以可逆加密存储，禁止明文落库；明文仅在校验时于服务端内存中出现
-  source: docs/10-prd/modules/student/PRD.md:474
+  source: docs/10-prd/modules/student/PRD.md:475
   module: student
   business_rules:
   - NFR-SEC-01`、`NFR-AUDIT-02
@@ -13861,7 +13859,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-087
   title: 班主任可查看本班"未激活"学生的激活码，默认掩码，点击揭示后逐条写审计
-  source: docs/10-prd/modules/student/PRD.md:475
+  source: docs/10-prd/modules/student/PRD.md:476
   module: student
   business_rules:
   - BR-DATA-004`、`NFR-AUDIT-02
@@ -13891,7 +13889,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-088
   title: 班主任可批量打印本班密码条，版式为每行"姓名 / 学号 / 登录名 / 激活码"，一页多联便于剪裁分发
-  source: docs/10-prd/modules/student/PRD.md:476
+  source: docs/10-prd/modules/student/PRD.md:477
   module: student
   business_rules:
   - SCN-GUARDIAN-02
@@ -13920,7 +13918,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-089
   title: 教务主任可下载全校"未激活"学生的加密清单，下载动作写审计并记录行数
-  source: docs/10-prd/modules/student/PRD.md:477
+  source: docs/10-prd/modules/student/PRD.md:478
   module: student
   business_rules:
   - BR-IMP-005`、`BR-AUDIT-001
@@ -13951,7 +13949,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-090
   title: 学生首次登录输入登录名 + 激活码后，进入"设置密码"页；设置成功或激活码校验通过后，激活码立即作废且明文不可再查
-  source: docs/10-prd/modules/student/PRD.md:478
+  source: docs/10-prd/modules/student/PRD.md:479
   module: student
   business_rules:
   - BR-ACCOUNT-003
@@ -13980,7 +13978,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-091
   title: 登录失败按学号限流，连续 5 次失败锁定 10 分钟；限流事件写审计
-  source: docs/10-prd/modules/student/PRD.md:479
+  source: docs/10-prd/modules/student/PRD.md:480
   module: student
   business_rules:
   - NFR-SEC-04
@@ -14008,7 +14006,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-092
   title: 小学低年级可由班主任代学生完成激活并设置密码，操作写审计
-  source: docs/10-prd/modules/student/PRD.md:480
+  source: docs/10-prd/modules/student/PRD.md:481
   module: student
   business_rules:
   - SCN-GUARDIAN-02
@@ -14038,7 +14036,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-093
   title: 转入校接收学生时先生成"转入未报到"记录：该期间不编入行政班、不计入在读名单；提供"报到"与"撤销接收"两个动作
-  source: docs/10-prd/modules/student/PRD.md:385
+  source: docs/10-prd/modules/student/PRD.md:386
   module: student
   business_rules:
   - BR-STU-023
@@ -14070,7 +14068,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-094
   title: 开除操作：义务教育阶段（小学、初中）入口不可用且后端拒绝；高中阶段需校级管理员审批并留审计
-  source: docs/10-prd/modules/student/PRD.md:386
+  source: docs/10-prd/modules/student/PRD.md:387
   module: student
   business_rules:
   - BR-STU-024`、`BR-PROMO-010`、`NFR-AUDIT-01
@@ -14099,7 +14097,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-095
   title: 学籍状态共 12 项，其中终态 7 项（已转出、毕业、结业、肄业、开除、退学、死亡）；终态之间不提供任何异动入口，接口层同样拒绝
-  source: docs/10-prd/modules/student/PRD.md:387
+  source: docs/10-prd/modules/student/PRD.md:388
   module: student
   business_rules:
   - BR-PROMO-010`、`FD-enrollment_status
@@ -14129,7 +14127,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-096
   title: 结业与肄业仅高中阶段可用；义务教育阶段入口不可用且后端拒绝
-  source: docs/10-prd/modules/student/PRD.md:388
+  source: docs/10-prd/modules/student/PRD.md:389
   module: student
   business_rules:
   - BR-STU-027
@@ -14158,7 +14156,7 @@ traceability:
   link_source: docs/00-governance/requirement-links.yaml
 - requirement_id: REQ-STU-097
   title: 死亡登记需校级管理员权限并留存证明材料；死亡学生从常规在读数、在读名单与在校统计中排除，仅在专门的"离校学生"查询中按权限可见
-  source: docs/10-prd/modules/student/PRD.md:389
+  source: docs/10-prd/modules/student/PRD.md:390
   module: student
   business_rules:
   - BR-STU-028`、`NFR-AUDIT-01

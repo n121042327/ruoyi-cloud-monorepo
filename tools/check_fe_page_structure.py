@@ -34,7 +34,14 @@ CHECKS = [
         "deferred_groups": {
             "选择": "批量操作（批量导出 / 批量调班）在阶段 6 后续批次交付，见 CR-044 的边界说明"
         },
-    }
+    },
+    {
+        "page_id": "PAGE-CLS-LIST",
+        "name": "班级管理列表",
+        "prototype": "prototypes/functional/v2/pages/class-list.html",
+        "vue": "apps/plus-ui/src/views/edu/class/cls_list/index.vue",
+        "deferred_groups": {},
+    },
 ]
 
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）
@@ -93,6 +100,18 @@ OVERLAY_CHECKS = [
             ("核对信息与接收", ["核对信息与接收"]),
             ("接收确认", ["接收确认"]),
             ("报到", ["报到"]),
+        ],
+    },
+    {
+        "page_id": "PAGE-STU-IMPORT",
+        "name": "学生批量导入向导",
+        "prototype": "prototypes/functional/v1/pages/student-import.html",
+        "vue": "apps/plus-ui/src/views/edu/student/stu_import/index.vue",
+        "steps": [
+            ("下载模板", ["下载模板"]),
+            ("上传与校验", ["上传与校验"]),
+            ("校验结果", ["校验结果"]),
+            ("执行与进度", ["执行与进度"]),
         ],
     },
 ]

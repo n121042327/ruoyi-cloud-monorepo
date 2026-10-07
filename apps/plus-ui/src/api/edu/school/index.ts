@@ -1,6 +1,6 @@
 import request from '@/utils/request';
 import { AxiosPromise } from 'axios';
-import { SchoolVO } from './types';
+import { CampusVO, SchoolVO } from './types';
 
 /**
  * 查询学校列表（学生列表查询区的「学校」下拉，仅平台运营可切换）
@@ -26,7 +26,20 @@ export const getCurrentSchool = (): AxiosPromise<SchoolVO> => {
   });
 };
 
+/**
+ * 查询校区列表（班级列表查询区的「校区」下拉；校区不参与数据权限判定）
+ *
+ * 对应 operationId `listCampus`（GET /edu/school/{id}/campus）。
+ */
+export const listCampus = (schoolId: string): AxiosPromise<CampusVO[]> => {
+  return request({
+    url: `/edu/school/${schoolId}/campus`,
+    method: 'get'
+  });
+};
+
 export default {
   listSchool,
-  getCurrentSchool
+  getCurrentSchool,
+  listCampus
 };

@@ -697,3 +697,22 @@
 | `docs/00-governance/change-requests/CR-051.md` | 转入校侧向导的交付与门禁记录 | `review` |
 | `apps/plus-ui/src/views/edu/promotion/prm_transfer/index.vue` | 跨校转学（转入校）4 步向导 | `已实现` |
 | `evidence/stage6-frontend/2026-10-07_cross-transfer-in_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |
+
+## 2026-10-08 阶段 6 第九批：班级管理列表页
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-052.md` | 班级列表页交付 + GAP-086 登记与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/class/cls_list/index.vue` | 班级管理列表页（查询区 / 工具栏 / 表格 / 分页 / 无权限态） | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_list/components/ClassFormDialog.vue` | 新建 / 编辑班级（教育信息 + 管理信息两组） | `已实现` |
+| `apps/plus-ui/src/api/edu/teacher/**` | 教师接口层（班主任下拉） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_class-list_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |
+
+## 2026-10-08 阶段 6 第十批：学生批量导入向导
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-053.md` | GAP-086 裁决 A 的契约收敛与导入向导交付记录 | `review` |
+| `apps/plus-ui/src/views/edu/student/stu_import/index.vue` | 学生批量导入 4 步向导 | `已实现` |
+| `apps/plus-ui/src/api/edu/importExport/**` | 导入导出模块接口层（模板 / 校验 / 执行 / 失败行 / 结果 / 任务详情） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_student-import_verification.log` | 本批生成结果与门禁证据 | `review` |

@@ -137,6 +137,34 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: { title: '转学接收', icon: 'swap' }
       }
     ]
+  },
+  {
+    path: '/edu/class/list',
+    component: Layout,
+    hidden: true,
+    permissions: ['org.class:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/class/cls_list/index.vue'),
+        name: 'EduClassList',
+        meta: { title: '班级管理', icon: 'tree' }
+      }
+    ]
+  },
+  {
+    path: '/edu/student/import',
+    component: Layout,
+    hidden: true,
+    permissions: ['data.import:import'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/student/stu_import/index.vue'),
+        name: 'EduStudentImport',
+        meta: { title: '学生批量导入', icon: 'upload' }
+      }
+    ]
   }
 ];
 

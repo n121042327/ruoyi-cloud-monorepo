@@ -2626,6 +2626,48 @@ gaps:
     resolved_at: "2026-10-07"
     status: closed
 
+  - id: GAP-086
+    title: 学生批量导入向导的动作有两套接口（导入导出模块的通用接口 vs 学生模块的 import*Student*），未裁决用哪套
+    discovered_at: 2026-10-08
+    discovered_by: Codex 实现阶段 6 学生导入向导时
+    evidence: |
+      docs/10-prd/modules/import-export/PRD.md 第 8 节：`downloadImportTemplate`（GET /edu/import/template/{module}）、
+      `validateImportFile`（POST /edu/import/validate）、`executeImport`（POST /edu/import/execute，异步）、
+      `downloadImportFailedRows`、`downloadImportResult` —— 覆盖模板下载、上传校验、失败明细与结果文件。
+      docs/10-prd/modules/student/PRD.md 第 8 节：`downloadStudentImportTemplate`（GET /edu/student/import/template）、
+      `importStudentValidate`（POST /edu/student/import/validate）、`importStudentExecute`（POST /edu/student/import/execute）。
+      冻结原型 prototypes/functional/v1/pages/student-import.html 的动作写的是通用接口
+      （downloadImportTemplate / validateImportFile / executeImport / downloadImportFailedRows / downloadImportResult），
+      而 requirement-links.yaml 里 REQ-STU-052 ~ 060（模板列、校验规则、幂等）挂的是学生模块的三个接口。
+    impact: |
+      导入向导页面的「下载模板 / 上传校验 / 确认执行 / 下载失败行 / 下载结果」各自有两个可选 operationId，
+      阶段 6 无法确定调用目标；若两套都实现，同一个导入批次会出现两个写入口，与 DP-01 冲突，
+      阶段 8 的 CHK-ORPHAN-API 与 CHK-PERMISSION 也要为同一动作维护两套口径。
+      本批先登记，学生导入向导页面等裁决后再做；同批改为交付班级列表页（不依赖该裁决）。
+    options:
+      - A 统一走导入导出模块的通用接口，学生模块的 3 个 import*Student* 从第 8 节移除并标注废弃（推荐）
+      - B 统一走学生模块的 3 个接口，导入导出模块不再对外暴露模板 / 校验 / 执行
+      - C 两层都保留：页面调通用接口，学生模块接口作为内部实现，并在两份 PRD 写明委托关系
+    recommended: |
+      A。导入引擎、模板注册、批次与错误明细、结果文件都在导入导出模块，模板与校验规则由业务模块声明（REQ-IMP-002）；
+      冻结原型的动作也指向通用接口。B 会把引擎能力拆散到各业务模块；C 虽可行，但要额外维护一层委托说明，
+      收益仅是保留历史接口名，不如直接收敛。
+    blocking: false
+    blocks_stages:
+      - stage6
+      - stage8
+    owner: 用户
+    answer: 用户于 2026-10-08 批注「按推荐，继续……需要我确认的直接按推荐走」，采纳推荐 A。
+    resolution: |
+      按 CR-053 落地：学生 PRD 升 1.1.0，第 8 节删除 `downloadStudentImportTemplate` /
+      `importStudentValidate` / `importStudentExecute`，并加注「学生导入复用导入导出模块的通用接口」；
+      requirement-links 的 REQ-STU-052 ~ 060 改挂 `downloadImportTemplate` / `validateImportFile` / `executeImport`。
+      重跑生成器后 operationId 184 → 181，OpenAPI 181 个 / 160 条路径；v2 学生列表原型的「下载模板」
+      按钮由 `downloadStudentImportTemplate` 改为 `downloadImportTemplate`（v2 属现行版本，随裁决同步）。
+      前端按通用接口实现学生导入向导（`PAGE-STU-IMPORT`）。
+    resolved_at: "2026-10-08"
+    status: closed
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"
@@ -2714,4 +2756,4 @@ open_questions_for_user:
   - "阶段 2 批次 2-9 已产出待验收：异步任务列表（8 列 7 行 + PAGE-IMP-TASK-DETAIL 详情抽屉 + PAGE-IMP-EXPORT 导出配置弹窗）、死信任务（7 列 3 行 + 重试与并发配置统计卡 + DIALOG-DLQ-REPLAY 重放确认）；动作 ACT-TASK-001 ~ 051 已登记；harness verify-task 22 / 22 通过，见 D-083。"
   - "新增 GAP-060 并已关闭：死信重放需要二次确认但导入导出 PRD 6.1 未登记片段。用户授权默认取推荐，按 CR-019 补登记 DIALOG-DLQ-REPLAY，导入导出 PRD 升 1.0.1-draft，见 D-083。"
   - "**阶段 2（业务原型）已收尾**：2-1 ~ 2-9 共 9 批全部产出待验收，累计 45 个页面文件承载 96 个页面编号，19 个 harness 全绿（合计 508 条断言），check_docs 通过。下一步按用户授权合并本地 main，然后进阶段 3（独立高保真原型）。"
-  - "**2026-10-02 生产代码前的治理项已全部关闭**：按 CR-042 完成 GAP-081 的 626 条需求逐条挂接（接口链 580 / 表链 537，178 个 operationId 全部可追溯到需求）；按 CR-043 补齐 GAP-082（学生激活码 4 个接口）与 GAP-083（教师启用账号 / 复制任教关系 2 个接口），operationId 178 → 184。缺项表当时无 open 项（其余为已落地并留结论的 closed / answered 记录），阶段 6 的输入文件已齐。**进入阶段 6 后新增两条**：GAP-084（学生联系电话明文查看缺接口契约）已按用户裁决补 `viewStudentPhone` 关闭；**GAP-085（跨校转学的「转出校发起」有两个接口，未裁决）当前 open**，推荐统一用升班模块的 `addTransfer`，未确认前跨校转学的两个向导页面不做。"
+  - "**2026-10-02 生产代码前的治理项已全部关闭**：按 CR-042 完成 GAP-081 的 626 条需求逐条挂接（接口链 580 / 表链 537，178 个 operationId 全部可追溯到需求）；按 CR-043 补齐 GAP-082（学生激活码 4 个接口）与 GAP-083（教师启用账号 / 复制任教关系 2 个接口），operationId 178 → 184。缺项表当时无 open 项（其余为已落地并留结论的 closed / answered 记录），阶段 6 的输入文件已齐。**进入阶段 6 后新增三条**：GAP-084（学生联系电话明文查看缺接口契约）已按裁决补 `viewStudentPhone` 关闭；GAP-085（跨校转学的「转出校发起」有两个接口）已按裁决统一为升班模块的 `addTransfer` 关闭；**GAP-086（学生导入向导的动作有两套接口）当前 open**，推荐统一走导入导出模块的通用接口，未确认前学生导入向导页面不做。"

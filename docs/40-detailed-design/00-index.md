@@ -12,7 +12,7 @@
 | 结构检查 SQL | `docs/40-detailed-design/database/check-sql.sql` | 22 条结构与不变式检查 |
 | 迁移脚本 | `docs/40-detailed-design/migrations/V1` ~ `V5` | 可重复执行的建表与外键脚本 |
 | 迁移计划 | `docs/40-detailed-design/database/migration-plan.md` | 顺序、依赖、回滚、存量升级 |
-| 接口契约 | `docs/40-detailed-design/api/openapi.yaml` | OpenAPI 3.0.3，184 个 operationId |
+| 接口契约 | `docs/40-detailed-design/api/openapi.yaml` | OpenAPI 3.0.3，181 个 operationId |
 | 错误码 | `docs/40-detailed-design/api/error-codes.yaml` | 72 个错误码 |
 | 页面动作映射 | `docs/40-detailed-design/page-action-api-map.yaml` | 页面动作 → 权限 → operationId → 组件 |
 | 前端页面树 | `docs/40-detailed-design/frontend-page-tree.yaml` | 路由 / 组件归属 / 批次 / 文件 |
@@ -48,7 +48,7 @@ python tools/gen_stage5_docs.py          # 本目录的模块详细设计 / 图 
 | 阶段 4 产物 | 阶段 5 落点 |
 |---|---|
 | `05-data-ownership.md`（33 张表的归属） | `schema.yaml` 的 `module` 字段 + `domain-table-map.csv` |
-| `06-api-catalog.md`（184 个 operationId） | `api/openapi.yaml` + `modules/<m>/design.md` 第 3 节 |
+| `06-api-catalog.md`（181 个 operationId） | `api/openapi.yaml` + `modules/<m>/design.md` 第 3 节 |
 | `07-sync-async-boundary.md` | `runtime-design.md` 第 1、2 节 |
 | `08-cache-strategy.md` | `runtime-design.md` 第 4 节 |
 | `09-permission-architecture.md` | 各模块 design.md 第 9 节 |

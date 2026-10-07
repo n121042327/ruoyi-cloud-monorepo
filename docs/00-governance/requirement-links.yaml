@@ -59,15 +59,15 @@ modules:
       REQ-STU-049: {api: [saveStudentGuardian], tables: [edu_student_guardian, edu_student_field_change]}
       REQ-STU-050: {api: [unbindStudentGuardian], tables: [edu_student_guardian, edu_student_field_change]}
       REQ-STU-051: {api: [], tables: [edu_guardian, edu_student_guardian], note: 首轮不实现家长端界面与认领接口（PRD 明确延后）；表结构与关系已建。}
-      REQ-STU-052: {api: [downloadStudentImportTemplate], tables: [edu_import_template]}
-      REQ-STU-053: {api: [importStudentValidate], tables: [edu_import_batch, edu_import_error]}
-      REQ-STU-054: {api: [importStudentValidate], tables: [edu_import_error]}
-      REQ-STU-055: {api: [importStudentValidate], tables: [edu_import_error]}
-      REQ-STU-056: {api: [importStudentExecute], tables: [edu_import_batch, edu_async_task]}
-      REQ-STU-057: {api: [importStudentExecute], tables: [edu_student]}
-      REQ-STU-058: {api: [importStudentExecute], tables: [edu_import_batch, edu_student]}
-      REQ-STU-059: {api: [importStudentExecute], tables: [edu_import_batch]}
-      REQ-STU-060: {api: [importStudentValidate], tables: [edu_import_error]}
+      REQ-STU-052: {api: [downloadImportTemplate], tables: [edu_import_template], note: 导入统一走导入导出模块的通用接口（CR-053 / GAP-086 裁决 A）。}
+      REQ-STU-053: {api: [validateImportFile], tables: [edu_import_batch, edu_import_error]}
+      REQ-STU-054: {api: [validateImportFile], tables: [edu_import_error]}
+      REQ-STU-055: {api: [validateImportFile], tables: [edu_import_error]}
+      REQ-STU-056: {api: [executeImport], tables: [edu_import_batch, edu_async_task]}
+      REQ-STU-057: {api: [executeImport], tables: [edu_student]}
+      REQ-STU-058: {api: [executeImport], tables: [edu_import_batch, edu_student]}
+      REQ-STU-059: {api: [executeImport], tables: [edu_import_batch]}
+      REQ-STU-060: {api: [validateImportFile], tables: [edu_import_error]}
       REQ-STU-061: {api: [importStudentExecute], tables: [edu_async_task]}
       REQ-STU-062: {api: [importStudentExecute], tables: [edu_class_member]}
       REQ-STU-063: {api: [exportStudent], tables: [edu_student, edu_student_enrollment]}

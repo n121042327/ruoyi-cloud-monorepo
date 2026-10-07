@@ -46,9 +46,6 @@
 | `listStudentChangeLog` | GET | `/edu/student/{id}/change-log` | 变更记录 | `person.student` | 同步 |
 | `listEnrollmentStatusOption` | GET | `/edu/student/{id}/status-options` | 当前状态可执行的异动 | `person.student` | 同步 |
 | `changeEnrollmentStatus` | POST | `/edu/student/{id}/enrollment-change` | 学籍异动 | `person.student` | 同步 |
-| `importStudentValidate` | POST | `/edu/student/import/validate` | 导入校验 | `person.student` | 同步 |
-| `importStudentExecute` | POST | `/edu/student/import/execute` | 导入执行（异步） | `person.student` | 异步 |
-| `downloadStudentImportTemplate` | GET | `/edu/student/import/template` | 模板下载 | `person.student` | 同步 |
 | `exportStudent` | POST | `/edu/student/export` | 导出 | `person.student` | 异步 |
 | `uploadStudentPhoto` | POST | `/edu/student/{id}/photo` | 上传 / 更换学生照片（`CR-037` 补登记：单张，走统一文件服务） | `person.student` | 同步 |
 | `getStudentPhoto` | GET | `/edu/student/{id}/photo` | 查看照片原图（`CR-037` 补登记：需 `read_sensitive`，写敏感数据访问日志） | `person.student` | 同步 |
@@ -63,7 +60,7 @@
 | `activateStudentAccount` | POST | `/edu/student/{id}/activate` | 班主任代学生激活并设置密码（`CR-043` 补登记：写审计） | `person.student` | 同步 |
 | `viewStudentPhone` | GET | `/edu/student/{id}/phone` | 查看完整联系电话（`CR-046` 补登记：需 `read_contact`，写敏感数据访问日志，与 `viewStudentIdCard` 对称） | `person.student` | 同步 |
 
-共 25 个接口。请求 / 响应契约见 `docs/40-detailed-design/api/openapi.yaml`，错误码见 `docs/40-detailed-design/api/error-codes.yaml`。
+共 22 个接口。请求 / 响应契约见 `docs/40-detailed-design/api/openapi.yaml`，错误码见 `docs/40-detailed-design/api/error-codes.yaml`。
 
 ## 4. 页面与动作落点
 

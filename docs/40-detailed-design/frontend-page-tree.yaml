@@ -12,7 +12,7 @@ conventions:
 totals:
   routes: 45
   fragments: 53
-  operation_ids: 184
+  operation_ids: 181
 routes:
 - page_id: PAGE-STU-LIST
   name_cn: 学生管理列表

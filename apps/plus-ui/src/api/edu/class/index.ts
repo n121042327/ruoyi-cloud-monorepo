@@ -1,6 +1,6 @@
 import request from '@/utils/request';
 import { AxiosPromise } from 'axios';
-import { ClassQuery, ClassTransferForm, ClassVO } from './types';
+import { ClassForm, ClassQuery, ClassTransferForm, ClassVO } from './types';
 
 /**
  * 查询班级列表（学生列表查询区的「班级」下拉）
@@ -28,7 +28,35 @@ export const transferClass = (data: ClassTransferForm) => {
   });
 };
 
+/**
+ * 新增班级
+ *
+ * 对应 operationId `addClass`（POST /edu/class）。
+ */
+export const addClass = (data: ClassForm) => {
+  return request({
+    url: '/edu/class',
+    method: 'post',
+    data
+  });
+};
+
+/**
+ * 编辑班级（学年学期与年级一经创建不可修改，REQ-CLS-022）
+ *
+ * 对应 operationId `updateClass`（PUT /edu/class）。
+ */
+export const updateClass = (data: ClassForm) => {
+  return request({
+    url: '/edu/class',
+    method: 'put',
+    data
+  });
+};
+
 export default {
   listClass,
-  transferClass
+  transferClass,
+  addClass,
+  updateClass
 };
