@@ -1,6 +1,6 @@
 import request from '@/utils/request';
 import { AxiosPromise } from 'axios';
-import { TransferAcceptForm, TransferForm, TransferOrderVO } from './types';
+import { EnrollmentChangeQuery, EnrollmentChangeVO, TransferAcceptForm, TransferForm, TransferOrderVO } from './types';
 
 /**
  * 查询转学单列表（转入校待接收清单）
@@ -66,10 +66,24 @@ export const checkInTransfer = (transferId: string, data?: { toClassId?: string 
   });
 };
 
+/**
+ * 学籍异动记录（异动历史）
+ *
+ * 对应 operationId `listEnrollmentChange`（GET /edu/enrollment/change/list）。
+ */
+export const listEnrollmentChange = (query?: EnrollmentChangeQuery): AxiosPromise<EnrollmentChangeVO[]> => {
+  return request({
+    url: '/edu/enrollment/change/list',
+    method: 'get',
+    params: query
+  });
+};
+
 export default {
   listTransfer,
   addTransfer,
   cancelTransfer,
   acceptTransfer,
-  checkInTransfer
+  checkInTransfer,
+  listEnrollmentChange
 };

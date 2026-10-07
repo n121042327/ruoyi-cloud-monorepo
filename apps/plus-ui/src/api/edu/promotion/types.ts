@@ -54,3 +54,30 @@ export interface TransferAcceptForm {
   /** 接收时指定的目标班级；留空表示报到时再分班 */
   toClassId?: string;
 }
+
+/** 学籍异动记录（异动历史页） */
+export interface EnrollmentChangeVO extends BaseEntity {
+  changeId: string;
+  studentId: string;
+  studentNo?: string;
+  studentName?: string;
+  /** 异动类型：休学 / 复学 / 转出 / 退学 等 */
+  changeType?: string;
+  /** 生效日期 */
+  effectiveDate?: string;
+  beforeStatus?: string;
+  afterStatus?: string;
+  operator?: string;
+  reason?: string;
+  termId?: string;
+  gradeId?: string;
+}
+
+/** 异动记录查询参数 */
+export interface EnrollmentChangeQuery extends Partial<PageQuery> {
+  schoolId?: string;
+  termId?: string;
+  gradeId?: string;
+  changeType?: string;
+  effectiveDate?: string;
+}

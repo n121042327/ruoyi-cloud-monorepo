@@ -824,3 +824,11 @@
 | `apps/plus-ui/src/views/edu/import-export/imp_task_list/index.vue` | 异步任务列表页 | `已实现` |
 | `apps/plus-ui/src/views/edu/import-export/imp_deadletter/index.vue` | 死信任务页 | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_async-task-and-deadletter_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第二十三批：异动历史
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-067.md` | 异动历史页的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/promotion/prm_history/index.vue` | 异动历史页 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_promotion-history_verification.log` | 本批门禁证据 | `review` |

@@ -138,6 +138,15 @@ CHECKS = [
         "deferred_groups": {},
         "extra_columns": {"任务编号": "v1 原型的任务编号列没有 data-role 标记，生产页保留任务编号列"},
     },
+    {
+        "page_id": "PAGE-PRM-HISTORY",
+        "name": "异动历史",
+        "prototype": "prototypes/functional/v2/pages/promotion-history.html",
+        "vue": "apps/plus-ui/src/views/edu/promotion/prm_history/index.vue",
+        "deferred_groups": {},
+        "deferred_labels": {"操作": "异动详情抽屉在后续轮次交付"},
+        "extra_columns": {"学号": "v2 原型的学号列没有 data-role 标记，生产页保留学号列"},
+    },
 ]
 
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）

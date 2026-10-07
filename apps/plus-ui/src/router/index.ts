@@ -333,6 +333,20 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: { title: '死信任务', icon: 'list' }
       }
     ]
+  },
+  {
+    path: '/edu/promotion/history',
+    component: Layout,
+    hidden: true,
+    permissions: ['enrollment.status:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/promotion/prm_history/index.vue'),
+        name: 'EduPromotionHistory',
+        meta: { title: '异动历史', icon: 'list' }
+      }
+    ]
   }
 ];
 

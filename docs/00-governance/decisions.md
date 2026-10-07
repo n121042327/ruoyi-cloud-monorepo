@@ -2220,3 +2220,7 @@
 ## D-141 — 阶段 6 第二十二批：异步任务 + 死信任务（2026-10-08，循环批次）
 
 循环批次（automation 6）交付异步任务模块两个列表页：**异步任务**（`/edu/async-task/list`，8 列；行内按状态给「取消 / 重试 / 下载结果」）与**死信任务**（`/edu/async-task/dead-letter`，7 列；「重放」二次确认）。接口层补 `listAsyncTask` / `cancelAsyncTask` / `retryAsyncTask` / `downloadTaskResult` / `listDeadLetterTask` / `replayDeadLetterTask`，`AsyncTaskVO` 补 `owner` / `elapsed` / `progressPercent` / `deadTime` / `retryCount` / `lastError` / `batchNo`。口径：默认只看本人任务、结果查询与下载重新解析数据范围（`REQ-IMP-032` / `036`）；queued 可取消、失败可重试且沿用幂等键（`034` / `037`）；死信可查看与重放且重放写审计（`038`）。结构对照两页的「任务编号」列均以 `extra_columns` 登记（v1 原型该列无 `data-role`）：第一次只登记了任务列表，检查器随即指出 dead-letter 同样是 6 列对 7 列，补登记后通过——这条说明「不放宽列数比较」的机制在起作用。门禁：结构对照 21 项通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_async-task-and-deadletter_verification.log`。阶段 6 累计 18 条生产路由；下轮：任务详情抽屉、导出配置弹窗、校区管理 / 开通初始化。
+
+## D-142 — 阶段 6 第二十三批：异动历史（2026-10-08，循环批次）
+
+循环批次（automation 6）交付异动历史页（`/edu/promotion/history`）：查询区 4 项（学年学期 → 年级 → 异动类型 → 生效日期）、表格 8 列（学号 / 姓名 / 异动类型 / 生效日期 / 原状态 / 新状态 / 操作人 / 原因）+ 分页；接口层补 `listEnrollmentChange` 与相应类型。口径：异动历史可查不可删（`REQ-PRM-048`），记录含类型 / 生效日期 / 原因 / 操作人 / 原状态 / 新状态（`REQ-PRM-038`）。结构对照沿用 v2 原型适配：原型的「学号」列没有 `data-role` 标记 → `extra_columns` 显式登记；「操作」列（异动详情）→ `deferred_labels` 登记延后原因。门禁：结构对照 22 项通过、`check_api_contract.py` 通过、`error TS` 51 条（= 基线）、`lint:eslint` 124 项（= 基线）、`build:prod` 成功，证据见 `evidence/stage6-frontend/2026-10-08_promotion-history_verification.log`。阶段 6 累计 19 条生产路由；下轮：升班向导 6 步 / 校区管理与开通初始化。
