@@ -1,0 +1,24 @@
+# 阶段 6 证据：跨校转学（转入校）向导（CR-051）
+命令与结果（2026-10-07）：
+
+$ python tools/check_fe_page_structure.py   (exit 0)
+  分组顺序一致：待接收转学单 → 核对信息与接收 → 接收确认 → 报到
+  向导步骤一致：待接收转学单 → 核对信息与接收 → 接收确认 → 报到
+
+通过：生产页面结构与应用原型一致
+
+$ python tools/check_api_contract.py   (exit 0)
+OpenAPI operationId：184 个
+通过：接口契约一致
+
+$ pnpm --filter @edu/plus-ui typecheck   (exit 1)
+error TS 总数：51（基线 51，本批新增 0）
+
+$ pnpm --filter @edu/plus-ui lint:eslint   (exit 1)
+汇总：✖ 124 problems (124 errors, 0 warnings)（基线 124 项，本批无新增）
+新增文件相关报错：无
+
+$ pnpm --filter @edu/plus-ui run build:prod   (exit 0)
+构建结果：成功（built in）
+产物：未找到转入校向导 chunk
+

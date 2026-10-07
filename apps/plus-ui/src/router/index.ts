@@ -123,6 +123,20 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: { title: '跨校转学', icon: 'swap' }
       }
     ]
+  },
+  {
+    path: '/edu/promotion/transfer',
+    component: Layout,
+    hidden: true,
+    permissions: ['enrollment.transfer:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/promotion/prm_transfer/index.vue'),
+        name: 'EduPromotionTransfer',
+        meta: { title: '转学接收', icon: 'swap' }
+      }
+    ]
   }
 ];
 

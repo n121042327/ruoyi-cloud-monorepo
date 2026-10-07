@@ -45,3 +45,12 @@ export interface TransferForm {
   /** 备注 */
   remark?: string;
 }
+
+/** 转入校接收（POST /edu/enrollment/transfer/{id}/accept） */
+export interface TransferAcceptForm {
+  transferId: string;
+  /** 接收时指定的目标年级 */
+  toGradeId: string;
+  /** 接收时指定的目标班级；留空表示报到时再分班 */
+  toClassId?: string;
+}

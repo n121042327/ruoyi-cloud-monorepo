@@ -83,6 +83,18 @@ OVERLAY_CHECKS = [
             ("结果", ["结果"]),
         ],
     },
+    {
+        "page_id": "PAGE-PRM-TRANSFER",
+        "name": "跨校转学（转入校）向导",
+        "prototype": "prototypes/functional/v1/pages/promotion-transfer.html",
+        "vue": "apps/plus-ui/src/views/edu/promotion/prm_transfer/index.vue",
+        "steps": [
+            ("待接收转学单", ["待接收转学单"]),
+            ("核对信息与接收", ["核对信息与接收"]),
+            ("接收确认", ["接收确认"]),
+            ("报到", ["报到"]),
+        ],
+    },
 ]
 
 FILTER_SECTION_START = 'data-role="filter"'

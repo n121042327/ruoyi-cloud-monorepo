@@ -1,6 +1,6 @@
 import request from '@/utils/request';
 import { AxiosPromise } from 'axios';
-import { TransferForm, TransferOrderVO } from './types';
+import { TransferAcceptForm, TransferForm, TransferOrderVO } from './types';
 
 /**
  * 查询转学单列表（转入校待接收清单）
@@ -40,8 +40,36 @@ export const cancelTransfer = (transferId: string) => {
   });
 };
 
+/**
+ * 转入校接收（接收动作本身即审批，接收前不计入转入校任何在读数）
+ *
+ * 对应 operationId `acceptTransfer`（POST /edu/enrollment/transfer/{id}/accept）。
+ */
+export const acceptTransfer = (data: TransferAcceptForm): AxiosPromise<TransferOrderVO> => {
+  return request({
+    url: `/edu/enrollment/transfer/${data.transferId}/accept`,
+    method: 'post',
+    data
+  });
+};
+
+/**
+ * 办理报到（学生到校报到，状态由「转入未报到」转为「在读」，可同时指定班级）
+ *
+ * 对应 operationId `checkInTransfer`（POST /edu/enrollment/transfer/{id}/check-in）。
+ */
+export const checkInTransfer = (transferId: string, data?: { toClassId?: string }): AxiosPromise<TransferOrderVO> => {
+  return request({
+    url: `/edu/enrollment/transfer/${transferId}/check-in`,
+    method: 'post',
+    data
+  });
+};
+
 export default {
   listTransfer,
   addTransfer,
-  cancelTransfer
+  cancelTransfer,
+  acceptTransfer,
+  checkInTransfer
 };
