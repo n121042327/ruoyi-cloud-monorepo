@@ -143,3 +143,21 @@ export interface TeachingClassQuery extends Partial<PageQuery> {
   status?: string;
   teacherId?: string;
 }
+
+/**
+ * 班级合并（PAGE-CLS-MERGE，mergeClass）
+ *
+ * 把多个源班级并入一个目标班级：源班级的学生在目标班级下新增在班关系，
+ * 源班级本身置为已停用（不物理删除，历史数据保留）。GAP-088 取推荐方案：
+ * 页面树未提供原型，按接口做一个精简合并向导。
+ */
+export interface ClassMergeForm {
+  /** 源班级 ID 列表（至少 1 个，不能包含目标班级） */
+  sourceClassIds: string[];
+  /** 目标班级 ID */
+  targetClassId: string;
+  /** 生效日期 */
+  effectiveDate: string;
+  /** 合并说明 */
+  remark?: string;
+}

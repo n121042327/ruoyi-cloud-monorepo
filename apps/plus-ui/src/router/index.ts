@@ -615,6 +615,34 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/edu/import/wizard',
+    component: Layout,
+    hidden: true,
+    permissions: ['data.import:import'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/import-export/imp_wizard/index.vue'),
+        name: 'EduImportWizard',
+        meta: { title: '导入向导', icon: 'upload' }
+      }
+    ]
+  },
+  {
+    path: '/edu/class/merge',
+    component: Layout,
+    hidden: true,
+    permissions: ['org.class:update'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/class/cls_merge/index.vue'),
+        name: 'EduClassMerge',
+        meta: { title: '班级合并', icon: 'tree' }
+      }
+    ]
+  },
+  {
     path: '/edu/school/init',
     component: Layout,
     hidden: true,

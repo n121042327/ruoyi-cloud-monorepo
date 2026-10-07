@@ -948,3 +948,12 @@
 | `apps/plus-ui/src/views/edu/teacher/tch_assign/components/CopyAssignDialog.vue` | 复制上一学年任教关系弹窗（DIALOG-TCH-COPY） | `已实现` |
 | `apps/plus-ui/src/views/edu/teacher/tch_import/index.vue` | 教师导入四步向导（PAGE-TCH-IMPORT） | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_teacher-assign-and-import_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第三十五批：通用导入向导 + 班级合并
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-079.md` | 通用导入向导 / 班级合并的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/import-export/imp_wizard/index.vue` | 通用导入向导（PAGE-IMP-WIZARD） | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_merge/index.vue` | 班级合并（PAGE-CLS-MERGE，无原型，按 GAP-088 实现） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_import-wizard-and-class-merge_verification.log` | 本批门禁证据 | `review` |

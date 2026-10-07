@@ -320,6 +320,14 @@ CHECKS = [
         "deferred_groups": {},
         "extra_columns": {"行号": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留行号列"},
     },
+    {
+        "page_id": "PAGE-IMP-WIZARD",
+        "name": "导入向导",
+        "prototype": "prototypes/functional/v1/pages/import-wizard.html",
+        "vue": "apps/plus-ui/src/views/edu/import-export/imp_wizard/index.vue",
+        "deferred_groups": {},
+        "extra_columns": {"行号": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留行号列"},
+    },
 ]
 
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）
@@ -405,6 +413,15 @@ OVERLAY_CHECKS = [
         "prototype": "prototypes/functional/v1/pages/term-list.html",
         "vue": "apps/plus-ui/src/views/edu/term/term_list/components/AcademicYearArchiveDialog.vue",
         "groups": ["归档信息"],
+    },
+    {
+        # 页面树未提供原型（prototype_file 为「—」，batch: deferred，GAP-088 取推荐方案实现），
+        # 因此只核对页面文件里的分组顺序，不做列比对。
+        "page_id": "PAGE-CLS-MERGE",
+        "name": "班级合并",
+        "prototype": None,
+        "vue": "apps/plus-ui/src/views/edu/class/cls_merge/index.vue",
+        "groups": ["合并范围"],
     },
 ]
 

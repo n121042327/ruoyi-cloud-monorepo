@@ -2,6 +2,7 @@ import request from '@/utils/request';
 import { AxiosPromise } from 'axios';
 import {
   ClassForm,
+  ClassMergeForm,
   ClassQuery,
   ClassRosterAddForm,
   ClassRosterQuery,
@@ -11,6 +12,19 @@ import {
   TeachingClassQuery,
   TeachingClassVO
 } from './types';
+
+/**
+ * 班级合并（源班级并入目标班级；源班级置为已停用，不物理删除）
+ *
+ * 对应 operationId `mergeClass`（POST /edu/class/merge，权限 `org.class:update`）。
+ */
+export const mergeClass = (data: ClassMergeForm) => {
+  return request({
+    url: '/edu/class/merge',
+    method: 'post',
+    data
+  });
+};
 
 /**
  * 查询教学班列表（行政班与教学班是两套独立关系）
@@ -155,6 +169,7 @@ export const updateClass = (data: ClassForm) => {
 
 export default {
   listClass,
+  mergeClass,
   listClassRoster,
   addClassRoster,
   removeClassRoster,
