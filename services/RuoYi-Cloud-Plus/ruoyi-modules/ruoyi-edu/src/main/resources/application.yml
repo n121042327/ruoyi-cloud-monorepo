@@ -1,6 +1,7 @@
 # Tomcat
 server:
-  port: 9210
+  # 9211：9210 已被 ruoyi-auth 占用（script/docker/docker-compose.yml），同宿主 host 网络下不能重复绑定
+  port: 9211
 
 # Spring
 spring:

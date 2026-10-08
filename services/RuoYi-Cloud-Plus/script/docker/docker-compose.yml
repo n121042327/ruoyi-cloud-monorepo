@@ -6,7 +6,7 @@ services:
       # 时区上海
       TZ: Asia/Shanghai
       # root 密码
-      MYSQL_ROOT_PASSWORD: ruoyi123
+      MYSQL_ROOT_PASSWORD: root
       # 初始化数据库
       MYSQL_DATABASE: ry-cloud
     ports:
@@ -277,6 +277,22 @@ services:
     privileged: true
     network_mode: "host"
 
+  ruoyi-edu:
+    # 教育域业务服务：上游没有这个镜像，必须用本仓库构建（见 build-edu-images.ps1 与 README-deploy.md）
+    image: ruoyi/ruoyi-edu:2.6.2
+    container_name: ruoyi-edu
+    environment:
+      # 时区上海
+      TZ: Asia/Shanghai
+    ports:
+      - "9211:9211"
+    volumes:
+      # 日志目录
+      - /docker/ruoyi-edu/logs/:/ruoyi/edu/logs
+      # skywalking 探针
+      - /docker/skywalking/agent/:/ruoyi/skywalking/agent
+    privileged: true
+    network_mode: "host"
 
 #################################################################################################
 #################################### 以下为扩展根据需求搭建 #########################################

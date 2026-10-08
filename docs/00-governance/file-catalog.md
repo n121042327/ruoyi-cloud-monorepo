@@ -1216,3 +1216,17 @@
 | `ruoyi-modules/ruoyi-resource/.../dubbo/RemoteFileServiceImpl.java`（改） | downloadByUrl 实现 | `已实现` |
 | `services/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-edu/pom.xml`（改） | 引入 ruoyi-api-resource 依赖 | `已实现` |
 | `evidence/stage7-backend/2026-10-08_edu-photo-and-phone_compile.log` | 本批编译证据与 181/181 覆盖自检 | `review` |
+
+## 2026-10-08 阶段 7 第十七批：后端 Docker 部署补齐（ruoyi-edu 上线）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-096.md` | 部署补齐的交付与校验证据 | `review` |
+| `.../ruoyi-modules/ruoyi-edu/Dockerfile` | 教育域服务镜像（端口 9211） | `已实现` |
+| `.../ruoyi-modules/ruoyi-edu/src/main/resources/application.yml`（改） | 端口 9210 → 9211，避开 ruoyi-auth | `已实现` |
+| `.../script/docker/docker-compose.yml`（改） | 新增 ruoyi-edu 服务节点（9211 / host 网络 / 日志与探针卷） | `已实现` |
+| `.../script/config/nacos/ruoyi-edu.yml` | 教育域 Nacos 配置（master 数据源 + data-scope 开关 + 日志级别） | `已实现` |
+| `.../script/config/nacos/datasource.yml`（改） | 4 个数据源密码对齐 compose 的 ruoyi123 | `已实现` |
+| `.../script/docker/build-edu-images.ps1` | 本地构建 edu / system / resource 三个镜像（纯 ASCII 脚本） | `已实现` |
+| `services/RuoYi-Cloud-Plus/script/docker/README-deploy.md` | 后端 Docker 部署手册（含建库导表 V1~V6 与 Nacos 导入口径） | `review` |
+| `evidence/stage7-backend/2026-10-08_edu-docker-deploy_compile.log` | 本批校验证据（编译 + 配置可解析 + 脚本编码） | `review` |

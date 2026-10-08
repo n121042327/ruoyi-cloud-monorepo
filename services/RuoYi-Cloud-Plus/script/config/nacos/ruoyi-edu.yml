@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    dynamic:
+      # 设置默认的数据源或者数据源组,默认值即为 master
+      primary: master
+      datasource:
+        # 主库数据源：教育域所有业务表都在 ry-cloud 库里
+        master:
+          type: ${spring.datasource.type}
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          url: ${datasource.system-master.url}
+          username: ${datasource.system-master.username}
+          password: ${datasource.system-master.password}
+
+# 教育域自己的开关
+edu:
+  data-scope:
+    # 数据范围 SQL 拦截器（DataScopeResolver / EduDataPermissionHandler）
+    # 默认关闭：开启前必须按 schema.yaml 的表清单核对 school_id / grade_id / class_id 映射
+    # 与 MyBatis-Plus 插件链顺序，详见 CR-093 与 GAP-096
+    enabled: false
+
+# 日志级别：排障时可把 org.dromara.edu 调到 debug，生产建议 info
+logging:
+  level:
+    org.dromara.edu: info

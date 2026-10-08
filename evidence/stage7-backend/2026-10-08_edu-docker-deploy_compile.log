@@ -1,0 +1,28 @@
+# 阶段 7 证据：后端 Docker 部署补齐（CR-096，2026-10-08）
+
+本批为部署配置类改动（Dockerfile / compose / Nacos 配置 / 端口），不新增业务代码。
+
+--- 校验 1：edu 编译（含 Maven 资源过滤） ---
+
+命令：mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile（工作目录 services/RuoYi-Cloud-Plus）
+结果：[INFO] BUILD SUCCESS，无 [ERROR] 行。
+过滤后的产物端口：ruoyi-modules/ruoyi-edu/target/classes/application.yml -> port: 9211
+
+--- 校验 2：compose 与 Nacos 配置语法 ---
+
+python yaml.safe_load(script/docker/docker-compose.yml) -> services=29，ruoyi-edu 节点存在：
+  image ruoyi/ruoyi-edu:2.6.2 / ports ["9211:9211"] / network_mode host
+python yaml.safe_load(script/config/nacos/ruoyi-edu.yml) -> 解析通过（master 数据源 + edu.data-scope.enabled=false）
+script/config/nacos/datasource.yml -> 4 个生效数据源密码全部为 ruoyi123（第 8/12/16/20 行；注释里的 oracle/postgres 未动）
+
+--- 校验 3：脚本编码（AGENTS 第 10 节） ---
+
+script/docker/build-edu-images.ps1 -> 非 ASCII 字节 0、无 BOM（Windows PowerShell 5.1 可解析）
+
+--- 校验 4：门禁 ---
+
+python tools/check_docs.py -> 通过
+python tools/check_gap_register.py -> 通过（96 条，open = 0）
+
+说明：按 AGENTS 第 9 节，以上只声明「编译通过 / 配置可解析」，未启动 Docker 容器、未连库、未跑接口测试
+（本机 Docker Desktop 引擎当前未运行）。
