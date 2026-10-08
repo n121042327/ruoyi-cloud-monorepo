@@ -1230,3 +1230,7 @@
 | `.../script/docker/build-edu-images.ps1` | 本地构建 edu / system / resource 三个镜像（纯 ASCII 脚本） | `已实现` |
 | `services/RuoYi-Cloud-Plus/script/docker/README-deploy.md` | 后端 Docker 部署手册（含建库导表 V1~V6 与 Nacos 导入口径） | `review` |
 | `evidence/stage7-backend/2026-10-08_edu-docker-deploy_compile.log` | 本批校验证据（编译 + 配置可解析 + 脚本编码） | `review` |
+
+| `docs/00-governance/change-requests/CR-097.md` | 补 ruoyi-edu 网关路由的交付与校验证据 | `review` |
+| `.../script/config/nacos/ruoyi-gateway.yml`（改） | 新增 ruoyi-edu 路由（Path=/edu/**，不加 StripPrefix） | `已实现` |
+| `.../script/config/nacos/ruoyi-gateway-mvc.yml`（改） | 同上（两份网关配置保持一致） | `已实现` |

@@ -63,6 +63,12 @@ spring:
                 - Path=/workflow/**
               filters:
                 - StripPrefix=1
+            # 教育域服务（CR-097）：外部 /edu/** 与 edu 服务内部 @RequestMapping("/edu/...") 完全一致，
+            # 因此**不能加 StripPrefix**——加了会把 /edu 前缀吃掉，下游全部 404
+            - id: ruoyi-edu
+              uri: lb://ruoyi-edu
+              predicates:
+                - Path=/edu/**
             # warm-flow服务
             - id: warm-flow
               uri: lb://ruoyi-workflow

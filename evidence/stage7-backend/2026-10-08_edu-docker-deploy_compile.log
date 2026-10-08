@@ -26,3 +26,11 @@ python tools/check_gap_register.py -> 通过（96 条，open = 0）
 
 说明：按 AGENTS 第 9 节，以上只声明「编译通过 / 配置可解析」，未启动 Docker 容器、未连库、未跑接口测试
 （本机 Docker Desktop 引擎当前未运行）。
+
+
+--- 补充（CR-097）：网关路由 ---
+
+排查 WebFlux 使用面时发现网关路由清单缺 ruoyi-edu，已补：
+python yaml.safe_load(script/config/nacos/ruoyi-gateway.yml)     -> routes=9，含 ruoyi-edu（lb://ruoyi-edu, Path=/edu/**，无 StripPrefix）
+python yaml.safe_load(script/config/nacos/ruoyi-gateway-mvc.yml) -> routes=9，含 ruoyi-edu（同上）
+python tools/check_docs.py / check_gap_register.py               -> 通过（96 条、open = 0）
