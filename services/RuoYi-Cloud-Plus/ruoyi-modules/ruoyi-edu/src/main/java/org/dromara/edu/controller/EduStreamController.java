@@ -9,10 +9,12 @@ import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
+import org.dromara.edu.domain.bo.EduExportBo;
 import org.dromara.edu.domain.bo.EduStreamChangeRequestBo;
 import org.dromara.edu.domain.bo.EduStreamConfigBo;
 import org.dromara.edu.domain.bo.EduStreamHistoryBo;
 import org.dromara.edu.domain.bo.EduStreamSelectionBo;
+import org.dromara.edu.domain.vo.EduExportResultVo;
 import org.dromara.edu.domain.vo.EduMyStreamVo;
 import org.dromara.edu.domain.vo.EduStreamChangeRequestVo;
 import org.dromara.edu.domain.vo.EduStreamConfigVo;
@@ -22,6 +24,7 @@ import org.dromara.edu.domain.vo.EduStreamSelectionVo;
 import org.dromara.edu.domain.vo.EduStreamStatVo;
 import org.dromara.edu.domain.vo.EduTeachingClassGenerateVo;
 import org.dromara.edu.domain.vo.EduUnselectedStudentVo;
+import org.dromara.edu.service.IEduImportExportService;
 import org.dromara.edu.service.IEduStreamService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,6 +52,7 @@ import java.util.List;
 public class EduStreamController extends BaseController {
 
     private final IEduStreamService streamService;
+    private final IEduImportExportService importExportService;
 
     /** 选科配置（含开放期实时状态，REQ-STR-005） */
     @SaCheckPermission("stream.config:read")
@@ -177,6 +181,16 @@ public class EduStreamController extends BaseController {
     @PostMapping("/teaching-class/generate")
     public R<EduTeachingClassGenerateVo> generateTeachingClass(@Validated @RequestBody EduStreamSelectionBo generate) {
         return R.ok(streamService.executeTeachingClassGenerate(generate));
+    }
+
+    /** 选科清单导出（统一走导出引擎，导出前重新解析数据范围） */
+    @SaCheckPermission("stream.selection:export")
+    @Log(title = "学生选科", businessType = BusinessType.EXPORT)
+    @RepeatSubmit()
+    @PostMapping("/export")
+    public R<EduExportResultVo> exportSelection(@RequestBody EduExportBo export) {
+        export.setModuleCode("stream");
+        return R.ok(importExportService.exportData(export));
     }
 
 }

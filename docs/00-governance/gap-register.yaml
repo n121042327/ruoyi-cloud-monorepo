@@ -2926,6 +2926,49 @@ gaps:
     resolved_at: "2026-10-08"
     status: answered
 
+  - id: GAP-094
+    title: 导入的行级解析与导出的逐模块取数 / Excel·CSV 生成器未落地
+    discovered_at: 2026-10-08
+    discovered_by: 阶段 7 导入导出引擎纵切时核对 PRD 4.1 ~ 4.5（CR-091）
+    evidence: |
+      **这是什么**：PRD 4.1 ~ 4.5 要求「上传后逐行校验并给出原始行号与失败原因」（`REQ-IMP-005` / `006`）、
+      「执行阶段按行记录成功 / 失败 / 跳过」（`REQ-IMP-018`）、「导出按当前筛选条件与数据范围生成文件」
+      （`REQ-IMP-024`）。本批 `EduImportExportServiceImpl` 第 174 行的 `validateImportFile(...)`
+      只登记批次、第 297 行的 `exportData(...)` 只创建导出任务（`edu_async_task`），
+      真正的文件读写与逐行校验需要一个能读取 xlsx / csv 字节的解析器 ——
+      而文件字节按 `REQ-IMP-041` 统一存放在文件服务，edu 服务目前没有文件服务契约（见 GAP-093）。
+    expected: 校验阶段读文件 → 逐行校验 → 写 `edu_import_error`（invalid）；执行阶段写 failed / skipped 行结果；
+      导出阶段按筛选条件与数据范围取数 → 生成 xlsx / csv → 落 `edu_file_ref` 并返回短时签名链接
+    actual: 已落批次 / 任务 / 幂等 / 有效期 / 数据范围 / 文件大小上限 / 明文授权这层地基；行级解析与文件生成未落地
+    impact: |
+      **不选会怎样**：导入向导第 3 步「校验结果」只能给出空结果与指引，第 4 步执行也拿不到可执行的行数据；
+      导出只能返回任务编号，拿不到文件。阶段 8 联调的 `AC-IMP-*` 验收项无法产出证据；
+      若让每个业务模块各自解析 / 各自导出，会把统一的校验规则、审计口径与幂等策略拆成多套，后续无法判断是谁改的。
+    options:
+      - "在 GAP-093 的统一文件服务就绪后，同批实现「解析器 + 逐行校验 + 逐模块导出器 + 文件生成」的执行器（写入 edu_import_error / edu_file_ref，由 edu_async_task 驱动进度）"
+      - "在 ruoyi-edu 引入 ruoyi-common-excel 自行解析：仍需先解决文件字节来源，只是把依赖挪了个位置"
+      - "各业务模块自行实现导入导出：与「统一导入向导 + 统一审计 + 统一幂等」的目标冲突"
+    recommended: |
+      **推荐方案 1**。理由：`REQ-IMP-002` 要求模板由业务模块声明但引擎统一执行，
+      `BR-IMP-014` 要求任务中心统一负责调度 / 进度 / 结果 / 重试——把解析器与导出器做成引擎的一部分、
+      由 `edu_async_task` 驱动，才与已交付的任务中心（CR-090）和本批的批次 / 行结果表形成闭环；
+      执行器还要处理 `REQ-IMP-029`（≤ 2000 行同步下载短路）与 `REQ-IMP-012`（任一行越权整批拒绝）。
+    blocking: false
+    blocks_stages:
+      - stage7
+      - stage8
+    owner: 用户
+    answer: |
+      用户 2026-10-07 授权「遇到需要拍板的按推荐方案走并在 decisions.md 与 gap-register.yaml 各记一条」，
+      循环批次按推荐方案 1 落地。
+    resolution: |
+      已在 CR-091 落地地基：`edu_import_template` / `edu_import_batch` / `edu_import_error` 三张表与
+      `IEduImportExportService` 的 7 个方法，含批次号幂等、24 小时校验有效期、10 MB 上限、
+      失败原因分组、模板版本过期强提示、导出明文授权校验与数据范围重解析。
+      待办：与 GAP-093 的文件服务同批交付「解析器 + 逐模块导出器 + xlsx/csv 生成器」执行器。
+    resolved_at: "2026-10-08"
+    status: answered
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"

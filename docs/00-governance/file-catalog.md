@@ -1127,3 +1127,23 @@
 | `.../service/IEduAsyncTaskService.java` + `impl/EduAsyncTaskServiceImpl.java` | 异步任务服务层（7 个契约方法 + 2 个内部方法） | `已实现` |
 | `.../controller/EduAsyncTaskController.java` | 异步任务控制器（7 个端点） | `已实现` |
 | `evidence/stage7-backend/2026-10-08_edu-async-task_compile.log` | 本批编译证据（BUILD SUCCESS / 367 个 class） | `review` |
+
+## 2026-10-08 阶段 7 第十二批：导入导出引擎纵切 + 模块级导入导出端点收口
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-091.md` | 导入导出引擎与端点收口的交付与编译证据（含 GAP-094） | `review` |
+| `.../domain/EduImportTemplate.java` | 导入模板实体（scope=tenant，无 school_id） | `已实现` |
+| `.../domain/EduImportBatch.java` | 导入批次实体（batch_no 为幂等键） | `已实现` |
+| `.../domain/EduImportError.java` | 导入行结果实体（with_audit=false，不继承 BaseEntity） | `已实现` |
+| `.../domain/bo/EduImportTemplateBo.java` / `EduImportValidateBo.java` / `EduImportExecuteBo.java` / `EduImportErrorBo.java` | 模板 / 校验 / 执行 / 行结果入参 | `已实现` |
+| `.../domain/bo/EduExportBo.java` | 导出通用入参（各模块导出端点共用） | `已实现` |
+| `.../domain/vo/EduImportTemplateVo.java` / `EduImportBatchVo.java` / `EduImportErrorVo.java` / `EduImportFailGroupVo.java` | 模板 / 批次 / 行结果 / 失败分组视图对象 | `已实现` |
+| `.../domain/vo/EduImportValidateResultVo.java` / `EduImportExecuteResultVo.java` / `EduExportResultVo.java` | 校验 / 执行 / 导出结果视图对象 | `已实现` |
+| `.../domain/vo/EduFileRefVo.java`（改） | 新增 `expired` / `hint`（模板过期仍可下载的强提示） | `已实现` |
+| `.../mapper/EduImportTemplateMapper.java` / `EduImportBatchMapper.java` / `EduImportErrorMapper.java` | 三个数据层 | `已实现` |
+| `.../service/IEduImportExportService.java` + `impl/EduImportExportServiceImpl.java` | 导入导出引擎服务层（7 个契约方法） | `已实现` |
+| `.../controller/EduImportController.java` | 导入控制器（6 个契约端点 + 1 个行结果分页辅助端点） | `已实现` |
+| `.../controller/EduExportController.java` | 导出控制器（`POST /edu/export`） | `已实现` |
+| `.../controller/EduClassController.java` 等 8 个（改） | 收口 13 个模块级导入导出端点，委托同一引擎 | `已实现` |
+| `evidence/stage7-backend/2026-10-08_edu-import-export_compile.log` | 本批编译证据与契约覆盖自检（BUILD SUCCESS / 403 个 class） | `review` |

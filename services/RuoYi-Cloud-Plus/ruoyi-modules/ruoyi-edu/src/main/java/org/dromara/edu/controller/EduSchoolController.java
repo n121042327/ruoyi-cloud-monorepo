@@ -10,12 +10,15 @@ import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.edu.domain.bo.EduCampusBo;
+import org.dromara.edu.domain.bo.EduExportBo;
 import org.dromara.edu.domain.bo.EduSchoolBo;
 import org.dromara.edu.domain.bo.EduSchoolStageBo;
 import org.dromara.edu.domain.vo.EduCampusVo;
+import org.dromara.edu.domain.vo.EduExportResultVo;
 import org.dromara.edu.domain.vo.EduSchoolStageVo;
 import org.dromara.edu.domain.vo.EduSchoolVo;
 import org.dromara.edu.domain.vo.SchoolSummaryVo;
+import org.dromara.edu.service.IEduImportExportService;
 import org.dromara.edu.service.IEduSchoolService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -47,6 +50,7 @@ import java.util.List;
 public class EduSchoolController extends BaseController {
 
     private final IEduSchoolService schoolService;
+    private final IEduImportExportService importExportService;
 
     /** 查询学校列表（平台运营看全平台；学校用户只看本校） */
     @SaCheckPermission("org.school:read")
@@ -172,6 +176,16 @@ public class EduSchoolController extends BaseController {
     public R<SchoolSummaryVo> initSchoolBaseline(@PathVariable Long schoolId, @RequestBody EduSchoolBo school) {
         school.setSchoolId(schoolId);
         return R.ok(schoolService.initSchoolBaseline(school));
+    }
+
+    /** 学校列表导出（统一走导出引擎） */
+    @SaCheckPermission("org.school:export")
+    @Log(title = "学校管理", businessType = BusinessType.EXPORT)
+    @RepeatSubmit()
+    @PostMapping("/export")
+    public R<EduExportResultVo> export(@RequestBody EduExportBo export) {
+        export.setModuleCode("school");
+        return R.ok(importExportService.exportData(export));
     }
 
 }

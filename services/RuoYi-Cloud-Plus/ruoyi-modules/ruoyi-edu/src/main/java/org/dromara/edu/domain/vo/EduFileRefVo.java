@@ -52,4 +52,14 @@ public class EduFileRefVo implements Serializable {
     /** 签名链接失效时间 */
     private Date signedUrlExpireTime;
 
+    /**
+     * 是否已过期。
+     * 结果文件过期后下载一律拒绝（`BR-IMP-013`）；**模板**过期后仍可下载，
+     * 由本字段与 `hint` 让页面给出强提示（`REQ-IMP-003`）。
+     */
+    private Boolean expired;
+
+    /** 下载提示文案（模板版本过期时的强提示等） */
+    private String hint;
+
 }

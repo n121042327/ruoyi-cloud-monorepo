@@ -9,12 +9,20 @@ import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
-import org.dromara.edu.domain.bo.EduTeacherBo;
+import org.dromara.edu.domain.bo.EduExportBo;
+import org.dromara.edu.domain.bo.EduImportExecuteBo;
+import org.dromara.edu.domain.bo.EduImportValidateBo;
 import org.dromara.edu.domain.bo.EduTeachingAssignmentBo;
+import org.dromara.edu.domain.bo.EduTeacherBo;
 import org.dromara.edu.domain.bo.EduUserRoleBo;
+import org.dromara.edu.domain.vo.EduExportResultVo;
+import org.dromara.edu.domain.vo.EduFileRefVo;
+import org.dromara.edu.domain.vo.EduImportExecuteResultVo;
+import org.dromara.edu.domain.vo.EduImportValidateResultVo;
 import org.dromara.edu.domain.vo.EduTeacherVo;
 import org.dromara.edu.domain.vo.EduTeachingAssignmentVo;
 import org.dromara.edu.domain.vo.EduUserRoleVo;
+import org.dromara.edu.service.IEduImportExportService;
 import org.dromara.edu.service.IEduTeacherService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -50,6 +58,7 @@ import java.util.List;
 public class EduTeacherController extends BaseController {
 
     private final IEduTeacherService teacherService;
+    private final IEduImportExportService importExportService;
 
     /** 查询教师列表 */
     @SaCheckPermission("person.teacher:read")
@@ -178,6 +187,42 @@ public class EduTeacherController extends BaseController {
     @PostMapping("/assignment/copy")
     public R<Void> copyAssignment(@Validated @RequestBody EduTeachingAssignmentBo assignment) {
         return toAjax(teacherService.copyAssignment(assignment));
+    }
+
+    /** 教师导入模板下载（统一走导入引擎的模板清单，REQ-IMP-002 / 003） */
+    @SaCheckPermission("person.teacher:import")
+    @GetMapping("/import/template")
+    public R<EduFileRefVo> downloadImportTemplate(@RequestParam(required = false) String version) {
+        return R.ok(importExportService.resolveTemplateDownload("teacher", version));
+    }
+
+    /** 教师导入校验（统一走导入引擎，BR-IMP-001） */
+    @SaCheckPermission("person.teacher:import")
+    @Log(title = "教师导入", businessType = BusinessType.IMPORT)
+    @RepeatSubmit()
+    @PostMapping("/import/validate")
+    public R<EduImportValidateResultVo> importValidate(@Validated @RequestBody EduImportValidateBo validate) {
+        validate.setModuleCode("teacher");
+        return R.ok(importExportService.validateImportFile(validate));
+    }
+
+    /** 教师导入执行（异步，按批次号幂等） */
+    @SaCheckPermission("person.teacher:import")
+    @Log(title = "教师导入", businessType = BusinessType.IMPORT)
+    @RepeatSubmit()
+    @PostMapping("/import/execute")
+    public R<EduImportExecuteResultVo> importExecute(@Validated @RequestBody EduImportExecuteBo execute) {
+        return R.ok(importExportService.executeImport(execute));
+    }
+
+    /** 教师列表导出（手机号等敏感字段默认掩码，REQ-IMP-028 / BR-TEACHER-005） */
+    @SaCheckPermission("person.teacher:export")
+    @Log(title = "教师管理", businessType = BusinessType.EXPORT)
+    @RepeatSubmit()
+    @PostMapping("/export")
+    public R<EduExportResultVo> export(@RequestBody EduExportBo export) {
+        export.setModuleCode("teacher");
+        return R.ok(importExportService.exportData(export));
     }
 
 }

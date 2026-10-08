@@ -8,8 +8,11 @@ import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.edu.domain.bo.EduActivationCodeBo;
+import org.dromara.edu.domain.bo.EduExportBo;
 import org.dromara.edu.domain.vo.EduActivationCodeVo;
+import org.dromara.edu.domain.vo.EduExportResultVo;
 import org.dromara.edu.service.IEduActivationService;
+import org.dromara.edu.service.IEduImportExportService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class EduStudentActivationController extends BaseController {
 
     private final IEduActivationService activationService;
+    private final IEduImportExportService importExportService;
 
     /** 查看 / 重置学生的激活码（未使用时直接返回；已使用时由班主任重置并填原因） */
     @SaCheckPermission("person.student:update")
@@ -62,6 +66,16 @@ public class EduStudentActivationController extends BaseController {
     public R<Void> activate(@PathVariable Long studentId, @Validated @RequestBody EduActivationCodeBo activation) {
         activation.setStudentId(studentId);
         return toAjax(activationService.activateStudentAccount(activation));
+    }
+
+    /** 激活码打印清单导出（统一走导出引擎） */
+    @SaCheckPermission("person.student:export")
+    @Log(title = "学生激活码", businessType = BusinessType.EXPORT)
+    @RepeatSubmit()
+    @PostMapping("/activation-code/export")
+    public R<EduExportResultVo> exportActivationCode(@RequestBody EduExportBo export) {
+        export.setModuleCode("activation_code");
+        return R.ok(importExportService.exportData(export));
     }
 
 }

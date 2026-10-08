@@ -9,8 +9,11 @@ import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
+import org.dromara.edu.domain.bo.EduExportBo;
 import org.dromara.edu.domain.bo.EduStudentBo;
+import org.dromara.edu.domain.vo.EduExportResultVo;
 import org.dromara.edu.domain.vo.EduStudentVo;
+import org.dromara.edu.service.IEduImportExportService;
 import org.dromara.edu.service.IEduStudentService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class EduStudentController extends BaseController {
 
     private final IEduStudentService studentService;
+    private final IEduImportExportService importExportService;
 
     /**
      * 查询学生列表
@@ -77,6 +81,16 @@ public class EduStudentController extends BaseController {
     @PutMapping
     public R<Void> edit(@Validated @RequestBody EduStudentBo student) {
         return toAjax(studentService.updateByBo(student));
+    }
+
+    /** 学生列表导出（敏感字段默认掩码，明文需 read_sensitive，REQ-IMP-028 / BR-IMP-012） */
+    @SaCheckPermission("person.student:export")
+    @Log(title = "学生管理", businessType = BusinessType.EXPORT)
+    @RepeatSubmit()
+    @PostMapping("/export")
+    public R<EduExportResultVo> export(@RequestBody EduExportBo export) {
+        export.setModuleCode("student");
+        return R.ok(importExportService.exportData(export));
     }
 
 }

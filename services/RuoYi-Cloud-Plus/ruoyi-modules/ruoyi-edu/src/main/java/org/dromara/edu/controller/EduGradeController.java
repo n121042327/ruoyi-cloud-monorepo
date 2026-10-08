@@ -9,10 +9,13 @@ import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
+import org.dromara.edu.domain.bo.EduExportBo;
 import org.dromara.edu.domain.bo.EduGradeBo;
+import org.dromara.edu.domain.vo.EduExportResultVo;
 import org.dromara.edu.domain.vo.EduGradeLeaderVo;
 import org.dromara.edu.domain.vo.EduGradeVo;
 import org.dromara.edu.service.IEduGradeService;
+import org.dromara.edu.service.IEduImportExportService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,6 +47,7 @@ import java.util.List;
 public class EduGradeController extends BaseController {
 
     private final IEduGradeService gradeService;
+    private final IEduImportExportService importExportService;
 
     /** 查询年级列表 */
     @SaCheckPermission("org.grade:read")
@@ -141,6 +145,16 @@ public class EduGradeController extends BaseController {
     public R<List<EduGradeVo>> promotionView(@RequestParam(required = false) Long schoolId,
                                              @RequestParam(required = false) Long termId) {
         return R.ok(gradeService.promotionView(schoolId, termId));
+    }
+
+    /** 年级列表导出（统一走导出引擎） */
+    @SaCheckPermission("org.grade:export")
+    @Log(title = "年级管理", businessType = BusinessType.EXPORT)
+    @RepeatSubmit()
+    @PostMapping("/export")
+    public R<EduExportResultVo> export(@RequestBody EduExportBo export) {
+        export.setModuleCode("grade");
+        return R.ok(importExportService.exportData(export));
     }
 
 }

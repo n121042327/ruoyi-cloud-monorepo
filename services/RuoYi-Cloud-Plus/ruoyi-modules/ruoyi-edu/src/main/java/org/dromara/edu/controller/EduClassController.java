@@ -11,9 +11,16 @@ import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.edu.domain.bo.EduClassBo;
 import org.dromara.edu.domain.bo.EduClassMemberBo;
+import org.dromara.edu.domain.bo.EduExportBo;
+import org.dromara.edu.domain.bo.EduImportExecuteBo;
+import org.dromara.edu.domain.bo.EduImportValidateBo;
 import org.dromara.edu.domain.vo.EduClassMemberVo;
 import org.dromara.edu.domain.vo.EduClassVo;
+import org.dromara.edu.domain.vo.EduExportResultVo;
+import org.dromara.edu.domain.vo.EduImportExecuteResultVo;
+import org.dromara.edu.domain.vo.EduImportValidateResultVo;
 import org.dromara.edu.service.IEduClassService;
+import org.dromara.edu.service.IEduImportExportService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,6 +51,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class EduClassController extends BaseController {
 
     private final IEduClassService classService;
+    private final IEduImportExportService importExportService;
 
     /** 查询班级列表 */
     @SaCheckPermission("org.class:read")
@@ -148,6 +156,48 @@ public class EduClassController extends BaseController {
     @PostMapping("/roster/transfer")
     public R<Void> transfer(@Validated @RequestBody EduClassMemberBo member) {
         return toAjax(classService.transferClass(member));
+    }
+
+    /** 班级花名册导入校验（统一走导入引擎，BR-IMP-001 / REQ-IMP-001） */
+    @SaCheckPermission("org.class:import")
+    @Log(title = "班级花名册", businessType = BusinessType.IMPORT)
+    @RepeatSubmit()
+    @PostMapping("/roster/import/validate")
+    public R<EduImportValidateResultVo> importRosterValidate(
+        @Validated @RequestBody EduImportValidateBo validate) {
+        validate.setModuleCode("class_roster");
+        return R.ok(importExportService.validateImportFile(validate));
+    }
+
+    /** 班级花名册导入执行（异步，按批次号幂等，REQ-IMP-015 / 017） */
+    @SaCheckPermission("org.class:import")
+    @Log(title = "班级花名册", businessType = BusinessType.IMPORT)
+    @RepeatSubmit()
+    @PostMapping("/roster/import/execute")
+    public R<EduImportExecuteResultVo> importRosterExecute(
+        @Validated @RequestBody EduImportExecuteBo execute) {
+        return R.ok(importExportService.executeImport(execute));
+    }
+
+    /** 班级列表导出（统一走导出引擎，导出前重新解析数据范围，REQ-IMP-024 / 025） */
+    @SaCheckPermission("org.class:export")
+    @Log(title = "班级管理", businessType = BusinessType.EXPORT)
+    @RepeatSubmit()
+    @PostMapping("/export")
+    public R<EduExportResultVo> export(@RequestBody EduExportBo export) {
+        export.setModuleCode("class");
+        return R.ok(importExportService.exportData(export));
+    }
+
+    /** 班级花名册导出 */
+    @SaCheckPermission("org.class:export")
+    @Log(title = "班级花名册", businessType = BusinessType.EXPORT)
+    @RepeatSubmit()
+    @PostMapping("/{classId}/roster/export")
+    public R<EduExportResultVo> exportRoster(@PathVariable Long classId, @RequestBody EduExportBo export) {
+        export.setModuleCode("class_roster");
+        export.setClassId(classId);
+        return R.ok(importExportService.exportData(export));
     }
 
 }

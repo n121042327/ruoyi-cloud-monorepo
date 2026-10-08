@@ -3,16 +3,20 @@ package org.dromara.edu.controller;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.domain.R;
+import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
+import org.dromara.edu.domain.bo.EduExportBo;
 import org.dromara.edu.domain.bo.EduPromotionTaskBo;
+import org.dromara.edu.domain.vo.EduExportResultVo;
 import org.dromara.edu.domain.vo.EduPromotionItemVo;
 import org.dromara.edu.domain.vo.EduPromotionReadinessVo;
 import org.dromara.edu.domain.vo.EduPromotionTaskVo;
+import org.dromara.edu.service.IEduImportExportService;
 import org.dromara.edu.service.IEduPromotionService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,6 +47,7 @@ import java.util.List;
 public class EduPromotionController extends BaseController {
 
     private final IEduPromotionService promotionService;
+    private final IEduImportExportService importExportService;
 
     /** 分页查询升班任务列表 */
     @SaCheckPermission("promotion.batch:read")
@@ -143,6 +148,44 @@ public class EduPromotionController extends BaseController {
     @PostMapping("/{taskId}/cancel")
     public R<Void> cancel(@PathVariable Long taskId, @RequestParam String reason) {
         return toAjax(promotionService.cancelTask(taskId, reason));
+    }
+
+    /** 升班任务列表导出（统一走导出引擎） */
+    @SaCheckPermission("promotion.batch:export")
+    @Log(title = "升班管理", businessType = BusinessType.EXPORT)
+    @RepeatSubmit()
+    @PostMapping("/export")
+    public R<EduExportResultVo> exportTask(@RequestBody EduExportBo export) {
+        export.setModuleCode("promotion");
+        return R.ok(importExportService.exportData(export));
+    }
+
+    /** 升级预览导出（按任务 ID 导出明细预览） */
+    @SaCheckPermission("promotion.batch:export")
+    @Log(title = "升班管理", businessType = BusinessType.EXPORT)
+    @RepeatSubmit()
+    @PostMapping("/{taskId}/preview/export")
+    public R<EduExportResultVo> exportPreview(@PathVariable Long taskId, @RequestBody EduExportBo export) {
+        export.setModuleCode("promotion");
+        export.setFilters(appendScope(export.getFilters(), taskId, "preview"));
+        return R.ok(importExportService.exportData(export));
+    }
+
+    /** 升级结果导出（按任务 ID 导出执行结果） */
+    @SaCheckPermission("promotion.batch:export")
+    @Log(title = "升班管理", businessType = BusinessType.EXPORT)
+    @RepeatSubmit()
+    @PostMapping("/{taskId}/result/export")
+    public R<EduExportResultVo> exportResult(@PathVariable Long taskId, @RequestBody EduExportBo export) {
+        export.setModuleCode("promotion");
+        export.setFilters(appendScope(export.getFilters(), taskId, "result"));
+        return R.ok(importExportService.exportData(export));
+    }
+
+    /** 把「任务 + 导出口径」拼进 filters，供模块导出器解释 */
+    private String appendScope(String filters, Long taskId, String scope) {
+        String payload = "{\"taskId\":" + taskId + ",\"scope\":\"" + scope + "\"}";
+        return StringUtils.isBlank(filters) ? payload : filters + payload;
     }
 
 }
