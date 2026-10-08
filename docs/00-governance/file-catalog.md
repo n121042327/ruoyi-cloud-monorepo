@@ -1270,3 +1270,11 @@
 | `docs/00-governance/change-requests/CR-100.md` | 启动失败定位、修复与验证 | `review` |
 | `services/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-edu/src/main/resources/logback-plus.xml` | 教育域日志配置（补齐缺失资源） | `已实现` |
 | `evidence/stage7-backend/2026-10-08_edu-logback-config_fix.log` | 定位过程与产物验证证据 | `review` |
+
+## 2026-10-08 阶段 7 第二十二批：教育域菜单 SQL
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-101.md` | 菜单生成的取数口径、执行与三重校验 | `review` |
+| `services/RuoYi-Cloud-Plus/script/sql/edu-menu.sql` | 教育域菜单种子（1 根 + 12 分组 + 41 页面 + 64 按钮） | `已实现` |
+| `evidence/stage7-backend/2026-10-08_edu-menu-sql.log` | 行数统计与 URL/component/权限点校验证据 | `review` |

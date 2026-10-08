@@ -43,6 +43,17 @@ Get-ChildItem ..\..\docs\40-detailed-design\migrations\*.sql | Sort-Object Name 
 `script/sql/ry-config.sql`（Nacos 配置库）、`ry-job.sql`、`ry-workflow.sql`、`ry-seata.sql`
 按需导入；用上游 `ruoyi/ruoyi-nacos:2.6.2` 镜像时，配置库已经自带。
 
+**教育域菜单（必做，否则登录后左侧看不到「教育管理」）**：
+
+```powershell
+docker cp script\sql\edu-menu.sql mysql:/tmp/edu-menu.sql
+docker exec mysql sh -c "mysql --default-character-set=utf8mb4 -uroot -pruoyi123 ry-cloud < /tmp/edu-menu.sql"
+```
+
+它会插入 `教育管理 → 12 个分组 → 41 个页面 → 64 个按钮`（id 区间 13000-13999，可重复执行；
+先按区间删除再插入，所以改完菜单重跑即可）。侧栏由后端菜单表驱动，执行后需**重新登录**才生效；
+`super_admin` 无需授权即可看到全部菜单，其它角色要在「系统管理 → 角色管理」里勾选。
+
 > **含中文的 SQL 必须带 `--default-character-set=utf8mb4`**（所有库，包括 `ry-config.sql`）。
 > 不带这个参数时客户端按 latin1 解释 UTF-8 文件，中文会被**双重编码**写进库：
 > 表现就是 Nacos 控制台里命名空间的「开发环境 / 生产环境」变成 `å¼€å‘ç¯å¢ƒ` 这类乱码，

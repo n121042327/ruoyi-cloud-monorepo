@@ -2416,3 +2416,21 @@ jar 内 BOOT-INF/classes/logback-plus.xml 存在且 log.path=logs/ruoyi-edu（Ma
 tools/check_stale_classes.py 无幽灵 class。**经验**：新增应用模块时必须从兄弟模块拷一份 logback-plus.xml，
 否则启动会死在日志初始化，报错位置与真实原因看起来毫不相关。
 证据见 evidence/stage7-backend/2026-10-08_edu-logback-config_fix.log。
+
+## D-180 — 登录后无教育菜单：侧栏由 sys_menu 驱动，生成并执行菜单种子 SQL（2026-10-08）
+
+用户反馈「登录后左边菜单没有教育相关的」。核查：前端侧栏**完全由后端菜单表驱动**——`src/store/modules/permission.ts` 的
+generateRoutes() 调 getRouters() 拿 sys_menu 树拼侧栏；而 `src/router/index.ts` 里的 41 条 dynamicRoutes 是
+`hidden: true` 的隐藏路由，只负责让页面可访问、不进侧栏——所以第 6 阶段交付的 45 条路由「能访问但看不到入口」，
+缺的是 sys_menu 数据。本批生成 `services/RuoYi-Cloud-Plus/script/sql/edu-menu.sql`：**教育管理(M) → 12 个分组(M) →
+41 个页面(C) → 64 个按钮(F)**（共 118 行，id 区间 13000-13999，现有最大 menu_id=11806 无冲突；幂等，先按区间删再插）。
+生成口径全部取自已核对的事实源：页面清单与 URL 来自 `docs/40-detailed-design/frontend-page-tree.yaml`（45 条中 41 条进侧栏，
+/login、/403、/404、/500 是静态路由）+ 前端 dynamicRoutes；`component` 用 `views/` 相对路径去掉 `.vue`
+（与 loadView 匹配规则一致）；目录 `component` 留空让后端 `getComponentInfo()` 回退 Layout/ParentView；
+页面 `perms` 取 dynamicRoutes 首个权限点，另外把 ruoyi-edu 控制器 64 个 `@SaCheckPermission` 全量生成为 F 行；
+图标里 `swap`/`check`/`set` 在 icons/svg 中不存在，回退为 `switch`/`finish`/`edit`。**验证**（本机 docker 的 ry-cloud 库）：
+M=13（1 根 + 12 分组）、C=41、F=64；URL 拼接结果与前端 41 条 dynamicRoutes 逐条比对**不一致 0**；
+41 个 component 与 `apps/plus-ui/src/views/<component>.vue` 比对**不一致 0**；41 个页面 perms 全非空、后端 64 个权限点全有 F 行。
+**使用要点**：执行后需**重新登录**（前端只在登录/刷新时重建侧栏）；super_admin（role_id=1）由 `selectMenuTreeAll()` 直接放行、
+无需 sys_role_menu 授权，其它角色要在角色管理里勾选；生产用 nginx 托管旧 dist 时需重新 `pnpm build`。
+证据见 `evidence/stage7-backend/2026-10-08_edu-menu-sql.log`。

@@ -1,0 +1,34 @@
+# 阶段 7 证据：教育域菜单 SQL（CR-101，2026-10-08）
+
+背景：用户反馈「登录后左边菜单没有教育相关的」。核查结论：前端侧栏**完全由后端菜单表驱动**
+（src/store/modules/permission.ts 的 generateRoutes() 调 getRouters() 拿 sys_menu 树做侧栏），
+而 router/index.ts 里的 41 条 dynamicRoutes 是 hidden: true 的隐藏路由，只负责让页面可访问、不进侧栏。
+因此需要往 sys_menu 插数据。
+
+事实源：
+  docs/40-detailed-design/frontend-page-tree.yaml -> 45 条路由（其中 41 条进侧栏；/login、/403、/404、/500 是静态路由）
+  apps/plus-ui/src/router/index.ts dynamicRoutes -> 每页的 path/title/icon/permissions/component
+  ruoyi-edu 控制器的 @SaCheckPermission -> 后端 64 个权限点（用于生成按钮 F 行）
+
+前端约定（已核对代码）：
+  component 取值 = views 目录相对路径去掉 .vue，如 edu/student/stu_list/index（permission.ts 的 loadView）
+  路由 name = capitalize(path) + menu_id（SysMenuServiceImpl.buildMenus），因此不会重名
+  顶级目录 component 留空 -> getComponentInfo() 回退 Layout；二级目录留空 -> ParentView
+  super_admin 由 selectMenuTreeByUserId() 直接 selectMenuTreeAll() 放行，不需要 sys_role_menu 授权
+
+产出：services/RuoYi-Cloud-Plus/script/sql/edu-menu.sql
+  结构：教育管理(M) -> 12 个分组(M) -> 41 个页面(C) -> 64 个按钮(F)，共 118 行
+  id 区间：13000-13999（现有 sys_menu 最大 menu_id = 11806，无冲突）
+  幂等：先按 id 区间删除（含 sys_role_menu 关联）再插入
+
+执行与验证（已在本机 docker 的 ry-cloud 库执行）：
+
+  按类型行数： M=13（1 根 + 12 分组）、C=41、F=64
+
+  校验 1（URL 拼接）：用 SQL 把 root.path + 分组.path + 页面.path 拼成 URL，
+    与前端 dynamicRoutes 的 41 条 path 逐条比对 -> 不一致 0 条
+  校验 2（component）：41 个 component 与 apps/plus-ui/src/views/<component>.vue 逐一比对 -> 不一致 0 条
+  校验 3（权限点）：41 个页面 perms 全部非空；后端 64 个权限点全部落到 F 行
+
+使用说明：执行后**需重新登录**（前端在登录/刷新时才重新构建侧栏）；
+  super_admin 直接可见；其它角色需在「系统管理 - 角色管理」里勾选新菜单。
