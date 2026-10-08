@@ -27,7 +27,7 @@ missing: 18
     exportOperationLog / listOperatorAccess / exportOperatorAccess / listSensitiveAccess /
     listSecurityEvent / listArchiveBatch / searchArchivedLog
   - 班级任教关系 1 个：listClassTeachingAssignment（依赖教师 / 任教关系模块补连接查询）
-  - 账号与照片 5 个（上游缺口）：uploadStudentPhoto / getStudentPhoto（统一文件服务，GAP-027 / 093）、
+  - 账号与照片 7 个（上游缺口）：uploadStudentPhoto / getStudentPhoto（统一文件服务，GAP-027 / 093）、
     resetStudentPassword / resetTeacherPassword / disableTeacherAccount / enableTeacherAccount（GAP-091）、
     viewStudentPhone（GAP-090）
 
