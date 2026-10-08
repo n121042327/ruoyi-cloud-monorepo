@@ -1,0 +1,44 @@
+# 阶段 6 证据：编辑学校弹窗只读字段提示（CR-109）
+
+- 时间：2026-10-09
+- 环境：vite dev server（localhost:80）+ Chrome（浏览器自动化实机复核）
+
+## 1. 背景
+
+用户在浏览器里对「编辑学校」弹窗提了两条批注：
+① 「学校编码」下方的"编码变更需单独申请…"提示不应该出现在界面上；
+② 「所属租户」下方的"学校不能跨租户迁移…"应该出现（当前已出现）。
+
+## 2. 改动
+
+`SchoolFormDialog.vue`：
+- 编辑态「学校编码」：删除常驻 `.hint`，说明改为 `el-tooltip`（hover 显示），trigger 用
+  `<span class="w-full cursor-help">` 包住禁用的 `el-input`（禁用控件不派发鼠标事件）；
+- 编辑态「所属租户」：文案保留不变（用户确认应保留）。
+
+## 3. 门禁
+
+```
+check_fe_page_structure.py -> 通过
+check_api_contract.py      -> 通过（181 operationId）
+check_docs.py              -> 通过
+check_gap_register.py      -> 通过（101 条，无重复）
+check_mermaid.py           -> 通过（103 张图）
+typecheck                  -> error TS 51 条（= 基线 51，本批新增 0）
+lint:eslint                -> 124 problems（= 基线 124，本批新增 0）
+build:prod                 -> 成功（exit 0）
+```
+
+## 4. 实机复核
+
+Chrome 打开 `/edu/school/list` → 行内「编辑」→ 弹窗无障碍树：
+
+```
+text 学校名称 / text field(settable) *学校名称 = 蜀国学校
+text 学校编码 / text field(disabled) 学校编码 = SCH546223        ← 下方已无常驻提示
+text 学校类型 / combo box 学校类型 = 民办
+text 所属租户 / text field(disabled) 所属租户 = 546223
+    text 学校不能跨租户迁移；需要换集团时新建学校并迁移数据。      ← 保留
+```
+
+截图：`evidence/stage6-frontend/2026-10-09_school-edit-dialog.png`。

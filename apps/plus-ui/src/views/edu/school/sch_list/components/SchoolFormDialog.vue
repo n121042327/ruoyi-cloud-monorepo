@@ -19,9 +19,16 @@
           </el-form-item>
         </el-col>
         <el-col v-else :span="12">
+          <!-- 只读字段的操作说明不常驻界面（用户批注 2026-10-09）：改为 hover 提示，鼠标移上去才显示 -->
           <el-form-item label="学校编码">
-            <el-input v-model="form.schoolCode" disabled />
-            <div class="hint">编码变更需单独申请（updateSchoolCode）并写审计；编码是导入 / 导出对照表的键。</div>
+            <el-tooltip
+              placement="top"
+              content="编码由系统生成（SCH-租户后 6 位）；变更需单独申请 updateSchoolCode 并写审计；编码是导入 / 导出对照表的键。"
+            >
+              <span class="w-full cursor-help">
+                <el-input v-model="form.schoolCode" disabled />
+              </span>
+            </el-tooltip>
           </el-form-item>
         </el-col>
       </el-row>

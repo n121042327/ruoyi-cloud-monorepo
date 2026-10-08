@@ -1349,3 +1349,12 @@
 | `evidence/stage6-frontend/2026-10-08_school-stage-dialog.png` | 学段配置弹窗截图 | `review` |
 | `evidence/stage6-frontend/2026-10-08_school-stage-saved.png` | 保存成功截图 | `review` |
 | `evidence/stage6-frontend/2026-10-08_school-stage-config.log` | 门禁 + 编译 + 实机与库内验证 | `review` |
+
+## 2026-10-09 阶段 6 第二十九批：编辑学校弹窗只读字段提示
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-109.md` | 两条批注的判断口径、改动与验证 | `review` |
+| `apps/plus-ui/src/views/edu/school/sch_list/components/SchoolFormDialog.vue`（改） | 编码说明改 hover tooltip；租户说明保留 | `已实现` |
+| `evidence/stage6-frontend/2026-10-09_school-edit-dialog.png` | 修改后的编辑弹窗截图 | `review` |
+| `evidence/stage6-frontend/2026-10-09_school-edit-hint.log` | 门禁与实机复核记录 | `review` |
