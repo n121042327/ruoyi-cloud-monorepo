@@ -4,6 +4,8 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Opt;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.crypto.digest.BCrypt;
+import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.dubbo.config.annotation.DubboService;
@@ -200,6 +202,60 @@ public class RemoteUserServiceImpl implements RemoteUserService {
             throw new UserException("user.register.save.error", username);
         }
         return userService.registerUser(sysUserBo, remoteUserBo.getTenantId());
+    }
+
+    /**
+     * 重置指定用户的登录密码
+     *
+     * 入参是**明文密码**，这里加密后落库（`SysUserController` 第 240 行的既有做法一致），
+     * 避免摘要值在服务之间传输，见 `GAP-091`。
+     *
+     * @param userId      用户id
+     * @param rawPassword 明文新密码
+     * @param tenantId    租户id；为空时按调用方当前租户处理
+     * @return 结果
+     */
+    @Override
+    public Boolean resetPassword(Long userId, String rawPassword, String tenantId) throws ServiceException {
+        if (userId == null) {
+            throw new ServiceException("缺少用户id");
+        }
+        if (StringUtils.isBlank(rawPassword)) {
+            throw new ServiceException("新密码不能为空");
+        }
+        String encoded = BCrypt.hashpw(rawPassword);
+        if (StringUtils.isBlank(tenantId)) {
+            return userService.resetUserPwd(userId, encoded) > 0;
+        }
+        return TenantHelper.dynamic(tenantId, () -> userService.resetUserPwd(userId, encoded) > 0);
+    }
+
+    /**
+     * 修改指定用户的账号状态（启用 / 停用）
+     *
+     * 停用时把该用户已签发的 token 一并失效（`StpUtil.kickout`），
+     * 否则被停用账号仍能用旧 token 访问。状态码见 `UserStatus`：`0` 正常 / `1` 停用。
+     *
+     * @param userId   用户id
+     * @param status   账号状态码
+     * @param tenantId 租户id；为空时按调用方当前租户处理
+     * @return 结果
+     */
+    @Override
+    public Boolean changeAccountStatus(Long userId, String status, String tenantId) throws ServiceException {
+        if (userId == null) {
+            throw new ServiceException("缺少用户id");
+        }
+        if (StringUtils.isBlank(status)) {
+            throw new ServiceException("账号状态不能为空");
+        }
+        boolean rows = StringUtils.isBlank(tenantId)
+            ? userService.updateUserStatus(userId, status) > 0
+            : TenantHelper.dynamic(tenantId, () -> userService.updateUserStatus(userId, status) > 0);
+        if (rows && UserStatus.DISABLE.getCode().equals(status)) {
+            StpUtil.kickout(userId);
+        }
+        return rows;
     }
 
     /**

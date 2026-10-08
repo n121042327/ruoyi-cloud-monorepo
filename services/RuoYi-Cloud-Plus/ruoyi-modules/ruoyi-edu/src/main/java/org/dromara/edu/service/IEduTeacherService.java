@@ -66,6 +66,33 @@ public interface IEduTeacherService {
     /** 复制上一学年任教关系（目标学期已有同一「班级 + 学科」时跳过，不覆盖） */
     Boolean copyAssignment(EduTeachingAssignmentBo assignment);
 
+    /**
+     * 重置教师登录账号密码（GAP-091）
+     *
+     * @param teacherId 教师 ID
+     * @param password  明文新密码
+     * @return 是否成功
+     */
+    Boolean resetTeacherPassword(Long teacherId, String password);
+
+    /**
+     * 停用教师登录账号（同时让已签发 token 失效，GAP-091）
+     *
+     * @param teacherId 教师 ID
+     * @param reason    停用原因（至少 5 个字）
+     * @return 是否成功
+     */
+    Boolean disableTeacherAccount(Long teacherId, String reason);
+
+    /**
+     * 启用教师登录账号（GAP-091）
+     *
+     * @param teacherId 教师 ID
+     * @param reason    启用原因（至少 5 个字）
+     * @return 是否成功
+     */
+    Boolean enableTeacherAccount(Long teacherId, String reason);
+
     /** 离职 / 调离登记（非在职后只保留查看与撤销，编辑与角色入口隐藏，GAP-075） */
     Boolean leaveTeacher(Long teacherId, String employmentStatus, String leaveDate, String reason);
 

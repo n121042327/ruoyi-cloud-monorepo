@@ -70,6 +70,32 @@ public interface RemoteUserService {
     Boolean registerUserInfo(RemoteUserBo remoteUserBo) throws UserException, ServiceException;
 
     /**
+     * 重置指定用户的登录密码
+     *
+     * 教育域教师 / 学生账号重置入口（`GAP-091`）。入参收**明文密码**，由 provider 侧加密后落库，
+     * 避免摘要值在服务之间传输。
+     *
+     * @param userId      用户id
+     * @param rawPassword 明文新密码
+     * @param tenantId    租户id；为空时按调用方当前租户处理
+     * @return 结果
+     */
+    Boolean resetPassword(Long userId, String rawPassword, String tenantId) throws ServiceException;
+
+    /**
+     * 修改指定用户的账号状态（启用 / 停用）
+     *
+     * 教育域教师账号启停用入口（`GAP-091`）。状态码取 `UserStatus`：`0` 正常 / `1` 停用。
+     * provider 侧在停用时会让该用户已签发的 token 立即失效。
+     *
+     * @param userId   用户id
+     * @param status   账号状态码
+     * @param tenantId 租户id；为空时按调用方当前租户处理
+     * @return 结果
+     */
+    Boolean changeAccountStatus(Long userId, String status, String tenantId) throws ServiceException;
+
+    /**
      * 通过userId查询用户账户
      *
      * @param userId 用户id

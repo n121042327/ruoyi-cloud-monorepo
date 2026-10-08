@@ -24,6 +24,7 @@ import org.dromara.edu.mapper.EduUserRoleMapper;
 import org.dromara.edu.service.IEduTeacherService;
 import org.dromara.system.api.RemoteUserService;
 import org.dromara.system.api.domain.bo.RemoteUserBo;
+import org.dromara.common.satoken.utils.LoginHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +56,13 @@ public class EduTeacherServiceImpl implements IEduTeacherService {
 
     /** 班级类型：行政班 */
     private static final String CLASS_TYPE_ADMINISTRATIVE = "administrative";
+
+    /** 账号状态：正常 / 停用（UserStatus 的码值） */
+    private static final String ACCOUNT_NORMAL = "0";
+    private static final String ACCOUNT_DISABLED = "1";
+
+    /** 原因类文案的最小长度（停用 / 启用原因至少 5 个字） */
+    private static final int REASON_MIN_LENGTH = 5;
 
     private final EduTeacherMapper baseMapper;
     private final EduUserRoleMapper userRoleMapper;
@@ -413,6 +421,45 @@ public class EduTeacherServiceImpl implements IEduTeacherService {
             .eq(EduTeachingAssignment::getClassId, classId)
             .eq(EduTeachingAssignment::getStatus, FLAG_ON));
         return count != null && count > 0;
+    }
+
+    // ==================== 登录账号（GAP-091） ====================
+
+    @Override
+    public Boolean resetTeacherPassword(Long teacherId, String password) {
+        EduTeacher teacher = requireTeacher(teacherId);
+        if (teacher.getUserId() == null) {
+            throw new ServiceException("该教师还没有登录账号，无法重置密码");
+        }
+        if (StringUtils.isBlank(password)) {
+            throw new ServiceException("请输入新密码");
+        }
+        return remoteUserService.resetPassword(teacher.getUserId(), password, LoginHelper.getTenantId());
+    }
+
+    @Override
+    public Boolean disableTeacherAccount(Long teacherId, String reason) {
+        return changeTeacherAccountStatus(teacherId, reason, ACCOUNT_DISABLED, "停用");
+    }
+
+    @Override
+    public Boolean enableTeacherAccount(Long teacherId, String reason) {
+        return changeTeacherAccountStatus(teacherId, reason, ACCOUNT_NORMAL, "启用");
+    }
+
+    /**
+     * 教师账号启停用。
+     * 与既有「离职 / 停用必须填原因」的口径一致：原因至少 5 个字（便于审计追溯）。
+     */
+    private Boolean changeTeacherAccountStatus(Long teacherId, String reason, String status, String action) {
+        EduTeacher teacher = requireTeacher(teacherId);
+        if (teacher.getUserId() == null) {
+            throw new ServiceException("该教师还没有登录账号，无法" + action);
+        }
+        if (StringUtils.isBlank(reason) || reason.trim().length() < REASON_MIN_LENGTH) {
+            throw new ServiceException(action + "原因必填，且至少 " + REASON_MIN_LENGTH + " 个字");
+        }
+        return remoteUserService.changeAccountStatus(teacher.getUserId(), status, LoginHelper.getTenantId());
     }
 
 }

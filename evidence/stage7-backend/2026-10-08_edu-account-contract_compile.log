@@ -1,0 +1,30 @@
+# 阶段 7 证据：教育域账号远程契约与 4 个账号接口（CR-094，2026-10-08）
+
+命令：mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu,ruoyi-modules/ruoyi-system -am compile
+（工作目录 services/RuoYi-Cloud-Plus；因改动同时落在 ruoyi-api-system / ruoyi-system / ruoyi-edu，故把 ruoyi-system 一起编）
+
+结果：BUILD SUCCESS，exit 0。ruoyi-edu 的 target/classes 下 459 个 class。
+
+说明：按 AGENTS.md 第 9 节，编译通过不等于测试通过；本批未跑单测、未启动服务、未连数据库。
+
+--- Maven 关键输出 ---
+
+[INFO] ruoyi-system ....................................... SUCCESS [  8.269 s]
+[INFO] ruoyi-edu .......................................... SUCCESS [ 10.135 s]
+[INFO] BUILD SUCCESS
+[INFO] Total time:  37.044 s
+
+--- 契约覆盖自检（脚本比对 openapi 路径与 controller 映射） ---
+
+covered 178 / 181
+  uploadStudentPhoto POST /edu/student/{id}/photo      <- GAP-027 / GAP-093（统一文件服务）
+  getStudentPhoto    GET  /edu/student/{id}/photo      <- GAP-027 / GAP-093（统一文件服务）
+  viewStudentPhone   GET  /edu/student/{id}/phone      <- GAP-090（字段落点需改已冻结的建表脚本）
+
+本批补齐 4 个：resetTeacherPassword / disableTeacherAccount / enableTeacherAccount / resetStudentPassword。
+剩余 3 个都不能在本分支内补齐：两个照片接口要统一文件服务，学生电话要改冻结的建表脚本。
+
+--- 门禁 ---
+
+python tools/check_docs.py -> 通过
+python tools/check_gap_register.py -> 通过（96 条，open = 0）

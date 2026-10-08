@@ -225,4 +225,31 @@ public class EduTeacherController extends BaseController {
         return R.ok(importExportService.exportData(export));
     }
 
+    /** 重置教师登录账号密码（明文密码交给 sys_user 侧加密落库，GAP-091） */
+    @SaCheckPermission("person.teacher:update")
+    @Log(title = "教师账号", businessType = BusinessType.UPDATE)
+    @RepeatSubmit()
+    @PostMapping("/{teacherId}/reset-password")
+    public R<Void> resetPassword(@PathVariable Long teacherId, @Validated @RequestBody EduTeacherBo teacher) {
+        return toAjax(teacherService.resetTeacherPassword(teacherId, teacher.getPassword()));
+    }
+
+    /** 停用教师登录账号（原因必填，停用同时让已签发 token 失效） */
+    @SaCheckPermission("person.teacher:update")
+    @Log(title = "教师账号", businessType = BusinessType.UPDATE)
+    @RepeatSubmit()
+    @PostMapping("/{teacherId}/account/disable")
+    public R<Void> disableAccount(@PathVariable Long teacherId, @Validated @RequestBody EduTeacherBo teacher) {
+        return toAjax(teacherService.disableTeacherAccount(teacherId, teacher.getReason()));
+    }
+
+    /** 启用教师登录账号（原因必填） */
+    @SaCheckPermission("person.teacher:update")
+    @Log(title = "教师账号", businessType = BusinessType.UPDATE)
+    @RepeatSubmit()
+    @PostMapping("/{teacherId}/account/enable")
+    public R<Void> enableAccount(@PathVariable Long teacherId, @Validated @RequestBody EduTeacherBo teacher) {
+        return toAjax(teacherService.enableTeacherAccount(teacherId, teacher.getReason()));
+    }
+
 }

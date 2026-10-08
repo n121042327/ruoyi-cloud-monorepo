@@ -8,6 +8,7 @@ import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.edu.domain.bo.EduGuardianBo;
+import org.dromara.edu.domain.bo.EduStudentBo;
 import org.dromara.edu.domain.bo.EduStudentEnrollmentBo;
 import org.dromara.edu.domain.vo.EduEnrollmentChangeVo;
 import org.dromara.edu.domain.vo.EduEnrollmentStatusOptionVo;
@@ -129,6 +130,15 @@ public class EduStudentProfileController extends BaseController {
     @DeleteMapping("/{studentId}")
     public R<Void> remove(@PathVariable Long studentId, @RequestParam(required = false) String reason) {
         return toAjax(profileService.removeStudent(studentId, reason));
+    }
+
+    /** 重置学生登录账号密码（登录名 = s + 学号；明文密码交给 sys_user 侧加密落库，GAP-091） */
+    @SaCheckPermission("person.student:update")
+    @Log(title = "学生账号", businessType = BusinessType.UPDATE)
+    @RepeatSubmit()
+    @PostMapping("/{studentId}/reset-password")
+    public R<Void> resetPassword(@PathVariable Long studentId, @Validated @RequestBody EduStudentBo student) {
+        return toAjax(profileService.resetStudentPassword(studentId, student.getPassword()));
     }
 
 }

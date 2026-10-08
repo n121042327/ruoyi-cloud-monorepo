@@ -2848,6 +2848,9 @@ gaps:
       在 ruoyi-system 的实现类里落地（复用密码加密与账号状态逻辑），再在 edu 侧补齐
       `resetTeacherPassword` / `disableTeacherAccount` / `enableTeacherAccount` 三个接口。
       因为要同时改框架的两个模块（api-system + system），按「一批一证据」的节奏放到独立小批（CR-085 或之后）。
+      CR-094 已按本推荐方案落地：`RemoteUserService` 新增 `resetPassword(userId, rawPassword, tenantId)` 与
+      `changeAccountStatus(userId, status, tenantId)`，provider 侧 `BCrypt` 加密、停用踢下线；
+      4 个账号接口（教师 3 个 + 学生 resetStudentPassword）已交付，契约覆盖 174 → 178 / 181。
     resolved_at: "2026-10-08"
     status: answered
 

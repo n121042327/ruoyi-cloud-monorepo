@@ -54,4 +54,17 @@ public interface IEduStudentProfileService {
     /** 删除学生（有在校记录 / 班级关系时只允许通过学籍异动处理，不允许物理删除） */
     Boolean removeStudent(Long studentId, String reason);
 
+    /**
+     * 重置学生登录账号密码（GAP-091）
+     *
+     * 学生账号按登录名约定关联：`REQ-STU-023` / `BR-ACCOUNT-002` 规定登录名为 `s` + 学号，
+     * `edu_student` 本身没有 `user_id` 列，因此这里先拼登录名再经 `RemoteUserService.getUserInfo`
+     * 取 `userId`，最后调 `resetPassword`。
+     *
+     * @param studentId 学生主体 ID
+     * @param password  明文新密码
+     * @return 是否成功
+     */
+    Boolean resetStudentPassword(Long studentId, String password);
+
 }

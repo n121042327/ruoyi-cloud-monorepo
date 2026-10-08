@@ -86,4 +86,10 @@ public class EduStudentBo extends BaseEntity {
     /** 备注 */
     private String remark;
 
+    /** 重置学生账号密码时的新密码（明文，provider 侧加密落库，GAP-091） */
+    private String password;
+
+    /** 需要填原因的操作（删除 / 重置等）填写的说明 */
+    private String reason;
+
 }

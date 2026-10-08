@@ -1184,3 +1184,17 @@
 | `.../service/IEduClassService.java` + `impl/EduClassServiceImpl.java`（改） | 新增班级任教关系只读清单方法 | `已实现` |
 | `.../controller/EduClassController.java`（改） | 新增 `GET /edu/class/{classId}/teaching-assignment` | `已实现` |
 | `evidence/stage7-backend/2026-10-08_edu-datascope_compile.log` | 本批编译证据与契约覆盖自检（BUILD SUCCESS / 459 个 class） | `review` |
+
+## 2026-10-08 阶段 7 第十五批：教育域账号远程契约与 4 个账号接口
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-094.md` | GAP-091 落地与 4 个账号接口的交付与编译证据 | `review` |
+| `ruoyi-api/ruoyi-api-system/.../RemoteUserService.java`（改） | 新增 resetPassword / changeAccountStatus 两个远程契约 | `已实现` |
+| `ruoyi-modules/ruoyi-system/.../dubbo/RemoteUserServiceImpl.java`（改） | 两契约实现（provider 侧加密、跨租户 dynamic、停用踢下线） | `已实现` |
+| `.../service/IEduTeacherService.java` + `impl/EduTeacherServiceImpl.java`（改） | 教师账号重置密码 / 停用 / 启用服务方法 | `已实现` |
+| `.../controller/EduTeacherController.java`（改） | 3 个教师账号端点 | `已实现` |
+| `.../service/IEduStudentProfileService.java` + `impl/EduStudentProfileServiceImpl.java`（改） | 学生账号重置密码（登录名 = s + 学号 定位） | `已实现` |
+| `.../controller/EduStudentProfileController.java`（改） | 学生账号重置密码端点 | `已实现` |
+| `.../domain/bo/EduStudentBo.java`（改） | 新增 password / reason 入参字段 | `已实现` |
+| `evidence/stage7-backend/2026-10-08_edu-account-contract_compile.log` | 本批编译证据与契约覆盖自检（BUILD SUCCESS / 178 of 181） | `review` |

@@ -10,6 +10,9 @@ import org.dromara.edu.domain.EduEnrollmentChange;
 import org.dromara.edu.domain.EduGrade;
 import org.dromara.edu.domain.EduGuardian;
 import org.dromara.edu.domain.EduStudent;
+import org.apache.dubbo.config.annotation.DubboReference;
+import org.dromara.common.satoken.utils.LoginHelper;
+import org.dromara.system.api.RemoteUserService;
 import org.dromara.edu.domain.EduStudentEnrollment;
 import org.dromara.edu.domain.EduStudentFieldChange;
 import org.dromara.edu.domain.EduStudentGuardian;
@@ -87,6 +90,15 @@ public class EduStudentProfileServiceImpl implements IEduStudentProfileService {
     private final EduStudentFieldChangeMapper fieldChangeMapper;
     private final EduGradeMapper gradeMapper;
     private final EduClassMemberMapper classMemberMapper;
+
+    /**
+     * 学生登录名前缀：登录名 = s + 学号（REQ-STU-023 / BR-ACCOUNT-002）。
+     * edu_student 没有 user_id 列，学生的账号关联靠这个约定，见 D-169。
+     */
+    private static final String STUDENT_LOGIN_PREFIX = "s";
+
+    @DubboReference
+    private RemoteUserService remoteUserService;
 
     // ==================== 学籍状态 ====================
 
@@ -447,6 +459,25 @@ public class EduStudentProfileServiceImpl implements IEduStudentProfileService {
             return phone;
         }
         return phone.substring(0, 3) + "****" + phone.substring(phone.length() - 4);
+    }
+
+    @Override
+    public Boolean resetStudentPassword(Long studentId, String password) {
+        EduStudent student = requireStudent(studentId);
+        if (StringUtils.isBlank(student.getStudentNo())) {
+            throw new ServiceException("该学生没有学号，无法定位登录账号");
+        }
+        if (StringUtils.isBlank(password)) {
+            throw new ServiceException("请输入新密码");
+        }
+        // 学生账号按登录名约定关联：登录名 = s + 学号（REQ-STU-023 / BR-ACCOUNT-002）；
+        // edu_student 没有 user_id 列，所以先用登录名换 userId（见 D-169）
+        String tenantId = LoginHelper.getTenantId();
+        var loginUser = remoteUserService.getUserInfo(STUDENT_LOGIN_PREFIX + student.getStudentNo(), tenantId);
+        if (loginUser == null || loginUser.getUserId() == null) {
+            throw new ServiceException("未找到该学生的登录账号：" + STUDENT_LOGIN_PREFIX + student.getStudentNo());
+        }
+        return remoteUserService.resetPassword(loginUser.getUserId(), password, tenantId);
     }
 
 }
