@@ -2556,3 +2556,14 @@ M=13（1 根 + 12 分组）、C=41、F=64；URL 拼接结果与前端 41 条 dyn
 因为禁用控件不派发鼠标事件），租户说明保持常驻；新建弹窗的文案按高保真不动（它解释的是"为什么没有编码输入框"）。
 **通用口径**：往后教育域弹窗里，只读字段只保留"约束类"说明；"去哪里改"这类操作指引进 hover 提示或详情页。
 证据见 `evidence/stage6-frontend/2026-10-09_school-edit-hint.log`。
+
+## D-191 — MinIO 桶初始化放在部署脚本，不改共享 OSS 客户端（2026-10-09）
+
+上传 500 的根因是「桶不存在」，而两边都不建桶：compose 不建、`ruoyi-common-oss`（AWS S3 异步 SDK 版）也不建。
+三种处置：① 新增幂等初始化脚本 + 部署手册写明步骤（推荐，已执行）；② 在 `SysOssConfigServiceImpl.init()`
+对启用配置做「桶不存在则 createBucket + putBucketPolicy」兜底；③ 只在本机手工建桶、不写文档。
+选 ①：`ruoyi-common-oss` 是所有服务共用的客户端，启动期做桶操作会把 5 行 OSS 配置（含 aliyun/qiniu/qcloud 占位行）
+都拉进失败面；脚本 + 手册既能一键修复、也不改变运行时行为。
+另记一条口径：`sys_oss_config.access_policy=1`（公开）目前只影响**对象 ACL**，不会给桶打策略 ——
+桶是私有时前端拿到 URL 会 403，所以脚本里固定补一条 `s3:GetObject` 公开只读策略。
+证据见 `evidence/stage7-backend/2026-10-09_minio-bucket-init.log`。

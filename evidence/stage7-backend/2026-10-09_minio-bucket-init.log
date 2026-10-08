@@ -1,0 +1,50 @@
+# 阶段 7 部署证据：初始化 MinIO 桶（CR-110）
+
+- 时间：2026-10-09
+- 环境：本机 Docker Desktop（minio 容器 `pgsty/minio`，端口 9000/9001）+ Windows 上跑的 ruoyi-resource(9204)
+- 口径：只声明「编译通过 / 构建成功 / 接口返回 200」，不写「测试通过」
+
+## 1. 原始报错（用户提供）
+
+```
+org.dromara.common.oss.exception.OssException: 上传文件失败，请检查配置信息:[subscription has been cancelled.]
+	at org.dromara.common.oss.core.OssClient.upload(OssClient.java:225)
+	at org.dromara.common.oss.core.OssClient.uploadSuffix(OssClient.java:386)
+	at org.dromara.resource.service.impl.SysOssServiceImpl.upload(SysOssServiceImpl.java:181)
+```
+
+`logs/ruoyi-resource/console.log` 里同一异常出现在 `00:13:33 / 00:15:52 / 00:19:40 / 00:20:19 / 00:21:40` 五次，
+`OssFactory` 日志显示用的是 `key => minio` 那行配置。
+
+## 2. 定位（SigV4 直连 MinIO）
+
+```
+HEAD /ruoyi            -> 404
+PUT  /ruoyi/probe.txt  -> 404  <Error><Code>NoSuchBucket</Code><Message>The specified bucket does not exist</Message>...
+```
+
+- 容器状态：minio Up，`/minio/health/live` 200，控制台 200；
+- `sys_oss_config` id=1（启用）：endpoint=127.0.0.1:9000、bucket=ruoyi、access=ruoyi、secret=ruoyi123、is_https=N；
+- compose 的 `MINIO_ROOT_USER/PASSWORD` 同为 ruoyi/ruoyi123 → **凭据没问题，是桶不存在**。
+
+根因：compose 不建桶 + 本仓库 `ruoyi-common-oss`（AWS S3 异步 SDK 版）构造 `OssClient` 时不 `createBucket`；
+SDK 把 `NoSuchBucket` 包装成 `subscription has been cancelled.`。
+
+## 3. 处置与验证
+
+```
+python services/RuoYi-Cloud-Plus/script/docker/init-minio-bucket.py
+  [ok] 已创建 bucket：ruoyi
+  [ok] 已设置公开只读策略（匿名可 GetObject）
+
+POST http://127.0.0.1:8080/resource/oss/upload      (multipart，file=_oss_probe.txt)
+  -> {"code":200,"msg":"操作成功","data":{"url":"http://127.0.0.1:9000/ruoyi/2026/10/09/bad4e6de258b4239961d55a7d75095db.txt",
+       "fileName":"_oss_probe.txt","ossId":"2108233090794008578"}}
+
+curl -o NUL -w "%{http_code}" <上面返回的 url>   -> 200（匿名可读，前端可直接渲染）
+```
+
+## 4. 附带产物
+
+- `services/RuoYi-Cloud-Plus/script/docker/init-minio-bucket.py`：幂等脚本（headBucket → createBucket → putBucketPolicy；`--private` 可只建桶）；
+- `README-deploy.md` 新增「2.1 初始化 MinIO 桶（必做）」：写明报错特征、一行命令与验证方式。

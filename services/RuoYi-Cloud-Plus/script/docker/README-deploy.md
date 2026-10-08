@@ -61,6 +61,39 @@ docker exec mysql sh -c "mysql --default-character-set=utf8mb4 -uroot -pruoyi123
 > 判断方法：`select hex(tenant_desc) from tenant_info` —— 正常应是 `E5BC80E58F91E78EAFE5A283`（“开发环境”），
 > 乱码则是 `C3A5C2BC...`（把 UTF-8 字节当 latin1 再编码的结果）。
 
+## 2.1 初始化 MinIO 桶（必做，否则上传接口报错）
+
+`sys_oss_config` 默认那行 MinIO 配置指向 `127.0.0.1:9000`、桶名 `ruoyi`、账号 `ruoyi / ruoyi123`
+（与 `docker-compose.yml` 的 minio 服务一致）。**这个桶不会自动创建**：
+
+- docker-compose 起 MinIO 时只建服务不建桶；
+- 本仓库的 `ruoyi-common-oss` 用的是 AWS S3 异步 SDK（`S3AsyncClient`），
+  不像上游 MinIO SDK 那样在建客户端时 `createBucket`。
+
+桶不存在时上传接口会报：
+
+```
+org.dromara.common.oss.exception.OssException: 上传文件失败，请检查配置信息:[subscription has been cancelled.]
+```
+
+（`NoSuchBucket` 被 SDK 包装成了这句话，很容易误判成网络问题。）另外 `access_policy=1`（公开）
+并不会自动给桶打策略，桶是私有的时前端拿到 URL 会 403、图片显示不出来。
+
+一行初始化（幂等：建桶 + 设置「公开只读」策略）：
+
+```powershell
+python services/RuoYi-Cloud-Plus/script/docker/init-minio-bucket.py
+# 需要换地址/账号时：--host 127.0.0.1 --port 9000 --access-key ruoyi --secret-key ruoyi123 --bucket ruoyi
+# 只想建桶不开公开读：加 --private
+```
+
+验证：
+
+```powershell
+curl.exe -s -o NUL -w "%{http_code}\n" http://127.0.0.1:9000/minio/health/live     # 200
+# 登录系统后上传一张图片，返回的 url 直接贴到浏览器地址栏应能打开（匿名可读）
+```
+
 ## 3. 导入 Nacos 配置
 
 把 `script/config/nacos/` 下的 yml 逐个导入 Nacos（命名空间用 `dev`，组 `DEFAULT_GROUP`）：

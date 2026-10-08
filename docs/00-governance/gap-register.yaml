@@ -3374,3 +3374,42 @@ open_questions_for_user:
       提示里写明父租户内唯一与「变更需单独申请（updateSchoolCode）」。若产品后续定义生成规则，再改后端。
     resolved_at: 2026-10-08
     status: closed
+
+  - id: GAP-103
+    title: MinIO 桶未初始化，上传接口报 subscription has been cancelled（真实原因是 NoSuchBucket）
+    discovered_at: 2026-10-09
+    discovered_by: 用户上传文件报错后逐层复现（CR-110）
+    evidence: |
+      **这是什么**：调用 `/resource/oss/upload` 报
+      `OssException: 上传文件失败，请检查配置信息:[subscription has been cancelled.]`。
+      实测 MinIO 服务与凭据都正常，但 `sys_oss_config` 指向的桶 `ruoyi` 不存在：
+      `HEAD /ruoyi` → 404，`PUT /ruoyi/probe.txt` → `NoSuchBucket`。
+      原因是两边都不建桶：`docker-compose.yml` 只起服务不建桶；本仓库 `ruoyi-common-oss` 用 AWS S3 异步 SDK，
+      不像上游 MinIO SDK 那样在构造 `OssClient` 时 `createBucket`。SDK 把 `NoSuchBucket` 包装成了
+      `subscription has been cancelled.`，很容易被误判成网络或超时问题。
+      另外 `access_policy=1`（公开）只影响对象 ACL，不给桶打策略 → 桶私有时上传成功但前端取 URL 403。
+    expected: 部署完成后 MinIO 里存在 `sys_oss_config` 指定的桶；公开模式下前端能直接访问上传后的文件
+    actual: 桶缺失导致上传 500；桶私有导致文件 403
+    impact: |
+      **不选会怎样**：任何走文件上传的功能（学生照片、导入文件、校区/学校图片等）在新环境里都不可用，
+      而且报错信息指向"配置信息/超时"，排查成本高；即使上传成功，前端也会因为 403 显示不了图片。
+    options:
+      - "新增幂等初始化脚本（建桶 + 公开只读策略）并在部署手册写明步骤（推荐，已落地）"
+      - "在 SysOssConfigServiceImpl.init() 里对启用配置做自动建桶兜底：零手工，但把 5 行 OSS 配置（含占位行）拉进启动失败面"
+      - "只在文档里写「手工去 MinIO 控制台建桶」：容易漏、且公开策略仍需手工设置"
+    recommended: |
+      **推荐方案 1**：脚本幂等、可重复执行、不改变运行时行为，且把"公开读"这条容易漏的步骤一并固化。
+      影响面：新增 `script/docker/init-minio-bucket.py`、`script/docker/README-deploy.md` 增加 2.1 节。
+    blocking: false
+    blocks_stages:
+      - stage8
+    owner: 用户
+    answer: |
+      用户 2026-10-07 授权「遇到需要拍板的按推荐方案走并在 decisions.md 与 gap-register.yaml 各记一条」，
+      本批按推荐方案 1 落地（CR-110 / D-191）。
+    resolution: |
+      已在本机创建 `ruoyi` 桶并设置公开只读策略；新增 `services/RuoYi-Cloud-Plus/script/docker/init-minio-bucket.py`（幂等）；
+      `README-deploy.md` 新增「2.1 初始化 MinIO 桶（必做）」；端到端复测
+      `POST /resource/oss/upload` 返回 200 与可匿名访问的 URL。
+    resolved_at: 2026-10-09
+    status: closed

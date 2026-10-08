@@ -1358,3 +1358,12 @@
 | `apps/plus-ui/src/views/edu/school/sch_list/components/SchoolFormDialog.vue`（改） | 编码说明改 hover tooltip；租户说明保留 | `已实现` |
 | `evidence/stage6-frontend/2026-10-09_school-edit-dialog.png` | 修改后的编辑弹窗截图 | `review` |
 | `evidence/stage6-frontend/2026-10-09_school-edit-hint.log` | 门禁与实机复核记录 | `review` |
+
+## 2026-10-09 阶段 7 部署批：初始化 MinIO 桶
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-110.md` | 上传 500 的定位、处置与端到端验证 | `review` |
+| `services/RuoYi-Cloud-Plus/script/docker/init-minio-bucket.py` | MinIO 桶初始化脚本（建桶 + 公开只读策略，幂等） | `已实现` |
+| `services/RuoYi-Cloud-Plus/script/docker/README-deploy.md`（改） | 新增 2.1 节「初始化 MinIO 桶（必做）」 | `已实现` |
+| `evidence/stage7-backend/2026-10-09_minio-bucket-init.log` | 定位与验证证据 | `review` |
