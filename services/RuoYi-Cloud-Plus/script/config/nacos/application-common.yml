@@ -295,3 +295,7 @@ tenant:
     - sys_client
     - sys_oss_config
     - flow_spel
+    # 教育域平台级实体：无 tenant_id 列，必须排除，否则租户拦截器会拼出 tenant_id = ? 导致 SQL 失败
+    - edu_student
+    - edu_guardian
+    - edu_student_guardian

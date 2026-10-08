@@ -1,0 +1,41 @@
+# 阶段 7 证据：ruoyi-edu 审计与操作日志纵切（CR-092，2026-10-08）
+
+命令：mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile（工作目录 services/RuoYi-Cloud-Plus）
+
+结果：BUILD SUCCESS，exit 0。target/classes 下 451 个 class（本批 +48）。
+
+说明：按 AGENTS.md 第 9 节，编译通过不等于测试通过；本批未跑单测、未启动服务、未连数据库。
+
+--- Maven 关键输出 ---
+
+[INFO] Building ruoyi-edu 2.6.2                                         [24/24]
+[INFO]   from ruoyi-modules\ruoyi-edu\pom.xml
+[INFO] --- compiler:3.14.0:compile (default-compile) @ ruoyi-edu ---
+[INFO] ruoyi-edu .......................................... SUCCESS [ 13.016 s]
+[INFO] BUILD SUCCESS
+[INFO] Total time:  20.208 s
+
+--- 契约覆盖自检（脚本比对 openapi 路径与 controller 映射） ---
+
+ctrl paths 156 | openapi ops 181 | missing 8
+  listClassTeachingAssignment GET  /edu/class/{id}/teaching-assignment
+  uploadStudentPhoto           POST /edu/student/{id}/photo
+  getStudentPhoto              GET  /edu/student/{id}/photo
+  resetStudentPassword         POST /edu/student/{id}/reset-password
+  viewStudentPhone             GET  /edu/student/{id}/phone
+  resetTeacherPassword         POST /edu/teacher/{id}/reset-password
+  disableTeacherAccount        POST /edu/teacher/{id}/account/disable
+  enableTeacherAccount         POST /edu/teacher/{id}/account/enable
+
+本批补齐 10 个审计 operationId，剩余 8 个中 7 个受 GAP-027 / 090 / 091 约束（统一文件服务与账号远程契约），
+1 个（listClassTeachingAssignment）待 DataScopeResolver 批次一并补连接查询。
+
+--- 表覆盖自检（schema.yaml 表名 vs mapper 目录） ---
+
+tables 43 | with mapper 43 | missing []
+**schema.yaml 的 43 张表（含派生表 edu_audit_log_archive）全部有实体与 mapper。**
+
+--- 门禁 ---
+
+python tools/check_docs.py -> 通过
+python tools/check_gap_register.py -> 通过（95 条，open = 0）

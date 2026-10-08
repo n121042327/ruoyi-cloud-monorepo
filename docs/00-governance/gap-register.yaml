@@ -2969,6 +2969,51 @@ gaps:
     resolved_at: "2026-10-08"
     status: answered
 
+  - id: GAP-095
+    title: 审计视图 v_edu_audit_security_event 缺 tenant_id，不能用于租户隔离查询
+    discovered_at: 2026-10-08
+    discovered_by: 阶段 7 审计模块纵切时核对迁移脚本的视图定义（CR-092）
+    evidence: |
+      **这是什么**：`docs/40-detailed-design/migrations/V4__edu_promotion_stream_support.sql` 第 504 行定义
+      `CREATE VIEW v_edu_audit_security_event AS SELECT id, log_time, action_type, operator_id,
+      operator_role, object_id, action_result, client_ip, detail FROM edu_audit_log WHERE action_type IN (...)`——
+      **视图的列里没有 `tenant_id`**（同文件第 500 行的 `v_edu_audit_operator_access` 有 `tenant_id` 与 `school_id`）。
+      `REQ-AUD-013` / `BR-AUDIT-005` 要求运营访问与安全事件的记录归属到被访问租户，
+      PRD 5.4 的 `DS-DENY-01` 又要求「缺少租户上下文一律拒绝查询日志」。
+      直接查该视图时：若把视图加进 `tenant.excludes`，租户隔离彻底失效（返回全租户的登录事件）；
+      若不排除，租户拦截器会拼出视图里不存在的 `tenant_id` 列而报 SQL 错误。
+    expected: 登录与安全事件查询受租户隔离约束，只返回本租户记录
+    actual: 视图列不足以支撑租户隔离；本批改用基表 `edu_audit_log` 加同一组 `action_type` 等价过滤
+    impact: |
+      **不选会怎样**：安全事件页面会把**其它租户的登录失败、账号锁定、权限变更**记录暴露给当前租户，
+      这是跨租户数据泄露，比「查不到」严重得多；若为了绕开而移除租户拦截，则违反 `DS-DENY-01`。
+    options:
+      - "查询改用基表 edu_audit_log 加同组 action_type 等价过滤（租户隔离交给租户拦截器）——本批采用"
+      - "在阶段 5 产物下一版给视图补 tenant_id / school_id 列，再按视图查询（需改冻结的迁移脚本）"
+      - "保留视图查询并在应用层二次过滤租户：视图结果里没有租户信息，无从判断，方案不成立"
+    recommended: |
+      **推荐方案 1**。理由：两个视图都是阶段 5 的**冻结产物**，按 AGENTS 第 3 节「不得就地覆盖已冻结版本」，
+      本批不改迁移脚本；基表加同一组 `action_type` 与视图定义**语义完全等价**，且天然带上
+      `tenant_id` / `school_id`，租户隔离由 `PlusTenantLineHandler` 保证，不影响任何业务口径。
+      阶段 5 产物下一版修订时，建议统一给审计视图补 `tenant_id` 与 `school_id` 两列。
+    blocking: false
+    blocks_stages:
+      - stage7
+      - stage8
+    owner: 用户
+    answer: |
+      用户 2026-10-07 授权「遇到需要拍板的按推荐方案走并在 decisions.md 与 gap-register.yaml 各记一条」，
+      循环批次按推荐方案 1 落地。
+    resolution: |
+      已在 CR-092 落地：`EduAuditServiceImpl.buildSecurityWrapper(...)` 用基表 `edu_audit_log`
+      加 `action_type IN ('login','account_locked','activation_view','activation_reset',
+      'student_no_change','permission_change')` 等价过滤（动作码与视图定义一致），
+      结果由 `EduAuditSecurityEventVo` 投影；运营访问记录为保持同一套范围条件与排序，
+      同样改用基表 `operator_role = 'platform_ops'` 过滤。
+      待办：阶段 5 产物下一版给审计视图补 tenant_id / school_id。
+    resolved_at: "2026-10-08"
+    status: answered
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"

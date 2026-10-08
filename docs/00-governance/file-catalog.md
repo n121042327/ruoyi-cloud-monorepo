@@ -1147,3 +1147,24 @@
 | `.../controller/EduExportController.java` | 导出控制器（`POST /edu/export`） | `已实现` |
 | `.../controller/EduClassController.java` 等 8 个（改） | 收口 13 个模块级导入导出端点，委托同一引擎 | `已实现` |
 | `evidence/stage7-backend/2026-10-08_edu-import-export_compile.log` | 本批编译证据与契约覆盖自检（BUILD SUCCESS / 403 个 class） | `review` |
+
+## 2026-10-08 阶段 7 第十三批：审计与操作日志纵切
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-092.md` | 审计模块的交付与编译证据（含 GAP-095、配置改动说明） | `review` |
+| `.../domain/EduAuditLog.java` | 操作日志实体（只追加；记录时间列是 log_time） | `已实现` |
+| `.../domain/EduAuditChange.java` | 日志变更明细实体（只记变化字段） | `已实现` |
+| `.../domain/EduAuditLogArchive.java` | 归档日志实体（与在线表同构的派生表） | `已实现` |
+| `.../domain/EduAuditArchiveBatch.java` | 归档批次实体（scope=tenant，无 school_id） | `已实现` |
+| `.../domain/EduDataGrant.java` | 数据共享授权实体（仅教学资源；DataScopeResolver 来源表） | `已实现` |
+| `.../domain/EduDataGrantScope.java` | 授权范围明细实体（首轮仅 read / export） | `已实现` |
+| `.../domain/bo/EduAuditLogBo.java` / `EduAuditArchiveBatchBo.java` | 日志筛选 / 归档批次与归档检索入参 | `已实现` |
+| `.../domain/vo/EduAuditLogVo.java` / `EduAuditChangeVo.java` / `EduAuditArchiveBatchVo.java` | 日志（含 diff）/ 变更明细 / 归档批次视图对象 | `已实现` |
+| `.../domain/vo/EduAuditOperatorAccessVo.java` / `EduAuditSecurityEventVo.java` | 运营访问记录 / 登录与安全事件视图对象 | `已实现` |
+| `.../domain/vo/EduDataGrantVo.java` / `EduDataGrantScopeVo.java` | 授权 / 范围明细视图对象 | `已实现` |
+| `.../mapper/EduAuditLogMapper.java` 等 6 个 | 六个数据层（日志与明细不提供更新 / 删除） | `已实现` |
+| `.../service/IEduAuditService.java` + `impl/EduAuditServiceImpl.java` | 审计服务层（10 个契约方法 + 2 个内部写入方法） | `已实现` |
+| `.../controller/EduAuditController.java` | 审计控制器（10 个端点，无更新与删除入口） | `已实现` |
+| `script/config/nacos/application-common.yml`（改） | `tenant.excludes` 增加三张平台级实体表，避免租户拦截器拼出不存在的列 | `已实现` |
+| `evidence/stage7-backend/2026-10-08_edu-audit_compile.log` | 本批编译证据与契约 / 表覆盖自检（BUILD SUCCESS / 451 个 class） | `review` |
