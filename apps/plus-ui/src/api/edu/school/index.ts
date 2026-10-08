@@ -1,6 +1,6 @@
 import request from '@/utils/request';
 import { AxiosPromise } from 'axios';
-import { CampusVO, SchoolVO } from './types';
+import { CampusVO, SchoolForm, SchoolVO } from './types';
 
 /** 学校列表查询参数 */
 export interface SchoolQuery extends Partial<PageQuery> {
@@ -10,7 +10,9 @@ export interface SchoolQuery extends Partial<PageQuery> {
   schoolCode?: string;
   /** 办学类型 */
   schoolType?: string;
-  status?: string;
+  /** 状态：active 正常 / disabled 已停用（后端查询参数名为 schoolStatus） */
+  schoolStatus?: string;
+  /** 学段：原型有该筛选项，但 listSchool 的后端查询暂不支持按学段过滤（见 GAP-101），当前传参不生效 */
   stageCode?: string;
   /** 关键字：学校名称 / 学校编码 */
   keyword?: string;
@@ -26,6 +28,32 @@ export const listSchool = (query?: SchoolQuery): AxiosPromise<SchoolVO[]> => {
     url: '/edu/school/list',
     method: 'get',
     params: query
+  });
+};
+
+/**
+ * 新建学校（学校与租户一一对应，BR-ORG-002）
+ *
+ * 对应 operationId `addSchool`（POST /edu/school），需 `org.school:create`。
+ */
+export const addSchool = (data: SchoolForm): AxiosPromise<void> => {
+  return request({
+    url: '/edu/school',
+    method: 'post',
+    data
+  });
+};
+
+/**
+ * 编辑学校（学校与租户的绑定关系不可修改，REQ-SCH-022）
+ *
+ * 对应 operationId `updateSchool`（PUT /edu/school），需 `org.school:update`。
+ */
+export const updateSchool = (data: SchoolForm): AxiosPromise<void> => {
+  return request({
+    url: '/edu/school',
+    method: 'put',
+    data
   });
 };
 
@@ -109,6 +137,8 @@ export const initSchoolBaseline = (
 
 export default {
   listSchool,
+  addSchool,
+  updateSchool,
   getCurrentSchool,
   listCampus,
   disableSchool,

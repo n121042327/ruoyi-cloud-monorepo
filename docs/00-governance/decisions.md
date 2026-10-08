@@ -2480,3 +2480,27 @@ M=13（1 根 + 12 分组）、C=41、F=64；URL 拼接结果与前端 41 条 dyn
 **经验**：`school_id` 是"挂在哪所学校"的外键，学校表自己不该有；以后再遇到「表本身即范围主体」的情况，
 事实源里要把 scope 定为 `tenant` 而不是 `school`。
 证据见 `evidence/stage7-backend/2026-10-08_edu-school-create_fix.log`。
+
+## D-184 — 新建学校弹窗不写学段、所属租户只读（2026-10-08）
+
+补 `PAGE-SCH-CREATE` / `PAGE-SCH-EDIT` 时必须决定三件事：
+① 原型的新建弹窗把「开设学段」当必填项，但后端 `POST /edu/school` 不接收学段，学段的写入入口是
+`POST /edu/school/{id}/stage`（学段配置）与「开通初始化」向导（`initSchoolBaseline`）；而且建校接口返回 `R<Void>`，
+弹窗内拿不到新学校 ID，想串行写学段还得再查一次列表。
+② 原型的「所属租户」是下拉，但后端 `insertByBo` 的 `tenant_id` 取登录会话（学校与租户一一对应，BR-ORG-002），
+前端指定无效。
+③ 原型的「学校编码」写「由系统生成」，后端契约为必填。
+
+决定：**弹窗只做学校档案本身**——学校名称、学校编码、学校类型；「所属租户」以只读形式展示当前租户；
+「开设学段」不放进弹窗，统一走「学段配置 / 开通初始化」。理由：AGENTS 第 7 节「每个字段只有一个写入入口」，
+在新建弹窗里再写一次学段会造出第二套写路径；学段是后续教学结构的前置，放在开通向导里能一次校验完。
+证据见 `evidence/stage6-frontend/2026-10-08_school-form-dialog_verification.log`。
+
+## D-185 — 学校编码的落地口径：前端预填建议值，不擅自实现「系统生成」（2026-10-08）
+
+原型（v1 `school-list.html` 新建弹窗）写「学校编码由系统生成，变更需单独申请（updateSchoolCode）」，
+但后端契约是 `EduSchoolBo.schoolCode` 非空（`@NotBlank`）+ 建表脚本的 `uk_school_code (parent_tenant_id, school_code)` 唯一，
+且产品侧**没有定义编码生成规则**（前缀、长度、序号来源都没写）。
+处置：本批按推荐口径落地为「按当前登录租户预填建议值 `SCH-<租户后 6 位>`，用户可修改」，
+既不改后端契约、也不编造生成规则；若要真正的系统生成，需要产品先给出规则（已登记 GAP-102）。
+证据见 `evidence/stage6-frontend/2026-10-08_school-form-dialog_verification.log`。

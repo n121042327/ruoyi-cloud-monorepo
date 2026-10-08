@@ -1299,3 +1299,14 @@
 | `docs/40-detailed-design/migrations/V8__edu_school_drop_redundant_school_id.sql` | 去掉冗余列 school_id | `已实现` |
 | `services/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-edu/src/main/java/org/dromara/edu/datascope/EduDataPermissionHandler.java`（改） | SCHOOL_TABLES 移除 edu_school | `已实现` |
 | `evidence/stage7-backend/2026-10-08_edu-school-create_fix.log` | 建校失败与修复后的复现证据 | `review` |
+
+## 2026-10-08 阶段 6 第二十五批：学校管理页新建 / 编辑弹窗
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-105.md` | 弹窗交付范围、字段取舍与验证 | `review` |
+| `apps/plus-ui/src/views/edu/school/sch_list/components/SchoolFormDialog.vue` | 新建 / 编辑学校弹窗 | `已实现` |
+| `apps/plus-ui/src/views/edu/school/sch_list/index.vue`（改） | 新建 / 编辑入口、挂载弹窗、状态字段名对齐 | `已实现` |
+| `apps/plus-ui/src/api/edu/school/index.ts`（改） | `addSchool` / `updateSchool`；查询参数 `status` → `schoolStatus` | `已实现` |
+| `apps/plus-ui/src/api/edu/school/types.ts`（改） | `SchoolVO.schoolStatus`；新增 `SchoolForm` | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_school-form-dialog_verification.log` | 八项门禁与接口验证证据 | `review` |

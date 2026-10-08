@@ -8,6 +8,9 @@
       <template #header>
         <el-row :gutter="10">
           <el-col :span="1.5">
+            <el-button v-hasPermi="['org.school:create']" type="primary" plain icon="Plus" @click="handleAdd">新建学校</el-button>
+          </el-col>
+          <el-col :span="1.5">
             <el-button v-hasPermi="['org.school:read']" type="primary" plain icon="Refresh" @click="getList">刷新</el-button>
           </el-col>
           <el-col :span="1.5">
@@ -28,7 +31,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="状态" prop="status" data-layout-group="管理信息">
-          <el-select v-model="queryParams.status" placeholder="全部状态" clearable style="width: 130px">
+          <el-select v-model="queryParams.schoolStatus" placeholder="全部状态" clearable style="width: 130px">
             <el-option label="正常" value="enabled" />
             <el-option label="已停用" value="disabled" />
           </el-select>
@@ -50,16 +53,17 @@
         <el-table-column label="在读学生" prop="studentCount" width="100" align="center" data-layout-group="管理信息" />
         <el-table-column label="状态" prop="status" width="100" align="center" data-layout-group="管理信息">
           <template #default="scope">
-            <el-tag :type="scope.row.status === 'disabled' ? 'info' : 'success'" size="small">
-              {{ scope.row.status === 'disabled' ? '已停用' : '正常' }}
+            <el-tag :type="scope.row.schoolStatus === 'disabled' ? 'info' : 'success'" size="small">
+              {{ scope.row.schoolStatus === 'disabled' ? '已停用' : '正常' }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="所属租户" prop="tenantId" width="140" data-layout-group="管理信息" />
         <el-table-column fixed="right" label="操作" width="220" data-layout-group="操作">
           <template #default="scope">
+            <el-button v-hasPermi="['org.school:update']" link type="primary" @click="handleUpdate(scope.row)">编辑</el-button>
             <el-button
-              v-if="scope.row.status !== 'disabled'"
+              v-if="scope.row.schoolStatus !== 'disabled'"
               v-hasPermi="['org.school:update']"
               link
               type="primary"
@@ -86,12 +90,15 @@
         @pagination="getList"
       />
     </el-card>
+
+    <school-form-dialog ref="formDialogRef" @success="getList" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, getCurrentInstance, onMounted, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import SchoolFormDialog from './components/SchoolFormDialog.vue';
 import { disableSchool, enableSchool, listSchool } from '@/api/edu/school';
 import type { SchoolQuery } from '@/api/edu/school';
 import type { SchoolVO } from '@/api/edu/school/types';
@@ -107,7 +114,7 @@ const showSearch = ref(true);
 const total = ref(0);
 const schoolList = ref<SchoolVO[]>([]);
 
-const queryParams = reactive<SchoolQuery>({ pageNum: 1, pageSize: 20, keyword: '', status: '' });
+const queryParams = reactive<SchoolQuery>({ pageNum: 1, pageSize: 20, keyword: '', stageCode: '', schoolStatus: '' });
 
 const columns = ref([
   { key: 0, label: '学校名称', visible: true },
@@ -120,6 +127,8 @@ const columns = ref([
   { key: 7, label: '所属租户', visible: true }
 ]);
 
+const formDialogRef = ref<InstanceType<typeof SchoolFormDialog>>();
+
 const canRead = computed(() => checkPermi(['org.school:read']));
 const STAGE_OPTIONS = STAGE_CODE_OPTIONS;
 const queryFormRef = ref();
@@ -127,7 +136,7 @@ const queryFormRef = ref();
 const handleReset = () => {
   queryParams.keyword = '';
   queryParams.stageCode = '';
-  queryParams.status = '';
+  queryParams.schoolStatus = '';
   queryParams.pageNum = 1;
   getList();
 };
@@ -177,6 +186,15 @@ const handleEnable = async (row: SchoolVO) => {
   await enableSchool(row.schoolId);
   ElMessage.success('已启用学校');
   await getList();
+};
+
+/** 新建 / 编辑学校（弹窗内自行做必填校验） */
+const handleAdd = () => {
+  formDialogRef.value?.open();
+};
+
+const handleUpdate = (row: SchoolVO) => {
+  formDialogRef.value?.open(row);
 };
 
 const handleCampus = () => {

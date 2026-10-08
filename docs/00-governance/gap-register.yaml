@@ -3294,3 +3294,79 @@ open_questions_for_user:
       遗留（阶段 6 已登记的下一批，非本缺项）：学校管理页还没有「新建学校 / 编辑」入口。
     resolved_at: 2026-10-08
     status: closed
+
+  - id: GAP-101
+    title: 学校列表缺少「按学段筛选」与「开设学段 / 校区数 / 班级数 / 在读学生」的取数口径
+    discovered_at: 2026-10-08
+    discovered_by: 阶段 6 补学校管理页新建 / 编辑弹窗时逐字段核对原型与接口（CR-105）
+    evidence: |
+      **这是什么**：v1 原型 `prototypes/functional/v1/pages/school-list.html` 的查询区有「学段」筛选项、
+      表格有「开设学段 / 校区数 / 班级数 / 在读学生」四列；但后端 `listSchool`
+      （`services/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-edu/src/main/java/org/dromara/edu/service/impl/EduSchoolServiceImpl.java`
+      的 `queryPageList`）只支持 `schoolStatus` / `schoolCode` / `keyword` 三个条件，
+      `EduSchoolVo` 的 `stageCodes` / `campusCount` / `classCount` / `studentCount` 也没有取数 SQL
+      （`EduSchoolMapper.selectPageSchoolList` 直接走 `selectVoPage`），所以这四列当前恒为空、学段筛选点了没反应。
+      口径来源本身也不完整：`docs/10-prd/modules/school/PRD.md` 的 `REQ-SCH-010` 只定义了**详情页**的统计摘要
+      （年级数 / 班级数 / 在读学生数 / 在职教师数，走 `GET /edu/school/{id}/summary`），
+      没有规定列表行的聚合口径（在读学生按哪个学籍状态算、校区数是否排除停用校区等）。
+    expected: 列表的学段筛选能生效；四列有明确口径的聚合值
+    actual: 学段筛选传参被忽略；四列恒为空（页面显示「—」）
+    impact: |
+      **不选会怎样**：`listSchool` 若一直缺这些列，学校台账页只能看到名称/编码/状态；
+      而靠实现者自由发挥写聚合 SQL，则会与详情页的统计摘要出现两套口径（同一指标两个数字），
+      后续对不上账时无法判断哪个对。
+    options:
+      - "先补 PRD：在 REQ-SCH-004 附近写明列表四列的取数口径（含在读学生的学籍状态集合、校区是否排除停用），再由后端在 selectPageSchoolList 里实现聚合与学段筛选（推荐）"
+      - "只做学段筛选（用 edu_school_stage 反向过滤），四列继续留空：能让筛选可用，但空列仍在"
+      - "前端照抄详情页 getSchoolSummary 的值填列表：需要逐行调用详情接口，N+1 且两页口径仍可能不一致"
+    recommended: |
+      **推荐方案 1**。理由：统计口径属于产品决策（在读的定义直接决定数字），必须先写进 PRD 再实现；
+      学段筛选与四列聚合共用同一份 join / 子查询，一次做完比拆两次省事，也能与详情页共用同一口径。
+      影响面：`docs/10-prd/modules/school/PRD.md`（补口径）、`EduSchoolServiceImpl.queryPageList`、
+      `EduSchoolMapper.selectPageSchoolList`（改成自定义 SQL）、前端查询参数与列取值。
+    blocking: false
+    blocks_stages:
+      - stage6
+      - stage8
+    owner: 用户
+    answer: |
+      待用户确认列表聚合口径；确认前不实现，避免与 `getSchoolSummary` 出现第二套口径。
+    resolution: ""
+    resolved_at: ""
+    status: open
+
+  - id: GAP-102
+    title: 原型称「学校编码由系统生成」，但后端契约要求显式传入且编码规则未定义
+    discovered_at: 2026-10-08
+    discovered_by: 阶段 6 补学校新建弹窗时对照原型与 EduSchoolBo（CR-105）
+    evidence: |
+      **这是什么**：`prototypes/functional/v1/pages/school-list.html` 的新建弹窗没有「学校编码」输入框，
+      提示文案写「学校编码由系统生成，变更需单独申请（`updateSchoolCode`）」；
+      但后端 `EduSchoolBo.schoolCode` 是 `@NotBlank`（`docs/40-detailed-design/migrations/V2__edu_org_config.sql`
+      的 `edu_school.school_code` 也是 NOT NULL，并带唯一键 `uk_school_code (parent_tenant_id, school_code)`），
+      而 PRD 与字段字典都没有定义编码的生成规则（前缀、长度、序号来源）。
+    expected: 学校编码要么由后端按明确规则生成，要么由用户在新建弹窗里填写并保证唯一
+    actual: 后端要求显式传入但没给生成规则；原型假设系统生成；两者对不上
+    impact: |
+      **不选会怎样**：若前端不留编码输入，建校请求会因为 `schoolCode` 为空被后端 400 拒绝（接口不可用）；
+      若后端自行编造一个编码格式，则会与导入 / 导出对照表、`updateSchoolCode` 的审计要求产生长期耦合，
+      后续想改格式就要动历史数据。
+    options:
+      - "前端预填建议值 `SCH-<租户后 6 位>` 并允许用户修改；后端保持必填（推荐，本批已按此落地）"
+      - "定义后端生成规则（如 `SCH` + 租户号 + 4 位序号）：需要产品先定规则，且要处理并发唯一性"
+      - "保留现状（必填 + 无默认值）：新建弹窗必须让用户自己编编码，容易出现重码或随手编码"
+    recommended: |
+      **推荐方案 1**。理由：不改后端契约、不编造业务规则，用户仍能看到并修改最终编码；
+      真要做系统生成，把规则写进 PRD / 字段字典后再改后端，属于一次独立变更。
+    blocking: false
+    blocks_stages:
+      - stage6
+    owner: 用户
+    answer: |
+      用户 2026-10-07 授权「遇到需要拍板的按推荐方案走并在 decisions.md 与 gap-register.yaml 各记一条」，
+      本批按推荐方案 1 落地（CR-105 / D-185）。
+    resolution: |
+      `SchoolFormDialog.vue` 在新建态按当前登录租户预填 `SCH-<租户后 6 位>`，用户可修改；
+      提示里写明父租户内唯一与「变更需单独申请（updateSchoolCode）」。若产品后续定义生成规则，再改后端。
+    resolved_at: 2026-10-08
+    status: closed

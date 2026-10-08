@@ -1,0 +1,73 @@
+# 阶段 6 证据：学校管理页「新建学校 / 编辑学校」弹窗（CR-105）
+
+- 时间：2026-10-08
+- 分支：codex/stage7-backend（阶段 6 的学校页浮层补批，随当前工作分支提交）
+- 环境：本机 Docker（MySQL 8 / Redis）+ Windows 上 IDEA 启动的 ruoyi-gateway(8080) / ruoyi-edu(9211)；
+  前端为 vite dev server（端口 80，`vite serve --mode development`）
+- 口径：只声明「编译通过 / 构建成功」，不写「测试通过」
+
+## 1. 本批交付
+
+| 文件 | 说明 |
+|---|---|
+| `apps/plus-ui/src/views/edu/school/sch_list/components/SchoolFormDialog.vue`（新增） | 新建 / 编辑学校弹窗：基本必填（学校名称\* / 学校编码\*）+ 学校类型 + 所属租户只读 |
+| `apps/plus-ui/src/views/edu/school/sch_list/index.vue` | 工具栏「新建学校」（org.school:create）、行内「编辑」（org.school:update）、挂载弹窗；状态字段改为 `schoolStatus` |
+| `apps/plus-ui/src/api/edu/school/index.ts` | 新增 `addSchool`（POST /edu/school）/ `updateSchool`（PUT /edu/school）；`SchoolQuery.status` → `schoolStatus` |
+| `apps/plus-ui/src/api/edu/school/types.ts` | `SchoolVO` 补 `schoolType`、`status` → `schoolStatus`；新增 `SchoolForm` |
+
+## 2. 八项门禁
+
+```
+python tools/check_fe_page_structure.py
+  -> 通过：查询区字段顺序与语义分组、表格列序 / 列名 / 分组与原型一致
+
+python tools/check_api_contract.py
+  -> 通过：OpenAPI operationId 181 条；原型 data-api 引用 112 条
+
+python tools/check_docs.py
+  -> 通过；未发现问题
+
+python tools/check_gap_register.py
+  -> 通过（101 条，无重复项）
+
+python tools/check_mermaid.py
+  -> 通过（103 张图）
+
+pnpm --filter @edu/plus-ui typecheck
+  -> error TS 51 条（= 基线 51，本批新增 0；edu/school 相关 0 条）
+
+pnpm --filter @edu/plus-ui lint:eslint
+  -> 124 problems（= 基线 124，本批新增 0；edu/school 相关 0 条）
+     （中间过程曾出现 125 条 —— 新组件里 prettier 要求把一行 hint 合并；已用 pnpm exec prettier --write 修掉）
+
+pnpm --filter @edu/plus-ui run build:prod
+  -> 成功（exit 0，卡包产物已刷新）
+```
+
+## 3. 接口验证（真实调用，用当前登录租户的 token）
+
+```
+# 建校（CR-104 修复后）
+POST /edu/school  {"schoolCode":"SCH546223","schoolName":"蜀国学校",...}
+  -> {"code":200,"msg":"操作成功","data":null}
+
+# 编辑（本批新增 updateSchool 走的接口）
+PUT  /edu/school  {"schoolId":"2108208954835251201","schoolCode":"SCH546223","schoolName":"蜀国学校","schoolType":"private"}
+  -> {"code":200,"msg":"操作成功","data":null}
+
+GET  /edu/school/list?pageNum=1&pageSize=20
+  -> {"total":1,"rows":[{schoolId:"2108208954835251201",tenantId:"546223",schoolCode:"SCH546223",schoolName:"蜀国学校",schoolType:"private",schoolStatus:"active",...}]}
+```
+
+vite dev server 编译新组件：`GET http://127.0.0.1/src/views/edu/school/sch_list/components/SchoolFormDialog.vue` → HTTP 200。
+
+## 4. 本批按模块边界做的取舍（详见 CR-105 / D-184 / D-185）
+
+1. 新建弹窗不写「开设学段」：学段的唯一写入入口是「学段配置 / 开通初始化」，且建校接口返回 `R<Void>` 不带 schoolId。
+2. 「所属租户」只读：后端 `insertByBo` 的 tenant_id 取登录会话，学校与租户一一对应（BR-ORG-002）。
+3. 「学校编码」按当前租户预填建议值 `SCH-<租户后 6 位>`，用户可改（后端契约必填，生成规则未定义 → GAP-102，已关闭）。
+
+## 5. 已知缺口（未在本批实现）
+
+- `GAP-101`（**open**）：`listSchool` 不支持按学段筛选；列表的「开设学段 / 校区数 / 班级数 / 在读学生」四列没有取数口径
+  （PRD 只定义了详情页 `getSchoolSummary`）。为避免编造聚合规则与详情页出现两套口径，本批不实现，等口径确认。
