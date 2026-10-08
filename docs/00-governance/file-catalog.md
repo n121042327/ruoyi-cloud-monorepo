@@ -1262,3 +1262,11 @@
 |---|---|---|
 
 | tools/check_stale_classes.py | 诊断脚本：找出 target/classes 里没有源码对应的「幽灵 class」 | 已实现 |
+
+## 2026-10-08 阶段 7 第二十一批：补 ruoyi-edu 的 logback-plus.xml
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-100.md` | 启动失败定位、修复与验证 | `review` |
+| `services/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-edu/src/main/resources/logback-plus.xml` | 教育域日志配置（补齐缺失资源） | `已实现` |
+| `evidence/stage7-backend/2026-10-08_edu-logback-config_fix.log` | 定位过程与产物验证证据 | `review` |

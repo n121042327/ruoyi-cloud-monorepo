@@ -2401,3 +2401,18 @@ BUILD SUCCESS，重打包后 target/classes/org/dromara/gateway/filter/ 只剩�
 **经验**：删过类 / 改过包结构后必须 mvn clean；IDE 与 Maven 共用 target/classes 时最容易出现
 「源码没了、class 还在」并被 Spring 扫到，症状常伪装成「某个类找不到」或「I/O failure while processing
 configuration class」。排查与修复步骤已补进 script/docker/README-deploy.md 的「常见启动问题」一节。
+
+## D-179 — ruoyi-edu 缺 logback-plus.xml 导致启动退出，补资源并重建（2026-10-08）
+
+用户启动 ruoyi-edu 报 Logging system failed to initialize using configuration from 'classpath:logback-plus.xml' 与
+FileNotFoundException: class path resource [logback-plus.xml] cannot be resolved to URL，进程退出码 1。
+根因：logback-plus.xml 不是公共模块资源，而是每个应用模块各自在 src/main/resources 放一份
+（auth/gateway/gen/job/resource/system/workflow/monitor/snailjob/demo/test-mq 均有），而 ruoyi-edu 的 resources 下
+只有 application.yml —— CR-054 建骨架时漏了；Nacos 的 application-common.yml 里 logging.config 写死了该路径，
+文件缺失就直接死在日志初始化阶段（日志里 No appenders present in context [default] 即退化成默认配置的表现）。
+处置：把 ruoyi-modules/ruoyi-system/src/main/resources/logback-plus.xml 复制到 edu 的 resources（各模块该文件仅
+空白与格式差异），再 mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am clean package；验证 BUILD SUCCESS、
+jar 内 BOOT-INF/classes/logback-plus.xml 存在且 log.path=logs/ruoyi-edu（Maven 资源过滤生效）、
+tools/check_stale_classes.py 无幽灵 class。**经验**：新增应用模块时必须从兄弟模块拷一份 logback-plus.xml，
+否则启动会死在日志初始化，报错位置与真实原因看起来毫不相关。
+证据见 evidence/stage7-backend/2026-10-08_edu-logback-config_fix.log。

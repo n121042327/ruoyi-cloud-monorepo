@@ -1,0 +1,24 @@
+# 阶段 7 证据：ruoyi-edu 缺失 logback-plus.xml 导致启动失败（CR-100，2026-10-08）
+
+现象：ruoyi-edu 启动即退出（exit 1）：
+  Logging system failed to initialize using configuration from 'classpath:logback-plus.xml'
+  java.io.FileNotFoundException: class path resource [logback-plus.xml] cannot be resolved to URL because it does not exist
+  |-WARN in Logger[com.alibaba.cloud.nacos.configdata.NacosConfigDataLoader] - No appenders present in context [default] ...
+
+定位：
+  1. logback-plus.xml 不在任何 ruoyi-common-* 模块里，而是每个应用模块各自在 src/main/resources 下放一份：
+     auth / demo / test-mq / gateway / gateway-mvc / gen / job / resource / system / workflow / monitor / snailjob 都有；
+     ruoyi-edu 的 src/main/resources 下只有 application.yml —— CR-054 建骨架时漏了这一份。
+  2. Nacos 的 application-common.yml 里写死了 logging.config: classpath:logback-plus.xml，
+     文件缺失时日志系统初始化直接失败、进程退出。
+  3. 该文件里的 log.path 使用 Maven 的 project.artifactId 占位，打包时由资源过滤替换成模块名
+     （验证：ruoyi-system.jar 内为 logs/ruoyi-system）。
+
+处置：把 ruoyi-modules/ruoyi-system/src/main/resources/logback-plus.xml 复制到
+  ruoyi-modules/ruoyi-edu/src/main/resources/logback-plus.xml，再
+  mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am clean package。
+
+验证：
+  BUILD SUCCESS
+  ruoyi-edu.jar 内存在 BOOT-INF/classes/logback-plus.xml，log.path = logs/ruoyi-edu（过滤生效）
+  python tools/check_stale_classes.py -> 未发现幽灵 class（通过）
