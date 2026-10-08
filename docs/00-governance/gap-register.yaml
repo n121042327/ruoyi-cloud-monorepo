@@ -3296,7 +3296,7 @@ open_questions_for_user:
     status: closed
 
   - id: GAP-101
-    title: 学校列表缺少「按学段筛选」与「开设学段 / 校区数 / 班级数 / 在读学生」的取数口径
+    title: 学校列表「在读学生数」缺少取数口径（学段筛选与其余三列已在 CR-107 落地）
     discovered_at: 2026-10-08
     discovered_by: 阶段 6 补学校管理页新建 / 编辑弹窗时逐字段核对原型与接口（CR-105）
     evidence: |
@@ -3331,7 +3331,11 @@ open_questions_for_user:
     owner: 用户
     answer: |
       待用户确认列表聚合口径；确认前不实现，避免与 `getSchoolSummary` 出现第二套口径。
-    resolution: ""
+    resolution: |
+      2026-10-08 范围收窄（CR-107）：① 「开设学段 / 校区数 / 班级数」三列已按既有 `getSchoolSummary` 的口径在
+      `EduSchoolServiceImpl.queryPageList` 里批量补齐（学段取 status=1；校区、班级按 school_id 计数）；
+      ② 「按学段筛选」仍未实现（后端 listSchool 的查询条件只有 schoolStatus / schoolCode / keyword），
+      与「在读学生数」一起等口径确认后在同一批实现。
     resolved_at: ""
     status: open
 

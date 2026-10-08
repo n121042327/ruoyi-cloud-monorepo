@@ -47,6 +47,8 @@ export interface SchoolForm {
   schoolName: string;
   /** 学校类型：public 公办 / private 民办 / other 其他 */
   schoolType?: string;
+  /** 开设学段（新建必填；建校时一并落 edu_school_stage，CR-107） */
+  stageCodes?: string[];
   /** 所属租户：只用于编辑态展示（学校与租户一一对应，绑定关系不可修改，REQ-SCH-022） */
   tenantId?: string;
 }

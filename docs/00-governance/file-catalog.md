@@ -1320,3 +1320,18 @@
 | `apps/plus-ui/src/views/edu/school/sch_list/components/SchoolFormDialog.vue`（改） | 720px + 2×2 栅格 + 底部单行说明 | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_school-dialog-layout.png` | 修复后的弹窗实机截图 | `review` |
 | `evidence/stage6-frontend/2026-10-08_school-form-dialog-layout.log` | 八项门禁与实机验证记录 | `review` |
+
+## 2026-10-08 阶段 6 第二十七批：学校管理页与高保真对齐
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-107.md` | 对齐清单、口径变更与验证 | `review` |
+| `apps/plus-ui/src/assets/styles/index.scss`（改） | 新增 `.page-head` / `.scope-hint` 全局样式 | `已实现` |
+| `apps/plus-ui/src/views/edu/school/sch_list/index.vue`（改） | 页面标题区 + 两张卡 + 开通初始化 + 状态文案 + 列显隐绑定 | `已实现` |
+| `apps/plus-ui/src/views/edu/school/sch_list/components/SchoolFormDialog.vue`（改） | 按高保真重排字段（含开设学段、编码系统生成） | `已实现` |
+| `apps/plus-ui/src/api/edu/school/types.ts`（改） | `SchoolForm.stageCodes` | `已实现` |
+| `.../edu/domain/vo/EduSchoolVo.java`（改） | 补 `stageCodes` 派生列 | `已实现` |
+| `.../edu/service/impl/EduSchoolServiceImpl.java`（改） | 建校写学段；列表补齐学段 / 校区数 / 班级数 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_school-list-page.png` | 对齐后的列表页截图 | `review` |
+| `evidence/stage6-frontend/2026-10-08_school-create-dialog.png` | 对齐后的新建弹窗截图 | `review` |
+| `evidence/stage6-frontend/2026-10-08_school-hifi-align.log` | 八项门禁 + 编译 + 实机复核 | `review` |

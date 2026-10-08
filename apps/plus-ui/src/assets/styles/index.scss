@@ -249,3 +249,25 @@ aside {
   line-height: 1.5;
   color: var(--el-text-color-secondary);
 }
+/* ---- 页面标题区（page-head / scope-hint） ----
+   对齐高保真原型 prototypes/high-fidelity/v1/pages/*.html 的 .page-head：
+   标题 + 数据范围提示 + 状态标签，生产页此前从未实现这一块（CR-107）。 */
+.page-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.page-head h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.scope-hint {
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+}

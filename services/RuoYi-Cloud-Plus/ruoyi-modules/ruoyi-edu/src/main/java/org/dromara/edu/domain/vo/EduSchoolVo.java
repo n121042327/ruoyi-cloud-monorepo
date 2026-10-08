@@ -47,6 +47,9 @@ public class EduSchoolVo implements Serializable {
     private String schoolStatus;
 
     /** 校区数 */
+    /** 开设学段（多个以逗号分隔，取自 edu_school_stage 的启用记录；列表派生列，CR-107） */
+    private String stageCodes;
+
     private Integer campusCount;
 
     /** 班级数 */

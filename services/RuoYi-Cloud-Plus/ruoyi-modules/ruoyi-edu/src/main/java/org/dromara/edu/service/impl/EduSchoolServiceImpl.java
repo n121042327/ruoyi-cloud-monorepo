@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -94,7 +95,43 @@ public class EduSchoolServiceImpl implements IEduSchoolService {
         }
         wrapper.orderByAsc(EduSchool::getSchoolCode);
         Page<EduSchoolVo> result = baseMapper.selectPageSchoolList(pageQuery.build(), wrapper);
+        fillListAggregates(result.getRecords());
         return TableDataInfo.build(result);
+    }
+
+    /**
+     * 补齐列表的派生列：开设学段 / 校区数 / 班级数
+     * <p>
+     * 口径与 {@link #getSchoolSummary(Long)} 保持一致（学段取 status=1 的记录；校区、班级按 school_id 计数，
+     * 逻辑删除由 MyBatis-Plus 自动过滤），不另立第二套口径（CR-107）。
+     * 「在读学生数」在详情统计摘要里也没有定义，仍留在 GAP-101 里等口径确认。
+     */
+    private void fillListAggregates(List<EduSchoolVo> records) {
+        if (records == null || records.isEmpty()) {
+            return;
+        }
+        List<Long> schoolIds = records.stream().map(EduSchoolVo::getSchoolId).collect(Collectors.toList());
+        Map<Long, String> stageMap = schoolStageMapper.selectList(new LambdaQueryWrapper<EduSchoolStage>()
+                .in(EduSchoolStage::getSchoolId, schoolIds)
+                .eq(EduSchoolStage::getStatus, STAGE_ON))
+            .stream()
+            .collect(Collectors.groupingBy(EduSchoolStage::getSchoolId,
+                Collectors.mapping(EduSchoolStage::getStageCode, Collectors.joining(","))));
+        Map<Long, Long> campusMap = campusMapper.selectList(new LambdaQueryWrapper<EduCampus>()
+                .select(EduCampus::getSchoolId)
+                .in(EduCampus::getSchoolId, schoolIds))
+            .stream()
+            .collect(Collectors.groupingBy(EduCampus::getSchoolId, Collectors.counting()));
+        Map<Long, Long> classMap = classMapper.selectList(new LambdaQueryWrapper<EduClass>()
+                .select(EduClass::getSchoolId)
+                .in(EduClass::getSchoolId, schoolIds))
+            .stream()
+            .collect(Collectors.groupingBy(EduClass::getSchoolId, Collectors.counting()));
+        for (EduSchoolVo vo : records) {
+            vo.setStageCodes(stageMap.get(vo.getSchoolId()));
+            vo.setCampusCount(campusMap.getOrDefault(vo.getSchoolId(), 0L).intValue());
+            vo.setClassCount(classMap.getOrDefault(vo.getSchoolId(), 0L).intValue());
+        }
     }
 
     @Override
@@ -126,12 +163,21 @@ public class EduSchoolServiceImpl implements IEduSchoolService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Boolean insertByBo(EduSchoolBo school) {
         validateSchoolCodeUnique(school.getParentTenantId(), school.getSchoolCode(), null);
         EduSchool add = new EduSchool();
         copyWritableFields(school, add);
         add.setSchoolStatus(StringUtils.isBlank(school.getSchoolStatus()) ? STATUS_ACTIVE : school.getSchoolStatus());
-        return baseMapper.insert(add) > 0;
+        boolean ok = baseMapper.insert(add) > 0;
+        // 建校时一并落「开设学段」（PAGE-SCH-CREATE 的必填项，CR-107）：与 saveSchoolStage 共用同一套 upsert，
+        // 避免前端建校后再发一次请求、也避免出现第二套学段写入逻辑（BR-GRADE-006 的学段决定可建年级与升学路径）
+        if (ok && school.getStageCodes() != null && !school.getStageCodes().isEmpty()) {
+            EduSchoolStageBo stage = new EduSchoolStageBo();
+            stage.setStageCodes(school.getStageCodes());
+            saveSchoolStage(add.getSchoolId(), stage);
+        }
+        return ok;
     }
 
     @Override

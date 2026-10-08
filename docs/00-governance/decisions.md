@@ -2516,3 +2516,23 @@ M=13（1 根 + 12 分组）、C=41、F=64；URL 拼接结果与前端 41 条 dyn
 同时把学校弹窗定为「720px + 2×2 栅格 + 说明收敛到表单底部一行 `.hint`」的样板：
 窄弹窗里不放长文本，长说明要么进 tooltip、要么收到表单底部，避免再次出现「提示占半屏」。
 证据见 `evidence/stage6-frontend/2026-10-08_school-form-dialog-layout.log`。
+
+## D-187 — 补齐生产页的「页面标题区」，先在学校管理页落地（2026-10-08）
+
+用户指出「和高保真页面都不一致」。核查：高保真 45 个页面都有 `.page-head`（`h1` + 数据范围提示 + 状态标签），
+而生产页**一个都没有实现过**（grep `page-head` / `scope-hint` 在 `src/views/edu` 下 0 命中）；
+另外高保真的「查询区」与「工具栏 + 表格」是两张卡，学校页把查询区塞进了工具栏那张卡。
+处置：把 `.page-head` / `.scope-hint` 的样式写进 `src/assets/styles/index.scss`（与 CR-106 的
+`.form-section-title` / `.hint` 同一处），学校管理页先落地：标题区 + 两张卡 + 工具栏补「开通初始化」+ 状态文案改「启用中」。
+其余 44 个页面按同一模板逐批对齐（记在本文，不一次性改完，避免无法逐批验收）。
+证据见 `evidence/stage6-frontend/2026-10-08_school-hifi-align.log`。
+
+## D-188 — 「开设学段」进新建学校弹窗，建校同事务写 edu_school_stage（2026-10-08）
+
+高保真与业务原型都把「开设学段」作为新建学校弹窗的必填项，而 D-184 当时把它排除在外（理由：学段的唯一写入入口
+应是学段配置 / 开通初始化）。按事实源优先，本批改为：`EduSchoolBo.stageCodes` 由弹窗提交，
+`EduSchoolServiceImpl.insertByBo` 在同一事务里调用既有的 `saveSchoolStage`（幂等 upsert）落 `edu_school_stage`，
+不再需要建校后再发一次请求；`POST /edu/school/{id}/stage`（学段配置）仍保留为后续调整入口，两者共用同一段 upsert 逻辑，
+不存在两套写法。同时对齐高保真的编码口径：学校编码不再让用户填，前端按租户生成 `SCH-<租户后 6 位>` 提交
+（后端契约仍要求非空；生成规则待产品定义，见 GAP-102）。
+证据见 `evidence/stage6-frontend/2026-10-08_school-hifi-align.log`。

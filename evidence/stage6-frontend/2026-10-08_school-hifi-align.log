@@ -1,0 +1,45 @@
+# 阶段 6 证据：学校管理页与高保真原型对齐（CR-107）
+
+- 时间：2026-10-08
+- 分支：codex/stage7-backend（随当前工作分支提交）
+- 环境：vite dev server（localhost:80）+ Chrome（浏览器自动化实机复核）+ 本机 docker 的 ry-cloud 库
+- 口径：只声明「编译通过 / 构建成功」，不写「测试通过」
+
+## 1. 对齐依据
+
+高保真基准：`prototypes/high-fidelity/v1/pages/school-list.html`（阶段 3 冻结）。
+本批前生产页缺失项：page-head（0/45 页有）、查询区与工具栏分卡、工具栏「开通初始化」、状态文案「启用中」、
+弹窗字段（开设学段 / 所属租户 / 编码口径）、列表派生列取数。
+
+## 2. 改动
+
+前端：`sch_list/index.vue`（页面外壳 + 两张卡 + 工具栏 + 状态文案 + 列显隐）、
+`SchoolFormDialog.vue`（按高保真重排：学校名称\* | 所属租户 / 开设学段\* 整行 / 学校类型；编码系统生成）、
+`api/edu/school/types.ts`（SchoolForm.stageCodes）、`assets/styles/index.scss`（.page-head / .scope-hint）。
+
+后端：`EduSchoolVo` 补 `stageCodes`；`EduSchoolServiceImpl.insertByBo` 建校时同事务写 `edu_school_stage`（复用 saveSchoolStage）；
+`queryPageList` 批量补齐 开设学段 / 校区数 / 班级数（口径与 `getSchoolSummary` 一致）。
+
+## 3. 门禁
+
+```
+check_fe_page_structure.py  -> 通过
+check_api_contract.py       -> 通过（OpenAPI operationId 181 条）
+check_docs.py               -> 通过
+check_gap_register.py       -> 通过（101 条，无重复）
+check_mermaid.py            -> 通过（103 张图）
+typecheck                   -> error TS 51 条（= 基线 51，本批新增 0）
+lint:eslint                 -> 124 problems（= 基线 124，本批新增 0）
+build:prod                  -> 成功（exit 0）
+mvn ruoyi-edu compile       -> BUILD SUCCESS
+```
+
+## 4. 实机复核
+
+Chrome 打开 `/edu/school/list`：页面标题区（学校管理 / 数据范围 / 共 1 所学校 / BR-ORG-001 标签）、
+查询区独立卡、工具栏（新建学校 / 开通初始化 / 刷新 / 导出）、表格状态「启用中」均在，
+截图 `2026-10-08_school-list-page.png`；点「新建学校」后弹窗字段与高保真一致，
+截图 `2026-10-08_school-create-dialog.png`。
+
+> 列表「开设学段 / 校区数 / 班级数」三列的新取数在 ruoyi-edu 后端，需重启 ruoyi-edu 生效。
+> 行内动作（编辑 / 停用 / 校区管理 / 学段配置）与高保真（动作在详情抽屉）仍不一致，等 PAGE-SCH-DETAIL 交付时收口。
