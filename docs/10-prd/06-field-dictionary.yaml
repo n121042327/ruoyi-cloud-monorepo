@@ -329,7 +329,7 @@ fields:
   - { name: guardian_name, cn: 监护人姓名, type: varchar(50), required: true }
   - { name: relation, cn: 与监护人关系, type: varchar(20), required: true }
   - { name: guardian_phone, cn: 监护人电话, type: varchar(20), required: false, sensitive: true }
-  - { name: student_phone, cn: 学生电话, type: varchar(20), required: false, sensitive: true }
+  - { name: student_phone, cn: 学生电话, type: varchar(20), required: false, sensitive: true, note: "落点是学校侧的在读记录 edu_student_enrollment.student_phone（GAP-090 裁决 + CR-095 出阶段 5 新版本 V6__edu_student_contact.sql）；默认掩码展示，查看全量需 person.student_contact 的 read_contact 并写敏感数据访问日志" }
   - { name: photo_file_id, cn: 学生照片, type: bigint, required: false, sensitive: true, note: 只存文件服务引用；列表与详情默认展示缩略图，查看原图需 read_sensitive 并写访问日志；单张，支持上传与导入（CR-003 / GAP-027） }
   - { name: is_primary, cn: 是否主要联系人, type: tinyint, required: true, default: "0", note: 同一学生最多一条为 1；与 relation 同在 edu_guardian_student（CR-003 / GAP-029） }
   - { name: bind_status, cn: 监护人绑定状态, type: varchar(20), required: true, note: 待审核 / 已通过 / 已驳回 / 已解绑（CR-003 / GAP-029） }

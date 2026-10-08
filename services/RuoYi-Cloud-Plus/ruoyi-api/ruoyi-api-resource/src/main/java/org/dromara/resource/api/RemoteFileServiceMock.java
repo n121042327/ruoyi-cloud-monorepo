@@ -50,4 +50,16 @@ public class RemoteFileServiceMock implements RemoteFileService {
         return List.of();
     }
 
+    /**
+     * 按文件地址读取文件字节（降级）
+     *
+     * @param url 文件地址
+     * @return 空数组
+     */
+    @Override
+    public byte[] downloadByUrl(String url) {
+        log.warn("服务调用异常 -> 降级处理");
+        return new byte[0];
+    }
+
 }

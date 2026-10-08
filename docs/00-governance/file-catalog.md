@@ -1198,3 +1198,21 @@
 | `.../controller/EduStudentProfileController.java`（改） | 学生账号重置密码端点 | `已实现` |
 | `.../domain/bo/EduStudentBo.java`（改） | 新增 password / reason 入参字段 | `已实现` |
 | `evidence/stage7-backend/2026-10-08_edu-account-contract_compile.log` | 本批编译证据与契约覆盖自检（BUILD SUCCESS / 178 of 181） | `review` |
+
+## 2026-10-08 阶段 7 第十六批（收官）：学生联系电话与学生照片
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-095.md` | A1 + B1 的交付与编译证据（含 181/181 覆盖自检） | `review` |
+| `docs/40-detailed-design/migrations/V6__edu_student_contact.sql` | 阶段 5 新版本：学生联系电话列（追加式增量） | `已实现` |
+| `docs/40-detailed-design/database/schema.yaml`（改） | 事实源 edu_student_enrollment 增加 student_phone 列 | `已实现` |
+| `docs/10-prd/06-field-dictionary.yaml`（改） | student_phone 补落点与权限口径说明 | `已实现` |
+| `.../domain/EduStudentEnrollment.java`（改） | 实体增加 studentPhone | `已实现` |
+| `.../domain/vo/EduStudentPhoneVo.java` | 联系电话响应对象（与前端声明一致） | `已实现` |
+| `.../service/IEduStudentProfileService.java` + `impl/EduStudentProfileServiceImpl.java`（改） | 查看联系电话 / 上传照片 / 查看原图，含敏感访问留痕 | `已实现` |
+| `.../controller/EduStudentProfileController.java`（改） | 3 个端点：phone 查询、photo 上传、photo 二进制读取 | `已实现` |
+| `ruoyi-api/ruoyi-api-resource/.../RemoteFileService.java`（改） | 新增 downloadByUrl（按地址取字节） | `已实现` |
+| `ruoyi-api/ruoyi-api-resource/.../RemoteFileServiceMock.java`（改） | 降级实现同步补齐 | `已实现` |
+| `ruoyi-modules/ruoyi-resource/.../dubbo/RemoteFileServiceImpl.java`（改） | downloadByUrl 实现 | `已实现` |
+| `services/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-edu/pom.xml`（改） | 引入 ruoyi-api-resource 依赖 | `已实现` |
+| `evidence/stage7-backend/2026-10-08_edu-photo-and-phone_compile.log` | 本批编译证据与 181/181 覆盖自检 | `review` |

@@ -731,6 +731,9 @@ gaps:
       student PRD 4.3 表单字段清单新增"学生照片"；
       原型 ACT-STU-021（上传/更换）与 ACT-STU-022（查看原图，需 read_sensitive 并写访问日志）；
       验收新增 AC-STU-133。阶段 5 需在 edu_student 增 photo_file_id 列。
+      CR-095 落地：文件服务已对接（`RemoteFileService.downloadByUrl` 新增 + `ruoyi-edu` 引入
+      `ruoyi-api-resource`），`POST /edu/student/{studentId}/photo`（multipart，校验格式与大小）与
+      `GET /edu/student/{studentId}/photo`（返回二进制，需 read_sensitive 并写敏感访问日志）已实现。
     resolved_at: 2026-09-30
     status: closed
 
@@ -2806,8 +2809,13 @@ gaps:
       待办（阶段 5 产物下一版修订，不在本批）：①`06-field-dictionary.yaml` 第 333 行的 `photo_file_id` 改为 `photo_url`；
       ②第 332 行的 `student_phone` 移到 `edu_student_enrollment`（并在 schema.yaml 与该表的迁移脚本加列）；
       ③OpenAPI 的 `viewStudentPhone` / `uploadStudentPhoto` / `getStudentPhoto` 保持不动，等列落位后直接可用。
+      CR-095 落地：新增追加式增量迁移 `V6__edu_student_contact.sql`（`ALTER TABLE edu_student_enrollment
+      ADD COLUMN student_phone varchar(20)`），事实源 schema.yaml 同步加列，字段字典补落点说明；
+      `GET /edu/student/{studentId}/phone` 已实现（权限 `person.student_contact:read_contact`，
+      查看全量写 `view_sensitive` 审计，掩码展示不记录）。
+      CR-095 收官：阶段 7 的目标口径已满足，本缺项关闭。
     resolved_at: "2026-10-08"
-    status: answered
+    status: closed
 
   - id: GAP-091
     title: 教师账号的「重置密码 / 停用 / 启用」三个接口缺远程契约（RemoteUserService 没有账号操作方法）
@@ -2926,6 +2934,10 @@ gaps:
       有效期判断（结果文件默认 7 天，`BR-IMP-013`）、下载前重新解析数据范围（`DS-DENY-04` / `07`）、
       下载计数 +1；`buildSignedUrl` 暂时返回 `storage_key` 描述。
       待办：文件服务批次建成 `RemoteFileService` 后替换签发实现，并补 `REQ-IMP-043` 的下载审计。
+      CR-095 进展：学生照片已走通文件服务（`downloadByUrl` 新增、`upload` 复用既有实现），
+      `ruoyi-edu` 已引入 `ruoyi-api-resource`；`buildSignedUrl` 仍是占位描述。**仍待办**：
+      导入导出的结果文件下载（`downloadTaskResult` / `downloadImportResult`）尚未改成真实流式下载，
+      列为阶段 8 联调项。
     resolved_at: "2026-10-08"
     status: answered
 

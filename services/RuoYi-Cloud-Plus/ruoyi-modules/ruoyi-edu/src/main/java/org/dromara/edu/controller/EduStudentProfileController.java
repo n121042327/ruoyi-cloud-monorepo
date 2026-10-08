@@ -10,12 +10,15 @@ import org.dromara.common.web.core.BaseController;
 import org.dromara.edu.domain.bo.EduGuardianBo;
 import org.dromara.edu.domain.bo.EduStudentBo;
 import org.dromara.edu.domain.bo.EduStudentEnrollmentBo;
+import org.dromara.edu.domain.vo.EduStudentPhoneVo;
 import org.dromara.edu.domain.vo.EduEnrollmentChangeVo;
 import org.dromara.edu.domain.vo.EduEnrollmentStatusOptionVo;
 import org.dromara.edu.domain.vo.EduGuardianVo;
 import org.dromara.edu.domain.vo.EduStudentEnrollmentVo;
 import org.dromara.edu.service.IEduStudentProfileService;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,7 +27,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -139,6 +144,35 @@ public class EduStudentProfileController extends BaseController {
     @PostMapping("/{studentId}/reset-password")
     public R<Void> resetPassword(@PathVariable Long studentId, @Validated @RequestBody EduStudentBo student) {
         return toAjax(profileService.resetStudentPassword(studentId, student.getPassword()));
+    }
+
+    /** 查看学生完整联系电话（需 person.student_contact 的 read_contact，写敏感数据访问日志） */
+    @SaCheckPermission("person.student_contact:read_contact")
+    @GetMapping("/{studentId}/phone")
+    public R<EduStudentPhoneVo> viewPhone(@PathVariable Long studentId) {
+        EduStudentPhoneVo vo = new EduStudentPhoneVo();
+        vo.setStudentPhone(profileService.viewStudentPhone(studentId));
+        return R.ok(vo);
+    }
+
+    /** 上传 / 更换学生照片（走统一文件服务） */
+    @SaCheckPermission("person.student:update")
+    @Log(title = "学生照片", businessType = BusinessType.UPDATE)
+    @RepeatSubmit()
+    @PostMapping(value = "/{studentId}/photo", consumes = "multipart/form-data")
+    public R<String> uploadPhoto(@PathVariable Long studentId,
+                                 @RequestPart("file") MultipartFile file) {
+        return R.ok(profileService.uploadStudentPhoto(studentId, file));
+    }
+
+    /** 查看照片原图（需 read_sensitive，写敏感数据访问日志；返回二进制图片） */
+    @SaCheckPermission("person.student:read_sensitive")
+    @GetMapping("/{studentId}/photo")
+    public ResponseEntity<byte[]> getPhoto(@PathVariable Long studentId) {
+        byte[] bytes = profileService.getStudentPhoto(studentId);
+        return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .body(bytes);
     }
 
 }

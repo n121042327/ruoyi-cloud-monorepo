@@ -13,6 +13,13 @@ import org.dromara.edu.domain.EduStudent;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.system.api.RemoteUserService;
+import org.dromara.resource.api.RemoteFileService;
+import org.dromara.resource.api.domain.RemoteFile;
+import org.dromara.common.core.exception.ServiceException;
+import org.springframework.web.multipart.MultipartFile;
+import org.dromara.edu.service.IEduAuditService;
+import org.dromara.edu.domain.EduStudentEnrollment;
+import org.dromara.edu.domain.bo.EduAuditLogBo;
 import org.dromara.edu.domain.EduStudentEnrollment;
 import org.dromara.edu.domain.EduStudentFieldChange;
 import org.dromara.edu.domain.EduStudentGuardian;
@@ -97,8 +104,22 @@ public class EduStudentProfileServiceImpl implements IEduStudentProfileService {
      */
     private static final String STUDENT_LOGIN_PREFIX = "s";
 
+    /** 照片允许的后缀（拒绝可执行文件与伪装扩展名，NFR-SEC-04） */
+    private static final java.util.Set<String> PHOTO_ALLOWED_SUFFIXES =
+        java.util.Set.of(".jpg", ".jpeg", ".png", ".webp");
+
+    /** 照片大小上限 2 MB */
+    private static final long PHOTO_MAX_SIZE = 2L * 1024 * 1024;
+
     @DubboReference
     private RemoteUserService remoteUserService;
+
+    /** 统一文件服务：照片上传与按地址取字节（CR-095） */
+    @DubboReference
+    private RemoteFileService remoteFileService;
+
+    /** 敏感数据访问留痕（REQ-AUD-008） */
+    private final IEduAuditService auditService;
 
     // ==================== 学籍状态 ====================
 
@@ -478,6 +499,95 @@ public class EduStudentProfileServiceImpl implements IEduStudentProfileService {
             throw new ServiceException("未找到该学生的登录账号：" + STUDENT_LOGIN_PREFIX + student.getStudentNo());
         }
         return remoteUserService.resetPassword(loginUser.getUserId(), password, tenantId);
+    }
+
+    // ==================== 联系电话与照片（CR-046 / A1 + B1，CR-095） ====================
+
+    @Override
+    public String viewStudentPhone(Long studentId) {
+        EduStudent student = requireStudent(studentId);
+        EduStudentEnrollment enrollment = requireEnrollment(studentId);
+        if (StringUtils.isBlank(enrollment.getStudentPhone())) {
+            throw new ServiceException("该学生尚未登记联系电话");
+        }
+        // 查看全量联系方式必须留痕（REQ-AUD-008 / BR-AUDIT-002；掩码展示不记录）
+        writeSensitiveAccessLog(enrollment, student, "查看学生联系电话全量");
+        return enrollment.getStudentPhone();
+    }
+
+    @Override
+    public String uploadStudentPhoto(Long studentId, MultipartFile file) {
+        EduStudent student = requireStudent(studentId);
+        if (file == null || file.isEmpty()) {
+            throw new ServiceException("请选择要上传的照片");
+        }
+        String originalName = file.getOriginalFilename() == null ? "" : file.getOriginalFilename();
+        String suffix = StringUtils.isBlank(originalName) || !originalName.contains(".")
+            ? "" : originalName.substring(originalName.lastIndexOf('.')).toLowerCase();
+        // 只允许常见图片后缀，拒绝可执行文件与伪装扩展名（NFR-SEC-04）
+        if (!PHOTO_ALLOWED_SUFFIXES.contains(suffix)) {
+            throw new ServiceException("只支持 jpg / jpeg / png / webp 格式的照片");
+        }
+        if (file.getSize() > PHOTO_MAX_SIZE) {
+            throw new ServiceException("照片大小不能超过 2 MB");
+        }
+        byte[] bytes;
+        try {
+            bytes = file.getBytes();
+        } catch (Exception e) {
+            throw new ServiceException("读取上传文件失败");
+        }
+        // 字节交给统一文件服务落对象存储，库里只保存文件地址（BR-IMP-041 同族口径）
+        RemoteFile remoteFile = remoteFileService.upload(null, originalName, file.getContentType(), bytes);
+        if (remoteFile == null || StringUtils.isBlank(remoteFile.getUrl())) {
+            throw new ServiceException("文件服务上传失败，请稍后重试");
+        }
+        EduStudent update = new EduStudent();
+        update.setStudentId(student.getStudentId());
+        update.setPhotoUrl(remoteFile.getUrl());
+        studentMapper.updateById(update);
+        return remoteFile.getUrl();
+    }
+
+    @Override
+    public byte[] getStudentPhoto(Long studentId) {
+        EduStudent student = requireStudent(studentId);
+        if (StringUtils.isBlank(student.getPhotoUrl())) {
+            throw new ServiceException("该学生尚未上传照片");
+        }
+        // 查看原图属敏感操作，先留痕再取字节（student PRD 4.3 / GAP-027）
+        writeSensitiveAccessLog(requireEnrollment(studentId), student, "查看学生照片原图");
+        return remoteFileService.downloadByUrl(student.getPhotoUrl());
+    }
+
+    /**
+     * 取学生最近一条在校记录。
+     * 学校级资源必须有学校上下文（`DS-DENY-02`），学生主体是平台级实体、经在校记录两段式取数
+     * （`DS-DENY-09`），因此审计日志的 `school_id` 只能从在校记录来，缺记录时直接拒绝而不是写不完整日志。
+     */
+    private EduStudentEnrollment requireEnrollment(Long studentId) {
+        EduStudentEnrollment enrollment = enrollmentMapper.selectOne(
+            new LambdaQueryWrapper<EduStudentEnrollment>()
+                .eq(EduStudentEnrollment::getStudentId, studentId)
+                .orderByDesc(EduStudentEnrollment::getEnrollmentId)
+                .last("limit 1"));
+        if (enrollment == null || enrollment.getSchoolId() == null) {
+            throw new ServiceException("该学生没有在校记录，缺少学校上下文，拒绝访问（DS-DENY-02）");
+        }
+        return enrollment;
+    }
+
+    /** 写一条敏感数据访问日志（action_type = view_sensitive） */
+    private void writeSensitiveAccessLog(EduStudentEnrollment enrollment, EduStudent student, String detail) {
+        EduAuditLogBo log = new EduAuditLogBo();
+        log.setActionType("view_sensitive");
+        log.setModuleCode("student");
+        log.setObjectType("student");
+        log.setObjectId(String.valueOf(student.getStudentId()));
+        log.setObjectName(student.getStudentName());
+        log.setDetail(detail);
+        log.setSchoolId(enrollment.getSchoolId());
+        auditService.recordLog(log);
     }
 
 }

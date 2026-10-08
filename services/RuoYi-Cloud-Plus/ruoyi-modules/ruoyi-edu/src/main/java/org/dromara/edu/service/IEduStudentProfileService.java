@@ -67,4 +67,37 @@ public interface IEduStudentProfileService {
      */
     Boolean resetStudentPassword(Long studentId, String password);
 
+    /**
+     * 查看学生完整联系电话（`viewStudentPhone`，`REQ-STU-013` / `CR-046`）
+     *
+     * 默认掩码是列表页的展示口径；本接口只对持有 `person.student_contact` 的 `read_contact`
+     * 的调用方开放，并在服务层写一条敏感数据访问日志（`REQ-AUD-008` / `BR-AUDIT-002`）。
+     *
+     * @param studentId 学生主体 ID
+     * @return 完整联系电话
+     */
+    String viewStudentPhone(Long studentId);
+
+    /**
+     * 上传 / 更换学生照片（`uploadStudentPhoto`）
+     *
+     * 走统一文件服务：字节交给文件服务落对象存储，`edu_student.photo_url` 只保存返回的文件地址
+     * （`BR-ACCOUNT-002` 同族的照片口径见 `GAP-027`；文件服务见 `CR-095`）。
+     *
+     * @param studentId 学生主体 ID
+     * @param file      图片文件
+     * @return 文件地址
+     */
+    String uploadStudentPhoto(Long studentId, org.springframework.web.multipart.MultipartFile file);
+
+    /**
+     * 查看学生照片原图（`getStudentPhoto`，返回二进制）
+     *
+     * 需 `person.student:read_sensitive`，并写敏感数据访问日志（`student PRD 4.3` / `GAP-027`）。
+     *
+     * @param studentId 学生主体 ID
+     * @return 图片字节
+     */
+    byte[] getStudentPhoto(Long studentId);
+
 }

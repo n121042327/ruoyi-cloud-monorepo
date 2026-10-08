@@ -68,6 +68,7 @@ tables:
       - { name: leave_date, type: date, nullable: true, comment: 离校日期（毕业 / 转出 / 开除等终态时写入） }
       - { name: campus_id, type: bigint unsigned, nullable: true, comment: 校区（入校时归属，参考信息） }
       - { name: entry_grade_id, type: bigint unsigned, nullable: true, comment: 入校年级 }
+      - { name: student_phone, type: varchar(20), nullable: true, sensitive: true, comment: 学生联系电话（学校侧联系方式；默认掩码展示，查看全量需 read_contact 并写敏感数据访问日志，GAP-090 / CR-095） }
       - { name: remark, type: varchar(500), nullable: true, comment: 备注 }
     unique_keys:
       - { name: uk_enrollment_student_school, columns: [student_id, school_id], note: 同一学生同一学校一条在校记录 }

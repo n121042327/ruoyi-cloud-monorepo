@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 
 /**
  * 文件请求处理
@@ -92,5 +94,31 @@ public class RemoteFileServiceImpl implements RemoteFileService {
     public List<RemoteFile> selectByIds(String ossIds){
         List<SysOssVo> sysOssVos = sysOssService.listByIds(StringUtils.splitTo(ossIds, Convert::toLong));
         return MapstructUtils.convert(sysOssVos, RemoteFile.class);
+    }
+
+    /**
+     * 按文件地址读取文件字节
+     *
+     * 地址先经 `OssClient.removeBaseUrl` 还原成对象键，再用 `getObjectContent` 取流；
+     * 与 `SysOssServiceImpl.download` 用同一套 OssClient（CR-095）。
+     *
+     * @param url 文件地址
+     * @return 文件字节
+     */
+    @Override
+    public byte[] downloadByUrl(String url) throws ServiceException {
+        if (StringUtils.isBlank(url)) {
+            throw new ServiceException("文件地址不能为空");
+        }
+        OssClient storage = OssFactory.instance();
+        String objectKey = storage.removeBaseUrl(url);
+        try (InputStream in = storage.getObjectContent(objectKey);
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            in.transferTo(out);
+            return out.toByteArray();
+        } catch (Exception e) {
+            log.error("按地址读取文件失败：{}", url, e);
+            throw new ServiceException("读取文件失败");
+        }
     }
 }

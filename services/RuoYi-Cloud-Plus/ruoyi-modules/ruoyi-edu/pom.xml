@@ -87,6 +87,12 @@
             <artifactId>ruoyi-api-system</artifactId>
         </dependency>
 
+        <!-- 统一文件服务远程契约（学生照片上传 / 原图读取，CR-095） -->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>ruoyi-api-resource</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

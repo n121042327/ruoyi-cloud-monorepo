@@ -1,0 +1,32 @@
+# 阶段 7 证据：学生联系电话与学生照片（CR-095，2026-10-08）
+
+命令：mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu,ruoyi-modules/ruoyi-resource -am compile
+（工作目录 services/RuoYi-Cloud-Plus；改动同时落在 ruoyi-api-resource / ruoyi-resource / ruoyi-edu，故三个模块一起编）
+
+结果：BUILD SUCCESS，exit 0，无 [ERROR] 行。
+ruoyi-edu 的 target/classes 下 460 个 class（本批 +1）。
+
+说明：按 AGENTS.md 第 9 节，编译通过不等于测试通过；本批未跑单测、未启动服务、未连数据库。
+
+--- Maven 关键输出 ---
+
+[INFO] ruoyi-edu .......................................... SUCCESS [ 12.011 s]
+[INFO] ruoyi-resource ..................................... SUCCESS [  3.870 s]
+[INFO] BUILD SUCCESS
+[INFO] Total time:  31.451 s
+
+--- 契约覆盖自检（脚本比对 openapi 路径与 controller 映射） ---
+
+covered 181 / 181
+MISSING 无
+
+本批补齐最后 3 个：uploadStudentPhoto / getStudentPhoto / viewStudentPhone。
+
+--- 表覆盖自检 ---
+
+schema.yaml 43 张表（含派生表 edu_audit_log_archive）全部有实体与 mapper。
+
+--- 门禁 ---
+
+python tools/check_docs.py -> 通过
+python tools/check_gap_register.py -> 通过（96 条，open = 0）

@@ -244,7 +244,7 @@ public class EduAuditServiceImpl implements IEduAuditService {
         entity.setBatchNo(bo.getBatchNo());
         entity.setActionResult(StringUtils.isBlank(bo.getActionResult()) ? "success" : bo.getActionResult());
         entity.setSource(StringUtils.isBlank(bo.getSource()) ? "web" : bo.getSource());
-        entity.setDetail(bo.getObjectName());
+        entity.setDetail(StringUtils.isNotBlank(bo.getDetail()) ? bo.getDetail() : bo.getObjectName());
         entity.setLogTime(DateUtils.getNowDate());
         baseMapper.insert(entity);
         return entity.getLogId();

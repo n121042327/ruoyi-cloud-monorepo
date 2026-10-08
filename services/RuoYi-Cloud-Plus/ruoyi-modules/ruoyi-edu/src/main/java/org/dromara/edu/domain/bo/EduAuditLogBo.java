@@ -65,6 +65,9 @@ public class EduAuditLogBo extends BaseEntity {
     /** 关键字：对象标识 / 对象名称 / 请求标识模糊匹配（REQ-AUD-019） */
     private String keyword;
 
+    /** 说明（驳回意见、失败原因、敏感访问用途等），写入 `edu_audit_log.detail` */
+    private String detail;
+
     /** 时间范围起（含），留空时按默认最近 7 天 */
     private String beginTime;
 

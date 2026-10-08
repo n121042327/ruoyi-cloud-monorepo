@@ -50,6 +50,13 @@ public class EduStudentEnrollment extends TenantEntity {
     /** 入校年级 */
     private Long entryGradeId;
 
+    /**
+     * 学生联系电话（学校侧联系方式，默认掩码展示；查看全量需 read_contact 并写敏感数据访问日志）
+     *
+     * 落点由 GAP-090 裁决，脚本 `V6__edu_student_contact.sql` 为阶段 5 新版本增量（CR-095）。
+     */
+    private String studentPhone;
+
     /** 备注 */
     private String remark;
 
