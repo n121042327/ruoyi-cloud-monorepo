@@ -1094,3 +1094,20 @@
 | `.../controller/EduPromotionController.java` | 升班控制器（12 个端点） | `已实现` |
 | `.../controller/EduTeachingClassController.java` | 教学班控制器（5 个端点） | `已实现` |
 | `evidence/stage7-backend/2026-10-08_edu-promotion-and-teaching-class_compile.log` | 本批编译证据（BUILD SUCCESS / 282 个 class） | `review` |
+
+## 2026-10-08 阶段 7 第十批：选科模块纵切
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-089.md` | 选科模块的交付与编译证据 | `review` |
+| `.../domain/EduStreamConfig.java` | 选科配置实体（无 delFlag，失效写 config_status） | `已实现` |
+| `.../domain/EduStudentStream.java` | 学生选科实体（再选科目存逗号分隔字符串） | `已实现` |
+| `.../domain/EduStreamChangeRequest.java` | 选科变更申请实体（含审批轨迹与撤回时间） | `已实现` |
+| `.../domain/EduStreamHistory.java` | 选科历史实体（with_audit=false，不继承 BaseEntity，追加式） | `已实现` |
+| `.../domain/bo/EduStreamConfigBo.java` / `EduStreamSelectionBo.java` / `EduStreamChangeRequestBo.java` / `EduStreamHistoryBo.java` | 四个业务对象 | `已实现` |
+| `.../domain/vo/EduStreamConfigVo.java` / `EduMyStreamVo.java` / `EduStreamOptionVo.java` / `EduStreamSelectionVo.java` | 配置 / 我的选科 / 选科选项 / 清单视图对象 | `已实现` |
+| `.../domain/vo/EduStreamStatVo.java` / `EduUnselectedStudentVo.java` / `EduStreamChangeRequestVo.java` / `EduStreamHistoryVo.java` / `EduTeachingClassGenerateVo.java` | 统计 / 未选清单 / 变更申请 / 历史 / 教学班生成视图对象 | `已实现` |
+| `.../mapper/EduStreamConfigMapper.java` / `EduStudentStreamMapper.java` / `EduStreamChangeRequestMapper.java` / `EduStreamHistoryMapper.java` | 四个数据层 | `已实现` |
+| `.../service/IEduStreamService.java` + `impl/EduStreamServiceImpl.java` | 选科服务层（16 个方法，含开放期比较、变更审批、历史追加、教学班幂等生成） | `已实现` |
+| `.../controller/EduStreamController.java` | 选科控制器（16 个端点） | `已实现` |
+| `evidence/stage7-backend/2026-10-08_edu-stream_compile.log` | 本批编译证据（BUILD SUCCESS / 332 个 class） | `review` |
