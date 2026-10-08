@@ -2348,3 +2348,16 @@
 ## D-171 — 阶段 7 第十六批（收官）：学生联系电话与学生照片，契约覆盖 181/181（2026-10-08）
 
 用户确认「按推荐做」，因此按 D-169 勘察结论执行 A1 + B1，补齐最后 3 个 operationId。**A1**：出阶段 5 新版本——新增追加式增量迁移 `V6__edu_student_contact.sql`（`ALTER TABLE edu_student_enrollment ADD COLUMN student_phone varchar(20)`，V1—V5 冻结版本不覆盖），事实源 `schema.yaml` 的 `edu_student_enrollment` 同步加列，字段字典 `student_phone` 补落点说明；实体与 `GET /edu/student/{studentId}/phone` 落地（权限 `person.student_contact:read_contact`），返回体 `{ studentPhone }` 与前端声明一致；默认掩码是列表口径且**不记录**日志，只有查看全量才写 `view_sensitive` 审计（`REQ-AUD-008` / `009`），且学校上下文缺失时按 `DS-DENY-02` 拒绝而不是写不完整日志（学生主体是平台级实体，`school_id` 只能从在校记录来，`DS-DENY-09` 两段式取数）。**B1**：勘察后发现文件服务**已存在**（`ruoyi-api-resource.RemoteFileService` + `ruoyi-resource.RemoteFileServiceImpl` + `OssClient`），所以没有新建模块，只给远程契约加了 `byte[] downloadByUrl(String url)`（`photo_url` 只存地址、取原图字节需要它）、在 mock 与 provider 同步实现（`removeBaseUrl` 还原对象键 → `getObjectContent` 取流），给 `ruoyi-edu` 引入 `ruoyi-api-resource` 依赖，然后落地 `POST /{studentId}/photo`（multipart，校验 jpg/jpeg/png/webp 与 ≤ 2 MB，拒绝可执行文件与伪装扩展名 `NFR-SEC-04`；字节交文件服务，库里只存返回地址到 `edu_student.photo_url`）与 `GET /{studentId}/photo`（先写敏感访问日志再取字节，返回二进制，权限 `person.student:read_sensitive`）。**收官数据**：openapi **181 / 181 个 operationId 有 controller 方法**；`schema.yaml` **43 / 43 张表有实体与 mapper**；`mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu,ruoyi-modules/ruoyi-resource -am compile` BUILD SUCCESS（无 `[ERROR]` 行，`ruoyi-edu` 460 个 class）；`check_docs.py` 与 `check_gap_register.py` 通过（96 条、open = 0）。**未纳入本阶段判据的边界**：照片接口运行期需要 `ruoyi-resource` 的对象存储配置就绪（属运维凭据配置，本批未动）；GAP-093 还剩「导入导出结果文件下载改为真实流式下载」一处，属阶段 8 联调项，已在缺项表保留说明。按 AGENTS 第 9 节只声明编译通过，未跑单测、未启动服务、未连数据库。证据见 `evidence/stage7-backend/2026-10-08_edu-photo-and-phone_compile.log`。
+
+## D-172 — 阶段 6 生产前端合并回 main（含 CR-054 一并带入的说明）（2026-10-08）
+
+用户选择方案 A：只把阶段 6 合并回主干，阶段 7 等门禁走完再合。执行结果：
+
+- `git merge --no-ff codex/stage6-frontend` → 合并提交 **f15aa86**「chore(集成): 阶段 6 生产前端并入 main（45 条路由交付，CR-044 ~ CR-080）」，main 与 origin/main 同步推进到 f15aa86；
+- 打 annotated tag **`stage6-frontend-end`**（阶段 6 边界），已推送远端；至此阶段 2~6 的边界 tag 齐全；
+- 合并前 `main` 是 stage6-frontend 的祖先（`stage6..main = 0`），因此合并无冲突，合并结果的树与 `codex/stage6-frontend` 的树**完全一致**（`git diff --stat codex/stage6-frontend HEAD` 为空）；
+- 合并后按「改了主干就要能编」的口径验证：`mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile` → BUILD SUCCESS（未跑单测、未启动服务、未连数据库）。
+
+**一处需要留痕的实情**：`badcd60`（阶段 7 起步：ruoyi-edu 服务骨架 + 学生基础接口，CR-054）当初是提交在 `codex/stage6-frontend` 分支上的，之后才从该末端拉出 `codex/stage7-backend`。因此本次合阶段 6 也把 **CR-054 的 ruoyi-edu 骨架（`EduStudent` / `EduStudentMapper` / `IEduStudentService` / `application.yml` 等 4 个学生接口 + 模块注册）**带进了 main。校验结果：`badcd60` 已在 main（`git merge-base --is-ancestor` exit 0），而 `9c1942b`（CR-081）及其后的阶段 7 提交都不在 main。判断与建议：这不影响阶段 6 的交付判据（前端 45 条路由与 8 项门禁仍成立），main 编译也通过；但阶段 6 的合并在内容上不是「纯前端」——后续若要求阶段边界在内容上严格对应，可采用「把 CR-054 视为阶段 6 的提前产出」的口径记在本条，或在下一次阶段 5/6 版本修订时把它正式归入阶段 7 的起点说明。**不改写历史**。
+
+**未执行的动作（均属红线，等用户单独确认）**：① 按 AGENTS 8.1 删除已合并的阶段分支（本地 + 远端的 `codex/stage6-frontend`）；② 阶段 7 的合并回主干（其门禁要求「编译 + 显式启用测试 + 接口测试通过」，目前只做到编译通过 + 契约 181/181 与表 43/43 自检，测试与接口测试未执行）；③ `codex/stage2-student-cascade` 已与 main 齐平（`main..stage2 = 0`）但仍留着本地与远端分支，如需清理同样要单独确认。
