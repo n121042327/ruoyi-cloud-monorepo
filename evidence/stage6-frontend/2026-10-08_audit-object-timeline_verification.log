@@ -1,0 +1,12 @@
+# 阶段 6 证据：对象变更时间线（CR-062，2026-10-08）
+
+$ python tools/check_fe_page_structure.py   (exit 0)
+$ python tools/check_api_contract.py   (exit 0)
+$ pnpm --filter @edu/plus-ui typecheck   (exit 1)
+error TS 总数：51（基线 51，本批新增 0）
+$ pnpm --filter @edu/plus-ui lint:eslint   (exit 1)
+汇总：✖ 124 problems (124 errors, 0 warnings)
+新增文件相关报错：无
+$ pnpm --filter @edu/plus-ui run build:prod   (exit 0)
+构建：成功
+

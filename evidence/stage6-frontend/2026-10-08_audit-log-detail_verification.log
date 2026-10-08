@@ -1,0 +1,17 @@
+# 阶段 6 证据：日志详情抽屉（CR-061，2026-10-08）
+
+$ python tools/check_fe_page_structure.py   (exit 0)
+$ python tools/check_api_contract.py   (exit 0)
+$ pnpm --filter @edu/plus-ui typecheck   (exit 1)
+error TS 总数：51（基线 51，本批新增 0）
+$ pnpm --filter @edu/plus-ui lint:eslint   (exit 1)
+汇总：✖ 124 problems (124 errors, 0 warnings)
+新增文件相关报错：无
+$ pnpm --filter @edu/plus-ui run build:prod   (exit 0)
+构建：成功
+
+
+# push 记录（2026-10-08）
+本批提交 4e337d2 已落地；git push origin codex/stage6-frontend 连续两次被远端拒绝：
+  ! [remote rejected] codex/stage6-frontend -> codex/stage6-frontend (Internal Server Error)
+git ls-remote 可读（远端仍为 0917870），判断为远端接收端短期故障，下一轮循环重试 push。

@@ -625,3 +625,344 @@
 | `docs/00-governance/traceability.yaml` | 626 条需求追踪 + 需求级接口追溯（接口链 580 / 表链 537，生成物） | `review` |
 | `evidence/governance/2026-10-02_requirement-links-all-modules.log` | 本批生成结果与四个检查脚本输出 | `review` |
 | `evidence/governance/2026-10-02_contract-completion-gap082-083.log` | 契约补齐后的 operationId 数与检查输出 | `review` |
+
+## 2026-10-02 阶段 6 首批：学生管理列表页
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-044.md` | 阶段 6 首批（学生管理列表页）交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/student/stu_list/index.vue` | 学生管理列表页（查询区 / 工具栏 / 表格 / 分页 / 无权限态） | `已实现` |
+| `apps/plus-ui/src/views/edu/student/stu_list/composables/useStudentList.ts` | 列表页查询、分页、导出与级联逻辑 | `已实现` |
+| `apps/plus-ui/src/views/edu/student/stu_list/components/StudentFormDialog.vue` | 新增 / 编辑弹窗（基础信息 + 教育信息） | `已实现` |
+| `apps/plus-ui/src/api/edu/**` | 教育域接口层：student / school / term / grade / class | `已实现` |
+| `apps/plus-ui/src/enums/edu/StudentEnum.ts` | 学段 / 性别 / 学籍状态枚举（取自字段字典） | `已实现` |
+| `tools/check_fe_page_structure.py` | 生产页面 ←→ 原型的结构对照检查（阶段 6 交互对照的可执行部分） | `review` |
+| `evidence/stage6-frontend/2026-10-02_student-list_verification.log` | 类型检查 / Lint / 构建 / 结构对照证据 | `review` |
+
+## 2026-10-02 阶段 6 第二批：学生详情抽屉与三步向导
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-045.md` | 学生详情抽屉 + 新增编辑三步向导的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/student/stu_list/components/StudentDetailDrawer.vue` | 只读详情抽屉（四个字段分组 + 监护人 + 变更记录） | `已实现` |
+| `apps/plus-ui/src/views/edu/student/stu_list/components/StudentFormDialog.vue` | 新增 / 编辑三步向导（学籍信息 / 证件与联系 / 监护人） | `已实现` |
+| `evidence/stage6-frontend/2026-10-02_student-detail-and-form-wizard_verification.log` | 本批类型检查 / Lint / 构建 / 结构对照证据 | `review` |
+
+## 2026-10-07 阶段 6 第三批：联系电话查看完整接口
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-046.md` | GAP-084 补 `viewStudentPhone` 并接上前端 | `review` |
+| `apps/plus-ui/src/views/edu/student/stu_list/components/StudentDetailDrawer.vue` | 详情抽屉（本批补联系电话「查看完整」） | `已实现` |
+| `evidence/stage6-frontend/2026-10-07_student-phone-reveal_verification.log` | 本批生成结果与门禁证据 | `review` |
+
+## 2026-10-07 阶段 6 第四批：学生照片与监护人编辑 / 解绑
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-047.md` | 学生照片上传 / 查看原图与监护人编辑 / 解绑的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/student/stu_list/components/GuardianTable.vue` | 可复用监护人编辑表格（向导与详情抽屉共用） | `已实现` |
+| `evidence/stage6-frontend/2026-10-07_student-photo-and-guardian_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |
+
+## 2026-10-07 阶段 6 第五批：学籍异动与调班浮层
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-048.md` | 学籍异动与调班弹窗的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/student/stu_list/components/StudentStatusDialog.vue` | 学籍异动弹窗（异动信息 / 复学报到安排 / 异动说明） | `已实现` |
+| `apps/plus-ui/src/views/edu/student/stu_list/components/StudentTransferDialog.vue` | 调班弹窗（班级关系 / 调班说明） | `已实现` |
+| `evidence/stage6-frontend/2026-10-07_student-status-and-transfer_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |
+
+## 2026-10-07 阶段 6 第六批：批量导出 / 批量调班 + 异动登记入口
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-049.md` | 批量能力与异动登记入口的交付、GAP-085 登记与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/student/stu_list/index.vue` | 学生列表页（本批补多选列与两个批量按钮） | `已实现` |
+| `evidence/stage6-frontend/2026-10-07_student-batch-actions_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |
+
+## 2026-10-07 阶段 6 第七批：跨校转学（转出校）向导
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-050.md` | GAP-085 裁决 A 的契约收敛与转出校向导交付记录 | `review` |
+| `apps/plus-ui/src/views/edu/student/stu_cross_transfer/index.vue` | 跨校转学（转出校）4 步向导 | `已实现` |
+| `apps/plus-ui/src/api/edu/promotion/**` | 升班与学籍异动模块接口层（转学单发起 / 撤销 / 待接收清单） | `已实现` |
+| `evidence/stage6-frontend/2026-10-07_cross-transfer-out_verification.log` | 本批生成结果与门禁证据 | `review` |
+
+## 2026-10-07 阶段 6 第八批：跨校转学（转入校）向导
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-051.md` | 转入校侧向导的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/promotion/prm_transfer/index.vue` | 跨校转学（转入校）4 步向导 | `已实现` |
+| `evidence/stage6-frontend/2026-10-07_cross-transfer-in_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |
+
+## 2026-10-08 阶段 6 第九批：班级管理列表页
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-052.md` | 班级列表页交付 + GAP-086 登记与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/class/cls_list/index.vue` | 班级管理列表页（查询区 / 工具栏 / 表格 / 分页 / 无权限态） | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_list/components/ClassFormDialog.vue` | 新建 / 编辑班级（教育信息 + 管理信息两组） | `已实现` |
+| `apps/plus-ui/src/api/edu/teacher/**` | 教师接口层（班主任下拉） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_class-list_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |
+
+## 2026-10-08 阶段 6 第十批：学生批量导入向导
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-053.md` | GAP-086 裁决 A 的契约收敛与导入向导交付记录 | `review` |
+| `apps/plus-ui/src/views/edu/student/stu_import/index.vue` | 学生批量导入 4 步向导 | `已实现` |
+| `apps/plus-ui/src/api/edu/importExport/**` | 导入导出模块接口层（模板 / 校验 / 执行 / 失败行 / 结果 / 任务详情） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_student-import_verification.log` | 本批生成结果与门禁证据 | `review` |
+
+## 2026-10-08 阶段 7 起步：ruoyi-edu 服务模块
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-054.md` | 阶段 7 骨架与第一条纵切的交付记录 | `review` |
+| `services/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-edu/**` | 教育业务服务模块（pom / 启动类 / 学生模块纵切 / application.yml） | `已实现` |
+| `evidence/stage7-backend/2026-10-08_ruoyi-edu_compile.log` | 编译验证输出 | `review` |
+
+## 2026-10-08 阶段 6 第十一批：年级管理列表页
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-055.md` | 年级列表页的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/grade/grd_list/index.vue` | 年级管理列表页（查询区 / 工具栏 / 表格 / 分页 / 无权限态） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_grade-list_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |
+
+## 2026-10-08 阶段 6 第十二批：教师管理列表页
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-056.md` | 教师列表页的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/teacher/tch_list/index.vue` | 教师管理列表页（查询区 / 工具栏 / 表格 / 分页 / 无权限态） | `已实现` |
+| `apps/plus-ui/src/api/edu/subject/**` | 学科接口层（`listSubjectOption`） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_teacher-list_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |
+
+## 2026-10-08 阶段 6 第十三批：学科与配置列表页
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-057.md` | 学科列表页的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/subject/sub_list/index.vue` | 学科与配置列表页 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_subject-list_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |
+
+## 2026-10-08 阶段 6 第十四批：学年学期列表页
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-058.md` | 学年学期列表页的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/term/term_list/index.vue` | 学年学期列表页 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_term-list_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |
+
+## 2026-10-08 阶段 6 第十五批：学校管理列表页
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-059.md` | 学校列表页的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/school/sch_list/index.vue` | 学校管理列表页 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_school-list_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |
+
+## 2026-10-08 阶段 6 第十六批：操作日志列表页
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-060.md` | 操作日志列表页的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/audit/audit_log_list/index.vue` | 操作日志列表页 | `已实现` |
+| `apps/plus-ui/src/api/edu/audit/**` | 审计接口层（操作日志查询与详情） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_audit-log-list_verification.log` | 本批结构对照 / 类型检查 / Lint / 构建证据 | `review` |
+
+## 2026-10-08 阶段 6 第十七批：操作日志详情抽屉
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-061.md` | 日志详情抽屉的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/audit/audit_log_list/components/LogDetailDrawer.vue` | 操作日志详情抽屉（操作信息 / 对象信息 / 变更明细） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_audit-log-detail_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第十八批：对象变更时间线
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-062.md` | 对象变更时间线的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/audit/audit_log_list/components/ObjectTimelineDrawer.vue` | 对象变更时间线抽屉 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_audit-object-timeline_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第十九批：运营访问记录
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-063.md` | 运营访问记录的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/audit/audit_ops_access/index.vue` | 运营访问记录页 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_audit-ops-access_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第二十批：敏感数据访问记录
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-064.md` | 敏感数据访问记录的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/audit/audit_sensitive_access/index.vue` | 敏感数据访问记录页 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_audit-sensitive-access_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第二十一批：登录与安全事件 + 归档管理
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-065.md` | 两页的交付与门禁记录（审计模块收官） | `review` |
+| `apps/plus-ui/src/views/edu/audit/audit_security_event/index.vue` | 登录与安全事件页 | `已实现` |
+| `apps/plus-ui/src/views/edu/audit/audit_archive/index.vue` | 归档管理页 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_audit-security-event-and-archive_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第二十二批：异步任务 + 死信任务
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-066.md` | 异步任务与死信任务的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/import-export/imp_task_list/index.vue` | 异步任务列表页 | `已实现` |
+| `apps/plus-ui/src/views/edu/import-export/imp_deadletter/index.vue` | 死信任务页 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_async-task-and-deadletter_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第二十三批：异动历史
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-067.md` | 异动历史页的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/promotion/prm_history/index.vue` | 异动历史页 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_promotion-history_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第二十四批：校区管理
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-068.md` | 校区管理页的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/school/sch_campus/index.vue` | 校区管理页 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_school-campus_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第二十五批：开通初始化向导
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-069.md` | 开通初始化向导的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/school/sch_init/index.vue` | 开通初始化 4 步向导 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_school-init_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第二十六批：学期管理页
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-070.md` | 学期管理页的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/term/term_terms/index.vue` | 学期管理列表页（含删除必填原因） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_term-terms_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第二十七批：新建 / 编辑学年与学年归档弹窗
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-071.md` | 学年弹窗与归档弹窗的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/term/term_list/components/AcademicYearFormDialog.vue` | 新建 / 编辑学年弹窗（PAGE-TERM-CREATE） | `已实现` |
+| `apps/plus-ui/src/views/edu/term/term_list/components/AcademicYearArchiveDialog.vue` | 学年归档弹窗（PAGE-TERM-ARCHIVE，含引用检查） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_term-year-dialogs_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第二十八批：升班任务列表与四步向导
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-072.md` | 升班列表与向导的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/promotion/prm_list/index.vue` | 升班任务列表页（PAGE-PRM-LIST） | `已实现` |
+| `apps/plus-ui/src/views/edu/promotion/prm_list/components/CancelPromotionDialog.vue` | 取消升班任务二次确认弹窗 | `已实现` |
+| `apps/plus-ui/src/views/edu/promotion/prm_create/index.vue` | 新建升班任务（向导第 1 步） | `已实现` |
+| `apps/plus-ui/src/views/edu/promotion/prm_preview/index.vue` | 升班预览与调整（向导第 2 步） | `已实现` |
+| `apps/plus-ui/src/views/edu/promotion/prm_preview/components/AdjustItemDialog.vue` | 逐条调整弹窗（PAGE-PRM-ADJUST） | `已实现` |
+| `apps/plus-ui/src/views/edu/promotion/prm_validate/index.vue` | 升班校验（向导第 3 步） | `已实现` |
+| `apps/plus-ui/src/views/edu/promotion/prm_execute/index.vue` | 执行与进度（向导第 4 步） | `已实现` |
+| `apps/plus-ui/src/views/edu/promotion/prm_result/index.vue` | 执行结果与重试 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_promotion-wizard_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第二十九批：添加学生 + 批量迁学生
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-073.md` | 添加学生 / 批量迁学生的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/class/cls_roster_add/index.vue` | 添加学生（PAGE-CLS-ROSTER-ADD） | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_move/index.vue` | 批量迁学生（PAGE-CLS-MOVE） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_class-roster-add-and-move_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第三十批：编班表导入 + 教学班管理
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-074.md` | 编班表导入 / 教学班管理的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/class/cls_roster_import/index.vue` | 编班表导入四步向导（PAGE-CLS-ROSTER-IMPORT） | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_teaching/index.vue` | 教学班管理（PAGE-CLS-TEACHING） | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_teaching/components/TeachingClassDetailDrawer.vue` | 教学班详情抽屉（DRAWER-CLS-TEACHING） | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_teaching/components/TeachingClassDisableDialog.vue` | 教学班停用弹窗（DIALOG-TCL-DISABLE） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_class-import-and-teaching_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第三十一批：选科配置 + 学生选科
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-075.md` | 选科配置 / 学生选科的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/api/edu/stream/index.ts` | 选科接口层（8 个 operationId） | `已实现` |
+| `apps/plus-ui/src/api/edu/stream/types.ts` | 选科接口类型 | `已实现` |
+| `apps/plus-ui/src/views/edu/stream/str_config/index.vue` | 选科配置（PAGE-STR-CONFIG） | `已实现` |
+| `apps/plus-ui/src/views/edu/stream/str_config/components/UnselectedStudentDialog.vue` | 未选科学生催办弹窗 | `已实现` |
+| `apps/plus-ui/src/views/edu/stream/str_student/index.vue` | 学生选科（PAGE-STR-STUDENT） | `已实现` |
+| `apps/plus-ui/src/views/edu/stream/str_student/components/StreamHistoryDialog.vue` | 选科历史弹窗 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_stream-config-and-student_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第三十二批：选科清单 + 组合分布统计
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-076.md` | 选科清单 / 组合分布统计的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/stream/str_list/index.vue` | 选科清单（PAGE-STR-LIST） | `已实现` |
+| `apps/plus-ui/src/views/edu/stream/str_list/components/StreamChangeDialog.vue` | 选科变更申请弹窗（PAGE-STR-CHANGE） | `已实现` |
+| `apps/plus-ui/src/views/edu/stream/str_list/components/StreamHistorySection.vue` | 变更记录时间线（PAGE-STR-HISTORY） | `已实现` |
+| `apps/plus-ui/src/views/edu/stream/str_stat/index.vue` | 组合分布统计（PAGE-STR-STAT） | `已实现` |
+| `apps/plus-ui/src/views/edu/stream/str_stat/components/SubjectStatTable.vue` | 学科选择人数表 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_stream-list-and-stat_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第三十三批：选科变更审批 + 按组合生成教学班
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-077.md` | 选科变更审批 / 按组合生成教学班的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/stream/str_approve/index.vue` | 选科变更审批（PAGE-STR-APPROVE） | `已实现` |
+| `apps/plus-ui/src/views/edu/stream/str_approve/components/ApproveDialog.vue` | 审批弹窗（DIALOG-STR-APPROVE） | `已实现` |
+| `apps/plus-ui/src/views/edu/stream/str_gen_class/index.vue` | 按组合生成教学班四步向导（PAGE-STR-GEN-CLASS） | `已实现` |
+| `apps/plus-ui/src/views/edu/stream/str_gen_class/components/CheckResultTable.vue` | 核对结果表 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_stream-approve-and-gen-class_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第三十四批：教师任教关系 + 教师导入
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-078.md` | 教师任教关系 / 教师导入的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/teacher/tch_assign/index.vue` | 教师任教关系（PAGE-TCH-ASSIGN） | `已实现` |
+| `apps/plus-ui/src/views/edu/teacher/tch_assign/components/AssignmentTable.vue` | 任教关系主表 | `已实现` |
+| `apps/plus-ui/src/views/edu/teacher/tch_assign/components/AssignmentFormDialog.vue` | 新增 / 编辑任教关系弹窗 | `已实现` |
+| `apps/plus-ui/src/views/edu/teacher/tch_assign/components/CopyAssignDialog.vue` | 复制上一学年任教关系弹窗（DIALOG-TCH-COPY） | `已实现` |
+| `apps/plus-ui/src/views/edu/teacher/tch_import/index.vue` | 教师导入四步向导（PAGE-TCH-IMPORT） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_teacher-assign-and-import_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第三十五批：通用导入向导 + 班级合并
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-079.md` | 通用导入向导 / 班级合并的交付与门禁记录 | `review` |
+| `apps/plus-ui/src/views/edu/import-export/imp_wizard/index.vue` | 通用导入向导（PAGE-IMP-WIZARD） | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_merge/index.vue` | 班级合并（PAGE-CLS-MERGE，无原型，按 GAP-088 实现） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_import-wizard-and-class-merge_verification.log` | 本批门禁证据 | `review` |
+
+## 2026-10-08 阶段 6 第三十六批（收尾）：403 / 500 异常页
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-080.md` | 403 / 500 的交付、GAP-087 关闭与门禁记录 | `review` |
+| `apps/plus-ui/src/views/error/403.vue` | 无权限页（PAGE-403，静态路由 `/403`） | `已实现` |
+| `apps/plus-ui/src/views/error/500.vue` | 服务异常页（PAGE-500，静态路由 `/500`） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_error-pages_verification.log` | 本批门禁证据 | `review` |

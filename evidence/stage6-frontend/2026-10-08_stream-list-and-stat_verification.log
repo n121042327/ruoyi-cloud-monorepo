@@ -1,0 +1,13 @@
+# 阶段 6 证据：选科清单 + 组合分布统计（CR-076，2026-10-08）
+
+check_fe_page_structure=0（新增 PAGE-STR-LIST 8 列 / PAGE-STR-STAT 6 列两条对照）
+check_api_contract=0  check_docs=0  check_gap_register=0  check_mermaid=0
+typecheck exit=1 error TS=51（基线 51）
+lint exit=1 ✖ 124 problems (124 errors, 0 warnings)
+build exit=0 成功
+
+补记：
+1) 两页都按 D-150 的经验把非主表内容拆到子组件：选科清单的变更申请弹窗与变更记录时间线、
+   统计页的「学科选择人数」第二张表都在 components/ 下，页面文件里只留主表列。
+2) 首轮 lint = 128，统一 CRLF 后 `eslint --fix` 回到 124；typecheck 首轮即 51。
+

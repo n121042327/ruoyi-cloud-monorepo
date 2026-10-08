@@ -1,0 +1,13 @@
+# 阶段 6 证据：通用导入向导 + 班级合并（CR-079，2026-10-08）
+
+check_fe_page_structure=0（新增 PAGE-IMP-WIZARD 列对照与 PAGE-CLS-MERGE 分组对照）
+check_api_contract=0  check_docs=0  check_gap_register=0（89 条，无 open）  check_mermaid=0
+typecheck exit=1 error TS=51（基线 51）
+lint exit=1 ✖ 124 problems (124 errors, 0 warnings)
+build exit=0 成功
+
+补记：
+1) PAGE-CLS-MERGE 在页面树里没有原型（prototype_file 为「—」，batch: deferred，GAP-088 取推荐方案实现），
+   CHECKS 会先校验原型文件是否存在，因此该页登记到 OVERLAY_CHECKS（只核对分组顺序，不做列比对）。
+2) 首轮 lint = 130，统一 CRLF 后 `eslint --fix` 回到 124；typecheck 首轮即 51。
+

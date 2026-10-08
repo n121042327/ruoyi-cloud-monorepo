@@ -1,0 +1,23 @@
+# 阶段 6 证据：GAP-084 联系电话查看完整接口（CR-046）
+命令与结果（2026-10-07）：
+
+$ python tools/extract_api_catalog.py && python tools/gen_api_and_map.py && python tools/gen_stage5_docs.py
+生成：11 个模块 / 185 个 operationId；OpenAPI 185 个 / 164 条路径；11 个模块详细设计 / 185 个接口
+
+$ python tools/check_api_contract.py   (exit 0)
+OpenAPI operationId：185 个
+通过：接口契约一致
+
+$ python tools/check_fe_page_structure.py   (exit 0)
+通过：生产页面结构与应用原型一致
+
+$ pnpm --filter @edu/plus-ui typecheck   (exit 1)
+error TS 总数：51（基线 51，本批新增 0）
+
+$ pnpm --filter @edu/plus-ui lint:eslint   (exit 1)
+汇总：✖ 124 problems (124 errors, 0 warnings)（基线 125 项，本批无新增）
+新增文件相关报错：无
+
+$ pnpm --filter @edu/plus-ui run build:prod   (exit 0)
+构建结果：成功（built in）
+

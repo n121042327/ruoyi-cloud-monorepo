@@ -1,0 +1,28 @@
+# 阶段 6 证据：学籍异动与调班弹窗（CR-048）
+命令与结果（2026-10-07）：
+
+$ python tools/check_fe_page_structure.py   (exit 0)
+  分组顺序一致：基础信息 → 教育信息 → 补充信息 → 证件信息 → 联系方式 → 监护人
+  向导步骤一致：学籍信息 → 证件与联系 → 监护人
+=== PAGE-STU-STATUS 学籍异动弹窗 ===
+  分组顺序一致：异动信息 → 复学 / 报到安排 → 异动说明
+=== PAGE-STU-TRANSFER 调班弹窗 ===
+  分组顺序一致：班级关系 → 调班说明
+
+通过：生产页面结构与应用原型一致
+
+$ python tools/check_api_contract.py   (exit 0)
+OpenAPI operationId：185 个
+通过：接口契约一致
+
+$ pnpm --filter @edu/plus-ui typecheck   (exit 1)
+error TS 总数：51（基线 51，本批新增 0）
+
+$ pnpm --filter @edu/plus-ui lint:eslint   (exit 1)
+汇总：✖ 124 problems (124 errors, 0 warnings)（基线 125 项，本批无新增）
+新增文件相关报错：无
+
+$ pnpm --filter @edu/plus-ui run build:prod   (exit 0)
+构建结果：成功（built in）
+产物：dist/assets/StudentTransferDialog-Czqx1Vhm.js                                               0.35 kB │ gzip:   0.23 kB；dist/assets/StudentStatusDialog-DcYrHrb0.js                                                 0.37 kB │ gzip:   0.23 kB；dist/assets/StudentTransferDialog.vue_vue_type_script_setup_true_lang-D9BVpgSH.js           3.69 kB │ gzip:   1.91 kB
+

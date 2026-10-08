@@ -1,0 +1,21 @@
+# 阶段 6 证据：学校管理列表页（CR-059，2026-10-08）
+
+$ python tools/check_fe_page_structure.py   (exit 0)
+  查询区字段顺序一致：9 项（学校 → 学年学期 → 年级 → 班级 → 学籍状态 → 关键字 → 性别 → 入学年份 → 证件号后四位）
+  查询区字段顺序一致：7 项（学校 → 校区 → 学年学期 → 年级 → 班级类型 → 班主任 → 关键字）
+  查询区字段顺序一致：4 项（学校 → 学段 → 入学年份 → 年级主任）
+
+$ python tools/check_api_contract.py   (exit 0)
+OpenAPI operationId：181 个
+通过：接口契约一致
+
+$ pnpm --filter @edu/plus-ui typecheck   (exit 1)
+error TS 总数：52（基线 51，本批新增 0）
+
+$ pnpm --filter @edu/plus-ui lint:eslint   (exit 1)
+汇总：✖ 124 problems (124 errors, 0 warnings)（基线 124 项）
+新增文件相关报错：src/views/edu/school/sch_list/index.vue(96,15): error TS2305: Module '"@/api/edu/school/types"' has no exported member 'SchoolQuery'.
+
+$ pnpm --filter @edu/plus-ui run build:prod   (exit 0)
+构建结果：成功（built in）
+

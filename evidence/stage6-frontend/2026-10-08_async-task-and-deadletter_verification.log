@@ -1,0 +1,7 @@
+# 阶段 6 证据：异步任务与死信任务（CR-066，2026-10-08）
+
+check_fe_page_structure=0  check_api_contract=0
+typecheck exit=1 error TS=51（基线 51）
+lint exit=1 ✖ 124 problems (124 errors, 0 warnings)
+build exit=0 成功
+

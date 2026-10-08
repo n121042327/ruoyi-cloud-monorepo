@@ -2549,6 +2549,224 @@ gaps:
     resolved_at: "2026-10-02"
     status: closed
 
+  - id: GAP-084
+    title: 学生联系电话的明文查看缺接口契约（原型里该动作为演示项，没有 operationId）
+    discovered_at: 2026-10-02
+    discovered_by: Codex 实现阶段 6 学生详情抽屉时
+    evidence: |
+      prototypes/functional/v2/pages/student-list.html 的详情抽屉里，「联系电话」一节带「查看完整」按钮，
+      权限写 person.student_contact:read_contact，但 data-api="-"（演示项、无 operationId）；
+      同一抽屉的「证件号码 · 查看完整」则指向 viewStudentIdCard。
+      docs/10-prd/modules/student/PRD.md 第 8 节没有「查看完整联系电话」的接口；
+      字段字典把 student_phone 标为敏感字段（06-field-dictionary.yaml）。
+      权限归属已有依据：05-permission-matrix.yaml 的 read_contact → 教务主任 / 班主任 / 校领导（GAP-026 已关闭）。
+    impact: |
+      阶段 6 无法为「联系电话查看完整」生成前端调用：不加按钮与原型不一致，加了按钮则没有可调接口。
+      若直接复用证件号接口（viewStudentIdCard），会把两类敏感字段的审计口径混在一起，阶段 8 的
+      CHK-PERMISSION 无法按字段核对；若总是掩码展示，班主任在需要联系家长时缺少入口。
+    options:
+      - A 补一个 operationId `viewStudentPhone`（GET /edu/student/{id}/phone），权限沿用 person.student_contact 的 read_contact，写敏感数据访问日志（推荐）
+      - B 把联系电话与证件号合并为一个「查看学生敏感字段」接口，按 field 参数区分
+      - C 首轮不提供明文查看，只保留掩码（需要联系家长时走线下渠道）
+    recommended: |
+      A。与证件号的 viewStudentIdCard 对称，权限与审计按字段各自留痕，阶段 8 能逐字段核对；
+      合并成 B 会让一次调用同时可能返回两类敏感字段，审计粒度变粗；C 与原型和现场使用习惯都不符。
+    blocking: false
+    blocks_stages:
+      - stage6
+      - stage8
+    owner: 用户
+    answer: 用户于 2026-10-07 批注「同意」，采纳推荐 A：补 `viewStudentPhone`。
+    resolution: |
+      按 CR-046 落地：学生 PRD 升 1.0.8，第 8 节补 `viewStudentPhone`
+      （GET /edu/student/{id}/phone，权限 `person.student_contact` 的 `read_contact`，写敏感数据访问日志），
+      与 `viewStudentIdCard` 对称；requirement-links 的 REQ-STU-013 挂上该接口。
+      重跑 extract_api_catalog.py / gen_api_and_map.py / gen_stage5_docs.py 后 operationId 184 → 185，
+      OpenAPI 185 个 / 164 条路径；前端详情抽屉的「联系电话 · 查看完整」按 read_contact 显示并接上接口，
+      移除界面上的 GAP-084 标注。
+    resolved_at: "2026-10-07"
+    status: closed
+
+  - id: GAP-085
+    title: 跨校转学「转出校发起」有两个接口（升班模块 addTransfer 与学生模块 crossSchoolTransfer），未裁决用哪个
+    discovered_at: 2026-10-07
+    discovered_by: Codex 实现阶段 6 跨校转学（转出校）向导时
+    evidence: |
+      docs/10-prd/modules/promotion/PRD.md 第 8 节：`addTransfer`（POST /edu/enrollment/transfer）说明写「发起转出」，
+      与 `acceptTransfer`（接收）、`checkInTransfer`（报到）、`cancelTransfer`（撤销）同属一组转学单接口。
+      docs/10-prd/modules/student/PRD.md 第 8 节：`crossSchoolTransfer`（POST /edu/student/cross-school-transfer）说明写「跨校转学」。
+      冻结原型 prototypes/functional/v1/pages/student-cross-transfer.html 的提交按钮写 data-api="addTransfer"，
+      而该页面在 docs/40-detailed-design/frontend-page-tree.yaml 里归属学生模块（PAGE-STU-CROSS-TRANSFER，module: student）。
+      需求链同样分成两条：REQ-PRM-050 / 051（转出校发起）挂 addTransfer，REQ-STU-039 / 040 挂 crossSchoolTransfer。
+    impact: |
+      阶段 6 无法为转出校页面确定提交目标：两个接口都能表达同一个业务动作，等于「一个动作两个写入口」，
+      与 DP-01（每个字段只有一个写入入口）冲突；阶段 8 的 CHK-ORPHAN-API 会出现两条需求链指向两个接口，
+      CHK-PERMISSION 也要为同一动作维护两套权限与审计口径。本批已交付学生列表的批量导出 / 批量调班与
+      异动登记入口，跨校转学的两个向导页面等这条裁决后再做。
+    options:
+      - A 统一用升班模块的 `addTransfer`，学生模块的 `crossSchoolTransfer` 标注废弃并从学生 PRD 第 8 节移除（推荐）
+      - B 统一用学生模块的 `crossSchoolTransfer`，升班模块只保留接收 / 报到 / 撤销
+      - C 两个都保留，按调用方（学生页 / 升班页）区分
+    recommended: |
+      A。转学单是跨校业务实体，发起 → 接收 → 报到 → 撤销四步必须落在同一模块，权限与审计才能一套；
+      B 会把「发起」与「接收 / 报到」拆到两个模块，两侧要各写一套规则；C 直接违反 DP-01。
+    blocking: false
+    blocks_stages:
+      - stage6
+      - stage8
+    owner: 用户
+    answer: 用户于 2026-10-07 批注「按推荐，继续」，采纳推荐 A：统一用升班模块的 `addTransfer`。
+    resolution: |
+      按 CR-050 落地：学生 PRD 升 1.0.9，第 8 节删除 `crossSchoolTransfer` 并加注「跨校转学复用升班模块的
+      `addTransfer`，与接收 / 报到 / 撤销同组」；requirement-links 的 REQ-STU-039 / 040 改挂 `addTransfer`。
+      重跑 extract_api_catalog.py / gen_api_and_map.py / gen_stage5_docs.py 后 operationId 185 → 184，
+      OpenAPI 184 个 / 163 条路径；check_api_contract.py 通过（v2 原型没有引用被删除的接口）。
+      跨校转学的两个向导页面按 `addTransfer` 实现（`PAGE-STU-CROSS-TRANSFER` 本批交付，
+      `PAGE-PRM-TRANSFER` 用同一组接口的接收 / 报到）。
+    resolved_at: "2026-10-07"
+    status: closed
+
+  - id: GAP-086
+    title: 学生批量导入向导的动作有两套接口（导入导出模块的通用接口 vs 学生模块的 import*Student*），未裁决用哪套
+    discovered_at: 2026-10-08
+    discovered_by: Codex 实现阶段 6 学生导入向导时
+    evidence: |
+      docs/10-prd/modules/import-export/PRD.md 第 8 节：`downloadImportTemplate`（GET /edu/import/template/{module}）、
+      `validateImportFile`（POST /edu/import/validate）、`executeImport`（POST /edu/import/execute，异步）、
+      `downloadImportFailedRows`、`downloadImportResult` —— 覆盖模板下载、上传校验、失败明细与结果文件。
+      docs/10-prd/modules/student/PRD.md 第 8 节：`downloadStudentImportTemplate`（GET /edu/student/import/template）、
+      `importStudentValidate`（POST /edu/student/import/validate）、`importStudentExecute`（POST /edu/student/import/execute）。
+      冻结原型 prototypes/functional/v1/pages/student-import.html 的动作写的是通用接口
+      （downloadImportTemplate / validateImportFile / executeImport / downloadImportFailedRows / downloadImportResult），
+      而 requirement-links.yaml 里 REQ-STU-052 ~ 060（模板列、校验规则、幂等）挂的是学生模块的三个接口。
+    impact: |
+      导入向导页面的「下载模板 / 上传校验 / 确认执行 / 下载失败行 / 下载结果」各自有两个可选 operationId，
+      阶段 6 无法确定调用目标；若两套都实现，同一个导入批次会出现两个写入口，与 DP-01 冲突，
+      阶段 8 的 CHK-ORPHAN-API 与 CHK-PERMISSION 也要为同一动作维护两套口径。
+      本批先登记，学生导入向导页面等裁决后再做；同批改为交付班级列表页（不依赖该裁决）。
+    options:
+      - A 统一走导入导出模块的通用接口，学生模块的 3 个 import*Student* 从第 8 节移除并标注废弃（推荐）
+      - B 统一走学生模块的 3 个接口，导入导出模块不再对外暴露模板 / 校验 / 执行
+      - C 两层都保留：页面调通用接口，学生模块接口作为内部实现，并在两份 PRD 写明委托关系
+    recommended: |
+      A。导入引擎、模板注册、批次与错误明细、结果文件都在导入导出模块，模板与校验规则由业务模块声明（REQ-IMP-002）；
+      冻结原型的动作也指向通用接口。B 会把引擎能力拆散到各业务模块；C 虽可行，但要额外维护一层委托说明，
+      收益仅是保留历史接口名，不如直接收敛。
+    blocking: false
+    blocks_stages:
+      - stage6
+      - stage8
+    owner: 用户
+    answer: 用户于 2026-10-08 批注「按推荐，继续……需要我确认的直接按推荐走」，采纳推荐 A。
+    resolution: |
+      按 CR-053 落地：学生 PRD 升 1.1.0，第 8 节删除 `downloadStudentImportTemplate` /
+      `importStudentValidate` / `importStudentExecute`，并加注「学生导入复用导入导出模块的通用接口」；
+      requirement-links 的 REQ-STU-052 ~ 060 改挂 `downloadImportTemplate` / `validateImportFile` / `executeImport`。
+      重跑生成器后 operationId 184 → 181，OpenAPI 181 个 / 160 条路径；v2 学生列表原型的「下载模板」
+      按钮由 `downloadStudentImportTemplate` 改为 `downloadImportTemplate`（v2 属现行版本，随裁决同步）。
+      前端按通用接口实现学生导入向导（`PAGE-STU-IMPORT`）。
+    resolved_at: "2026-10-08"
+    status: closed
+
+  - id: GAP-087
+    title: 登录 / 403 / 404 / 500 四条路由的 view_component 指向 views/edu/common/*，与实际框架组件不符
+    discovered_at: 2026-10-08
+    discovered_by: 阶段 6 路由盘点（自动化 6）
+    evidence: |
+      docs/40-detailed-design/frontend-page-tree.yaml 第 468 ~ 511 行把 PAGE-LOGIN / PAGE-403 / PAGE-404 / PAGE-500
+      的 view_component 写成 views/edu/common/{login,403,404,500}/index.vue；
+      实际 apps/plus-ui 里 `/login` 指向 src/views/login.vue、`/404` 指向 src/views/error/404.vue（router/index.ts 第 46 ~ 57 行），
+      目录 apps/plus-ui/src/views/error/ 只有 401.vue 与 404.vue，没有 403.vue / 500.vue。
+    expected: 四条路由在生产前端都有对应 view（阶段 6 完成判据）
+    actual: 登录与 404 已有框架组件但路径与页面树不一致；403 与 500 组件根本不存在
+    impact: |
+      不处理则 45 条路由的完成判据无法闭合；若照页面树新建 views/edu/common/*，会与框架既有实现重复，
+      并让后续升级 RuoYi 模板时产生两份登录 / 404。
+    options:
+      - 登录与 404 复用框架既有组件，403 / 500 新建 views/error/403.vue 与 views/error/500.vue，并按实际组件修正页面树的 view_component
+      - 照页面树在 views/edu/common/* 下重建四个组件，替换框架既有登录与 404
+      - 四条路由全部沿用框架现状（403 / 500 不建页面，缺页时由 404 兜底）
+    recommended: |
+      选项 1。登录与 404 属 RuoYi 框架层，替换会与模板升级冲突；403 / 500 是 PRD 与原型都要求的产品页，
+      必须新建，但归属 error 目录更贴近框架约定。页面树作为阶段 5 冻结产物，按变更流程在下一版修正路径。
+    blocking: false
+    blocks_stages:
+      - stage6
+    owner: 用户
+    answer: 用户 2026-10-07 起多次授权「需要拍板的按推荐走」，采纳推荐选项 1。
+    resolution: |
+      已按 CR-080 落地：新建 apps/plus-ui/src/views/error/403.vue 与 500.vue（对齐 prototypes/functional/v1/pages/403.html、500.html），
+      在 router/index.ts 的静态路由区登记 `/403`、`/500`（与既有 `/401`、`/404` 同区）；登录与 404 保持框架既有组件
+      （src/views/login.vue、src/views/error/404.vue）不动。
+      页面树 view_component 的 `views/edu/common/*` 不再就地修改：frontend-page-tree.yaml 是由 tools/gen_api_and_map.py
+      按 conventions.views_root 推导生成的投影（文件头 `generated_by`），且该文件自身的 conventions 已写明「仅登录页与异常页是静态路由」，
+      两者不冲突；建议的阶段 5 产物下一版修订是给生成器加一条例外（静态路由不套 views_root），本轮以 CR-080 留痕，不改冻结/生成产物。
+    resolved_at: "2026-10-08"
+    status: closed
+
+  - id: GAP-088
+    title: PAGE-CLS-MERGE（班级合并）在页面树里没有原型且被标为 deferred
+    discovered_at: 2026-10-08
+    discovered_by: 阶段 6 路由盘点（自动化 6）
+    evidence: |
+      docs/40-detailed-design/frontend-page-tree.yaml 第 149 ~ 159 行：PAGE-CLS-MERGE 的 prototype_file 与
+      high_fidelity_file 均为「—」，batch 标为 deferred，但 route `/edu/class/merge` 仍计入 45 条路由；
+      接口存在：docs/40-detailed-design/api/openapi.yaml 第 1061 ~ 1066 行 `mergeClass`（POST /edu/class/merge）。
+    expected: 45 条路由在生产前端都有对应 view
+    actual: 该页既无原型可做结构对照，又被阶段 5 标为 deferred，等于「列了路由但不打算做」
+    impact: |
+      不处理则完成判据无法闭合，也无法判断这个路由是该做还是该从清单里摘掉；
+      照原型标准又做不出结构对照，因为根本没有原型文件。
+    options:
+      - 按 `mergeClass` 实现一个精简合并向导（源班级多选 → 目标班级 → 影响预览 → 执行），结构对照只登记文件存在与分组，不做列比对
+      - 视为阶段 5 的登记错误，从 45 条路由清单中摘除，并在页面树与 PRD 里注明「班级合并不在首轮范围」
+      - 保持 deferred 不动，阶段 6 完成判据按 44 条计
+    recommended: |
+      选项 1。接口与权限资源都已就绪，产品上「合并班级」是编班的实际需求，做成精简向导的成本低于
+      回头改阶段 5 冻结产物；结构对照缺原型这一点在 gap 里留痕即可。
+    blocking: false
+    blocks_stages:
+      - stage6
+    owner: 用户
+    answer: 用户 2026-10-07 起多次授权「需要拍板的按推荐走」，采纳推荐选项 1。
+    resolution: |
+      待落地（本轮先登记）：按 `mergeClass` 实现 `views/edu/class/cls_merge/index.vue`（源班级多选 + 目标班级 + 影响预览 + 执行），
+      在 check_fe_page_structure.py 里只登记文件与分组、不做列比对，并在 CR 里写明「无原型」的原因。
+    resolved_at: "2026-10-08"
+    status: answered
+
+  - id: GAP-089
+    title: 任教关系导出在原形里引用 exportTeachingAssignment，但契约没有该 operationId
+    discovered_at: 2026-10-08
+    discovered_by: 阶段 6 页面实现（自动化 6）
+    evidence: |
+      prototypes/functional/v1/pages/teacher-assign.html 第 41 行的导出按钮标注 `data-api="exportTeachingAssignment"`；
+      全量搜索 docs/40-detailed-design/api/openapi.yaml 无该 operationId（`exportTeachingAssignment` 命中 0 处），
+      契约里的导出只有各模块自带（exportTeacher / exportClass / exportStreamSelection …）与通用 `exportData`（POST /edu/export，第 3039 ~ 3043 行）。
+    expected: 任教关系导出有唯一、可追溯的接口
+    actual: 原型引用的接口名在契约里不存在
+    impact: |
+      不处理则该页的导出按钮没有可调用的契约；若自造一个 `exportTeachingAssignment` 又会与「operationId 必须来自
+      openapi.yaml」的阶段门禁冲突，并且与已有的通用导出引擎重复。
+    options:
+      - 统一走通用导出 `exportData`（module=teachingAssignment），并在阶段 5 产物里登记该模块的导出对象
+      - 在 OpenAPI 里新增 `exportTeachingAssignment`（POST /edu/teacher/assignment/export），保持与其它模块导出的命名一致
+      - 本批不做导出按钮，等阶段 7 后端确定导出实现后再补
+    recommended: |
+      选项 1。与 GAP-086 对「学生导入」的裁决同一口径：导出引擎、文件生成与结果文件都在导入导出模块，
+      业务模块只声明导出对象与默认列；这样不必为每个模块新增一个近乎相同的导出 operationId。
+    blocking: false
+    blocks_stages:
+      - stage6
+    owner: 用户
+    answer: 用户 2026-10-07 起多次授权「需要拍板的按推荐走」，采纳推荐选项 1。
+    resolution: |
+      按 CR-078 落地：任教关系导出改调通用 `exportData`（`apps/plus-ui/src/api/edu/importExport/index.ts` 新增该函数，
+      POST /edu/export，module=teachingAssignment）；`exportTeachingAssignment` 不落地。阶段 5 的页面树/接口清单
+      在下一版把该模块的导出对象登记到导入导出模块名下。
+    resolved_at: "2026-10-08"
+    status: answered
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"
@@ -2637,4 +2855,4 @@ open_questions_for_user:
   - "阶段 2 批次 2-9 已产出待验收：异步任务列表（8 列 7 行 + PAGE-IMP-TASK-DETAIL 详情抽屉 + PAGE-IMP-EXPORT 导出配置弹窗）、死信任务（7 列 3 行 + 重试与并发配置统计卡 + DIALOG-DLQ-REPLAY 重放确认）；动作 ACT-TASK-001 ~ 051 已登记；harness verify-task 22 / 22 通过，见 D-083。"
   - "新增 GAP-060 并已关闭：死信重放需要二次确认但导入导出 PRD 6.1 未登记片段。用户授权默认取推荐，按 CR-019 补登记 DIALOG-DLQ-REPLAY，导入导出 PRD 升 1.0.1-draft，见 D-083。"
   - "**阶段 2（业务原型）已收尾**：2-1 ~ 2-9 共 9 批全部产出待验收，累计 45 个页面文件承载 96 个页面编号，19 个 harness 全绿（合计 508 条断言），check_docs 通过。下一步按用户授权合并本地 main，然后进阶段 3（独立高保真原型）。"
-  - "**2026-10-02 生产代码前的治理项已全部关闭**：按 CR-042 完成 GAP-081 的 626 条需求逐条挂接（接口链 580 / 表链 537，178 个 operationId 全部可追溯到需求）；按 CR-043 补齐 GAP-082（学生激活码 4 个接口）与 GAP-083（教师启用账号 / 复制任教关系 2 个接口），operationId 178 → 184。缺项表当前无 open 项（其余为已落地并留结论的 closed / answered 记录），阶段 6 的输入文件已齐；接口与表仍是设计态，实现与测试属阶段 6 / 7 / 8。"
+  - "**2026-10-02 生产代码前的治理项已全部关闭**：按 CR-042 完成 GAP-081 的 626 条需求逐条挂接（接口链 580 / 表链 537，178 个 operationId 全部可追溯到需求）；按 CR-043 补齐 GAP-082（学生激活码 4 个接口）与 GAP-083（教师启用账号 / 复制任教关系 2 个接口），operationId 178 → 184。缺项表当时无 open 项（其余为已落地并留结论的 closed / answered 记录），阶段 6 的输入文件已齐。**进入阶段 6 后新增三条**：GAP-084（学生联系电话明文查看缺接口契约）已按裁决补 `viewStudentPhone` 关闭；GAP-085（跨校转学的「转出校发起」有两个接口）已按裁决统一为升班模块的 `addTransfer` 关闭；**GAP-086（学生导入向导的动作有两套接口）当前 open**，推荐统一走导入导出模块的通用接口，未确认前学生导入向导页面不做。"

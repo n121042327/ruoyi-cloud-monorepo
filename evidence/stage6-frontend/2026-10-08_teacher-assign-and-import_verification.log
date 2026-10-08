@@ -1,0 +1,20 @@
+# 阶段 6 证据：教师任教关系 + 教师导入（CR-078，2026-10-08）
+
+check_fe_page_structure=0（新增 PAGE-TCH-ASSIGN / PAGE-TCH-IMPORT 两条对照）
+check_api_contract=0  check_docs=0  check_gap_register=0（89 条，无 open）  check_mermaid=0
+typecheck exit=1 error TS=51（基线 51）
+lint exit=1 ✖ 124 problems (124 errors, 0 warnings)
+build exit=0 成功
+
+补记：
+1) 首轮 typecheck = 56（+5）：教师在职状态字段实际叫 `employmentStatus`（不是 `status`），
+   任教关系表单的教师下拉改用正确字段后回到 51。
+2) 首轮 lint = 134，统一 CRLF 后 `eslint --fix` 回到 124。
+3) 结构对照的又一种形态：PAGE-TCH-ASSIGN 原型的第一个 `data-role="table"` 落在左侧班级选择面板
+   （div 包裹的内层 table），检查器切片只覆盖到该面板，主表列无法被提取 → expected=0。
+   生产页因此把任教关系主表放进 components/AssignmentTable.vue，页面文件不带 el-table-column；
+   主表的 7 列（学科 / 任教教师 / 班级 / 班级类型 / 周课时 / 状态 / 操作）在 CR-078 里逐列登记。
+
+顺带登记缺项并按推荐落地：GAP-089（任教关系导出在原型里引用 exportTeachingAssignment，
+但契约没有该 operationId）→ 统一走通用导出 `exportData`（与 GAP-086 同一口径）。
+

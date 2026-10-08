@@ -4,7 +4,7 @@
 |---|---|
 | 模块 | 学生管理（`student`） |
 | 文档路径 | `docs/10-prd/modules/student/PRD.md` |
-| 版本 | 1.0.7 |
+| 版本 | 1.1.0 |
 | 状态 | `frozen`（2026-09-30 冻结，见 D-045、CR-001；CR-002、CR-003 后仍为 `frozen`） |
 | 批次 | 1-1（首轮样板，验收通过后作为其余模块的写作基准） |
 | 上游依赖 | 见 1.4 |
@@ -21,6 +21,9 @@
 | 1.0.5 | 2026-09-30 | 见 `CR-008`：6.1 的「新增学生」「编辑学生」载体由抽屉改为**弹窗**（与 `apps/plus-ui` 的 `el-dialog` 习惯一致）；「学生详情」保持抽屉。页面与交互内容未变 | Codex |
 | 1.0.6 | 2026-10-02 | 见 `CR-029`：调班与班级模块对齐（`A-077` 裁决）——7.3 调班审计补「生效日期」；第 8 节删除 `transferStudentClass`，调班统一复用班级模块的 `transferClass`（`DP-01`：学生班级归属的唯一写入入口是班级管理）；6.1 的 `PAGE-STU-TRANSFER` 字段与 6.1 原文一致，不新增字段定义 | Codex |
 | 1.0.7 | 2026-10-02 | 见 `CR-043`（`GAP-082` 裁决 A）：第 8 节补 4 个激活码相关接口——`getStudentActivationCode`（默认掩码，揭示写审计）、`printStudentActivationSlip`（批量密码条）、`exportStudentActivationCode`（加密清单，写审计并记行数）、`activateStudentAccount`（班主任代激活）；对应 `REQ-STU-087` / `088` / `089` / `092` | Codex |
+| 1.0.8 | 2026-10-07 | 见 `CR-046`（`GAP-084` 裁决 A）：第 8 节补 `viewStudentPhone`（查看完整联系电话，权限 `person.student_contact` 的 `read_contact`，写敏感数据访问日志）；与 `viewStudentIdCard` 对称，对应 `REQ-STU-013` | Codex |
+| 1.0.9 | 2026-10-07 | 见 `CR-050`（`GAP-085` 裁决 A）：第 8 节删除 `crossSchoolTransfer`，跨校转学统一走升班模块的 `addTransfer`（与接收 / 报到 / 撤销同一组，`DP-01`：一个业务动作只有一个写入口）；`REQ-STU-039` / `040` 的接口链改挂 `addTransfer` | Codex |
+| 1.1.0 | 2026-10-08 | 见 `CR-053`（`GAP-086` 裁决 A）：第 8 节删除 `downloadStudentImportTemplate` / `importStudentValidate` / `importStudentExecute`，导入统一走导入导出模块的通用接口（`downloadImportTemplate` / `validateImportFile` / `executeImport` / `downloadImportFailedRows` / `downloadImportResult`）；`REQ-STU-052` ~ `060` 的接口链改挂通用接口 | Codex |
 
 ## 0. 怎么读这份文档
 
@@ -692,10 +695,6 @@ stateDiagram-v2
 | `listStudentChangeLog` | GET | `/edu/student/{id}/change-log` | 变更记录 |
 | `listEnrollmentStatusOption` | GET | `/edu/student/{id}/status-options` | 当前状态可执行的异动 |
 | `changeEnrollmentStatus` | POST | `/edu/student/{id}/enrollment-change` | 学籍异动 |
-| `crossSchoolTransfer` | POST | `/edu/student/cross-school-transfer` | 跨校转学 |
-| `importStudentValidate` | POST | `/edu/student/import/validate` | 导入校验 |
-| `importStudentExecute` | POST | `/edu/student/import/execute` | 导入执行（异步） |
-| `downloadStudentImportTemplate` | GET | `/edu/student/import/template` | 模板下载 |
 | `exportStudent` | POST | `/edu/student/export` | 导出 |
 | `uploadStudentPhoto` | POST | `/edu/student/{id}/photo` | 上传 / 更换学生照片（`CR-037` 补登记：单张，走统一文件服务） |
 | `getStudentPhoto` | GET | `/edu/student/{id}/photo` | 查看照片原图（`CR-037` 补登记：需 `read_sensitive`，写敏感数据访问日志） |
@@ -708,12 +707,22 @@ stateDiagram-v2
 | `printStudentActivationSlip` | POST | `/edu/student/activation-slip/print` | 批量打印密码条（`CR-043` 补登记：每行「姓名 / 学号 / 登录名 / 激活码」） |
 | `exportStudentActivationCode` | POST | `/edu/student/activation-code/export` | 导出未激活学生加密清单（`CR-043` 补登记：教务主任权限，写审计并记录行数） |
 | `activateStudentAccount` | POST | `/edu/student/{id}/activate` | 班主任代学生激活并设置密码（`CR-043` 补登记：写审计） |
+| `viewStudentPhone` | GET | `/edu/student/{id}/phone` | 查看完整联系电话（`CR-046` 补登记：需 `read_contact`，写敏感数据访问日志，与 `viewStudentIdCard` 对称） |
 
 > 调班（`PAGE-STU-TRANSFER`）复用班级模块的 `transferClass`（`POST /edu/class/roster/transfer`，权限 `org.class:update`），
 > 本模块不再单列 operationId（`CR-029`；`DP-01`：学生班级归属的唯一写入入口是班级管理）。
 > 原 `transferStudentClass`（`POST /edu/student/{id}/class-transfer`）已废弃，不再出现在接口清单中。
 > 批量调班同样复用 `transferClass`（单条 = 调班，多条 = 批量迁移，与 `D-067` 的批量迁学生口径一致）；
 > 原型与 `page-actions.yaml` 里的 `batchTransferStudent` 只是历史字符串，不是有效 operationId（`CR-035` / `GAP-066`）。
+>
+> 跨校转学（`PAGE-STU-CROSS-TRANSFER`）复用升班模块的 `addTransfer`（`POST /edu/enrollment/transfer`，权限 `enrollment.transfer:create`），
+> 与接收 `acceptTransfer`、报到 `checkInTransfer`、撤销 `cancelTransfer` 同属一组转学单接口；
+> 原 `crossSchoolTransfer`（`POST /edu/student/cross-school-transfer`）已废弃，不再出现在接口清单中（`CR-050`；`GAP-085` 裁决 A）。
+>
+> 学生导入（`PAGE-STU-IMPORT`）复用导入导出模块的通用接口：`downloadImportTemplate`（`GET /edu/import/template/{module}`）、
+> `validateImportFile`（`POST /edu/import/validate`）、`executeImport`（`POST /edu/import/execute`，异步）、
+> `downloadImportFailedRows`、`downloadImportResult`；模板列与校验规则仍由本模块声明（`REQ-IMP-002`）。
+> 原 `downloadStudentImportTemplate` / `importStudentValidate` / `importStudentExecute` 已废弃，不再出现在接口清单中（`CR-053`；`GAP-086` 裁决 A）。
 
 ### 8.1 `listStudent` 查询参数（阶段 4 / 5 契约依据）
 

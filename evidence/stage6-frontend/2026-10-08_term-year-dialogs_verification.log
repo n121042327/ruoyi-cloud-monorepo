@@ -1,0 +1,12 @@
+# 阶段 6 证据：新建 / 编辑学年与归档弹窗（CR-071，2026-10-08）
+
+check_fe_page_structure=0（含 PAGE-TERM-CREATE / PAGE-TERM-ARCHIVE 浮层对照）
+check_api_contract=0  check_docs=0  check_gap_register=0  check_mermaid=0
+typecheck exit=1 error TS=51（基线 51）
+lint exit=1 ✖ 124 problems (124 errors, 0 warnings)
+build exit=0 成功
+
+补记：本批新增源码首次 lint 为 259 项，全部是 prettier 的 `Insert ␍`（补丁写入为 LF，
+apps/plus-ui 要求 CRLF）；把改动文件统一为 CRLF 后回到 124，另有 4 项 prettier 换行建议用
+`eslint --fix` 自动修正，最终 = 基线 124。
+

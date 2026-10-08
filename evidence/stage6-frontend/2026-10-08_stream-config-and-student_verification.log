@@ -1,0 +1,15 @@
+# 阶段 6 证据：选科配置 + 学生选科（CR-075，2026-10-08）
+
+check_fe_page_structure=0（新增 PAGE-STR-CONFIG 与 PAGE-STR-STUDENT 两条对照，两页都无查询区无表格）
+check_api_contract=0  check_docs=0  check_gap_register=0  check_mermaid=0
+typecheck exit=1 error TS=51（基线 51）
+lint exit=1 ✖ 124 problems (124 errors, 0 warnings)
+build exit=0 成功
+
+补记：
+1) 结构对照首轮报「PAGE-STR-CONFIG 原型 0 列 / 生产页 4 列」：原因是把「未选科学生」弹窗里的
+   el-table 放在了页面文件里，检查器会把整页所有 el-table-column 计入主表比对。
+   把两个弹窗（未选科学生 / 选科历史）拆到 components/ 后通过 —— 这条同样是「检查器只认第一张表」
+   的同一类陷阱，后续凡是不属于主表的表格一律放子组件。
+2) 首轮 lint = 129，统一 CRLF 后 `eslint --fix` 回到 124；typecheck 首轮即 51。
+

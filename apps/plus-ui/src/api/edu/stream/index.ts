@@ -1,0 +1,270 @@
+import request from '@/utils/request';
+import { AxiosPromise } from 'axios';
+import {
+  MyStreamForm,
+  MyStreamVO,
+  StreamApproveForm,
+  StreamChangeRequestQuery,
+  StreamChangeRequestVO,
+  StreamChangeForm,
+  StreamConfigForm,
+  StreamConfigVO,
+  StreamHistoryVO,
+  StreamOptionVO,
+  StreamSelectionQuery,
+  StreamSelectionVO,
+  StreamStatVO,
+  TeachingClassGeneratePreviewVO,
+  UnselectedStudentVO
+} from './types';
+
+/**
+ * 查询选科配置（开放期与逾期审批口径）
+ *
+ * 对应 operationId `getStreamConfig`（GET /edu/stream/config）。
+ */
+export const getStreamConfig = (query?: { termId?: string }): AxiosPromise<StreamConfigVO> => {
+  return request({
+    url: '/edu/stream/config',
+    method: 'get',
+    params: query
+  });
+};
+
+/**
+ * 保存选科配置（变更写审计，NFR-AUDIT-01）
+ *
+ * 对应 operationId `saveStreamConfig`（PUT /edu/stream/config，权限 `stream.config:update`）。
+ */
+export const saveStreamConfig = (data: StreamConfigForm) => {
+  return request({
+    url: '/edu/stream/config',
+    method: 'put',
+    data
+  });
+};
+
+/**
+ * 查询选科可选科目（首选固定 2 门、再选固定 4 门，学校不可增减）
+ *
+ * 对应 operationId `getStreamOption`（GET /edu/stream/option）。
+ */
+export const getStreamOption = (): AxiosPromise<StreamOptionVO> => {
+  return request({
+    url: '/edu/stream/option',
+    method: 'get'
+  });
+};
+
+/**
+ * 查询我的选科结果
+ *
+ * 对应 operationId `getMyStream`（GET /edu/stream/my）。
+ */
+export const getMyStream = (query?: { termId?: string; studentId?: string }): AxiosPromise<MyStreamVO> => {
+  return request({
+    url: '/edu/stream/my',
+    method: 'get',
+    params: query
+  });
+};
+
+/**
+ * 提交我的选科（首次提交；截止后转为变更申请，BR-STREAM-005）
+ *
+ * 对应 operationId `submitMyStream`（POST /edu/stream/my，权限 `stream.selection:update`）。
+ */
+export const submitMyStream = (data: MyStreamForm) => {
+  return request({
+    url: '/edu/stream/my',
+    method: 'post',
+    data
+  });
+};
+
+/**
+ * 更新我的选科（变更；截止后进入审批待办）
+ *
+ * 对应 operationId `updateMyStream`（PUT /edu/stream/my，权限 `stream.selection:update`）。
+ */
+export const updateMyStream = (data: MyStreamForm) => {
+  return request({
+    url: '/edu/stream/my',
+    method: 'put',
+    data
+  });
+};
+
+/**
+ * 查询未选科学生清单（按年级 / 班级分组，用于催办）
+ *
+ * 对应 operationId `listUnselectedStudent`（GET /edu/stream/unselected）。
+ */
+export const listUnselectedStudent = (query?: Record<string, unknown>): AxiosPromise<UnselectedStudentVO[]> => {
+  return request({
+    url: '/edu/stream/unselected',
+    method: 'get',
+    params: query
+  });
+};
+
+/**
+ * 查询我的选科历史
+ *
+ * 对应 operationId `listStreamHistory`（GET /edu/stream/history）。
+ */
+export const listStreamHistory = (query?: { studentId?: string; termId?: string }): AxiosPromise<StreamHistoryVO[]> => {
+  return request({
+    url: '/edu/stream/history',
+    method: 'get',
+    params: query
+  });
+};
+
+/**
+ * 查询选科清单（PAGE-STR-LIST）
+ *
+ * 对应 operationId `listStreamSelection`（GET /edu/stream/selection/list）。
+ */
+export const listStreamSelection = (query?: StreamSelectionQuery): AxiosPromise<StreamSelectionVO[]> => {
+  return request({
+    url: '/edu/stream/selection/list',
+    method: 'get',
+    params: query
+  });
+};
+
+/**
+ * 组合分布统计（PAGE-STR-STAT；图表与明细表同源）
+ *
+ * 对应 operationId `getStreamStat`（GET /edu/stream/stat）。
+ */
+export const getStreamStat = (query?: { termId?: string; gradeId?: string }): AxiosPromise<StreamStatVO> => {
+  return request({
+    url: '/edu/stream/stat',
+    method: 'get',
+    params: query
+  });
+};
+
+/**
+ * 导出选科清单（PAGE-STR-LIST，权限 `data.export:export`）
+ *
+ * 对应 operationId `exportStreamSelection`（GET /edu/stream/export）。
+ */
+export const exportStreamSelection = (query?: StreamSelectionQuery) => {
+  return request({
+    url: '/edu/stream/export',
+    method: 'get',
+    params: query,
+    responseType: 'blob'
+  });
+};
+
+/**
+ * 提交选科变更申请（截止后走审批，PAGE-STR-CHANGE，BR-STREAM-005）
+ *
+ * 对应 operationId `addStreamChangeRequest`（POST /edu/stream/change，权限 `stream.change_request:create`）。
+ */
+export const addStreamChangeRequest = (data: StreamChangeForm) => {
+  return request({
+    url: '/edu/stream/change',
+    method: 'post',
+    data
+  });
+};
+
+/**
+ * 选科变更申请待办列表（PAGE-STR-APPROVE）
+ *
+ * 对应 operationId `listStreamChangeRequest`（GET /edu/stream/change/list）。
+ */
+export const listStreamChangeRequest = (query?: StreamChangeRequestQuery): AxiosPromise<StreamChangeRequestVO[]> => {
+  return request({
+    url: '/edu/stream/change/list',
+    method: 'get',
+    params: query
+  });
+};
+
+/**
+ * 审批变更申请（通过即生效 / 驳回；驳回意见必填，REQ-STR-037 / 039）
+ *
+ * 对应 operationId `approveStreamChangeRequest`（POST /edu/stream/change/{id}/approve，权限 `stream.change_request:approve`）。
+ */
+export const approveStreamChangeRequest = (data: StreamApproveForm) => {
+  return request({
+    url: `/edu/stream/change/${data.requestId}/approve`,
+    method: 'post',
+    data
+  });
+};
+
+/**
+ * 撤销变更申请（申请人侧撤回未审批的申请）
+ *
+ * 对应 operationId `cancelStreamChangeRequest`（POST /edu/stream/change/{id}/cancel）。
+ */
+export const cancelStreamChangeRequest = (requestId: string) => {
+  return request({
+    url: `/edu/stream/change/${requestId}/cancel`,
+    method: 'post'
+  });
+};
+
+/**
+ * 教学班生成预览（PAGE-STR-GEN-CLASS，幂等：只读不写）
+ *
+ * 对应 operationId `previewTeachingClassGenerate`（POST /edu/stream/teaching-class/preview）。
+ */
+export const previewTeachingClassGenerate = (data: {
+  termId?: string;
+  gradeId?: string;
+  generateMode?: string;
+  classNameRule?: string;
+}): AxiosPromise<TeachingClassGeneratePreviewVO> => {
+  return request({
+    url: '/edu/stream/teaching-class/preview',
+    method: 'post',
+    data
+  });
+};
+
+/**
+ * 执行教学班生成（幂等：同一批次重复提交不产生重复教学班）
+ *
+ * 对应 operationId `executeTeachingClassGenerate`（POST /edu/stream/teaching-class/generate）。
+ */
+export const executeTeachingClassGenerate = (data: {
+  termId?: string;
+  gradeId?: string;
+  generateMode?: string;
+  classNameRule?: string;
+  batchNo?: string;
+}) => {
+  return request({
+    url: '/edu/stream/teaching-class/generate',
+    method: 'post',
+    data
+  });
+};
+
+export default {
+  getStreamConfig,
+  saveStreamConfig,
+  getStreamOption,
+  getMyStream,
+  submitMyStream,
+  updateMyStream,
+  listUnselectedStudent,
+  listStreamHistory,
+  listStreamSelection,
+  getStreamStat,
+  exportStreamSelection,
+  addStreamChangeRequest,
+  listStreamChangeRequest,
+  approveStreamChangeRequest,
+  cancelStreamChangeRequest,
+  previewTeachingClassGenerate,
+  executeTeachingClassGenerate
+};

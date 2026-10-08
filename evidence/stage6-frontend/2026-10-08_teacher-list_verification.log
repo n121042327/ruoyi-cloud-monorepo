@@ -1,0 +1,20 @@
+# 阶段 6 证据：教师管理列表页（CR-056，2026-10-08）
+
+$ python tools/check_fe_page_structure.py   (exit 0)
+=== PAGE-TCH-LIST 教师管理列表 ===
+  表格列顺序与分组一致：10 列（工号(基础信息) → 姓名(基础信息) → 性别(基础信息) → 所属学校(教育信息) → 教育角色(教育信息) → 任教学科(教育信息) → 任课班级数(教育信息) → 在职状态(职业信息) → 联系电话(联系方式) → 操作(操作)）
+
+$ python tools/check_api_contract.py   (exit 0)
+OpenAPI operationId：181 个
+通过：接口契约一致
+
+$ pnpm --filter @edu/plus-ui typecheck   (exit 1)
+error TS 总数：51（基线 51，本批新增 0）
+
+$ pnpm --filter @edu/plus-ui lint:eslint   (exit 1)
+汇总：✖ 124 problems (124 errors, 0 warnings)（基线 124 项）
+新增文件相关报错：无
+
+$ pnpm --filter @edu/plus-ui run build:prod   (exit 0)
+构建结果：成功（built in）
+
