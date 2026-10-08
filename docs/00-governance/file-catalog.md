@@ -1244,3 +1244,14 @@
 | `.../script/config/nacos/datasource.yml`（改） | 四处数据源密码对齐本机实际（root） | `已实现` |
 | `services/RuoYi-Cloud-Plus/script/docker/docker-compose.yml` | 同上（catalog 校验用完整路径） | `已实现` |
 | `evidence/stage7-backend/2026-10-08_local-docker-env-fix.log` | 诊断与验证证据（端口可达性 / 表数 / nacos 启动日志） | `review` |
+
+## 2026-10-08 阶段 7 第二十批：本机基础设施切到 bridge 网络
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-099.md` | 基础设施切 bridge 的改动、口径与验证 | `review` |
+| `.../script/docker/docker-compose.yml`（改） | 全部 host 模式注释 + nacos 用服务名连库的环境变量 | `已实现` |
+| `.../script/docker/database.yml`（改） | oracle/postgres 的 host 模式同样注释 | `已实现` |
+| `.../script/docker/redis/data/.gitignore` | 忽略 redis 持久化文件，避免污染仓库 | `已实现` |
+| `services/RuoYi-Cloud-Plus/script/docker/docker-compose.yml` | 同上（catalog 校验用完整路径） | `已实现` |
+| `evidence/stage7-backend/2026-10-08_local-stack-bridge-network.log` | 端口可达性与 nacos/redis/minio 功能验证证据 | `review` |

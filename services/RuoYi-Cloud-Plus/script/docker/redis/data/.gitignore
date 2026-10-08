@@ -1,0 +1,4 @@
+# redis 的 AOF / RDB 文件写在仓库内这个目录（compose 用相对路径挂载），不要提交
+*
+!README.md
+!.gitignore

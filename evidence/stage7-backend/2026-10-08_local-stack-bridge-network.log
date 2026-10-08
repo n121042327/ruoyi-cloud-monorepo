@@ -1,0 +1,40 @@
+# 阶段 7 证据：本机基础设施切到 bridge 网络（CR-099，2026-10-08）
+
+目标（用户选定）：把 redis / nacos / minio 也改成 bridge + 发布端口，让 Windows 上的 IDE 能直连
+nacos(8848/9848)、redis(6379)、minio(9000/9001)，MySQL 已在 CR-098 完成。
+
+--- 本轮改动 ---
+
+1. 用户在 docker-compose.yml 与 database.yml 里把所有 `network_mode: "host"` 注释掉（本批提交一并纳入）。
+2. nacos 补环境变量，使其在 bridge 网络下能找到配置库：
+   DB_URL_0 / DB_USER_0 / DB_PASSWORD_0 -> jdbc:mysql://mysql:3306/ry-config、root、root
+   （bridge 下容器内 127.0.0.1 不是宿主机，必须用 compose 服务名 mysql）
+3. 新增 script/docker/redis/data/.gitignore：redis 数据目录改成相对路径后会写入 AOF 文件，避免污染仓库。
+
+--- 验证 ---
+
+容器网络模式：
+  mysql docker_default / redis docker_default / nacos docker_default / minio docker_default（全部 bridge）
+
+Windows 侧端口可达性（Test-NetConnection 127.0.0.1）：
+  3306 -> True   6379 -> True   8848 -> True   9848 -> True   9000 -> True   9001 -> True
+
+功能验证：
+  nacos 日志 -> "Nacos started successfully in stand alone mode. use external storage" + Tomcat started on 8848/nacos
+  nacos HTTP -> GET http://127.0.0.1:8848/nacos/ = 200（length 2801）
+  nacos 容器 env -> DB_URL_0=jdbc:mysql://mysql:3306/ry-config?... （确认覆盖生效）
+  redis -> docker exec redis redis-cli -a ruoyi123 ping = PONG
+  minio -> GET http://127.0.0.1:9000/minio/health/live = 200
+
+数据库（本轮补齐 ry-job / ry-workflow / ry-seata）：
+  ry-cloud 71（69 表 + 2 视图）、ry-config 10、ry-job 23、ry-workflow 12、ry-seata 5
+
+--- 该模式的边界 ---
+
+- 推荐形态：**基础设施在 Docker、Java 服务在 Windows（IDE）跑**。前端 vite 代理指向 127.0.0.1:8080，
+  网关在 Windows 跑时浏览器可正常访问。
+- compose 里的 app 服务（gateway/auth/system/resource/edu/…）现在也是 bridge，但它们启动时仍按
+  127.0.0.1 找 nacos、按 Nacos 配置里的 localhost 找库，因此**不能直接 compose up**：
+  要么按「基础设施在 Docker、应用在 Windows」的口径只起 mysql/redis/nacos/minio，
+  要么另做一轮把 app 服务改成 `SPRING_CLOUD_NACOS_SERVER_ADDR=nacos:8848` + 数据源 host=mysql
+  （注意那样会和 Windows 上跑的同名服务抢 8080/9201… 端口，两种形态互斥）。
