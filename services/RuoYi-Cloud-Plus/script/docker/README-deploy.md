@@ -33,15 +33,22 @@ docker compose -f script/docker/docker-compose.yml ps
 
 ```powershell
 # 基础表
-docker exec -i mysql mysql -uroot -pruoyi123 ry-cloud < script/sql/ry-cloud.sql
+docker exec -i mysql mysql --default-character-set=utf8mb4 -uroot -pruoyi123 ry-cloud < script/sql/ry-cloud.sql
 
 # 教育域表（V1 -> V6 顺序，V6 是学生联系电话的增量列）
 Get-ChildItem ..\..\docs\40-detailed-design\migrations\*.sql | Sort-Object Name |
-  ForEach-Object { docker exec -i mysql mysql -uroot -pruoyi123 ry-cloud < $_.FullName }
+  ForEach-Object { docker exec -i mysql mysql --default-character-set=utf8mb4 -uroot -pruoyi123 ry-cloud < $_.FullName }
 ```
 
 `script/sql/ry-config.sql`（Nacos 配置库）、`ry-job.sql`、`ry-workflow.sql`、`ry-seata.sql`
 按需导入；用上游 `ruoyi/ruoyi-nacos:2.6.2` 镜像时，配置库已经自带。
+
+> **含中文的 SQL 必须带 `--default-character-set=utf8mb4`**（所有库，包括 `ry-config.sql`）。
+> 不带这个参数时客户端按 latin1 解释 UTF-8 文件，中文会被**双重编码**写进库：
+> 表现就是 Nacos 控制台里命名空间的「开发环境 / 生产环境」变成 `å¼€å‘ç¯å¢ƒ` 这类乱码，
+> 或者导 `ry-cloud.sql` 时报 `Data too long for column 'nick_name'`。
+> 判断方法：`select hex(tenant_desc) from tenant_info` —— 正常应是 `E5BC80E58F91E78EAFE5A283`（“开发环境”），
+> 乱码则是 `C3A5C2BC...`（把 UTF-8 字节当 latin1 再编码的结果）。
 
 ## 3. 导入 Nacos 配置
 
@@ -80,6 +87,10 @@ foreach ($ns in @("dev","prod")) {
 > 注意：`ruoyi-config.sql`（Nacos 配置库的种子数据）里带的是**上游版本**的配置，
 > 直接用它会缺 `ruoyi-edu.yml`、且 `datasource.yml` 的密码、`application-common.yml` 的 `tenant.excludes`、
 > `ruoyi-gateway.yml` 的 edu 路由都会是旧的。**导入 `ry-config.sql` 之后必须再跑一次上面的同步。**
+>
+> 另外：这段 API 同步只提交 `content`，**不传 `desc` 时 Nacos 会把该配置的「描述」清空**
+> （控制台配置列表的描述列变空）。描述只影响可读性，不影响服务读取；需要保留就把 `ry-config.sql` 里
+> 各 dataId 的 `c_desc` 回填一下（`update config_info set c_desc = ... where data_id='...' and tenant_id='dev'`）。
 
 ## 4. 构建本地镜像
 
