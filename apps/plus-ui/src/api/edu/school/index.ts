@@ -1,6 +1,6 @@
 import request from '@/utils/request';
 import { AxiosPromise } from 'axios';
-import { CampusVO, SchoolForm, SchoolVO } from './types';
+import { CampusVO, SchoolForm, SchoolStageVO, SchoolVO } from './types';
 
 /** 学校列表查询参数 */
 export interface SchoolQuery extends Partial<PageQuery> {
@@ -28,6 +28,31 @@ export const listSchool = (query?: SchoolQuery): AxiosPromise<SchoolVO[]> => {
     url: '/edu/school/list',
     method: 'get',
     params: query
+  });
+};
+
+/**
+ * 查询学校开设学段（PAGE-SCH-STAGE 打开时加载；gradeCount > 0 表示该学段已被年级引用）
+ *
+ * 对应 operationId `listSchoolStage`（GET /edu/school/{id}/stage）。
+ */
+export const listSchoolStage = (schoolId: string): AxiosPromise<SchoolStageVO[]> => {
+  return request({
+    url: `/edu/school/${schoolId}/stage`,
+    method: 'get'
+  });
+};
+
+/**
+ * 保存学段配置（至少一个；已被年级引用的学段不允许移除，REQ-SCH-032 ~ 034）
+ *
+ * 对应 operationId `saveSchoolStage`（POST /edu/school/{id}/stage），需 `org.school:update`。
+ */
+export const saveSchoolStage = (schoolId: string, data: { stageCodes: string[] }): AxiosPromise<void> => {
+  return request({
+    url: `/edu/school/${schoolId}/stage`,
+    method: 'post',
+    data
   });
 };
 
@@ -137,6 +162,8 @@ export const initSchoolBaseline = (
 
 export default {
   listSchool,
+  listSchoolStage,
+  saveSchoolStage,
   addSchool,
   updateSchool,
   getCurrentSchool,

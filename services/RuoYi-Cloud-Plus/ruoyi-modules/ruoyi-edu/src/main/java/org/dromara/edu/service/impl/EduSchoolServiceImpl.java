@@ -69,6 +69,7 @@ public class EduSchoolServiceImpl implements IEduSchoolService {
 
     /** 学段开设标记 */
     private static final String STAGE_ON = "1";
+    private static final String STAGE_OFF = "0";
 
     private final EduSchoolMapper baseMapper;
     private final EduCampusMapper campusMapper;
@@ -278,9 +279,32 @@ public class EduSchoolServiceImpl implements IEduSchoolService {
 
     @Override
     public List<EduSchoolStageVo> listSchoolStage(Long schoolId) {
-        return schoolStageMapper.selectVoList(new LambdaQueryWrapper<EduSchoolStage>()
+        List<EduSchoolStageVo> list = schoolStageMapper.selectVoList(new LambdaQueryWrapper<EduSchoolStage>()
             .eq(schoolId != null, EduSchoolStage::getSchoolId, schoolId)
             .orderByAsc(EduSchoolStage::getStageCode));
+        fillStageGradeCount(list);
+        return list;
+    }
+
+    /**
+     * 补齐每个学段下的年级数。
+     * <p>
+     * REQ-SCH-034：学段一旦有年级引用就不允许移除；PAGE-SCH-STAGE 的交互要求「已被年级引用的学段置灰并说明原因」，
+     * 因此列表接口要把年级数带给前端。
+     */
+    private void fillStageGradeCount(List<EduSchoolStageVo> stages) {
+        if (stages == null || stages.isEmpty()) {
+            return;
+        }
+        Long schoolId = stages.get(0).getSchoolId();
+        Map<String, Long> gradeMap = gradeMapper.selectList(new LambdaQueryWrapper<EduGrade>()
+                .select(EduGrade::getStageCode)
+                .eq(EduGrade::getSchoolId, schoolId))
+            .stream()
+            .collect(Collectors.groupingBy(EduGrade::getStageCode, Collectors.counting()));
+        for (EduSchoolStageVo vo : stages) {
+            vo.setGradeCount(gradeMap.getOrDefault(vo.getStageCode(), 0L).intValue());
+        }
     }
 
     @Override
@@ -309,6 +333,23 @@ public class EduSchoolServiceImpl implements IEduSchoolService {
             add.setStageCode(code);
             add.setStatus(STAGE_ON);
             schoolStageMapper.insert(add);
+        }
+        // REQ-SCH-034：未被选中的其他学段置为「停开」；但该学段下已有年级时不允许移除，直接拒绝并说明原因
+        List<EduSchoolStage> current = schoolStageMapper.selectList(new LambdaQueryWrapper<EduSchoolStage>()
+            .eq(EduSchoolStage::getSchoolId, schoolId)
+            .eq(EduSchoolStage::getStatus, STAGE_ON));
+        for (EduSchoolStage exist : current) {
+            if (codes.contains(exist.getStageCode())) {
+                continue;
+            }
+            Long gradeCount = gradeMapper.selectCount(new LambdaQueryWrapper<EduGrade>()
+                .eq(EduGrade::getSchoolId, schoolId)
+                .eq(EduGrade::getStageCode, exist.getStageCode()));
+            if (gradeCount != null && gradeCount > 0) {
+                throw new ServiceException("该学段下已有年级，不能移除该学段（REQ-SCH-034）");
+            }
+            exist.setStatus(STAGE_OFF);
+            schoolStageMapper.updateById(exist);
         }
         return true;
     }

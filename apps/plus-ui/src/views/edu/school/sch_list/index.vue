@@ -98,7 +98,7 @@
               </el-button>
               <el-button v-else v-hasPermi="['org.school:update']" link type="primary" @click="handleEnable(scope.row)">启用</el-button>
               <el-button v-hasPermi="['org.school:update']" link type="primary" @click="handleCampus">校区管理</el-button>
-              <el-button v-hasPermi="['org.school:update']" link type="primary" @click="handleStage">学段配置</el-button>
+              <el-button v-hasPermi="['org.school:update']" link type="primary" @click="handleStage(scope.row)">学段配置</el-button>
             </template>
           </el-table-column>
 
@@ -118,6 +118,7 @@
     </template>
 
     <school-form-dialog ref="formDialogRef" @success="getList" />
+    <stage-config-dialog ref="stageDialogRef" @success="getList" />
   </div>
 </template>
 
@@ -126,6 +127,7 @@ import { computed, getCurrentInstance, onMounted, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useRouter } from 'vue-router';
 import SchoolFormDialog from './components/SchoolFormDialog.vue';
+import StageConfigDialog from './components/StageConfigDialog.vue';
 import { disableSchool, enableSchool, listSchool } from '@/api/edu/school';
 import type { SchoolQuery } from '@/api/edu/school';
 import type { SchoolVO } from '@/api/edu/school/types';
@@ -156,6 +158,7 @@ const columns = ref([
 ]);
 
 const formDialogRef = ref<InstanceType<typeof SchoolFormDialog>>();
+const stageDialogRef = ref<InstanceType<typeof StageConfigDialog>>();
 
 const canRead = computed(() => checkPermi(['org.school:read']));
 const STAGE_OPTIONS = STAGE_CODE_OPTIONS;
@@ -235,8 +238,9 @@ const handleCampus = () => {
   router.push('/edu/school/campus');
 };
 
-const handleStage = () => {
-  ElMessage.info('学段配置在阶段 6 的下一批交付');
+/** 学段配置（PAGE-SCH-STAGE）：弹窗内加载已开设学段，gradeCount>0 的学段锁定不允许移除（REQ-SCH-034） */
+const handleStage = (row: SchoolVO) => {
+  stageDialogRef.value?.open(row);
 };
 
 onMounted(getList);

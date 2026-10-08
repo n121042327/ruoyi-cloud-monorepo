@@ -52,3 +52,16 @@ export interface SchoolForm {
   /** 所属租户：只用于编辑态展示（学校与租户一一对应，绑定关系不可修改，REQ-SCH-022） */
   tenantId?: string;
 }
+
+/** 学校开设学段（listSchoolStage） */
+export interface SchoolStageVO {
+  schoolStageId?: string;
+  schoolId?: string;
+  /** 学段编码：primary / junior / senior */
+  stageCode?: string;
+  stageName?: string;
+  /** 1 开设 / 0 停开 */
+  status?: string;
+  /** 该学段下的年级数：> 0 时不允许移除该学段（REQ-SCH-034） */
+  gradeCount?: number;
+}

@@ -27,6 +27,9 @@ public class EduSchoolStageVo implements Serializable {
 
     private String stageName;
 
+    /** 该学段下的年级数：>0 时不允许移除该学段（REQ-SCH-034），弹窗据此置灰 */
+    private Integer gradeCount;
+
     /** 1 开设 / 0 停开 */
     private String status;
 

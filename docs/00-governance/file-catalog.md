@@ -1335,3 +1335,17 @@
 | `evidence/stage6-frontend/2026-10-08_school-list-page.png` | 对齐后的列表页截图 | `review` |
 | `evidence/stage6-frontend/2026-10-08_school-create-dialog.png` | 对齐后的新建弹窗截图 | `review` |
 | `evidence/stage6-frontend/2026-10-08_school-hifi-align.log` | 八项门禁 + 编译 + 实机复核 | `review` |
+
+## 2026-10-08 阶段 6 第二十八批：学段配置（PAGE-SCH-STAGE）与占位清点
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-108.md` | 口径澄清、占位清点、学段配置交付与验证 | `review` |
+| `apps/plus-ui/src/views/edu/school/sch_list/components/StageConfigDialog.vue` | 学段配置弹窗（已被年级引用的学段置灰） | `已实现` |
+| `apps/plus-ui/src/views/edu/school/sch_list/index.vue`（改） | 「学段配置」改为打开弹窗 | `已实现` |
+| `apps/plus-ui/src/api/edu/school/index.ts`、`types.ts`（改） | `listSchoolStage` / `saveSchoolStage` / `SchoolStageVO` | `已实现` |
+| `.../edu/domain/vo/EduSchoolStageVo.java`（改） | 补 `gradeCount` | `已实现` |
+| `.../edu/service/impl/EduSchoolServiceImpl.java`（改） | 学段列表补年级数；保存时停开未选中学段（有年级则拒绝） | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_school-stage-dialog.png` | 学段配置弹窗截图 | `review` |
+| `evidence/stage6-frontend/2026-10-08_school-stage-saved.png` | 保存成功截图 | `review` |
+| `evidence/stage6-frontend/2026-10-08_school-stage-config.log` | 门禁 + 编译 + 实机与库内验证 | `review` |
