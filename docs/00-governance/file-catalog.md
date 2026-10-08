@@ -1023,3 +1023,22 @@
 | `.../service/IEduTeacherService.java` + `impl/EduTeacherServiceImpl.java` | 教师服务层（15 个方法，含账号创建与任教关系复制） | `已实现` |
 | `.../controller/EduTeacherController.java` | 教师控制器（15 个端点） | `已实现` |
 | `evidence/stage7-backend/2026-10-08_edu-teacher_compile.log` | 本批编译证据（BUILD SUCCESS / 116 个 class） | `review` |
+
+## 2026-10-08 阶段 7 第六批：学校与校区 + 学科配置模块纵切
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-085.md` | 学校与校区 / 学科配置的交付与编译证据 | `review` |
+| `.../domain/EduSchool.java` / `EduCampus.java` / `EduSchoolStage.java` | 学校 / 校区 / 学校开设学段实体 | `已实现` |
+| `.../domain/EduSubject.java` / `EduSubjectStage.java` | 学科 / 学科与学段启用实体 | `已实现` |
+| `.../domain/bo/EduSchoolBo.java` / `EduCampusBo.java` / `EduSchoolStageBo.java` | 学校 / 校区 / 学段业务对象 | `已实现` |
+| `.../domain/bo/EduSubjectBo.java` / `EduSubjectStageBo.java` | 学科 / 学科与学段业务对象 | `已实现` |
+| `.../domain/vo/EduSchoolVo.java` / `EduCampusVo.java` / `EduSchoolStageVo.java` / `SchoolSummaryVo.java` | 学校 / 校区 / 学段 / 摘要视图对象 | `已实现` |
+| `.../domain/vo/EduSubjectVo.java` / `EduSubjectStageVo.java` / `EduSubjectOptionVo.java` / `SubjectReferenceVo.java` | 学科相关视图对象 | `已实现` |
+| `.../mapper/EduSchoolMapper.java` / `EduCampusMapper.java` / `EduSchoolStageMapper.java` | 学校 / 校区 / 学段数据层 | `已实现` |
+| `.../mapper/EduSubjectMapper.java` / `EduSubjectStageMapper.java` | 学科 / 学段启用数据层 | `已实现` |
+| `.../service/IEduSchoolService.java` + `impl/EduSchoolServiceImpl.java` | 学校服务层（15 个方法，含幂等开通初始化） | `已实现` |
+| `.../service/IEduSubjectService.java` + `impl/EduSubjectServiceImpl.java` | 学科服务层（12 个方法，含标准学科模板） | `已实现` |
+| `.../controller/EduSchoolController.java` | 学校与校区控制器（15 个端点） | `已实现` |
+| `.../controller/EduSubjectController.java` | 学科控制器（12 个端点） | `已实现` |
+| `evidence/stage7-backend/2026-10-08_edu-school-and-subject_compile.log` | 本批编译证据（BUILD SUCCESS / 175 个 class） | `review` |

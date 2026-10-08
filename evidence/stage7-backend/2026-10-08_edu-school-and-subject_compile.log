@@ -1,0 +1,22 @@
+# 阶段 7 证据：ruoyi-edu 学校与校区模块 + 学科配置模块纵切（CR-085，2026-10-08）
+
+命令：mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile（工作目录 services/RuoYi-Cloud-Plus）
+
+结果：BUILD SUCCESS，exit 0；模块 target/classes 下 175 个 class（本批 +59）。
+
+说明：按 AGENTS.md 第 9 节，编译通过不等于测试通过；本批未跑单测、未启动服务、未连数据库。
+
+--- Maven 关键输出 ---
+
+[INFO] ruoyi-edu                                                          [jar]
+[INFO] -----------------------< org.dromara:ruoyi-edu >------------------------
+[INFO] Building ruoyi-edu 2.6.2                                         [24/24]
+[INFO]   from ruoyi-modules\ruoyi-edu\pom.xml
+[INFO] --- resources:3.3.1:resources (default-resources) @ ruoyi-edu ---
+[INFO] skip non existing resourceDirectory D:\work\person_work\ruoyi-cloud-monorepo\services\RuoYi-Cloud-Plus\ruoyi-modules\ruoyi-edu\src\main\webapp
+[INFO] --- flatten:1.3.0:flatten (flatten) @ ruoyi-edu ---
+[INFO] Generating flattened POM of project org.dromara:ruoyi-edu:jar:2.6.2...
+[INFO] --- compiler:3.14.0:compile (default-compile) @ ruoyi-edu ---
+[INFO] ruoyi-edu .......................................... SUCCESS [  8.478 s]
+[INFO] BUILD SUCCESS
+[INFO] Total time:  13.408 s
