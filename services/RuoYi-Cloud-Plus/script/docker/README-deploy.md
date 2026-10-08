@@ -57,6 +57,30 @@ Get-ChildItem ..\..\docs\40-detailed-design\migrations\*.sql | Sort-Object Name 
 edu 的 `application.yml` 里写的是 `optional:nacos:ruoyi-edu.yml`，缺了不会报错，但**没有 `ruoyi-edu.yml` 就没有数据源**，
 所以这个文件是实际必需的。
 
+### 批量同步（推荐，避免手工粘贴）
+
+Nacos 里的配置**不会**跟着仓库自动更新；`script/config/nacos/*.yml` 改过之后必须重新导入。
+除了在控制台逐个粘贴，也可以直接用 Nacos 的 Open API 批量 upsert（下面的脚本会把 13 个 yml 全部推到 `dev` 与 `prod`）：
+
+```powershell
+cd services\RuoYi-Cloud-Plus\script\config\nacos
+$tok = (Invoke-RestMethod -Uri "http://127.0.0.1:8848/nacos/v1/auth/login" -Method Post -Body "username=nacos&password=nacos").accessToken
+foreach ($ns in @("dev","prod")) {
+  foreach ($f in Get-ChildItem -Filter *.yml) {
+    $content = Get-Content $f.FullName -Raw -Encoding UTF8
+    $form = "dataId=" + [uri]::EscapeDataString($f.Name) + "&group=DEFAULT_GROUP&tenant=$ns&type=yaml&content="
+          + [uri]::EscapeDataString($content) + "&accessToken=" + [uri]::EscapeDataString($tok)
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($form)
+    Invoke-RestMethod -Uri "http://127.0.0.1:8848/nacos/v1/cs/configs" -Method Post -Body $bytes `
+      -ContentType 'application/x-www-form-urlencoded'
+  }
+}
+```
+
+> 注意：`ruoyi-config.sql`（Nacos 配置库的种子数据）里带的是**上游版本**的配置，
+> 直接用它会缺 `ruoyi-edu.yml`、且 `datasource.yml` 的密码、`application-common.yml` 的 `tenant.excludes`、
+> `ruoyi-gateway.yml` 的 edu 路由都会是旧的。**导入 `ry-config.sql` 之后必须再跑一次上面的同步。**
+
 ## 4. 构建本地镜像
 
 compose 里 `ruoyi/ruoyi-edu:2.6.2` 这个镜像上游不存在；`ruoyi/ruoyi-system:2.6.2`、
