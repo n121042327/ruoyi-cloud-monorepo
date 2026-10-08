@@ -3165,3 +3165,85 @@ open_questions_for_user:
   - "新增 GAP-060 并已关闭：死信重放需要二次确认但导入导出 PRD 6.1 未登记片段。用户授权默认取推荐，按 CR-019 补登记 DIALOG-DLQ-REPLAY，导入导出 PRD 升 1.0.1-draft，见 D-083。"
   - "**阶段 2（业务原型）已收尾**：2-1 ~ 2-9 共 9 批全部产出待验收，累计 45 个页面文件承载 96 个页面编号，19 个 harness 全绿（合计 508 条断言），check_docs 通过。下一步按用户授权合并本地 main，然后进阶段 3（独立高保真原型）。"
   - "**2026-10-02 生产代码前的治理项已全部关闭**：按 CR-042 完成 GAP-081 的 626 条需求逐条挂接（接口链 580 / 表链 537，178 个 operationId 全部可追溯到需求）；按 CR-043 补齐 GAP-082（学生激活码 4 个接口）与 GAP-083（教师启用账号 / 复制任教关系 2 个接口），operationId 178 → 184。缺项表当时无 open 项（其余为已落地并留结论的 closed / answered 记录），阶段 6 的输入文件已齐。**进入阶段 6 后新增三条**：GAP-084（学生联系电话明文查看缺接口契约）已按裁决补 `viewStudentPhone` 关闭；GAP-085（跨校转学的「转出校发起」有两个接口）已按裁决统一为升班模块的 `addTransfer` 关闭；**GAP-086（学生导入向导的动作有两套接口）当前 open**，推荐统一走导入导出模块的通用接口，未确认前学生导入向导页面不做。"
+
+  - id: GAP-097
+    title: 超管通配符 *:*:* 不匹配「资源:动作」两段式权限码，教育域接口对超管一律 403
+    discovered_at: 2026-10-08
+    discovered_by: 用户反馈（admin 重新登录后打开教育页面报没有权限）+ 本机接口对照实验（CR-102）
+    evidence: |
+      **这是什么**：超管账号 admin 打开教育域任何页面都提示「没有访问权限，请联系管理员授权」。
+      根因是权限码写法与超管通配符不匹配：本项目按权限矩阵用「资源:动作」两段式权限码
+      （服务端 183 个，见 `services/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-edu/src/main/java/org/dromara/edu/controller/`
+      下各控制器；矩阵见 `docs/10-prd/05-permission-matrix.yaml`），而 RuoYi 给超管下发的通配符是
+      `services/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-system/src/main/java/org/dromara/system/service/impl/SysPermissionServiceImpl.java`
+      第 55 行的 `*:*:*`，Sa-Token 模糊匹配要求被校验串至少两个冒号才能命中。
+    expected: 超管（BR-ORG-014：不受功能权限限制）能打开全部教育域接口；实际是 edu 全部 403，system / resource 正常
+    actual: 只有 stock 三段式权限码能命中，edu 的 183 个两段式权限码全部拒绝
+    impact: |
+      **不选会怎样**：不修则超管账号无法使用任何教育功能，阶段 8 联调无从开始；
+      若改为把 edu 的 183 个权限码全改成三段式（如 `edu:grade:read`），则与冻结的权限矩阵
+      `docs/10-prd/05-permission-matrix.yaml` 冲突，还要连带改菜单 SQL、前端 41 条 dynamicRoutes 的路由权限，
+      返工面远大于一处通配符。
+    options:
+      - "在 SysPermissionServiceImpl 的超管分支补 `*:*`（两段式通配符），保留 `*:*:*`（推荐）"
+      - "把 edu 的 183 个权限码改成三段式并同步菜单 SQL、前端路由权限与权限矩阵：改动面最大，且与冻结矩阵冲突"
+      - "在 ruoyi-common-satoken 的 SaPermissionImpl 里对超管追加通用通配符：改的是所有服务共用的鉴权实现，影响面更大"
+    recommended: |
+      **推荐方案 1**。理由：`*:*:*` 是 RuoYi stock 的三段式通配符，本项目新增的两段式权限码需要自己的通配符；
+      一处改动即可覆盖所有教育域权限点，不触碰权限矩阵、菜单 SQL 与前端路由权限，风险最小。
+    blocking: false
+    blocks_stages:
+      - stage7
+      - stage8
+    owner: 用户
+    answer: |
+      用户 2026-10-07 授权「遇到需要拍板的按推荐方案走并在 decisions.md 与 gap-register.yaml 各记一条」，
+      本批按推荐方案 1 落地（CR-102 / D-181）。
+    resolution: |
+      已在 `SysPermissionServiceImpl.getMenuPermission` 超管分支补 `perms.add("*:*")`（第 59 行）；
+      `mvn -o -DskipTests -pl ruoyi-modules/ruoyi-system -am compile` BUILD SUCCESS；
+      会话置 `["*:*:*","*:*"]` 后 `/edu/grade/list`、`/edu/subject/list`、`/edu/class/list`、`/edu/student/list`、
+      `/edu/term/list`、`/edu/audit/log/list` 全部 200。生效需重启 `ruoyi-system` 并重新登录（权限快照在登录时生成）。
+    resolved_at: 2026-10-08
+    status: closed
+
+  - id: GAP-098
+    title: edu 的 31 张表缺 RuoYi 平台通用审计列 create_dept，通用读写接口全部 500
+    discovered_at: 2026-10-08
+    discovered_by: 修 GAP-097 后复测出现的第二次失败（CR-103）
+    evidence: |
+      **这是什么**：权限问题修复后，教育页面改用 500 报错，edu 日志为
+      `Unknown column 'create_dept' in 'field list'`（如 `edu_school` 的 `SELECT ... tenant_id, create_dept, create_by ...`）。
+      RuoYi 的 `BaseEntity`（`ruoyi-common-mybatis/src/main/java/org/dromara/common/mybatis/core/domain/BaseEntity.java`）
+      带 `@TableField(fill = FieldFill.INSERT) createDept`，阶段 7 又约定实体继承 BaseEntity / TenantEntity；
+      而事实源 `docs/40-detailed-design/database/schema.yaml` 第 14 行的 `conventions.audit_columns` 未登记 `create_dept`，
+      生成的 43 张 edu 表因此都没有该列。
+    expected: 通用 MyBatis-Plus 读写（列表 / 详情 / 新增 / 编辑）在 31 张带审计列的表上正常工作
+    actual: 只有手写 SQL 的列表查询可用；`/edu/school/current`、`/edu/stream/config` 及各详情 / 写接口全部 SQL 报错 500
+    impact: |
+      **不选会怎样**：不修则教育域「列表能看、详情与增删改全崩」，阶段 7 的写接口无法联调；
+      若在 31 个实体上用同名 `@TableField(exist = false)` 字段屏蔽 `createDept`，则每个实体永久偏离平台基类，
+      后续新增实体都要重复同一动作，长期维护成本更高。
+    options:
+      - "给 31 张 with_audit=true 的表补 create_dept（schema.yaml conventions + 增量迁移 V7），本机库执行（推荐）"
+      - "在 31 个实体里屏蔽 createDept：不动 DDL，但让每张 edu 实体都偏离 RuoYi 基类"
+      - "改共享基类 BaseEntity 去掉 createDept：影响所有服务与所有 stock 表，风险不可接受"
+    recommended: |
+      **推荐方案 1**。理由：RuoYi stock 的 19 张表本来就有 `create_dept`，补列让 edu 与平台一致；
+      一次 DDL 变更同时修复所有通用读写，实体继续按阶段 7 约定继承 BaseEntity / TenantEntity，无需逐实体打补丁。
+    blocking: false
+    blocks_stages:
+      - stage7
+      - stage8
+    owner: 用户
+    answer: |
+      用户 2026-10-07 授权「遇到需要拍板的按推荐方案走并在 decisions.md 与 gap-register.yaml 各记一条」，
+      本批按推荐方案 1 落地（CR-103 / D-182）。
+    resolution: |
+      已改 `docs/40-detailed-design/database/schema.yaml` 的 `conventions.audit_columns`（第 14 行）并新增
+      `docs/40-detailed-design/migrations/V7__edu_audit_create_dept.sql`（31 条 ALTER，V1~V6 冻结不动）；
+      本机 `ry-cloud` 已执行：带 `create_dept` 的表 19 → 50；edu 侧「有 create_by 却没有 create_dept」的表 0；
+      事务内 INSERT 带 `create_dept` 成功并回滚；`/edu/school/current` 与 `/edu/stream/config` 由 SQL 异常
+      变为业务提示（「当前租户尚未接入学校」/「当前学校尚未配置选科开放期」，属演示数据未初始化）。
+    resolved_at: 2026-10-08
+    status: closed

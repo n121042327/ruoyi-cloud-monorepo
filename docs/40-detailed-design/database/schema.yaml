@@ -11,7 +11,7 @@ conventions:
   engine: InnoDB
   id: bigint unsigned NOT NULL AUTO_INCREMENT（平台级与业务表统一）
   id_note: "`id` 由生成器自动注入为第一列主键；本文件的 columns 只列业务列（tenant_id / school_id 同理按 scope 注入）"
-  audit_columns: "create_by / create_time / update_by / update_time（表的 with_audit 为 true 时自动追加）"
+  audit_columns: "create_dept / create_by / create_time / update_by / update_time（表的 with_audit 为 true 时自动追加；create_dept 为 RuoYi 平台通用创建部门列，BaseEntity / TenantEntity 默认携带，见 CR-103）"
   soft_delete: "del_flag char(1) DEFAULT '0'（表的 soft_delete 为 true 时自动追加；历史与学籍类表禁止物理删除）"
   foreign_keys: 同服务内核心关系使用物理外键且禁止级联删除（ON DELETE RESTRICT / UPDATE RESTRICT）
   tenant_scope:

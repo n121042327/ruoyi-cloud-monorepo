@@ -53,6 +53,10 @@ public class SysPermissionServiceImpl implements ISysPermissionService {
         // 管理员拥有所有权限
         if (LoginHelper.isSuperAdmin(userId)) {
             perms.add("*:*:*");
+            // 本项目权限矩阵（docs/10-prd/05-permission-matrix.yaml）采用「资源:动作」两段式权限码，
+            // 例如 org.grade:read / stream.config:read；而 RuoYi 的 *:*:* 需要两个冒号才能命中，
+            // 故为超管补充两段式通配符，否则教育域接口对超管一律返回 403（见 CR-102 / D-181 / GAP-097）。
+            perms.add("*:*");
         } else {
             perms.addAll(menuService.selectMenuPermsByUserId(userId));
         }

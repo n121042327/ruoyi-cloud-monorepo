@@ -1278,3 +1278,14 @@
 | `docs/00-governance/change-requests/CR-101.md` | 菜单生成的取数口径、执行与三重校验 | `review` |
 | `services/RuoYi-Cloud-Plus/script/sql/edu-menu.sql` | 教育域菜单种子（1 根 + 12 分组 + 41 页面 + 64 按钮） | `已实现` |
 | `evidence/stage7-backend/2026-10-08_edu-menu-sql.log` | 行数统计与 URL/component/权限点校验证据 | `review` |
+
+## 2026-10-08 阶段 7 第二十三批：超管权限通配符与 edu 审计列 `create_dept` 修复
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-102.md` | 超管 `*:*:*` 不匹配两段式权限码的定位、改动与验证 | `review` |
+| `docs/00-governance/change-requests/CR-103.md` | edu 表补 `create_dept` 的定位、改动与验证 | `review` |
+| `services/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-system/src/main/java/org/dromara/system/service/impl/SysPermissionServiceImpl.java`（改） | 超管权限快照补 `*:*` 两段式通配符 | `已实现` |
+| `docs/40-detailed-design/database/schema.yaml`（改） | `conventions.audit_columns` 补 `create_dept` | `已实现` |
+| `docs/40-detailed-design/migrations/V7__edu_audit_create_dept.sql` | 31 张 edu 表的 `create_dept` 增量迁移 | `已实现` |
+| `evidence/stage7-backend/2026-10-08_edu-permission-and-audit-col_fix.log` | 对照实验、编译、库结构与接口复测证据 | `review` |

@@ -1,0 +1,166 @@
+# 阶段 7 证据：教育域「打开页面报没有权限」定位与修复（CR-102 / CR-103）
+
+- 时间：2026-10-08
+- 分支：codex/stage7-backend
+- 环境：本机 Docker（MySQL 8 / Redis / Nacos / MinIO）+ Windows 上以 IDEA 启动的 ruoyi-gateway(8080)、
+  ruoyi-auth(9210)、ruoyi-system(9201)、ruoyi-resource(9204)、ruoyi-edu(9211)
+- 事实源：`docs/10-prd/05-permission-matrix.yaml`、`docs/40-detailed-design/database/schema.yaml`、
+  `docs/40-detailed-design/api/openapi.yaml`
+- 口径：只声明「编译通过」，不写「测试通过」
+
+## 0. 用户现象
+
+admin 重新登录后左侧出现「教育管理」菜单，点击任意教育页面提示**没有权限**。
+
+## 1. 第一轮定位：403 来自权限码与超管通配符不匹配
+
+```
+# 同一个 admin token（取自 Redis global:Authorization:login:token-session:*）
+/system/user/list?pageNum=1&pageSize=1      -> 200 {"total":3,...}
+/resource/oss/list?pageNum=1&pageSize=1     -> 200 {"total":0,...}
+/edu/grade/list?pageNum=1&pageSize=1        -> 403 {"code":403,"msg":"没有访问权限，请联系管理员授权"}
+/edu/school/current                         -> 403
+/edu/subject/list                           -> 403
+
+# logs/ruoyi-edu/error.log
+ERROR o.d.c.s.h.SaTokenExceptionHandler - 请求地址'/edu/grade/list',权限码校验失败'无此权限：org.grade:read'
+```
+
+会话快照（Redis，`global:Authorization:login:token-session:<token>`）里超管权限为：
+
+```
+"menuPermission":["java.util.HashSet",["*:*:*"]]
+```
+
+对照实验（直接改写会话里的 menuPermission 再打接口；每次间隔 6.5 秒，
+因为 `ruoyi-common-satoken/.../core/dao/PlusSaTokenDao.java` 第 27 行起有 5 秒 Caffeine 本地缓存）：
+
+| menuPermission | /edu/grade/list（org.grade:read，1 冒号） | /system/user/list（system:user:list，2 冒号） |
+|---|---|---|
+| ["*:*:*"]                 | 403 | 200 |
+| ["*:*:*","org.grade:read"]| 200 | 200 |
+| ["*:*"]                   | 200 | 200 |
+| ["*"]                     | 200 | 200 |
+
+结论：Sa-Token 的模糊匹配要求被校验串**至少两个冒号**，`*:*:*` 命中不了本项目「资源:动作」两段式权限码
+（ruoyi-edu 183 个 `@SaCheckPermission` 全部只有 1 个冒号）。
+
+## 2. 第一处修复（CR-102 / D-181 / GAP-097）
+
+文件：`services/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-system/src/main/java/org/dromara/system/service/impl/SysPermissionServiceImpl.java`
+
+```java
+if (LoginHelper.isSuperAdmin(userId)) {
+    perms.add("*:*:*");
+    // 本项目权限矩阵（docs/10-prd/05-permission-matrix.yaml）采用「资源:动作」两段式权限码，
+    // 例如 org.grade:read / stream.config:read；而 RuoYi 的 *:*:* 需要两个冒号才能命中，
+    // 故为超管补充两段式通配符，否则教育域接口对超管一律返回 403（见 CR-102 / D-179 / GAP-097）。
+    perms.add("*:*");
+}
+```
+
+编译（只声明编译通过）：
+
+```
+cd services/RuoYi-Cloud-Plus
+mvn -o -DskipTests -pl ruoyi-modules/ruoyi-system -am compile
+...
+[INFO] ruoyi-system ....................................... SUCCESS [ 11.227 s]
+[INFO] BUILD SUCCESS
+[INFO] Total time:  17.118 s
+
+# 编译产物校验
+SysPermissionServiceImpl.class 命中 '*:*:*' 1 次、'*:*' 2 次；ruoyi-modules/ruoyi-system/target/classes 下 class 数 267
+```
+
+会话置 `["*:*:*","*:*"]`（等价于修复后重新登录生成的快照）后复测：
+
+```
+/edu/grade/list?pageNum=1&pageSize=1        -> 200 {"total":0,...}
+/edu/subject/list?pageNum=1&pageSize=1      -> 200
+/edu/class/list?pageNum=1&pageSize=1        -> 200
+/edu/student/list?pageNum=1&pageSize=1      -> 200
+/edu/term/list?pageNum=1&pageSize=1         -> 200
+/edu/audit/log/list?pageNum=1&pageSize=1    -> 200
+/system/user/list?pageNum=1&pageSize=1      -> 200
+```
+
+生效条件：权限快照在登录时写入会话，需**重启 ruoyi-system 并重新登录**。
+
+## 3. 第二轮定位：修完权限后 500 —— Unknown column 'create_dept'
+
+```
+/edu/school/current  -> {"code":500,"msg":"系统未知异常，请联系管理员"}
+/edu/stream/config   -> {"code":500,"msg":"系统未知异常，请联系管理员"}
+
+# logs/ruoyi-edu/error.log
+org.springframework.jdbc.BadSqlGrammarException:
+### Error querying database.  Cause: java.sql.SQLSyntaxErrorException: Unknown column 'create_dept' in 'field list'
+### The error may exist in org/dromara/edu/mapper/EduSchoolMapper.java (best guess)
+### SQL: SELECT id AS schoolId, ..., del_flag, tenant_id, create_dept, create_by, create_time, update_by, update_time
+           FROM edu_school WHERE del_flag = '0' AND (tenant_id = ?) AND tenant_id = '000000' LIMIT 1
+```
+
+实体扫描（`domain/*.java` 的 `@TableName` + 继承关系 与 information_schema 对比）：
+
+```
+entities: 43   with missing columns: 31
+受影响（with_audit=true，继承 BaseEntity / TenantEntity）：31 张，全部缺 create_dept
+不受影响（with_audit=false，实体为普通类）：13 张（edu_audit_log / edu_promotion_item / edu_activation_code / edu_stream_history 等）
+
+# 加列前
+select count(*) from information_schema.columns
+ where table_schema='ry-cloud' and column_name='create_dept';   -> 19（全部是 stock 表：sys_user / sys_role / ...）
+```
+
+## 4. 第二处修复（CR-103 / D-182 / GAP-098）
+
+| 文件 | 改动 |
+|---|---|
+| `docs/40-detailed-design/database/schema.yaml` | 第 14 行 `conventions.audit_columns` 补 `create_dept` |
+| `docs/40-detailed-design/migrations/V7__edu_audit_create_dept.sql` | 新增，31 条 ALTER（V1~V6 冻结不动） |
+
+执行（本机 ry-cloud，带 utf8mb4）：
+
+```
+docker cp "docs/40-detailed-design/migrations/V7__edu_audit_create_dept.sql" mysql:/tmp/V7.sql
+docker exec mysql sh -c "mysql --default-character-set=utf8mb4 -uroot -proot ry-cloud < /tmp/V7.sql"
+# 无报错，退出码 0
+
+# 加列后
+select count(*) from information_schema.columns
+ where table_schema='ry-cloud' and column_name='create_dept';   -> 50（19 stock + 31 edu）
+edu 侧「有 create_by 却没有 create_dept」的表 -> 0
+
+# 写入契约（事务内 INSERT 后回滚，不落数据）
+START TRANSACTION;
+INSERT INTO edu_grade (tenant_id, school_id, stage_code, enroll_year, grade_level, grade_name,
+                       class_count, student_count, grade_status, create_dept, create_by, create_time)
+VALUES ('000000', 1, 'high', 2026, 1, '2026级 高一(事务测试)', 0, 0, 'normal', 103, 1, NOW());
+SELECT id, grade_name, create_dept, create_by FROM edu_grade WHERE enroll_year = 2026;
+ROLLBACK;
+-> 1  2026级 高一(事务测试)  103  1
+-> 回滚后 select count(*) from edu_grade;  -> 0
+```
+
+复测：
+
+```
+/edu/school/current  -> {"code":500,"msg":"当前租户尚未接入学校"}      （业务提示，不再是 SQL 异常）
+/edu/stream/config   -> {"code":500,"msg":"当前学校尚未配置选科开放期"} （业务提示，不再是 SQL 异常）
+/edu/grade/list、/edu/class/list、/edu/student/list、/edu/subject/list、/edu/term/list、/edu/audit/log/list -> 全部 200
+```
+
+## 5. 治理与门禁
+
+```
+python tools/check_gap_register.py   -> 通过（98 条，无重复）
+python tools/check_docs.py           -> 通过（含本文件存在性校验）
+```
+
+## 6. 剩余缺口（非本次代码缺陷）
+
+1. 本机 `ry-cloud` 库没有 `edu_school` 数据，依赖学校上下文的页面仍提示「当前租户尚未接入学校」——
+   属**演示数据未初始化**（学校 → 学年学期 → 年级 → 班级），需要建校后才能跑通业务流。
+2. 上述两处修复都需要**重启 ruoyi-system 并重新登录**才会在新的会话快照里生效；
+   本次排障已把当前会话临时置为 `["*:*:*","*:*"]` 供当场验证。

@@ -2434,3 +2434,30 @@ M=13（1 根 + 12 分组）、C=41、F=64；URL 拼接结果与前端 41 条 dyn
 **使用要点**：执行后需**重新登录**（前端只在登录/刷新时重建侧栏）；super_admin（role_id=1）由 `selectMenuTreeAll()` 直接放行、
 无需 sys_role_menu 授权，其它角色要在角色管理里勾选；生产用 nginx 托管旧 dist 时需重新 `pnpm build`。
 证据见 `evidence/stage7-backend/2026-10-08_edu-menu-sql.log`。
+
+## D-181 — 超管权限通配符需覆盖两段式权限码（2026-10-08）
+
+用户报「admin 重新登录后点菜单打开页面报没有权限」。定位到两条独立缺陷，这是第一条。
+事实：本项目权限码按 `docs/10-prd/05-permission-matrix.yaml` 取「资源:动作」两段式
+（`org.grade:read`、`stream.config:read`、`data.import:read`，ruoyi-edu 共 183 个，全部只有 1 个冒号），
+而 RuoYi 超管通配符 `*:*:*` 经 Sa-Token 模糊匹配后只在**被校验串含两个冒号**时命中，
+所以超管在 edu 上一律 403（system / resource 用 stock 三段式，不受影响）。
+处置：`SysPermissionServiceImpl.getMenuPermission` 的超管分支补 `perms.add("*:*")`（保留 `*:*:*`），
+即「三段式 + 两段式」两个通配符同时下发；不改前端 `checkPermi` 的 `'*:*:*'` 短路，也不改 edu 的 183 个权限码。
+**经验**：本项目后续新增服务若仍按权限矩阵写两段式权限码，超管必须靠 `*:*` 才能放行；
+判定依据只能来自登录快照，改完必须重启 `ruoyi-system` 并重新登录。
+证据见 `evidence/stage7-backend/2026-10-08_edu-permission-and-audit-col_fix.log`。
+
+## D-182 — edu 表补齐 RuoYi 平台通用审计列 `create_dept`（2026-10-08）
+
+第二条缺陷：权限修好后 edu 页面改报 500，日志为 `Unknown column 'create_dept' in 'field list'`。
+事实：`BaseEntity` 带 `@TableField(fill = INSERT) createDept`，阶段 7 又约定平台级实体继承 BaseEntity、
+学校/租户级继承 TenantEntity，但 `schema.yaml` 的 `conventions.audit_columns` 只登记了 4 列，
+生成出来的 43 张 edu 表都没有该列，于是所有走 MyBatis-Plus 通用方法的接口（详情 / 列表 / 新增 / 编辑）全部 SQL 报错。
+备选：① 给表加列（推荐）；② 在 31 个实体里用同名 `@TableField(exist = false)` 字段屏蔽 `createDept`。
+选 ①：RuoYi stock 的 19 张表本来就有这一列，加列与平台一致，且一次修复所有通用读写；
+选 ② 等于让 edu 的每个实体永久偏离平台基类，还要在后续新增实体上反复记得屏蔽，长期维护成本更高。
+处置：`schema.yaml` 的 `conventions.audit_columns` 补 `create_dept`；新增增量迁移
+`docs/40-detailed-design/migrations/V7__edu_audit_create_dept.sql`（31 条 ALTER，V1~V6 冻结不动，沿用 V6 学生的增量口径）；
+本机 `ry-cloud` 已执行。**注意**：`with_audit: false` 的 13 张表不需要该列，其实体也不继承 BaseEntity。
+证据见 `evidence/stage7-backend/2026-10-08_edu-permission-and-audit-col_fix.log`。
