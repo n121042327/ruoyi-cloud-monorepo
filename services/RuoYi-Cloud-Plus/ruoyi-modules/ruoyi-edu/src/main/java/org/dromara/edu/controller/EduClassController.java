@@ -19,6 +19,7 @@ import org.dromara.edu.domain.vo.EduClassVo;
 import org.dromara.edu.domain.vo.EduExportResultVo;
 import org.dromara.edu.domain.vo.EduImportExecuteResultVo;
 import org.dromara.edu.domain.vo.EduImportValidateResultVo;
+import org.dromara.edu.domain.vo.EduTeachingAssignmentVo;
 import org.dromara.edu.service.IEduClassService;
 import org.dromara.edu.service.IEduImportExportService;
 import org.springframework.validation.annotation.Validated;
@@ -31,6 +32,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * 班级管理
@@ -198,6 +201,13 @@ public class EduClassController extends BaseController {
         export.setModuleCode("class_roster");
         export.setClassId(classId);
         return R.ok(importExportService.exportData(export));
+    }
+
+    /** 班级任教关系清单（只读；写入入口在教师模块，AGENTS 第 7 节模块边界） */
+    @SaCheckPermission("person.teaching_assignment:read")
+    @GetMapping("/{classId}/teaching-assignment")
+    public R<List<EduTeachingAssignmentVo>> listTeachingAssignment(@PathVariable Long classId) {
+        return R.ok(classService.listClassTeachingAssignment(classId));
     }
 
 }

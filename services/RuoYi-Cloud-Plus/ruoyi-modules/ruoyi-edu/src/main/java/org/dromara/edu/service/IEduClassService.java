@@ -62,4 +62,15 @@ public interface IEduClassService {
     /** 学生批量加入时逐条校验（供 addRoster / transferClass 复用） */
     List<String> validateJoin(Long classId, List<Long> studentIds);
 
+    /**
+     * 班级任教关系清单（只读视图）
+     *
+     * 任教关系的唯一写入入口在教师模块，班级侧只提供只读展示与跳转
+     * （AGENTS 第 7 节的模块边界；`BR-TEACHER-003`）。
+     *
+     * @param classId 班级 ID（行政班或教学班）
+     * @return 任教关系清单
+     */
+    List<org.dromara.edu.domain.vo.EduTeachingAssignmentVo> listClassTeachingAssignment(Long classId);
+
 }

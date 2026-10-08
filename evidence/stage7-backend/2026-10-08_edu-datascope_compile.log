@@ -1,0 +1,36 @@
+# 阶段 7 证据：ruoyi-edu 数据范围解析组件纵切（CR-093，2026-10-08）
+
+命令：mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile（工作目录 services/RuoYi-Cloud-Plus）
+
+结果：BUILD SUCCESS，exit 0。target/classes 下 459 个 class（本批 +8）。
+
+说明：按 AGENTS.md 第 9 节，编译通过不等于测试通过；本批未跑单测、未启动服务、未连数据库。
+
+--- Maven 关键输出 ---
+
+[INFO] Building ruoyi-edu 2.6.2                                         [24/24]
+[INFO]   from ruoyi-modules\ruoyi-edu\pom.xml
+[INFO] --- compiler:3.14.0:compile (default-compile) @ ruoyi-edu ---
+[INFO] ruoyi-edu .......................................... SUCCESS [ 13.6 s]
+[INFO] BUILD SUCCESS
+[INFO] Total time:  21.692 s
+
+--- 契约覆盖自检（脚本比对 openapi 路径与 controller 映射） ---
+
+missing 7
+  uploadStudentPhoto    POST /edu/student/{id}/photo
+  getStudentPhoto       GET  /edu/student/{id}/photo
+  resetStudentPassword  POST /edu/student/{id}/reset-password
+  viewStudentPhone      GET  /edu/student/{id}/phone
+  resetTeacherPassword  POST /edu/teacher/{id}/reset-password
+  disableTeacherAccount POST /edu/teacher/{id}/account/disable
+  enableTeacherAccount  POST /edu/teacher/{id}/account/enable
+
+即 181 个 operationId 已覆盖 174 个；剩余 7 个全部受 GAP-027（统一文件服务，学生照片）
+与 GAP-090 / GAP-091（学生电话落点、账号重置密码与启停用的远程契约）约束。
+本批补齐 `listClassTeachingAssignment`。
+
+--- 门禁 ---
+
+python tools/check_docs.py -> 通过
+python tools/check_gap_register.py -> 通过（96 条，open = 0）

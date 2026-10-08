@@ -3014,6 +3014,53 @@ gaps:
     resolved_at: "2026-10-08"
     status: answered
 
+  - id: GAP-096
+    title: 教育域数据范围拦截器默认关闭，启用前需验证范围列映射；解析缓存为进程内；EduPermissionAspect 未落地
+    discovered_at: 2026-10-08
+    discovered_by: 阶段 7 数据范围组件纵切时对照架构文档第 4.1 / 4.2 节（CR-093）
+    evidence: |
+      **这是什么**：架构文档 `docs/30-architecture/09-permission-architecture.md` 第 4.1 节列出的组件里，
+      `EduDataScope` / `DataScopeContext` / `DataScopeResolver` / `DataScopeCacheInvalidator` /
+      `EduDataPermissionHandler` / `DataScopeInterceptor` 已按 CR-093 落地，但有四处没到「可直接上生产」的状态：
+      ① `DataScopeInterceptor` 由 `edu.data-scope.enabled` 控制，**当前默认为关闭**
+      （`DataScopeInterceptor.java` 的 `@ConditionalOnProperty`）；
+      ② 插件链装配方式是把教育域拦截器 `addInnerInterceptor` 追加到 `MybatisPlusInterceptor`
+      （`EduDataScopeChainRegistrar.java`），位置在框架的分页插件之后，尚未按执行计划确认顺序；
+      ③ `DataScopeResolver` 的缓存是**进程内** `ConcurrentHashMap`（60 秒 TTL），
+      架构文档第 4.1 节要求「带 Redis 缓存」，edu 的 `pom.xml` 未引入 `ruoyi-common-redis`；
+      ④ 架构文档同节列出的 `EduPermissionAspect`（功能权限注解 + 写审计 + 敏感字段留痕）未落地。
+    expected: 拦截器开启后按表清单正确注入范围条件；范围解析走 Redis 缓存并在业务写操作后失效；审计切面自动写日志
+    actual: 组件已交付但拦截器默认关闭、缓存为进程内、切面未落地
+    impact: |
+      **不选会怎样**：若直接置 `edu.data-scope.enabled=true` 而未按表清单核对，
+      可能「该拦的没拦」（范围列映射漏表，越权可见）或「多拦了」（join 查询列名歧义直接报 SQL 错误）；
+      进程内缓存只覆盖单实例，网关多实例部署时角色变更后的失效不彻底；
+      `EduPermissionAspect` 缺失意味着审计依赖各业务模块主动调用 `recordLog` / `recordChange`，
+      漏调的模块会「业务成功但无日志」。
+    options:
+      - "保持默认关闭；阶段 8 联调时按 schema.yaml 表清单逐条核对范围列映射与插件顺序后再开启，同时接入 ruoyi-common-redis 并把缓存换成 Redis、按模块补审计切面（推荐）"
+      - "立即开启拦截器并在联调中边跑边修：把范围判定的正确性押在验收瑕疵上，越权风险不可接受"
+      - "改共享框架 ruoyi-common-mybatis 的 MybatisPlusConfiguration 让插件链自动收集 InnerInterceptor bean：属于改公共模块，影响所有服务，收益不足"
+    recommended: |
+      **推荐方案 1**。理由：数据范围是「漏了就会越权、错了就会全站报错」的一类改动，
+      必须在可观测的联调环境里逐表验证（每张表的 school_id / grade_id / class_id 是否真的存在、
+      join 场景下列名是否需带别名前缀），而不是靠编译通过或一次性放行；
+      缓存的 Redis 化与审计切面的补齐也依赖同一轮联调的环境（多实例 + 真实角色数据）。
+    blocking: false
+    blocks_stages:
+      - stage8
+    owner: 用户
+    answer: |
+      用户 2026-10-07 授权「遇到需要拍板的按推荐方案走并在 decisions.md 与 gap-register.yaml 各记一条」，
+      循环批次按推荐方案 1 落地（本批交付组件，默认关闭）。
+    resolution: |
+      已在 CR-093 落地六个 datascope 组件与班级任教关系只读接口；
+      待办（阶段 8）：① 按 schema.yaml 核对范围列映射后开启 `edu.data-scope.enabled`；
+      ② 确认插件链顺序（必要时前移到分页之前）；③ 接入 `ruoyi-common-redis` 把范围缓存换成 Redis，
+      并由 `DataScopeCacheInvalidator` 在业务写操作后失效；④ 补 `EduPermissionAspect`。
+    resolved_at: "2026-10-08"
+    status: answered
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"

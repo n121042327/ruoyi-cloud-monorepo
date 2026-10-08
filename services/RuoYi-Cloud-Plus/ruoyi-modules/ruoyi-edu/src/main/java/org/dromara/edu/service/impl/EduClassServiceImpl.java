@@ -15,6 +15,7 @@ import org.dromara.edu.domain.vo.EduClassMemberVo;
 import org.dromara.edu.domain.vo.EduClassVo;
 import org.dromara.edu.mapper.EduClassMapper;
 import org.dromara.edu.mapper.EduClassMemberMapper;
+import org.dromara.edu.mapper.EduTeachingAssignmentMapper;
 import org.dromara.edu.service.IEduClassService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,6 +57,7 @@ public class EduClassServiceImpl implements IEduClassService {
 
     private final EduClassMapper baseMapper;
     private final EduClassMemberMapper memberMapper;
+    private final EduTeachingAssignmentMapper teachingAssignmentMapper;
 
     @Override
     public TableDataInfo<EduClassVo> queryPageList(EduClassBo clazz, PageQuery pageQuery) {
@@ -336,6 +338,16 @@ public class EduClassServiceImpl implements IEduClassService {
         }
         wrapper.orderByAsc(EduClass::getGradeId).orderByAsc(EduClass::getClassName);
         return wrapper;
+    }
+
+    @Override
+    public List<org.dromara.edu.domain.vo.EduTeachingAssignmentVo> listClassTeachingAssignment(Long classId) {
+        requireClass(classId);
+        // 任教关系只读：唯一写入入口在教师模块（AGENTS 第 7 节模块边界）
+        return teachingAssignmentMapper.selectVoList(
+            new LambdaQueryWrapper<org.dromara.edu.domain.EduTeachingAssignment>()
+                .eq(org.dromara.edu.domain.EduTeachingAssignment::getClassId, classId)
+                .orderByAsc(org.dromara.edu.domain.EduTeachingAssignment::getSubjectId));
     }
 
 }

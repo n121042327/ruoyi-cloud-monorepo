@@ -1168,3 +1168,19 @@
 | `.../controller/EduAuditController.java` | 审计控制器（10 个端点，无更新与删除入口） | `已实现` |
 | `script/config/nacos/application-common.yml`（改） | `tenant.excludes` 增加三张平台级实体表，避免租户拦截器拼出不存在的列 | `已实现` |
 | `evidence/stage7-backend/2026-10-08_edu-audit_compile.log` | 本批编译证据与契约 / 表覆盖自检（BUILD SUCCESS / 451 个 class） | `review` |
+
+## 2026-10-08 阶段 7 第十四批：数据范围解析组件纵切 + 班级任教关系只读接口
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-093.md` | 数据范围组件的交付与编译证据（含 GAP-096） | `review` |
+| `.../datascope/EduDataScope.java` | 九类数据范围枚举（取值与层级来自字段字典） | `已实现` |
+| `.../datascope/DataScopeContext.java` | 当前请求的范围片段（ThreadLocal + 空集判定） | `已实现` |
+| `.../datascope/DataScopeResolver.java` | 范围解析器（四类来源表 + 共享授权叠加 + 进程内缓存） | `已实现` |
+| `.../datascope/DataScopeCacheInvalidator.java` | 范围缓存失效器 | `已实现` |
+| `.../datascope/EduDataPermissionHandler.java` | SQL 范围条件生成器（空集生成 1 = 2） | `已实现` |
+| `.../datascope/DataScopeInterceptor.java` | 拦截器装配（`edu.data-scope.enabled` 显式开启，默认关闭） | `已实现` |
+| `.../datascope/EduDataScopeChainRegistrar.java` | 把教育域拦截器追加进 MyBatis-Plus 插件链 | `已实现` |
+| `.../service/IEduClassService.java` + `impl/EduClassServiceImpl.java`（改） | 新增班级任教关系只读清单方法 | `已实现` |
+| `.../controller/EduClassController.java`（改） | 新增 `GET /edu/class/{classId}/teaching-assignment` | `已实现` |
+| `evidence/stage7-backend/2026-10-08_edu-datascope_compile.log` | 本批编译证据与契约覆盖自检（BUILD SUCCESS / 459 个 class） | `review` |
