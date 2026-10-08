@@ -34,3 +34,9 @@ python tools/check_gap_register.py -> 通过（96 条，open = 0）
 python yaml.safe_load(script/config/nacos/ruoyi-gateway.yml)     -> routes=9，含 ruoyi-edu（lb://ruoyi-edu, Path=/edu/**，无 StripPrefix）
 python yaml.safe_load(script/config/nacos/ruoyi-gateway-mvc.yml) -> routes=9，含 ruoyi-edu（同上）
 python tools/check_docs.py / check_gap_register.py               -> 通过（96 条、open = 0）
+
+
+--- 附带修正（D-175）：ruoyi-job 实体文件大小写 ---
+
+mvn -o -DskipTests -pl ruoyi-modules/ruoyi-job -am compile -> BUILD SUCCESS（BillDTO.java -> BillDto.java 重命名后）
+全仓库扫描（文件名 vs public 类型名，大小写敏感）-> 不一致 0 处
