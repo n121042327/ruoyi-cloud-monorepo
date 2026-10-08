@@ -27,6 +27,19 @@ public class EduEnrollmentChangeVo implements Serializable {
 
     private Long studentId;
 
+    private String studentNo;
+
+    private String studentName;
+
+    /** 学年学期 */
+    private Long termId;
+
+    /** 年级 */
+    private Long gradeId;
+
+    /** 异动类型（与 changeType 同值，供前端 EnrollmentChangeVO 使用） */
+    private String type;
+
     /** 异动类型 */
     private String changeType;
 

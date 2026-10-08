@@ -1059,3 +1059,19 @@
 | `.../service/IEduStudentProfileService.java` + `impl/EduStudentProfileServiceImpl.java` | 学生档案服务层（9 个方法，含学籍流转矩阵与敏感字段掩码） | `已实现` |
 | `.../controller/EduStudentProfileController.java` | 学生档案控制器（9 个端点） | `已实现` |
 | `evidence/stage7-backend/2026-10-08_edu-student-profile_compile.log` | 本批编译证据（BUILD SUCCESS / 217 个 class） | `review` |
+
+## 2026-10-08 阶段 7 第八批：学籍异动与跨校转学 + 学生激活码纵切
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-087.md` | 学籍异动 / 跨校转学 / 激活码的交付与编译证据 | `review` |
+| `.../domain/EduTransferOrder.java` | 跨校转学单实体（无 delFlag，只按状态流转） | `已实现` |
+| `.../domain/EduActivationCode.java` | 激活码实体（with_audit=false，不继承 BaseEntity；生成列不映射） | `已实现` |
+| `.../domain/bo/EduTransferOrderBo.java` / `EduActivationCodeBo.java` | 转学单 / 激活码业务对象 | `已实现` |
+| `.../domain/vo/EduTransferOrderVo.java` / `EduActivationCodeVo.java` | 转学单 / 激活码视图对象 | `已实现` |
+| `.../mapper/EduTransferOrderMapper.java` / `EduActivationCodeMapper.java` | 两个数据层 | `已实现` |
+| `.../service/IEduEnrollmentService.java` + `impl/EduEnrollmentServiceImpl.java` | 学籍异动与跨校转学服务层（8 个方法） | `已实现` |
+| `.../service/IEduActivationService.java` + `impl/EduActivationServiceImpl.java` | 激活码服务层（3 个方法） | `已实现` |
+| `.../controller/EduEnrollmentController.java` | 学籍异动与跨校转学控制器（8 个端点） | `已实现` |
+| `.../controller/EduStudentActivationController.java` | 学生激活码控制器（3 个端点） | `已实现` |
+| `evidence/stage7-backend/2026-10-08_edu-enrollment-and-activation_compile.log` | 本批编译证据（BUILD SUCCESS / 241 个 class） | `review` |

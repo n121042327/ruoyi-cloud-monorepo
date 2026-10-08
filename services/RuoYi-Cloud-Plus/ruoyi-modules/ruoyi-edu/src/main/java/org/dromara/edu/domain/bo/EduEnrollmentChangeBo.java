@@ -22,6 +22,30 @@ public class EduEnrollmentChangeBo extends BaseEntity {
     /** 异动类型 */
     private String changeType;
 
+    /** 异动记录 ID（审批用） */
+    private Long changeId;
+
+    /** 学年学期（异动历史页查询与展示） */
+    private Long termId;
+
+    /** 年级（异动历史页查询与展示） */
+    private Long gradeId;
+
+    /** 生效日期（登记时必填） */
+    private String effectiveDate;
+
+    /** 原因（登记时必填，至少 5 个字） */
+    private String reason;
+
+    /** 审批结果：true 通过 / false 驳回 */
+    private Boolean approved;
+
+    /** 审批意见（驳回必填） */
+    private String approveOpinion;
+
+    /** 关键字：学号 / 姓名 */
+    private String keyword;
+
     /** 生效日期（查询起点） */
     private String effectiveDateFrom;
 
