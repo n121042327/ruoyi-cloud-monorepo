@@ -1042,3 +1042,20 @@
 | `.../controller/EduSchoolController.java` | 学校与校区控制器（15 个端点） | `已实现` |
 | `.../controller/EduSubjectController.java` | 学科控制器（12 个端点） | `已实现` |
 | `evidence/stage7-backend/2026-10-08_edu-school-and-subject_compile.log` | 本批编译证据（BUILD SUCCESS / 175 个 class） | `review` |
+
+## 2026-10-08 阶段 7 第七批：学生档案、学籍异动与监护人纵切
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-086.md` | 学生档案 / 学籍异动 / 监护人的交付、缺项与编译证据 | `review` |
+| `.../domain/EduStudentEnrollment.java` | 在校记录实体（两段式取数第一段） | `已实现` |
+| `.../domain/EduGuardian.java` | 监护人主体实体（平台级，不设 tenant_id） | `已实现` |
+| `.../domain/EduStudentGuardian.java` | 监护人与学生关联实体（平台级） | `已实现` |
+| `.../domain/EduEnrollmentChange.java` | 学籍异动记录实体（追加式，无 delFlag） | `已实现` |
+| `.../domain/EduStudentFieldChange.java` | 学生资料变更申请实体（不映射生成列 pending_guard） | `已实现` |
+| `.../domain/bo/EduStudentEnrollmentBo.java` 等 4 个 | 在校记录 / 监护人 / 异动查询 / 资料变更查询业务对象 | `已实现` |
+| `.../domain/vo/EduStudentEnrollmentVo.java` / `EduGuardianVo.java` / `EduEnrollmentChangeVo.java` / `EduEnrollmentStatusOptionVo.java` / `EduStudentFieldChangeVo.java` | 五个视图对象（与前端契约字段对齐） | `已实现` |
+| `.../mapper/EduStudentEnrollmentMapper.java` 等 5 个 | 五个数据层 | `已实现` |
+| `.../service/IEduStudentProfileService.java` + `impl/EduStudentProfileServiceImpl.java` | 学生档案服务层（9 个方法，含学籍流转矩阵与敏感字段掩码） | `已实现` |
+| `.../controller/EduStudentProfileController.java` | 学生档案控制器（9 个端点） | `已实现` |
+| `evidence/stage7-backend/2026-10-08_edu-student-profile_compile.log` | 本批编译证据（BUILD SUCCESS / 217 个 class） | `review` |

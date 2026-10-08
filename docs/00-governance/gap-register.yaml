@@ -2851,6 +2851,39 @@ gaps:
     resolved_at: "2026-10-08"
     status: answered
 
+  - id: GAP-092
+    title: 监护人绑定接口契约里有 remark 字段，但 edu_student_guardian 没有对应列
+    discovered_at: 2026-10-08
+    discovered_by: 阶段 7 生成学生监护人接口时按 schema.yaml 反查（CR-086）
+    evidence: |
+      前端契约 apps/plus-ui/src/api/edu/student/types.ts 的 `GuardianForm` 声明了 `remark?: string`
+      （POST /edu/student/{id}/guardian 的请求体，见 docs/40-detailed-design/api/openapi.yaml 的 saveStudentGuardian），
+      但唯一事实源 docs/40-detailed-design/database/schema.yaml 的 edu_student_guardian 列只有
+      student_id / guardian_id / relation / is_primary / bind_status / source / audit_by / audit_time /
+      audit_opinion / bind_time / unbind_time（外加审计列），**没有 remark**；
+      edu_guardian 也没有 remark。由它生成的 migrations/V1__edu_student_teacher.sql 同样没有该列。
+    expected: 请求体字段在落库表里有对应列
+    actual: 契约有字段、DDL 没有列
+    impact: |
+      不处理则前端提交的备注会被静默丢弃（用户以为写进去了）；若强行加列又要改已冻结的建表脚本。
+    options:
+      - 备注复用 `audit_opinion`（审核意见）承载：教师录入时把备注写进 audit_opinion，不新增列
+      - 在 schema.yaml 的 edu_student_guardian 增加 `remark varchar(500)`，重新生成 V1 迁移脚本
+      - 请求体去掉 `remark`（改前端契约）
+    recommended: |
+      选项 1。绑定关系的「备注」在业务上就是录入说明 / 审核说明，`audit_opinion` 已经是同一语义的字段，
+      复用不必改冻结的建表脚本；等阶段 5 产物下一版修订时再把该语义写进字段字典。
+    blocking: false
+    blocks_stages:
+      - stage7
+    owner: 用户
+    answer: 用户 2026-10-07 起多次授权「需要拍板的按推荐走」，采纳推荐选项 1。
+    resolution: |
+      按 CR-086 落地：`EduGuardianBo.remark` 保留在契约里（前端不用改），服务层在保存时把备注写入
+      `edu_student_guardian.audit_opinion`；字段字典与 schema.yaml 的修订留到阶段 5 产物下一版。
+    resolved_at: "2026-10-08"
+    status: answered
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"
