@@ -3247,3 +3247,50 @@ open_questions_for_user:
       变为业务提示（「当前租户尚未接入学校」/「当前学校尚未配置选科开放期」，属演示数据未初始化）。
     resolved_at: 2026-10-08
     status: closed
+
+  - id: GAP-099
+    title: edu_school 被按 scope=school 注入冗余的 NOT NULL 列 school_id，建校接口必然失败
+    discovered_at: 2026-10-08
+    discovered_by: 用户反馈「点学校管理没有数据」后逐层复现（CR-104）
+    evidence: |
+      **这是什么**：教育域的「新建学校」在实现上无法成功——`POST /edu/school` 返回 500，
+      日志为 `Field 'school_id' doesn't have a default value`。
+      原因是事实源 `docs/40-detailed-design/database/schema.yaml` 把 `edu_school` 标成 `scope: school`，
+      生成器（`tools/gen_schema_artifacts.py` 的 scope 注入分支）因此给这张表也注入了 `school_id`；
+      但 `edu_school` 自己就是学校主体，实体 `EduSchool` 按主键约定把 `schoolId` 映射到 `id`
+      （`services/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-edu/src/main/java/org/dromara/edu/domain/EduSchool.java` 第 24-26 行），
+      没有任何字段映射 `school_id`，MyBatis-Plus 生成的 INSERT 里自然也没有这一列。
+      连锁影响：`EduDataPermissionHandler` 把 `edu_school` 列入 `SCHOOL_TABLES` 并生成 `school_id IN (...)`，
+      数据范围开启后学校侧用户会在自己学校的这张表上查不到数据（`edu.data-scope.enabled` 当前为 false，见 GAP-096）。
+    expected: 学校管理列表能看到本校记录；`POST /edu/school` 能建校；学校表的数据范围由租户隔离保证
+    actual: 该列 NOT NULL 且无写入方，建校一律 500，`edu_school` 全库 0 行，学校相关页面全部空数据
+    impact: |
+      **不选会怎样**：不修则教育域从「建校」这一步就断了——没有学校就没有学年学期、年级、班级、学生，
+      阶段 8 的联调无法开始；若改成"列可空"或"代码强写"，则会把一个语义错误的列长期留在核心表上。
+    options:
+      - "去掉该列：schema.yaml 的 edu_school scope 改 tenant + 增量迁移 DROP COLUMN + 数据范围处理器移除 edu_school（推荐）"
+      - "把列改成可空：非破坏性，但列仍是死列，数据范围开启后学校侧仍会在该表上被过滤成空"
+      - "代码里强行写入该列：需要给实体加映射字段并用自定义 INSERT，破坏「主键列 id + 字段名 xxxId」的统一约定"
+      - "改生成器对所有 scope=school 的表都不注入 school_id：影响 30+ 张表与所有服务，收益不足"
+    recommended: |
+      **推荐方案 1**。理由：该列零引用、零写入方，且学校与租户本就一对一（`uk_school_tenant (tenant_id)`）；
+      去掉它既恢复建校链路，又避免数据范围在核心表上按一个永远为空的列过滤。
+      影响面：`docs/40-detailed-design/database/schema.yaml`、新增迁移 `V8__edu_school_drop_redundant_school_id.sql`、
+      `EduDataPermissionHandler`；执行时该表为空，无数据风险。
+    blocking: false
+    blocks_stages:
+      - stage7
+      - stage8
+    owner: 用户
+    answer: |
+      用户 2026-10-07 授权「遇到需要拍板的按推荐方案走并在 decisions.md 与 gap-register.yaml 各记一条」，
+      本批按推荐方案 1 落地（CR-104 / D-183）。
+    resolution: |
+      已改 `schema.yaml`（edu_school scope=school → tenant）并新增 `V8__edu_school_drop_redundant_school_id.sql`，
+      本机 ry-cloud 已执行（该表当时 0 行，无外键/索引/读写方引用）；
+      `EduDataPermissionHandler.SCHOOL_TABLES` 移除 `edu_school`；
+      `mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile` BUILD SUCCESS；
+      复测 `POST /edu/school` 200、`GET /edu/school/list` total=1、`GET /edu/school/current` 200。
+      遗留（阶段 6 已登记的下一批，非本缺项）：学校管理页还没有「新建学校 / 编辑」入口。
+    resolved_at: 2026-10-08
+    status: closed

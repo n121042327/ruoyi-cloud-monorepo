@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
  *
  * 表清单按 `docs/40-detailed-design/database/schema.yaml` 的 `scope` 与显式列推导：
  * - `school` 范围的表都有 `school_id` → 用 `school_id IN (...)`
+ * - `edu_school` 本身不在此列：它即学校主体，`tenant_id` 已保证一校一租户（CR-104 去掉冗余 school_id）。
  * - 显式带 `grade_id` 的表（`edu_grade_leader` / `edu_class` / `edu_teaching_class`）→ 用 `school_id IN (...) OR grade_id IN (...)`
  * - 显式带 `class_id` 的表（`edu_teaching_assignment` / `edu_class_member`）→ 用 `school_id IN (...) OR class_id IN (...)`
  *
@@ -38,7 +39,7 @@ public class EduDataPermissionHandler implements MultiDataPermissionHandler {
         "edu_class_member", "edu_teaching_class", "edu_teaching_class_member", "edu_promotion_task",
         "edu_promotion_item", "edu_enrollment_change", "edu_transfer_order", "edu_stream_config",
         "edu_student_stream", "edu_stream_change_request", "edu_stream_history", "edu_subject",
-        "edu_subject_stage", "edu_school", "edu_campus", "edu_school_stage", "edu_academic_year",
+        "edu_subject_stage", "edu_campus", "edu_school_stage", "edu_academic_year",
         "edu_term", "edu_import_batch", "edu_import_error", "edu_async_task", "edu_async_task_retry",
         "edu_dead_letter_task", "edu_file_ref", "edu_audit_log", "edu_audit_change",
         "edu_audit_log_archive");

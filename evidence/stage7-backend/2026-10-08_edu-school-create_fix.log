@@ -1,0 +1,114 @@
+# 阶段 7 证据：学校管理页面无数据的定位与建校链路修复（CR-104）
+
+- 时间：2026-10-08
+- 分支：codex/stage7-backend
+- 环境：本机 Docker（MySQL 8 / Redis）+ Windows 上 IDEA 启动的 ruoyi-gateway(8080) / ruoyi-edu(9211)，
+  前端为 vite dev server（端口 80，`vite serve --mode development`）
+- 复现账号：liubei（userId 2108206858094284801，tenantId 546223 蜀国，角色 admin）
+- 口径：只声明「编译通过」，不写「测试通过」
+
+## 0. 用户现象
+
+租户账号登录后点「学校管理」，页面打开了但没有表格数据。
+
+## 1. 先排除前端与权限
+
+```
+GET /system/user/getInfo
+  -> permissions 199 项，包含 org.school:read / org.school:create / org.school:update / org.school:export
+  -> roles ['admin']
+
+# 前端页面 apps/plus-ui/src/views/edu/school/sch_list/index.vue
+#   <el-card v-if="!canRead"> 当前账号没有学校管理的查看权限 </el-card>
+#   <el-card v-else> ... <el-table :data="schoolList"> ... #empty 没有查询到学校数据
+# canRead = checkPermi(['org.school:read']) -> true，所以表格是渲染的，只是没有数据
+
+GET /system/menu/getRouters  -> 侧栏含「教育管理 / 学校与校区 / 学校管理」
+sys_menu 13029: path=list, component=edu/school/sch_list/index, perms=org.school:read（与前端路由一致）
+```
+
+## 2. 数据层面：该租户没有学校
+
+```
+GET /edu/school/list?pageNum=1&pageSize=20
+  -> {"total":0,"rows":[],"code":200,"msg":"查询成功"}
+
+GET /edu/school/current
+  -> {"code":500,"msg":"当前租户尚未接入学校","data":null}
+
+# 库内统计（ry-cloud）
+edu_school 行数 = 0；edu_term = 0；edu_grade = 0
+sys_tenant 546223 = {contact_user_name: 刘备, company_name: 蜀国, package_id: 2108206746148311041, status: 0}
+```
+
+## 3. 关键发现：建校接口本身是坏的
+
+```
+POST /edu/school  {"schoolCode":"SCH-546223","schoolName":"测试学校"}
+  -> {"code":500,"msg":"发生未知异常，请联系管理员","data":null}
+
+# services/RuoYi-Cloud-Plus/logs/ruoyi-edu/error.log
+org.springframework.dao.DataIntegrityViolationException:
+### The error may exist in org/dromara/edu/mapper/EduSchoolMapper.java (best guess)
+### SQL: INSERT INTO edu_school (id, school_code, school_name, school_status, create_dept, create_by,
+                                 create_time, update_by, update_time, tenant_id) VALUES (?, ..., '546223')
+### Cause: java.sql.SQLException: Field 'school_id' doesn't have a default value
+
+# 表结构（修复前）
+information_schema: edu_school 有 id / tenant_id / school_id(bigint unsigned NOT NULL) / school_code / ...
+show create table edu_school:
+  UNIQUE KEY `uk_school_tenant` (`tenant_id`),          -- 一所学校对应一个租户
+  UNIQUE KEY `uk_school_code` (`parent_tenant_id`,`school_code`)
+# 引用检查：没有任何外键 / 索引 / 读写方引用 edu_school.school_id
+```
+
+根因：生成器对 `scope: school` 的表自动注入 `tenant_id` + `school_id`（`tools/gen_schema_artifacts.py`），
+而 `edu_school` 自己就是学校主体；实体 `EduSchool` 按主键约定把 `schoolId` 映射到 `id`，
+没有任何字段映射 `school_id` → INSERT 永远带不上该列 → 建校必然失败 → 学校列表恒为空。
+
+## 4. 修复（CR-104 / D-183 / GAP-099）
+
+| 文件 | 改动 |
+|---|---|
+| `docs/40-detailed-design/database/schema.yaml` | `edu_school` 的 `scope` 由 `school` 改为 `tenant`，note 说明不再注入 `school_id` |
+| `docs/40-detailed-design/migrations/V8__edu_school_drop_redundant_school_id.sql`（新增） | `ALTER TABLE edu_school DROP COLUMN school_id;` |
+| `.../edu/datascope/EduDataPermissionHandler.java` | `SCHOOL_TABLES` 移除 `edu_school`（数据范围由 tenant_id 保证一校一租户） |
+
+执行：
+
+```
+docker cp docs/40-detailed-design/migrations/V8__edu_school_drop_redundant_school_id.sql mysql:/tmp/V8.sql
+docker exec mysql sh -c "mysql --default-character-set=utf8mb4 -uroot -proot ry-cloud < /tmp/V8.sql"
+# 无报错
+
+# 修复后列清单（已无 school_id）
+id, tenant_id, school_code, school_name, short_name, parent_tenant_id, root_tenant_id, school_type,
+address, phone, school_status, create_dept, create_by, create_time, update_by, update_time, del_flag
+```
+
+重建学校（POST body 用 UTF-8 文件传入，避免 PowerShell 参数编码问题）：
+
+```
+POST /edu/school  {"schoolCode":"SCH546223","schoolName":"蜀国学校","shortName":"蜀国","schoolType":"private"}
+  -> {"code":200,"msg":"操作成功","data":null}
+
+GET /edu/school/list
+  -> {"total":1,"rows":[{schoolId:"2108208954835251201", tenantId:"546223", schoolCode:"SCH546223",
+                          schoolName:"蜀国学校", shortName:"蜀国", schoolStatus:"active", ...}], "code":200}
+
+GET /edu/school/current
+  -> {"code":200,"data":{"schoolId":"2108208954835251201","schoolName":"蜀国学校","current":true,"tenantId":"546223",...}}
+
+# 编译（只声明编译通过）
+cd services/RuoYi-Cloud-Plus
+mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile
+... [INFO] BUILD SUCCESS  (Total time: 29.673 s)
+```
+
+## 5. 遗留
+
+1. 学校管理页按 `CR-059` 只交付了「刷新 / 导出 / 停用 / 启用」，**没有「新建学校 / 编辑」入口**，
+   因此上面这次建校是通过 `POST /edu/school` 完成的；要补齐 UI 需要做 `PAGE-SCH-CREATE` / `PAGE-SCH-EDIT`
+   （前端 `api/edu/school` 的 `addSchool` / `updateSchool` + 表单弹窗 + 工具栏按钮）。
+2. 新建的学校学校名为「蜀国学校」（编码 SCH546223），需要改名可在补齐编辑入口后修改，或直接调 `PUT /edu/school`。
+3. 学校建立后，开通链路后续步骤（学年学期 → 年级 → 班级 → 学生）可以继续走各自页面。

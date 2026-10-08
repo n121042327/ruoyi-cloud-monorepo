@@ -1289,3 +1289,13 @@
 | `docs/40-detailed-design/database/schema.yaml`（改） | `conventions.audit_columns` 补 `create_dept` | `已实现` |
 | `docs/40-detailed-design/migrations/V7__edu_audit_create_dept.sql` | 31 张 edu 表的 `create_dept` 增量迁移 | `已实现` |
 | `evidence/stage7-backend/2026-10-08_edu-permission-and-audit-col_fix.log` | 对照实验、编译、库结构与接口复测证据 | `review` |
+
+## 2026-10-08 阶段 7 第二十四批：edu_school 去掉冗余 school_id
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-104.md` | 建校失败的现象、根因、改动与验证 | `review` |
+| `docs/40-detailed-design/database/schema.yaml`（改） | `edu_school` 的 scope 由 school 改为 tenant | `已实现` |
+| `docs/40-detailed-design/migrations/V8__edu_school_drop_redundant_school_id.sql` | 去掉冗余列 school_id | `已实现` |
+| `services/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-edu/src/main/java/org/dromara/edu/datascope/EduDataPermissionHandler.java`（改） | SCHOOL_TABLES 移除 edu_school | `已实现` |
+| `evidence/stage7-backend/2026-10-08_edu-school-create_fix.log` | 建校失败与修复后的复现证据 | `review` |

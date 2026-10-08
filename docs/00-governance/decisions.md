@@ -2461,3 +2461,22 @@ M=13（1 根 + 12 分组）、C=41、F=64；URL 拼接结果与前端 41 条 dyn
 `docs/40-detailed-design/migrations/V7__edu_audit_create_dept.sql`（31 条 ALTER，V1~V6 冻结不动，沿用 V6 学生的增量口径）；
 本机 `ry-cloud` 已执行。**注意**：`with_audit: false` 的 13 张表不需要该列，其实体也不继承 BaseEntity。
 证据见 `evidence/stage7-backend/2026-10-08_edu-permission-and-audit-col_fix.log`。
+
+## D-183 — edu_school 去掉冗余列 school_id，而不是让它可空或强行写入（2026-10-08）
+
+现象：租户账号打开「学校管理」没有数据；用接口建校直接 500，日志为
+`Field 'school_id' doesn't have a default value`。根因是生成器对 `scope: school` 的表自动注入 `school_id`，
+而 `edu_school` 本身就是学校主体（一校一租户，`uk_school_tenant(tenant_id)`），实体按主键约定把 `schoolId` 映射到 `id`，
+没有任何写入方。三个备选：
+
+1. **去掉该列（推荐，已执行）**：`schema.yaml` 把 `edu_school.scope` 改为 `tenant`，新增 V8 增量 `DROP COLUMN`，
+   并把 `edu_school` 从 `EduDataPermissionHandler.SCHOOL_TABLES` 移除（`tenant_id` 已保证一校一租户）。
+   理由：该列零引用、零写入方，留着就是给后续每个改动埋雷；表在建列时为 0 行，删除无数据风险。
+2. 把该列改成可空：非破坏性，但列仍是死列，且数据范围开启后学校侧用户会因 `school_id IN (...)` 在自己学校表上查不到数据。
+3. 保留 NOT NULL 并在代码里写入：必须先给实体加一个映射 `school_id` 的字段，再用自定义 INSERT 才能带上该列
+   （MP 的 INSERT 无法凭空写未映射的列），等于为一张表破坏「主键列叫 id、字段名 xxxId」的统一约定。
+4. 改共享基类/生成器对所有 `scope: school` 表都不注入：影响 30+ 张表与所有服务，收益不足。
+
+**经验**：`school_id` 是"挂在哪所学校"的外键，学校表自己不该有；以后再遇到「表本身即范围主体」的情况，
+事实源里要把 scope 定为 `tenant` 而不是 `school`。
+证据见 `evidence/stage7-backend/2026-10-08_edu-school-create_fix.log`。

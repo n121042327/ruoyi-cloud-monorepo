@@ -748,12 +748,14 @@ tables:
     cn: 学校
     module: school
     batch: "5-2"
-    scope: school
+    scope: tenant
     with_audit: true
     soft_delete: true
     note: |
-      "一个学校对应一个租户"（BR-ORG-002）：本表 `tenant_id` 唯一，且 `school_id = tenant_id` 的映射在接入时写入。
-      层级不超过三级（运营方 → 集团 → 学校，BR-ORG-003）。
+      "一所学校对应一个租户"（BR-ORG-002），用 `tenant_id` 唯一（建表脚本里的 `uk_school_tenant`）。
+      本表即学校主体，不再冗余注入 `school_id`：该列由「scope: school」约定自动注入，但它是 NOT NULL 且没有任何写入方
+      （实体按主键约定把 schoolId 映射到 id），任何建校请求都会以 "Field 'school_id' doesn't have a default value" 失败（CR-104）。
+      层级不超过三级：运营方 → 集团 → 学校（BR-ORG-003）。
     columns:
       - { name: school_code, type: varchar(50), nullable: false, comment: 学校编码（父租户内唯一） }
       - { name: school_name, type: varchar(100), nullable: false, comment: 学校名称 }
