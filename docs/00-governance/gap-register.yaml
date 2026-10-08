@@ -2809,6 +2809,48 @@ gaps:
     resolved_at: "2026-10-08"
     status: answered
 
+  - id: GAP-091
+    title: 教师账号的「重置密码 / 停用 / 启用」三个接口缺远程契约（RemoteUserService 没有账号操作方法）
+    discovered_at: 2026-10-08
+    discovered_by: 阶段 7 生成教师模块时反查账号接口（CR-084）
+    evidence: |
+      docs/40-detailed-design/api/openapi.yaml 的 teacher 模块声明了 3 个账号类接口：
+      `resetTeacherPassword`（POST /edu/teacher/{id}/reset-password，约 9506 行）、
+      `disableTeacherAccount`（POST /edu/teacher/{id}/account/disable，约 9566 行）、
+      `enableTeacherAccount`（POST /edu/teacher/{id}/account/enable，约 9838 行）。
+      但账号信息在 sys_user（schema.yaml 的 edu_teacher note 明确写「账号信息（login_name / last_login_time）在 sys_user，本表不重复存」），
+      而 services/RuoYi-Cloud-Plus/ruoyi-api/ruoyi-api-system/src/main/java/org/dromara/system/api/RemoteUserService.java
+      只提供 getUserInfo / registerUserInfo / selectXxx / recordLoginInfo 等读与注册方法，
+      **没有**重置密码或改账号状态的远程方法，edu 服务无法在不越界直连 sys_user 的前提下实现这三个接口。
+    expected: edu 服务能通过服务边界（Dubbo 远程接口）完成教师账号的密码重置与启停
+    actual: 远程契约缺这两个能力
+    impact: |
+      不处理则三个接口无处落地；若图省事让 edu 直连 sys_user 表，会破坏「账号归系统模块」的服务边界，
+      也会绕过 sys_user 自身的密码加密与登录态失效逻辑。
+    options:
+      - 在 `RemoteUserService`（ruoyi-api-system）新增 `resetPassword(Long userId, String password)` 与
+        `changeAccountStatus(Long userId, String status)` 两个方法，由 ruoyi-system 实现（复用 SysUserServiceImpl 的
+        重置密码与状态变更逻辑），edu 侧 @DubboReference 调用
+      - 让 edu 侧直连 sys_user 更新密码与状态（跨模块写库）
+      - 三个接口拆到 ruoyi-system 实现，edu 只做教师与账号的关联（把接口挂在系统模块的路径下）
+    recommended: |
+      选项 1。账号的写操作必须留在系统模块（密码加密、登录态失效、审计都在那边），
+      而「教师 → 账号」的映射只 edu 知道（edu_teacher.user_id），所以正确形态是
+      「edu 收请求 + Dubbo 调系统模块执行」——这也是本仓库既有的 registerUserInfo 模式。
+      选项 2 破坏服务边界；选项 3 会把教育语义的路径挂到系统模块下，与 openapi.yaml 的归属冲突。
+    blocking: false
+    blocks_stages:
+      - stage7
+    owner: 用户
+    answer: 用户 2026-10-07 起多次授权「需要拍板的按推荐走」，采纳推荐选项 1。
+    resolution: |
+      待落地（本轮先登记）：在 ruoyi-api-system 的 RemoteUserService 增加上述两个方法、
+      在 ruoyi-system 的实现类里落地（复用密码加密与账号状态逻辑），再在 edu 侧补齐
+      `resetTeacherPassword` / `disableTeacherAccount` / `enableTeacherAccount` 三个接口。
+      因为要同时改框架的两个模块（api-system + system），按「一批一证据」的节奏放到独立小批（CR-085 或之后）。
+    resolved_at: "2026-10-08"
+    status: answered
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"

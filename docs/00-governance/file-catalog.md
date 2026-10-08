@@ -1008,3 +1008,18 @@
 | `.../service/IEduTermService.java` + `impl/EduTermServiceImpl.java` | 学年学期服务层（12 个方法，含默认学期结构与引用检查） | `已实现` |
 | `.../controller/EduTermController.java` | 学年学期控制器（12 个端点，term 模块全覆盖） | `已实现` |
 | `evidence/stage7-backend/2026-10-08_edu-term_compile.log` | 本批编译证据（BUILD SUCCESS / 83 个 class） | `review` |
+
+## 2026-10-08 阶段 7 第五批：教师模块纵切
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-084.md` | 教师模块纵切的交付、缺项与编译证据 | `review` |
+| `.../domain/EduTeacher.java` | 教师主体实体（edu_teacher，带 delFlag） | `已实现` |
+| `.../domain/EduUserRole.java` | 学校级教育角色实体（edu_user_role） | `已实现` |
+| `.../domain/EduTeachingAssignment.java` | 任教关系实体（edu_teaching_assignment，无 delFlag，DS-07 权威来源） | `已实现` |
+| `.../domain/bo/EduTeacherBo.java` / `EduUserRoleBo.java` / `EduTeachingAssignmentBo.java` | 三个业务对象 | `已实现` |
+| `.../domain/vo/EduTeacherVo.java` / `EduUserRoleVo.java` / `EduTeachingAssignmentVo.java` | 三个视图对象 | `已实现` |
+| `.../mapper/EduTeacherMapper.java` / `EduUserRoleMapper.java` / `EduTeachingAssignmentMapper.java` | 三个数据层 | `已实现` |
+| `.../service/IEduTeacherService.java` + `impl/EduTeacherServiceImpl.java` | 教师服务层（15 个方法，含账号创建与任教关系复制） | `已实现` |
+| `.../controller/EduTeacherController.java` | 教师控制器（15 个端点） | `已实现` |
+| `evidence/stage7-backend/2026-10-08_edu-teacher_compile.log` | 本批编译证据（BUILD SUCCESS / 116 个 class） | `review` |
