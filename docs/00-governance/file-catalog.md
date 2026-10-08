@@ -1310,3 +1310,13 @@
 | `apps/plus-ui/src/api/edu/school/index.ts`（改） | `addSchool` / `updateSchool`；查询参数 `status` → `schoolStatus` | `已实现` |
 | `apps/plus-ui/src/api/edu/school/types.ts`（改） | `SchoolVO.schoolStatus`；新增 `SchoolForm` | `已实现` |
 | `evidence/stage6-frontend/2026-10-08_school-form-dialog_verification.log` | 八项门禁与接口验证证据 | `review` |
+
+## 2026-10-08 阶段 6 第二十六批：教育域弹窗分组标题 / 提示样式
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-106.md` | 丑布局根因、改动与门禁 | `review` |
+| `apps/plus-ui/src/assets/styles/index.scss`（改） | 新增 `.form-section-title` / `.hint` 全局样式 | `已实现` |
+| `apps/plus-ui/src/views/edu/school/sch_list/components/SchoolFormDialog.vue`（改） | 720px + 2×2 栅格 + 底部单行说明 | `已实现` |
+| `evidence/stage6-frontend/2026-10-08_school-dialog-layout.png` | 修复后的弹窗实机截图 | `review` |
+| `evidence/stage6-frontend/2026-10-08_school-form-dialog-layout.log` | 八项门禁与实机验证记录 | `review` |

@@ -223,3 +223,29 @@ aside {
     margin-bottom: 10px;
   }
 }
+/* ---- 表单分组标题与字段提示（教育域弹窗 / 抽屉共用） ----
+   依据 docs/00-governance/page-field-layout.md 第 3 节：表单用分组标题分节、操作区独立。
+   这两个 class 目前只出现在 src/views/edu/**（23 个文件 44 处 / 21 个文件 42 处），
+   统一在这里定义，避免每个弹窗各写一套，也避免落到浏览器默认的 h3 / 正文样式。 */
+.form-section-title {
+  display: flex;
+  align-items: center;
+  margin: 0 0 14px;
+  padding-left: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--el-text-color-primary);
+  border-left: 3px solid var(--el-color-primary);
+}
+
+.form-section-title:not(:first-child) {
+  margin-top: 18px;
+}
+
+.hint {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--el-text-color-secondary);
+}

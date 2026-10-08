@@ -1,0 +1,43 @@
+# 阶段 6 证据：教育域弹窗分组标题 / 提示样式修复（CR-106）
+
+- 时间：2026-10-08
+- 分支：codex/stage7-backend（随当前工作分支提交）
+- 环境：本机 vite dev server（localhost:80）+ Chrome（通过浏览器自动化实机复核）
+
+## 1. 问题
+
+用户截图：新建学校弹窗 620px 宽、两列各约 200px，长提示被折成 6 行占满右半屏；分组标题是默认粗体 h3。
+
+## 2. 根因
+
+- `class="form-section-title"` 44 处 / 23 个文件、`class="hint"` 42 处 / 21 个文件，**只出现在 src/views/edu/**，
+  且全前端没有任何样式定义**（`src/assets/styles/*` 与各组件内均无），因此落到浏览器默认样式。
+- 叠加上 `width="620px"` + `el-col :span="12"` + `label-width="110px"` 的窄列。
+
+## 3. 改动
+
+1. `apps/plus-ui/src/assets/styles/index.scss`：新增
+   `.form-section-title`（14px/600、左侧 3px 主色竖条、`:not(:first-child)` 组间距 18px）与
+   `.hint`（12px、次要色、行高 1.5、上边距 4px）。
+2. `apps/plus-ui/src/views/edu/school/sch_list/components/SchoolFormDialog.vue`：
+   宽度 620 → 720；字段改 2×2（学校名称 | 学校编码 / 学校类型 | 所属租户）；
+   删除字段内的两段长提示，收敛为表单底部一行 `.hint`。
+
+## 4. 门禁（八项）
+
+```
+python tools/check_fe_page_structure.py   -> 通过
+python tools/check_api_contract.py        -> 通过（OpenAPI operationId 181 条）
+python tools/check_docs.py                -> 通过
+python tools/check_gap_register.py        -> 通过（101 条，无重复）
+python tools/check_mermaid.py             -> 通过（103 张图）
+pnpm --filter @edu/plus-ui typecheck      -> error TS 51 条（= 基线 51，本批新增 0）
+pnpm --filter @edu/plus-ui lint:eslint    -> 124 problems（= 基线 124，本批新增 0）
+pnpm --filter @edu/plus-ui run build:prod -> 成功（exit 0）
+```
+
+## 5. 实机复核
+
+用浏览器自动化在 Chrome 打开 `/edu/school/list` → 刷新 → 点「新建学校」：
+可访问性树显示弹窗内 4 个字段（学校名称 / 学校编码 / 学校类型 / 所属租户）+ 1 行说明，无字段内长提示；
+截图：`evidence/stage6-frontend/2026-10-08_school-dialog-layout.png`。

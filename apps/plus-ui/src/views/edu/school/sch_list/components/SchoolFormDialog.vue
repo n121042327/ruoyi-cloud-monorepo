@@ -1,9 +1,11 @@
 <template>
-  <el-dialog v-model="visible" :title="title" width="620px" append-to-body>
-    <el-form ref="formRef" :model="form" :rules="rules" label-width="110px">
-      <!-- 基础信息（page-field-layout：语义分组优先） -->
+  <el-dialog v-model="visible" :title="title" width="720px" append-to-body>
+    <el-form ref="formRef" :model="form" :rules="rules" label-width="92px">
+      <!-- 学校身份与归属同属一个「基础信息」组：分组标题 + 2×2 栅格。
+           窄列里不再塞长提示，说明统一收到表单底部的单行 .hint，
+           依据 docs/00-governance/page-field-layout.md 第 1、2、3 节。 -->
       <h3 class="form-section-title" data-layout-group="基础信息">基础信息</h3>
-      <el-row :gutter="16">
+      <el-row :gutter="20">
         <el-col :span="12">
           <el-form-item label="学校名称" prop="schoolName">
             <el-input v-model="form.schoolName" placeholder="如 云溪实验学校" maxlength="100" clearable />
@@ -11,10 +13,11 @@
         </el-col>
         <el-col :span="12">
           <el-form-item label="学校编码" prop="schoolCode">
-            <el-input v-model="form.schoolCode" placeholder="如 SCH-201" maxlength="50" clearable :disabled="isEdit" />
-            <div class="hint">父租户内唯一（BR-ORG-011）；编码是导入 / 导出对照表的键，保存后变更需单独申请（updateSchoolCode）。</div>
+            <el-input v-model="form.schoolCode" placeholder="如 SCH-546223" maxlength="50" clearable :disabled="isEdit" />
           </el-form-item>
         </el-col>
+      </el-row>
+      <el-row :gutter="20">
         <el-col :span="12">
           <el-form-item label="学校类型" prop="schoolType">
             <el-select v-model="form.schoolType" placeholder="请选择" class="w-full" clearable>
@@ -24,18 +27,13 @@
             </el-select>
           </el-form-item>
         </el-col>
-      </el-row>
-
-      <!-- 管理信息：学校与租户一一对应，绑定关系不可修改（REQ-SCH-022） -->
-      <h3 class="form-section-title" data-layout-group="管理信息">管理信息</h3>
-      <el-row :gutter="16">
         <el-col :span="12">
           <el-form-item label="所属租户">
             <el-input v-model="tenantLabel" disabled />
-            <div class="hint">学校与租户一一对应（BR-ORG-002）；跨租户建校由平台运营的开通流程完成，建校后不可迁移。</div>
           </el-form-item>
         </el-col>
       </el-row>
+      <div class="hint">学校与租户一一对应（BR-ORG-002），建校后不可跨租户迁移；学校编码父租户内唯一，变更需单独申请（updateSchoolCode）。</div>
     </el-form>
     <template #footer>
       <div class="dialog-footer">
