@@ -1111,3 +1111,19 @@
 | `.../service/IEduStreamService.java` + `impl/EduStreamServiceImpl.java` | 选科服务层（16 个方法，含开放期比较、变更审批、历史追加、教学班幂等生成） | `已实现` |
 | `.../controller/EduStreamController.java` | 选科控制器（16 个端点） | `已实现` |
 | `evidence/stage7-backend/2026-10-08_edu-stream_compile.log` | 本批编译证据（BUILD SUCCESS / 332 个 class） | `review` |
+
+## 2026-10-08 阶段 7 第十一批：异步任务中心纵切
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-090.md` | 异步任务中心的交付与编译证据（含 GAP-093） | `review` |
+| `.../domain/EduAsyncTask.java` | 异步任务实体（with_audit=true，无 del_flag） | `已实现` |
+| `.../domain/EduAsyncTaskRetry.java` | 重试记录实体（with_audit=false，不继承 BaseEntity） | `已实现` |
+| `.../domain/EduDeadLetterTask.java` | 死信任务实体（with_audit=false，只追加） | `已实现` |
+| `.../domain/EduFileRef.java` | 文件引用实体（主键 refId 与业务 fileId 区分） | `已实现` |
+| `.../domain/bo/EduAsyncTaskBo.java` / `EduDeadLetterTaskBo.java` | 任务 / 死信业务对象 | `已实现` |
+| `.../domain/vo/EduAsyncTaskVo.java` / `EduAsyncTaskRetryVo.java` / `EduDeadLetterTaskVo.java` / `EduFileRefVo.java` | 任务 / 重试 / 死信 / 文件视图对象 | `已实现` |
+| `.../mapper/EduAsyncTaskMapper.java` 等 4 个 | 四个数据层 | `已实现` |
+| `.../service/IEduAsyncTaskService.java` + `impl/EduAsyncTaskServiceImpl.java` | 异步任务服务层（7 个契约方法 + 2 个内部方法） | `已实现` |
+| `.../controller/EduAsyncTaskController.java` | 异步任务控制器（7 个端点） | `已实现` |
+| `evidence/stage7-backend/2026-10-08_edu-async-task_compile.log` | 本批编译证据（BUILD SUCCESS / 367 个 class） | `review` |

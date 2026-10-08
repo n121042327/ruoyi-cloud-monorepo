@@ -2884,6 +2884,48 @@ gaps:
     resolved_at: "2026-10-08"
     status: answered
 
+  - id: GAP-093
+    title: ruoyi-edu 未引入 ruoyi-common-oss，导入导出与异步任务的文件下载无法签发真实短时签名链接
+    discovered_at: 2026-10-08
+    discovered_by: 阶段 7 异步任务中心纵切时核对 PRD 4.7 与模块依赖（CR-090）
+    evidence: |
+      **这是什么**：PRD `REQ-IMP-041` ~ `REQ-IMP-046` 要求上传与结果文件统一放文件服务、
+      下载走「短时签名链接且与登录态绑定」、每次下载写审计、上传下载不落应用服务器本地目录。
+      但 `services/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-edu/pom.xml` 第 18—89 行的依赖清单里
+      **没有** `ruoyi-common-oss`（也没有任何文件服务远程契约），因此 edu 服务无法签发预签名 URL。
+      本批 `EduAsyncTaskServiceImpl` 第 375 行的 `buildSignedUrl(...)` 只能返回
+      `storage_key` 描述加 5 分钟失效时间（第 78 行常量），不是真实可下载链接。
+    expected: 下载接口返回统一文件服务签发的短时签名 URL，链接与当前登录态绑定，过期或跨账号访问一律拒绝
+    actual: 只落 `edu_file_ref` 引用表、有效期判断、数据范围重解析与下载计数；签名链接是占位描述
+    impact: |
+      **不选会怎样**：下载入口在联调与验收阶段拿不到可用文件地址，`REQ-IMP-042` / `045`
+      无法给出运行时证据；若改走「应用服务器本地目录」这一临时路线，则与 `REQ-IMP-045`
+      直接冲突，多实例部署时会丢文件或串读，属于要返工的实现方式。
+    options:
+      - "在 ruoyi-edu 引入 ruoyi-common-oss，直接用 OssClient 生成预签名 URL：改动最小，但每个业务模块都要引 OSS SDK"
+      - "新建 ruoyi-api-file 远程契约（RemoteFileService：上传 / 签发下载链接 / 删除），文件服务独立部署，edu 侧 Dubbo 调用"
+      - "暂不接对象存储，结果文件落本地或共享盘：与 REQ-IMP-045 冲突，只适合单实例临时演示"
+    recommended: |
+      **推荐方案 2（远程契约）**。理由：文件服务是可复用的基础设施，与 GAP-091 的账号接口同构
+      （都是「业务模块缺远程契约」），一次性建契约比在每个业务模块引入 OSS SDK 更符合
+      `NFR-DATA-03`，也便于后续 Pad 端与家长小程序复用；本批已按推荐落地「引用表 + 有效期 +
+      范围重解析 + 下载计数」，只把 `buildSignedUrl` 的具体实现留待文件服务批次替换。
+    blocking: false
+    blocks_stages:
+      - stage7
+      - stage8
+    owner: 用户
+    answer: |
+      用户 2026-10-07 授权「遇到需要拍板的按推荐方案走并在 decisions.md 与 gap-register.yaml 各记一条」，
+      循环批次按推荐方案 2 落地。
+    resolution: |
+      已在 CR-090 落地：`edu_file_ref` 引用表（`EduFileRef` / `EduFileRefVo` / `EduFileRefMapper`）、
+      有效期判断（结果文件默认 7 天，`BR-IMP-013`）、下载前重新解析数据范围（`DS-DENY-04` / `07`）、
+      下载计数 +1；`buildSignedUrl` 暂时返回 `storage_key` 描述。
+      待办：文件服务批次建成 `RemoteFileService` 后替换签发实现，并补 `REQ-IMP-043` 的下载审计。
+    resolved_at: "2026-10-08"
+    status: answered
+
 open_questions_for_user:
   - "GAP-019 已关闭：学生主体为平台级，实现取 1a（不设 tenant_id，加入租户拦截器忽略表）。"
   - "GAP-020 已关闭：证件号平台唯一、允许为空。"

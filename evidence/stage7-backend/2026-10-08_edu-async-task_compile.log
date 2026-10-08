@@ -1,0 +1,23 @@
+# 阶段 7 证据：ruoyi-edu 异步任务中心纵切（CR-090，2026-10-08）
+
+命令：mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile（工作目录 services/RuoYi-Cloud-Plus）
+
+结果：BUILD SUCCESS，exit 0。target/classes 下 367 个 class（本批 +35）。
+
+说明：按 AGENTS.md 第 9 节，编译通过不等于测试通过；本批未跑单测、未启动服务、未连数据库。
+
+--- Maven 关键输出 ---
+
+[INFO] Building ruoyi-edu 2.6.2                                         [24/24]
+[INFO]   from ruoyi-modules\ruoyi-edu\pom.xml
+[INFO] --- compiler:3.14.0:compile (default-compile) @ ruoyi-edu ---
+[INFO] ruoyi-common-sensitive ............................. SUCCESS [  0.094 s]
+[INFO] ruoyi-modules ...................................... SUCCESS [  0.039 s]
+[INFO] ruoyi-edu .......................................... SUCCESS [ 12.347 s]
+[INFO] BUILD SUCCESS
+[INFO] Total time:  17.595 s
+
+--- 门禁 ---
+
+python tools/check_docs.py -> 通过
+python tools/check_gap_register.py -> 通过（93 条，open = 0）
