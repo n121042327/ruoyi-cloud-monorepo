@@ -2381,3 +2381,23 @@
 ## D-177 — 阶段 7 第二十批：本机基础设施切到 bridge 网络，nacos 用服务名连库（2026-10-08）
 
 用户选定「Windows 上跑 Java 服务 + 浏览器访问网关」这条路线（CR-098 只把 mysql 切了 bridge，redis/nacos/minio 仍是 host 网络，导致 6379/8848/9000 从 Windows 不可达）。处置：① 用户在 `docker-compose.yml` 与 `database.yml` 里把全部 `network_mode: "host"` 注释掉（28+3 处），本批一并提交；② 我补上 bridge 下**必需**的一项：nacos 的 `DB_URL_0` / `DB_USER_0` / `DB_PASSWORD_0` 环境变量，把配置库地址指到 compose 服务名 `mysql:3306`——因为 bridge 下容器内的 `127.0.0.1` 不再指向宿主机，不覆盖这三个键（覆盖镜像内 `application.properties` 的 `db.url.0`/`db.user.0`/`db.password.0`）nacos 启动就会连不上库；③ 新增 `script/docker/redis/data/.gitignore`，因为 redis 数据目录改成相对路径后 AOF/RDB 会写进仓库；④ 环境侧补齐 `ry-job`(23)/`ry-workflow`(12)/`ry-seata`(5) 三个库，加上 CR-098 的 `ry-cloud` 71（69 表 + 2 视图）与 `ry-config` 10。**验证**：四个容器网络模式均为 `docker_default`(bridge)；Windows 侧 `Test-NetConnection 127.0.0.1` 对 3306/6379/8848/9848/9000/9001 **全部 True**；nacos 日志 "Nacos started successfully in stand alone mode" 且 `GET /nacos/` = 200；redis `-a ruoyi123 ping` = PONG；minio `/minio/health/live` = 200。**口径与边界**：Windows 上跑的服务连库/连 nacos 用 `127.0.0.1`（`datasource.yml` 保持 localhost 不变），nacos 容器自己连库用 `mysql` 服务名，两套地址各取所需；compose 里的 app 服务虽然也切了 bridge，但启动时仍按 127.0.0.1 找 nacos、按 localhost 找库，**所以本机不要 `docker compose up -d` 全起**，推荐只起 `mysql redis nacos minio`；将来若要容器化跑应用，需另做一轮把 nacos 地址与数据源 host 改成服务名，但那会与 Windows 上跑的服务抢 8080/9201… 端口，两种形态互斥。证据见 `evidence/stage7-backend/2026-10-08_local-stack-bridge-network.log`。
+
+## D-178 — 网关启动失败：target/classes 里的「幽灵 class」，新增诊断脚本（2026-10-08）
+
+用户贴出 ruoyi-gateway 启动失败日志：BeanDefinitionStoreException: I/O failure while processing configuration class
+[org.dromara.gateway.filter.ForwardHeadersFilter]，根因 FileNotFoundException:
+class path resource [org/springframework/cloud/gateway/server/mvc/filter/HttpHeadersFilter.class]
+cannot be opened。定位过程：ruoyi-gateway/src/main/java/org/dromara/gateway/filter/ 下**根本没有** ForwardHeadersFilter.java
+（git log --all 对该路径也是空的，从未提交过），但 ruoyi-gateway/target/classes 里有 ForwardHeadersFilter.class，
+且 ruoyi-gateway.jar 内有 BOOT-INF/classes/.../ForwardHeadersFilter.class——源码早已删除、编译产物残留成「幽灵 class」，
+打包时被塞进 jar，运行时被组件扫描到；而它 implements 的是 **MVC 版网关**的接口，webflux 版类路径里没有该类，
+于是类解析阶段直接报文件不存在。进一步扫描（比对 target/classes 与 src/main/java，并排除 target/generated-sources 下的
+MapStruct 生成物）发现 gateway 模块共有 5 个这样的类：ForwardHeadersFilter、GatewayHttpClientConfig、
+GatewayHttpClientProperties、filter/support/CachedBodyHttpServletRequest（含内部类）、MutableHttpServletRequest
+——从命名看是早前「MVC 网关」试验留下的产物。处置：mvn -o -DskipTests -pl ruoyi-gateway -am clean package →
+BUILD SUCCESS，重打包后 target/classes/org/dromara/gateway/filter/ 只剩正常类、jar 内该类命中数为 **0**；
+随后把该判据固化成一个诊断脚本 **tools/check_stale_classes.py**（新文件，遍历 target/classes、排除内部类与
+生成物，发现幽灵 class 时列出并返回退出码 1），在仓库上跑的结果是「未发现幽灵 class（通过）」。
+**经验**：删过类 / 改过包结构后必须 mvn clean；IDE 与 Maven 共用 target/classes 时最容易出现
+「源码没了、class 还在」并被 Spring 扫到，症状常伪装成「某个类找不到」或「I/O failure while processing
+configuration class」。排查与修复步骤已补进 script/docker/README-deploy.md 的「常见启动问题」一节。

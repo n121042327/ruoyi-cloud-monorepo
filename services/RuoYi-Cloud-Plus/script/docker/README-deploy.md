@@ -134,3 +134,31 @@ docker compose -f script/docker/docker-compose.yml ps          # 全部 Up
 - `edu.data-scope.enabled` 默认 `false`：数据范围拦截器开启前要按 `schema.yaml` 的表清单核对范围列映射与插件链顺序（CR-093 / GAP-096）。
 - 学生照片走 `ruoyi-resource` 的对象存储，需要该服务的 OSS 配置就绪（MinIO 默认账号见 compose）。
 - 导入导出的结果文件下载仍是「文件引用 + 签名描述」，还没有改成真实流式下载（GAP-093 尾项，阶段 8 联调项）。
+
+## 常见启动问题
+
+### 1. 报 `I/O failure while processing configuration class` / 某个类 `cannot be opened because it does not exist`
+
+**原因**：`target/classes` 里残留了**源码已删除**的 class（IDE 与 Maven 共用同一输出目录时最容易出现）。
+打包时它被塞进 jar，运行时被 Spring 组件扫描到，而它依赖的接口/类又不在正常依赖里，于是类解析阶段直接报文件不存在。
+
+典型实例（2026-10-08）：`ruoyi-gateway` 启动失败，报
+`BeanDefinitionStoreException: I/O failure while processing configuration class [org.dromara.gateway.filter.ForwardHeadersFilter]`，
+`Caused by: FileNotFoundException: ... server/mvc/filter/HttpHeadersFilter$RequestHttpHeadersFilter.class`。
+源码里根本没有这个文件（git 历史也没有），但 `target/classes` 与 jar 里都有——是早前「MVC 网关」试验留下的产物。
+
+**排查**：比对 `target/classes` 与 `src/main/java`，找出没有对应源码的 class（MapStruct 生成的 `*MapperImpl` /
+`AutoMapperConfig__N` 属正常，要排除）。在 `services/RuoYi-Cloud-Plus` 下跑：
+
+```powershell
+python tools\check_stale_classes.py   # 仓库自带的诊断脚本，会列出没有源码的 class
+```
+
+也可以用一条命令快速确认某个类在 jar 里有没有：
+
+```powershell
+jar tf ruoyi-gateway\target\ruoyi-gateway.jar | findstr /i ForwardHeadersFilter
+```
+
+**修复**：`mvn -o -DskipTests -pl <模块> -am clean package`。
+**删过类、改过包名之后一定要 `clean`**；在 IDE 里跑的话先 Build → Rebuild Project，或者直接换成 Maven 打出的最新 jar。

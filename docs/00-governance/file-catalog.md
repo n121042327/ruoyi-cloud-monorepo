@@ -1255,3 +1255,10 @@
 | `.../script/docker/redis/data/.gitignore` | 忽略 redis 持久化文件，避免污染仓库 | `已实现` |
 | `services/RuoYi-Cloud-Plus/script/docker/docker-compose.yml` | 同上（catalog 校验用完整路径） | `已实现` |
 | `evidence/stage7-backend/2026-10-08_local-stack-bridge-network.log` | 端口可达性与 nacos/redis/minio 功能验证证据 | `review` |
+
+## 2026-10-08 网关幽灵 class 诊断工具
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+
+| tools/check_stale_classes.py | 诊断脚本：找出 target/classes 里没有源码对应的「幽灵 class」 | 已实现 |
