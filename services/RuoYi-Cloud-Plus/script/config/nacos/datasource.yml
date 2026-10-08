@@ -4,20 +4,21 @@ datasource:
     # rewriteBatchedStatements=true 批处理优化 大幅提升批量插入更新删除性能
     url: jdbc:mysql://localhost:3306/ry-cloud?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true
     username: root
-    # 与 script/docker/docker-compose.yml 的 MYSQL_ROOT_PASSWORD 对齐（本地 docker 部署口径）
-    password: ruoyi123
+    # 与本机 docker 里 MySQL 的实际 root 密码对齐（该数据卷首次初始化时用的是 root，
+    # MYSQL_ROOT_PASSWORD 只在首次初始化生效；见 CR-098）
+    password: root
   gen:
     url: jdbc:mysql://localhost:3306/ry-cloud?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true
     username: root
-    password: ruoyi123
+    password: root
   job:
     url: jdbc:mysql://localhost:3306/ry-job?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true
     username: root
-    password: ruoyi123
+    password: root
   workflow:
     url: jdbc:mysql://localhost:3306/ry-workflow?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true
     username: root
-    password: ruoyi123
+    password: root
 #  system-oracle:
 #    url: jdbc:oracle:thin:@//localhost:1521/XE
 #    username: ROOT

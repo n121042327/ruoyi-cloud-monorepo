@@ -1,0 +1,44 @@
+# 阶段 7 证据：本机 Docker 环境连通性修复（CR-098，2026-10-08）
+
+背景：用户反馈「Navicat 连接不上 docker 里的 mysql」。
+
+--- 诊断事实 ---
+
+docker 引擎：client=29.8.2 server=29.8.2（已在运行）
+容器：mysql Up、minio Up、redis Exited(1)、nacos Exited(1)
+Windows 侧 3306：Test-NetConnection 127.0.0.1:3306 -> False，netstat 无监听
+容器内登录：mysql -uroot -pruoyi123 -> ERROR 1045 (Access denied)；mysql -uroot -proot -> 1（**真实密码是 root**）
+数据目录：/var/lib/mysql 已初始化（存在 ry@002dcloud = ry-cloud，且当时 0 张表）
+容器网络：docker inspect mysql -> NetworkMode=host，PortBindings 3306（host 模式下不发布到 Windows）
+redis 退出原因：Fatal error, can't open config file '/redis/config/redis.conf': No such file or directory
+  （compose 把宿主 /docker/redis/conf 挂到 /redis/config；Windows 下该路径在 WSL2 VM 内且不存在 → 空目录）
+nacos 退出原因：启动时连不上 ry-config 库（该库不存在，只有 ry-cloud）
+nacos 自带配置：ruoyi-visual/ruoyi-nacos/src/main/resources/application.properties
+  db.url.0=jdbc:mysql://127.0.0.1:3306/ry-config，db.user.0=root，db.password.0=**root**（与真实密码一致）
+
+--- 修复动作 ---
+
+1. script/docker/docker-compose.yml：mysql 去掉 network_mode: "host"（改默认 bridge + 发布 3306）；
+   redis 的两个卷改为相对 compose 文件的路径 ./redis/conf、./redis/data。
+2. script/config/nacos/datasource.yml：四个数据源密码 ruoyi123 -> root（与本机实际 MySQL 对齐）。
+3. 环境侧（非仓库改动）：新建 ry-config 库并导入 script/sql/ry-config.sql；
+   重建 ry-cloud 并用 --default-character-set=utf8mb4 重新导入 script/sql/ry-cloud.sql
+   （首次导入报 Data too long for column 'nick_name'，原因是客户端字符集，不是文件编码——文件经校验为合法 UTF-8）；
+   按 V1 -> V6 顺序导入 docs/40-detailed-design/migrations/*.sql。
+
+--- 验证结果 ---
+
+docker ps：mysql Up、redis Up、nacos Up、minio Up
+Test-NetConnection 127.0.0.1:3306 -> **True**（Windows/Navicat 可达）
+容器内 mysql -h 127.0.0.1 -u root -proot -> 8.0.42 / root@%
+host 网络的容器（模拟 nacos/Java 服务）-> 能连上 127.0.0.1:3306（published 端口在 VM netns 内同样可达）
+redis：docker exec redis redis-cli -a ruoyi123 ping -> PONG（requirepass = ruoyi123，与 application-common.yml 一致）
+nacos：日志 "Nacos started successfully in stand alone mode. use external storage"，Tomcat started on 8848/nacos
+ry-cloud 表结构：BASE TABLE 69 + VIEW 2 = 71（26 张基础表 + 43 张教育域表 + 2 个审计视图）
+ry-config：10 张表
+
+--- 仍未解决（Windows 侧可达性） ---
+
+Test-NetConnection：6379 -> False、8848 -> False、9000 -> False
+原因：redis / nacos / minio 仍是 network_mode: "host"，端口只存在于 WSL2 VM 内。
+影响：Java 服务若跑在容器里（同为 host 网络）无影响；若在 Windows 上跑（IDE）或要在浏览器访问网关 8080，则需要把它们也改成 bridge + 发布端口。

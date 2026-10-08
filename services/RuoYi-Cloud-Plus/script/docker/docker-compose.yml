@@ -24,7 +24,10 @@ services:
       --explicit_defaults_for_timestamp=true
       --lower_case_table_names=1
     privileged: true
-    network_mode: "host"
+    # Windows + Docker Desktop（WSL2）下 network_mode: "host" 只会让容器共享 WSL2 虚拟机的网络命名空间，
+    # 端口不会出现在 Windows 宿主上（Navicat 连 127.0.0.1:3306 会失败）。
+    # 因此 mysql 改为默认 bridge 网络 + 上面的 ports 发布，Windows 与同机容器都能通过 127.0.0.1:3306 访问。
+    # network_mode: "host"
 
   nacos:
     image: ruoyi/ruoyi-nacos:2.6.2
@@ -52,10 +55,12 @@ services:
       # 时区上海
       TZ: Asia/Shanghai
     volumes:
-      # 配置文件
-      - /docker/redis/conf:/redis/config
-      # 数据文件
-      - /docker/redis/data/:/redis/data/
+      # 配置文件与数据目录改用相对 compose 文件的路径。
+      # 上游写的是 /docker/redis/...（Linux 宿主机绝对路径）；Windows + Docker Desktop 下
+      # 该路径落在 WSL2 虚拟机里且默认不存在，容器会拿到一个空目录，
+      # 于是 redis-server 报 can't open config file '/redis/config/redis.conf' 直接退出。
+      - ./redis/conf:/redis/config
+      - ./redis/data/:/redis/data/
     command: "redis-server /redis/config/redis.conf"
     privileged: true
     network_mode: "host"

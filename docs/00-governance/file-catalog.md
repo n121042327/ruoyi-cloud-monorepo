@@ -1234,3 +1234,13 @@
 | `docs/00-governance/change-requests/CR-097.md` | 补 ruoyi-edu 网关路由的交付与校验证据 | `review` |
 | `.../script/config/nacos/ruoyi-gateway.yml`（改） | 新增 ruoyi-edu 路由（Path=/edu/**，不加 StripPrefix） | `已实现` |
 | `.../script/config/nacos/ruoyi-gateway-mvc.yml`（改） | 同上（两份网关配置保持一致） | `已实现` |
+
+## 2026-10-08 阶段 7 第十九批：本机 Docker 环境连通性修复
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-098.md` | 三个环境问题的定位、处置与验证 | `review` |
+| `.../script/docker/docker-compose.yml`（改） | mysql 去 host 网络改用发布端口；redis 卷改相对路径 | `已实现` |
+| `.../script/config/nacos/datasource.yml`（改） | 四处数据源密码对齐本机实际（root） | `已实现` |
+| `services/RuoYi-Cloud-Plus/script/docker/docker-compose.yml` | 同上（catalog 校验用完整路径） | `已实现` |
+| `evidence/stage7-backend/2026-10-08_local-docker-env-fix.log` | 诊断与验证证据（端口可达性 / 表数 / nacos 启动日志） | `review` |
