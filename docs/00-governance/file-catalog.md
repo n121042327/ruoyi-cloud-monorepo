@@ -1075,3 +1075,22 @@
 | `.../controller/EduEnrollmentController.java` | 学籍异动与跨校转学控制器（8 个端点） | `已实现` |
 | `.../controller/EduStudentActivationController.java` | 学生激活码控制器（3 个端点） | `已实现` |
 | `evidence/stage7-backend/2026-10-08_edu-enrollment-and-activation_compile.log` | 本批编译证据（BUILD SUCCESS / 241 个 class） | `review` |
+
+## 2026-10-08 阶段 7 第九批：升班模块 + 教学班模块纵切
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-088.md` | 升班 / 教学班的交付与编译证据 | `review` |
+| `.../domain/EduPromotionTask.java` | 升班任务实体（带 delFlag） | `已实现` |
+| `.../domain/EduPromotionItem.java` | 升班明细实体（with_audit=false，不继承 BaseEntity） | `已实现` |
+| `.../domain/EduTeachingClass.java` | 教学班实体（与行政班完全独立） | `已实现` |
+| `.../domain/EduTeachingClassMember.java` | 教学班成员实体（无 delFlag） | `已实现` |
+| `.../domain/bo/EduPromotionTaskBo.java` / `EduTeachingClassBo.java` | 升班 / 教学班业务对象 | `已实现` |
+| `.../domain/vo/EduPromotionTaskVo.java` / `EduPromotionItemVo.java` / `EduPromotionReadinessVo.java` | 升班相关视图对象（含前端状态码映射） | `已实现` |
+| `.../domain/vo/EduTeachingClassVo.java` / `EduTeachingClassMemberVo.java` | 教学班 / 成员视图对象 | `已实现` |
+| `.../mapper/EduPromotionTaskMapper.java` 等 4 个 | 四个数据层 | `已实现` |
+| `.../service/IEduPromotionService.java` + `impl/EduPromotionServiceImpl.java` | 升班服务层（10 个方法，含齐备性、预览、校验、执行、重试、取消） | `已实现` |
+| `.../service/IEduTeachingClassService.java` + `impl/EduTeachingClassServiceImpl.java` | 教学班服务层（5 个方法，含幂等生成） | `已实现` |
+| `.../controller/EduPromotionController.java` | 升班控制器（12 个端点） | `已实现` |
+| `.../controller/EduTeachingClassController.java` | 教学班控制器（5 个端点） | `已实现` |
+| `evidence/stage7-backend/2026-10-08_edu-promotion-and-teaching-class_compile.log` | 本批编译证据（BUILD SUCCESS / 282 个 class） | `review` |
