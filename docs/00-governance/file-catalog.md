@@ -1447,3 +1447,16 @@
 | `tools/check_fe_page_structure.py`（改） | 修 `<thead>` 误匹配；清理 20 处过时列声明；新增 PAGE-CLS-DETAIL 条目 | `已实现` |
 | `evidence/stage6-frontend/2026-10-09_subject-list.png` | 学科配置页实机截图 | `review` |
 | `evidence/stage6-frontend/2026-10-09_subject-crud.log` | 门禁与实机记录 | `review` |
+
+## 2026-10-09 阶段 6 第三十六批：教师角色与离职登记
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-117.md` | 教师角色 / 离职 / 工号 / 账号接线与口径 | `review` |
+| `apps/plus-ui/src/api/edu/teacher/index.ts`（改） | 补 11 个接口函数 | `已实现` |
+| `apps/plus-ui/src/api/edu/teacher/types.ts`（改） | 新增 TeacherRoleForm / TeacherRoleVO | `已实现` |
+| `apps/plus-ui/src/views/edu/teacher/tch_list/index.vue`（改） | 操作列重构（更多▾ 下拉收纳低频动作） | `已实现` |
+| `apps/plus-ui/src/views/edu/teacher/tch_list/components/TeacherRoleDialog.vue` | 教育角色分配弹窗 | `已实现` |
+| `apps/plus-ui/src/views/edu/teacher/tch_list/components/TeacherLeaveDialog.vue` | 离职 / 调离登记弹窗 | `已实现` |
+| `apps/plus-ui/src/views/edu/teacher/tch_list/components/TeacherNoDialog.vue` | 工号变更弹窗 | `已实现` |
+| `evidence/stage6-frontend/2026-10-09_teacher-role-leave.log` | 门禁与改动记录 | `review` |

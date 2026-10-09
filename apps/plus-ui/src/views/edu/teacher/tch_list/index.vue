@@ -109,11 +109,36 @@
           </el-table-column>
           <el-table-column v-if="columns[8].visible" label="联系电话" prop="teacherPhone" width="130" data-layout-group="联系方式" />
 
-          <el-table-column fixed="right" label="操作" width="200" data-layout-group="操作">
+          <el-table-column fixed="right" label="操作" width="300" data-layout-group="操作">
             <template #default="scope">
               <el-button v-hasPermi="['person.teacher:update']" link type="primary" icon="Edit" @click="handleUpdate(scope.row)">编辑</el-button>
-              <el-button v-if="scope.row.employmentStatus === '在职'" link type="primary" @click="handleAssign">设置任教</el-button>
-              <el-button v-else link type="primary" @click="handleRevokeLeave">撤销离职登记</el-button>
+              <el-button v-hasPermi="['person.teacher:update']" link type="primary" @click="roleRef?.open(scope.row)">教育角色</el-button>
+              <el-button
+                v-if="scope.row.employmentStatus === '在职'"
+                v-hasPermi="['person.teacher:update']"
+                link
+                type="danger"
+                @click="leaveRef?.open(scope.row)"
+              >
+                离职登记
+              </el-button>
+              <el-button v-else v-hasPermi="['person.teacher:update']" link type="primary" @click="handleRevokeLeave(scope.row)"
+                >撤销离职登记</el-button
+              >
+              <el-dropdown class="ml-2" @command="(cmd: string) => handleMore(cmd, scope.row)">
+                <el-button link type="primary"
+                  >更多<el-icon class="ml-1"><arrow-down /></el-icon
+                ></el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="assign">设置任教</el-dropdown-item>
+                    <el-dropdown-item command="teacherNo">变更工号</el-dropdown-item>
+                    <el-dropdown-item command="resetPwd">重置密码</el-dropdown-item>
+                    <el-dropdown-item command="disableAccount">停用账号</el-dropdown-item>
+                    <el-dropdown-item command="enableAccount">启用账号</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </template>
           </el-table-column>
 
@@ -138,13 +163,20 @@
 
 <script setup lang="ts">
 import { computed, getCurrentInstance, ref } from 'vue';
-import { ElMessage } from 'element-plus';
+import { useRouter } from 'vue-router';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import TeacherRoleDialog from './components/TeacherRoleDialog.vue';
+import TeacherLeaveDialog from './components/TeacherLeaveDialog.vue';
+import TeacherNoDialog from './components/TeacherNoDialog.vue';
 import TeacherFormDialog from './components/TeacherFormDialog.vue';
 import { EDU_ROLE_OPTIONS, EMPLOYMENT_STATUS_OPTIONS, useTeacherList } from './composables/useTeacherList';
 import type { TeacherVO } from '@/api/edu/teacher/types';
+import { disableTeacherAccount, enableTeacherAccount, resetTeacherPassword, revokeTeacherLeave } from '@/api/edu/teacher';
 import { checkPermi } from '@/utils/permission';
 
 defineOptions({ name: 'EduTeacherList' });
+
+const router = useRouter();
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
@@ -168,6 +200,9 @@ const {
 } = useTeacherList();
 
 const formDialogRef = ref<InstanceType<typeof TeacherFormDialog>>();
+const roleRef = ref<InstanceType<typeof TeacherRoleDialog>>();
+const leaveRef = ref<InstanceType<typeof TeacherLeaveDialog>>();
+const teacherNoRef = ref<InstanceType<typeof TeacherNoDialog>>();
 const queryFormRef = ref();
 
 const canRead = computed(() => checkPermi(['person.teacher:read']));
@@ -185,7 +220,47 @@ const handleAssign = () => {
   ElMessage.info('设置任教关系在阶段 6 的下一批交付');
 };
 
-const handleRevokeLeave = () => {
-  ElMessage.info('撤销离职登记在阶段 6 的下一批交付');
+/** 撤销离职 / 调离登记（需填原因） */
+const handleRevokeLeave = async (row: TeacherVO) => {
+  const { value } = await ElMessageBox.prompt('撤销后该教师可重新新增任教关系。', '撤销离职登记', {
+    inputPlaceholder: '撤销原因（必填）',
+    inputValidator: (text: string) => (text && text.trim().length >= 2 ? true : '请填写撤销原因（至少 2 个字）'),
+    type: 'warning'
+  });
+  await revokeTeacherLeave(row.teacherId, value);
+  ElMessage.success('已撤销离职登记');
+  getList();
+};
+
+/** 操作列「更多」：工号变更、重置密码、账号启停用（设置任教先跳到任教关系页） */
+const handleMore = async (command: string, row: TeacherVO) => {
+  if (command === 'assign') {
+    router.push({ path: '/edu/teacher/assignment', query: { teacherId: row.teacherId } });
+    return;
+  }
+  if (command === 'teacherNo') {
+    teacherNoRef.value?.open(row);
+    return;
+  }
+  if (command === 'resetPwd') {
+    await ElMessageBox.confirm(`确认重置「${row.teacherName}」的账号密码？`, '重置密码', { type: 'warning' });
+    await resetTeacherPassword(row.teacherId);
+    ElMessage.success('密码已重置');
+    return;
+  }
+  if (command === 'disableAccount') {
+    const { value } = await ElMessageBox.prompt('停用账号不影响在职状态与任教关系。', '停用账号', {
+      inputPlaceholder: '停用原因（必填）',
+      inputValidator: (text: string) => (text && text.trim().length >= 2 ? true : '请填写停用原因（至少 2 个字）'),
+      type: 'warning'
+    });
+    await disableTeacherAccount(row.teacherId, value);
+    ElMessage.success('账号已停用');
+    return;
+  }
+  if (command === 'enableAccount') {
+    await enableTeacherAccount(row.teacherId);
+    ElMessage.success('账号已启用');
+  }
 };
 </script>

@@ -1,0 +1,38 @@
+# 阶段 6 第三十六批：教师角色与离职登记（CR-117 / D-198）
+
+时间：2026-10-09
+分支：codex/stage7-backend
+触发：heartbeat（自动化队列第 1 项）
+
+## 1. 交付
+- api/edu/teacher 补 11 个函数：getTeacher / updateTeacherNo / leaveTeacher / revokeTeacherLeave /
+  listTeacherRole / assignTeacherRole / removeTeacherRole / exportTeacher / resetTeacherPassword /
+  disableTeacherAccount / enableTeacherAccount
+- types 新增 TeacherRoleForm / TeacherRoleVO（对齐 EduUserRoleBo / EduUserRoleVo）
+- 新增 3 个弹窗：TeacherRoleDialog / TeacherLeaveDialog / TeacherNoDialog
+- 操作列重构：编辑 / 教育角色 / 离职登记|撤销离职登记 / 更多▾（设置任教 / 变更工号 / 重置密码 / 停用账号 / 启用账号）
+  操作列宽度 200（3 按钮）-> 300（4 按钮 + 下拉），check_fe_text_nowrap 通过
+
+## 2. 口径
+- 教育角色：可多条；移除必须填原因（写审计）
+- 离职 / 调离：类型 + 生效日期 + 原因必填；撤销登记填原因
+- 工号变更：单独弹窗（新工号 + 原因）
+- 重置密码：二次确认
+- 账号停用需填原因；停用不影响在职状态与任教关系
+
+## 3. 门禁
+check_fe_page_structure.py     -> 通过
+check_fe_text_nowrap.py        -> 通过（操作列 27 个）
+check_api_contract.py          -> 通过
+check_docs.py                  -> 通过
+check_gap_register.py          -> 通过
+check_mermaid.py               -> 通过
+check_stage6_route_coverage.py -> 通过
+pnpm --filter @edu/plus-ui typecheck      -> error TS 51 条（基线 51）
+pnpm --filter @edu/plus-ui lint:eslint    -> 124 problems（基线 124）
+pnpm --filter @edu/plus-ui run build:prod -> exit 0
+
+本批仅前端改动，未跑 Maven。
+
+## 4. 未纳入
+PAGE-TCH-DETAIL（教师详情抽屉）留待后续批次。

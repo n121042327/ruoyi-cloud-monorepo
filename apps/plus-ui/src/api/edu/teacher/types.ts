@@ -99,3 +99,28 @@ export interface TeachingAssignmentCopyForm {
   sourceTermId: string;
   targetTermId: string;
 }
+
+/** 教育角色分配表单（POST /edu/teacher/{id}/role） */
+export interface TeacherRoleForm {
+  userId?: string;
+  teacherId?: string;
+  /** 教育角色编码（05-permission-matrix.yaml 的 edu_role） */
+  eduRole: string;
+  startDate?: string;
+  endDate?: string;
+  reason?: string;
+}
+
+/** 教师教育角色行（GET /edu/teacher/{id}/role） */
+export interface TeacherRoleVO {
+  userRoleId: string;
+  schoolId?: string;
+  userId?: string;
+  userName?: string;
+  teacherId?: string;
+  teacherName?: string;
+  eduRole?: string;
+  status?: string;
+  startDate?: string;
+  endDate?: string;
+}

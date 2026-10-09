@@ -3,6 +3,8 @@ import { AxiosPromise } from 'axios';
 import {
   TeacherForm,
   TeacherQuery,
+  TeacherRoleForm,
+  TeacherRoleVO,
   TeacherVO,
   TeachingAssignmentCopyForm,
   TeachingAssignmentForm,
@@ -159,6 +161,147 @@ export const downloadTeacherImportTemplate = (): AxiosPromise<Blob> => {
     url: '/edu/teacher/import/template',
     method: 'get',
     responseType: 'blob'
+  });
+};
+
+/**
+ * 查询教师详情（教师详情抽屉 PAGE-TCH-DETAIL）
+ *
+ * 对应 operationId `getTeacher`（GET /edu/teacher/{id}）。
+ */
+export const getTeacher = (teacherId: string): AxiosPromise<TeacherVO> => {
+  return request({
+    url: `/edu/teacher/${teacherId}`,
+    method: 'get'
+  });
+};
+
+/**
+ * 变更工号（编码是导入 / 导出对照表的键，需单独申请并写审计）
+ *
+ * 对应 operationId `updateTeacherNo`（PUT /edu/teacher/{id}/teacher-no）。
+ */
+export const updateTeacherNo = (teacherId: string, teacherNo: string, reason?: string) => {
+  return request({
+    url: `/edu/teacher/${teacherId}/teacher-no`,
+    method: 'put',
+    params: { teacherNo, reason }
+  });
+};
+
+/**
+ * 离职与调离登记（登记后教师不可新增任教关系，历史关系保留）
+ *
+ * 对应 operationId `leaveTeacher`（POST /edu/teacher/{id}/leave）。
+ */
+export const leaveTeacher = (teacherId: string, data: { employmentStatus: string; leaveDate: string; reason?: string }) => {
+  return request({
+    url: `/edu/teacher/${teacherId}/leave`,
+    method: 'post',
+    data
+  });
+};
+
+/**
+ * 撤销离职与调离登记（DIALOG-TCH-REVOKE，需填原因并写审计）
+ *
+ * 对应 operationId `revokeTeacherLeave`（POST /edu/teacher/{id}/leave/revoke）。
+ */
+export const revokeTeacherLeave = (teacherId: string, reason: string) => {
+  return request({
+    url: `/edu/teacher/${teacherId}/leave/revoke`,
+    method: 'post',
+    params: { reason }
+  });
+};
+
+/**
+ * 查询教师的教育角色
+ *
+ * 对应 operationId `listTeacherRole`（GET /edu/teacher/{id}/role）。
+ */
+export const listTeacherRole = (teacherId: string): AxiosPromise<TeacherRoleVO[]> => {
+  return request({
+    url: `/edu/teacher/${teacherId}/role`,
+    method: 'get'
+  });
+};
+
+/**
+ * 分配教育角色（PAGE-TCH-ROLE）
+ *
+ * 对应 operationId `assignTeacherRole`（POST /edu/teacher/{id}/role）。
+ */
+export const assignTeacherRole = (teacherId: string, data: TeacherRoleForm) => {
+  return request({
+    url: `/edu/teacher/${teacherId}/role`,
+    method: 'post',
+    data
+  });
+};
+
+/**
+ * 移除教育角色
+ *
+ * 对应 operationId `removeTeacherRole`（DELETE /edu/teacher/{id}/role/{userRoleId}）。
+ */
+export const removeTeacherRole = (teacherId: string, userRoleId: string, reason?: string) => {
+  return request({
+    url: `/edu/teacher/${teacherId}/role/${userRoleId}`,
+    method: 'delete',
+    params: { reason }
+  });
+};
+
+/**
+ * 教师列表导出（统一走导出引擎）
+ *
+ * 对应 operationId `exportTeacher`（POST /edu/teacher/export）。
+ */
+export const exportTeacher = (data?: Record<string, unknown>) => {
+  return request({
+    url: '/edu/teacher/export',
+    method: 'post',
+    data: data ?? {}
+  });
+};
+
+/**
+ * 重置教师账号密码
+ *
+ * 对应 operationId `resetTeacherPassword`（POST /edu/teacher/{id}/reset-password）。
+ */
+export const resetTeacherPassword = (teacherId: string, password?: string) => {
+  return request({
+    url: `/edu/teacher/${teacherId}/reset-password`,
+    method: 'post',
+    data: password ? { password } : {}
+  });
+};
+
+/**
+ * 停用教师账号（不影响在职状态与任教关系）
+ *
+ * 对应 operationId `disableTeacherAccount`（POST /edu/teacher/{id}/account/disable）。
+ */
+export const disableTeacherAccount = (teacherId: string, reason?: string) => {
+  return request({
+    url: `/edu/teacher/${teacherId}/account/disable`,
+    method: 'post',
+    params: { reason }
+  });
+};
+
+/**
+ * 启用教师账号
+ *
+ * 对应 operationId `enableTeacherAccount`（POST /edu/teacher/{id}/account/enable）。
+ */
+export const enableTeacherAccount = (teacherId: string, reason?: string) => {
+  return request({
+    url: `/edu/teacher/${teacherId}/account/enable`,
+    method: 'post',
+    params: { reason }
   });
 };
 
