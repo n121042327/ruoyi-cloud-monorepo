@@ -55,22 +55,25 @@
         </template>
 
         <el-table v-loading="loading" border :data="gradeList">
-          <el-table-column v-if="columns[0].visible" label="入学年份" prop="enrollYear" width="100" align="center" data-layout-group="教育信息" />
+          <el-table-column v-if="columns[0].visible" label="学段" prop="stageCode" width="110" align="center" data-layout-group="教育信息">
+            <template #default="scope">{{ stageLabel(scope.row.stageCode) }}</template>
+          </el-table-column>
+          <el-table-column v-if="columns[1].visible" label="入学年份" prop="enrollYear" width="100" align="center" data-layout-group="教育信息" />
           <el-table-column
-            v-if="columns[1].visible"
+            v-if="columns[2].visible"
             label="年级名称"
             prop="gradeName"
             width="150"
             :show-overflow-tooltip="true"
             data-layout-group="教育信息"
           />
-          <el-table-column v-if="columns[2].visible" label="序号" prop="gradeLevel" width="80" align="center" data-layout-group="教育信息" />
-          <el-table-column v-if="columns[3].visible" label="年级主任" prop="leaderNames" width="150" data-layout-group="教育信息">
+          <el-table-column v-if="columns[3].visible" label="序号" prop="gradeLevel" width="80" align="center" data-layout-group="教育信息" />
+          <el-table-column v-if="columns[4].visible" label="年级主任" prop="leaderNames" width="150" data-layout-group="教育信息">
             <template #default="scope">{{ scope.row.leaderNames || '未指定' }}</template>
           </el-table-column>
-          <el-table-column v-if="columns[4].visible" label="班级数" prop="classCount" width="90" align="center" data-layout-group="管理信息" />
-          <el-table-column v-if="columns[5].visible" label="在读学生数" prop="studentCount" width="110" align="center" data-layout-group="管理信息" />
-          <el-table-column v-if="columns[6].visible" label="状态" prop="gradeStatus" width="100" align="center" data-layout-group="管理信息">
+          <el-table-column v-if="columns[5].visible" label="班级数" prop="classCount" width="90" align="center" data-layout-group="管理信息" />
+          <el-table-column v-if="columns[6].visible" label="在读学生数" prop="studentCount" width="110" align="center" data-layout-group="管理信息" />
+          <el-table-column v-if="columns[7].visible" label="状态" prop="gradeStatus" width="100" align="center" data-layout-group="管理信息">
             <template #default="scope">
               <el-tag :type="scope.row.gradeStatus === 'archived' ? 'info' : 'success'" size="small">
                 {{ scope.row.gradeStatus === 'archived' ? '已归档' : '正常' }}
@@ -112,6 +115,7 @@ import GradeFormDialog from './components/GradeFormDialog.vue';
 import { useGradeList } from './composables/useGradeList';
 import type { GradeVO } from '@/api/edu/grade/types';
 import { checkPermi } from '@/utils/permission';
+import { STAGE_CODE_LABEL } from '@/enums/edu/StudentEnum';
 
 defineOptions({ name: 'EduGradeList' });
 
@@ -134,6 +138,8 @@ const {
 } = useGradeList();
 
 const formDialogRef = ref<InstanceType<typeof GradeFormDialog>>();
+const stageLabel = (code?: string) => (code ? (STAGE_CODE_LABEL[code] ?? code) : '—');
+
 const queryFormRef = ref();
 
 const canRead = computed(() => checkPermi(['org.grade:read']));

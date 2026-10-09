@@ -10,11 +10,10 @@ export const STREAM_ROLE_OPTIONS = [
   { value: 'secondary', label: '再选' }
 ];
 
-/** 学段编码 → 中文（列表展示「启用学段」用） */
-export const stageLabel = (codes?: string) =>
-  (codes ?? '')
-    .split(',')
-    .map((code) => STAGE_CODE_LABEL[code.trim()] ?? code.trim())
+/** 学段编码数组 → 中文（列表展示「启用学段」用；字段来自 edu_subject_stage） */
+export const stageLabel = (codes?: string[]) =>
+  (codes ?? [])
+    .map((code) => STAGE_CODE_LABEL[code] ?? code)
     .filter(Boolean)
     .join(' / ');
 
@@ -30,17 +29,18 @@ export function useSubjectList() {
     pageSize: 20,
     keyword: '',
     stageCode: '',
-    streamRole: '',
-    status: ''
+    filterStreamRole: '',
+    filterStatus: ''
   });
 
   const columns = ref([
-    { key: 0, label: '学科名称', visible: true },
-    { key: 1, label: '启用学段', visible: true },
-    { key: 2, label: '参与 3+1+2', visible: true },
-    { key: 3, label: '选科角色', visible: true },
-    { key: 4, label: '排序号', visible: true },
-    { key: 5, label: '状态', visible: true }
+    { key: 0, label: '学科编码', visible: true },
+    { key: 1, label: '学科名称', visible: true },
+    { key: 2, label: '启用学段', visible: true },
+    { key: 3, label: '参与 3+1+2', visible: true },
+    { key: 4, label: '选科角色', visible: true },
+    { key: 5, label: '排序号', visible: true },
+    { key: 6, label: '状态', visible: true }
   ]);
 
   const getList = async () => {
@@ -62,8 +62,8 @@ export function useSubjectList() {
   const resetQuery = () => {
     queryParams.keyword = '';
     queryParams.stageCode = '';
-    queryParams.streamRole = '';
-    queryParams.status = '';
+    queryParams.filterStreamRole = '';
+    queryParams.filterStatus = '';
     queryParams.pageNum = 1;
     getList();
   };

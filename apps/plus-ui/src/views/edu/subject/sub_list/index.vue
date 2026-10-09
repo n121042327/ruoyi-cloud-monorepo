@@ -7,6 +7,7 @@
       <el-tag type="primary">共 {{ total }} 个学科</el-tag>
       <el-tag type="info">首选 / 再选是固定集合</el-tag>
     </div>
+
     <el-card v-if="!canRead" shadow="hover">
       <el-empty description="当前账号没有学科配置的查看权限" />
     </el-card>
@@ -25,14 +26,14 @@
                   <el-option v-for="item in stageOptions" :key="item.value" :label="item.label" :value="item.value" />
                 </el-select>
               </el-form-item>
-              <el-form-item label="选科角色" prop="streamRole" data-layout-group="配置信息">
-                <el-select v-model="queryParams.streamRole" placeholder="全部角色" clearable style="width: 130px">
+              <el-form-item label="选科角色" prop="filterStreamRole" data-layout-group="配置信息">
+                <el-select v-model="queryParams.filterStreamRole" placeholder="全部角色" clearable style="width: 130px">
                   <el-option v-for="item in STREAM_ROLE_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
                 </el-select>
               </el-form-item>
-              <el-form-item label="状态" prop="status" data-layout-group="配置信息">
-                <el-select v-model="queryParams.status" placeholder="全部状态" clearable style="width: 120px">
-                  <el-option label="启用" value="enabled" />
+              <el-form-item label="状态" prop="filterStatus" data-layout-group="配置信息">
+                <el-select v-model="queryParams.filterStatus" placeholder="全部状态" clearable style="width: 120px">
+                  <el-option label="启用" value="active" />
                   <el-option label="停用" value="disabled" />
                 </el-select>
               </el-form-item>
@@ -48,31 +49,59 @@
       <el-card shadow="hover">
         <template #header>
           <el-row :gutter="10">
+            <el-col :span="1.5">
+              <el-button v-hasPermi="['org.subject:create']" type="primary" plain icon="Plus" @click="formRef?.open()">新建学科</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button v-hasPermi="['org.subject:create']" plain icon="Guide" @click="batchRef?.open()">按学段批量初始化</el-button>
+            </el-col>
             <right-toolbar v-model:show-search="showSearch" :columns="columns" :search="true" @query-table="getList"></right-toolbar>
           </el-row>
         </template>
 
         <el-table v-loading="loading" border :data="subjectList">
-          <el-table-column v-if="columns[0].visible" label="学科名称" prop="subjectName" width="150" data-layout-group="基础信息" />
-          <el-table-column v-if="columns[1].visible" label="启用学段" prop="enabledStages" min-width="180" data-layout-group="教育信息">
-            <template #default="scope">{{ stageLabel(scope.row.enabledStages) || '未启用' }}</template>
+          <el-table-column v-if="columns[0].visible" label="学科编码" prop="subjectCode" width="130" data-layout-group="基础信息" />
+          <el-table-column v-if="columns[1].visible" label="学科名称" prop="subjectName" width="140" data-layout-group="基础信息" />
+          <el-table-column v-if="columns[2].visible" label="启用学段" min-width="180" data-layout-group="教育信息">
+            <template #default="scope">{{ stageLabel(scope.row.stageCodes) || '未启用' }}</template>
           </el-table-column>
-          <el-table-column v-if="columns[2].visible" label="参与 3+1+2" prop="streamEnabled" width="120" align="center" data-layout-group="配置信息">
+          <el-table-column v-if="columns[3].visible" label="参与 3+1+2" width="120" align="center" data-layout-group="配置信息">
             <template #default="scope">
-              <el-tag :type="scope.row.streamEnabled ? 'success' : 'info'" size="small">{{ scope.row.streamEnabled ? '是' : '否' }}</el-tag>
+              <el-tag :type="scope.row.streamEnabled === '1' ? 'success' : 'info'" size="small">
+                {{ scope.row.streamEnabled === '1' ? '是' : '否' }}
+              </el-tag>
             </template>
           </el-table-column>
-          <el-table-column v-if="columns[3].visible" label="选科角色" prop="streamRole" width="120" align="center" data-layout-group="配置信息">
+          <el-table-column v-if="columns[4].visible" label="选科角色" width="110" align="center" data-layout-group="配置信息">
             <template #default="scope">
               {{ STREAM_ROLE_LABEL[scope.row.streamRole ?? 'none'] ?? '不参与' }}
             </template>
           </el-table-column>
-          <el-table-column v-if="columns[4].visible" label="排序号" prop="sortNo" width="90" align="center" data-layout-group="配置信息" />
-          <el-table-column v-if="columns[5].visible" label="状态" prop="status" width="100" align="center" data-layout-group="配置信息">
+          <el-table-column v-if="columns[5].visible" label="排序号" prop="sortNo" width="90" align="center" data-layout-group="配置信息" />
+          <el-table-column v-if="columns[6].visible" label="状态" width="100" align="center" data-layout-group="配置信息">
             <template #default="scope">
-              <el-tag :type="scope.row.status === 'disabled' ? 'info' : 'success'" size="small">
-                {{ scope.row.status === 'disabled' ? '停用' : '启用' }}
+              <el-tag :type="scope.row.subjectStatus === 'disabled' ? 'info' : 'success'" size="small">
+                {{ scope.row.subjectStatus === 'disabled' ? '停用' : '启用' }}
               </el-tag>
+            </template>
+          </el-table-column>
+
+          <el-table-column fixed="right" label="操作" width="300" data-layout-group="操作">
+            <template #default="scope">
+              <el-button v-hasPermi="['org.subject:update']" link type="primary" @click="formRef?.open(scope.row)">编辑</el-button>
+              <el-button v-hasPermi="['org.subject:update']" link type="primary" @click="streamRef?.open(scope.row)">选科角色</el-button>
+              <el-button v-hasPermi="['org.subject:update']" link type="primary" @click="stageRef?.open(scope.row)">学段配置</el-button>
+              <el-button
+                v-if="scope.row.subjectStatus !== 'disabled'"
+                v-hasPermi="['org.subject:update']"
+                link
+                type="danger"
+                @click="handleDisable(scope.row)"
+              >
+                停用
+              </el-button>
+              <el-button v-else v-hasPermi="['org.subject:update']" link type="primary" @click="handleEnable(scope.row)">启用</el-button>
+              <el-button v-hasPermi="['org.subject:read']" link type="primary" @click="handleReference(scope.row)">引用检查</el-button>
             </template>
           </el-table-column>
 
@@ -89,14 +118,26 @@
           @pagination="getList"
         />
       </el-card>
+
+      <SubjectFormDialog ref="formRef" @success="getList" />
+      <SubjectStageDialog ref="stageRef" @success="getList" />
+      <SubjectStreamDialog ref="streamRef" @success="getList" />
+      <SubjectBatchDialog ref="batchRef" @success="getList" />
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, getCurrentInstance, ref } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { STREAM_ROLE_OPTIONS, stageLabel, useSubjectList } from './composables/useSubjectList';
 import { checkPermi } from '@/utils/permission';
+import { checkSubjectReference, disableSubject, enableSubject } from '@/api/edu/subject';
+import type { SubjectVO } from '@/api/edu/subject/types';
+import SubjectFormDialog from './components/SubjectFormDialog.vue';
+import SubjectStageDialog from './components/SubjectStageDialog.vue';
+import SubjectStreamDialog from './components/SubjectStreamDialog.vue';
+import SubjectBatchDialog from './components/SubjectBatchDialog.vue';
 
 defineOptions({ name: 'EduSubjectList' });
 
@@ -107,6 +148,11 @@ const { loading, showSearch, total, subjectList, queryParams, columns, stageOpti
 const queryFormRef = ref();
 const canRead = computed(() => checkPermi(['org.subject:read']));
 
+const formRef = ref<InstanceType<typeof SubjectFormDialog>>();
+const stageRef = ref<InstanceType<typeof SubjectStageDialog>>();
+const streamRef = ref<InstanceType<typeof SubjectStreamDialog>>();
+const batchRef = ref<InstanceType<typeof SubjectBatchDialog>>();
+
 const STREAM_ROLE_LABEL: Record<string, string> = STREAM_ROLE_OPTIONS.reduce(
   (acc, item) => {
     acc[item.value] = item.label;
@@ -114,4 +160,34 @@ const STREAM_ROLE_LABEL: Record<string, string> = STREAM_ROLE_OPTIONS.reduce(
   },
   {} as Record<string, string>
 );
+
+/** 停用：有引用也能停用，但必须填原因（BR-SUBJECT-006 口径） */
+const handleDisable = async (row: SubjectVO) => {
+  const { value } = await ElMessageBox.prompt(`确认停用「${row.subjectName}」？`, '停用学科', {
+    inputPlaceholder: '停用原因（必填）',
+    inputValidator: (text: string) => (text && text.trim().length >= 2 ? true : '请填写停用原因（至少 2 个字）'),
+    type: 'warning'
+  });
+  await disableSubject(row.subjectId, value);
+  ElMessage.success('已停用');
+  getList();
+};
+
+const handleEnable = async (row: SubjectVO) => {
+  await enableSubject(row.subjectId);
+  ElMessage.success('已启用');
+  getList();
+};
+
+/** 引用检查：任教关系 / 教学班 / 学生选科三类引用 */
+const handleReference = async (row: SubjectVO) => {
+  const res = await checkSubjectReference(row.subjectId);
+  const data = res.data ?? {};
+  ElMessageBox.alert(
+    `任教关系：${data.teachingAssignmentCount ?? 0} 条\n教学班：${data.teachingClassCount ?? 0} 个\n学生选科：${data.studentStreamCount ?? 0} 条\n\n` +
+      (data.referenced ? '存在引用，只能停用不能删除。' : '暂无引用，可以删除。'),
+    `引用检查 · ${row.subjectName}`,
+    { confirmButtonText: '知道了' }
+  );
+};
 </script>

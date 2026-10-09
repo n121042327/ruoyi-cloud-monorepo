@@ -1425,3 +1425,25 @@
 | `tools/check_fe_page_structure.py`（改） | 增加 PAGE-CLS-DETAIL 结构对照条目 | `已实现` |
 | `evidence/stage6-frontend/2026-10-09_class-detail.png` | 班级详情页实机截图 | `review` |
 | `evidence/stage6-frontend/2026-10-09_class-detail.log` | 编译、门禁与实机记录 | `review` |
+
+## 2026-10-09 阶段 6 第三十五批：学科配置 CRUD + 结构检查器修复
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-116.md` | 学科 CRUD 交付、检查器缺陷与 5 处缺列修复 | `review` |
+| `apps/plus-ui/src/api/edu/subject/index.ts`（改） | 补 9 个接口函数 | `已实现` |
+| `apps/plus-ui/src/api/edu/subject/types.ts`（改） | 按 schema 对齐 SubjectVO，新增 SubjectForm / SubjectReferenceVO | `已实现` |
+| `apps/plus-ui/src/views/edu/subject/sub_list/index.vue`（改） | 8 列 + 工具栏 + 操作列 5 动作 | `已实现` |
+| `apps/plus-ui/src/views/edu/subject/sub_list/composables/useSubjectList.ts`（改） | 列定义与查询参数对齐后端 | `已实现` |
+| `apps/plus-ui/src/views/edu/subject/sub_list/components/SubjectFormDialog.vue` | 新建 / 编辑学科弹窗 | `已实现` |
+| `apps/plus-ui/src/views/edu/subject/sub_list/components/SubjectStageDialog.vue` | 学段启用配置弹窗 | `已实现` |
+| `apps/plus-ui/src/views/edu/subject/sub_list/components/SubjectStreamDialog.vue` | 选科角色配置弹窗 | `已实现` |
+| `apps/plus-ui/src/views/edu/subject/sub_list/components/SubjectBatchDialog.vue` | 按学段批量初始化弹窗 | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_list/*`（改） | 补「校区」列 | `已实现` |
+| `apps/plus-ui/src/views/edu/grade/grd_list/*`（改） | 补「学段」列 | `已实现` |
+| `apps/plus-ui/src/views/edu/audit/audit_archive/index.vue`（改） | 补「操作」列（只读查看） | `已实现` |
+| `apps/plus-ui/src/views/edu/promotion/prm_history/index.vue`（改） | 补「操作」列（只读查看） | `已实现` |
+| `services/.../service/impl/EduClassServiceImpl.java`（改） | `fillNames` 增补校区名 | `已实现` |
+| `tools/check_fe_page_structure.py`（改） | 修 `<thead>` 误匹配；清理 20 处过时列声明；新增 PAGE-CLS-DETAIL 条目 | `已实现` |
+| `evidence/stage6-frontend/2026-10-09_subject-list.png` | 学科配置页实机截图 | `review` |
+| `evidence/stage6-frontend/2026-10-09_subject-crud.log` | 门禁与实机记录 | `review` |

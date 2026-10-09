@@ -7,6 +7,7 @@ import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
+import org.dromara.edu.domain.EduCampus;
 import org.dromara.edu.domain.EduClass;
 import org.dromara.edu.domain.EduClassMember;
 import org.dromara.edu.domain.EduGrade;
@@ -16,6 +17,7 @@ import org.dromara.edu.domain.bo.EduClassBo;
 import org.dromara.edu.domain.bo.EduClassMemberBo;
 import org.dromara.edu.domain.vo.EduClassMemberVo;
 import org.dromara.edu.domain.vo.EduClassVo;
+import org.dromara.edu.mapper.EduCampusMapper;
 import org.dromara.edu.mapper.EduClassMapper;
 import org.dromara.edu.mapper.EduClassMemberMapper;
 import org.dromara.edu.mapper.EduGradeMapper;
@@ -68,6 +70,7 @@ public class EduClassServiceImpl implements IEduClassService {
     private final EduClassMemberMapper memberMapper;
     private final EduTeachingAssignmentMapper teachingAssignmentMapper;
     private final EduSchoolMapper schoolMapper;
+    private final EduCampusMapper campusMapper;
     private final EduGradeMapper gradeMapper;
     private final EduTermMapper termMapper;
 
@@ -102,6 +105,7 @@ public class EduClassServiceImpl implements IEduClassService {
         List<Long> schoolIds = rows.stream().map(EduClassVo::getSchoolId).filter(Objects::nonNull).distinct().toList();
         List<Long> gradeIds = rows.stream().map(EduClassVo::getGradeId).filter(Objects::nonNull).distinct().toList();
         List<Long> termIds = rows.stream().map(EduClassVo::getTermId).filter(Objects::nonNull).distinct().toList();
+        List<Long> campusIds = rows.stream().map(EduClassVo::getCampusId).filter(Objects::nonNull).distinct().toList();
 
         Map<Long, String> schoolNames = schoolIds.isEmpty() ? Map.of()
             : schoolMapper.selectList(new LambdaQueryWrapper<EduSchool>().in(EduSchool::getSchoolId, schoolIds))
@@ -109,6 +113,9 @@ public class EduClassServiceImpl implements IEduClassService {
         Map<Long, String> gradeNames = gradeIds.isEmpty() ? Map.of()
             : gradeMapper.selectList(new LambdaQueryWrapper<EduGrade>().in(EduGrade::getGradeId, gradeIds))
                 .stream().collect(Collectors.toMap(EduGrade::getGradeId, EduGrade::getGradeName, (a, b) -> a));
+        Map<Long, String> campusNames = campusIds.isEmpty() ? Map.of()
+            : campusMapper.selectList(new LambdaQueryWrapper<EduCampus>().in(EduCampus::getCampusId, campusIds))
+                .stream().collect(Collectors.toMap(EduCampus::getCampusId, EduCampus::getCampusName, (a, b) -> a));
         Map<Long, String> termNames = termIds.isEmpty() ? Map.of()
             : termMapper.selectList(new LambdaQueryWrapper<EduTerm>().in(EduTerm::getTermId, termIds))
                 .stream().collect(Collectors.toMap(EduTerm::getTermId, EduTerm::getTermName, (a, b) -> a));
@@ -117,6 +124,7 @@ public class EduClassServiceImpl implements IEduClassService {
             row.setSchoolName(schoolNames.get(row.getSchoolId()));
             row.setGradeName(gradeNames.get(row.getGradeId()));
             row.setTermName(termNames.get(row.getTermId()));
+            row.setCampusName(campusNames.get(row.getCampusId()));
         }
     }
 

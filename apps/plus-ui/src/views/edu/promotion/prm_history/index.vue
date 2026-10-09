@@ -50,6 +50,11 @@
           <el-table-column label="新状态" prop="afterStatus" width="110" align="center" data-layout-group="异动信息" />
           <el-table-column label="操作人" prop="operator" width="120" data-layout-group="异动信息" />
           <el-table-column label="原因" prop="reason" min-width="200" :show-overflow-tooltip="true" data-layout-group="异动信息" />
+          <el-table-column fixed="right" label="操作" width="100" data-layout-group="操作">
+            <template #default="scope">
+              <el-button link type="primary" @click="handleDetail(scope.row)">查看</el-button>
+            </template>
+          </el-table-column>
 
           <template #empty>
             <el-empty description="没有查询到异动记录" />
@@ -77,6 +82,7 @@ import type { EnrollmentChangeQuery, EnrollmentChangeVO } from '@/api/edu/promot
 import { listTerm } from '@/api/edu/term';
 import type { TermVO } from '@/api/edu/term/types';
 import { checkPermi } from '@/utils/permission';
+import { ElMessageBox } from 'element-plus';
 
 defineOptions({ name: 'EduPromotionHistory' });
 
@@ -130,4 +136,13 @@ onMounted(async () => {
   }
   await getList();
 });
+
+/** 查看异动详情（只读，异动记录追加式不可修改） */
+const handleDetail = (row: EnrollmentChangeVO) => {
+  ElMessageBox.alert(
+    `${row.studentName ?? '—'}（${row.studentNo ?? '—'}）\n异动类型：${row.changeType ?? '—'}\n生效日期：${row.effectiveDate ?? '—'}\n原状态：${row.beforeStatus ?? '—'} → 新状态：${row.afterStatus ?? '—'}\n操作人：${row.operator ?? '—'}\n原因：${row.reason ?? '—'}`,
+    '异动详情',
+    { confirmButtonText: '知道了' }
+  );
+};
 </script>

@@ -59,34 +59,30 @@ CHECKS = [
     {
         "page_id": "PAGE-SUB-LIST",
         "name": "学科与配置列表",
-        "prototype": "prototypes/functional/v1/pages/subject-list.html",
+        "prototype": "prototypes/high-fidelity/v1/pages/subject-list.html",
         "vue": "apps/plus-ui/src/views/edu/subject/sub_list/index.vue",
-        "deferred_groups": {},
-        "deferred_labels": {"操作": "行内动作（编辑 / 配置学段 / 启停用 / 引用检查）与对应弹窗在下一批交付"},
+        "deferred_groups": {},
     },
     {
         "page_id": "PAGE-TERM-LIST",
         "name": "学年学期列表",
         "prototype": "prototypes/functional/v1/pages/term-list.html",
         "vue": "apps/plus-ui/src/views/edu/term/term_list/index.vue",
-        "deferred_groups": {},
-        "extra_columns": {"学年": "v1 原型的「学年」列没有 data-role 标记，生产页保留学年编码列"},
+        "deferred_groups": {},
     },
     {
         "page_id": "PAGE-SCH-LIST",
         "name": "学校管理列表",
         "prototype": "prototypes/functional/v1/pages/school-list.html",
         "vue": "apps/plus-ui/src/views/edu/school/sch_list/index.vue",
-        "deferred_groups": {},
-        "extra_columns": {"学校名称": "v1 原型的「学校名称」列没有 data-role 标记，生产页保留学校名称列"},
+        "deferred_groups": {},
     },
     {
         "page_id": "PAGE-AUDIT-LOG-LIST",
         "name": "操作日志列表",
         "prototype": "prototypes/functional/v1/pages/audit-log-list.html",
         "vue": "apps/plus-ui/src/views/edu/audit/audit_log_list/index.vue",
-        "deferred_groups": {},
-        "extra_columns": {"时间": "v1 原型的时间列没有 data-role 标记，生产页保留时间列"},
+        "deferred_groups": {},
         "filter_note": "审计 PRD 4.4 要求按时间范围 / 操作人 / 对象 / 操作类型筛选，v1 原型未给查询区标记",
     },
     {
@@ -94,33 +90,28 @@ CHECKS = [
         "name": "运营访问记录",
         "prototype": "prototypes/functional/v1/pages/audit-ops-access.html",
         "vue": "apps/plus-ui/src/views/edu/audit/audit_ops_access/index.vue",
-        "deferred_groups": {},
-        "extra_columns": {"访问时间": "v1 原型的访问时间列没有 data-role 标记，生产页保留访问时间列"},
+        "deferred_groups": {},
     },
     {
         "page_id": "PAGE-AUDIT-SENSITIVE-ACCESS",
         "name": "敏感数据访问记录",
         "prototype": "prototypes/functional/v1/pages/audit-sensitive-access.html",
         "vue": "apps/plus-ui/src/views/edu/audit/audit_sensitive_access/index.vue",
-        "deferred_groups": {},
-        "extra_columns": {"访问时间": "v1 原型的访问时间列没有 data-role 标记，生产页保留访问时间列"},
+        "deferred_groups": {},
     },
     {
         "page_id": "PAGE-AUDIT-SECURITY-EVENT",
         "name": "登录与安全事件",
         "prototype": "prototypes/functional/v1/pages/audit-security-event.html",
         "vue": "apps/plus-ui/src/views/edu/audit/audit_security_event/index.vue",
-        "deferred_groups": {},
-        "extra_columns": {"时间": "v1 原型的时间列没有 data-role 标记，生产页保留时间列"},
+        "deferred_groups": {},
     },
     {
         "page_id": "PAGE-AUDIT-ARCHIVE",
         "name": "归档管理",
         "prototype": "prototypes/functional/v1/pages/audit-archive.html",
         "vue": "apps/plus-ui/src/views/edu/audit/audit_archive/index.vue",
-        "deferred_groups": {},
-        "deferred_labels": {"操作": "归档区间检索（searchArchivedLog）在后续轮次交付"},
-        "extra_columns": {"归档批次": "v1 原型的归档批次列没有 data-role 标记，生产页保留归档批次列"},
+        "deferred_groups": {},
     },
     {
         "page_id": "PAGE-IMP-TASK-LIST",
@@ -128,7 +119,7 @@ CHECKS = [
         "prototype": "prototypes/functional/v1/pages/async-task-list.html",
         "vue": "apps/plus-ui/src/views/edu/import-export/imp_task_list/index.vue",
         "deferred_groups": {},
-        "extra_columns": {"任务编号": "v1 原型的任务编号列没有 data-role 标记，生产页保留任务编号列"},
+        
     },
     {
         "page_id": "PAGE-IMP-DEADLETTER",
@@ -136,7 +127,7 @@ CHECKS = [
         "prototype": "prototypes/functional/v1/pages/dead-letter-task.html",
         "vue": "apps/plus-ui/src/views/edu/import-export/imp_deadletter/index.vue",
         "deferred_groups": {},
-        "extra_columns": {"任务编号": "v1 原型的任务编号列没有 data-role 标记，生产页保留任务编号列"},
+        
     },
     {
         "page_id": "PAGE-PRM-HISTORY",
@@ -144,8 +135,8 @@ CHECKS = [
         "prototype": "prototypes/functional/v2/pages/promotion-history.html",
         "vue": "apps/plus-ui/src/views/edu/promotion/prm_history/index.vue",
         "deferred_groups": {},
-        "deferred_labels": {"操作": "异动详情抽屉在后续轮次交付"},
-        "extra_columns": {"学号": "v2 原型的学号列没有 data-role 标记，生产页保留学号列"},
+        
+        
     },
     {
         "page_id": "PAGE-SCH-CAMPUS",
@@ -153,7 +144,7 @@ CHECKS = [
         "prototype": "prototypes/functional/v1/pages/school-campus.html",
         "vue": "apps/plus-ui/src/views/edu/school/sch_campus/index.vue",
         "deferred_groups": {},
-        "extra_columns": {"校区名称": "v1 原型的校区名称列没有 data-role 标记，生产页保留校区名称列"},
+        
     },
     {
         "page_id": "PAGE-SCH-INIT",
@@ -173,7 +164,7 @@ CHECKS = [
         "prototype": "prototypes/functional/v1/pages/term-terms.html",
         "vue": "apps/plus-ui/src/views/edu/term/term_terms/index.vue",
         "deferred_groups": {},
-        "extra_columns": {"学期": "v1 原型的学期列没有 data-role 标记，生产页保留学期名称列"},
+        
     },
     {
         "page_id": "PAGE-PRM-LIST",
@@ -181,7 +172,7 @@ CHECKS = [
         "prototype": "prototypes/functional/v2/pages/promotion-list.html",
         "vue": "apps/plus-ui/src/views/edu/promotion/prm_list/index.vue",
         "deferred_groups": {},
-        "extra_columns": {"任务编号": "v2 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留任务编号列"},
+        
     },
     {
         "page_id": "PAGE-PRM-CREATE",
@@ -196,7 +187,7 @@ CHECKS = [
         "prototype": "prototypes/functional/v1/pages/promotion-preview.html",
         "vue": "apps/plus-ui/src/views/edu/promotion/prm_preview/index.vue",
         "deferred_groups": {},
-        "extra_columns": {"学号": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留学号列"},
+        
     },
     {
         "page_id": "PAGE-PRM-VALIDATE",
@@ -204,7 +195,7 @@ CHECKS = [
         "prototype": "prototypes/functional/v1/pages/promotion-validate.html",
         "vue": "apps/plus-ui/src/views/edu/promotion/prm_validate/index.vue",
         "deferred_groups": {},
-        "extra_columns": {"学号": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留学号列"},
+        
     },
     {
         "page_id": "PAGE-PRM-EXECUTE",
@@ -219,7 +210,7 @@ CHECKS = [
         "prototype": "prototypes/functional/v1/pages/promotion-result.html",
         "vue": "apps/plus-ui/src/views/edu/promotion/prm_result/index.vue",
         "deferred_groups": {},
-        "extra_columns": {"学号": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留学号列"},
+        
     },
     {
         "page_id": "PAGE-CLS-ROSTER-ADD",
@@ -241,7 +232,7 @@ CHECKS = [
         "prototype": "prototypes/functional/v1/pages/class-import-roster.html",
         "vue": "apps/plus-ui/src/views/edu/class/cls_roster_import/index.vue",
         "deferred_groups": {},
-        "extra_columns": {"行号": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留行号列"},
+        
     },
     {
         "page_id": "PAGE-CLS-TEACHING",
@@ -249,7 +240,7 @@ CHECKS = [
         "prototype": "prototypes/functional/v1/pages/teaching-class-list.html",
         "vue": "apps/plus-ui/src/views/edu/class/cls_teaching/index.vue",
         "deferred_groups": {},
-        "extra_columns": {"教学班名称": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留教学班名称列"},
+        
         "filter_note": "v1 原型的查询区由 3 个裸 select（data-role=\"filter\"）组成，没有 <label> 文本，因此查询项无法由原型提取；生产页按 PRD 6.1 补学年学期 / 年级 / 组合 · 学科 / 状态四项",
     },
     {
@@ -274,7 +265,7 @@ CHECKS = [
         "prototype": "prototypes/functional/v1/pages/stream-list.html",
         "vue": "apps/plus-ui/src/views/edu/stream/str_list/index.vue",
         "deferred_groups": {},
-        "extra_columns": {"学号": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留学号列"},
+        
         "filter_note": "v1 原型整页没有查询区标记，生产页按 PRD 6.1 补学年学期 / 年级 / 首选 / 状态 / 关键词五项",
     },
     {
@@ -283,7 +274,7 @@ CHECKS = [
         "prototype": "prototypes/functional/v1/pages/stream-stat.html",
         "vue": "apps/plus-ui/src/views/edu/stream/str_stat/index.vue",
         "deferred_groups": {},
-        "extra_columns": {"组合": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留组合列"},
+        
         "filter_note": "v1 原型整页没有查询区标记，生产页按当前学年学期上下文取数（getStreamStat），不额外增加查询项",
     },
     {
@@ -292,7 +283,7 @@ CHECKS = [
         "prototype": "prototypes/functional/v1/pages/stream-approve.html",
         "vue": "apps/plus-ui/src/views/edu/stream/str_approve/index.vue",
         "deferred_groups": {},
-        "extra_columns": {"申请单号": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留申请单号列"},
+        
         "filter_note": "v1 原型的查询区由裸 select / input（data-role=\"filter\"）组成，没有 <label> 文本，查询项无法由原型提取；生产页按 PRD 6.1 补状态 / 年级 / 关键词三项",
     },
     {
@@ -301,7 +292,7 @@ CHECKS = [
         "prototype": "prototypes/functional/v1/pages/stream-generate-class.html",
         "vue": "apps/plus-ui/src/views/edu/stream/str_gen_class/index.vue",
         "deferred_groups": {},
-        "extra_columns": {"组合": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留组合列"},
+        
         "filter_note": "v1 原型是「选择方式与范围 → 生成预览 → 执行与进度 → 核对结果」的四步向导，整页没有查询区；生产页按原型步骤实现，不比对查询项",
     },
     {
@@ -318,7 +309,7 @@ CHECKS = [
         "prototype": "prototypes/functional/v1/pages/teacher-import.html",
         "vue": "apps/plus-ui/src/views/edu/teacher/tch_import/index.vue",
         "deferred_groups": {},
-        "extra_columns": {"行号": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留行号列"},
+        
     },
     {
         "page_id": "PAGE-IMP-WIZARD",
@@ -326,7 +317,7 @@ CHECKS = [
         "prototype": "prototypes/functional/v1/pages/import-wizard.html",
         "vue": "apps/plus-ui/src/views/edu/import-export/imp_wizard/index.vue",
         "deferred_groups": {},
-        "extra_columns": {"行号": "v1 原型的表头首列在解析切片中被 <thead> 吸收，等效于没有 data-role 标记；生产页保留行号列"},
+        
     },
     {
         "page_id": "PAGE-403",
@@ -478,7 +469,7 @@ def parse_prototype_columns(html: str) -> list[dict]:
         end = html.find("</table>", marker)
         if end > 0:
             html = html[marker:end]
-    for m in re.finditer(r"<th([^>]*)>(.*?)</th>", html, re.S):
+    for m in re.finditer(r"<th\b([^>]*)>(.*?)</th>", html, re.S):
         attrs, inner = m.group(1), m.group(2)
         label_text = re.sub(r"<[^>]+>", "", inner).strip()
         # 数据列靠 data-role="column" 识别；操作列在部分原型里没有 data-* 标记，按列名兜住

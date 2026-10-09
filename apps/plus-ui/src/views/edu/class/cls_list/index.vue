@@ -82,33 +82,34 @@
         </template>
 
         <el-table v-loading="loading" border :data="classList">
-          <el-table-column v-if="columns[0].visible" label="年级" prop="gradeName" width="130" data-layout-group="教育信息" />
+          <el-table-column v-if="columns[0].visible" label="校区" prop="campusName" width="140" data-layout-group="教育信息" />
+          <el-table-column v-if="columns[1].visible" label="年级" prop="gradeName" width="130" data-layout-group="教育信息" />
           <el-table-column
-            v-if="columns[1].visible"
+            v-if="columns[2].visible"
             label="班级名称"
             prop="className"
             width="140"
             :show-overflow-tooltip="true"
             data-layout-group="教育信息"
           />
-          <el-table-column v-if="columns[2].visible" label="类型" prop="classType" width="90" align="center" data-layout-group="教育信息">
+          <el-table-column v-if="columns[3].visible" label="类型" prop="classType" width="90" align="center" data-layout-group="教育信息">
             <template #default="scope">
               <el-tag size="small">{{ CLASS_TYPE_LABEL[scope.row.classType] ?? scope.row.classType }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column v-if="columns[3].visible" label="班主任" prop="headTeacherName" width="120" data-layout-group="教育信息">
+          <el-table-column v-if="columns[4].visible" label="班主任" prop="headTeacherName" width="120" data-layout-group="教育信息">
             <template #default="scope">{{ scope.row.headTeacherName || '未指定' }}</template>
           </el-table-column>
-          <el-table-column v-if="columns[4].visible" label="教室" prop="classroom" width="110" data-layout-group="教育信息" />
-          <el-table-column v-if="columns[5].visible" label="容量" prop="classCapacity" width="80" align="center" data-layout-group="管理信息" />
-          <el-table-column v-if="columns[6].visible" label="在读" prop="studentCount" width="80" align="center" data-layout-group="管理信息">
+          <el-table-column v-if="columns[5].visible" label="教室" prop="classroom" width="110" data-layout-group="教育信息" />
+          <el-table-column v-if="columns[6].visible" label="容量" prop="classCapacity" width="80" align="center" data-layout-group="管理信息" />
+          <el-table-column v-if="columns[7].visible" label="在读" prop="studentCount" width="80" align="center" data-layout-group="管理信息">
             <template #default="scope">
               <span :class="{ 'text-red-500': scope.row.classCapacity && scope.row.studentCount > scope.row.classCapacity }">
                 {{ scope.row.studentCount ?? 0 }}
               </span>
             </template>
           </el-table-column>
-          <el-table-column v-if="columns[7].visible" label="状态" prop="status" width="90" align="center" data-layout-group="管理信息">
+          <el-table-column v-if="columns[8].visible" label="状态" prop="status" width="90" align="center" data-layout-group="管理信息">
             <template #default="scope">
               <el-tag :type="scope.row.status === 'disabled' ? 'info' : 'success'" size="small">
                 {{ scope.row.status === 'disabled' ? '已停用' : '正常' }}

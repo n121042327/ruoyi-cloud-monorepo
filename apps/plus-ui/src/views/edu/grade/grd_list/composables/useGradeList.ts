@@ -25,13 +25,14 @@ export function useGradeList() {
   });
 
   const columns = ref([
-    { key: 0, label: '入学年份', visible: true },
-    { key: 1, label: '年级名称', visible: true },
-    { key: 2, label: '序号', visible: true },
-    { key: 3, label: '年级主任', visible: true },
-    { key: 4, label: '班级数', visible: true },
-    { key: 5, label: '在读学生数', visible: true },
-    { key: 6, label: '状态', visible: true }
+    { key: 0, label: '学段', visible: true },
+    { key: 1, label: '入学年份', visible: true },
+    { key: 2, label: '年级名称', visible: true },
+    { key: 3, label: '序号', visible: true },
+    { key: 4, label: '年级主任', visible: true },
+    { key: 5, label: '班级数', visible: true },
+    { key: 6, label: '在读学生数', visible: true },
+    { key: 7, label: '状态', visible: true }
   ]);
 
   const getList = async () => {

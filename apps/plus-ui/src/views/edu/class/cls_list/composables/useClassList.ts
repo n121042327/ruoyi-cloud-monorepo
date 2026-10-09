@@ -45,14 +45,15 @@ export function useClassList() {
 
   /** 列配置：顺序与原型 class-list.html 的表头一致 */
   const columns = ref([
-    { key: 0, label: '年级', visible: true },
-    { key: 1, label: '班级名称', visible: true },
-    { key: 2, label: '类型', visible: true },
-    { key: 3, label: '班主任', visible: true },
-    { key: 4, label: '教室', visible: true },
-    { key: 5, label: '容量', visible: true },
-    { key: 6, label: '在读', visible: true },
-    { key: 7, label: '状态', visible: true }
+    { key: 0, label: '校区', visible: true },
+    { key: 1, label: '年级', visible: true },
+    { key: 2, label: '班级名称', visible: true },
+    { key: 3, label: '类型', visible: true },
+    { key: 4, label: '班主任', visible: true },
+    { key: 5, label: '教室', visible: true },
+    { key: 6, label: '容量', visible: true },
+    { key: 7, label: '在读', visible: true },
+    { key: 8, label: '状态', visible: true }
   ]);
 
   const getList = async () => {

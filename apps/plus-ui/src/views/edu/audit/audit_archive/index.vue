@@ -33,6 +33,11 @@
         <el-table-column label="状态" prop="status" width="110" align="center" data-layout-group="归档信息" />
         <el-table-column label="操作人" prop="operator" width="120" data-layout-group="归档信息" />
         <el-table-column label="归档时间" prop="archiveTime" width="170" data-layout-group="归档信息" />
+        <el-table-column fixed="right" label="操作" width="100" data-layout-group="操作">
+          <template #default="scope">
+            <el-button link type="primary" @click="handleDetail(scope.row)">查看</el-button>
+          </template>
+        </el-table-column>
 
         <template #empty>
           <el-empty description="暂无归档批次" />
@@ -55,6 +60,7 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import { listArchiveBatch } from '@/api/edu/audit';
 import type { OperationLogQuery, OperationLogVO } from '@/api/edu/audit/types';
 import { checkPermi } from '@/utils/permission';
+import { ElMessageBox } from 'element-plus';
 
 defineOptions({ name: 'EduAuditArchive' });
 
@@ -77,4 +83,13 @@ const getList = async () => {
 };
 
 onMounted(getList);
+
+/** 查看归档批次详情（只读） */
+const handleDetail = (row: OperationLogVO) => {
+  ElMessageBox.alert(
+    `归档范围：${row.archiveRange ?? '—'}\n行数：${row.rowCount ?? 0}\n操作人：${row.operator ?? '—'}\n归档时间：${row.archiveTime ?? '—'}`,
+    `归档批次 · ${row.batchNo ?? '—'}`,
+    { confirmButtonText: '知道了' }
+  );
+};
 </script>

@@ -1,0 +1,40 @@
+# 阶段 6 第三十五批：学科配置 CRUD + 结构检查器修复（CR-116 / D-197）
+
+时间：2026-10-09
+分支：codex/stage7-backend
+触发：用户「直接循环来做这些任务吧」
+
+## 1. 学科配置 CRUD
+- api/edu/subject：补 9 个函数（详情 / 增 / 改 / 删 / 批量初始化 / 学段 / 选科角色 / 停用 / 启用 / 引用检查）
+- types：SubjectVO 按 schema 对齐（stageCodes: string[]、streamEnabled char、subjectStatus active/disabled）
+- 页面：8 列 + 工具栏（新建学科 / 按学段批量初始化）+ 操作列 5 动作
+- 新增 4 个弹窗组件：SubjectFormDialog / SubjectStageDialog / SubjectStreamDialog / SubjectBatchDialog
+
+## 2. 检查器缺陷修复
+发现：check_fe_page_structure.py 的 `<th([^>]*)>` 会先命中 `<thead>`，导致原型首列被吞、检查器假通过。
+修复：改用 `<th\b([^>]*)>`。
+后果与处置（修复后暴露的真实差异）：
+  PAGE-CLS-LIST      缺「校区」列            -> 补列 + 后端 fillNames 补 campusName
+  PAGE-GRD-LIST      缺「学段」列            -> 补列（stageLabel 转换）
+  PAGE-AUDIT-ARCHIVE 缺「操作」列            -> 补「查看」列（只读弹窗）
+  PAGE-PRM-HISTORY   缺「操作」列            -> 补「查看」列（只读弹窗）
+  PAGE-SUB-LIST      对照原型改为高保真      -> v1 原型仅 6 列，高保真与生产同为 8 列
+  其他 18 处         extra_columns / deferred_labels 已过时 -> 清理
+
+## 3. 门禁
+check_fe_page_structure.py   -> 通过
+check_fe_text_nowrap.py      -> 通过
+check_api_contract.py        -> 通过
+check_docs.py                -> 通过
+check_gap_register.py        -> 通过
+check_mermaid.py             -> 通过
+check_stage6_route_coverage.py -> 通过（45 条路由）
+pnpm --filter @edu/plus-ui typecheck      -> error TS 51 条（基线 51）
+pnpm --filter @edu/plus-ui lint:eslint    -> 124 problems（基线 124）
+pnpm --filter @edu/plus-ui run build:prod -> exit 0
+mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile -> BUILD SUCCESS
+
+## 4. 实机
+URL：http://localhost/edu/subject/list
+结果：8 列表头（学科编码/学科名称/启用学段/参与 3+1+2/选科角色/排序号/状态/操作）+ 两个工具栏按钮 + 空态
+截图：evidence/stage6-frontend/2026-10-09_subject-list.png
