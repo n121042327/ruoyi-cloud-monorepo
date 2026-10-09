@@ -12,10 +12,7 @@
     <el-alert class="mb-3" type="warning" :closable="false">
       <template #title>影响范围</template>
       <div>
-        取消后<b>已完成的学生保留升班结果</b>，不做整批回滚；可在结果页「继续执行剩余项」， 也可对已完成项<b>逐条回滚</b>（<span class="mono"
-          >REQ-PRM-036</span
-        >
-        / 已确认 4）。取消写入审计且不可删除（<span class="mono">REQ-PRM-058</span>）。
+        取消后<b>已完成的学生保留升班结果</b>，不做整批回滚；可在结果页「继续执行剩余项」， 也可对已完成项<b>逐条回滚</b>。取消写入审计且不可删除。
       </div>
     </el-alert>
 

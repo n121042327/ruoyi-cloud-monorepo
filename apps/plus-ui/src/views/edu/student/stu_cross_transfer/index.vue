@@ -5,7 +5,7 @@
         <div class="flex justify-between items-center">
           <span>跨校转学（转出校）</span>
           <div class="flex items-center gap-2">
-            <el-tag type="info">学号跨校保持不变（BR-STU-020）</el-tag>
+            <el-tag type="info">学号跨校保持不变</el-tag>
             <el-tag>向导 {{ activeStep }} / 4</el-tag>
           </div>
         </div>
@@ -20,7 +20,7 @@
         class="mt-3"
         type="info"
         :closable="false"
-        title="跨校转学在同一平台内跨学校租户执行：转出校发起 → 释放行政班关系并把原在校记录置为已转出 → 转入校接收并新建「转入未报到」记录 → 学生报到后转为在读（REQ-PRM-051）。"
+        title="跨校转学在同一平台内跨学校租户执行：转出校发起 → 释放行政班关系并把原在校记录置为已转出 → 转入校接收并新建「转入未报到」记录 → 学生报到后转为在读。"
       />
     </el-card>
 
@@ -29,7 +29,7 @@
       <template #header>
         <div class="flex justify-between items-center">
           <span>步骤 1 · 选择学生</span>
-          <el-tag type="info">只列在本校在读且无未完成转学单的学生（REQ-PRM-057）</el-tag>
+          <el-tag type="info">只列在本校在读且无未完成转学单的学生</el-tag>
         </div>
       </template>
       <el-table v-loading="loading" border :data="studentList" highlight-current-row @current-change="handleSelectStudent">
@@ -61,7 +61,7 @@
       <template #header>
         <div class="flex justify-between items-center">
           <span>步骤 2 · 选择转入校与目标班级</span>
-          <el-tag type="info">只暴露必要字段（REQ-PRM-055）</el-tag>
+          <el-tag type="info">只暴露必要字段</el-tag>
         </div>
       </template>
       <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
@@ -79,7 +79,7 @@
           <el-select v-model="form.toClassId" placeholder="暂不指定（报到时候再分班）" clearable class="w-full">
             <el-option v-for="item in classOptions" :key="item.classId" :label="item.className" :value="item.classId" />
           </el-select>
-          <div class="hint">接收前，学生不会被计入转入校的任何在读数与花名册（REQ-PRM-053）。</div>
+          <div class="hint">接收前，学生不会被计入转入校的任何在读数与花名册。</div>
         </el-form-item>
         <el-form-item label="申请日期" prop="effectiveDate">
           <el-date-picker v-model="form.effectiveDate" type="date" value-format="YYYY-MM-DD" class="w-full" />
@@ -99,13 +99,13 @@
         <el-descriptions-item label="学生">{{ selectedStudent?.studentName }} · {{ selectedStudent?.studentNo }}</el-descriptions-item>
         <el-descriptions-item label="转入校">{{ schoolName }}</el-descriptions-item>
         <el-descriptions-item label="目标年级 / 班级"> {{ gradeName }} / {{ className || '暂不分班' }} </el-descriptions-item>
-        <el-descriptions-item label="学号">保持不变（BR-STU-020）</el-descriptions-item>
+        <el-descriptions-item label="学号">保持不变</el-descriptions-item>
       </el-descriptions>
       <el-alert
         class="mt-3"
         type="warning"
         :closable="false"
-        title="提交后：本校原在校记录置为「已转出」、行政班关系释放；转入校建立「转入未报到」记录；转入校可撤销接收（REQ-PRM-053 / 054）。"
+        title="提交后：本校原在校记录置为「已转出」、行政班关系释放；转入校建立「转入未报到」记录；转入校可撤销接收。"
       />
     </el-card>
 
@@ -121,7 +121,7 @@
         <el-descriptions-item label="转学单号">{{ result.transferNo || '—' }}</el-descriptions-item>
         <el-descriptions-item label="当前状态">待接收</el-descriptions-item>
         <el-descriptions-item label="学号">不变</el-descriptions-item>
-        <el-descriptions-item label="两侧审计">已写入（REQ-PRM-056）</el-descriptions-item>
+        <el-descriptions-item label="两侧审计">已写入</el-descriptions-item>
       </el-descriptions>
       <div class="hint mt-2">转入校接收后学生到校报到，状态转为「在读」；转学两侧的操作都写入审计，且可被任一侧租户导出。</div>
     </el-card>

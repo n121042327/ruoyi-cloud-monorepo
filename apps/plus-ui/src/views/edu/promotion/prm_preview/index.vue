@@ -4,7 +4,7 @@
       <div class="flex items-center gap-3">
         <h2 class="text-base font-medium">预览与调整</h2>
         <el-tag type="primary" size="small">向导 2 / 4</el-tag>
-        <el-tag type="info" size="small">预览不写入任何学生数据（REQ-PRM-020）</el-tag>
+        <el-tag type="info" size="small">预览不写入任何学生数据</el-tag>
       </div>
       <div class="mt-2 text-xs">
         任务：{{ task?.taskNo || '—' }} · 源学年学期：{{ task?.sourceTermName || '—' }} → 目标学年学期：{{ task?.targetTermName || '—' }}

@@ -3,13 +3,13 @@
     <el-card shadow="hover" class="mb-2">
       <div class="flex items-center gap-3">
         <h2 class="text-base font-medium">选科配置</h2>
-        <el-tag type="info" size="small">数据范围：本校（DS-04）· 可写</el-tag>
+        <el-tag type="info" size="small">数据范围：本校· 可写</el-tag>
         <el-tag type="primary" size="small">{{ config.termName || '当前学年学期' }}</el-tag>
         <el-tag :type="periodTagType" size="small">{{ config.periodStatus || '未开始' }}</el-tag>
       </div>
       <div class="text-xs mt-2">
         选科开放期：{{ config.openFrom || '—' }} — {{ config.deadline || '—' }}
-        <span class="ml-2">逾期变更需校级管理员审批（BR-STREAM-005）</span>
+        <span class="ml-2">逾期变更需校级管理员审批</span>
       </div>
     </el-card>
 
@@ -24,13 +24,13 @@
       <div class="flex gap-2 mb-2">
         <el-tag v-for="item in primarySubjects" :key="item.code" type="success" effect="plain">{{ item.name }}</el-tag>
       </div>
-      <div class="hint mb-3">首选科目固定为物理 / 历史两门（BV-STREAM-001 / BR-SUBJECT-003），学校与教务主任都不能增减。</div>
+      <div class="hint mb-3">首选科目固定为物理 / 历史两门，学校与教务主任都不能增减。</div>
 
       <h3 class="form-section-title" data-layout-group="固定规则">再选科目（4 选 2）</h3>
       <div class="flex gap-2 mb-2">
         <el-tag v-for="item in secondarySubjects" :key="item.code" type="success" effect="plain">{{ item.name }}</el-tag>
       </div>
-      <div class="hint">再选科目固定为化学 / 生物 / 思想政治 / 地理（BR-STREAM-002），必须选满 2 门且不能重复；组合结果共 12 种。</div>
+      <div class="hint">再选科目固定为化学 / 生物 / 思想政治 / 地理，必须选满 2 门且不能重复；组合结果共 12 种。</div>
     </el-card>
 
     <el-card shadow="hover">
@@ -67,7 +67,7 @@
                 <el-radio :value="true">需校级管理员审批（默认）</el-radio>
                 <el-radio :value="false">不允许逾期变更</el-radio>
               </el-radio-group>
-              <div class="hint">默认「需校级管理员审批」（BR-STREAM-005）：逾期提交后进入审批待办。</div>
+              <div class="hint">默认「需校级管理员审批」：逾期提交后进入审批待办。</div>
             </el-form-item>
           </el-col>
           <el-col :span="24">

@@ -4,7 +4,7 @@
       <el-alert
         type="info"
         :closable="false"
-        title="学生详情是只读视图：学籍状态只有「学籍异动」一个写入入口，班级归属只有「调班 / 班级管理」一个写入入口（DP-01）。"
+        title="学生详情是只读视图：学籍状态只有「学籍异动」一个写入入口，班级归属只有「调班 / 班级管理」一个写入入口。"
       />
 
       <el-card shadow="never" class="mt-3">
@@ -111,9 +111,7 @@
             <el-empty description="暂无监护人信息" :image-size="60" />
           </template>
         </el-table>
-        <div class="hint">
-          监护人手机号不单独作为登录名；一个家长可关联多个孩子，绑定上限 3；解绑需班主任确认，同一字段同时只允许一条待审核（GAP-018）。
-        </div>
+        <div class="hint">监护人手机号不单独作为登录名；一个家长可关联多个孩子，绑定上限 3；解绑需班主任确认，同一字段同时只允许一条待审核。</div>
       </el-card>
 
       <el-card shadow="never" class="mt-3">

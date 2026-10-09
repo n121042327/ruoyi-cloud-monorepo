@@ -4,7 +4,7 @@
       <div class="flex items-center gap-3">
         <h2 class="text-base font-medium">新建升班任务</h2>
         <el-tag type="primary" size="small">向导 1 / 4</el-tag>
-        <el-tag type="info" size="small">升班按学年追加，不改写历史（BR-PROMO-001）</el-tag>
+        <el-tag type="info" size="small">升班按学年追加，不改写历史</el-tag>
       </div>
       <el-steps class="mt-4" :active="0" align-center finish-status="success">
         <el-step title="选择学年学期" />
@@ -25,12 +25,7 @@
       <el-alert class="mb-3" type="info" :closable="false">
         <template #title>创建口径</template>
         <div>
-          必填：源学年学期、目标学年学期（<span class="mono">REQ-PRM-007</span>）；目标学年学期的起始日期必须晚于源学年学期且两者不能相同 （<span
-            class="mono"
-            >REQ-PRM-008</span
-          >
-          / <span class="mono">BR-TERM-005</span>）。任务创建后状态为草稿，可修改范围后重新生成预览 （<span class="mono">REQ-PRM-011</span
-          >）；创建写入审计（<span class="mono">REQ-PRM-012</span>）。
+          必填：源学年学期、目标学年学期；目标学年学期的起始日期必须晚于源学年学期且两者不能相同。任务创建后状态为草稿，可修改范围后重新生成预览；创建写入审计。
         </div>
       </el-alert>
 
@@ -40,10 +35,7 @@
           <el-col :span="12">
             <el-form-item label="学校">
               <el-input v-model="schoolName" disabled />
-              <div class="hint">
-                升班任务在本校范围内执行，不跨校共享（<span class="mono">BR-DATA-018</span
-                >）；只有平台运营与超级管理员可以切换学校，且切换后同样不能创建。
-              </div>
+              <div class="hint">升班任务在本校范围内执行，不跨校共享；只有平台运营与超级管理员可以切换学校，且切换后同样不能创建。</div>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -51,11 +43,7 @@
               <el-select v-model="form.sourceTermId" placeholder="请选择源学年学期" class="w-full">
                 <el-option v-for="item in termOptions" :key="item.id" :label="item.label" :value="item.id" />
               </el-select>
-              <div class="hint">
-                源学年学期决定「从哪一批在读学生升班」：只有在读计入，休学 / 转入未报到 / 出国保留学籍都不计入在读名单（<span class="mono"
-                  >BR-STU-012</span
-                >）。
-              </div>
+              <div class="hint">源学年学期决定「从哪一批在读学生升班」：只有在读计入，休学 / 转入未报到 / 出国保留学籍都不计入在读名单。</div>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -63,10 +51,7 @@
               <el-select v-model="form.targetTermId" placeholder="请选择目标学年学期" class="w-full">
                 <el-option v-for="item in termOptions" :key="item.id" :label="item.label" :value="item.id" />
               </el-select>
-              <div class="hint">
-                目标学年学期的年级与班级必须已经建好，否则创建被阻止（<span class="mono">REQ-PRM-009</span> /
-                <span class="mono">BR-PROMO-004</span>）。
-              </div>
+              <div class="hint">目标学年学期的年级与班级必须已经建好，否则创建被阻止。</div>
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -79,7 +64,7 @@
                 show-word-limit
                 placeholder="如：2021 级 小学六年级 毕业，其余年级按学段内序号 +1 升班"
               />
-              <div class="hint">选填，最长 500 字；会随任务台账一起导出，便于教务主任线下核对（<span class="mono">REQ-PRM-019</span>）。</div>
+              <div class="hint">选填，最长 500 字；会随任务台账一起导出，便于教务主任线下核对。</div>
             </el-form-item>
           </el-col>
         </el-row>
@@ -97,7 +82,7 @@
       <el-alert class="mb-2" :type="readinessAlertType" :closable="false" :title="readinessTitle">
         {{ readinessMessage }}
       </el-alert>
-      <el-alert class="mb-3" type="info" :closable="false" title="前端校验不作为安全边界：后端在 addPromotionTask 内重复校验（NFR-SEC-05）。" />
+      <el-alert class="mb-3" type="info" :closable="false" title="前端校验不作为安全边界：后端在 addPromotionTask 内重复校验。" />
 
       <div class="flex justify-between">
         <el-button v-hasPermi="['promotion.batch:read']" @click="goList">返回任务列表</el-button>

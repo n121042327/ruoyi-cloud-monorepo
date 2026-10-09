@@ -6,10 +6,7 @@
         <h2 class="text-base font-medium">班级合并</h2>
         <el-tag type="info" size="small">源班级并入目标班级；源班级置为已停用，不物理删除</el-tag>
       </div>
-      <div class="text-xs mt-2">
-        合并只影响行政班在班关系，按学年追加、不改写历史（<span class="mono">BR-PROMO-001</span>）； 教学班与选科关系不受影响。本页按
-        <span class="mono">GAP-088</span> 的推荐方案实现（页面树未提供原型）。
-      </div>
+      <div class="text-xs mt-2">合并只影响行政班在班关系，按学年追加、不改写历史；教学班与选科关系不受影响。</div>
     </el-card>
 
     <el-card shadow="hover" class="mb-2">

@@ -4,7 +4,7 @@
       <div class="flex items-center gap-3">
         <h2 class="text-base font-medium">升班校验</h2>
         <el-tag type="primary" size="small">向导 3 / 4</el-tag>
-        <el-tag type="info" size="small">校验通过才允许执行（REQ-PRM-027）</el-tag>
+        <el-tag type="info" size="small">校验通过才允许执行</el-tag>
       </div>
       <div class="mt-2 text-xs">任务：{{ task?.taskNo || '—' }} · 目标学年学期：{{ task?.targetTermName || '—' }}</div>
       <el-steps class="mt-4" :active="2" align-center finish-status="success">
@@ -18,9 +18,7 @@
     <el-card shadow="hover" class="mb-2">
       <el-alert class="mb-2" :type="blocked ? 'error' : 'success'" :closable="false" :title="blocked ? '存在阻塞项，不能执行' : '校验通过，可以执行'">
         {{
-          blocked
-            ? `共 ${blockedCount} 条明细未通过校验，请回到预览与调整修正后重新校验。`
-            : '全部明细均已通过校验，执行将按学年追加、不改写历史（BR-PROMO-001）。'
+          blocked ? `共 ${blockedCount} 条明细未通过校验，请回到预览与调整修正后重新校验。` : '全部明细均已通过校验，执行将按学年追加、不改写历史。'
         }}
       </el-alert>
 

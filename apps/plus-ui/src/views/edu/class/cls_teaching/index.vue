@@ -67,7 +67,7 @@
           class="mb-3"
           type="info"
           :closable="false"
-          title="行政班与教学班是两套独立关系，选科组合不等于行政班；教学班的创建入口唯一在「按组合生成教学班」向导，本页只做查询、详情与停用（CR-017 裁决）。"
+          title="行政班与教学班是两套独立关系，选科组合不等于行政班；教学班的创建入口唯一在「按组合生成教学班」向导，本页只做查询、详情与停用。"
         />
 
         <el-table v-loading="loading" border :data="classList">

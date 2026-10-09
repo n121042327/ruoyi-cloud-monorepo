@@ -71,7 +71,7 @@
           class="mb-3"
           type="info"
           :closable="false"
-          title="状态口径：草稿没有升班明细，因此「学生总数 / 成功 / 失败」显示为「—」（REQ-PRM-003 / 011）。按钮权限：新建 = promotion.batch:create；预览 / 执行 / 重试 / 取消 = promotion.batch:update；升班没有审批环节，校领导与年级主任只读。"
+          title="状态口径：草稿没有升班明细，因此「学生总数 / 成功 / 失败」显示为「—」。按钮权限：新建 = promotion.batch:create；预览 / 执行 / 重试 / 取消 = promotion.batch:update；升班没有审批环节，校领导与年级主任只读。"
         />
 
         <el-table v-loading="loading" border :data="taskList">

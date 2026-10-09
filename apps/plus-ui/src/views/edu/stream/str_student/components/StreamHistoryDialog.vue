@@ -11,7 +11,7 @@
         <el-empty description="暂无选科历史" />
       </template>
     </el-table>
-    <div class="hint mt-2">选科历史可查不可改；截止后的变更以「变更申请 → 审批通过」两条记录留痕（BR-STREAM-005）。</div>
+    <div class="hint mt-2">选科历史可查不可改；截止后的变更以「变更申请 → 审批通过」两条记录留痕。</div>
   </el-dialog>
 </template>
 

@@ -17,7 +17,7 @@
         class="mb-3"
         type="info"
         :closable="false"
-        title="掩码展示不记录日志；只有揭示全量或申请明文导出时才记录（REQ-AUD-009）。日志本身不含敏感字段明文，只记字段名与掩码后的值（REQ-AUD-010）。"
+        title="掩码展示不记录日志；只有揭示全量或申请明文导出时才记录。日志本身不含敏感字段明文，只记字段名与掩码后的值。"
       />
 
       <el-table v-loading="loading" border :data="accessList">

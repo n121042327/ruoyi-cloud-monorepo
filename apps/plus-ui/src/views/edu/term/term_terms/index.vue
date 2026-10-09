@@ -20,7 +20,7 @@
         class="mb-3"
         type="info"
         :closable="false"
-        title="每个学年至少一个学期；学期日期必须落在学年范围内且互不重叠；已被班级、任教关系或花名册引用的学期不允许删除（REQ-TERM-014 ~ 019）。"
+        title="每个学年至少一个学期；学期日期必须落在学年范围内且互不重叠；已被班级、任教关系或花名册引用的学期不允许删除。"
       />
 
       <el-table v-loading="loading" border :data="termList">

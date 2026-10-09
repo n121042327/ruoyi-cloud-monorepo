@@ -1,7 +1,7 @@
 <template>
   <el-drawer v-model="visible" size="600px" :title="`对象变更时间线 · ${objectLabel}`" append-to-body>
     <div v-loading="loading">
-      <el-alert type="info" :closable="false" title="时间线按对象聚合该对象的全部变更记录，只读且不可删除（REQ-AUD-023 / BR-AUDIT-003）。" />
+      <el-alert type="info" :closable="false" title="时间线按对象聚合该对象的全部变更记录，只读且不可删除。" />
       <el-timeline v-if="logs.length" class="mt-3">
         <el-timeline-item v-for="item in logs" :key="item.logId" :timestamp="item.operateTime">
           <b>{{ item.actionType || '变更' }}</b>

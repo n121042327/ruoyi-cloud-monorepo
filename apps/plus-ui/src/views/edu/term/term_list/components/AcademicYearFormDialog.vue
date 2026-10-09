@@ -7,7 +7,7 @@
         <el-col :span="24">
           <el-form-item label="学年" prop="academicYearCode">
             <el-input v-model="form.academicYearCode" placeholder="格式 YYYY-YYYY，如 2026-2027" clearable />
-            <div class="hint">格式 YYYY-YYYY（连续两个自然年，结束年 = 起始年 + 1）；学年编码在同一学校内唯一（REQ-TERM-008 / 009）。</div>
+            <div class="hint">格式 YYYY-YYYY（连续两个自然年，结束年 = 起始年 + 1）；学年编码在同一学校内唯一。</div>
           </el-form-item>
         </el-col>
         <el-col :span="12">
@@ -26,7 +26,7 @@
               <el-option :value="2" label="2 个学期（默认）" />
               <el-option :value="1" label="1 个学期" />
             </el-select>
-            <div class="hint">创建学年时一并生成学期；学期可在「学期管理」里调整（REQ-TERM-012）。</div>
+            <div class="hint">创建学年时一并生成学期；学期可在「学期管理」里调整。</div>
           </el-form-item>
         </el-col>
       </el-row>
@@ -34,7 +34,7 @@
         class="mb-2"
         type="info"
         :closable="false"
-        title="学年不能与已有学年重叠：新学年开始日必须等于上一学年结束日 + 1 天（RV-TERM-08）。新建学年写入审计日志（REQ-TERM-013）。"
+        title="学年不能与已有学年重叠：新学年开始日必须等于上一学年结束日 + 1 天。新建学年写入审计日志。"
       />
     </el-form>
     <template #footer>

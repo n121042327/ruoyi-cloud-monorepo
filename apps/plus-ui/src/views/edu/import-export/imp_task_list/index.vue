@@ -17,7 +17,7 @@
         class="mb-3"
         type="info"
         :closable="false"
-        title="默认只显示本人发起的任务；任务结果的查询与下载都会重新解析数据范围，不复用发起时的判定（REQ-IMP-032 / 036）。"
+        title="默认只显示本人发起的任务；任务结果的查询与下载都会重新解析数据范围，不复用发起时的判定。"
       />
 
       <el-table v-loading="loading" border :data="taskList">

@@ -1,6 +1,6 @@
 <template>
   <el-dialog v-model="visible" :title="title" width="680px" append-to-body>
-    <el-alert type="info" :closable="false" title="调班只改班级关系，不改学籍状态与学号；学生班级归属的唯一写入入口在班级管理（DP-01）。" />
+    <el-alert type="info" :closable="false" title="调班只改班级关系，不改学籍状态与学号；学生班级归属的唯一写入入口在班级管理。" />
     <el-form ref="formRef" :model="form" :rules="rules" label-width="120px" class="mt-3">
       <!-- 班级关系：目标班级 → 生效日期 -->
       <h3 class="form-section-title" data-layout-group="班级关系">班级关系</h3>
@@ -14,7 +14,7 @@
             :disabled="item.status === 'disabled'"
           />
         </el-select>
-        <div class="hint">已停用的班级不可选；容量超限只提示不阻塞（BR-CLASS-005）。</div>
+        <div class="hint">已停用的班级不可选；容量超限只提示不阻塞。</div>
       </el-form-item>
       <el-form-item label="生效日期" prop="effectiveDate">
         <el-date-picker v-model="form.effectiveDate" type="date" value-format="YYYY-MM-DD" placeholder="选择生效日期" class="w-full" />

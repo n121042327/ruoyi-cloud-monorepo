@@ -33,7 +33,7 @@
                 :disabled="!!item.employmentStatus && item.employmentStatus !== '在职'"
               />
             </el-select>
-            <div class="hint">离职 / 调离的教师不可新增任教（GAP-075：非在职只保留查看与撤销离职登记）。</div>
+            <div class="hint">离职 / 调离的教师不可新增任教（非在职只保留查看与撤销离职登记）。</div>
           </el-form-item>
         </el-col>
         <el-col :span="12">

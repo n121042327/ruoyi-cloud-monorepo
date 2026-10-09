@@ -38,7 +38,7 @@
       </template>
     </el-table>
     <el-button class="mt-2" :disabled="rows.length >= 3" icon="Plus" @click="addRow">添加监护人</el-button>
-    <div class="hint mt-1">同一家长可关联多个孩子，绑定上限 3；监护人手机号是敏感字段，列表默认掩码展示（GAP-015）。</div>
+    <div class="hint mt-1">同一家长可关联多个孩子，绑定上限 3；监护人手机号是敏感字段，列表默认掩码展示。</div>
   </div>
 </template>
 

@@ -80,7 +80,7 @@
               查看原图
             </el-button>
           </div>
-          <div class="hint">单张，默认只展示缩略图；查看原图写敏感数据访问日志（GAP-027 裁决 A）。新增时先保存学生再上传照片。</div>
+          <div class="hint">单张，默认只展示缩略图；查看原图写敏感数据访问日志。新增时先保存学生再上传照片。</div>
         </el-form-item>
       </template>
 

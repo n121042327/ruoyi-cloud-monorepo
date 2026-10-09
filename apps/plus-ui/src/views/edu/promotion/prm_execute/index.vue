@@ -40,16 +40,10 @@
         class="mt-3"
         type="warning"
         :closable="false"
-        title="部分失败：到结果页点「重试失败项」，只重新处理失败项，已成功记录不重复执行（REQ-PRM-032）。"
+        title="部分失败：到结果页点「重试失败项」，只重新处理失败项，已成功记录不重复执行。"
       />
       <el-alert v-else-if="task?.status === 'failed'" class="mt-3" type="error" :closable="false" title="执行失败：到结果页查看失败原因并重试。" />
-      <el-alert
-        v-else-if="task?.status === 'succeeded'"
-        class="mt-3"
-        type="success"
-        :closable="false"
-        title="执行完成：按学年追加，不改写历史（BR-PROMO-001）。"
-      />
+      <el-alert v-else-if="task?.status === 'succeeded'" class="mt-3" type="success" :closable="false" title="执行完成：按学年追加，不改写历史。" />
     </el-card>
 
     <el-card shadow="hover">

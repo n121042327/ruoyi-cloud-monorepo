@@ -49,7 +49,7 @@
           </el-form-item>
         </el-col>
       </el-row>
-      <div class="hint">保存成功后自动创建教师登录账号；教育角色与任教关系在教师详情的对应入口维护（DP-01）。</div>
+      <div class="hint">保存成功后自动创建教师登录账号；教育角色与任教关系在教师详情的对应入口维护。</div>
     </el-form>
     <template #footer>
       <div class="dialog-footer">

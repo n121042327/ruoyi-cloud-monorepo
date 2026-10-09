@@ -26,7 +26,7 @@
         <el-col :span="12">
           <el-form-item label="学段内序号" prop="gradeLevel">
             <el-input-number v-model="form.gradeLevel" :min="1" :max="6" controls-position="right" class="w-full" :disabled="!!form.gradeId" />
-            <div class="hint">小学 1-6、初中 1-3、高中 1-3；学段与序号一经创建不可修改（REQ-GRD-018）。</div>
+            <div class="hint">小学 1-6、初中 1-3、高中 1-3；学段与序号一经创建不可修改。</div>
           </el-form-item>
         </el-col>
         <el-col :span="12">

@@ -9,7 +9,7 @@
         <el-empty description="没有未选科学生" />
       </template>
     </el-table>
-    <div class="hint mt-2">按年级 / 班级分组展示，可直接用于催办；数据范围仍受本校（DS-04）限制。</div>
+    <div class="hint mt-2">按年级 / 班级分组展示，可直接用于催办；数据范围仍受本校限制。</div>
   </el-dialog>
 </template>
 

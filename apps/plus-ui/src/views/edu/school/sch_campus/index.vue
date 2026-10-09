@@ -20,7 +20,7 @@
         class="mb-3"
         type="info"
         :closable="false"
-        title="校区不参与数据权限判定（校领导与教务主任看到本校全部校区数据）；已被班级引用的校区不允许删除，只允许停用（REQ-SCH-028 / 030）。"
+        title="校区不参与数据权限判定（校领导与教务主任看到本校全部校区数据）；已被班级引用的校区不允许删除，只允许停用。"
       />
 
       <el-table v-loading="loading" border :data="campusList">

@@ -5,7 +5,7 @@
         <div class="flex items-center gap-3">
           <el-button link type="primary" @click="goList">← 返回班级列表</el-button>
           <h2 class="text-base font-medium">批量迁学生</h2>
-          <el-tag type="info" size="small">批量迁移 = 多条调班（D-067），写入入口唯一在班级管理（DP-01）</el-tag>
+          <el-tag type="info" size="small">批量迁移 = 多条调班（D-067），写入入口唯一在班级管理</el-tag>
         </div>
         <span class="text-xs">已选 {{ selected.length }} 人</span>
       </div>
@@ -15,8 +15,8 @@
       <el-alert class="mb-3" type="info" :closable="false">
         <template #title>迁移口径</template>
         <div>
-          迁移按学年追加、不改写历史（<span class="mono">BR-PROMO-001</span>）；迁移后原班的在班关系在目标学年学期结束，新班从生效日期开始。
-          每名学生逐条写入结果，失败项单独列出原因；迁移写审计且不可静默回滚（<span class="mono">REQ-CLS-036</span>）。
+          迁移按学年追加、不改写历史；迁移后原班的在班关系在目标学年学期结束，新班从生效日期开始。
+          每名学生逐条写入结果，失败项单独列出原因；迁移写审计且不可静默回滚。
         </div>
       </el-alert>
 

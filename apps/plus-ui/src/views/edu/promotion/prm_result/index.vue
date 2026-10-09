@@ -4,7 +4,7 @@
       <div class="flex items-center gap-3">
         <h2 class="text-base font-medium">执行结果与重试</h2>
         <el-tag :type="statusType" size="small">{{ statusLabel }}</el-tag>
-        <el-tag type="info" size="small">按学年追加，不改写历史（BR-PROMO-001）</el-tag>
+        <el-tag type="info" size="small">按学年追加，不改写历史</el-tag>
       </div>
       <div class="mt-2 text-xs">
         任务：{{ task?.taskNo || '—' }} · 源学年学期：{{ task?.sourceTermName || '—' }} → 目标学年学期：{{ task?.targetTermName || '—' }}
@@ -26,12 +26,7 @@
         </el-col>
       </el-row>
       <el-alert v-if="task?.failReason" class="mt-3" type="warning" :closable="false" title="失败原因" :description="task.failReason" />
-      <el-alert
-        class="mt-3"
-        type="info"
-        :closable="false"
-        title="失败逐条记录原因，重试只处理失败项，已成功的记录不重复执行（REQ-PRM-032 / BR-PROMO-003）。"
-      />
+      <el-alert class="mt-3" type="info" :closable="false" title="失败逐条记录原因，重试只处理失败项，已成功的记录不重复执行。" />
     </el-card>
 
     <el-card shadow="hover">

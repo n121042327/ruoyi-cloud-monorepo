@@ -4,7 +4,7 @@
       <div class="flex items-center gap-3">
         <h2 class="text-base font-medium">教师导入</h2>
         <el-tag type="primary" size="small">向导 {{ step }} / 4</el-tag>
-        <el-tag type="info" size="small">导入幂等：同一批次重复提交不产生重复数据（BR-IMP-002）</el-tag>
+        <el-tag type="info" size="small">导入幂等：同一批次重复提交不产生重复数据</el-tag>
       </div>
       <el-steps class="mt-4" :active="step - 1" align-center finish-status="success">
         <el-step title="下载模板" />
@@ -31,8 +31,7 @@
       <el-alert class="mb-2" type="warning" :closable="false">
         <template #title>模板版本口径</template>
         <div>
-          模板版本与字段字典版本对应，模板字段变更必须升版本（<span class="mono">BR-IMP-007</span>）；
-          模板列含工号、姓名、性别、教育角色、任教学科、联系电话等，必填列以模板标注为准。
+          模板版本与字段字典版本对应，模板字段变更必须升版本； 模板列含工号、姓名、性别、教育角色、任教学科、联系电话等，必填列以模板标注为准。
         </div>
       </el-alert>
       <div class="flex justify-end">
@@ -51,7 +50,7 @@
         <el-icon class="el-icon--upload"><upload-filled /></el-icon>
         <div class="el-upload__text">把 .xlsx 文件拖到这里，或 <em>点击选择文件</em></div>
         <template #tip>
-          <div class="el-upload__tip">校验阶段不写业务数据；失败明细临时文件有效期 7 天（IMP-Q-02）。</div>
+          <div class="el-upload__tip">校验阶段不写业务数据；失败明细临时文件有效期 7 天。</div>
         </template>
       </el-upload>
 
@@ -142,7 +141,7 @@
         class="mt-3"
         type="info"
         :closable="false"
-        title="导入是异步任务：可离开本页，任务中心的进度与结果文件是同一份数据（REQ-IMP-036 / 042）。教师账号在导入成功后自动创建。"
+        title="导入是异步任务：可离开本页，任务中心的进度与结果文件是同一份数据。教师账号在导入成功后自动创建。"
       />
 
       <div class="flex justify-between mt-3">

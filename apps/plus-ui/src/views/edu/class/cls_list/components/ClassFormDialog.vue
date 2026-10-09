@@ -31,7 +31,7 @@
           </el-form-item>
         </el-col>
       </el-row>
-      <div v-if="form.classId" class="hint mb-2">学年学期与年级一经创建不可修改；班级类型在存在花名册后不可修改（REQ-CLS-022 / 023）。</div>
+      <div v-if="form.classId" class="hint mb-2">学年学期与年级一经创建不可修改；班级类型在存在花名册后不可修改。</div>
 
       <!-- 管理信息：班主任 → 校区 → 教室 → 容量 -->
       <h3 class="form-section-title" data-layout-group="管理信息">管理信息</h3>
@@ -58,7 +58,7 @@
         <el-col :span="12">
           <el-form-item label="容量" prop="classCapacity">
             <el-input-number v-model="form.classCapacity" :min="0" controls-position="right" class="w-full" />
-            <div class="hint">容量仅作参考，超出时只提示不阻塞（REQ-CLS-017）。</div>
+            <div class="hint">容量仅作参考，超出时只提示不阻塞。</div>
           </el-form-item>
         </el-col>
       </el-row>

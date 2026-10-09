@@ -2,9 +2,7 @@
   <el-dialog v-model="visible" title="选科变更申请" width="560px" append-to-body>
     <el-alert class="mb-3" type="warning" :closable="false">
       <template #title>变更口径</template>
-      <div>
-        开放期内变更直接生效；截止后提交会作为变更申请进入校级管理员审批（<span class="mono">BR-STREAM-005</span>）， 审批通过前保持原选科不变。
-      </div>
+      <div>开放期内变更直接生效；截止后提交会作为变更申请进入校级管理员审批， 审批通过前保持原选科不变。</div>
     </el-alert>
 
     <el-form ref="formRef" :model="form" :rules="rules" label-width="110px">

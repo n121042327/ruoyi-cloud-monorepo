@@ -22,7 +22,7 @@
         <el-empty description="暂无核对结果" />
       </template>
     </el-table>
-    <div class="hint mt-2">差异只提示不自动修正：审批后新增的选科需要再次增量生成（REQ-STR-060）。</div>
+    <div class="hint mt-2">差异只提示不自动修正：审批后新增的选科需要再次增量生成。</div>
   </el-card>
 </template>
 

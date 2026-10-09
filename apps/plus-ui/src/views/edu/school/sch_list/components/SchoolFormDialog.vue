@@ -39,7 +39,7 @@
             <el-checkbox-group v-model="form.stageCodes">
               <el-checkbox v-for="item in STAGE_CODE_OPTIONS" :key="item.value" :value="item.value">{{ item.label }}</el-checkbox>
             </el-checkbox-group>
-            <div class="hint">学段决定可创建的年级与升学路径（BR-GRADE-006）；学段序号固定映射（小学 1–6、初中 / 高中 1–3）。</div>
+            <div class="hint">学段决定可创建的年级与升学路径；学段序号固定映射（小学 1–6、初中 / 高中 1–3）。</div>
           </el-form-item>
         </el-col>
       </el-row>

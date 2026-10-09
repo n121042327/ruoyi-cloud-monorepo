@@ -21,7 +21,7 @@
       <div v-if="reference">
         该学年仍有 <b>{{ reference.classCount ?? 0 }} 个班级</b>、<b>{{ reference.teachingRelationCount ?? 0 }} 条任教关系</b>、
         <b>{{ reference.rosterCount ?? 0 }} 名花名册学生</b>与 <b>{{ reference.subjectChoiceCount ?? 0 }} 名选科学生</b> 关联；
-        归档不影响这些历史数据的可查性（REQ-TERM-029 / 034）。
+        归档不影响这些历史数据的可查性。
       </div>
       <div v-else>尚未取得引用检查结果。</div>
     </el-alert>

@@ -4,7 +4,7 @@
       <div class="flex items-center gap-3">
         <h2 class="text-base font-medium">编班表导入</h2>
         <el-tag type="primary" size="small">向导 {{ step }} / 4</el-tag>
-        <el-tag type="info" size="small">导入幂等，同一批次重复提交不产生重复数据（BR-IMP-002）</el-tag>
+        <el-tag type="info" size="small">导入幂等，同一批次重复提交不产生重复数据</el-tag>
       </div>
       <el-steps class="mt-4" :active="step - 1" align-center finish-status="success">
         <el-step title="下载模板" />
@@ -13,9 +13,8 @@
         <el-step title="执行与进度" />
       </el-steps>
       <div class="text-xs mt-2">
-        与「导入导出 → 导入向导」同一套四步流程（<span class="mono">BR-IMP-001</span>）；本页是班级管理列表「导入编班表」的模块快捷入口。
-        模板一行一学生、含目标班级列（<span class="mono">REQ-CLS-035</span>），模板列 4 列：学号（必填）/ 姓名（选填，用于核对）/ 目标班级（必填）/
-        班级类型（选填，默认行政班）。
+        与「导入导出 → 导入向导」同一套四步流程；本页是班级管理列表「导入编班表」的模块快捷入口。 模板一行一学生、含目标班级列，模板列 4
+        列：学号（必填）/ 姓名（选填，用于核对）/ 目标班级（必填）/ 班级类型（选填，默认行政班）。
       </div>
     </el-card>
 
@@ -32,10 +31,7 @@
       </template>
       <el-alert class="mb-2" type="warning" :closable="false">
         <template #title>模板版本口径</template>
-        <div>
-          模板版本与字段字典版本对应，模板字段变更必须升版本（<span class="mono">BR-IMP-007</span>）；
-          用旧版模板导入时先报「模板版本过期」强提示，仍可继续（<span class="mono">IMP-Q-05</span>）。
-        </div>
+        <div>模板版本与字段字典版本对应，模板字段变更必须升版本； 用旧版模板导入时先报「模板版本过期」强提示，仍可继续。</div>
       </el-alert>
       <ol class="list-decimal pl-5 text-xs">
         <li>学号（必填）</li>
@@ -60,7 +56,7 @@
         <el-icon class="el-icon--upload"><upload-filled /></el-icon>
         <div class="el-upload__text">把 .xlsx 文件拖到这里，或 <em>点击选择文件</em></div>
         <template #tip>
-          <div class="el-upload__tip">校验阶段不写业务数据；失败明细临时文件有效期 7 天（IMP-Q-02）。</div>
+          <div class="el-upload__tip">校验阶段不写业务数据；失败明细临时文件有效期 7 天。</div>
         </template>
       </el-upload>
 
@@ -85,7 +81,7 @@
                 <el-option label="跳过重复行（默认）" value="skip" />
                 <el-option label="整批失败，全部修正后重传" value="fail" />
               </el-select>
-              <div class="hint">同一学生在一个学年学期只允许一条行政班关系（<span class="mono">BR-STU-016</span>）。</div>
+              <div class="hint">同一学生在一个学年学期只允许一条行政班关系。</div>
             </el-form-item>
           </el-col>
         </el-row>
@@ -149,12 +145,7 @@
         <el-col :span="6"><el-statistic title="失败" :value="task?.failedCount ?? 0" /></el-col>
       </el-row>
 
-      <el-alert
-        class="mt-3"
-        type="info"
-        :closable="false"
-        title="导入是异步任务：可离开本页，任务中心的进度与结果文件是同一份数据（REQ-IMP-036 / 042）。"
-      />
+      <el-alert class="mt-3" type="info" :closable="false" title="导入是异步任务：可离开本页，任务中心的进度与结果文件是同一份数据。" />
 
       <div class="flex justify-between mt-3">
         <el-button v-hasPermi="['data.async_task:read']" @click="goTaskCenter">查看异步任务</el-button>

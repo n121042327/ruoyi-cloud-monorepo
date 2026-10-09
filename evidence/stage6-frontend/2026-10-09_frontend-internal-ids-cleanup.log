@@ -1,0 +1,40 @@
+# 阶段 6 第三十一批：教育域页面内部编号清理（CR-112 / D-193）
+
+时间：2026-10-09
+分支：codex/stage7-backend
+触发：用户在 /edu/import/wizard 批注「是不是不应该出现在界面里」
+
+## 1. 扫描
+范围：apps/plus-ui/src/views/edu/**/*.vue 的 <template> 区
+跳过：<!-- --> 注释、<script>、<style>
+正则：\b(?:REQ|BR|GAP|DS|RV|NFR|DP|IMP|PAGE|CR)-[A-Z0-9]+(?:-[A-Z0-9]+)*\b
+清理前命中：21 处编号括注
+
+## 2. 清理
+改动文件数：51（git diff --name-only -- apps/plus-ui/src/views/edu）
+行数：118 insertions(+), 196 deletions(-)
+复扫结果：
+  - 模板内编号残留 = 0
+  - 删除后残留空括号 = 0
+  - 保留 YYYY-MM-DD × 16、PRM-20260930-0012 × 1、班级示例 (1)(2)(3)
+
+## 3. 工具缺陷与修复（提交前完成）
+1. 非贪婪 <template> 匹配导致漏扫 -> 改贪婪匹配根 template
+2. 编号正则 REQ-\d+ 漏掉 REQ-IMP-036 -> 改 前缀-[A-Z0-9]+(?:-[A-Z0-9]+)*
+3. 误删纯数字括号（高一 (2)(3) 班）与模板表达式空括号（.trim() -> .trim）
+   -> 与 HEAD 逐条对比恢复 13 处，括号规则收紧为「必须以需求编号开头」
+
+## 4. 门禁
+check_fe_page_structure.py   -> 通过
+check_api_contract.py        -> 通过
+check_docs.py                -> 通过
+check_gap_register.py        -> 通过
+check_mermaid.py             -> 通过
+pnpm --filter @edu/plus-ui typecheck      -> error TS 51 条（基线 51，本批新增 0）
+pnpm --filter @edu/plus-ui lint:eslint    -> 124 problems（基线 124，本批新增 0）
+pnpm --filter @edu/plus-ui run build:prod -> exit 0
+
+## 5. 实机
+URL：http://localhost/edu/import/wizard
+可见文案：模板字段变更必须升版本；旧版模板会先报「模板版本过期」强提示，仍可继续。
+截图：evidence/stage6-frontend/2026-10-09_import-wizard-internal-ids-cleaned.png

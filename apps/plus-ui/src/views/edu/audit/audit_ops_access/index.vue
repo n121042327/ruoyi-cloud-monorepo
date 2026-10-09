@@ -20,7 +20,7 @@
         class="mb-3"
         type="info"
         :closable="false"
-        title="平台运营对本租户数据的任何访问都会形成访问记录；租户可自助查询与导出，导出内容只含本租户数据（REQ-AUD-013 / 015 / 016）。"
+        title="平台运营对本租户数据的任何访问都会形成访问记录；租户可自助查询与导出，导出内容只含本租户数据。"
       />
 
       <el-table v-loading="loading" border :data="accessList">

@@ -57,7 +57,7 @@
           class="mb-3"
           type="info"
           :closable="false"
-          title="审批通过后学生选科立即生效，教学班名单不会自动同步，需教务主任人工触发增量生成并核对差异（REQ-STR-060）。驳回意见必填（REQ-STR-037）。"
+          title="审批通过后学生选科立即生效，教学班名单不会自动同步，需教务主任人工触发增量生成并核对差异。驳回意见必填。"
         />
 
         <el-table v-loading="loading" border :data="list">

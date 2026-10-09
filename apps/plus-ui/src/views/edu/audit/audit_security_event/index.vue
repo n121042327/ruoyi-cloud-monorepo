@@ -17,7 +17,7 @@
         class="mb-3"
         type="info"
         :closable="false"
-        title="登录失败、账号锁定、激活码查看与重置、学号变更、权限变更都记入安全事件（REQ-AUD-007）；登录失败按学号限流，连续 5 次锁定 10 分钟（REQ-STU-091）。"
+        title="登录失败、账号锁定、激活码查看与重置、学号变更、权限变更都记入安全事件；登录失败按学号限流，连续 5 次锁定 10 分钟。"
       />
 
       <el-table v-loading="loading" border :data="eventList">

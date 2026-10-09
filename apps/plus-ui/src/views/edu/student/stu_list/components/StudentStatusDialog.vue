@@ -19,17 +19,17 @@
         <el-select v-model="form.changeType" placeholder="请选择异动类型" class="w-full" @change="handleTypeChange">
           <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" :disabled="item.disabled" />
         </el-select>
-        <div class="hint">选项随当前状态变化；非法流转后端直接拒绝并说明原因（BR-PROMO-010）。</div>
+        <div class="hint">选项随当前状态变化；非法流转后端直接拒绝并说明原因。</div>
       </el-form-item>
       <el-form-item label="生效日期" prop="effectiveDate">
         <el-date-picker v-model="form.effectiveDate" type="date" value-format="YYYY-MM-DD" placeholder="选择生效日期" class="w-full" />
-        <div class="hint">生效后立即更新相关学生与新班级的权限缓存（DP-06）。</div>
+        <div class="hint">生效后立即更新相关学生与新班级的权限缓存。</div>
       </el-form-item>
       <el-alert
         v-if="selectedOption?.needApproval"
         type="warning"
         :closable="false"
-        title="「退学 / 开除 / 死亡」等异动需要校级管理员审批；义务教育阶段禁止开除（REQ-PRM-043 / 044）。"
+        title="「退学 / 开除 / 死亡」等异动需要校级管理员审批；义务教育阶段禁止开除。"
       />
 
       <!-- 复学 / 报到安排：条件必填 -->
@@ -38,14 +38,14 @@
         <el-select v-model="form.classId" placeholder="不需要（休学 / 出国 / 转出等）" clearable :disabled="!needClass" class="w-full">
           <el-option v-for="item in classOptions" :key="item.classId" :label="item.className" :value="item.classId" />
         </el-select>
-        <div class="hint">复学 / 报到 / 寻回必须指定班级（REQ-PRM-041）。</div>
+        <div class="hint">复学 / 报到 / 寻回必须指定班级。</div>
       </el-form-item>
 
       <!-- 异动说明 -->
       <h3 class="form-section-title" data-layout-group="异动说明">异动说明</h3>
       <el-form-item label="原因" prop="reason">
         <el-input v-model="form.reason" type="textarea" :rows="2" placeholder="如：家长申请休学一学期，附医院证明" />
-        <div class="hint">原状态、新状态、生效日期、原因、操作人全部写审计且不可删除（BR-PROMO-012）。</div>
+        <div class="hint">原状态、新状态、生效日期、原因、操作人全部写审计且不可删除。</div>
       </el-form-item>
     </el-form>
     <template #footer>

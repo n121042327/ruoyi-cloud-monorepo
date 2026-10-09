@@ -16,12 +16,7 @@
         <el-step title="校验结果" />
         <el-step title="执行与进度" />
       </el-steps>
-      <el-alert
-        class="mt-3"
-        type="info"
-        :closable="false"
-        title="两阶段导入：先校验并展示结果，确认后才异步执行；失败行可下载明细逐条修正（BR-IMP-001 / BR-IMP-003）。"
-      />
+      <el-alert class="mt-3" type="info" :closable="false" title="两阶段导入：先校验并展示结果，确认后才异步执行；失败行可下载明细逐条修正。" />
     </el-card>
 
     <!-- 步骤 1：下载模板 -->
@@ -38,7 +33,7 @@
           {{ item.required ? '必填' : '选填' }}{{ item.note ? ' · ' + item.note : '' }}
         </el-descriptions-item>
       </el-descriptions>
-      <div class="hint mt-2">模板版本与字段字典版本对应，字段变更必须升版本（BR-IMP-007）；使用旧版模板会先报「模板版本过期」强提示，仍可继续。</div>
+      <div class="hint mt-2">模板版本与字段字典版本对应，字段变更必须升版本；使用旧版模板会先报「模板版本过期」强提示，仍可继续。</div>
     </el-card>
 
     <!-- 步骤 2：上传与校验 -->
@@ -64,7 +59,7 @@
             <el-radio value="skip">跳过重复行（默认）</el-radio>
             <el-radio value="reject">整批失败，全部修正后重传</el-radio>
           </el-radio-group>
-          <div class="hint">重复判定：证件号平台唯一（BR-STU-008）+ 姓名与入学年份的组合；同一批次重复提交不产生重复数据。</div>
+          <div class="hint">重复判定：证件号平台唯一+ 姓名与入学年份的组合；同一批次重复提交不产生重复数据。</div>
         </el-form-item>
       </el-form>
     </el-card>
@@ -90,7 +85,7 @@
           <el-empty description="校验全部通过" :image-size="60" />
         </template>
       </el-table>
-      <div class="hint mt-2">失败行可下载明细逐条修正后作为新批次重新上传（REQ-IMP-012）。</div>
+      <div class="hint mt-2">失败行可下载明细逐条修正后作为新批次重新上传。</div>
     </el-card>
 
     <!-- 步骤 4：执行与进度 -->

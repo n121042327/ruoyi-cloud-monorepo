@@ -8,9 +8,9 @@
       <!-- 页面标题区：对齐高保真 prototypes/high-fidelity/v1/pages/school-list.html 的 .page-head -->
       <div class="page-head">
         <h1>学校管理</h1>
-        <span class="scope-hint">数据范围：本租户（DS-04）· 可写</span>
+        <span class="scope-hint">数据范围：本租户· 可写</span>
         <el-tag type="primary">共 {{ total }} 所学校</el-tag>
-        <el-tag type="info">教学数据落在学校租户上（BR-ORG-001）</el-tag>
+        <el-tag type="info">教学数据落在学校租户上</el-tag>
       </div>
 
       <!-- 查询区独立成卡：与高保真一致（filter 一张卡，工具栏 + 表格一张卡） -->

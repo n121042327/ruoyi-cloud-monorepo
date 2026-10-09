@@ -5,7 +5,7 @@
         <div class="flex justify-between items-center">
           <span>跨校转学（转入校）</span>
           <div class="flex items-center gap-2">
-            <el-tag type="info">只暴露必要字段（REQ-PRM-055）</el-tag>
+            <el-tag type="info">只暴露必要字段</el-tag>
             <el-tag>向导 {{ activeStep }} / 4</el-tag>
           </div>
         </div>
@@ -16,12 +16,7 @@
         <el-step title="接收确认" />
         <el-step title="报到" />
       </el-steps>
-      <el-alert
-        class="mt-3"
-        type="info"
-        :closable="false"
-        title="接收前，学生不会被计入转入校的任何在读数与花名册；接收动作本身即审批（REQ-PRM-051 / 053）。"
-      />
+      <el-alert class="mt-3" type="info" :closable="false" title="接收前，学生不会被计入转入校的任何在读数与花名册；接收动作本身即审批。" />
     </el-card>
 
     <!-- 步骤 1：待接收转学单 -->
@@ -65,7 +60,7 @@
       <template #header>
         <div class="flex justify-between items-center">
           <span>步骤 2 · 核对信息与接收</span>
-          <el-tag type="info">只暴露必要字段（REQ-PRM-055）</el-tag>
+          <el-tag type="info">只暴露必要字段</el-tag>
         </div>
       </template>
       <el-descriptions :column="2" border class="mb-3">
@@ -84,7 +79,7 @@
           <el-select v-model="form.toClassId" placeholder="暂不指定（报到时候再分班）" clearable class="w-full">
             <el-option v-for="item in classOptions" :key="item.classId" :label="item.className" :value="item.classId" />
           </el-select>
-          <div class="hint">接收前，学生不会被计入转入校的任何在读数与花名册（REQ-PRM-053）。</div>
+          <div class="hint">接收前，学生不会被计入转入校的任何在读数与花名册。</div>
         </el-form-item>
       </el-form>
     </el-card>
@@ -102,14 +97,14 @@
           {{ selectedTransfer?.studentName }} · {{ selectedTransfer?.studentNo }}（原 {{ selectedTransfer?.fromSchoolName }}）
         </el-descriptions-item>
         <el-descriptions-item label="目标年级 / 班级">{{ gradeName }} / {{ className || '暂不分班' }}</el-descriptions-item>
-        <el-descriptions-item label="学号">保持不变（BR-STU-020）</el-descriptions-item>
+        <el-descriptions-item label="学号">保持不变</el-descriptions-item>
         <el-descriptions-item label="接收后的状态机">建立「转入未报到」记录，进入待报到名单</el-descriptions-item>
       </el-descriptions>
       <el-alert
         class="mt-3"
         type="warning"
         :closable="false"
-        title="接收后：学生在报名校建立「转入未报到」记录；报到后转为「在读」并进入本校在读名单与花名册。接收前撤销：记录逻辑删除并留痕（REQ-PRM-054）。"
+        title="接收后：学生在报名校建立「转入未报到」记录；报到后转为「在读」并进入本校在读名单与花名册。接收前撤销：记录逻辑删除并留痕。"
       />
     </el-card>
 
@@ -125,9 +120,9 @@
         <el-descriptions-item label="转学单号">{{ result.transferNo || selectedTransfer?.transferNo || '—' }}</el-descriptions-item>
         <el-descriptions-item label="当前状态">{{ checkedIn ? '已报到（在读）' : '已接收（转入未报到）' }}</el-descriptions-item>
         <el-descriptions-item label="学号">不变</el-descriptions-item>
-        <el-descriptions-item label="两侧审计">已写入（REQ-PRM-056）</el-descriptions-item>
+        <el-descriptions-item label="两侧审计">已写入</el-descriptions-item>
       </el-descriptions>
-      <div class="hint mt-2">报到时指定班级并由「报到」动作把状态转为在读（REQ-PRM-051 / BR-STU-023）。</div>
+      <div class="hint mt-2">报到时指定班级并由「报到」动作把状态转为在读。</div>
     </el-card>
 
     <el-card shadow="never" class="mt-3">

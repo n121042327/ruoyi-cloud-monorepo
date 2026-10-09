@@ -13,7 +13,7 @@
         </el-row>
       </template>
 
-      <el-alert class="mb-3" type="warning" :closable="false" title="超过最大重试次数的任务进入死信；重放动作写入审计（REQ-IMP-038）。" />
+      <el-alert class="mb-3" type="warning" :closable="false" title="超过最大重试次数的任务进入死信；重放动作写入审计。" />
 
       <el-table v-loading="loading" border :data="deadList">
         <el-table-column label="任务编号" prop="taskNo" width="190" data-layout-group="死信信息" />

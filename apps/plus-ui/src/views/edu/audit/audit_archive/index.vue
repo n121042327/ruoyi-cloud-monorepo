@@ -17,7 +17,7 @@
         class="mb-3"
         type="info"
         :closable="false"
-        title="日志保留不少于 3 年，超过在线保留窗口后按时间归档；归档后仍可按时间范围检索，归档动作本身写日志（REQ-AUD-032 / 033 / 034）。"
+        title="日志保留不少于 3 年，超过在线保留窗口后按时间归档；归档后仍可按时间范围检索，归档动作本身写日志。"
       />
 
       <el-table v-loading="loading" border :data="archiveList">

@@ -11,11 +11,7 @@
 
     <el-alert class="mb-3" type="info" :closable="false">
       <template #title>影响面</template>
-      <div>
-        审批通过后该学生的选科<b>立即生效</b>，教学班名单<b>不会自动同步</b>，需教务主任人工触发增量生成并核对差异（<span class="mono"
-          >REQ-STR-060</span
-        >）。
-      </div>
+      <div>审批通过后该学生的选科<b>立即生效</b>，教学班名单<b>不会自动同步</b>，需教务主任人工触发增量生成并核对差异。</div>
     </el-alert>
 
     <el-descriptions :column="3" border class="mb-3">
@@ -46,9 +42,7 @@
         />
       </el-form-item>
     </el-form>
-    <div class="hint">
-      驳回意见必填（<span class="mono">REQ-STR-037</span>）；审批动作写入审计，含审批人、意见与时间（<span class="mono">REQ-STR-039</span>）。
-    </div>
+    <div class="hint">驳回意见必填；审批动作写入审计，含审批人、意见与时间。</div>
 
     <template #footer>
       <div class="dialog-footer">

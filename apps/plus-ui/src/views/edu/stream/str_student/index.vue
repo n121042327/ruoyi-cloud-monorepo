@@ -8,7 +8,7 @@
       </div>
       <div class="text-xs mt-2">
         选科开放期：{{ config.openFrom || '—' }} — {{ config.deadline || '—' }}（{{ config.periodStatus || '未开始' }}）
-        <span class="ml-2">截止后提交的变更需校级管理员审批（BR-STREAM-005）</span>
+        <span class="ml-2">截止后提交的变更需校级管理员审批</span>
       </div>
     </el-card>
 
@@ -22,7 +22,7 @@
       <el-radio-group v-model="form.primarySubjectCode" size="large">
         <el-radio-button v-for="item in primarySubjects" :key="item.code" :value="item.code">{{ item.name }}</el-radio-button>
       </el-radio-group>
-      <div class="hint mt-2">首选科目只能是物理或历史（BV-STREAM-001 / BR-STREAM-001），不提供其它选项。</div>
+      <div class="hint mt-2">首选科目只能是物理或历史，不提供其它选项。</div>
     </el-card>
 
     <el-card shadow="hover" class="mb-2">
@@ -45,7 +45,7 @@
         title="选择数量不符"
         :description="`再选科目必须选满 2 门且不能重复（当前 ${form.secondarySubjectCodes.length} 门）。`"
       />
-      <div class="hint mt-2">再选科目固定 4 门中选 2 门（BR-STREAM-002）；组合结果 = 1 门首选 + 2 门再选，共 12 种组合。</div>
+      <div class="hint mt-2">再选科目固定 4 门中选 2 门；组合结果 = 1 门首选 + 2 门再选，共 12 种组合。</div>
     </el-card>
 
     <el-card shadow="hover">
@@ -81,7 +81,7 @@
         type="warning"
         :closable="false"
         title="已截止"
-        description="当前已过选科截止时间：提交会作为变更申请进入校级管理员审批（BR-STREAM-005），审批通过前保持原选科不变。"
+        description="当前已过选科截止时间：提交会作为变更申请进入校级管理员审批，审批通过前保持原选科不变。"
       />
       <div class="hint mt-3">选科结果决定教学班归属；行政班不变（教学班与行政班是两套独立关系）。</div>
 

@@ -82,7 +82,7 @@
           class="mb-3"
           type="info"
           :closable="false"
-          title="选科结果决定教学班归属；行政班不变（教学班与行政班是两套独立关系）。截止后的变更走审批（BR-STREAM-005）。"
+          title="选科结果决定教学班归属；行政班不变（教学班与行政班是两套独立关系）。截止后的变更走审批。"
         />
 
         <el-table v-loading="loading" border :data="list">

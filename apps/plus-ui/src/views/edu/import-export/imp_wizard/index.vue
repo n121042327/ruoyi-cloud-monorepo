@@ -4,7 +4,7 @@
       <div class="flex items-center gap-3">
         <h2 class="text-base font-medium">导入向导</h2>
         <el-tag type="primary" size="small">向导 {{ step }} / 4</el-tag>
-        <el-tag type="info" size="small">同一批次重复提交不产生重复数据（BR-IMP-002）</el-tag>
+        <el-tag type="info" size="small">同一批次重复提交不产生重复数据</el-tag>
       </div>
       <el-steps class="mt-4" :active="step - 1" align-center finish-status="success">
         <el-step title="选择模板" />
@@ -12,10 +12,6 @@
         <el-step title="校验结果" />
         <el-step title="执行与进度" />
       </el-steps>
-      <div class="text-xs mt-2">
-        各业务模块只声明模板与校验规则，引擎、批次、错误明细与结果文件都在导入导出模块（<span class="mono">REQ-IMP-002</span> /
-        <span class="mono">GAP-086</span> 裁决）。
-      </div>
     </el-card>
 
     <!-- 步骤 1 · 选择模板 -->
@@ -49,7 +45,7 @@
           <el-col :span="12">
             <el-form-item label="模板版本">
               <el-input :model-value="currentTemplate?.version || '—'" disabled />
-              <div class="hint">模板字段变更必须升版本（<span class="mono">BR-IMP-007</span>）；旧版模板会先报「模板版本过期」强提示，仍可继续。</div>
+              <div class="hint">模板字段变更必须升版本；旧版模板会先报「模板版本过期」强提示，仍可继续。</div>
             </el-form-item>
           </el-col>
         </el-row>
@@ -80,7 +76,7 @@
         <el-icon class="el-icon--upload"><upload-filled /></el-icon>
         <div class="el-upload__text">把 .xlsx 文件拖到这里，或 <em>点击选择文件</em></div>
         <template #tip>
-          <div class="el-upload__tip">校验阶段不写业务数据；失败明细临时文件有效期 7 天（IMP-Q-02）。</div>
+          <div class="el-upload__tip">校验阶段不写业务数据；失败明细临时文件有效期 7 天。</div>
         </template>
       </el-upload>
 
@@ -158,7 +154,7 @@
           确认执行（可执行 {{ validateResult?.validCount ?? 0 }} 行）
         </el-button>
       </div>
-      <div class="hint mt-2">选择「全部修正后重新上传」时执行按钮禁用；学号对照表在导入结果文件里给出（IMP-Q-06）。</div>
+      <div class="hint mt-2">选择「全部修正后重新上传」时执行按钮禁用；学号对照表在导入结果文件里给出。</div>
     </el-card>
 
     <!-- 步骤 4 · 执行与进度 -->
@@ -181,12 +177,7 @@
         <el-col :span="6"><el-statistic title="失败" :value="task?.failedCount ?? 0" /></el-col>
       </el-row>
 
-      <el-alert
-        class="mt-3"
-        type="info"
-        :closable="false"
-        title="导入是异步任务：可离开本页，任务中心的进度与结果文件是同一份数据（REQ-IMP-036 / 042）。"
-      />
+      <el-alert class="mt-3" type="info" :closable="false" title="导入是异步任务：可离开本页，任务中心的进度与结果文件是同一份数据。" />
 
       <div class="flex justify-between mt-3">
         <el-button v-hasPermi="['data.async_task:read']" @click="goTaskCenter">查看异步任务</el-button>

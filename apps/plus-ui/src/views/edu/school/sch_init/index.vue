@@ -17,7 +17,7 @@
         class="mt-3"
         type="info"
         :closable="false"
-        title="初始化会一次性完成学年学期、学科模板与基础角色；动作幂等，重复执行不会产生重复数据（REQ-SCH-019 / 045）。"
+        title="初始化会一次性完成学年学期、学科模板与基础角色；动作幂等，重复执行不会产生重复数据。"
       />
     </el-card>
 
@@ -28,7 +28,7 @@
         <el-descriptions-item label="学校名称">{{ schoolName || '—' }}</el-descriptions-item>
         <el-descriptions-item label="学校编码">{{ schoolCode || '—' }}</el-descriptions-item>
       </el-descriptions>
-      <div class="hint mt-2">学校与租户的绑定关系一经创建不可修改（REQ-SCH-022）。</div>
+      <div class="hint mt-2">学校与租户的绑定关系一经创建不可修改。</div>
     </el-card>
 
     <!-- 步骤 2：学段与年级 -->
@@ -39,7 +39,7 @@
           <el-checkbox-group v-model="form.stageCodes">
             <el-checkbox v-for="item in STAGE_CODE_OPTIONS" :key="item.value" :value="item.value">{{ item.label }}</el-checkbox>
           </el-checkbox-group>
-          <div class="hint">至少选择一个学段；学段是年级可选范围的前置条件（REQ-SCH-032 / 033）。</div>
+          <div class="hint">至少选择一个学段；学段是年级可选范围的前置条件。</div>
         </el-form-item>
       </el-form>
     </el-card>
@@ -63,7 +63,7 @@
           />
         </el-form-item>
       </el-form>
-      <div class="hint">学年编码必须是连续的两个自然年（结束年 = 起始年 + 1），且校内唯一（REQ-TERM-008 / 009）。</div>
+      <div class="hint">学年编码必须是连续的两个自然年（结束年 = 起始年 + 1），且校内唯一。</div>
     </el-card>
 
     <!-- 步骤 4：执行与结果 -->
@@ -89,7 +89,7 @@
         :closable="false"
         title="初始化已完成：学年学期、学科模板与基础角色均已就位，可继续配置年级与班级。"
       />
-      <div class="hint mt-2">初始化在 30 秒内完成，动作写审计（REQ-SCH-045 / REQ-SCH-020）。</div>
+      <div class="hint mt-2">初始化在 30 秒内完成，动作写审计。</div>
     </el-card>
 
     <el-card shadow="never" class="mt-3">

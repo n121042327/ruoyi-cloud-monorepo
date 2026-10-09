@@ -5,7 +5,7 @@
         <div class="flex items-center gap-3">
           <el-button link type="primary" @click="goDetail">← 返回班级详情</el-button>
           <h2 class="text-base font-medium">添加学生</h2>
-          <el-tag type="info" size="small">学生班级归属的唯一写入入口是班级管理（DP-01）</el-tag>
+          <el-tag type="info" size="small">学生班级归属的唯一写入入口是班级管理</el-tag>
         </div>
         <span class="text-xs">目标班级：{{ classId || '未指定' }}</span>
       </div>
@@ -15,11 +15,8 @@
       <el-alert class="mb-3" type="info" :closable="false">
         <template #title>加入口径</template>
         <div>
-          只有在读学生可以加入行政班；休学 / 转入未报到 / 出国保留学籍等状态会被「加入校验」拦下（<span class="mono">REQ-CLS-030</span>）。
-          已在其他行政班的学生需先走调班或迁学生流程，不能重复挂班（<span class="mono">REQ-CLS-031</span>）。加入按学年追加，不改写历史（<span
-            class="mono"
-            >BR-PROMO-001</span
-          >）。
+          只有在读学生可以加入行政班；休学 / 转入未报到 / 出国保留学籍等状态会被「加入校验」拦下。
+          已在其他行政班的学生需先走调班或迁学生流程，不能重复挂班。加入按学年追加，不改写历史。
         </div>
       </el-alert>
 

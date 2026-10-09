@@ -1,7 +1,7 @@
 <template>
   <el-drawer v-model="visible" size="640px" :title="`操作日志详情 · ${detail.actionType || ''}`" append-to-body>
     <div v-loading="loading">
-      <el-alert type="info" :closable="false" title="日志只允许追加、不可修改与删除；列表与详情都不提供编辑入口（REQ-AUD-025 / 030）。" />
+      <el-alert type="info" :closable="false" title="日志只允许追加、不可修改与删除；列表与详情都不提供编辑入口。" />
 
       <!-- 操作信息：操作人 → 角色快照 → 操作类型 → 执行结果 → 来源 IP → 请求标识 -->
       <h4 class="form-section-title" data-layout-group="操作信息">操作信息</h4>
@@ -42,7 +42,7 @@
         </template>
       </el-table>
 
-      <div class="hint mt-2">日志本身不含敏感字段明文，只记录字段名与掩码后的值（REQ-AUD-010）。</div>
+      <div class="hint mt-2">日志本身不含敏感字段明文，只记录字段名与掩码后的值。</div>
     </div>
 
     <template #footer>

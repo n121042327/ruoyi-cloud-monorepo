@@ -8,10 +8,8 @@
             {{ item.label }}
           </el-checkbox>
         </el-checkbox-group>
-        <div class="hint">
-          至少选择一个学段；学段序号固定映射（小学 1–6、初中 / 高中 1–3，RV-GRD-03）；未开设的学段不能建对应年级（REQ-SCH-033）。
-        </div>
-        <div v-if="lockedCodes.length" class="hint">已开设且已有年级的学段不能移除：{{ lockedLabel }}（REQ-SCH-034）；需要调整请先处理对应年级。</div>
+        <div class="hint">至少选择一个学段；学段序号固定映射（小学 1–6、初中 / 高中 1–3）；未开设的学段不能建对应年级。</div>
+        <div v-if="lockedCodes.length" class="hint">已开设且已有年级的学段不能移除：{{ lockedLabel }}；需要调整请先处理对应年级。</div>
         <div v-if="schoolName" class="hint">当前学校：{{ schoolName }}</div>
       </el-form-item>
     </el-form>

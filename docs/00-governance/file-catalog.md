@@ -1376,3 +1376,12 @@
 | `apps/plus-ui/src/store/modules/permission.ts`（改） | `loadView` 找不到组件时告警 + 渲染「页面组件未找到」 | `已实现` |
 | `evidence/stage6-frontend/2026-10-09_route-missing-fallback.png` | 兜底提示实机截图 | `review` |
 | `evidence/stage6-frontend/2026-10-09_route-missing-fallback.log` | 排查与验证记录 | `review` |
+
+## 2026-10-09 阶段 6 第三十一批：教育域页面内部编号清理
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-112.md` | 批注判断口径、扫描范围、三次工具缺陷与验证 | `review` |
+| `apps/plus-ui/src/views/edu/**`（改，51 个 `.vue`） | 移除模板中的需求 / 缺项 / 裁决编号，保留业务文案 | `已实现` |
+| `evidence/stage6-frontend/2026-10-09_import-wizard-internal-ids-cleaned.png` | 导入向导清理后实机截图 | `review` |
+| `evidence/stage6-frontend/2026-10-09_frontend-internal-ids-cleanup.log` | 扫描 / 清理 / 门禁记录 | `review` |
