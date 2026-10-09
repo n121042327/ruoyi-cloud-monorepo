@@ -81,11 +81,19 @@
             </template>
           </el-table-column>
 
-          <el-table-column fixed="right" label="操作" width="200" data-layout-group="操作">
+          <el-table-column fixed="right" label="操作" width="320" data-layout-group="操作">
             <template #default="scope">
               <el-button v-hasPermi="['org.grade:update']" link type="primary" icon="Edit" @click="handleUpdate(scope.row)">编辑</el-button>
-              <el-button v-hasPermi="['org.grade:update']" link type="primary" @click="handleLeader">指定年级主任</el-button>
-              <el-button v-hasPermi="['org.grade:remove']" link type="primary" @click="handleArchive">归档</el-button>
+              <el-button v-hasPermi="['org.grade:update']" link type="primary" @click="leaderRef?.open(scope.row)">指定年级主任</el-button>
+              <el-button v-hasPermi="['org.grade:read']" link type="primary" @click="promotionRef?.open()">升班视图</el-button>
+              <el-button
+                v-if="scope.row.gradeStatus !== 'archived'"
+                v-hasPermi="['org.grade:update']"
+                link
+                type="danger"
+                @click="handleArchive(scope.row)"
+                >归档</el-button
+              >
             </template>
           </el-table-column>
 
@@ -104,18 +112,25 @@
       </el-card>
 
       <grade-form-dialog ref="formDialogRef" :school-options="schoolOptions" @success="getList" />
+      <GradeLeaderDialog ref="leaderRef" :teacher-options="teacherOptions" @success="getList" />
+      <GradePromotionDialog ref="promotionRef" />
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance, ref } from 'vue';
-import { ElMessage } from 'element-plus';
+import { computed, getCurrentInstance, onMounted, ref } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import GradeFormDialog from './components/GradeFormDialog.vue';
+import GradeLeaderDialog from './components/GradeLeaderDialog.vue';
+import GradePromotionDialog from './components/GradePromotionDialog.vue';
 import { useGradeList } from './composables/useGradeList';
 import type { GradeVO } from '@/api/edu/grade/types';
 import { checkPermi } from '@/utils/permission';
 import { STAGE_CODE_LABEL } from '@/enums/edu/StudentEnum';
+import { archiveGrade } from '@/api/edu/grade';
+import { listTeacher } from '@/api/edu/teacher';
+import type { TeacherVO } from '@/api/edu/teacher/types';
 
 defineOptions({ name: 'EduGradeList' });
 
@@ -138,9 +153,12 @@ const {
 } = useGradeList();
 
 const formDialogRef = ref<InstanceType<typeof GradeFormDialog>>();
+const leaderRef = ref<InstanceType<typeof GradeLeaderDialog>>();
+const promotionRef = ref<InstanceType<typeof GradePromotionDialog>>();
 const stageLabel = (code?: string) => (code ? (STAGE_CODE_LABEL[code] ?? code) : '—');
 
 const queryFormRef = ref();
+const teacherOptions = ref<TeacherVO[]>([]);
 
 const canRead = computed(() => checkPermi(['org.grade:read']));
 
@@ -153,11 +171,24 @@ const handleUpdate = (row: GradeVO) => {
 };
 
 /** 指定年级主任与归档在后续批次交付（本批已给出入口，先不做假流程） */
-const handleLeader = () => {
-  ElMessage.info('指定年级主任在阶段 6 的下一批交付');
+
+/** 年级归档（归档后不允许新增班级，只读保留） */
+const handleArchive = async (row: GradeVO) => {
+  const { value } = await ElMessageBox.prompt(`确认归档「${row.gradeName}」？归档后不允许新增班级。`, '年级归档', {
+    inputPlaceholder: '归档原因（必填）',
+    inputValidator: (text: string) => (text && text.trim().length >= 2 ? true : '请填写归档原因（至少 2 个字）'),
+    type: 'warning'
+  });
+  await archiveGrade(row.gradeId, value);
+  ElMessage.success('年级已归档');
+  getList();
 };
 
-const handleArchive = () => {
-  ElMessage.info('年级归档在阶段 6 的下一批交付');
+/** 年级主任下拉取数（指定弹窗用） */
+const loadTeacherOptions = async () => {
+  const res = await listTeacher({ pageNum: 1, pageSize: 200, employmentStatus: '在职' });
+  teacherOptions.value = res.rows ?? [];
 };
+
+onMounted(loadTeacherOptions);
 </script>

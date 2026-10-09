@@ -34,3 +34,28 @@ export interface GradeForm {
   gradeLevel: number;
   gradeName: string;
 }
+
+/** 年级主任任职行（GET /edu/grade/{id}/leader） */
+export interface GradeLeaderVO {
+  leaderId: string;
+  gradeId: string;
+  gradeName?: string;
+  termId?: string;
+  userId?: string;
+  userName?: string;
+  teacherId?: string;
+  teacherName?: string;
+  /** '1' 主管 / '0' 非主管 */
+  isPrimary?: string;
+  status?: string;
+}
+
+/** 指定 / 变更年级主任（POST /edu/grade/{id}/leader，字段与 EduGradeBo 对齐） */
+export interface GradeLeaderForm {
+  schoolId?: string;
+  termId?: string;
+  userId?: string;
+  teacherId?: string;
+  isPrimary?: string;
+  reason?: string;
+}

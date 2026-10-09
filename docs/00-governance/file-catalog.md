@@ -1481,3 +1481,15 @@
 | `apps/plus-ui/src/views/edu/class/cls_list/index.vue`（改） | 工具栏加批量生成；操作列加停用 | `已实现` |
 | `apps/plus-ui/src/views/edu/class/cls_list/components/ClassBatchDialog.vue` | 批量生成班级弹窗（含命名预览） | `已实现` |
 | `evidence/stage6-frontend/2026-10-09_class-batch-disable.log` | 门禁与改动记录 | `review` |
+
+## 2026-10-09 阶段 6 第三十九批：年级归档 / 年级主任 / 升班视图
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-120.md` | 年级归档 / 主任任职 / 升班视图接线与口径 | `review` |
+| `apps/plus-ui/src/api/edu/grade/index.ts`（改） | 补 8 个接口函数 | `已实现` |
+| `apps/plus-ui/src/api/edu/grade/types.ts`（改） | 新增 GradeLeaderVO / GradeLeaderForm | `已实现` |
+| `apps/plus-ui/src/views/edu/grade/grd_list/index.vue`（改） | 操作列接上班主任 / 升班视图 / 归档 | `已实现` |
+| `apps/plus-ui/src/views/edu/grade/grd_list/components/GradeLeaderDialog.vue` | 年级主任任职弹窗（指定 / 离任） | `已实现` |
+| `apps/plus-ui/src/views/edu/grade/grd_list/components/GradePromotionDialog.vue` | 升班只读视图弹窗 | `已实现` |
+| `evidence/stage6-frontend/2026-10-09_grade-archive-leader.log` | 门禁与改动记录 | `review` |

@@ -1,0 +1,36 @@
+# 阶段 6 第三十九批：年级归档 / 年级主任 / 升班视图（CR-120 / D-201）
+
+时间：2026-10-09
+分支：codex/stage7-backend
+触发：heartbeat（自动化队列第 4 项）
+
+## 1. 交付
+- api/edu/grade 补 8 个函数：getGrade / removeGrade / archiveGrade / listGradeLeader / saveGradeLeader /
+  removeGradeLeader / getGradePromotionView / exportGrade
+- types 新增 GradeLeaderVO / GradeLeaderForm
+- 新增 2 个弹窗：GradeLeaderDialog（任职列表 + 指定 + 离任）、GradePromotionDialog（升班只读视图）
+- 操作列：编辑 / 指定年级主任 / 升班视图 / 归档（已归档隐藏），width 200 -> 320
+
+## 2. 口径
+- 年级主任任职走 DS-05 写入入口；同一学年学期只允许一名主管（后端校验）
+- 离任置 status=0，不物理删除，需填原因
+- 归档需填原因；已归档年级不显示归档入口
+- 升班视图只读，学段上限按 REQ-GRD-012（小学 6 / 初中 3 / 高中 3）推算去向
+- DELETE /edu/grade/{id} 不接前端（与 D-199 / D-200 同口径）
+
+## 3. 门禁
+check_fe_page_structure.py     -> 通过
+check_fe_text_nowrap.py        -> 通过（操作列 28 个）
+check_api_contract.py          -> 通过
+check_docs.py                  -> 通过
+check_gap_register.py          -> 通过
+check_mermaid.py               -> 通过
+check_stage6_route_coverage.py -> 通过
+pnpm --filter @edu/plus-ui typecheck      -> error TS 51 条（基线 51）
+pnpm --filter @edu/plus-ui lint:eslint    -> 124 problems（基线 124）
+pnpm --filter @edu/plus-ui run build:prod -> exit 0
+
+本批仅前端改动，未跑 Maven。
+
+## 4. 未纳入
+删年级、按学段批量生成年级、年级详情抽屉。
