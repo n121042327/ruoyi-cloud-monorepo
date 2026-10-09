@@ -2567,3 +2567,14 @@ M=13（1 根 + 12 分组）、C=41、F=64；URL 拼接结果与前端 41 条 dyn
 另记一条口径：`sys_oss_config.access_policy=1`（公开）目前只影响**对象 ACL**，不会给桶打策略 ——
 桶是私有时前端拿到 URL 会 403，所以脚本里固定补一条 `s3:GetObject` 公开只读策略。
 证据见 `evidence/stage7-backend/2026-10-09_minio-bucket-init.log`。
+
+## D-192 — `loadView` 找不到组件时渲染显式提示，不再静默空白（2026-10-09）
+
+排查 `/edu/audit/operator-access` 空白时确认：页面本身正常（在用户自己的浏览器 profile 里新开标签加载完全正常），
+空白来自长驻标签的陈旧 SPA 状态（当天前端文件被连续修改，dev server 的 HMR 更新可能让该标签停在坏状态）。
+但排查过程中发现一个更该修的坑：上游 `loadView` 在 `import.meta.glob` 找不到菜单里的 `component` 时返回 `undefined`，
+Vue Router 会渲染整块空白且控制台无任何报错 —— "菜单与文件不一致"这种问题因此极难自查。
+处置：`loadView` 增加兜底 —— 控制台 `console.warn`（带 component 与 name）+ 渲染 `el-result`
+「页面组件未找到 / 菜单配置的 component 与前端文件不一致：<component>」；已用一条临时菜单真实触发验证（验证后清理）。
+**通用口径**：前端不再允许"配置指错就静静地空白"，任何路由级缺失都要有可见提示或控制台告警。
+证据见 `evidence/stage6-frontend/2026-10-09_route-missing-fallback.log`。

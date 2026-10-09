@@ -7,7 +7,8 @@ import { RouteRecordRaw } from 'vue-router';
 import Layout from '@/layout/index.vue';
 import ParentView from '@/components/ParentView/index.vue';
 import InnerLink from '@/layout/components/InnerLink/index.vue';
-import { ref } from 'vue';
+import { defineComponent, h, ref } from 'vue';
+import { ElResult } from 'element-plus';
 import { createCustomNameComponent } from '@/utils/createCustomNameComponent';
 
 // 匹配views里面所有的.vue文件
@@ -143,6 +144,29 @@ export const filterDynamicRoutes = (routes: RouteRecordRaw[]) => {
   return res;
 };
 
+/**
+ * 组件缺失时的兜底视图。
+ *
+ * 上游实现（RuoYi-Vue-Plus）在 `loadView` 找不到文件时直接返回 `undefined`，
+ * Vue Router 拿到 undefined 组件后会**渲染整块空白且控制台没有任何报错** ——
+ * 菜单 `component` 与 `src/views` 不一致时极难自查（CR-111 / D-192）。
+ * 这里改成渲染一个显式提示，并在控制台打一条带 component 值的告警。
+ */
+const createNotFoundView = (view: string) =>
+  defineComponent({
+    name: 'RouteComponentNotFound',
+    render: () =>
+      h(
+        'div',
+        { style: 'padding: 24px' },
+        h(ElResult, {
+          icon: 'warning',
+          title: '页面组件未找到',
+          subTitle: `菜单配置的 component 与前端文件不一致：${view}；请核对 sys_menu.component 与 src/views 下的路径`
+        })
+      )
+  });
+
 export const loadView = (view: any, name: string) => {
   let res;
   for (const path in modules) {
@@ -154,7 +178,8 @@ export const loadView = (view: any, name: string) => {
       return res;
     }
   }
-  return res;
+  console.warn(`[router] 未找到视图组件：component=${String(view)}，name=${name}；已展示兜底提示`);
+  return createCustomNameComponent(async () => ({ default: createNotFoundView(String(view)) }), { name });
 };
 
 // 非setup

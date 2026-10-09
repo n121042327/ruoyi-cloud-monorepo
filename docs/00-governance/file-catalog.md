@@ -1367,3 +1367,12 @@
 | `services/RuoYi-Cloud-Plus/script/docker/init-minio-bucket.py` | MinIO 桶初始化脚本（建桶 + 公开只读策略，幂等） | `已实现` |
 | `services/RuoYi-Cloud-Plus/script/docker/README-deploy.md`（改） | 新增 2.1 节「初始化 MinIO 桶（必做）」 | `已实现` |
 | `evidence/stage7-backend/2026-10-09_minio-bucket-init.log` | 定位与验证证据 | `review` |
+
+## 2026-10-09 阶段 6 第三十批：组件缺失兜底提示
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-111.md` | 空白页排查结论、兜底改动与真实触发验证 | `review` |
+| `apps/plus-ui/src/store/modules/permission.ts`（改） | `loadView` 找不到组件时告警 + 渲染「页面组件未找到」 | `已实现` |
+| `evidence/stage6-frontend/2026-10-09_route-missing-fallback.png` | 兜底提示实机截图 | `review` |
+| `evidence/stage6-frontend/2026-10-09_route-missing-fallback.log` | 排查与验证记录 | `review` |

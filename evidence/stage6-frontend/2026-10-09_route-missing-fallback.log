@@ -1,0 +1,46 @@
+# 阶段 6 证据：路由组件缺失兜底提示（CR-111）
+
+- 时间：2026-10-09
+- 环境：vite dev server（localhost:80）+ 用户自己的 Chrome profile（浏览器自动化）
+
+## 1. 用户现象
+
+`/edu/audit/operator-access`「没有页面内容」：内容区整块空白，侧栏与页签正常。
+
+## 2. 排查
+
+- 菜单（13031）：path `operator-access` / component `edu/audit/audit_ops_access/index`；
+  前端 `dynamicRoutes` 同样登记 `/edu/audit/operator-access` → `@/views/edu/audit/audit_ops_access/index.vue`；文件存在。
+- **在用户自己的浏览器 profile 里新开标签加载该 URL：渲染完整**（刷新/导出、说明条、7 列表头、空态「本租户暂无运营访问记录」），
+  控制台只有 `[Vue Router warn] next() 已弃用`。→ 空白不是代码缺陷，是长驻标签的陈旧 SPA 状态（当天连续改前端文件，HMR 更新后的坏状态）。
+- 由此顺手修掉上游 `loadView` 的"静默 undefined"坑（见下）。
+
+## 3. 改动
+
+`apps/plus-ui/src/store/modules/permission.ts`：`loadView` 未匹配到 `import.meta.glob` 条目时，
+打印 `console.warn`（component + name）并返回兜底组件（`el-result`「页面组件未找到 / 菜单配置的 component 与前端文件不一致：<component>」）。
+
+## 4. 真实触发验证
+
+```
+# 临时菜单（验证用，已删除）
+INSERT sys_menu menu_id=13999, path='probe-missing', component='edu/audit/__missing/index'（复制 13031 的字段与角色授权）
+
+# 浏览器打开 /edu/audit/probe-missing
+AX: 页面组件未找到 / 菜单配置的 component 与前端文件不一致：edu/audit/__missing/index；请核对 sys_menu.component 与 src/views 下的路径
+截图：2026-10-09_route-missing-fallback.png
+
+# 清理复核
+select count(*) from sys_menu where menu_id=13999        -> 0
+select count(*) from sys_role_menu where menu_id=13999   -> 0
+select count(*) from sys_menu where menu_id between 13000 and 13999 -> 118（恢复原状）
+```
+
+## 5. 门禁
+
+```
+check_fe_page_structure.py / check_api_contract.py / check_docs.py / check_gap_register.py / check_mermaid.py -> 通过
+typecheck      -> error TS 51 条（= 基线 51，本批新增 0）
+lint:eslint    -> 124 problems（= 基线 124，本批新增 0）
+build:prod     -> 成功（exit 0）
+```
