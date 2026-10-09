@@ -100,7 +100,7 @@
               <span v-else>—</span>
             </template>
           </el-table-column>
-          <el-table-column v-if="canEditGuardian" label="操作" width="90" align="center" data-layout-group="操作">
+          <el-table-column fixed="right" v-if="canEditGuardian" label="操作" width="90" align="center" data-layout-group="操作">
             <template #default="scope">
               <el-button v-hasPermi="['person.student_guardian:update']" link type="primary" @click="handleUnbindGuardian(scope.row)">
                 解绑

@@ -15,15 +15,7 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   background: var(--el-bg-color-page);
-  font-family:
-    'MiSans',
-    'HarmonyOS Sans SC',
-    'PingFang SC',
-    'Source Han Sans SC',
-    'Noto Sans SC',
-    'Hiragino Sans GB',
-    'Microsoft YaHei',
-    sans-serif;
+  font-family: 'MiSans', 'HarmonyOS Sans SC', 'PingFang SC', 'Source Han Sans SC', 'Noto Sans SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
 }
 
 label {
@@ -122,15 +114,7 @@ aside {
   display: block;
   line-height: 32px;
   font-size: 16px;
-  font-family:
-    'MiSans',
-    'HarmonyOS Sans SC',
-    'PingFang SC',
-    'Source Han Sans SC',
-    'Noto Sans SC',
-    'Hiragino Sans GB',
-    'Microsoft YaHei',
-    sans-serif;
+  font-family: 'MiSans', 'HarmonyOS Sans SC', 'PingFang SC', 'Source Han Sans SC', 'Noto Sans SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
   color: var(--el-text-color-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -163,7 +147,9 @@ aside {
   padding: 16px;
   background: var(--app-surface-bg);
   box-shadow: var(--app-shadow-sm);
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 
   &:hover {
     box-shadow: var(--app-shadow-md);
@@ -270,4 +256,16 @@ aside {
 .scope-hint {
   font-size: 13px;
   color: var(--el-text-color-secondary);
+}
+
+/* ---- 教育域排版保护：文字不换行 ---- 
+   背景：用户 2026-10-09 截图反馈「证件号后四位」label 折行、操作列按钮折行。
+   1) inline 查询表单的 label 保持单行（label 宽度由内容决定，不应被折行）；
+   2) 表格行内操作按钮保持单行；列宽不足时由页面加宽列，而不是折行。 */
+.el-form--inline .el-form-item__label {
+  white-space: nowrap;
+}
+
+.el-table .cell > .el-button {
+  white-space: nowrap;
 }

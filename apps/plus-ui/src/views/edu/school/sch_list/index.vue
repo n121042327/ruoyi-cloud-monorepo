@@ -1,18 +1,17 @@
 <template>
   <div class="p-2">
+    <!-- 页面标题区：对齐高保真 prototypes/high-fidelity/v1/pages/school-list.html 的 .page-head -->
+    <div class="page-head">
+      <h1>学校管理</h1>
+      <span class="scope-hint">数据范围：本租户 · 可写</span>
+      <el-tag type="primary">共 {{ total }} 所学校</el-tag>
+      <el-tag type="info">教学数据落在学校租户上</el-tag>
+    </div>
     <el-card v-if="!canRead" shadow="hover">
       <el-empty description="当前账号没有学校管理的查看权限" />
     </el-card>
 
     <template v-else>
-      <!-- 页面标题区：对齐高保真 prototypes/high-fidelity/v1/pages/school-list.html 的 .page-head -->
-      <div class="page-head">
-        <h1>学校管理</h1>
-        <span class="scope-hint">数据范围：本租户· 可写</span>
-        <el-tag type="primary">共 {{ total }} 所学校</el-tag>
-        <el-tag type="info">教学数据落在学校租户上</el-tag>
-      </div>
-
       <!-- 查询区独立成卡：与高保真一致（filter 一张卡，工具栏 + 表格一张卡） -->
       <transition :enter-active-class="proxy?.animate.searchAnimate.enter" :leave-active-class="proxy?.animate.searchAnimate.leave">
         <div v-show="showSearch" class="mb-2">
@@ -84,7 +83,7 @@
             </template>
           </el-table-column>
           <el-table-column v-if="columns[7].visible" label="所属租户" prop="tenantId" width="140" data-layout-group="管理信息" />
-          <el-table-column fixed="right" label="操作" width="220" data-layout-group="操作">
+          <el-table-column fixed="right" label="操作" width="260" data-layout-group="操作">
             <template #default="scope">
               <el-button v-hasPermi="['org.school:update']" link type="primary" @click="handleUpdate(scope.row)">编辑</el-button>
               <el-button

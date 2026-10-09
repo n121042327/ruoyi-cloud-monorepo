@@ -1,0 +1,43 @@
+# 阶段 6 第三十三批：排版检查器与折行修复（CR-114 / D-195）
+
+时间：2026-10-09
+分支：codex/stage7-backend
+触发：用户截图反馈查询区 label 折行、操作列按钮折行；要求「增加同时检查组件对齐，文字不换行」
+
+## 1. 根因
+- 查询区：.el-form-item__label 默认允许换行，inline 表单无 nowrap 保护
+- 操作列：.el-table .cell 默认 white-space: normal；sch_list 操作列 width=220 放不下 4 个按钮（约 230）
+
+## 2. 修复
+- index.scss：新增 .el-form--inline .el-form-item__label { white-space: nowrap }
+              新增 .el-table .cell > .el-button { white-space: nowrap }
+- school/sch_list：操作列 width 220 -> 260；page-head 移到根容器第一位；scope-hint 文案统一
+- student/stu_list/components/GuardianTable.vue、StudentDetailDrawer.vue：操作列补 fixed="right"
+
+## 3. 新增检查器 tools/check_fe_text_nowrap.py
+规则：
+  1) 全局 nowrap 保护在位
+  2) 操作列宽度足够（按 v-if/v-else 条件分组：同组相加、组间取最大）
+     估算口径：中文 14px / 其它 8px / 按钮间距 12px / 单元格左右 26px
+  3) page-head 必须在根容器第一位
+  4) 同一 el-form 不混用 label-width
+  5) 操作列必须 fixed="right"
+
+覆盖：操作列 22 个、页面 69 个
+
+## 4. 自检（证明检查器有效）
+把 sch_list 操作列临时改回 width=220：
+  问题：school/sch_list/index.vue:87 操作列宽度不足：width=220，估算需要 230（编辑 / 校区管理 / 学段配置 / 停用）
+  exit=1
+恢复 260 后：通过，exit=0
+
+## 5. 门禁
+check_fe_page_structure.py   -> 通过
+check_fe_text_nowrap.py      -> 通过（本批新增，常驻）
+check_api_contract.py        -> 通过
+check_docs.py                -> 通过
+check_gap_register.py        -> 通过
+check_mermaid.py             -> 通过
+pnpm --filter @edu/plus-ui typecheck      -> error TS 51 条（基线 51）
+pnpm --filter @edu/plus-ui lint:eslint    -> 124 problems（基线 124）
+pnpm --filter @edu/plus-ui run build:prod -> exit 0

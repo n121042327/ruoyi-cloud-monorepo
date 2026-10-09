@@ -1395,3 +1395,15 @@
 | `apps/plus-ui/src/api/edu/promotion/index.ts`（改） | 5 个接口 method 纠偏（导出×3、明细调整×2） | `已实现` |
 | `apps/plus-ui/src/api/edu/stream/index.ts`（改） | 2 个接口 method 纠偏（配置保存、选课导出） | `已实现` |
 | `evidence/stage6-frontend/2026-10-09_hifi-page-head-and-api-contract.log` | 盘点结果、门禁与实机复核 | `review` |
+
+## 2026-10-09 阶段 6 第三十三批：排版检查器与折行修复
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-114.md` | 折行根因、修复清单与检查器口径 | `review` |
+| `tools/check_fe_text_nowrap.py` | 新增常驻检查：文字不换行 + 组件对齐（5 条规则） | `已实现` |
+| `apps/plus-ui/src/assets/styles/index.scss`（改） | 新增查询区 label / 表格按钮的 `nowrap` 保护 | `已实现` |
+| `apps/plus-ui/src/views/edu/school/sch_list/index.vue`（改） | 操作列 220→260；page-head 移到根容器首位；scope-hint 文案统一 | `已实现` |
+| `apps/plus-ui/src/views/edu/student/stu_list/components/GuardianTable.vue`（改） | 操作列补 `fixed="right"` | `已实现` |
+| `apps/plus-ui/src/views/edu/student/stu_list/components/StudentDetailDrawer.vue`（改） | 操作列补 `fixed="right"` | `已实现` |
+| `evidence/stage6-frontend/2026-10-09_text-nowrap-and-alignment.log` | 检查器自检与门禁记录 | `review` |

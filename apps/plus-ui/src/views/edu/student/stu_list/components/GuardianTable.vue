@@ -28,7 +28,7 @@
           <el-input v-model="scope.row.remark" placeholder="可留空" />
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="90" align="center" data-layout-group="操作">
+      <el-table-column fixed="right" label="操作" width="90" align="center" data-layout-group="操作">
         <template #default="scope">
           <el-button link type="danger" @click="removeRow(scope.$index)">删除</el-button>
         </template>
