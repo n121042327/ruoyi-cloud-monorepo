@@ -2,6 +2,7 @@ import request from '@/utils/request';
 import { AxiosPromise } from 'axios';
 import {
   EnrollmentChangeQuery,
+  EnrollmentChangeForm,
   EnrollmentChangeVO,
   PromotionBatchAdjustForm,
   PromotionItemAdjustForm,
@@ -268,6 +269,33 @@ export const listEnrollmentChange = (query?: EnrollmentChangeQuery): AxiosPromis
     url: '/edu/enrollment/change/list',
     method: 'get',
     params: query
+  });
+};
+
+/**
+ * 异动登记（追加式，不更新不删除，BR-PROMO-012）
+ *
+ * 对应 operationId `addEnrollmentChange`（POST /edu/enrollment/change）。
+ */
+export const addEnrollmentChange = (data: EnrollmentChangeForm) => {
+  return request({
+    url: '/edu/enrollment/change',
+    method: 'post',
+    data
+  });
+};
+
+/**
+ * 异动审批（退学 / 开除 / 死亡需校级管理员审批，REQ-PRM-043）
+ *
+ * 对应 operationId `approveEnrollmentChange`（POST /edu/enrollment/change/{id}/approve）。
+ * 通过 approved=true，驳回 approved=false 并填 approveOpinion。
+ */
+export const approveEnrollmentChange = (changeId: string, data: { approved: boolean; approveOpinion?: string }) => {
+  return request({
+    url: `/edu/enrollment/change/${changeId}/approve`,
+    method: 'post',
+    data
   });
 };
 

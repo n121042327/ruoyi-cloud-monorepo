@@ -71,6 +71,8 @@ export interface EnrollmentChangeVO extends BaseEntity {
   reason?: string;
   termId?: string;
   gradeId?: string;
+  /** 审批状态：pending 待审批 / approved 已通过 / rejected 已驳回 / none 无需审批 */
+  approvalStatus?: string;
 }
 
 /** 异动记录查询参数 */
@@ -199,4 +201,24 @@ export interface PromotionItemQuery extends Partial<PageQuery> {
   status?: string;
   /** 只看已调整项 */
   adjustedOnly?: boolean;
+}
+
+/**
+ * 异动登记表单（POST /edu/enrollment/change，字段与 EduEnrollmentChangeBo 对齐）
+ *
+ * 追加式记录，不更新不删除（BR-PROMO-012）。
+ */
+export interface EnrollmentChangeForm {
+  studentId: string;
+  changeType: string;
+  effectiveDate: string;
+  reason?: string;
+  termId?: string;
+  gradeId?: string;
+}
+
+/** 异动审批表单（POST /edu/enrollment/change/{id}/approve） */
+export interface EnrollmentApproveForm {
+  approved: boolean;
+  approveOpinion?: string;
 }

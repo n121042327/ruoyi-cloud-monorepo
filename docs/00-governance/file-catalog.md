@@ -1493,3 +1493,14 @@
 | `apps/plus-ui/src/views/edu/grade/grd_list/components/GradeLeaderDialog.vue` | 年级主任任职弹窗（指定 / 离任） | `已实现` |
 | `apps/plus-ui/src/views/edu/grade/grd_list/components/GradePromotionDialog.vue` | 升班只读视图弹窗 | `已实现` |
 | `evidence/stage6-frontend/2026-10-09_grade-archive-leader.log` | 门禁与改动记录 | `review` |
+
+## 2026-10-09 阶段 6 第四十批：学籍异动登记与审批
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-121.md` | 异动登记 / 审批接线与入口口径 | `review` |
+| `apps/plus-ui/src/api/edu/promotion/index.ts`（改） | 补 addEnrollmentChange / approveEnrollmentChange | `已实现` |
+| `apps/plus-ui/src/api/edu/promotion/types.ts`（改） | 补 EnrollmentChangeForm / EnrollmentApproveForm；VO 补 approvalStatus | `已实现` |
+| `apps/plus-ui/src/views/edu/promotion/prm_history/index.vue`（改） | 操作列加「审批」（仅待审批时） | `已实现` |
+| `apps/plus-ui/src/views/edu/promotion/prm_history/components/EnrollmentApproveDialog.vue` | 异动审批弹窗（通过 / 驳回 + 意见） | `已实现` |
+| `evidence/stage6-frontend/2026-10-09_enrollment-change-approve.log` | 门禁与改动记录 | `review` |

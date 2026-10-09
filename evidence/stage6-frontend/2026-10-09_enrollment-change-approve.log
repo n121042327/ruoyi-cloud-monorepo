@@ -1,0 +1,33 @@
+# 阶段 6 第四十批：学籍异动登记与审批（CR-121 / D-202）
+
+时间：2026-10-09
+分支：codex/stage7-backend
+触发：heartbeat（自动化队列第 5 项）
+
+## 1. 交付
+- api/edu/promotion 补 addEnrollmentChange / approveEnrollmentChange
+- types 补 EnrollmentChangeForm / EnrollmentApproveForm；EnrollmentChangeVO 补 approvalStatus
+- 新增 EnrollmentApproveDialog：通过 / 驳回 + 审批意见（驳回强制填意见）
+- prm_history 操作列：查看 + 审批（仅 approvalStatus === 'pending'），width 100 -> 160
+
+## 2. 口径
+- 异动登记是追加式写入（BR-PROMO-012）；入口统一在学生列表的学籍异动弹窗，异动历史页不重复提供
+- 审批：退学 / 开除 / 死亡需校级管理员审批（REQ-PRM-043）；审批写审计且不可撤销
+- 审批状态不单独成列（高保真 9 列结构不变），用审批按钮的可见性表达
+
+## 3. 门禁
+check_fe_page_structure.py     -> 通过
+check_fe_text_nowrap.py        -> 通过
+check_api_contract.py          -> 通过
+check_docs.py                  -> 通过
+check_gap_register.py          -> 通过
+check_mermaid.py               -> 通过
+check_stage6_route_coverage.py -> 通过
+pnpm --filter @edu/plus-ui typecheck      -> error TS 51 条（基线 51）
+pnpm --filter @edu/plus-ui lint:eslint    -> 124 problems（基线 124）
+pnpm --filter @edu/plus-ui run build:prod -> exit 0
+
+本批仅前端改动，未跑 Maven。
+
+## 4. 未纳入
+转学单的接收 / 确认到校 / 取消（已在 prm_transfer 与 stu_cross_transfer 交付）。

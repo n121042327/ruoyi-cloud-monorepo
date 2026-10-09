@@ -50,9 +50,18 @@
           <el-table-column label="新状态" prop="afterStatus" width="110" align="center" data-layout-group="异动信息" />
           <el-table-column label="操作人" prop="operator" width="120" data-layout-group="异动信息" />
           <el-table-column label="原因" prop="reason" min-width="200" :show-overflow-tooltip="true" data-layout-group="异动信息" />
-          <el-table-column fixed="right" label="操作" width="100" data-layout-group="操作">
+          <el-table-column fixed="right" label="操作" width="160" data-layout-group="操作">
             <template #default="scope">
               <el-button link type="primary" @click="handleDetail(scope.row)">查看</el-button>
+              <el-button
+                v-if="isPending(scope.row)"
+                v-hasPermi="['enrollment.status:approve']"
+                link
+                type="primary"
+                @click="approveRef?.open(scope.row)"
+              >
+                审批
+              </el-button>
             </template>
           </el-table-column>
 
@@ -69,6 +78,8 @@
           @pagination="getList"
         />
       </el-card>
+
+      <EnrollmentApproveDialog ref="approveRef" @success="getList" />
     </template>
   </div>
 </template>
@@ -79,12 +90,14 @@ import { listGrade } from '@/api/edu/grade';
 import type { GradeVO } from '@/api/edu/grade/types';
 import { listEnrollmentChange } from '@/api/edu/promotion';
 import type { EnrollmentChangeQuery, EnrollmentChangeVO } from '@/api/edu/promotion/types';
+import EnrollmentApproveDialog from './components/EnrollmentApproveDialog.vue';
 import { listTerm } from '@/api/edu/term';
 import type { TermVO } from '@/api/edu/term/types';
 import { checkPermi } from '@/utils/permission';
 import { ElMessageBox } from 'element-plus';
 
 defineOptions({ name: 'EduPromotionHistory' });
+const approveRef = ref<InstanceType<typeof EnrollmentApproveDialog>>();
 
 /** 异动类型（升班 PRD 4.6 的类型表） */
 const CHANGE_TYPE_OPTIONS = ['休学', '复学', '转出', '转入未报到', '退学', '开除', '结业', '肄业', '出国', '失踪', '死亡', '留级'];
@@ -145,4 +158,7 @@ const handleDetail = (row: EnrollmentChangeVO) => {
     { confirmButtonText: '知道了' }
   );
 };
+
+/** 待审批（退学 / 开除 / 死亡三类异动需要校级管理员审批） */
+const isPending = (row: EnrollmentChangeVO) => row.approvalStatus === 'pending';
 </script>
