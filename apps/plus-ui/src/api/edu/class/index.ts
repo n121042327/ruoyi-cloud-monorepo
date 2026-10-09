@@ -231,6 +231,20 @@ export const disableClass = (classId: string, reason: string) => {
   });
 };
 
+/**
+ * 批量生成班级（同一年级一次建多班，REQ-CLS-011）
+ *
+ * 对应 operationId `batchAddClass`（POST /edu/class/batch，权限 `org.class:create`）。
+ * 入参：{ termId, schoolId, classList: [{ className, classType, gradeId, classCapacity }] }
+ */
+export const batchAddClass = (data: { termId?: string; schoolId?: string; classList: Partial<ClassForm>[] }) => {
+  return request({
+    url: '/edu/class/batch',
+    method: 'post',
+    data
+  });
+};
+
 export default {
   listClass,
   mergeClass,

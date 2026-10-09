@@ -1,0 +1,32 @@
+# 阶段 6 第三十八批：班级批量生成与停用（CR-119 / D-200）
+
+时间：2026-10-09
+分支：codex/stage7-backend
+触发：heartbeat（自动化队列第 3 项）
+
+## 1. 交付
+- api/edu/class 补 batchAddClass（POST /edu/class/batch）
+- 新增 ClassBatchDialog：学年学期 + 年级 + 序号范围 + 容量，命名规则 `${年级名} (N) 班`，带预览
+- cls_list 工具栏加「批量生成班级」；操作列加「停用」（填原因），width 160 -> 220
+
+## 2. 口径
+- 批量生成限同学年学期 + 同年级，编号 1~99，容量只提示不强制（BR-CLASS-005）
+- 停用必填原因（BR-CLASS-006：有在读学生只允许停用）
+- 班级物理删除不接前端（与 D-199 学生删除同口径）
+
+## 3. 门禁
+check_fe_page_structure.py     -> 通过
+check_fe_text_nowrap.py        -> 通过
+check_api_contract.py          -> 通过
+check_docs.py                  -> 通过
+check_gap_register.py          -> 通过
+check_mermaid.py               -> 通过
+check_stage6_route_coverage.py -> 通过
+pnpm --filter @edu/plus-ui typecheck      -> error TS 51 条（基线 51）
+pnpm --filter @edu/plus-ui lint:eslint    -> 124 problems（基线 124）
+pnpm --filter @edu/plus-ui run build:prod -> exit 0
+
+本批仅前端改动，未跑 Maven。
+
+## 4. 未纳入
+编班表导入（归入导入导出引擎批次）、班级删除弹窗。

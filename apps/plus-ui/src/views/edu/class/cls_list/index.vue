@@ -75,6 +75,9 @@
               <el-button v-hasPermi="['org.class:create']" type="primary" plain icon="Plus" @click="handleAdd">新建</el-button>
             </el-col>
             <el-col :span="1.5">
+              <el-button v-hasPermi="['org.class:create']" type="primary" plain icon="Guide" @click="batchRef?.open()">批量生成班级</el-button>
+            </el-col>
+            <el-col :span="1.5">
               <el-button v-hasPermi="['org.class:export']" type="warning" plain icon="Download" @click="handleExport">导出</el-button>
             </el-col>
             <right-toolbar v-model:show-search="showSearch" :columns="columns" :search="true" @query-table="getList"></right-toolbar>
@@ -117,10 +120,19 @@
             </template>
           </el-table-column>
 
-          <el-table-column fixed="right" label="操作" width="160" data-layout-group="操作">
+          <el-table-column fixed="right" label="操作" width="220" data-layout-group="操作">
             <template #default="scope">
               <el-button v-hasPermi="['org.class:update']" link type="primary" icon="Edit" @click="handleUpdate(scope.row)">编辑</el-button>
               <el-button v-hasPermi="['org.class:update']" link type="primary" @click="handleRoster(scope.row)">花名册</el-button>
+              <el-button
+                v-if="scope.row.status !== 'disabled'"
+                v-hasPermi="['org.class:update']"
+                link
+                type="danger"
+                @click="handleDisable(scope.row)"
+              >
+                停用
+              </el-button>
             </template>
           </el-table-column>
 
@@ -146,6 +158,7 @@
         :campus-options="campusOptions"
         @success="getList"
       />
+      <ClassBatchDialog ref="batchRef" :term-options="termOptions" :grade-options="gradeOptions" @success="getList" />
     </template>
   </div>
 </template>
@@ -153,10 +166,12 @@
 <script setup lang="ts">
 import { computed, getCurrentInstance, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import ClassFormDialog from './components/ClassFormDialog.vue';
+import ClassBatchDialog from './components/ClassBatchDialog.vue';
 import { CLASS_TYPE_OPTIONS, useClassList } from './composables/useClassList';
 import type { ClassVO } from '@/api/edu/class/types';
+import { disableClass } from '@/api/edu/class';
 import { checkPermi } from '@/utils/permission';
 
 defineOptions({ name: 'EduClassList' });
@@ -185,6 +200,7 @@ const {
 } = useClassList();
 
 const formDialogRef = ref<InstanceType<typeof ClassFormDialog>>();
+const batchRef = ref<InstanceType<typeof ClassBatchDialog>>();
 const queryFormRef = ref();
 
 const CLASS_TYPE_LABEL: Record<string, string> = CLASS_TYPE_OPTIONS.reduce(
@@ -208,5 +224,17 @@ const handleUpdate = (row: ClassVO) => {
 /** 花名册与班级详情同属 PAGE-CLS-DETAIL（详情页承载花名册、任课教师、任职历史与变更记录） */
 const handleRoster = (row: ClassVO) => {
   router.push({ path: '/edu/class/detail', query: { classId: row.classId } });
+};
+
+/** 停用班级（有在读学生不允许删除、只允许停用，BR-CLASS-006） */
+const handleDisable = async (row: ClassVO) => {
+  const { value } = await ElMessageBox.prompt(`确认停用「${row.className}」？`, '停用班级', {
+    inputPlaceholder: '停用原因（必填）',
+    inputValidator: (text: string) => (text && text.trim().length >= 2 ? true : '请填写停用原因（至少 2 个字）'),
+    type: 'warning'
+  });
+  await disableClass(row.classId, value);
+  ElMessage.success('班级已停用');
+  getList();
 };
 </script>

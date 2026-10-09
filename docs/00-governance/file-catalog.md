@@ -1471,3 +1471,13 @@
 | `apps/plus-ui/src/views/edu/student/stu_list/components/StudentNoDialog.vue` | 学号变更弹窗 | `已实现` |
 | `apps/plus-ui/src/views/edu/student/stu_list/components/StudentActivationDialog.vue` | 激活码弹窗（查看 / 打印 / 导出 / 激活） | `已实现` |
 | `evidence/stage6-frontend/2026-10-09_student-enrollment-activation.log` | 门禁与改动记录 | `review` |
+
+## 2026-10-09 阶段 6 第三十八批：班级批量生成与停用
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-119.md` | 批量生成 / 停用接线与删除口径 | `review` |
+| `apps/plus-ui/src/api/edu/class/index.ts`（改） | 补 batchAddClass | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_list/index.vue`（改） | 工具栏加批量生成；操作列加停用 | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_list/components/ClassBatchDialog.vue` | 批量生成班级弹窗（含命名预览） | `已实现` |
+| `evidence/stage6-frontend/2026-10-09_class-batch-disable.log` | 门禁与改动记录 | `review` |
