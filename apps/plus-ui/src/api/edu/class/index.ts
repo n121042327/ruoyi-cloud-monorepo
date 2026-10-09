@@ -1,4 +1,5 @@
 import request from '@/utils/request';
+import type { TeachingAssignmentVO } from '@/api/edu/teacher/types';
 import { AxiosPromise } from 'axios';
 import {
   ClassForm,
@@ -164,6 +165,69 @@ export const updateClass = (data: ClassForm) => {
     url: '/edu/class',
     method: 'put',
     data
+  });
+};
+
+/**
+ * 查询班级详情（班级详情页 PAGE-CLS-DETAIL）
+ *
+ * 对应 operationId `getClass`（GET /edu/class/{id}）。
+ */
+export const getClass = (classId: string): AxiosPromise<ClassVO> => {
+  return request({
+    url: `/edu/class/${classId}`,
+    method: 'get'
+  });
+};
+
+/**
+ * 班级任教关系清单（只读；写入入口在教师模块，AGENTS 第 7 节模块边界）
+ *
+ * 对应 operationId `listClassTeachingAssignment`（GET /edu/class/{id}/teaching-assignment，非分页）。
+ */
+export const listClassTeachingAssignment = (classId: string): AxiosPromise<TeachingAssignmentVO[]> => {
+  return request({
+    url: `/edu/class/${classId}/teaching-assignment`,
+    method: 'get'
+  });
+};
+
+/**
+ * 导出班级花名册（统一走导出引擎，导出前重新解析数据范围）
+ *
+ * 对应 operationId `exportClassRoster`（POST /edu/class/{id}/roster/export，权限 `org.class:export`）。
+ */
+export const exportClassRoster = (classId: string, data?: Record<string, unknown>) => {
+  return request({
+    url: `/edu/class/${classId}/roster/export`,
+    method: 'post',
+    data: data ?? {}
+  });
+};
+
+/**
+ * 指定 / 变更班主任（唯一写入入口在班级管理，DP-01）
+ *
+ * 对应 operationId `assignClassHeadTeacher`（POST /edu/class/{id}/head-teacher）。
+ */
+export const assignClassHeadTeacher = (classId: string, data: { headTeacherId: string; reason?: string }) => {
+  return request({
+    url: `/edu/class/${classId}/head-teacher`,
+    method: 'post',
+    data
+  });
+};
+
+/**
+ * 停用班级（有在读学生不允许删除、只允许停用，BR-CLASS-006）
+ *
+ * 对应 operationId `disableClass`（POST /edu/class/{id}/disable）。
+ */
+export const disableClass = (classId: string, reason: string) => {
+  return request({
+    url: `/edu/class/${classId}/disable`,
+    method: 'post',
+    params: { reason }
   });
 };
 

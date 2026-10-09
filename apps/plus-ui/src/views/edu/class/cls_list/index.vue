@@ -119,7 +119,7 @@
           <el-table-column fixed="right" label="操作" width="160" data-layout-group="操作">
             <template #default="scope">
               <el-button v-hasPermi="['org.class:update']" link type="primary" icon="Edit" @click="handleUpdate(scope.row)">编辑</el-button>
-              <el-button v-hasPermi="['org.class:update']" link type="primary" @click="handleRoster">花名册</el-button>
+              <el-button v-hasPermi="['org.class:update']" link type="primary" @click="handleRoster(scope.row)">花名册</el-button>
             </template>
           </el-table-column>
 
@@ -151,6 +151,7 @@
 
 <script setup lang="ts">
 import { computed, getCurrentInstance, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import ClassFormDialog from './components/ClassFormDialog.vue';
 import { CLASS_TYPE_OPTIONS, useClassList } from './composables/useClassList';
@@ -158,6 +159,8 @@ import type { ClassVO } from '@/api/edu/class/types';
 import { checkPermi } from '@/utils/permission';
 
 defineOptions({ name: 'EduClassList' });
+
+const router = useRouter();
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
@@ -201,8 +204,8 @@ const handleUpdate = (row: ClassVO) => {
   formDialogRef.value?.open(row);
 };
 
-/** 花名册属班级详情页（PAGE-CLS-DETAIL），在后续批次交付 */
-const handleRoster = () => {
-  ElMessage.info('班级花名册在阶段 6 的下一批交付');
+/** 花名册与班级详情同属 PAGE-CLS-DETAIL（详情页承载花名册、任课教师、任职历史与变更记录） */
+const handleRoster = (row: ClassVO) => {
+  router.push({ path: '/edu/class/detail', query: { classId: row.classId } });
 };
 </script>

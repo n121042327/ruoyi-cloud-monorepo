@@ -3413,3 +3413,26 @@ open_questions_for_user:
       `POST /resource/oss/upload` 返回 200 与可匿名访问的 URL。
     resolved_at: 2026-10-09
     status: closed
+  - id: GAP-104
+    title: 班级花名册缺「监护人 / 联系电话」字段
+    discovered_at: 2026-10-09
+    discovered_by: 班级详情页开发（PAGE-CLS-DETAIL）
+    evidence: "prototypes/functional/v1/pages/class-detail.html 的表头含「监护人」「联系电话」两列（带 data-role-visible 角色限制）；后端 EduClassMemberVo 只有 memberId/termId/classId/className/classType/studentId/studentNo/studentName/gender/enrollmentStatus/currentClassId/currentClassName/joinDate/leaveDate/status/joinCheck/moveCheck，没有监护人相关字段"
+    expected: 班级详情页花名册能显示学生的监护人姓名与联系电话，并按角色控制可见性
+    actual: 生产页花名册不显示这两列（后端未返回对应字段）
+    impact: |
+      **不选会怎样**：班主任在班级详情里看不到监护人联系方式，编班、家访、紧急联系等场景需要切到学生详情逐个查，
+      每查一个学生多两次跳转；高保真的信息架构也对不齐。
+    options:
+      - "后端在花名册 VO 补 guardianName / guardianPhone（默认掩码），前端按角色显示（推荐）"
+      - "花名册行内加「查看监护人」跳转到学生详情（零后端改动，但每次多两次点击）"
+      - "暂不做，登记为后续增强"
+    recommended: |
+      **推荐方案 1**：监护人主体是平台级实体，花名册已经在学生维度取数，补两个只读派生字段的改动最小；
+      手机号按 REQ-AUD-009 默认掩码返回，查看全量走敏感数据访问日志（与 `viewStudentPhone` 同一口径）。
+      影响面：`EduClassMemberVo` 增 2 字段 + 花名册 Mapper 关联监护人表 + 前端花名册 2 列（约 30 行）。
+    blocking: false
+    blocks_stages:
+      - stage6
+    owner: 用户
+    status: open

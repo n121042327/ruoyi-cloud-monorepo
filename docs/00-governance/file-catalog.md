@@ -1407,3 +1407,21 @@
 | `apps/plus-ui/src/views/edu/student/stu_list/components/GuardianTable.vue`（改） | 操作列补 `fixed="right"` | `已实现` |
 | `apps/plus-ui/src/views/edu/student/stu_list/components/StudentDetailDrawer.vue`（改） | 操作列补 `fixed="right"` | `已实现` |
 | `evidence/stage6-frontend/2026-10-09_text-nowrap-and-alignment.log` | 检查器自检与门禁记录 | `review` |
+
+## 2026-10-09 阶段 6 第三十四批：班级详情页（PAGE-CLS-DETAIL）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-115.md` | 班级详情页交付、后端名称回填与验证 | `review` |
+| `apps/plus-ui/src/views/edu/class/cls_detail/index.vue` | 班级详情页（基本信息 + 4 个 tab） | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_detail/components/HeadTeacherDialog.vue` | 指定 / 变更班主任弹窗 | `已实现` |
+| `apps/plus-ui/src/router/index.ts`（改） | 登记 `/edu/class/detail` | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_list/index.vue`（改） | 「花名册」按钮改为跳转班级详情 | `已实现` |
+| `apps/plus-ui/src/api/edu/class/index.ts`（改） | 补 getClass / listClassTeachingAssignment / exportClassRoster / assignClassHeadTeacher / disableClass | `已实现` |
+| `apps/plus-ui/src/api/edu/class/types.ts`（改） | ClassVO / ClassRosterVO / ClassRosterQuery 补字段 | `已实现` |
+| `services/.../service/impl/EduClassServiceImpl.java`（改） | 新增 `fillNames` 回填学校 / 年级 / 学期名称 | `已实现` |
+| `docs/40-detailed-design/frontend-page-tree.yaml`（改） | PAGE-CLS-DETAIL 补 route / view_component / api_layer | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | 新增 GAP-104（花名册缺监护人 / 联系电话字段） | `open` |
+| `tools/check_fe_page_structure.py`（改） | 增加 PAGE-CLS-DETAIL 结构对照条目 | `已实现` |
+| `evidence/stage6-frontend/2026-10-09_class-detail.png` | 班级详情页实机截图 | `review` |
+| `evidence/stage6-frontend/2026-10-09_class-detail.log` | 编译、门禁与实机记录 | `review` |

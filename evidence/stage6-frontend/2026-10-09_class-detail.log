@@ -1,0 +1,48 @@
+# 阶段 6 第三十四批：班级详情页（CR-115 / D-196）
+
+时间：2026-10-09
+分支：codex/stage7-backend
+触发：用户「继续吧」（继续高保真对齐 + 未对接接口）
+
+## 1. 交付
+- 新增 apps/plus-ui/src/views/edu/class/cls_detail/index.vue
+- 新增 cls_detail/components/HeadTeacherDialog.vue
+- router/index.ts 登记 /edu/class/detail（hidden，权限 org.class:read）
+- cls_list「花名册」按钮：占位提示 -> 跳转 /edu/class/detail?classId=...
+- api/edu/class 补 5 个函数；types 补字段
+
+## 2. 后端修复
+问题：GET /edu/class/{id} 的 schoolName / gradeName / termName 为空
+原因：EduClassServiceImpl.queryById 用 MyBatis-Plus selectVoById（单表），Mapper 注释里规划的 join XML 未创建
+处置：新增 fillNames(List<EduClassVo>)，按 id 集合批量查询后回填；列表与详情共用
+编译：mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile -> BUILD SUCCESS
+注意：需要重启 ruoyi-edu 服务后页面才会显示名称
+
+## 3. 测试数据（仅本机验证用）
+库中 term / grade / class / student 此前均为 0，插入最小数据集：
+  edu_academic_year 9000000000000000001 (2026-2027)
+  edu_term           9000000000000000002 (第一学期, is_current=1)
+  edu_grade          9000000000000000003 (初一)
+  edu_class          9000000000000000004 (初一 (1) 班, administrative, 容量 45)
+
+## 4. 实机验证
+URL：http://localhost/edu/class/detail?classId=9000000000000000004
+结果：page-head / 基本信息卡 / 4 个 tab / 花名册表格与空态均正确渲染
+     班级不存在时提示「班级不存在或不在当前数据范围内」（canRead 改为 checkPermi 判定）
+截图：evidence/stage6-frontend/2026-10-09_class-detail.png
+
+## 5. 门禁
+check_stage6_route_coverage.py  -> 通过（45 条路由均有对应 view）
+check_fe_page_structure.py      -> 通过
+check_fe_text_nowrap.py         -> 通过
+check_api_contract.py           -> 通过
+check_docs.py                   -> 通过
+check_gap_register.py           -> 通过（103 项）
+check_mermaid.py                -> 通过
+pnpm --filter @edu/plus-ui typecheck      -> error TS 51 条（基线 51）
+pnpm --filter @edu/plus-ui lint:eslint    -> 124 problems（基线 124）
+pnpm --filter @edu/plus-ui run build:prod -> exit 0
+mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile -> BUILD SUCCESS
+
+## 6. 缺项
+GAP-104（open）：花名册缺「监护人 / 联系电话」字段（后端 EduClassMemberVo 无对应字段）

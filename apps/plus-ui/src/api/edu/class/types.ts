@@ -8,6 +8,12 @@ export interface ClassVO {
   campusName?: string;
   gradeId: string;
   gradeName?: string;
+  termName?: string;
+  headTeacherStartDate?: string;
+  headTeacherEndDate?: string;
+  classStatus?: string;
+  subjectCombination?: string;
+  updateTime?: string;
   stageCode?: string;
   classType?: string;
   headTeacherId?: string;
@@ -83,6 +89,12 @@ export interface ClassRosterVO {
   /** 当前行政班 */
   currentClassId?: string;
   currentClassName?: string;
+  /** 加入日期（花名册默认按加入日期倒序） */
+  joinDate?: string;
+  /** 离开日期（移出后保留历史） */
+  leaveDate?: string;
+  /** 关系状态：在读 / 已移出 */
+  status?: string;
   /** 加入校验结论（PAGE-CLS-ROSTER-ADD） */
   joinCheck?: string;
   /** 迁移校验结果（PAGE-CLS-MOVE） */
@@ -91,6 +103,9 @@ export interface ClassRosterVO {
 
 /** 花名册查询参数 */
 export interface ClassRosterQuery extends Partial<PageQuery> {
+  /** 关系状态：studying = 只看在读成员 */
+  status?: string;
+  /** 学号 / 姓名关键字 */
   keyword?: string;
   enrollmentStatus?: string;
   /** 生效日期（调班 / 迁移按学年追加，必填） */

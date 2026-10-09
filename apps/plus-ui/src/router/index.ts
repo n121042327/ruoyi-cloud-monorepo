@@ -163,6 +163,20 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/edu/class/detail',
+    component: Layout,
+    hidden: true,
+    permissions: ['org.class:read'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/edu/class/cls_detail/index.vue'),
+        name: 'EduClassDetail',
+        meta: { title: '班级详情', icon: 'tree' }
+      }
+    ]
+  },
+  {
     path: '/edu/student/import',
     component: Layout,
     hidden: true,

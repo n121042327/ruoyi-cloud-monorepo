@@ -9,12 +9,18 @@ import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.edu.domain.EduClass;
 import org.dromara.edu.domain.EduClassMember;
+import org.dromara.edu.domain.EduGrade;
+import org.dromara.edu.domain.EduSchool;
+import org.dromara.edu.domain.EduTerm;
 import org.dromara.edu.domain.bo.EduClassBo;
 import org.dromara.edu.domain.bo.EduClassMemberBo;
 import org.dromara.edu.domain.vo.EduClassMemberVo;
 import org.dromara.edu.domain.vo.EduClassVo;
 import org.dromara.edu.mapper.EduClassMapper;
 import org.dromara.edu.mapper.EduClassMemberMapper;
+import org.dromara.edu.mapper.EduGradeMapper;
+import org.dromara.edu.mapper.EduSchoolMapper;
+import org.dromara.edu.mapper.EduTermMapper;
 import org.dromara.edu.mapper.EduTeachingAssignmentMapper;
 import org.dromara.edu.service.IEduClassService;
 import org.springframework.stereotype.Service;
@@ -23,6 +29,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 班级服务层处理
@@ -58,11 +67,15 @@ public class EduClassServiceImpl implements IEduClassService {
     private final EduClassMapper baseMapper;
     private final EduClassMemberMapper memberMapper;
     private final EduTeachingAssignmentMapper teachingAssignmentMapper;
+    private final EduSchoolMapper schoolMapper;
+    private final EduGradeMapper gradeMapper;
+    private final EduTermMapper termMapper;
 
     @Override
     public TableDataInfo<EduClassVo> queryPageList(EduClassBo clazz, PageQuery pageQuery) {
         LambdaQueryWrapper<EduClass> wrapper = buildQueryWrapper(clazz);
         Page<EduClassVo> result = baseMapper.selectPageClassList(pageQuery.build(), wrapper);
+        fillNames(result.getRecords());
         return TableDataInfo.build(result);
     }
 
@@ -72,7 +85,39 @@ public class EduClassServiceImpl implements IEduClassService {
         if (vo == null) {
             throw new ServiceException("班级不存在或不在当前数据范围内");
         }
+        fillNames(List.of(vo));
         return vo;
+    }
+
+    /**
+     * 填充学校 / 年级 / 学年学期的显示名称。
+     *
+     * 口径：edu_class 只存外键，名称按 id 集合做三次批量查询，避免 N+1；
+     * 更复杂的派生字段（校区名、班主任名、在读人数）在需要时再补连接查询。
+     */
+    private void fillNames(List<EduClassVo> rows) {
+        if (rows == null || rows.isEmpty()) {
+            return;
+        }
+        List<Long> schoolIds = rows.stream().map(EduClassVo::getSchoolId).filter(Objects::nonNull).distinct().toList();
+        List<Long> gradeIds = rows.stream().map(EduClassVo::getGradeId).filter(Objects::nonNull).distinct().toList();
+        List<Long> termIds = rows.stream().map(EduClassVo::getTermId).filter(Objects::nonNull).distinct().toList();
+
+        Map<Long, String> schoolNames = schoolIds.isEmpty() ? Map.of()
+            : schoolMapper.selectList(new LambdaQueryWrapper<EduSchool>().in(EduSchool::getSchoolId, schoolIds))
+                .stream().collect(Collectors.toMap(EduSchool::getSchoolId, EduSchool::getSchoolName, (a, b) -> a));
+        Map<Long, String> gradeNames = gradeIds.isEmpty() ? Map.of()
+            : gradeMapper.selectList(new LambdaQueryWrapper<EduGrade>().in(EduGrade::getGradeId, gradeIds))
+                .stream().collect(Collectors.toMap(EduGrade::getGradeId, EduGrade::getGradeName, (a, b) -> a));
+        Map<Long, String> termNames = termIds.isEmpty() ? Map.of()
+            : termMapper.selectList(new LambdaQueryWrapper<EduTerm>().in(EduTerm::getTermId, termIds))
+                .stream().collect(Collectors.toMap(EduTerm::getTermId, EduTerm::getTermName, (a, b) -> a));
+
+        for (EduClassVo row : rows) {
+            row.setSchoolName(schoolNames.get(row.getSchoolId()));
+            row.setGradeName(gradeNames.get(row.getGradeId()));
+            row.setTermName(termNames.get(row.getTermId()));
+        }
     }
 
     @Override

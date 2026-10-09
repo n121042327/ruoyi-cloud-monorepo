@@ -635,6 +635,10 @@ fragments:
   carrier: detail
   size: null
   parent: PAGE-CLS-LIST
+  route: /edu/class/detail
+  high_fidelity_file: class-detail.html
+  view_component: views/edu/class/cls_detail/index.vue
+  api_layer: api/edu/class/index.ts
   batch: 2-3
 - page_id: PAGE-CLS-CREATE
   name_cn: 新建班级

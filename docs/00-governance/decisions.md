@@ -2636,3 +2636,23 @@ previewed / running 显示不同按钮）相加会得出荒谬的宽度要求。
 **通用口径**：① 查询区 label 与表格行内按钮一律不换行；② 列宽不足时加宽列，不要靠折行硬塞；
 ③ 新增带操作列的表格后必须跑 `tools/check_fe_text_nowrap.py`。
 证据见 `evidence/stage6-frontend/2026-10-09_text-nowrap-and-alignment.log`，变更记录 `CR-114`。
+
+## D-196 — 班级详情独立成路由页；列表派生名称在 Service 层批量回填（2026-10-09）
+
+继续推进高保真对齐与接口对接，本批交付班级详情页（PAGE-CLS-DETAIL）。
+
+**这是什么**：① 高保真 `class-detail.html` 是带 4 个 tab（花名册 / 任课教师 / 班主任任职历史 / 变更记录）的
+完整页面，而 `frontend-page-tree.yaml` 把 `PAGE-CLS-DETAIL` 登记为 `carrier: detail`（按 CR-015 的载体规则，
+纯详情可以用抽屉）；② `GET /edu/class/{id}` 返回的 `schoolName` / `gradeName` / `termName` 全为空，
+因为服务层用的是 MyBatis-Plus 单表 `selectVoById`，Mapper 注释里规划的 join XML 从未创建。
+**不选会怎样**：① 若做成抽屉，花名册表格（含多选、分页）会挤在抽屉里，且无法通过 URL 直达；② 班级详情的
+「所属学校 / 年级 / 学年学期」三格永远是 `—`，用户无法确认自己在看哪个班。
+**可选项**：① 独立路由页 `/edu/class/detail` + Service 层批量回填名称（推荐，已执行）；
+② 抽屉形态 + 新建 Mapper XML 做 join；③ 维持占位提示。
+**推荐方案与理由**：选 ①。载体规则里「含表格或分页 = 独立路由页」优先于「详情类 = 抽屉」；花名册有分页与多选，
+独立页更合适。名称回填用三次批量查询而不是 join XML：改动局限在一个方法里、无 SQL 拼接风险，
+且列表与详情共用；等需要校区名、班主任姓名、在读人数等更多派生字段时再补 join。
+
+**通用口径**：① 页面内的派生名称字段（`xxxName`）由服务层回填，不要指望前端再发请求补齐；
+② 详情页形态按「是否含表格或分页」判断，不按 `carrier` 字段一刀切。
+证据见 `evidence/stage6-frontend/2026-10-09_class-detail.log`，变更记录 `CR-115`。
