@@ -1,4 +1,5 @@
 import request from '@/utils/request';
+import { ArchiveSearchForm } from './types';
 import { AxiosPromise } from 'axios';
 import { OperationLogQuery, OperationLogVO } from './types';
 
@@ -88,6 +89,19 @@ export const listArchiveBatch = (query?: OperationLogQuery): AxiosPromise<Operat
     url: '/edu/audit/archive/list',
     method: 'get',
     params: query
+  });
+};
+
+/**
+ * 归档区间检索（归档后仍可按时间范围检索，REQ-AUD-033）
+ *
+ * 对应 operationId `searchArchivedLog`（POST /edu/audit/archive/search）。
+ */
+export const searchArchivedLog = (data: ArchiveSearchForm): AxiosPromise<OperationLogVO[]> => {
+  return request({
+    url: '/edu/audit/archive/search',
+    method: 'post',
+    data
   });
 };
 

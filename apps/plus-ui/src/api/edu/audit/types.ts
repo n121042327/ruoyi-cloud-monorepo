@@ -74,3 +74,17 @@ export interface OperationLogQuery extends Partial<PageQuery> {
   tenantId?: string;
   schoolId?: string;
 }
+
+/** 归档区间检索表单（POST /edu/audit/archive/search） */
+export interface ArchiveSearchForm {
+  archiveNo?: string;
+  archiveStatus?: string;
+  rangeStart?: string;
+  rangeEnd?: string;
+  actionType?: string;
+  objectType?: string;
+  objectId?: string;
+  keyword?: string;
+  pageNum?: number;
+  pageSize?: number;
+}

@@ -42,7 +42,7 @@
         <el-table-column label="发起人" prop="owner" width="120" data-layout-group="任务信息" />
         <el-table-column label="发起时间" prop="createTime" width="170" data-layout-group="任务信息" />
         <el-table-column label="耗时" prop="elapsed" width="100" align="center" data-layout-group="任务信息" />
-        <el-table-column fixed="right" label="操作" width="200" data-layout-group="操作">
+        <el-table-column fixed="right" label="操作" width="270" data-layout-group="操作">
           <template #default="scope">
             <el-button
               v-if="scope.row.status === 'queued'"
@@ -63,6 +63,7 @@
               重试
             </el-button>
             <el-button v-if="scope.row.resultFileId" link type="primary" @click="handleDownload(scope.row)">下载结果</el-button>
+            <el-button link type="primary" @click="rowsRef?.open(scope.row.taskNo)">行明细</el-button>
           </template>
         </el-table-column>
 
@@ -79,6 +80,8 @@
         @pagination="getList"
       />
     </el-card>
+
+    <TaskRowsDialog ref="rowsRef" />
   </div>
 </template>
 
@@ -87,9 +90,11 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { cancelAsyncTask, downloadTaskResult, listAsyncTask, retryAsyncTask } from '@/api/edu/importExport';
 import type { AsyncTaskVO } from '@/api/edu/importExport/types';
+import TaskRowsDialog from './components/TaskRowsDialog.vue';
 import { checkPermi } from '@/utils/permission';
 
 defineOptions({ name: 'EduAsyncTaskList' });
+const rowsRef = ref<InstanceType<typeof TaskRowsDialog>>();
 
 const loading = ref(false);
 const total = ref(0);

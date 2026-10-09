@@ -14,6 +14,9 @@
       <template #header>
         <el-row :gutter="10">
           <el-col :span="1.5">
+            <el-button v-hasPermi="['audit.log:read']" plain icon="Search" @click="searchRef?.open()">检索归档日志</el-button>
+          </el-col>
+          <el-col :span="1.5">
             <el-button v-hasPermi="['audit.log:read']" type="primary" plain icon="Refresh" @click="getList">刷新</el-button>
           </el-col>
         </el-row>
@@ -52,6 +55,8 @@
         @pagination="getList"
       />
     </el-card>
+
+    <ArchiveSearchDialog ref="searchRef" />
   </div>
 </template>
 
@@ -61,6 +66,7 @@ import { listArchiveBatch } from '@/api/edu/audit';
 import type { OperationLogQuery, OperationLogVO } from '@/api/edu/audit/types';
 import { checkPermi } from '@/utils/permission';
 import { ElMessageBox } from 'element-plus';
+import ArchiveSearchDialog from './components/ArchiveSearchDialog.vue';
 
 defineOptions({ name: 'EduAuditArchive' });
 
@@ -85,6 +91,8 @@ const getList = async () => {
 onMounted(getList);
 
 /** 查看归档批次详情（只读） */
+const searchRef = ref<InstanceType<typeof ArchiveSearchDialog>>();
+
 const handleDetail = (row: OperationLogVO) => {
   ElMessageBox.alert(
     `归档范围：${row.archiveRange ?? '—'}\n行数：${row.rowCount ?? 0}\n操作人：${row.operator ?? '—'}\n归档时间：${row.archiveTime ?? '—'}`,

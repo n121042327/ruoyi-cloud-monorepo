@@ -1504,3 +1504,17 @@
 | `apps/plus-ui/src/views/edu/promotion/prm_history/index.vue`（改） | 操作列加「审批」（仅待审批时） | `已实现` |
 | `apps/plus-ui/src/views/edu/promotion/prm_history/components/EnrollmentApproveDialog.vue` | 异动审批弹窗（通过 / 驳回 + 意见） | `已实现` |
 | `evidence/stage6-frontend/2026-10-09_enrollment-change-approve.log` | 门禁与改动记录 | `review` |
+
+## 2026-10-09 阶段 6 第四十一批：审计归档检索与异步任务行明细
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-122.md` | 归档检索 / 行明细接线与队列收口结论 | `review` |
+| `apps/plus-ui/src/api/edu/audit/index.ts`（改） | 补 searchArchivedLog | `已实现` |
+| `apps/plus-ui/src/api/edu/audit/types.ts`（改） | 补 ArchiveSearchForm | `已实现` |
+| `apps/plus-ui/src/api/edu/importExport/index.ts`（改） | 补 listImportRows | `已实现` |
+| `apps/plus-ui/src/views/edu/audit/audit_archive/index.vue`（改） | 工具栏加「检索归档日志」 | `已实现` |
+| `apps/plus-ui/src/views/edu/audit/audit_archive/components/ArchiveSearchDialog.vue` | 归档区间检索弹窗 | `已实现` |
+| `apps/plus-ui/src/views/edu/import-export/imp_task_list/index.vue`（改） | 操作列加「行明细」 | `已实现` |
+| `apps/plus-ui/src/views/edu/import-export/imp_task_list/components/TaskRowsDialog.vue` | 任务行明细弹窗 | `已实现` |
+| `evidence/stage6-frontend/2026-10-09_audit-archive-search.log` | 门禁与改动记录 | `review` |

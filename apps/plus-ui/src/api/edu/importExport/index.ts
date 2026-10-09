@@ -202,6 +202,19 @@ export const replayDeadLetterTask = (taskNo: string) => {
   });
 };
 
+/**
+ * 校验 / 执行结果按行分页查询（REQ-IMP-006 要求分页展示）
+ *
+ * 对应 operationId `listImportRows`（GET /edu/import/{batchNo}/rows）。
+ */
+export const listImportRows = (batchNo: string, query?: { result?: string; keyword?: string; pageNum?: number; pageSize?: number }) => {
+  return request({
+    url: `/edu/import/${batchNo}/rows`,
+    method: 'get',
+    params: query
+  });
+};
+
 export default {
   listImportTemplate,
   downloadImportTemplate,
