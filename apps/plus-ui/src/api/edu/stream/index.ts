@@ -34,12 +34,12 @@ export const getStreamConfig = (query?: { termId?: string }): AxiosPromise<Strea
 /**
  * 保存选科配置（变更写审计，NFR-AUDIT-01）
  *
- * 对应 operationId `saveStreamConfig`（PUT /edu/stream/config，权限 `stream.config:update`）。
+ * 对应 operationId `saveStreamConfig`（POST /edu/stream/config，权限 `stream.config:update`）。
  */
 export const saveStreamConfig = (data: StreamConfigForm) => {
   return request({
     url: '/edu/stream/config',
-    method: 'put',
+    method: 'post',
     data
   });
 };
@@ -150,12 +150,12 @@ export const getStreamStat = (query?: { termId?: string; gradeId?: string }): Ax
 /**
  * 导出选科清单（PAGE-STR-LIST，权限 `data.export:export`）
  *
- * 对应 operationId `exportStreamSelection`（GET /edu/stream/export）。
+ * 对应 operationId `exportStreamSelection`（POST /edu/stream/export）。
  */
 export const exportStreamSelection = (query?: StreamSelectionQuery) => {
   return request({
     url: '/edu/stream/export',
-    method: 'get',
+    method: 'post',
     params: query,
     responseType: 'blob'
   });

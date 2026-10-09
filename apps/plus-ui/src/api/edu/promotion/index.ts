@@ -82,12 +82,12 @@ export const retryPromotionTask = (taskId: string, reason?: string) => {
 /**
  * 导出升班任务台账（年级主任导出限本人负责年级）
  *
- * 对应 operationId `exportPromotionTask`（GET /edu/promotion/task/export）。
+ * 对应 operationId `exportPromotionTask`（POST /edu/promotion/task/export）。
  */
 export const exportPromotionTask = (query?: PromotionTaskQuery) => {
   return request({
     url: '/edu/promotion/task/export',
-    method: 'get',
+    method: 'post',
     params: query,
     responseType: 'blob'
   });
@@ -96,12 +96,12 @@ export const exportPromotionTask = (query?: PromotionTaskQuery) => {
 /**
  * 导出升班结果（成功清单 / 失败清单 / 留级清单 / 毕业清单，REQ-PRM-034）
  *
- * 对应 operationId `exportPromotionResult`（GET /edu/promotion/task/{id}/result/export）。
+ * 对应 operationId `exportPromotionResult`（POST /edu/promotion/task/{id}/result/export）。
  */
 export const exportPromotionResult = (taskId: string) => {
   return request({
     url: `/edu/promotion/task/${taskId}/result/export`,
-    method: 'get',
+    method: 'post',
     responseType: 'blob'
   });
 };
@@ -134,12 +134,12 @@ export const listPromotionItem = (taskId: string, query?: PromotionItemQuery): A
 /**
  * 逐条调整升班去向（PAGE-PRM-ADJUST）
  *
- * 对应 operationId `updatePromotionItem`（POST /edu/promotion/task/{id}/item）。
+ * 对应 operationId `updatePromotionItem`（PUT /edu/promotion/task/{id}/item）。
  */
 export const updatePromotionItem = (taskId: string, data: PromotionItemAdjustForm) => {
   return request({
     url: `/edu/promotion/task/${taskId}/item`,
-    method: 'post',
+    method: 'put',
     data
   });
 };
@@ -147,12 +147,12 @@ export const updatePromotionItem = (taskId: string, data: PromotionItemAdjustFor
 /**
  * 按源班级批量指定目标班级（REQ-PRM-018）
  *
- * 对应 operationId `batchUpdatePromotionItem`（POST /edu/promotion/task/{id}/item/batch）。
+ * 对应 operationId `batchUpdatePromotionItem`（PUT /edu/promotion/task/{id}/item/batch）。
  */
 export const batchUpdatePromotionItem = (taskId: string, data: PromotionBatchAdjustForm) => {
   return request({
     url: `/edu/promotion/task/${taskId}/item/batch`,
-    method: 'post',
+    method: 'put',
     data
   });
 };
@@ -184,12 +184,12 @@ export const executePromotionTask = (taskId: string) => {
 /**
  * 导出升班预览（预览阶段明细，REQ-PRM-019）
  *
- * 对应 operationId `exportPromotionPreview`（GET /edu/promotion/task/{id}/preview/export）。
+ * 对应 operationId `exportPromotionPreview`（POST /edu/promotion/task/{id}/preview/export）。
  */
 export const exportPromotionPreview = (taskId: string) => {
   return request({
     url: `/edu/promotion/task/${taskId}/preview/export`,
-    method: 'get',
+    method: 'post',
     responseType: 'blob'
   });
 };

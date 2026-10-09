@@ -1,5 +1,11 @@
 <template>
   <div class="p-2">
+    <!-- 页面标题区：对齐高保真 prototypes/high-fidelity/v1/pages/class-import-roster.html 的 .page-head -->
+    <div class="page-head">
+      <h1>编班表导入</h1>
+      <span class="scope-hint">数据范围：本校 · 当前学年学期</span>
+      <el-tag type="primary">≤ 5000 行 / 10 MB · 同步校验 ≤ 30 秒</el-tag>
+    </div>
     <el-card shadow="hover" class="mb-2">
       <div class="flex items-center gap-3">
         <h2 class="text-base font-medium">编班表导入</h2>

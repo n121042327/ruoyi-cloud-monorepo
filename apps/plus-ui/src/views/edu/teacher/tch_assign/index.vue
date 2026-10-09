@@ -1,9 +1,14 @@
 <template>
   <div class="p-2">
+    <!-- 页面标题区：对齐高保真 prototypes/high-fidelity/v1/pages/teacher-assign.html 的 .page-head -->
+    <div class="page-head">
+      <h1>任教关系设置</h1>
+      <span class="scope-hint">数据范围：本校 · 行政班与教学班</span>
+      <el-tag type="primary">共 {{ total }} 条有效任教关系</el-tag>
+    </div>
     <el-card shadow="hover" class="mb-2">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <h2 class="text-base font-medium">教师任教关系</h2>
           <el-tag type="info" size="small">{{ termLabel || '当前学年学期' }}</el-tag>
         </div>
         <div class="flex gap-2">

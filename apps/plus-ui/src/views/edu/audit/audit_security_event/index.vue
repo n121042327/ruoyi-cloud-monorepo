@@ -1,5 +1,10 @@
 <template>
   <div class="p-2">
+    <!-- 页面标题区：对齐高保真 prototypes/high-fidelity/v1/pages/audit-security-event.html 的 .page-head -->
+    <div class="page-head">
+      <h1>登录与安全事件</h1>
+      <span class="scope-hint">数据范围：本校 · 只读</span>
+    </div>
     <el-card v-if="!canRead" shadow="hover">
       <el-empty description="当前账号没有安全事件的查看权限" />
     </el-card>

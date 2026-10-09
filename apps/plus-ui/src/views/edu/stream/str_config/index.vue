@@ -1,8 +1,12 @@
 <template>
   <div class="p-2" v-loading="loading">
+    <!-- 页面标题区：对齐高保真 prototypes/high-fidelity/v1/pages/stream-config.html 的 .page-head -->
+    <div class="page-head">
+      <h1>选科配置</h1>
+      <span class="scope-hint">数据范围：本校 · 可写</span>
+    </div>
     <el-card shadow="hover" class="mb-2">
       <div class="flex items-center gap-3">
-        <h2 class="text-base font-medium">选科配置</h2>
         <el-tag type="info" size="small">数据范围：本校· 可写</el-tag>
         <el-tag type="primary" size="small">{{ config.termName || '当前学年学期' }}</el-tag>
         <el-tag :type="periodTagType" size="small">{{ config.periodStatus || '未开始' }}</el-tag>

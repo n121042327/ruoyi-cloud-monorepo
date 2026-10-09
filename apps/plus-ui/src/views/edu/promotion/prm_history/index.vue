@@ -1,5 +1,12 @@
 <template>
   <div class="p-2">
+    <!-- 页面标题区：对齐高保真 prototypes/high-fidelity/v1/pages/promotion-history.html 的 .page-head -->
+    <div class="page-head">
+      <h1>异动历史</h1>
+      <span class="scope-hint">数据范围：本校 · 当前学年学期</span>
+      <el-tag type="primary">共 {{ total }} 条异动记录</el-tag>
+      <el-tag type="info">追加式 · 不可删除</el-tag>
+    </div>
     <el-card v-if="!canRead" shadow="hover">
       <el-empty description="当前账号没有异动历史的查看权限" />
     </el-card>

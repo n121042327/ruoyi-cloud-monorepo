@@ -1,0 +1,46 @@
+# 阶段 6 第三十二批：高保真 page-head 对齐 + 接口契约纠偏（CR-113 / D-194）
+
+时间：2026-10-09
+分支：codex/stage7-backend
+触发：用户要求「所有前端页面与高保真保持一致」「没对接的功能可以对接了」
+
+## 1. 视觉骨架盘点
+- frontend-page-tree.yaml：45 条路由，view 文件全部存在
+- 高保真 44 页有 .page-head；生产此前只有 school/sch_list 有（CR-107）
+- 处置：39 个页面补齐 page-head（school/sch_list 已有，跳过）
+- 5 个页面删除与新标题重复的 <h2>：tch_assign / str_stat / imp_wizard / str_config / str_student
+- 标题内容以高保真为准，按 CR-112 口径去掉内部编号；数量类标签接列表已有的 total
+
+## 2. 接口契约纠偏
+比对口径：前端 api 层 `url` + `method`  vs  后端 controller `@XxxMapping`（openapi 为裁判）
+后端 edu 方法数：184（去重路径 183）  前端 edu 调用：129
+
+修正 7 处（修正前均会 404）：
+  exportPromotionTask        GET  -> POST  /edu/promotion/task/export
+  exportPromotionResult      GET  -> POST  /edu/promotion/task/{id}/result/export
+  exportPromotionPreview     GET  -> POST  /edu/promotion/task/{id}/preview/export
+  updatePromotionItem        POST -> PUT   /edu/promotion/task/{id}/item
+  batchUpdatePromotionItem   POST -> PUT   /edu/promotion/task/{id}/item/batch
+  saveStreamConfig           PUT  -> POST  /edu/stream/config
+  exportStreamSelection      GET  -> POST  /edu/stream/export
+
+复扫：前端调用中「后端不存在」= 1，人工核实为扫描误报（getStudent 用字符串拼接路径）。
+
+## 3. 剩余缺口
+- 页面：class-detail（班级详情）生产前端未实现
+- 接口：后端已实现、前端未接 56 项（清单见 CR-113 第 4.2 节）
+
+## 4. 门禁
+check_fe_page_structure.py   -> 通过
+check_api_contract.py        -> 通过
+check_docs.py                -> 通过
+check_gap_register.py        -> 通过
+check_mermaid.py             -> 通过
+pnpm --filter @edu/plus-ui typecheck      -> error TS 51 条（基线 51）
+pnpm --filter @edu/plus-ui lint:eslint    -> 124 problems（基线 124）
+pnpm --filter @edu/plus-ui run build:prod -> exit 0
+
+## 5. 实机复核
+URL：http://localhost/edu/import/wizard
+无障碍树新增：导入向导 / 数据范围：本校 · 当前学年学期 / ≤ 5000 行 / 10 MB · 同步校验 ≤ 30 秒
+（此前该页从步骤条直接开始，没有标题区）

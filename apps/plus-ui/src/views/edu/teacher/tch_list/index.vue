@@ -1,5 +1,11 @@
 <template>
   <div class="p-2">
+    <!-- 页面标题区：对齐高保真 prototypes/high-fidelity/v1/pages/teacher-list.html 的 .page-head -->
+    <div class="page-head">
+      <h1>教师管理</h1>
+      <span class="scope-hint">数据范围：本校 · 全部教育角色 · 含离职与调离</span>
+      <el-tag type="primary">共 {{ total }} 名教师</el-tag>
+    </div>
     <el-card v-if="!canRead" shadow="hover">
       <el-empty description="当前账号没有教师管理的查看权限" />
     </el-card>

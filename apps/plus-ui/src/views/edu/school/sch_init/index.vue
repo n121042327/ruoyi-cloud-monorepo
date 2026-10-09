@@ -1,5 +1,11 @@
 <template>
   <div class="p-2">
+    <!-- 页面标题区：对齐高保真 prototypes/high-fidelity/v1/pages/school-init.html 的 .page-head -->
+    <div class="page-head">
+      <h1>开通初始化</h1>
+      <span class="scope-hint">数据范围：本租户 · 可写</span>
+      <el-tag type="primary">重复提交不会重复初始化</el-tag>
+    </div>
     <el-card shadow="never">
       <template #header>
         <div class="flex justify-between items-center">

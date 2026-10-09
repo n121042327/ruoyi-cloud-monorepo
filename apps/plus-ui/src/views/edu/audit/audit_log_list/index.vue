@@ -1,5 +1,11 @@
 <template>
   <div class="p-2">
+    <!-- 页面标题区：对齐高保真 prototypes/high-fidelity/v1/pages/audit-log-list.html 的 .page-head -->
+    <div class="page-head">
+      <h1>操作日志</h1>
+      <span class="scope-hint">数据范围：本校 · 只读</span>
+      <el-tag type="primary">默认最近 7 天 · 单次查询上限 90 天</el-tag>
+    </div>
     <el-card v-if="!canRead" shadow="hover">
       <el-empty description="当前账号没有审计日志的查看权限" />
     </el-card>

@@ -1,5 +1,10 @@
 <template>
   <div class="p-2">
+    <!-- 页面标题区：对齐高保真 prototypes/high-fidelity/v1/pages/promotion-transfer.html 的 .page-head -->
+    <div class="page-head">
+      <h1>跨校转学（转入校接收）</h1>
+      <span class="scope-hint">数据范围：本校（转入校） · 只处理发往本校的转学单</span>
+    </div>
     <el-card shadow="never">
       <template #header>
         <div class="flex justify-between items-center">

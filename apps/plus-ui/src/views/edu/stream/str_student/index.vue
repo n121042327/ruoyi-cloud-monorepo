@@ -1,8 +1,12 @@
 <template>
   <div class="p-2" v-loading="loading">
+    <!-- 页面标题区：对齐高保真 prototypes/high-fidelity/v1/pages/stream-selection.html 的 .page-head -->
+    <div class="page-head">
+      <h1>学生选科（3+1+2）</h1>
+      <span class="scope-hint">当前账号本人 · 按行政班提交</span>
+    </div>
     <el-card shadow="hover" class="mb-2">
       <div class="flex items-center gap-3">
-        <h2 class="text-base font-medium">学生选科（3+1+2）</h2>
         <el-tag type="primary" size="small">{{ current.termName || '当前学年学期' }}</el-tag>
         <el-tag :type="current.status === '已生效' ? 'success' : 'warning'" size="small">{{ current.status || '未选择' }}</el-tag>
       </div>

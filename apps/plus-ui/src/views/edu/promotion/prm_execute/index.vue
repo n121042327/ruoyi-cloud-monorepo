@@ -1,5 +1,10 @@
 <template>
   <div class="p-2" v-loading="loading">
+    <!-- 页面标题区：对齐高保真 prototypes/high-fidelity/v1/pages/promotion-execute.html 的 .page-head -->
+    <div class="page-head">
+      <h1>执行与进度</h1>
+      <span class="scope-hint">数据范围：本校 · 当前学年学期</span>
+    </div>
     <el-card shadow="hover" class="mb-2">
       <div class="flex items-center gap-3">
         <h2 class="text-base font-medium">执行与进度</h2>

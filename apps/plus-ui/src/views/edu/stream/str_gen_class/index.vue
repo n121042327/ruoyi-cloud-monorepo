@@ -1,5 +1,10 @@
 <template>
   <div class="p-2">
+    <!-- 页面标题区：对齐高保真 prototypes/high-fidelity/v1/pages/stream-generate-class.html 的 .page-head -->
+    <div class="page-head">
+      <h1>按组合生成教学班</h1>
+      <span class="scope-hint">数据范围：本校 · 可写（触发者）</span>
+    </div>
     <el-card shadow="hover" class="mb-2">
       <div class="flex items-center gap-3">
         <h2 class="text-base font-medium">按组合生成教学班</h2>

@@ -1,5 +1,11 @@
 <template>
   <div class="p-2">
+    <!-- 页面标题区：对齐高保真 prototypes/high-fidelity/v1/pages/class-roster-add.html 的 .page-head -->
+    <div class="page-head">
+      <h1>编班</h1>
+      <span class="scope-hint">数据范围：本校 · 教务主任与年级主任可编班</span>
+      <el-tag type="primary">行政班</el-tag>
+    </div>
     <el-card shadow="hover" class="mb-2">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">

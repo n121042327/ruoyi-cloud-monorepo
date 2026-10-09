@@ -1385,3 +1385,13 @@
 | `apps/plus-ui/src/views/edu/**`（改，51 个 `.vue`） | 移除模板中的需求 / 缺项 / 裁决编号，保留业务文案 | `已实现` |
 | `evidence/stage6-frontend/2026-10-09_import-wizard-internal-ids-cleaned.png` | 导入向导清理后实机截图 | `review` |
 | `evidence/stage6-frontend/2026-10-09_frontend-internal-ids-cleanup.log` | 扫描 / 清理 / 门禁记录 | `review` |
+
+## 2026-10-09 阶段 6 第三十二批：高保真 page-head 全量对齐 + 接口契约纠偏
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-113.md` | 对齐盘点、page-head 补齐、7 处 method 纠偏与剩余缺口 | `review` |
+| `apps/plus-ui/src/views/edu/**/index.vue`（改，39 个页面） | 补齐 `.page-head` 标题区；5 个页面删除重复 `<h2>` | `已实现` |
+| `apps/plus-ui/src/api/edu/promotion/index.ts`（改） | 5 个接口 method 纠偏（导出×3、明细调整×2） | `已实现` |
+| `apps/plus-ui/src/api/edu/stream/index.ts`（改） | 2 个接口 method 纠偏（配置保存、选课导出） | `已实现` |
+| `evidence/stage6-frontend/2026-10-09_hifi-page-head-and-api-contract.log` | 盘点结果、门禁与实机复核 | `review` |

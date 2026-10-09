@@ -1,5 +1,11 @@
 <template>
   <div class="p-2">
+    <!-- 页面标题区：对齐高保真 prototypes/high-fidelity/v1/pages/student-cross-transfer.html 的 .page-head -->
+    <div class="page-head">
+      <h1>跨校转学（转出校）</h1>
+      <span class="scope-hint">数据范围：本校（转出校） · 转学涉及两个学校租户</span>
+      <el-tag type="primary">学号跨校保持不变</el-tag>
+    </div>
     <el-card shadow="never">
       <template #header>
         <div class="flex justify-between items-center">

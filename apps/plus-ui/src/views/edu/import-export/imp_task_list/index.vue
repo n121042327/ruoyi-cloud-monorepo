@@ -1,5 +1,11 @@
 <template>
   <div class="p-2">
+    <!-- 页面标题区：对齐高保真 prototypes/high-fidelity/v1/pages/async-task-list.html 的 .page-head -->
+    <div class="page-head">
+      <h1>异步任务</h1>
+      <span class="scope-hint">数据范围：本校 · 默认只看本人任务</span>
+      <el-tag type="primary">记录保留 90 天</el-tag>
+    </div>
     <el-card v-if="!canRead" shadow="hover">
       <el-empty description="当前账号没有异步任务的查看权限" />
     </el-card>
