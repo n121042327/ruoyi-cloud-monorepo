@@ -190,6 +190,107 @@ export const changeEnrollmentStatus = (studentId: string, data: EnrollmentChange
   });
 };
 
+/**
+ * 变更学号（学号是导入 / 导出对照表的键，需单独申请并写审计）
+ *
+ * 对应 operationId `updateStudentNo`（PUT /edu/student/{id}/student-no）。
+ */
+export const updateStudentNo = (studentId: string, studentNo: string, reason?: string) => {
+  return request({
+    url: `/edu/student/${studentId}/student-no`,
+    method: 'put',
+    params: { studentNo, reason }
+  });
+};
+
+/**
+ * 重置学生账号密码
+ *
+ * 对应 operationId `resetStudentPassword`（POST /edu/student/{id}/reset-password）。
+ */
+export const resetStudentPassword = (studentId: string, password?: string) => {
+  return request({
+    url: `/edu/student/${studentId}/reset-password`,
+    method: 'post',
+    data: password ? { password } : {}
+  });
+};
+
+/**
+ * 查询学生在校记录（PAGE-STU-DETAIL 的学籍信息段）
+ *
+ * 对应 operationId `getStudentEnrollment`（GET /edu/student/{id}/enrollment）。
+ */
+export const getStudentEnrollment = (studentId: string) => {
+  return request({
+    url: `/edu/student/${studentId}/enrollment`,
+    method: 'get'
+  });
+};
+
+/**
+ * 学生列表导出（统一走导出引擎，导出前重新解析数据范围）
+ *
+ * 对应 operationId `exportStudent`（POST /edu/student/export）。
+ */
+export const exportStudent = (data?: Record<string, unknown>) => {
+  return request({
+    url: '/edu/student/export',
+    method: 'post',
+    data: data ?? {}
+  });
+};
+
+/**
+ * 查询学生激活码（PAGE-STU-DETAIL / 激活码弹窗）
+ *
+ * 对应 operationId `getActivationCode`（GET /edu/student/{id}/activation-code）。
+ */
+export const getActivationCode = (studentId: string) => {
+  return request({
+    url: `/edu/student/${studentId}/activation-code`,
+    method: 'get'
+  });
+};
+
+/**
+ * 打印激活单（批量，返回导出文件）
+ *
+ * 对应 operationId `printActivationSlip`（POST /edu/student/activation-slip/print）。
+ */
+export const printActivationSlip = (studentIds: string[]) => {
+  return request({
+    url: '/edu/student/activation-slip/print',
+    method: 'post',
+    data: { studentIds }
+  });
+};
+
+/**
+ * 激活学生账号（激活码校验通过后置为已激活）
+ *
+ * 对应 operationId `activateStudent`（POST /edu/student/{id}/activate）。
+ */
+export const activateStudent = (studentId: string) => {
+  return request({
+    url: `/edu/student/${studentId}/activate`,
+    method: 'post'
+  });
+};
+
+/**
+ * 导出激活码（批量）
+ *
+ * 对应 operationId `exportActivationCode`（POST /edu/student/activation-code/export）。
+ */
+export const exportActivationCode = (studentIds: string[]) => {
+  return request({
+    url: '/edu/student/activation-code/export',
+    method: 'post',
+    data: { studentIds }
+  });
+};
+
 export default {
   listStudent,
   getStudent,

@@ -154,11 +154,24 @@
           </el-table-column>
 
           <!-- 操作列：固定最右，独立分组（page-field-layout 第 4 节） -->
-          <el-table-column fixed="right" label="操作" width="240" data-layout-group="操作">
+          <el-table-column fixed="right" label="操作" width="300" data-layout-group="操作">
             <template #default="scope">
               <el-button v-hasPermi="['person.student:update']" link type="primary" icon="Edit" @click="handleUpdate(scope.row)">编辑</el-button>
-              <el-button v-hasPermi="['enrollment.status:update']" link type="primary" @click="handleStatus(scope.row)"> 学籍异动 </el-button>
+              <el-button v-hasPermi="['enrollment.status:update']" link type="primary" @click="handleStatus(scope.row)">学籍异动</el-button>
               <el-button v-hasPermi="['org.class:update']" link type="primary" @click="handleTransfer(scope.row)">调班</el-button>
+              <el-button v-hasPermi="['person.student:read']" link type="primary" @click="activationRef?.open(scope.row)">激活码</el-button>
+              <el-dropdown class="ml-2" @command="(cmd: string) => handleMore(cmd, scope.row)">
+                <el-button link type="primary"
+                  >更多<el-icon class="ml-1"><arrow-down /></el-icon
+                ></el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="studentNo">变更学号</el-dropdown-item>
+                    <el-dropdown-item command="resetPwd">重置密码</el-dropdown-item>
+                    <el-dropdown-item command="export">导出学生</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </template>
           </el-table-column>
 
@@ -195,15 +208,18 @@
 <script setup lang="ts">
 import { computed, getCurrentInstance, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import StudentDetailDrawer from './components/StudentDetailDrawer.vue';
 import StudentFormDialog from './components/StudentFormDialog.vue';
+import StudentNoDialog from './components/StudentNoDialog.vue';
+import StudentActivationDialog from './components/StudentActivationDialog.vue';
 import StudentStatusDialog from './components/StudentStatusDialog.vue';
 import StudentTransferDialog from './components/StudentTransferDialog.vue';
 import { useStudentList } from './composables/useStudentList';
 import { ENROLLMENT_STATUS_FILTER_OPTIONS, ENROLLMENT_STATUS_LABEL, GENDER_OPTIONS, STAGE_CODE_LABEL } from '@/enums/edu/StudentEnum';
 import type { StudentForm, StudentVO } from '@/api/edu/student/types';
 import { checkPermi } from '@/utils/permission';
+import { exportStudent, resetStudentPassword } from '@/api/edu/student';
 
 defineOptions({ name: 'EduStudentList' });
 
@@ -233,6 +249,8 @@ const {
 } = useStudentList();
 
 const formDialogRef = ref<InstanceType<typeof StudentFormDialog>>();
+const studentNoRef = ref<InstanceType<typeof StudentNoDialog>>();
+const activationRef = ref<InstanceType<typeof StudentActivationDialog>>();
 const detailDrawerRef = ref<InstanceType<typeof StudentDetailDrawer>>();
 const statusDialogRef = ref<InstanceType<typeof StudentStatusDialog>>();
 const promotionDialogRef = ref<InstanceType<typeof StudentStatusDialog>>();
@@ -322,5 +340,23 @@ const handleUpdate = (row: StudentVO) => {
     studentNo: row.studentNo
   };
   formDialogRef.value?.open(form);
+};
+
+/** 操作列「更多」：变更学号、重置密码、导出学生 */
+const handleMore = async (command: string, row: StudentVO) => {
+  if (command === 'studentNo') {
+    studentNoRef.value?.open(row);
+    return;
+  }
+  if (command === 'resetPwd') {
+    await ElMessageBox.confirm(`确认重置「${row.studentName}」的账号密码？`, '重置密码', { type: 'warning' });
+    await resetStudentPassword(row.studentId);
+    ElMessage.success('密码已重置');
+    return;
+  }
+  if (command === 'export') {
+    await exportStudent({ studentIds: [row.studentId] });
+    ElMessage.success('已提交导出任务，请到异步任务中心下载');
+  }
 };
 </script>

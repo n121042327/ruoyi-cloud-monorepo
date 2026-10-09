@@ -1,0 +1,35 @@
+# 阶段 6 第三十七批：学生学籍异动与激活码（CR-118 / D-199）
+
+时间：2026-10-09
+分支：codex/stage7-backend
+触发：heartbeat（自动化队列第 2 项）
+
+## 1. 交付
+- api/edu/student 补 8 个函数：updateStudentNo / resetStudentPassword / getStudentEnrollment / exportStudent /
+  getActivationCode / printActivationSlip / activateStudent / exportActivationCode
+- 新增 2 个弹窗：StudentNoDialog（学号变更）、StudentActivationDialog（激活码查看 / 打印 / 导出 / 标记已激活）
+- 操作列：编辑 / 学籍异动 / 调班 / 激活码 / 更多▾（变更学号、重置密码、导出学生），width 240 -> 300
+
+## 2. 口径
+- 学籍异动沿用 changeEnrollmentStatus
+- 学号变更单独弹窗（新学号 + 原因），写审计
+- 重置密码二次确认
+- 激活码：打印 / 导出按单学生提交；标记已激活二次确认
+- DELETE /edu/student/{id} 暂不接前端（学生主体删除风险高，见 D-199）
+
+## 3. 门禁
+check_fe_page_structure.py     -> 通过
+check_fe_text_nowrap.py        -> 通过（操作列 27 个）
+check_api_contract.py          -> 通过
+check_docs.py                  -> 通过
+check_gap_register.py          -> 通过
+check_mermaid.py               -> 通过
+check_stage6_route_coverage.py -> 通过
+pnpm --filter @edu/plus-ui typecheck      -> error TS 51 条（基线 51）
+pnpm --filter @edu/plus-ui lint:eslint    -> 124 problems（基线 124）
+pnpm --filter @edu/plus-ui run build:prod -> exit 0
+
+本批仅前端改动，未跑 Maven。
+
+## 4. 未纳入
+批量激活码打印 / 导出、PAGE-STU-DETAIL 在校记录段、学生物理删除。

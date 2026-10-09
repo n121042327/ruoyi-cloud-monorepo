@@ -1460,3 +1460,14 @@
 | `apps/plus-ui/src/views/edu/teacher/tch_list/components/TeacherLeaveDialog.vue` | 离职 / 调离登记弹窗 | `已实现` |
 | `apps/plus-ui/src/views/edu/teacher/tch_list/components/TeacherNoDialog.vue` | 工号变更弹窗 | `已实现` |
 | `evidence/stage6-frontend/2026-10-09_teacher-role-leave.log` | 门禁与改动记录 | `review` |
+
+## 2026-10-09 阶段 6 第三十七批：学生学籍异动与激活码
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-118.md` | 学籍异动 / 学号 / 账号 / 激活码接线与口径 | `review` |
+| `apps/plus-ui/src/api/edu/student/index.ts`（改） | 补 8 个接口函数 | `已实现` |
+| `apps/plus-ui/src/views/edu/student/stu_list/index.vue`（改） | 操作列重构（激活码 + 更多▾ 下拉） | `已实现` |
+| `apps/plus-ui/src/views/edu/student/stu_list/components/StudentNoDialog.vue` | 学号变更弹窗 | `已实现` |
+| `apps/plus-ui/src/views/edu/student/stu_list/components/StudentActivationDialog.vue` | 激活码弹窗（查看 / 打印 / 导出 / 激活） | `已实现` |
+| `evidence/stage6-frontend/2026-10-09_student-enrollment-activation.log` | 门禁与改动记录 | `review` |
