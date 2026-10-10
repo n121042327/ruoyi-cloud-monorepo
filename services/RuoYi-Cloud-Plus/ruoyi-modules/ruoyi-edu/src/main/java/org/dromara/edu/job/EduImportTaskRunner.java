@@ -50,6 +50,17 @@ public class EduImportTaskRunner {
     private static final String STATUS_SUCCEEDED = "succeeded";
     private static final String STATUS_PARTIAL_FAILED = "partial_failed";
 
+    /**
+     * 导入结果文件（对账表）的列定义：模块编码 → （extras 的 key，表头文案）。
+     *
+     * 未登记的模块不产出结果文件。学生是「学号对照表」（REQ-STU-058）；
+     * 教师是「登录名 / 初始密码」，供发起人给新账号分发（GAP-116 / CR-156）。
+     */
+    private static final Map<String, List<Map.Entry<String, String>>> RESULT_COLUMNS = Map.of(
+        "student", List.of(Map.entry("学号", "系统学号")),
+        "teacher", List.of(Map.entry("登录名", "登录名"), Map.entry("初始密码", "初始密码"))
+    );
+
     private static final String RESULT_FAILED = "failed";
 
     private static final String BATCH_COMPLETED = "completed";
@@ -141,9 +152,9 @@ public class EduImportTaskRunner {
             }
             if (result == null || "success".equals(result.getResult())) {
                 success++;
-                String studentNo = result == null ? null : result.getExtras().get("学号");
-                if (StringUtils.isNotBlank(studentNo)) {
-                    resultRows.add(new String[]{String.valueOf(row.getRowNo()), name(row), studentNo});
+                String[] resultRow = resultRow(batch.getModuleCode(), row, result);
+                if (resultRow != null) {
+                    resultRows.add(resultRow);
                 }
             } else if ("skipped".equals(result.getResult())) {
                 skipped++;
@@ -155,11 +166,44 @@ public class EduImportTaskRunner {
             }
         }
         Long resultFileId = uploadCsv(batch, "import-result-" + batch.getBatchNo() + ".csv",
-            FILE_KIND_RESULT, "原始行号,姓名,系统学号", resultRows);
+            FILE_KIND_RESULT, resultHeader(batch.getModuleCode()), resultRows);
         Long failedFileId = uploadCsv(batch, "import-failed-" + batch.getBatchNo() + ".csv",
             FILE_KIND_FAILED_ROWS, "原始行号,姓名,失败原因", failedRows);
         updateBatch(batch, success, skipped, failed, resultFileId, failedFileId);
         updateTask(task, success, skipped, failed, failedFileId);
+    }
+
+    /** 结果文件表头：原始行号 + 姓名 + 模块声明的辅助列 */
+    private String resultHeader(String moduleCode) {
+        StringBuilder sb = new StringBuilder("原始行号,姓名");
+        for (Map.Entry<String, String> column : RESULT_COLUMNS.getOrDefault(moduleCode, List.of())) {
+            sb.append(',').append(column.getValue());
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 组装一行结果文件。
+     *
+     * 模块没有登记辅助列、或所有辅助列都为空时返回 null（不写这一行）——
+     * 避免落下整表只有行号与姓名的无意义对账表。
+     */
+    private String[] resultRow(String moduleCode, EduImportRow row, EduImportRowResult result) {
+        List<Map.Entry<String, String>> columns = RESULT_COLUMNS.getOrDefault(moduleCode, List.of());
+        if (columns.isEmpty()) {
+            return null;
+        }
+        Map<String, String> extras = result == null ? Map.of() : result.getExtras();
+        String[] cells = new String[2 + columns.size()];
+        cells[0] = String.valueOf(row.getRowNo());
+        cells[1] = name(row);
+        boolean anyValue = false;
+        for (int i = 0; i < columns.size(); i++) {
+            String value = extras.get(columns.get(i).getKey());
+            cells[2 + i] = value;
+            anyValue = anyValue || StringUtils.isNotBlank(value);
+        }
+        return anyValue ? cells : null;
     }
 
     private EduImportContext context(EduAsyncTask task, EduImportBatch batch, EduFileRef fileRef) {

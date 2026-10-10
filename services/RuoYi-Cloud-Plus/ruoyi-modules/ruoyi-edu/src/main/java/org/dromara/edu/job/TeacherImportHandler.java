@@ -22,9 +22,12 @@ import java.util.regex.Pattern;
 /**
  * 教师导入校验器（模块编码 {@code teacher}）。
  *
- * 模板列来自教师 PRD 第 4.8 节「导入模板列」（9 列，顺序固定）；校验维度：必填、性别枚举、
- * 所属学校必须已存在、工号在同一学校内唯一（BR-TEACHER-007）、手机号 / 入职日期 / 邮箱格式、
- * 教育角色取值（多个用逗号分隔）。
+ * 模板列来自教师 PRD 第 4.8 节「导入模板列」（10 列，顺序固定；「登录名」见 CR-156 / GAP-116）；
+ * 校验维度：必填、性别枚举、所属学校必须已存在、工号在同一学校内唯一（BR-TEACHER-007）、
+ * 手机号 / 入职日期 / 邮箱格式、教育角色取值（多个用逗号分隔）、登录名格式与文件内唯一。
+ *
+ * 「登录名」是**选填**列：填了就按它建登录账号（执行器负责生成初始密码），不填则只建档案，
+ * 与 `BR-ACCOUNT-001`「登录名由学校统一分配」一致 —— 导入不替学校编排登录名。
  *
  * @author Codex
  */
@@ -35,8 +38,11 @@ public class TeacherImportHandler implements EduImportHandler {
     public static final String MODULE_CODE = "teacher";
 
     private static final List<String> HEADERS = List.of(
-        "工号", "姓名", "性别", "所属学校", "手机号", "邮箱", "入职日期", "教育角色", "备注"
+        "工号", "姓名", "性别", "所属学校", "手机号", "邮箱", "入职日期", "教育角色", "登录名", "备注"
     );
+
+    /** 登录名长度上限：与 sys_user.user_name 的 @Size(max = 30) 基线一致，不另立规则 */
+    private static final int LOGIN_NAME_MAX = 30;
 
     private static final Set<String> GENDERS = Set.of("男", "女");
 
@@ -82,6 +88,7 @@ public class TeacherImportHandler implements EduImportHandler {
             }
         }
         Set<String> seenTeacherNos = new HashSet<>();
+        Set<String> seenLoginNames = new HashSet<>();
         for (EduImportRow row : rows) {
             List<String> reasons = new ArrayList<>();
             Map<String, String> cells = row.getCells();
@@ -123,6 +130,18 @@ public class TeacherImportHandler implements EduImportHandler {
             String hireDate = cells.get("入职日期");
             if (StringUtils.isNotBlank(hireDate) && DateUtils.parseDate(hireDate) == null) {
                 reasons.add("入职日期格式应为 YYYY-MM-DD");
+            }
+            String loginName = StringUtils.trimToEmpty(cells.get("登录名"));
+            if (StringUtils.isNotBlank(loginName)) {
+                if (loginName.length() > LOGIN_NAME_MAX) {
+                    reasons.add("登录名长度不能超过 " + LOGIN_NAME_MAX + " 个字符");
+                }
+                if (loginName.chars().anyMatch(Character::isWhitespace)) {
+                    reasons.add("登录名不能包含空格");
+                }
+                if (!seenLoginNames.add(loginName)) {
+                    reasons.add("文件内登录名重复：" + loginName);
+                }
             }
             String roles = cells.get("教育角色");
             if (StringUtils.isNotBlank(roles)) {

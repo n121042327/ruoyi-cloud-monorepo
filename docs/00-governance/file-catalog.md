@@ -1891,3 +1891,18 @@
 | `docs/00-governance/decisions.md`（改） | 新增 D-235 | `review` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-105 关闭 | `review` |
 | `evidence/stage7-backend/2026-10-10_employment-status-code-alignment.log` | 根因与门禁 | `review` |
+
+## 2026-10-10 阶段 7 第七十五批：教师导入按「登录名」列建账号（GAP-116 关闭）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-156.md` | 登录名 / 初始密码分工与前置条件 | `review` |
+| `docs/10-prd/modules/teacher/PRD.md`（改） | 升 1.0.7-draft：4.8 加「登录名」列、新增 `REQ-TCH-072` | `已设计` |
+| `services/.../edu/job/TeacherImportHandler.java`（改） | 10 列模板 + 登录名校验 | `已实现` |
+| `services/.../edu/job/TeacherImportExecutor.java`（改） | 随机初始密码 + 建账号 + 结果文件回填 | `已实现` |
+| `services/.../edu/job/EduImportTaskRunner.java`（改） | 结果文件辅助列按模块登记 | `已实现` |
+| `services/.../ruoyi-system/.../RemoteUserServiceImpl.java`（改） | 注册账号时 BCrypt 加密密码 | `已实现` |
+| `services/.../edu/service/impl/EduTeacherServiceImpl.java`（改） | 建号后回查 userId 落库 | `已实现` |
+| `apps/plus-ui/src/views/edu/teacher/tch_import/index.vue`（改） | 模板列说明改为真实列 + 初始密码提示 | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-116 关闭 | `review` |
+| `evidence/stage7-backend/2026-10-10_teacher-import-account.log` | 门禁、前置条件与运营注意 | `review` |

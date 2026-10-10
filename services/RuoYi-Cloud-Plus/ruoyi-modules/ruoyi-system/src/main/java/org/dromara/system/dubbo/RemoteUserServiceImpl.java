@@ -190,6 +190,11 @@ public class RemoteUserServiceImpl implements RemoteUserService {
     @Override
     public Boolean registerUserInfo(RemoteUserBo remoteUserBo) throws UserException, ServiceException {
         SysUserBo sysUserBo = MapstructUtils.convert(remoteUserBo, SysUserBo.class);
+        // 入参是**明文密码**，这里加密后落库：`SysUserServiceImpl.registerUser` 直接 insert，
+        // 不做加密（与 resetPassword 同一口径），不加密则账号建出来也登不上（GAP-116）
+        if (StringUtils.isNotBlank(sysUserBo.getPassword())) {
+            sysUserBo.setPassword(BCrypt.hashpw(sysUserBo.getPassword()));
+        }
         String username = sysUserBo.getUserName();
         boolean exist = TenantHelper.dynamic(remoteUserBo.getTenantId(), () -> {
             if (!("true".equals(configService.selectConfigByKey("sys.account.registerUser")))) {

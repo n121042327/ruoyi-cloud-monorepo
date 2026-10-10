@@ -3,6 +3,7 @@ package org.dromara.edu.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.DateUtils;
@@ -43,6 +44,7 @@ import java.util.List;
  *
  * @author Codex
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class EduTeacherServiceImpl implements IEduTeacherService {
@@ -120,8 +122,26 @@ public class EduTeacherServiceImpl implements IEduTeacherService {
             } catch (Exception e) {
                 throw new ServiceException("创建教师登录账号失败：" + e.getMessage());
             }
+            // 账号建好后回查 userId 落库：教师页的「重置密码 / 停用账号」都要用它（GAP-116）
+            add.setUserId(queryUserIdByLoginName(teacher.getLoginName()));
         }
         return baseMapper.insert(add) > 0;
+    }
+
+    /**
+     * 按登录名回查账号 userId。
+     *
+     * `RemoteUserService.registerUserInfo` 只返回成功标志，账号 ID 需要再查一次（与学生重置密码同一做法）；
+     * 查不到时返回 null 且不阻断建档 —— 后续「重置密码」会给出「该教师还没有登录账号」的明确提示。
+     */
+    private Long queryUserIdByLoginName(String loginName) {
+        try {
+            var loginUser = remoteUserService.getUserInfo(loginName, LoginHelper.getTenantId());
+            return loginUser == null ? null : loginUser.getUserId();
+        } catch (Exception e) {
+            log.warn("教师账号建好后未回查到 userId：loginName={}，{}", loginName, e.getMessage());
+            return null;
+        }
     }
 
     @Override

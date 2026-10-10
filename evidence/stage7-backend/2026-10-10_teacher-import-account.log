@@ -1,0 +1,45 @@
+2026-10-10 阶段 7：教师导入按「登录名」列建账号（GAP-116 关闭，CR-156）
+
+一、背景
+教师导入原先只建档案与教育角色，不建账号（GAP-116）：模板没有登录名列，
+且 BR-ACCOUNT-001 规定「登录名由学校统一分配」。用户 2026-10-10 确认按推荐执行：
+模板加「登录名」（选填），填了就建账号，初始密码由系统随机生成并写进导入结果文件（7 天有效）。
+
+二、本批改动
+1. PRD：teacher PRD 升 1.0.7-draft，4.8 模板列新增「登录名」（第 9 列，选填），新增 REQ-TCH-072。
+2. TeacherImportHandler：HEADERS 变 10 列；登录名校验（长度 ≤ 30、不含空格、文件内唯一）。
+3. TeacherImportExecutor：填了登录名 → 12 位随机初始密码（字符集去掉易混字符）→ insertByBo 建账号 →
+   EduImportRowResult.extras 回填「登录名」「初始密码」。
+4. EduImportTaskRunner：结果文件辅助列按模块登记（student=系统学号；teacher=登录名+初始密码），
+   表头与行都按登记生成，全列皆空的行不写。
+5. 修复 RemoteUserServiceImpl.registerUserInfo：密码入参是明文，原先直接 insert 导致账号登不上，
+   现按 resetPassword 同一口径 BCrypt 加密后落库（ruoyi-api-system 契约不变）。
+6. 修复 EduTeacherServiceImpl.insertByBo：建号后按登录名回查 userId 落库，教师页「重置密码 / 停用账号」才可用。
+7. 前端 tch_import 步骤 1 模板列说明改为真实 10 列 + 初始密码获取方式提示。
+
+三、门禁（本机执行）
+$ cd services/RuoYi-Cloud-Plus
+$ mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu,ruoyi-modules/ruoyi-system -am compile
+[INFO] BUILD SUCCESS
+
+$ python tools/check_fe_page_structure.py            -> exit 0
+$ python tools/check_fe_text_nowrap.py               -> exit 0
+$ python tools/check_api_contract.py                 -> exit 0
+$ python tools/check_docs.py                         -> exit 0
+$ python tools/check_gap_register.py                 -> exit 0
+$ python tools/check_mermaid.py                      -> exit 0
+$ python tools/check_stage6_route_coverage.py        -> exit 0
+$ python tools/check_perm_seed.py                    -> exit 0
+
+$ pnpm --filter @edu/plus-ui typecheck   -> 51 条 error TS（基线 51，未新增）
+$ pnpm --filter @edu/plus-ui lint:eslint -> 124 problems（基线 124；首轮 125 已按 prettier 期望折行修回 124）
+$ pnpm --filter @edu/plus-ui run build:prod -> exit=0（built in 37.38s）
+
+四、未执行项与原因
+- 启动验证未做：9211 端口由用户 IDEA 实例占用；且本服务 @Scheduled 执行者会与运行中实例争抢
+  edu_async_task 的 queued 任务，起第二个实例会干扰联调。
+- 端到端（真实建账号并登录）待人工验收：需要开启 sys.account.registerUser 与按新列重传的 teacher 模板。
+
+五、运营注意
+- 旧的 9 列 teacher 模板会因表头严格比对直接报错，必须按新列重传并升版本；
+- edu_import_template 里 teacher 模板的 column_count 应登记为 10。

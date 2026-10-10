@@ -3862,7 +3862,20 @@ open_questions_for_user:
     blocks_stages:
       - stage8
     owner: 用户
-    status: open
+    answer: |
+      用户 2026-10-10 指令：GAP-116 按推荐执行，并明确取推荐方案的变体 ——
+      模板加「登录名」列（选填），初始密码**不由学校填写**，改由系统随机生成并写进导入结果文件（7 天有效）。
+    resolution: |
+      CR-156 收口（2026-10-10）：
+      ① PRD 升 1.0.7-draft，4.8 模板列新增「登录名」（选填，第 9 列），新增 `REQ-TCH-072`；
+      ② `TeacherImportHandler` 模板变 10 列并校验登录名（长度 ≤ 30、不含空格、文件内唯一）；
+      ③ `TeacherImportExecutor` 填了登录名即生成 12 位随机初始密码、经 `insertByBo` 建账号，
+      并把「登录名 / 初始密码」写进导入结果文件（`EduImportTaskRunner` 的辅助列改为按模块登记）；
+      ④ 顺带修复 `RemoteUserServiceImpl.registerUserInfo` 未加密密码导致账号登不上的缺陷，
+      以及 `EduTeacherServiceImpl.insertByBo` 建号后未回填 `user_id` 的缺陷（D-236）。
+      前置条件：`sys.account.registerUser = true`；teacher 模板需按新列重传并把 `column_count` 登记为 10。
+    resolved_at: "2026-10-10"
+    status: closed
   - id: GAP-117
     title: 组件内的表格未全部纳入页面结构对照（11 张表缺可用原型）
     discovered_at: 2026-10-10
