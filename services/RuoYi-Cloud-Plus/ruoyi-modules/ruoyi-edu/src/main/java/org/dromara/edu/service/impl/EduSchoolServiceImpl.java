@@ -14,6 +14,7 @@ import org.dromara.edu.domain.EduClass;
 import org.dromara.edu.domain.EduGrade;
 import org.dromara.edu.domain.EduSchool;
 import org.dromara.edu.domain.EduSchoolStage;
+import org.dromara.edu.domain.EduStudentEnrollment;
 import org.dromara.edu.domain.EduSubject;
 import org.dromara.edu.domain.EduTeacher;
 import org.dromara.edu.domain.EduTerm;
@@ -32,6 +33,7 @@ import org.dromara.edu.mapper.EduClassMapper;
 import org.dromara.edu.mapper.EduGradeMapper;
 import org.dromara.edu.mapper.EduSchoolMapper;
 import org.dromara.edu.mapper.EduSchoolStageMapper;
+import org.dromara.edu.mapper.EduStudentEnrollmentMapper;
 import org.dromara.edu.mapper.EduSubjectMapper;
 import org.dromara.edu.mapper.EduTeacherMapper;
 import org.dromara.edu.mapper.EduTermMapper;
@@ -41,8 +43,12 @@ import org.dromara.edu.service.IEduTermService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -69,6 +75,9 @@ public class EduSchoolServiceImpl implements IEduSchoolService {
 
     /** 学段开设标记 */
     private static final String STAGE_ON = "1";
+
+    /** 学籍状态：在读（`enrollment_status.enrolled`，GAP-101 的「在读学生」口径） */
+    private static final String ENROLLMENT_IN_SCHOOL = "enrolled";
     private static final String STAGE_OFF = "0";
 
     private final EduSchoolMapper baseMapper;
@@ -80,6 +89,7 @@ public class EduSchoolServiceImpl implements IEduSchoolService {
     private final EduClassMapper classMapper;
     private final EduTeacherMapper teacherMapper;
     private final EduSubjectMapper subjectMapper;
+    private final EduStudentEnrollmentMapper enrollmentMapper;
     private final IEduTermService termService;
     private final IEduSubjectService subjectService;
 
@@ -94,6 +104,23 @@ public class EduSchoolServiceImpl implements IEduSchoolService {
             wrapper.and(w -> w.like(EduSchool::getSchoolName, school.getKeyword())
                 .or().like(EduSchool::getSchoolCode, school.getKeyword()));
         }
+        // 按开设学段筛选：命中 edu_school_stage 的启用记录（REQ-SCH-002 / GAP-101，CR-159）
+        if (StringUtils.isNotBlank(school.getStageCode())) {
+            List<Long> stageSchoolIds = schoolStageMapper.selectList(new LambdaQueryWrapper<EduSchoolStage>()
+                    .select(EduSchoolStage::getSchoolId)
+                    .eq(EduSchoolStage::getStatus, STAGE_ON)
+                    .eq(EduSchoolStage::getStageCode, school.getStageCode()))
+                .stream().map(EduSchoolStage::getSchoolId).filter(Objects::nonNull)
+                .distinct().collect(Collectors.toList());
+            if (stageSchoolIds.isEmpty()) {
+                // 没有学校开设该学段：返回空页，不退回全量（DS-DENY-03 同口径）
+                Page<EduSchoolVo> empty = pageQuery.build();
+                empty.setRecords(List.of());
+                empty.setTotal(0);
+                return TableDataInfo.build(empty);
+            }
+            wrapper.in(EduSchool::getSchoolId, stageSchoolIds);
+        }
         wrapper.orderByAsc(EduSchool::getSchoolCode);
         Page<EduSchoolVo> result = baseMapper.selectPageSchoolList(pageQuery.build(), wrapper);
         fillListAggregates(result.getRecords());
@@ -101,11 +128,11 @@ public class EduSchoolServiceImpl implements IEduSchoolService {
     }
 
     /**
-     * 补齐列表的派生列：开设学段 / 校区数 / 班级数
+     * 补齐列表的派生列：开设学段 / 校区数 / 班级数 / 在读学生数
      * <p>
      * 口径与 {@link #getSchoolSummary(Long)} 保持一致（学段取 status=1 的记录；校区、班级按 school_id 计数，
      * 逻辑删除由 MyBatis-Plus 自动过滤），不另立第二套口径（CR-107）。
-     * 「在读学生数」在详情统计摘要里也没有定义，仍留在 GAP-101 里等口径确认。
+     * 「在读学生」= 本校在校记录中 `enrollment_status = 'enrolled'` 的**去重学生数**、不限学年（GAP-101 / CR-159）。
      */
     private void fillListAggregates(List<EduSchoolVo> records) {
         if (records == null || records.isEmpty()) {
@@ -128,10 +155,23 @@ public class EduSchoolServiceImpl implements IEduSchoolService {
                 .in(EduClass::getSchoolId, schoolIds))
             .stream()
             .collect(Collectors.groupingBy(EduClass::getSchoolId, Collectors.counting()));
+        // 在读学生：同一学生在同一学校只算一次（学籍状态可能有多条历史记录）
+        Map<Long, Set<Long>> studentMap = new HashMap<>();
+        for (EduStudentEnrollment enrollment : enrollmentMapper.selectList(
+            new LambdaQueryWrapper<EduStudentEnrollment>()
+                .select(EduStudentEnrollment::getSchoolId, EduStudentEnrollment::getStudentId)
+                .in(EduStudentEnrollment::getSchoolId, schoolIds)
+                .eq(EduStudentEnrollment::getEnrollmentStatus, ENROLLMENT_IN_SCHOOL))) {
+            if (enrollment.getSchoolId() != null && enrollment.getStudentId() != null) {
+                studentMap.computeIfAbsent(enrollment.getSchoolId(), key -> new HashSet<>())
+                    .add(enrollment.getStudentId());
+            }
+        }
         for (EduSchoolVo vo : records) {
             vo.setStageCodes(stageMap.get(vo.getSchoolId()));
             vo.setCampusCount(campusMap.getOrDefault(vo.getSchoolId(), 0L).intValue());
             vo.setClassCount(classMap.getOrDefault(vo.getSchoolId(), 0L).intValue());
+            vo.setStudentCount(studentMap.getOrDefault(vo.getSchoolId(), Set.of()).size());
         }
     }
 
@@ -373,12 +413,26 @@ public class EduSchoolServiceImpl implements IEduSchoolService {
         vo.setTermCount(termMapper.selectCount(new LambdaQueryWrapper<EduTerm>().eq(EduTerm::getSchoolId, schoolId)));
         vo.setGradeCount(gradeMapper.selectCount(new LambdaQueryWrapper<EduGrade>().eq(EduGrade::getSchoolId, schoolId)));
         vo.setClassCount(classMapper.selectCount(new LambdaQueryWrapper<EduClass>().eq(EduClass::getSchoolId, schoolId)));
+        vo.setStudentCount(countStudentsInSchool(schoolId));
         vo.setTeacherCount(teacherMapper.selectCount(new LambdaQueryWrapper<EduTeacher>().eq(EduTeacher::getSchoolId, schoolId)));
         vo.setSubjectCount(subjectMapper.selectCount(new LambdaQueryWrapper<EduSubject>()
             .eq(EduSubject::getSchoolId, schoolId)));
         vo.setInitialized(!stages.isEmpty()
             && vo.getAcademicYearCount() != null && vo.getAcademicYearCount() > 0);
         return vo;
+    }
+
+    /** 在读学生数：本校在校记录中 `enrollment_status = 'enrolled'` 的去重学生数、不限学年（GAP-101 / CR-159） */
+    private long countStudentsInSchool(Long schoolId) {
+        return enrollmentMapper.selectList(new LambdaQueryWrapper<EduStudentEnrollment>()
+                .select(EduStudentEnrollment::getStudentId)
+                .eq(EduStudentEnrollment::getSchoolId, schoolId)
+                .eq(EduStudentEnrollment::getEnrollmentStatus, ENROLLMENT_IN_SCHOOL))
+            .stream()
+            .map(EduStudentEnrollment::getStudentId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .count();
     }
 
     @Override

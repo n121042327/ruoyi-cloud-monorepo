@@ -88,6 +88,8 @@ export interface SchoolSummaryVO {
   termCount?: number;
   gradeCount?: number;
   classCount?: number;
+  /** 在读学生数（本校在校记录中 enrollment_status = 'enrolled' 的去重学生数，不限学年） */
+  studentCount?: number;
   teacherCount?: number;
   subjectCount?: number;
   initialized?: boolean;

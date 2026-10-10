@@ -1,0 +1,46 @@
+2026-10-10 阶段 7：学校列表「在读学生数」与学段筛选（GAP-101 关闭，CR-159）
+
+一、背景
+GAP-101：学校台账列表的「在读学生」列恒为空、按学段筛选传参被忽略；PRD REQ-SCH-010 也要求详情摘要含
+「在读学生数」但实现里没有。统计口径属产品决策，用户 2026-10-10 确认「按推荐」：
+在读 = 本校在校记录中 enrollment_status='enrolled' 的去重学生数、不限学年，并顺带实现按学段筛选。
+
+二、本批改动
+1. docs/10-prd/modules/school/PRD.md 升 1.0.2-draft，4.1 补「列表派生列的取数口径」（五个列）与
+   「按开设学段筛选」的口径说明；4.2 的 REQ-SCH-010 与列表共用同一口径。
+2. EduSchoolBo 增查询字段 stageCode。
+3. EduSchoolServiceImpl：
+   - queryPageList 支持 stageCode：查 edu_school_stage（status='1'）得到 schoolIds；
+     无命中时构造空页返回（total=0），不退化为全量；
+   - fillListAggregates 补 studentCount：一次批量查 edu_student_enrollment（in school_id、status=enrolled），
+     按学校聚合去重学生 ID 数；
+   - getSchoolSummary 补 studentCount（同口径去重计数）；新增 EduStudentEnrollmentMapper 依赖。
+4. SchoolSummaryVo 增 studentCount。
+5. 前端：SchoolSummaryVO 增 studentCount，学校概要弹窗新增「在读学生数」；SchoolQuery.stageCode 注释更新。
+   列表的学段下拉与「在读学生」列此前已就位，无需改动。
+
+三、门禁（本机执行）
+$ cd services/RuoYi-Cloud-Plus
+$ mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile
+[INFO] BUILD SUCCESS
+
+$ python tools/check_fe_page_structure.py            -> exit 0
+$ python tools/check_fe_text_nowrap.py               -> exit 0
+$ python tools/check_api_contract.py                 -> exit 0
+$ python tools/check_docs.py                         -> exit 0
+$ python tools/check_gap_register.py                 -> exit 0
+$ python tools/check_mermaid.py                      -> exit 0
+$ python tools/check_stage6_route_coverage.py        -> exit 0
+$ python tools/check_perm_seed.py                    -> exit 0
+
+$ pnpm --filter @edu/plus-ui typecheck   -> 51 条 error TS（基线 51，未新增）
+$ pnpm --filter @edu/plus-ui lint:eslint -> 124 problems（基线 124，未新增）
+$ pnpm --filter @edu/plus-ui run build:prod -> exit=0（built in 36.44s）
+
+四、未执行项与原因
+- 启动验证未做：9211 由用户 IDEA 实例占用（已于 21:06 重启到本分支代码），
+  且本服务 @Scheduled 执行者会与运行实例争抢 edu_async_task 的 queued 任务。
+
+五、运行时验收（加入清单第 13 项）
+- 学校管理列表：「在读学生」列有数字、与该校概要弹窗的「在读学生数」一致；
+- 学段下拉选择后列表只剩开设该学段的学校；选一个无人开设的学段时列表为空且不显示全量。

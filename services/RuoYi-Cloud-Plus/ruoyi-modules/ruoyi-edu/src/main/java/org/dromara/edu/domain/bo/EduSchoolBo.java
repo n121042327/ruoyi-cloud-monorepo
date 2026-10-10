@@ -54,6 +54,9 @@ public class EduSchoolBo extends BaseEntity {
     /** 关键字：学校名称 / 编码 */
     private String keyword;
 
+    /** 查询条件：开设学段编码（匹配 edu_school_stage 的启用记录，REQ-SCH-002 / GAP-101） */
+    private String stageCode;
+
     /** 停用 / 启用原因（至少 5 个字） */
     private String reason;
 

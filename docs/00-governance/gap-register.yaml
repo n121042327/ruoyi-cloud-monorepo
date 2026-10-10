@@ -3366,12 +3366,18 @@ open_questions_for_user:
       - stage8
     owner: 用户
     answer: |
-      待用户确认列表聚合口径；确认前不实现，避免与 `getSchoolSummary` 出现第二套口径。
+      2026-10-10 用户确认「按推荐」：在读学生 = 本校在校记录 `enrollment_status = 'enrolled'` 的去重学生数、
+      不限学年；同时实现「按开设学段筛选」（命中 `edu_school_stage` 的启用记录），口径写进 school PRD。
     resolution: |
       2026-10-08 范围收窄（CR-107）：① 「开设学段 / 校区数 / 班级数」三列已按既有 `getSchoolSummary` 的口径在
       `EduSchoolServiceImpl.queryPageList` 里批量补齐（学段取 status=1；校区、班级按 school_id 计数）；
       ② 「按学段筛选」仍未实现（后端 listSchool 的查询条件只有 schoolStatus / schoolCode / keyword），
       与「在读学生数」一起等口径确认后在同一批实现。
+      CR-159 收口（2026-10-10）：① school PRD 升 1.0.2-draft，4.1 写明列表派生列的取数口径与「按开设学段筛选」的
+      口径；② `fillListAggregates` 补「在读学生数」（经新增的 `EduStudentEnrollmentMapper` 一次批量查询，
+      `enrollment_status = 'enrolled'` 去重学生 ID 计数）；③ `queryPageList` 支持 `stageCode`
+      （无命中返回空页、不退化为全量）；④ `SchoolSummaryVo` 与 `getSchoolSummary` 同步补 `studentCount`（同口径），
+      前端学校概要弹窗展示「在读学生数」（D-237）。
     ask_2026_10_10: |
       **这是什么**：学校台账列表的「在读学生数」按什么口径统计（学段筛选可以顺带一起做）。
       PRD `docs/10-prd/modules/school/PRD.md` 第 174 行的 `REQ-SCH-010` 已经要求详情摘要含「在读学生数」，
@@ -3383,12 +3389,13 @@ open_questions_for_user:
       **推荐方案与理由**：推荐 ① —— `enrollment_status` 的 `enrolled = 在读` 在字段字典里有明确定义
       （`docs/10-prd/06-field-dictionary.yaml` 的学籍状态枚举），去重学生数是「学校现有多少在读学生」的
       直观口径；② 会让同一学校在不同学年显示不同人数，与「台账看总量」的用法不符。
+      **已按推荐落地**（2026-10-10，CR-159 / D-237）。
       影响面：`docs/10-prd/modules/school/PRD.md` 第 163—174 行补口径、
       `EduSchoolServiceImpl.fillListAggregates` 与 `getSchoolSummary`、`EduSchoolMapper.selectPageSchoolList`
       （学段筛选）、前端 `apps/plus-ui/src/views/edu/school/sch_list/index.vue` 第 23 行与第 77 行。
       未获确认前保持 open。
-    resolved_at: ""
-    status: open
+    resolved_at: "2026-10-10"
+    status: closed
 
   - id: GAP-102
     title: 原型称「学校编码由系统生成」，但后端契约要求显式传入且编码规则未定义

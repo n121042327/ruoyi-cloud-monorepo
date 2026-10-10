@@ -11,6 +11,7 @@
       <el-descriptions-item label="学期数">{{ data.termCount ?? 0 }}</el-descriptions-item>
       <el-descriptions-item label="年级数">{{ data.gradeCount ?? 0 }}</el-descriptions-item>
       <el-descriptions-item label="班级数">{{ data.classCount ?? 0 }}</el-descriptions-item>
+      <el-descriptions-item label="在读学生数">{{ data.studentCount ?? 0 }}</el-descriptions-item>
       <el-descriptions-item label="教师数">{{ data.teacherCount ?? 0 }}</el-descriptions-item>
       <el-descriptions-item label="学科数">{{ data.subjectCount ?? 0 }}</el-descriptions-item>
     </el-descriptions>

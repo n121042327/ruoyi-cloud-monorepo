@@ -42,6 +42,9 @@ public class SchoolSummaryVo implements Serializable {
     /** 班级数 */
     private Long classCount;
 
+    /** 在读学生数（本校在校记录中 `enrollment_status = 'enrolled'` 的去重学生数，不限学年；REQ-SCH-010 / GAP-101） */
+    private Long studentCount;
+
     /** 教师数 */
     private Long teacherCount;
 

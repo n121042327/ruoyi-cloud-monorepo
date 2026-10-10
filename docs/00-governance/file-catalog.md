@@ -1921,3 +1921,15 @@
 |---|---|---|
 | `docs/00-governance/change-requests/CR-158.md` | GAP-112 按推荐关闭与重新评估触发条件 | `review` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-112 补 answer / resolution 并置 closed | `review` |
+
+## 2026-10-10 阶段 7 第七十六批：学校列表「在读学生数」与学段筛选（GAP-101 关闭）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-159.md` | 口径与门禁 | `review` |
+| `docs/10-prd/modules/school/PRD.md`（改） | 升 1.0.2-draft：补列表派生列与学段筛选口径 | `已设计` |
+| `services/.../edu/service/impl/EduSchoolServiceImpl.java`（改） | 学段筛选 + 在读学生数聚合（列表与摘要同口径） | `已实现` |
+| `services/.../edu/domain/bo/EduSchoolBo.java`、`domain/vo/SchoolSummaryVo.java`（改） | 查询字段 `stageCode`、摘要 `studentCount` | `已实现` |
+| `apps/plus-ui/src/api/edu/school/{index.ts,types.ts}`、`views/edu/school/sch_list/components/SchoolSummaryDialog.vue`（改） | 摘要展示在读学生数、注释对齐 | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-101 关闭 | `review` |
+| `evidence/stage7-backend/2026-10-10_school-list-student-count.log` | 门禁与运行时验收要点 | `review` |
