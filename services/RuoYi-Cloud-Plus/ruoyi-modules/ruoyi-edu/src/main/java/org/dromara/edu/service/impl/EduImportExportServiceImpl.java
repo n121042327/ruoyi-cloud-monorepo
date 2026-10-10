@@ -11,6 +11,7 @@ import org.dromara.common.core.utils.DateUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
+import org.dromara.common.json.utils.JsonUtils;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.edu.domain.EduAsyncTask;
 import org.dromara.edu.domain.EduFileRef;
@@ -33,6 +34,12 @@ import org.dromara.edu.mapper.EduAsyncTaskMapper;
 import org.dromara.edu.mapper.EduFileRefMapper;
 import org.dromara.edu.mapper.EduImportBatchMapper;
 import org.dromara.edu.mapper.EduImportErrorMapper;
+import org.dromara.edu.datascope.DataScopeContext;
+import org.dromara.edu.datascope.DataScopeResolver;
+import org.dromara.edu.job.EduImportContext;
+import org.dromara.edu.job.EduImportFileReader;
+import org.dromara.edu.job.EduImportHandler;
+import org.dromara.edu.job.EduImportRow;
 import org.dromara.edu.mapper.EduImportTemplateMapper;
 import org.dromara.edu.service.IEduAuditService;
 import org.dromara.edu.service.IEduImportExportService;
@@ -133,6 +140,11 @@ public class EduImportExportServiceImpl implements IEduImportExportService {
     private final EduFileRefMapper fileRefMapper;
     private final EduAsyncTaskMapper asyncTaskMapper;
     private final IEduAuditService auditService;
+    private final DataScopeResolver dataScopeResolver;
+    private final EduImportFileReader importFileReader;
+
+    /** 已登记的模块导入校验器（key = 模块编码） */
+    private final List<EduImportHandler> importHandlers;
 
     @DubboReference
     private RemoteFileService remoteFileService;
@@ -210,11 +222,101 @@ public class EduImportExportServiceImpl implements IEduImportExportService {
         batch.setSkippedCount(0);
         batch.setImportStatus(BATCH_VALIDATED);
         batch.setOperatorId(LoginHelper.getUserId());
+        batch.setSchoolId(currentSchoolId());
         batchMapper.insert(batch);
-        String guidance = "批次已登记；行级校验（必填 / 格式 / 枚举 / 引用完整性 / 唯一性 / 数据范围）"
-            + "由文件解析器读取文件后逐行写 edu_import_error，见 CR-091 与 GAP-094。"
-            + "若模板声明行数超过 " + MAX_ROW_COUNT + " 行，请拆分为多个批次后重新上传（REQ-IMP-051）。";
-        return toValidateResult(batch, guidance);
+        String guidance = runRowValidation(batch, bo, sourceFile);
+        EduImportBatch reloaded = batchMapper.selectById(batch.getBatchId());
+        return toValidateResult(reloaded == null ? batch : reloaded, guidance);
+    }
+
+    /**
+     * 当前用户的学校上下文。
+     *
+     * 导入的学校归属来自登录态的数据范围（学校租户下唯一）；多校账号（集团 / 运营方）本批未支持显式选校，
+     * 直接拒绝而不是随便取一个（见 GAP-115）。
+     */
+    private Long currentSchoolId() {
+        DataScopeContext context = dataScopeResolver.resolve();
+        if (context == null || context.getSchoolIds() == null || context.getSchoolIds().isEmpty()) {
+            throw new ServiceException("导入缺少学校上下文，拒绝校验（DS-DENY-02）");
+        }
+        if (context.getSchoolIds().size() > 1) {
+            throw new ServiceException("当前账号可管理多个学校，导入需要显式指定学校（本批未支持，见 GAP-115）");
+        }
+        return context.getSchoolIds().iterator().next();
+    }
+
+    /**
+     * 同步解析文件并逐行校验（REQ-IMP-005 / REQ-STU-053）。
+     *
+     * 模块未登记校验器时只登记批次并返回指引（不写 edu_import_error）；
+     * 已登记时：取文件字节（`edu_file_ref.file_id` 即文件服务 ossId）→ 解析 → 逐行校验 →
+     * 失败行写 edu_import_error → 回填批次计数。
+     */
+    private String runRowValidation(EduImportBatch batch, EduImportValidateBo bo, EduFileRef sourceFile) {
+        EduImportHandler handler = importHandler(bo.getModuleCode());
+        if (handler == null) {
+            return "批次已登记；模块「" + bo.getModuleCode() + "」的行级校验规则尚未落地（GAP-094a），"
+                + "规则落地前不会写 edu_import_error。若模板声明行数超过 " + MAX_ROW_COUNT
+                + " 行，请拆分为多个批次后重新上传（REQ-IMP-051）。";
+        }
+        byte[] bytes = readImportFileBytes(sourceFile);
+        List<EduImportRow> rows = importFileReader.read(bytes, sourceFile.getFileName(), handler.templateHeaders());
+        EduImportContext context = new EduImportContext();
+        context.setBatchNo(batch.getBatchNo());
+        context.setSchoolId(batch.getSchoolId());
+        context.setModuleCode(bo.getModuleCode());
+        context.setTermId(bo.getTermId());
+        context.setTargetClassId(bo.getTargetClassId());
+        context.setStrategy(bo.getStrategy());
+        context.setFileId(bo.getFileId());
+        context.setFileName(sourceFile.getFileName());
+        handler.validateRows(context, rows);
+        int invalid = 0;
+        for (EduImportRow row : rows) {
+            if (StringUtils.isBlank(row.getFailReason())) {
+                continue;
+            }
+            invalid++;
+            EduImportError error = new EduImportError();
+            error.setSchoolId(batch.getSchoolId());
+            error.setBatchNo(batch.getBatchNo());
+            error.setRowNo(row.getRowNo());
+            error.setResult("invalid");
+            error.setFailReason(StringUtils.substring(row.getFailReason(), 0, 500));
+            error.setObjectName(row.getCells().get("姓名"));
+            error.setRawData(JsonUtils.toJsonString(row.getCells()));
+            errorMapper.insert(error);
+        }
+        EduImportBatch update = new EduImportBatch();
+        update.setBatchId(batch.getBatchId());
+        update.setRowTotal(rows.size());
+        update.setValidCount(rows.size() - invalid);
+        update.setInvalidCount(invalid);
+        batchMapper.updateById(update);
+        return "校验完成：共 " + rows.size() + " 行，可执行 " + (rows.size() - invalid)
+            + " 行，失败 " + invalid + " 行。失败行可下载明细逐条修正后作为新批次重新上传（REQ-STU-060）。";
+    }
+
+    /** 取文件字节：edu_file_ref.file_id 是文件服务 ossId，先换 url 再取内容（NFR-DATA-03） */
+    private byte[] readImportFileBytes(EduFileRef sourceFile) {
+        String url = remoteFileService.selectUrlByIds(String.valueOf(sourceFile.getFileId()));
+        if (StringUtils.isBlank(url)) {
+            throw new ServiceException("文件不存在或已清理，请重新上传");
+        }
+        return remoteFileService.downloadByUrl(url.split(",")[0].trim());
+    }
+
+    private EduImportHandler importHandler(String moduleCode) {
+        if (importHandlers == null || StringUtils.isBlank(moduleCode)) {
+            return null;
+        }
+        for (EduImportHandler handler : importHandlers) {
+            if (moduleCode.equals(handler.moduleCode())) {
+                return handler;
+            }
+        }
+        return null;
     }
 
     @Override

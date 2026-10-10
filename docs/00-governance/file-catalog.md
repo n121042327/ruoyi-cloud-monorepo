@@ -1735,3 +1735,15 @@
 | `services/.../edu/job/ClassRosterExportHandler.java`、`ClassRosterExportRow.java` | 编班表导出器（xlsx/csv，8 列，只导行政班） | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-094 第二批完成标注 | `review` |
 | `evidence/stage7-backend/2026-10-10_class-roster-export-handler.log` | 门禁与状态记录 | `review` |
+
+## 2026-10-10 阶段 7 第六十批：导入解析器与逐行校验（学生模块）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-141.md` | 导入框架、学生校验规则与两个实现细节 | `review` |
+| `services/.../edu/job/EduImportContext.java`、`EduImportRow.java`、`EduImportHandler.java` | 导入校验框架 | `已实现` |
+| `services/.../edu/job/EduImportFileReader.java` | xlsx / csv 解析与表头严格比对 | `已实现` |
+| `services/.../edu/job/StudentImportHandler.java` | 学生模块 14 列模板与校验规则 | `已实现` |
+| `services/.../edu/service/impl/EduImportExportServiceImpl.java`（改） | 同步解析校验 + 写 edu_import_error + 回填计数 + 补 schoolId | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-094 进度更新；新增 GAP-115 | `review` |
+| `evidence/stage7-backend/2026-10-10_import-parser-and-student-validation.log` | 门禁与规则来源 | `review` |

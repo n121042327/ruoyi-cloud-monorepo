@@ -1,0 +1,32 @@
+# GAP-094 第三批：导入解析器与逐行校验（学生模块）（CR-141 / D-221 / GAP-115）
+
+时间：2026-10-10　分支：codex/stage7-backend　触发：heartbeat（18:00 起每 5 分钟）
+
+## 交付
+| 组件 | 说明 |
+|---|---|
+| `job/EduImportContext` / `EduImportRow` / `EduImportHandler` | 导入校验框架：上下文、行（表头名→值，带 failReason）、模块校验器接口 |
+| `job/EduImportFileReader` | xlsx（fastexcel）与 csv 解析 → 表头名→单元格；**表头顺序与模板逐列比对**，不一致直接拒绝（REQ-STU-052）；全空行跳过；单批 ≤ 5000 行 |
+| `job/StudentImportHandler` | 学生模块校验器：模板列来自学生 PRD 4.8（14 列，不含学号，BR-STU-019）；校验维度来自 REQ-STU-054 |
+| `EduImportExportServiceImpl.validateImportFile` | 批次落库后**同步**解析 + 逐行校验 → 失败行写 `edu_import_error` → 回填 `row_total / valid_count / invalid_count`；返回结果里的失败行就是明细（分页由 `listImportRows` 提供） |
+
+## 学生校验规则（REQ-STU-054 + PRD 4.8 列说明）
+- 必填：姓名 / 性别 / 入学年份 / 学段 / 年级；
+- 格式：性别 ∈ {男,女}；入学年份 4 位；学段 ∈ {小学,初中,高中}；出生日期 `YYYY-MM-DD`；监护人电话 11 位手机号；全国学籍号以 G / L 开头；
+- 引用：年级必须已存在于该校；班级（填了就查）必须已存在于该学年学期 —— 选了「统一目标班级」时忽略文件里的班级列（`targetClassId` 口径）；
+- 唯一：证件号码 / 全国学籍号 **文件内自身重复**与**库内已存在**都算失败（BR-STU-007 / 008 / 022）。
+
+## 顺带修掉的一个隐患
+`edu_import_batch.school_id` 是 NOT NULL，但批次落库时**从来没有赋过值** —— 也就是说导入校验在当前代码里根本跑不到
+「写批次」之后。本批补上：学校归属由登录态数据范围解析（学校租户下唯一），
+多校账号（集团 / 运营方）直接拒绝而不是随便取一个（登记 GAP-115）。
+
+## 门禁
+```
+mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile -> BUILD SUCCESS
+七项 python 检查 -> 通过
+```
+本批只改后端，未重跑前端门禁。真实文件解析与校验需要本机 MySQL / MinIO 才能验证。
+
+## 下一步
+teacher / class_roster 两个模块校验器（第四批导入部分），随后是导入执行阶段（逐行写业务数据）。
