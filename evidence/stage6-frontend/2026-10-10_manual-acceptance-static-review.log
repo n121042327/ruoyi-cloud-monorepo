@@ -1,0 +1,30 @@
+# 人工验收静态回归 + 权限种子缺口修复（CR-148 / D-228）
+
+时间：2026-10-10　分支：codex/stage7-backend　触发：heartbeat（18:00 起每 5 分钟）
+
+## 做了什么
+按 `evidence/stage6-frontend/2026-10-10_manual-acceptance-checklist.md` 逐条**静态核对**
+（详情抽屉 / 在校记录段 / 四类删除 / 任教关系入口），并在过程中比对「前端与后端用到的权限点」与「菜单种子里的权限点」。
+
+## 发现的问题（真问题）
+两个权限点在前端/后端都在使用，但 `script/sql/**` 的菜单种子里没有：
+
+| 权限点 | 用在哪 | 后果 |
+|---|---|---|
+| `org.class:remove` | 班级列表「更多▾ → 删除班级」 | 除 super_admin 外任何角色都拿不到 → 按钮永远不显示，且不报错 |
+| `person.student_guardian:update` | 学生详情监护人编辑 | 同上 |
+
+两者在 `05-permission-matrix.yaml` 中都有定义（`org.class` 含 delete / `person.student_guardian` 含 update），
+因此是「实现漏了种子」，不是口径分歧。已补 `edu-menu.sql`（13164 / 13165），并新增门禁
+`tools/check_perm_seed.py` 防止再次漏检。
+
+## 门禁
+```
+python tools/check_perm_seed.py -> 通过（前端/后端 66 个权限点，种子 66 个）
+七项既有 python 检查 -> 通过
+```
+本批未改前端代码与后端 Java，未重跑 typecheck / lint / build 与 Maven。
+
+## 生效方式（需要用户操作）
+1. 重跑 `services/RuoYi-Cloud-Plus/script/sql/edu-menu.sql`（按 id 区间幂等，可重复执行）；
+2. 在「系统管理 → 角色管理」里给教务主任等角色勾上新增的删除 / 修改按钮权限（super_admin 无需授权）。

@@ -1808,3 +1808,13 @@
 | `services/.../edu/job/StudentImportExecutor.java`（改） | 回填生成的学号 | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-094 关闭 | `review` |
 | `evidence/stage7-backend/2026-10-10_import-result-files.log` | 门禁与收口记录 | `review` |
+
+## 2026-10-10 阶段 6 第六十七批：人工验收静态回归 + 权限种子门禁
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-148.md` | 静态回归结论与权限种子缺口 | `review` |
+| `services/RuoYi-Cloud-Plus/script/sql/edu-menu.sql`（改） | 补 org.class:remove / person.student_guardian:update 两个权限点 | `已实现` |
+| `tools/check_perm_seed.py` | 新增门禁：权限点 ↔ 菜单种子一致性 | `已实现` |
+| `evidence/stage6-frontend/2026-10-10_manual-acceptance-checklist.md`（改） | 追加静态回归记录 | `review` |
+| `evidence/stage6-frontend/2026-10-10_manual-acceptance-static-review.log` | 门禁与生效方式 | `review` |

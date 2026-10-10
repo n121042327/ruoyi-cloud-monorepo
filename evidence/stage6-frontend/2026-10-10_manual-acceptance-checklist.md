@@ -64,3 +64,33 @@
 ## 门禁
 本批只改治理文档与证据（无代码改动）：`check_docs.py` / `check_gap_register.py` 通过；
 未重跑前端 typecheck / lint / build 与 Maven（AGENTS：改动只涉及治理文档时前端门禁不必重跑）。
+
+## 静态回归记录（2026-10-10，CR-148）
+
+运行时验收（点页面）本轮做不了：需要本机 MySQL / Redis / Nacos / MinIO 全部起来。本批做的是**静态核对** ——
+逐条对着实现与契约检查，并在过程中发现并修掉一个真问题。
+
+| 项 | 静态核对结果 |
+|---|---|
+| 1 教师详情抽屉 | 通过：三个分组齐全；在职状态走 `EMPLOYMENT_STATUS_LABEL` 显示中文；抽屉内无写入按钮（D-208）；引用的 `email / hireDate / leaveDate / remark / updateTime` 均在后端 `EduTeacherVo` 里 |
+| 2 年级详情抽屉 | 通过：基础信息 + 下辖班级；`schoolName / updateTime` 与后端 `EduGradeVo` 对齐 |
+| 3 学生详情在校记录段 | 通过：`getStudentEnrollment` 在 `Promise.all` 里调用并兜底 catch；学籍状态经 `ENROLLMENT_STATUS_LABEL` 显示中文；分组顺序与原型一致（`基础信息 → 教育信息 → 证件信息 → 联系方式 → 监护人 → 变更记录`） |
+| 4 四类主体删除 | **发现并修复**：`org.class:remove` 不在菜单种子里（见下），班级删除按钮对非超管永远不可见；另外三个权限点（`person.student:remove` / `org.grade:remove` / `org.subject:remove`）都在 |
+| 5 教师「设置任教」入口 | 通过：跳转带 `teacherId`，任教关系页 `onMounted` 消费并切「按教师」视角；全库已无「下一批交付」类文案 |
+
+### 发现的问题与修复
+
+`edu-menu.sql` 缺两个权限点（前端 / 后端在用，但种子里没有 → 除 super_admin 外任何角色都拿不到，按钮永远不显示）：
+
+| 权限点 | 用在哪 | 处置 |
+|---|---|---|
+| `org.class:remove` | 班级列表「更多▾ → 删除班级」 | 补菜单行 `13164`（parent 13023 班级管理） |
+| `person.student_guardian:update` | 学生详情监护人编辑 | 补菜单行 `13165`（parent 13020 学生管理） |
+
+两者都在 `05-permission-matrix.yaml` 里有定义（`org.class` 含 delete、`person.student_guardian` 含 update），
+属于「实现漏了种子」而不是口径问题。修复后新增门禁 `tools/check_perm_seed.py`（见 D-228）。
+
+> 生效方式：需要在本地库重跑 `services/RuoYi-Cloud-Plus/script/sql/edu-menu.sql`（脚本按 id 区间幂等，
+> 可重复执行），并在「系统管理 → 角色管理」里给相应角色勾上新按钮权限（super_admin 无需授权）。
+
+上文各条的运行时 `待验收` 仍然有效：静态核对通过 ≠ 运行时通过。
