@@ -1870,3 +1870,13 @@
 | `apps/plus-ui/src/views/edu/{import-export/imp_wizard,student/stu_import,class/cls_roster_import,teacher/tch_import}/index.vue`（改） | 目标学校下拉（多校时才出现） | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-115 关闭 | `review` |
 | `evidence/stage7-backend/2026-10-10_import-school-selection.log` | 门禁与未执行项说明 | `review` |
+
+## 2026-10-10 阶段 7 第七十三批：文件引用与任务强制带学校，下载审计不再跳过（GAP-113 关闭）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-154.md` | 学校落源头与审计兜底口径 | `review` |
+| `services/.../edu/service/impl/EduImportExportServiceImpl.java`（改） | 导出任务写 school_id；下载审计兜底 + 拒绝 | `已实现` |
+| `services/.../edu/service/impl/EduAsyncTaskServiceImpl.java`（改） | 下载审计学校逐级兜底 + 拒绝 | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-113 关闭 | `review` |
+| `evidence/stage7-backend/2026-10-10_download-audit-school-context.log` | 根因、门禁与未执行项说明 | `review` |

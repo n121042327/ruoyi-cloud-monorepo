@@ -14,6 +14,7 @@ import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.json.utils.JsonUtils;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.edu.domain.EduAsyncTask;
+import org.dromara.edu.domain.EduClass;
 import org.dromara.edu.domain.EduFileRef;
 import org.dromara.edu.domain.EduImportBatch;
 import org.dromara.edu.domain.EduImportError;
@@ -31,6 +32,7 @@ import org.dromara.edu.domain.vo.EduImportExecuteResultVo;
 import org.dromara.edu.domain.vo.EduImportTemplateVo;
 import org.dromara.edu.domain.vo.EduImportValidateResultVo;
 import org.dromara.edu.mapper.EduAsyncTaskMapper;
+import org.dromara.edu.mapper.EduClassMapper;
 import org.dromara.edu.mapper.EduFileRefMapper;
 import org.dromara.edu.mapper.EduImportBatchMapper;
 import org.dromara.edu.mapper.EduImportErrorMapper;
@@ -52,6 +54,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -143,6 +146,7 @@ public class EduImportExportServiceImpl implements IEduImportExportService {
     private final IEduAuditService auditService;
     private final DataScopeResolver dataScopeResolver;
     private final EduImportFileReader importFileReader;
+    private final EduClassMapper classMapper;
 
     /** 已登记的模块导入校验器（key = 模块编码） */
     private final List<EduImportHandler> importHandlers;
@@ -441,6 +445,8 @@ public class EduImportExportServiceImpl implements IEduImportExportService {
         // 细粒度数据范围（年级主任看本年级 / 班主任看本班 / 任课教师看本人任教班级）必须在**请求线程**解析：
         // 后台执行没有登录态，数据权限插件不会生效（D-218 / GAP-114）。范围随任务落库，执行阶段按它过滤。
         DataScopeContext exportScope = dataScopeResolver.resolve();
+        // 学校归属必须在请求线程定下来：文件引用与下载审计都要求学校非空（GAP-113 / REQ-IMP-043）
+        task.setSchoolId(resolveExportSchoolId(exportScope));
         task.setParamsSummary(buildExportParamsSummary(bo, format, plainText, exportScope));
         task.setTotalCount(0);
         task.setSuccessCount(0);
@@ -541,14 +547,55 @@ public class EduImportExportServiceImpl implements IEduImportExportService {
     }
 
     /**
+     * 导出任务的学校归属（GAP-113）。
+     *
+     * `edu_file_ref.school_id` 与 `edu_audit_log.school_id` 都要求非空，而后台执行没有登录态 ——
+     * 学校必须在请求线程定下来随任务落库（与 D-218 同一口径）：
+     * 数据范围内唯一学校直接用；多所学校时无法判定，明确拒绝而不是落空；
+     * 只有班级范围（班主任 / 任课教师）时按班级反推所属学校。
+     */
+    private Long resolveExportSchoolId(DataScopeContext scope) {
+        if (scope == null) {
+            throw new ServiceException("导出缺少数据范围上下文，拒绝导出（DS-DENY-01）");
+        }
+        if (scope.getSchoolIds().size() == 1) {
+            return scope.getSchoolIds().iterator().next();
+        }
+        if (scope.getSchoolIds().size() > 1) {
+            throw new ServiceException("当前账号可管理多个学校，导出需要显式指定学校（GAP-113）");
+        }
+        return schoolIdByClasses(scope);
+    }
+
+    /** 只有班级范围（班主任 / 任课教师）时，按班级反推学校；取不到或跨多所学校都拒绝 */
+    private Long schoolIdByClasses(DataScopeContext scope) {
+        Set<Long> classIds = new HashSet<>(scope.getClassIds());
+        classIds.addAll(scope.getTeachingClassIds());
+        if (classIds.isEmpty()) {
+            throw new ServiceException("导出缺少学校上下文，拒绝导出（DS-DENY-02）");
+        }
+        Set<Long> schoolIds = new HashSet<>();
+        for (EduClass clazz : classMapper.selectByIds(classIds)) {
+            if (clazz.getSchoolId() != null) {
+                schoolIds.add(clazz.getSchoolId());
+            }
+        }
+        if (schoolIds.size() != 1) {
+            throw new ServiceException("导出范围跨多所学校或学校信息缺失，拒绝导出（DS-DENY-02）");
+        }
+        return schoolIds.iterator().next();
+    }
+
+    /**
      * 写一条下载审计（`REQ-IMP-043`）。
      *
-     * `edu_audit_log.school_id` 非空；文件引用上没有学校上下文时只记 warn、不阻断下载。
+     * `edu_audit_log.school_id` 非空（GAP-113）：文件引用上没有学校时用当前登录态的数据范围兜底；
+     * 仍取不到就**拒绝下载** —— 没有留痕的下载不允许发生（`REQ-IMP-043` / `DS-DENY-02`）。
      */
     private void writeDownloadLog(EduFileRef fileRef) {
-        if (fileRef.getSchoolId() == null) {
-            log.warn("下载审计缺少学校上下文，已跳过：fileId={}", fileRef.getFileId());
-            return;
+        Long schoolId = fileRef.getSchoolId() == null ? currentSchoolIdOrNull() : fileRef.getSchoolId();
+        if (schoolId == null) {
+            throw new ServiceException("下载文件缺少学校上下文，已拒绝下载（REQ-IMP-043）");
         }
         EduAuditLogBo logBo = new EduAuditLogBo();
         logBo.setActionType("export");
@@ -556,9 +603,21 @@ public class EduImportExportServiceImpl implements IEduImportExportService {
         logBo.setObjectType("file");
         logBo.setObjectId(String.valueOf(fileRef.getFileId()));
         logBo.setObjectName(fileRef.getFileName());
-        logBo.setSchoolId(fileRef.getSchoolId());
+        logBo.setSchoolId(schoolId);
         logBo.setDetail("下载文件：" + fileRef.getFileName());
         auditService.recordLog(logBo);
+    }
+
+    /** 当前登录态数据范围内唯一学校；没有或多所都返回 null（下载审计兜底，不做「取第一个」） */
+    private Long currentSchoolIdOrNull() {
+        try {
+            DataScopeContext context = dataScopeResolver.resolve();
+            return context != null && context.getSchoolIds().size() == 1
+                ? context.getSchoolIds().iterator().next() : null;
+        } catch (Exception e) {
+            log.warn("下载审计兜底解析学校失败：{}", e.getMessage());
+            return null;
+        }
     }
 
     /**

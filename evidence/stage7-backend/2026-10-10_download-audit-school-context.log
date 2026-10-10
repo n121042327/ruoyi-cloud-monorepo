@@ -1,0 +1,38 @@
+2026-10-10 阶段 7：文件引用与任务强制带学校，下载审计不再跳过（GAP-113 关闭，CR-154）
+
+一、根因
+edu_file_ref.school_id 与 edu_async_task.school_id 都可能为空：
+- EduImportExportServiceImpl.exportData 建导出任务时从不写 school_id；
+- 执行器把 task.school_id 原样搬到结果文件引用上，于是文件引用也是空；
+- 两处下载审计（EduImportExportServiceImpl / EduAsyncTaskServiceImpl）因此写成「取不到学校就 warn 并跳过」。
+
+二、本批改动
+1. exportData：新增 resolveExportSchoolId(scope)（唯一学校直接用；多校拒绝；只有班级范围时按
+   edu_class.school_id 反推），把学校写进 edu_async_task.school_id。
+2. EduAsyncTaskServiceImpl：新增 resolveDownloadSchoolId(task, fileRef)（任务 → 文件引用 → 登录态唯一学校），
+   writeDownloadLog 取不到学校时抛「下载文件缺少学校上下文，已拒绝下载（REQ-IMP-043）」。
+3. EduImportExportServiceImpl.writeDownloadLog：文件引用为空时用登录态唯一学校兜底，仍为空则拒绝下载。
+4. EduImportExportServiceImpl 新增 EduClassMapper 依赖（按班级反推学校）。
+
+三、门禁（本机执行）
+$ cd services/RuoYi-Cloud-Plus
+$ mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile
+[INFO] BUILD SUCCESS
+
+$ python tools/check_fe_page_structure.py            -> exit 0
+$ python tools/check_fe_text_nowrap.py               -> exit 0
+$ python tools/check_api_contract.py                 -> exit 0
+$ python tools/check_docs.py                         -> exit 0
+$ python tools/check_gap_register.py                 -> exit 0
+$ python tools/check_mermaid.py                      -> exit 0
+$ python tools/check_stage6_route_coverage.py        -> exit 0
+$ python tools/check_perm_seed.py                    -> exit 0
+
+四、未执行项与原因
+- 前端三件套未重跑：本批未改动 apps/**。
+- 启动验证未做：9211 端口由用户 IDEA 实例占用；且本服务 @Scheduled 执行者会与运行中实例争抢
+  edu_async_task 的 queued 任务，起第二个实例会干扰正在进行的联调。
+
+五、遗留
+- 多校账号的导出入口还没有「目标学校」下拉（本批在多校时直接拒绝并给出文案）；
+  若后续需要支持，按 GAP-115 的导入侧做法补一个可选 schoolId 即可。

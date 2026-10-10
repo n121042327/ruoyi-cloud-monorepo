@@ -3745,7 +3745,18 @@ open_questions_for_user:
     blocks_stages:
       - stage8
     owner: 用户
-    status: open
+    answer: |
+      用户 2026-10-10 指令：automation 先做 GAP-114 / 115 / 113（不需要设计，纯实现），按推荐方案 1 落地。
+    resolution: |
+      CR-154 收口（2026-10-10）：根因是导出任务从不写 `edu_async_task.school_id`，执行器又把空学校搬到
+      `edu_file_ref.school_id`。现在 `exportData` 在请求线程调 `resolveExportSchoolId`（唯一学校直接用；
+      多所学校拒绝；只有班级范围时按 `edu_class.school_id` 反推）写任务学校；
+      `EduAsyncTaskServiceImpl.resolveDownloadSchoolId` 与 `EduImportExportServiceImpl.writeDownloadLog`
+      按「任务 → 文件引用 → 登录态唯一学校」兜底，仍取不到时**拒绝下载**（不再只记 warn 跳过），
+      保证 `REQ-IMP-043` 的下载留痕不被跳过（D-234）。
+      导入侧结果文件 / 失败明细沿用 `edu_import_batch.school_id`（CR-141 起必填）。
+    resolved_at: "2026-10-10"
+    status: closed
   - id: GAP-114
     title: 后台导出的细粒度数据范围（年级主任 / 班主任 / 任课教师）没有随任务落库
     discovered_at: 2026-10-10

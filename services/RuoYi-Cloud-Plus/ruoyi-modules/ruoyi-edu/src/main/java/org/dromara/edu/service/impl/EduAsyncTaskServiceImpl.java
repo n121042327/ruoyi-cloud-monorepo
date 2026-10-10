@@ -25,6 +25,8 @@ import org.dromara.edu.domain.vo.EduFileRefVo;
 import org.dromara.edu.mapper.EduAsyncTaskMapper;
 import org.dromara.edu.mapper.EduAsyncTaskRetryMapper;
 import org.dromara.edu.mapper.EduDeadLetterTaskMapper;
+import org.dromara.edu.datascope.DataScopeContext;
+import org.dromara.edu.datascope.DataScopeResolver;
 import org.dromara.edu.mapper.EduFileRefMapper;
 import org.dromara.edu.service.IEduAsyncTaskService;
 import org.dromara.edu.service.IEduAuditService;
@@ -91,6 +93,7 @@ public class EduAsyncTaskServiceImpl implements IEduAsyncTaskService {
     private final EduDeadLetterTaskMapper deadLetterMapper;
     private final EduFileRefMapper fileRefMapper;
     private final IEduAuditService auditService;
+    private final DataScopeResolver dataScopeResolver;
 
     @DubboReference
     private RemoteFileService remoteFileService;
@@ -189,7 +192,7 @@ public class EduAsyncTaskServiceImpl implements IEduAsyncTaskService {
         EduFileRefVo vo = fileRefMapper.selectVoById(fileRef.getRefId());
         vo.setSignedUrl(buildSignedUrl(fileRef));
         vo.setSignedUrlExpireTime(new Date(now.getTime() + SIGNED_URL_TTL_MINUTES * 60_000L));
-        writeDownloadLog(task.getSchoolId(), fileRef, "任务 " + taskNo);
+        writeDownloadLog(resolveDownloadSchoolId(task, fileRef), fileRef, "任务 " + taskNo);
         return vo;
     }
 
@@ -385,14 +388,36 @@ public class EduAsyncTaskServiceImpl implements IEduAsyncTaskService {
      * 返回带签名的 GET 链接；过期后链接失效。文件不存在 / 已清理时抛业务异常。
      */
     /**
+     * 下载文件的学校归属（GAP-113）：任务 → 文件引用 → 当前登录态数据范围，逐级兜底。
+     *
+     * 任务与文件引用在落库时都已带学校；兜底只是防止历史数据（GAP-093 之前落下的任务）缺学校。
+     */
+    private Long resolveDownloadSchoolId(EduAsyncTask task, EduFileRef fileRef) {
+        if (task != null && task.getSchoolId() != null) {
+            return task.getSchoolId();
+        }
+        if (fileRef.getSchoolId() != null) {
+            return fileRef.getSchoolId();
+        }
+        try {
+            DataScopeContext context = dataScopeResolver.resolve();
+            return context != null && context.getSchoolIds().size() == 1
+                ? context.getSchoolIds().iterator().next() : null;
+        } catch (Exception e) {
+            log.warn("下载审计兜底解析学校失败：{}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
      * 写一条下载审计（`REQ-IMP-043`）：谁在什么时候下载了哪个文件。
      *
-     * `edu_audit_log.school_id` 非空，取不到学校上下文时只记 warn 不阻断下载（缺上下文的原因见 GAP-093 / GAP-113）。
+     * `edu_audit_log.school_id` 非空（GAP-113）：取不到学校就**拒绝下载**，
+     * 不允许出现「下载成功但没有留痕」的情况（`REQ-IMP-043` / `DS-DENY-02`）。
      */
     private void writeDownloadLog(Long schoolId, EduFileRef fileRef, String source) {
         if (schoolId == null) {
-            log.warn("下载审计缺少学校上下文，已跳过：fileId={}", fileRef.getFileId());
-            return;
+            throw new ServiceException("下载文件缺少学校上下文，已拒绝下载（REQ-IMP-043）");
         }
         EduAuditLogBo logBo = new EduAuditLogBo();
         logBo.setActionType("export");
