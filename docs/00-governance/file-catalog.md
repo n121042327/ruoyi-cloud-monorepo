@@ -1550,3 +1550,10 @@
 | `apps/plus-ui/src/views/edu/school/sch_list/components/SchoolCodeDialog.vue` | 变更学校编码弹窗 | `已实现` |
 | `apps/plus-ui/src/views/edu/school/sch_list/components/SchoolSummaryDialog.vue` | 学校概要弹窗 | `已实现` |
 | `evidence/stage6-frontend/2026-10-10_school-campus-code-summary.log` | 门禁与改动记录 | `review` |
+
+## 2026-10-10 阶段 6 第四十五批：教学班手工创建接口不接前端
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-126.md` | 判定依据与处置（无代码改动） | `review` |
+| `evidence/stage6-frontend/2026-10-10_teaching-class-create-skip.log` | 核对证据与门禁记录 | `review` |

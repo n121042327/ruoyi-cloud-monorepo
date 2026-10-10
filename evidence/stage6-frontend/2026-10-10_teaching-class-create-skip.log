@@ -1,0 +1,27 @@
+# 第二轮队列第 4 项：教学班手工创建接口判定（CR-126 / D-206）
+
+时间：2026-10-10
+分支：codex/stage7-backend
+触发：heartbeat（第二轮队列第 4 项）
+
+## 判定
+POST /edu/teaching-class（手工创建单条教学班）**不接前端**。
+
+依据：
+1. cls_teaching 页面 scope-hint：「数据范围：本校 · 只读（创建走生成向导）」
+2. cls_teaching 页内说明：「教学班的创建入口唯一在「按组合生成教学班」向导，本页只做查询、详情与停用」
+3. str_gen_class 调的是 previewTeachingClassGenerate / executeTeachingClassGenerate
+   （POST /edu/stream/teaching-class/preview|generate），不是 POST /edu/teaching-class
+4. CR-017 已就该问题裁决「创建入口唯一在向导」
+
+若接手工入口会出现两个创建入口，绕过组合分布与差异核对，违反 AGENTS 第 7 节「每个字段只有一个写入入口」。
+
+## 处置
+不接；后端接口保留；教学班管理页维持只读 + 详情 + 停用。
+
+## 门禁
+7 个 checker 全部通过；typecheck 51（基线）；lint 124（基线）；build:prod exit 0。
+本批无代码改动。
+
+## 下一步
+第二轮队列第 5 项：升班就绪检查与明细查询。
