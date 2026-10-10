@@ -29,9 +29,9 @@
       <el-table v-loading="loading" border :data="taskList">
         <el-table-column label="任务编号" prop="taskNo" width="190" data-layout-group="任务信息" />
         <el-table-column label="类型" prop="taskType" width="120" data-layout-group="任务信息" />
-        <el-table-column label="状态" prop="status" width="120" align="center" data-layout-group="任务信息">
+        <el-table-column label="状态" prop="taskStatus" width="120" align="center" data-layout-group="任务信息">
           <template #default="scope">
-            <el-tag :type="statusTag(scope.row.status)" size="small">{{ statusText(scope.row.status) }}</el-tag>
+            <el-tag :type="statusTag(scope.row.taskStatus)" size="small">{{ statusText(scope.row.taskStatus) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="进度" prop="progressPercent" width="120" data-layout-group="任务信息">
@@ -39,13 +39,15 @@
             <el-progress :percentage="Number(scope.row.progressPercent ?? 0)" :stroke-width="10" />
           </template>
         </el-table-column>
-        <el-table-column label="发起人" prop="owner" width="120" data-layout-group="任务信息" />
+        <el-table-column label="发起人" prop="ownerName" width="120" data-layout-group="任务信息" />
         <el-table-column label="发起时间" prop="createTime" width="170" data-layout-group="任务信息" />
-        <el-table-column label="耗时" prop="elapsed" width="100" align="center" data-layout-group="任务信息" />
+        <el-table-column label="耗时" width="100" align="center" data-layout-group="任务信息">
+          <template #default="scope">{{ durationText(scope.row.durationSeconds) }}</template>
+        </el-table-column>
         <el-table-column fixed="right" label="操作" width="270" data-layout-group="操作">
           <template #default="scope">
             <el-button
-              v-if="scope.row.status === 'queued'"
+              v-if="scope.row.taskStatus === 'queued'"
               v-hasPermi="['data.async_task:update']"
               link
               type="primary"
@@ -54,7 +56,7 @@
               取消
             </el-button>
             <el-button
-              v-if="scope.row.status === 'failed' || scope.row.status === 'partial_failed'"
+              v-if="scope.row.taskStatus === 'failed' || scope.row.taskStatus === 'partial_failed'"
               v-hasPermi="['data.async_task:update']"
               link
               type="primary"
@@ -92,6 +94,7 @@ import { cancelAsyncTask, downloadTaskResult, listAsyncTask, retryAsyncTask } fr
 import type { AsyncTaskVO } from '@/api/edu/importExport/types';
 import TaskRowsDialog from './components/TaskRowsDialog.vue';
 import { checkPermi } from '@/utils/permission';
+import { downloadByFileRef } from '@/utils/eduFileRef';
 
 defineOptions({ name: 'EduAsyncTaskList' });
 const rowsRef = ref<InstanceType<typeof TaskRowsDialog>>();
@@ -106,6 +109,8 @@ const canRead = computed(() => checkPermi(['data.async_task:read']));
 const statusText = (status?: string) =>
   ({ queued: '排队中', running: '执行中', succeeded: '已完成', partial_failed: '部分失败', failed: '失败' })[status ?? ''] ?? '执行中';
 const statusTag = (status?: string) => (status === 'succeeded' ? 'success' : status === 'failed' ? 'danger' : 'warning');
+/** 耗时展示：后端给的是秒数（EduAsyncTaskVo.durationSeconds） */
+const durationText = (seconds?: number) => (seconds == null ? '—' : seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m${seconds % 60}s`);
 
 const getList = async () => {
   loading.value = true;
@@ -142,13 +147,8 @@ const handleRetry = async (row: AsyncTaskVO) => {
 
 const handleDownload = async (row: AsyncTaskVO) => {
   if (!row.resultFileId) return;
-  const blob = (await downloadTaskResult(row.taskNo, row.resultFileId)) as unknown as Blob;
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `task_result_${row.taskNo}.xlsx`;
-  link.click();
-  URL.revokeObjectURL(url);
+  const res = await downloadTaskResult(row.taskNo, row.resultFileId);
+  downloadByFileRef(res.data, `task_result_${row.taskNo}.xlsx`);
 };
 
 onMounted(getList);

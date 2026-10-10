@@ -11,7 +11,7 @@ import {
   TeachingAssignmentQuery,
   TeachingAssignmentVO
 } from './types';
-import type { AsyncTaskVO, ImportValidateVO } from '@/api/edu/importExport/types';
+import type { AsyncTaskVO, EduFileRefVO, ImportValidateVO } from '@/api/edu/importExport/types';
 
 /**
  * 查询教师列表（班级列表查询区与新建表单的「班主任」下拉）
@@ -122,19 +122,16 @@ export const copyTeachingAssignment = (data: TeachingAssignmentCopyForm) => {
  *
  * 对应 operationId `importTeacherValidate`（POST /edu/teacher/import/validate）。
  */
-export const importTeacherValidate = (file: File, data?: { termId?: string; duplicatePolicy?: string }): AxiosPromise<ImportValidateVO> => {
-  const form = new FormData();
-  form.append('file', file);
-  Object.entries(data ?? {}).forEach(([key, value]) => {
-    if (value != null && value !== '') {
-      form.append(key, String(value));
-    }
-  });
+export const importTeacherValidate = (data: {
+  fileId: string;
+  fileName?: string;
+  termId?: string;
+  strategy?: string;
+}): AxiosPromise<ImportValidateVO> => {
   return request({
     url: '/edu/teacher/import/validate',
     method: 'post',
-    headers: { 'Content-Type': 'multipart/form-data' },
-    data: form
+    data
   });
 };
 
@@ -152,15 +149,14 @@ export const importTeacherExecute = (data: { batchNo: string }): AxiosPromise<As
 };
 
 /**
- * 下载教师导入模板
+ * 教师导入模板下载：返回文件引用（含 signedUrl）
  *
  * 对应 operationId `downloadTeacherImportTemplate`（GET /edu/teacher/import/template）。
  */
-export const downloadTeacherImportTemplate = (): AxiosPromise<Blob> => {
+export const downloadTeacherImportTemplate = (): AxiosPromise<EduFileRefVO> => {
   return request({
     url: '/edu/teacher/import/template',
-    method: 'get',
-    responseType: 'blob'
+    method: 'get'
   });
 };
 

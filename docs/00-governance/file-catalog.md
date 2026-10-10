@@ -1628,3 +1628,21 @@
 | `apps/plus-ui/src/views/edu/teacher/tch_assign/index.vue`（改） | 导出提示改为异步任务口径 | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | 新增 GAP-109 / GAP-110（open） | `review` |
 | `evidence/stage6-frontend/2026-10-10_api-inventory-round3.log` | 盘点方法与门禁记录 | `review` |
+
+## 2026-10-10 阶段 6 第五十一批：导入导出链路形状对齐（第三轮第 1 项）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-132.md` | 逐端点形状对照与改动面 | `review` |
+| `apps/plus-ui/src/api/edu/importExport/types.ts`（改） | 按后端 VO 重写导入导出类型 | `已实现` |
+| `apps/plus-ui/src/api/edu/importExport/index.ts`（改） | 上传 + JSON 校验 + 文件引用下载 + 导出改 moduleCode | `已实现` |
+| `apps/plus-ui/src/api/edu/teacher/index.ts`（改） | 教师导入校验/模板下载同步形状 | `已实现` |
+| `apps/plus-ui/src/utils/eduFileRef.ts` | signedUrl 下载工具 | `已实现` |
+| `apps/plus-ui/src/views/edu/import-export/imp_wizard/index.vue`（改） | 上传校验 + 文件引用下载 + 模板字段 | `已实现` |
+| `apps/plus-ui/src/views/edu/import-export/imp_task_list/index.vue`（改） | 任务字段与结果下载 | `已实现` |
+| `apps/plus-ui/src/views/edu/student/stu_import/index.vue`（改） | 同上 | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_roster_import/index.vue`（改） | 同上（moduleCode=class_roster） | `已实现` |
+| `apps/plus-ui/src/views/edu/teacher/tch_import/index.vue`（改） | 同上 | `已实现` |
+| `apps/plus-ui/src/views/edu/teacher/tch_assign/index.vue`（改） | 导出改 moduleCode=teaching_assignment | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-109 关闭（GAP-110 保持 open） | `review` |
+| `evidence/stage6-frontend/2026-10-10_import-export-shape-alignment.log` | 门禁与改动记录 | `review` |

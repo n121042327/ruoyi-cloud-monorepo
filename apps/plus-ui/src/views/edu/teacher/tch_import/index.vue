@@ -102,15 +102,15 @@
       </template>
 
       <el-row :gutter="16" class="mb-3">
-        <el-col :span="8"><el-statistic title="文件总行数" :value="validateResult?.totalCount ?? 0" /></el-col>
+        <el-col :span="8"><el-statistic title="文件总行数" :value="validateResult?.rowTotal ?? 0" /></el-col>
         <el-col :span="8"><el-statistic title="可执行" :value="validateResult?.validCount ?? 0" /></el-col>
         <el-col :span="8"><el-statistic title="失败" :value="validateResult?.invalidCount ?? 0" /></el-col>
       </el-row>
 
-      <el-table v-loading="validating" border :data="validateResult?.errors ?? []">
+      <el-table v-loading="validating" border :data="validateResult?.invalidRows ?? []">
         <el-table-column label="行号" prop="rowNo" width="90" align="center" data-layout-group="校验结果" />
         <el-table-column label="对象" prop="objectName" width="140" data-layout-group="校验结果" />
-        <el-table-column label="失败原因" prop="errorMsg" min-width="420" data-layout-group="校验结果" />
+        <el-table-column label="失败原因" prop="failReason" min-width="420" data-layout-group="校验结果" />
         <template #empty>
           <el-empty description="全部行校验通过" />
         </template>
@@ -167,7 +167,8 @@ import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { UploadFilled } from '@element-plus/icons-vue';
 import { downloadTeacherImportTemplate, importTeacherExecute, importTeacherValidate, listTeacher } from '@/api/edu/teacher';
-import { downloadImportFailedRows, downloadImportResult, getAsyncTask } from '@/api/edu/importExport';
+import { downloadImportFailedRows, downloadImportResult, getAsyncTask, uploadImportFile } from '@/api/edu/importExport';
+import { downloadByFileRef } from '@/utils/eduFileRef';
 import type { AsyncTaskVO, ImportValidateVO } from '@/api/edu/importExport/types';
 import { listTerm } from '@/api/edu/term';
 import type { TermVO } from '@/api/edu/term/types';
@@ -194,8 +195,8 @@ const handleFileChange = (uploadFileItem: { raw?: File; name: string }) => {
 };
 
 const handleDownloadTemplate = async () => {
-  await downloadTeacherImportTemplate();
-  ElMessage.success('已生成教师导入模板 teacher-v1，开始下载');
+  const res = await downloadTeacherImportTemplate();
+  downloadByFileRef(res.data, 'teacher-template.xlsx');
 };
 
 /** 上传并同步校验（importTeacherValidate），校验阶段不写业务数据 */
@@ -206,7 +207,18 @@ const handleValidate = async () => {
   }
   validating.value = true;
   try {
-    const res = await importTeacherValidate(uploadFile.value, { termId: form.termId, duplicatePolicy: form.duplicatePolicy });
+    const upload = await uploadImportFile(uploadFile.value);
+    const fileId = upload.data?.ossId;
+    if (!fileId) {
+      ElMessage.error('文件上传失败，请重试');
+      return;
+    }
+    const res = await importTeacherValidate({
+      fileId,
+      fileName: uploadFile.value.name,
+      termId: form.termId || undefined,
+      strategy: form.duplicatePolicy === 'reject' ? 'fail' : 'skip'
+    });
     validateResult.value = res.data;
     step.value = 3;
     ElMessage.success(`校验完成：可执行 ${res.data?.validCount ?? 0} 行，失败 ${res.data?.invalidCount ?? 0} 行`);
@@ -217,8 +229,8 @@ const handleValidate = async () => {
 
 const handleDownloadFailed = async () => {
   if (!validateResult.value?.batchNo) return;
-  await downloadImportFailedRows(validateResult.value.batchNo);
-  ElMessage.success('已生成失败明细文件（标注行号与原因），开始下载');
+  const res = await downloadImportFailedRows(validateResult.value.batchNo);
+  downloadByFileRef(res.data, `failed-rows-${validateResult.value.batchNo}.csv`);
 };
 
 /** 确认执行（importTeacherExecute）：异步，返回任务编号 */
@@ -244,8 +256,8 @@ const loadTask = async () => {
 
 const handleDownloadResult = async () => {
   if (!validateResult.value?.batchNo) return;
-  await downloadImportResult(validateResult.value.batchNo);
-  ElMessage.success('已生成结果摘要与账号对照表，开始下载');
+  const res = await downloadImportResult(validateResult.value.batchNo);
+  downloadByFileRef(res.data, `import-result-${validateResult.value.batchNo}.xlsx`);
 };
 
 const goTaskCenter = () => router.push('/edu/async-task/list');

@@ -233,7 +233,12 @@ const handleRemove = async (row: TeachingAssignmentVO) => {
  * 按 GAP-086 的同一口径统一走导入导出模块的通用导出 `exportData`。
  */
 const handleExport = async () => {
-  await exportData({ module: 'teachingAssignment', termId: queryParams.termId, classId: queryParams.classId, teacherId: queryParams.teacherId });
+  await exportData({
+    moduleCode: 'teaching_assignment',
+    termId: queryParams.termId || undefined,
+    classId: queryParams.classId || undefined,
+    filters: queryParams.teacherId ? JSON.stringify({ teacherId: queryParams.teacherId }) : undefined
+  });
   ElMessage.success('已提交任教关系导出任务，请到异步任务中心下载');
 };
 

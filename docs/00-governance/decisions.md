@@ -2961,3 +2961,25 @@ previewed / running 显示不同按钮）相加会得出荒谬的宽度要求。
 缺后两看的盘点会把「已接」当成「已通」。
 
 证据见 `evidence/stage6-frontend/2026-10-10_api-inventory-round3.log`，变更记录 `CR-131`。
+
+## D-212 — 导入导出链路以 openapi + 后端 VO 为唯一形状来源（2026-10-10）
+
+第三轮队列第 1 项，收口 GAP-109。
+
+**这是什么**：前端导入导出的 api 层此前是按猜测形状写的：校验请求发 multipart（契约是 JSON）、四个下载端点按 blob 收
+（后端返回 `EduFileRefVo` 的签名链接）、模板清单 / 校验结果 / 异步任务的字段名整体错位（`module` vs `moduleCode`、
+`errors[].errorMsg` vs `invalidRows[].failReason`、`status` vs `taskStatus`）。四条导入链路因此「页面齐全、调用必失败」，
+而 typecheck / lint / build 全是绿的。
+
+**不选会怎样**：这类错误只有真跑一次才发现（415、把 JSON 存成 .xlsx、列全空）。它同时说明「接了接口」不等于「按契约接了」——
+如果只统计调用次数，这批缺陷会被记成已完成。
+
+**可选项**：① 前端全面对齐 openapi + 后端 VO（推荐，已执行）；② 改后端迁就前端形状；③ 只修校验请求，下载与字段留到以后。
+
+**推荐方案与理由**：选 ①。`openapi.yaml` 是接口事实源，`EduImportValidateBo` 的注释也写明「文件已先上传到统一文件服务，
+这里只传 file_id」，与 `/resource/oss/upload` 返回 ossId 的设计一致；②要把契约降级成实现的附属品，③会留下「一半能用」的链路。
+新增的 `utils/eduFileRef.ts` 把「取引用 → 跳 signedUrl」收敛成一处，后续所有文件类下载都走它。
+
+**通用口径**：文件类接口一律「上传拿引用 → 传引用」；下载类接口一律返回引用 + 短时签名链接，前端不接收二进制；
+前后端字段名以 VO/契约为准，前端不得自行改名。
+证据见 `evidence/stage6-frontend/2026-10-10_import-export-shape-alignment.log`，变更记录 `CR-132`。

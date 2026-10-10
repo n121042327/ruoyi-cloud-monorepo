@@ -79,14 +79,14 @@
         </div>
       </template>
       <el-descriptions :column="3" border class="mb-3">
-        <el-descriptions-item label="文件总行数">{{ validateResult?.totalCount ?? 0 }}</el-descriptions-item>
+        <el-descriptions-item label="文件总行数">{{ validateResult?.rowTotal ?? 0 }}</el-descriptions-item>
         <el-descriptions-item label="可执行">{{ validateResult?.validCount ?? 0 }} 行</el-descriptions-item>
         <el-descriptions-item label="失败">{{ validateResult?.invalidCount ?? 0 }} 行</el-descriptions-item>
       </el-descriptions>
-      <el-table :data="validateResult?.errors ?? []" border>
+      <el-table :data="validateResult?.invalidRows ?? []" border>
         <el-table-column label="行号" prop="rowNo" width="90" align="center" />
         <el-table-column label="对象" prop="objectName" width="140" />
-        <el-table-column label="失败原因" prop="errorMsg" min-width="260" />
+        <el-table-column label="失败原因" prop="failReason" min-width="260" />
         <template #empty>
           <el-empty description="校验全部通过" :image-size="60" />
         </template>
@@ -141,8 +141,10 @@ import {
   executeImport,
   getAsyncTask,
   listImportTemplate,
+  uploadImportFile,
   validateImportFile
 } from '@/api/edu/importExport';
+import { downloadByFileRef } from '@/utils/eduFileRef';
 import type { AsyncTaskVO, ImportValidateVO } from '@/api/edu/importExport/types';
 import { listTerm } from '@/api/edu/term';
 import type { TermVO } from '@/api/edu/term/types';
@@ -163,7 +165,7 @@ const task = ref<Partial<AsyncTaskVO>>({});
 
 const form = reactive({ termId: '', duplicatePolicy: 'skip' });
 
-const taskProgress = computed(() => Math.min(100, Math.max(0, Number(task.value.progress ?? 0))));
+const taskProgress = computed(() => Math.min(100, Math.max(0, Number(task.value.progressPercent ?? 0))));
 const taskStatusText = computed(() => {
   const map: Record<string, string> = {
     queued: '排队中',
@@ -172,20 +174,20 @@ const taskStatusText = computed(() => {
     partial_failed: '部分失败',
     failed: '失败'
   };
-  return map[task.value.status ?? 'queued'] ?? '执行中';
+  return map[task.value.taskStatus ?? 'queued'] ?? '执行中';
 });
 const taskStatusTag = computed(() => {
-  if (task.value.status === 'succeeded') return 'success';
-  if (task.value.status === 'partial_failed' || task.value.status === 'failed') return 'danger';
+  if (task.value.taskStatus === 'succeeded') return 'success';
+  if (task.value.taskStatus === 'partial_failed' || task.value.taskStatus === 'failed') return 'danger';
   return 'warning';
 });
 
 const loadTemplate = async () => {
   try {
     const res = await listImportTemplate();
-    const student = (res.data ?? []).find((item) => item.module === 'student');
-    templateVersion.value = student?.version ?? '';
-    templateColumns.value = student?.columns ?? [];
+    const student = (res.data ?? []).find((item) => item.moduleCode === 'student');
+    templateVersion.value = student?.templateVersion ?? '';
+    templateColumns.value = [];
   } catch {
     templateColumns.value = [];
   }
@@ -203,13 +205,8 @@ const loadTermOptions = async () => {
 
 /** 下载模板（通用接口，按模块取模板） */
 const handleDownloadTemplate = async () => {
-  const blob = (await downloadImportTemplate('student')) as unknown as Blob;
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `student_import_template_${templateVersion.value || 'v3'}.xlsx`;
-  link.click();
-  URL.revokeObjectURL(url);
+  const res = await downloadImportTemplate('student');
+  downloadByFileRef(res.data, `student_import_template_${templateVersion.value || 'v3'}.xlsx`);
 };
 
 const handleFileChange = (file: UploadFile, _files: UploadFiles) => {
@@ -223,10 +220,18 @@ const handleValidate = async () => {
   }
   validating.value = true;
   try {
-    const res = await validateImportFile(selectedFile.value, {
-      module: 'student',
-      termId: form.termId,
-      duplicatePolicy: form.duplicatePolicy
+    const upload = await uploadImportFile(selectedFile.value);
+    const fileId = upload.data?.ossId;
+    if (!fileId) {
+      ElMessage.error('文件上传失败，请重试');
+      return;
+    }
+    const res = await validateImportFile({
+      moduleCode: 'student',
+      fileId,
+      fileName: selectedFile.value.name,
+      termId: form.termId || undefined,
+      strategy: form.duplicatePolicy === 'reject' ? 'fail' : 'skip'
     });
     validateResult.value = res.data;
     activeStep.value = 3;
@@ -239,13 +244,8 @@ const handleValidate = async () => {
 const handleDownloadFailedRows = async () => {
   const batchNo = validateResult.value?.batchNo;
   if (!batchNo) return;
-  const blob = (await downloadImportFailedRows(batchNo)) as unknown as Blob;
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `import_failed_rows_${batchNo}.csv`;
-  link.click();
-  URL.revokeObjectURL(url);
+  const res = await downloadImportFailedRows(batchNo);
+  downloadByFileRef(res.data, `import_failed_rows_${batchNo}.csv`);
 };
 
 const handleExecute = async () => {
@@ -269,13 +269,8 @@ const handleExecute = async () => {
 const handleDownloadResult = async () => {
   const batchNo = validateResult.value?.batchNo;
   if (!batchNo) return;
-  const blob = (await downloadImportResult(batchNo)) as unknown as Blob;
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `import_result_${batchNo}.xlsx`;
-  link.click();
-  URL.revokeObjectURL(url);
+  const res = await downloadImportResult(batchNo);
+  downloadByFileRef(res.data, `import_result_${batchNo}.xlsx`);
 };
 
 const handleRestart = () => {

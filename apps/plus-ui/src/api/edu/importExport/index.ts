@@ -1,6 +1,6 @@
 import request from '@/utils/request';
 import { AxiosPromise } from 'axios';
-import { AsyncTaskVO, ImportTemplateVO, ImportValidateVO } from './types';
+import { AsyncTaskVO, EduExportResultVO, EduFileRefVO, ImportTemplateVO, ImportValidateForm, ImportValidateVO, OssUploadVO } from './types';
 
 /**
  * 查询模板清单与当前版本
@@ -15,39 +15,45 @@ export const listImportTemplate = (): AxiosPromise<ImportTemplateVO[]> => {
 };
 
 /**
- * 下载模板（按模块）
+ * 模板下载（按模块）：后端返回文件引用，页面用 signedUrl 触发下载
  *
- * 对应 operationId `downloadImportTemplate`（GET /edu/import/template/{module}）。
+ * 对应 operationId `downloadImportTemplate`（GET /edu/import/template/{module}，返回 `R<EduFileRefVo>`）。
  */
-export const downloadImportTemplate = (module: string): AxiosPromise<Blob> => {
+export const downloadImportTemplate = (module: string, version?: string): AxiosPromise<EduFileRefVO> => {
   return request({
     url: `/edu/import/template/${module}`,
     method: 'get',
-    responseType: 'blob'
+    params: { version }
   });
 };
 
 /**
- * 上传并同步校验（≤ 5000 行 / 10 MB；校验阶段不写业务数据）
+ * 上传导入文件到统一文件服务（POST /resource/oss/upload）
  *
- * 对应 operationId `validateImportFile`（POST /edu/import/validate）。
+ * 导入引擎只收文件引用（`EduImportValidateBo.fileId`），不接收二进制（REQ-IMP-041 / NFR-DATA-03）：
+ * 先上传拿到 `ossId`，再作为 `validateImportFile` 的 `fileId` 提交。
  */
-export const validateImportFile = (
-  file: File,
-  data: { module: string; termId?: string; duplicatePolicy?: string }
-): AxiosPromise<ImportValidateVO> => {
+export const uploadImportFile = (file: File): AxiosPromise<OssUploadVO> => {
   const form = new FormData();
   form.append('file', file);
-  Object.entries(data).forEach(([key, value]) => {
-    if (value != null && value !== '') {
-      form.append(key, String(value));
-    }
-  });
   return request({
-    url: '/edu/import/validate',
+    url: '/resource/oss/upload',
     method: 'post',
     headers: { 'Content-Type': 'multipart/form-data' },
     data: form
+  });
+};
+
+/**
+ * 上传后同步校验（≤ 5000 行 / 10 MB；校验阶段不写业务数据）
+ *
+ * 对应 operationId `validateImportFile`（POST /edu/import/validate，requestBody 为 application/json）。
+ */
+export const validateImportFile = (data: ImportValidateForm): AxiosPromise<ImportValidateVO> => {
+  return request({
+    url: '/edu/import/validate',
+    method: 'post',
+    data
   });
 };
 
@@ -65,53 +71,52 @@ export const executeImport = (data: { batchNo: string }): AxiosPromise<AsyncTask
 };
 
 /**
- * 下载失败行明细（CSV，含原始行号与失败原因）
+ * 失败行明细下载：返回文件引用（含原始行号与失败原因）
  *
  * 对应 operationId `downloadImportFailedRows`（GET /edu/import/{batchNo}/failed-rows）。
  */
-export const downloadImportFailedRows = (batchNo: string): AxiosPromise<Blob> => {
+export const downloadImportFailedRows = (batchNo: string): AxiosPromise<EduFileRefVO> => {
   return request({
     url: `/edu/import/${batchNo}/failed-rows`,
-    method: 'get',
-    responseType: 'blob'
+    method: 'get'
   });
 };
 
 /**
- * 下载结果摘要与学号对照表
+ * 结果摘要与学号对照表下载：返回文件引用
  *
  * 对应 operationId `downloadImportResult`（GET /edu/import/{batchNo}/result）。
  */
-export const downloadImportResult = (batchNo: string): AxiosPromise<Blob> => {
+export const downloadImportResult = (batchNo: string): AxiosPromise<EduFileRefVO> => {
   return request({
     url: `/edu/import/${batchNo}/result`,
-    method: 'get',
-    responseType: 'blob'
+    method: 'get'
   });
 };
 
 /**
- * 通用导出（同步或异步；各业务模块的导出统一走该引擎，REQ-IMP-002 / GAP-086）
+ * 通用导出（返回 EduExportResultVo：同步带 file 引用，超过行数上限转异步任务，REQ-IMP-002 / GAP-086）
  *
  * 对应 operationId `exportData`（POST /edu/export）。
  */
 export const exportData = (data: {
-  /** 导出对象：如 teachingAssignment / classRoster / streamSelection */
-  module: string;
+  /** 导出模块编码（EduExportBo.moduleCode）：student / teacher / class / class_roster / grade / promotion / stream … */
+  moduleCode: string;
   termId?: string;
   classId?: string;
-  teacherId?: string;
   gradeId?: string;
+  studentId?: string;
   /** 需要导出的列；留空表示按模块默认列 */
   columns?: string[];
-  /** 附加筛选条件透传 */
-  filters?: Record<string, unknown>;
-}): AxiosPromise<Blob> => {
+  /** 附加筛选条件（JSON 字符串透传） */
+  filters?: string;
+  format?: string;
+  plainText?: boolean;
+}): AxiosPromise<EduExportResultVO> => {
   return request({
     url: '/edu/export',
     method: 'post',
-    data,
-    responseType: 'blob'
+    data
   });
 };
 
@@ -165,15 +170,14 @@ export const retryAsyncTask = (taskNo: string) => {
 };
 
 /**
- * 下载任务结果文件（短时签名链接，REQ-IMP-042）
+ * 任务结果文件下载：后端返回短时签名链接（REQ-IMP-042）
  *
  * 对应 operationId `downloadTaskResult`（GET /edu/async-task/{taskNo}/file/{fileId}）。
  */
-export const downloadTaskResult = (taskNo: string, fileId: string): AxiosPromise<Blob> => {
+export const downloadTaskResult = (taskNo: string, fileId: string): AxiosPromise<EduFileRefVO> => {
   return request({
     url: `/edu/async-task/${taskNo}/file/${fileId}`,
-    method: 'get',
-    responseType: 'blob'
+    method: 'get'
   });
 };
 
@@ -217,6 +221,7 @@ export const listImportRows = (batchNo: string, query?: { result?: string; keywo
 
 export default {
   listImportTemplate,
+  uploadImportFile,
   downloadImportTemplate,
   validateImportFile,
   executeImport,

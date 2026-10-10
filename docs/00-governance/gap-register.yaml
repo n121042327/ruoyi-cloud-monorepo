@@ -3577,7 +3577,18 @@ open_questions_for_user:
     blocks_stages:
       - stage6
     owner: 用户
-    status: open
+    answer: |
+      用户 2026-10-10 授权「遇到需要拍板的按推荐方案走并在 decisions.md 与 gap-register.yaml 各记一条」，
+      本批按推荐方案 1 落地（CR-132 / D-212）。
+    resolution: |
+      已按 openapi + 后端 VO 全面对齐：新增 `uploadImportFile`（POST /resource/oss/upload），`validateImportFile` 改 JSON；
+      模板 / 失败明细 / 结果 / 任务结果四个下载端点在 api 层改返回 `EduFileRefVO`，新增 `utils/eduFileRef.ts` 统一跳 signedUrl；
+      模板清单 / 校验结果 / 异步任务 / 导出的字段名按后端 VO 修正（moduleCode、templateVersion、rowTotal、invalidRows[].failReason、
+      taskStatus、progressPercent、ownerName、durationSeconds、EduExportBo.moduleCode）；改到六个页面
+      （imp_wizard / stu_import / cls_roster_import / tch_import / imp_task_list / tch_assign）。
+      门禁：七项 python 检查通过、typecheck 51（基线）、lint 124（基线）、build:prod exit 0；真实上传与下载链路待人工验收。
+    resolved_at: 2026-10-10
+    status: closed
   - id: GAP-110
     title: 任教关系导出（exportData module=teachingAssignment）没有模块导出器
     discovered_at: 2026-10-10

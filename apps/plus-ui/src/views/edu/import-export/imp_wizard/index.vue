@@ -43,24 +43,22 @@
           <el-col :span="12">
             <el-form-item label="导入模块">
               <el-select v-model="form.moduleCode" placeholder="请选择导入模块" class="w-full">
-                <el-option v-for="item in templateOptions" :key="item.module" :label="item.moduleName || item.module" :value="item.module" />
+                <el-option v-for="item in templateOptions" :key="item.moduleCode" :label="item.moduleCode" :value="item.moduleCode" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="模板版本">
-              <el-input :model-value="currentTemplate?.version || '—'" disabled />
+              <el-input :model-value="currentTemplate?.templateVersion || '—'" disabled />
               <div class="hint">模板字段变更必须升版本；旧版模板会先报「模板版本过期」强提示，仍可继续。</div>
             </el-form-item>
           </el-col>
         </el-row>
       </el-form>
 
-      <div v-if="currentTemplate?.columns?.length" class="mb-2">
-        <div class="text-xs mb-1">模板列（共 {{ currentTemplate.columns.length }} 列）</div>
-        <el-tag v-for="col in currentTemplate.columns" :key="col.name" class="mr-1 mb-1" :type="col.required ? 'danger' : 'info'" effect="plain">
-          {{ col.name }}{{ col.required ? '（必填）' : '（选填）' }}
-        </el-tag>
+      <div v-if="currentTemplate?.columnCount" class="mb-2">
+        <div class="text-xs mb-1">模板列（共 {{ currentTemplate.columnCount }} 列）</div>
+        <div class="text-xs">列定义以模板文件与字段字典为准（BR-IMP-007）；下载模板后按表头填写。</div>
       </div>
 
       <div class="flex justify-end">
@@ -126,15 +124,15 @@
       </template>
 
       <el-row :gutter="16" class="mb-3">
-        <el-col :span="8"><el-statistic title="文件总行数" :value="validateResult?.totalCount ?? 0" /></el-col>
+        <el-col :span="8"><el-statistic title="文件总行数" :value="validateResult?.rowTotal ?? 0" /></el-col>
         <el-col :span="8"><el-statistic title="可执行" :value="validateResult?.validCount ?? 0" /></el-col>
         <el-col :span="8"><el-statistic title="失败" :value="validateResult?.invalidCount ?? 0" /></el-col>
       </el-row>
 
-      <el-table v-loading="validating" border :data="validateResult?.errors ?? []">
+      <el-table v-loading="validating" border :data="validateResult?.invalidRows ?? []">
         <el-table-column label="行号" prop="rowNo" width="90" align="center" data-layout-group="校验结果" />
         <el-table-column label="姓名" prop="objectName" width="140" data-layout-group="校验结果" />
-        <el-table-column label="失败原因" prop="errorMsg" min-width="420" data-layout-group="校验结果" />
+        <el-table-column label="失败原因" prop="failReason" min-width="420" data-layout-group="校验结果" />
         <template #empty>
           <el-empty description="全部行校验通过" />
         </template>
@@ -207,8 +205,10 @@ import {
   executeImport,
   getAsyncTask,
   listImportTemplate,
+  uploadImportFile,
   validateImportFile
 } from '@/api/edu/importExport';
+import { downloadByFileRef } from '@/utils/eduFileRef';
 import type { AsyncTaskVO, ImportTemplateVO, ImportValidateVO } from '@/api/edu/importExport/types';
 import { listClass } from '@/api/edu/class';
 import type { ClassVO } from '@/api/edu/class/types';
@@ -234,7 +234,7 @@ const classOptions = ref<ClassVO[]>([]);
 
 const form = reactive({ moduleCode: '', termId: '', classId: '' });
 
-const currentTemplate = computed(() => templateOptions.value.find((item) => item.module === form.moduleCode));
+const currentTemplate = computed(() => templateOptions.value.find((item) => item.moduleCode === form.moduleCode));
 
 const handleFileChange = (uploadFileItem: { raw?: File; name: string }) => {
   uploadFile.value = uploadFileItem.raw;
@@ -243,22 +243,42 @@ const handleFileChange = (uploadFileItem: { raw?: File; name: string }) => {
 
 const handleDownloadTemplate = async () => {
   if (!form.moduleCode) return;
-  await downloadImportTemplate(form.moduleCode);
-  ElMessage.success(`已生成「${currentTemplate.value?.moduleName ?? form.moduleCode}」导入模板（${currentTemplate.value?.version ?? ''}），开始下载`);
+  const res = await downloadImportTemplate(form.moduleCode);
+  downloadByFileRef(res.data, `${form.moduleCode}-template.xlsx`);
 };
 
 /** 上传并同步校验：校验阶段不写业务数据 */
+/** 上传到统一文件服务，返回 ossId（失败返回空串） */
+const uploadAndGetFileId = async (): Promise<string> => {
+  if (!uploadFile.value) return '';
+  const upload = await uploadImportFile(uploadFile.value);
+  const fileId = upload.data?.ossId;
+  if (!fileId) {
+    ElMessage.error('文件上传失败，请重试');
+  }
+  return fileId ?? '';
+};
+
 const handleValidate = async () => {
+  if (!uploadFile.value) {
+    ElMessage.warning('请先选择 .xlsx 文件');
+    return;
+  }
   if (!uploadFile.value) {
     ElMessage.warning('请先选择 .xlsx 文件');
     return;
   }
   validating.value = true;
   try {
-    const res = await validateImportFile(uploadFile.value, {
-      module: form.moduleCode,
-      termId: form.termId,
-      duplicatePolicy: failMode.value === 'abort' ? 'fail' : 'skip'
+    const fileId = await uploadAndGetFileId();
+    if (!fileId) return;
+    const res = await validateImportFile({
+      moduleCode: form.moduleCode,
+      fileId,
+      fileName: uploadFile.value.name,
+      termId: form.termId || undefined,
+      targetClassId: form.classId || undefined,
+      strategy: failMode.value === 'abort' ? 'fail' : 'skip'
     });
     validateResult.value = res.data;
     step.value = 3;
@@ -270,8 +290,8 @@ const handleValidate = async () => {
 
 const handleDownloadFailed = async () => {
   if (!validateResult.value?.batchNo) return;
-  await downloadImportFailedRows(validateResult.value.batchNo);
-  ElMessage.success('已生成失败明细文件（标注行号与原因），开始下载');
+  const res = await downloadImportFailedRows(validateResult.value.batchNo);
+  downloadByFileRef(res.data, `failed-rows-${validateResult.value.batchNo}.csv`);
 };
 
 const handleExecute = async () => {
@@ -296,8 +316,8 @@ const loadTask = async () => {
 
 const handleDownloadResult = async () => {
   if (!validateResult.value?.batchNo) return;
-  await downloadImportResult(validateResult.value.batchNo);
-  ElMessage.success('已生成结果摘要与对照表，开始下载');
+  const res = await downloadImportResult(validateResult.value.batchNo);
+  downloadByFileRef(res.data, `import-result-${validateResult.value.batchNo}.xlsx`);
 };
 
 const goTaskCenter = () => router.push('/edu/async-task/list');
