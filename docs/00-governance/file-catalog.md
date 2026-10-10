@@ -2003,3 +2003,10 @@
 | `tools/check_fe_page_structure.py`（改） | 新增 `PAGE-GRD-LEADER-TABLE` | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-117 关闭 | `review` |
 | `evidence/stage6-frontend/2026-10-10_component-table-coverage-round8.log` | 门禁与收口汇总 | `review` |
+
+## 2026-10-10 阶段 8 运行时验收第一次尝试：被教育菜单缺失阻塞
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `evidence/stage6-frontend/2026-10-10_acceptance-blocked-by-missing-edu-menu.log` | 环境确认、权限/菜单/接口实测结果与解封步骤 | `review` |
+| `evidence/stage6-frontend/2026-10-10_manual-acceptance-checklist.md`（改） | 新增「阻塞记录」一节 | `review` |

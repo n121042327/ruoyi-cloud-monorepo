@@ -1,0 +1,45 @@
+2026-10-10 阶段 8 运行时验收（第一次尝试）：被「教育菜单未落库」阻塞
+
+一、环境（验收前确认）
+- 前端 dev server：http://localhost/（node，端口 80，Vite，代理 /dev-api → http://localhost:8080）
+- 网关：http://localhost:8080（200）
+- edu 服务：端口 9211（PID 24852，21:06 启动，classpath 指向 ruoyi-edu/target/classes，
+  含 CR-152 ~ CR-166 的代码）
+- 登录：租户「蜀国」（tenant_id=546223）、账号 liubei（userId 2108206858094284801，昵称 liubei，部门「蜀国」）
+
+二、执行方式
+用 Codex in-app browser 打开 http://localhost/，以 蜀国 / liubei 登录（登录页 tenantId=546223，
+localStorage 中 Admin-Token 为有效 JWT）；随后通过页面内 fetch（经 Vite 代理 /dev-api → 网关）
+读取当前用户、权限、菜单与 edu 接口响应。
+
+三、关键结果
+1) /system/user/getInfo：登录成功；permissions 共 135 条，**其中不含任何教育域权限点**
+   （过滤 person.* / org.* / data.* / audit.* / stream.* / promotion.* 后为空）。
+2) /system/menu/list?pageNum=1&pageSize=500：共 155 条菜单，全部是系统管理 / 系统监控 / 系统工具 /
+   测试菜单 / 工作流相关；按 学生|教师|班级|年级|学校|导入|导出|审计|选科|教学班|教育|学年学期|学科
+   过滤只命中系统与工作流的 import/export 按钮，**没有任何教育管理菜单**。
+3) edu 接口（带 liubei 的有效 token）：
+   - GET /edu/teacher/list      → {"code":403,"msg":"没有访问权限，请联系管理员授权"}
+   - GET /edu/school/list       → 同上 403
+   - GET /edu/async-task/list   → 同上 403
+   （HTTP 状态 200，业务 code 403：网关路由与 edu 服务本身可达，是权限拒绝）
+
+四、结论
+阶段 8 的运行时验收**当前无法开始**：前端左侧没有「教育管理」入口，edu 权限点为 0，
+所有 edu 接口都被权限拦截返回 403。这是环境数据问题，不是代码缺陷 ——
+`services/RuoYi-Cloud-Plus/script/sql/edu-menu.sql` 的教育菜单种子没有在本机库执行过
+（脚本注释与 CR-148 都已写明这一步需要在库里执行）。
+
+五、解封步骤（需要用户执行或授权执行）
+1. 在本机库（ry-cloud）执行 `services/RuoYi-Cloud-Plus/script/sql/edu-menu.sql`
+   （id 区间 13000-13999，先删后插，可重复执行；sys_menu 在本仓库基线 DDL 里没有 tenant_id 列，
+   菜单是全局的，执行后各租户都能看到入口）。
+2. 在「系统管理 → 角色管理」给 liubei 所在角色勾选新增的「教育管理」菜单树
+   （super_admin / role_id=1 免授权，由后端 selectMenuTreeAll 直接放行）。
+3. 执行后重新登录或刷新，确认左侧出现「教育管理」，再回到本清单第 1~13 项逐条验收。
+   （CR-156 的教师导入建账号那一条另需 `sys.account.registerUser=true` 与 10 列 teacher 模板。）
+
+六、本批产出
+- 本证据文件；
+- `evidence/stage6-frontend/2026-10-10_manual-acceptance-checklist.md` 增加「阻塞记录」一节；
+- 未改动任何代码，未跑门禁（只新增/修改 evidence 文档）。

@@ -126,3 +126,25 @@
 | 12 教师导入建账号 | 通过（静态）：模板 10 列、校验与执行器分支齐全、结果文件辅助列按模块登记；密码在 `registerUserInfo` 内 BCrypt 加密（D-236） |
 
 > 静态核对通过不等于运行时通过：以上 8 ~ 12 项的运行时状态仍是 `待验收`。
+
+## 阻塞记录（2026-10-10 第一次运行时验收尝试）
+
+**状态：阻塞 —— 教育菜单与权限点未落库，第 1~13 项都无法开始。**
+
+- 登录环境确认可用：租户「蜀国」（`tenant_id=546223`）、账号 `liubei`，登录成功，
+  `/system/user/getInfo` 返回 135 条权限；
+- 但**这 135 条里没有任何教育域权限点**，`/system/menu/list` 的 155 条菜单里也**没有「教育管理」**；
+- 直接调用 edu 接口（`/edu/teacher/list`、`/edu/school/list`、`/edu/async-task/list`）全部返回
+  `{"code":403,"msg":"没有访问权限，请联系管理员授权"}` —— 网关路由与 edu 服务本身可达，
+  是权限拒绝。
+
+原因：`services/RuoYi-Cloud-Plus/script/sql/edu-menu.sql` 的教育菜单种子没有在本机库执行过
+（CR-148 已记录这一步）。
+
+解封动作：
+1. 在本机库执行 `services/RuoYi-Cloud-Plus/script/sql/edu-menu.sql`（id 区间 13000—13999，先删后插，可重复执行）；
+2. 「系统管理 → 角色管理」给 `liubei` 的角色勾选新增的「教育管理」菜单树（`super_admin` 免授权）；
+3. 刷新后确认左侧出现「教育管理」，再回到上面第 1~13 项逐条验收。
+
+详细记录见 `evidence/stage6-frontend/2026-10-10_acceptance-blocked-by-missing-edu-menu.log`。
+本清单各条目的 `待验收` 状态保持不变（本次未能开始实际验收）。
