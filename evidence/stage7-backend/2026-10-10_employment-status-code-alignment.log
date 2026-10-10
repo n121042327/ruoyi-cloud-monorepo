@@ -1,0 +1,35 @@
+2026-10-10 阶段 6/7：「在职」码值统一为 active（GAP-105 关闭，CR-155）
+
+一、根因
+同一位教师的「在职」状态在四处写法不同：
+- docs/10-prd/06-field-dictionary.yaml 第 245 行：on_duty
+- docs/40-detailed-design/database/schema.yaml 第 225 行默认值：active
+- 后端 EduTeacherServiceImpl.STATUS_ACTIVE：active
+- 前端 EmploymentStatusEnum.ON_DUTY 的值：active（此前还用中文「在职」当过码值）
+
+二、本批改动
+- 字段字典 employment_status 的「在职」码值改成 active，并加 applied_by: CR-155。
+- 前端 TeacherEnum.ts 注释改为「口径已统一为 active（CR-155 / GAP-105 收口）」。
+- 未改 schema.yaml 与后端（按推荐以落库值 active 为准，零迁移）。
+- 枚举常量名 ON_DUTY 保留（值仍是 active），只更新注释，避免牵动三处引用。
+
+三、门禁（本机执行）
+$ python tools/check_fe_page_structure.py            -> exit 0
+$ python tools/check_fe_text_nowrap.py               -> exit 0
+$ python tools/check_api_contract.py                 -> exit 0
+$ python tools/check_docs.py                         -> exit 0
+$ python tools/check_gap_register.py                 -> exit 0
+$ python tools/check_mermaid.py                      -> exit 0
+$ python tools/check_stage6_route_coverage.py        -> exit 0
+$ python tools/check_perm_seed.py                    -> exit 0
+
+$ pnpm --filter @edu/plus-ui typecheck   -> 51 条 error TS（基线 51，未新增）
+$ pnpm --filter @edu/plus-ui lint:eslint -> 124 problems（基线 124，未新增）
+$ pnpm --filter @edu/plus-ui run build:prod -> exit=0（built in 37.55s）
+
+四、未执行项与原因
+- 后端未改动，未跑 Maven；启动验证未做（无 bean / 配置变更）。
+
+五、残留
+- 存量数据里可能仍有中文「在职」的历史行：前端 EMPLOYMENT_STATUS_LABEL 保留中文键做兼容映射，
+  属于既有兼容逻辑，不在本批清理。

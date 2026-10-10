@@ -5,8 +5,9 @@
  * 默认 `'active'`）与后端 `EduTeacherServiceImpl.STATUS_ACTIVE`；离职 / 调离码值取自
  * `docs/10-prd/06-field-dictionary.yaml` 的 `employment_status` 枚举（`resigned` / `transferred_out`）。
  *
- * 已知上游分歧：字段字典把「在职」记为 `on_duty`，而 schema.yaml 默认值与后端落库都用 `active`。
- * 本文件按后端实际落库码值对齐，分歧已登记 gap-register（CR-128 / D-208）。
+ * 「在职」的码值统一为 `active`（GAP-105 已按 CR-155 收口）：字段字典原先记的 `on_duty` 已改，
+ * 与 schema.yaml 默认值、后端 `STATUS_ACTIVE`、本文件三处一致；枚举常量名沿用 `ON_DUTY`，
+ * 只表示「在职」这个业务含义，值仍是 `active`。
  */
 
 /** 在职状态（`employment_status`） */

@@ -1880,3 +1880,14 @@
 | `services/.../edu/service/impl/EduAsyncTaskServiceImpl.java`（改） | 下载审计学校逐级兜底 + 拒绝 | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-113 关闭 | `review` |
 | `evidence/stage7-backend/2026-10-10_download-audit-school-context.log` | 根因、门禁与未执行项说明 | `review` |
+
+## 2026-10-10 阶段 6/7 第七十四批：「在职」码值统一为 active（GAP-105 关闭）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-155.md` | 码值以落库值为准的理由与影响面 | `review` |
+| `docs/10-prd/06-field-dictionary.yaml`（改） | 字段字典 employment_status 的在职码值改为 `active` | `已实现` |
+| `apps/plus-ui/src/enums/edu/TeacherEnum.ts`（改） | 注释去掉「上游分歧」，写明口径已统一 | `已实现` |
+| `docs/00-governance/decisions.md`（改） | 新增 D-235 | `review` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-105 关闭 | `review` |
+| `evidence/stage7-backend/2026-10-10_employment-status-code-alignment.log` | 根因与门禁 | `review` |

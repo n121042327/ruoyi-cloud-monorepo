@@ -242,10 +242,11 @@ enums:
   - name: employment_status
     name_cn: 在职状态
     entries:
-      - { code: on_duty, label: 在职 }
+      - { code: active, label: 在职 }
       - { code: resigned, label: 离职 }
       - { code: transferred_out, label: 调离 }
     note: 教师在职状态。离职与调离必须填写生效日期与原因，且不再出现在任教关系选择项中（BR-TEACHER-006）
+    applied_by: CR-155
 
   - name: grade_status
     name_cn: 年级状态

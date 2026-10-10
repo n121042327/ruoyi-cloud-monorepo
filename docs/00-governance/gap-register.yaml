@@ -3565,7 +3565,17 @@ open_questions_for_user:
     blocks_stages:
       - stage6
     owner: 用户
-    status: open
+    answer: |
+      用户 2026-10-10 确认「GAP-105 按推荐」：以落库值 `active` 为准，改字段字典。
+    resolution: |
+      CR-155 收口（2026-10-10）：`docs/10-prd/06-field-dictionary.yaml` 的 `employment_status`
+      「在职」码值由 `on_duty` 改为 `active`（加 `applied_by: CR-155`）；前端 `TeacherEnum.ts`
+      注释去掉「已知上游分歧」并写明口径已统一。
+      至此 `schema.yaml` 默认值、后端 `EduTeacherServiceImpl.STATUS_ACTIVE`、前端
+      `EmploymentStatusEnum.ON_DUTY`（值 `active`）与字段字典四处一致，无需迁移存量数据（D-235）。
+      枚举常量名 `ON_DUTY` 保留，只表示「在职」的业务含义。
+    resolved_at: "2026-10-10"
+    status: closed
   - id: GAP-106
     title: openapi 声明了 DELETE /edu/class/{id}（removeClass）但 ruoyi-edu 未实现，且年级删除不接收 reason
     discovered_at: 2026-10-10
