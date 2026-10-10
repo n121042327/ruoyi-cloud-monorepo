@@ -370,6 +370,28 @@ CHECKS = [
         "filter_note": "组件级条目：查询区在父页面 PAGE-CLS-DETAIL，只比对变更记录表列",
     },
     {
+        "page_id": "PAGE-STU-DETAIL-GUARDIAN-TABLE",
+        "name": "学生详情 · 监护人表（组件级对照）",
+        "prototype": "prototypes/high-fidelity/v1/pages/student-list.html",
+        "vue": "apps/plus-ui/src/views/edu/student/stu_list/components/GuardianTable.vue",
+        # D-238：监护人表原型缺表，按生产页列定义补进详情抽屉的监护人卡片（第 3 张表）（CR-165）
+        "table_index": 3,
+        "deferred_groups": {},
+        "skip_filter": True,
+        "filter_note": "组件级条目：查询区在父页面 PAGE-STU-LIST，只比对监护人表列",
+    },
+    {
+        "page_id": "PAGE-STR-STUDENT-HISTORY-TABLE",
+        "name": "学生选科 · 变更记录表（组件级对照）",
+        "prototype": "prototypes/high-fidelity/v1/pages/stream-selection.html",
+        "vue": "apps/plus-ui/src/views/edu/stream/str_student/components/StreamHistoryDialog.vue",
+        # D-238：选科变更记录原型缺表，按生产页列定义补进「当前选科结果」卡片之后（第 1 张表）（CR-165）
+        "table_index": 1,
+        "deferred_groups": {},
+        "skip_filter": True,
+        "filter_note": "组件级条目：查询区在父页面 PAGE-STR-STUDENT，只比对变更记录表列",
+    },
+    {
         "page_id": "PAGE-IMP-WIZARD",
         "name": "导入向导",
         "prototype": "prototypes/functional/v1/pages/import-wizard.html",

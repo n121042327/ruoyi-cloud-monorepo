@@ -1981,3 +1981,14 @@
 | `tools/check_fe_page_structure.py`（改） | 新增两条组件级条目（table_index=4 / 6） | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-117 进度 5 / 11 | `review` |
 | `evidence/stage6-frontend/2026-10-10_component-table-coverage-round6.log` | 门禁与位移核对 | `review` |
+
+## 2026-10-10 GAP-117 第六批：监护人表与选科变更记录表纳入门禁（CR-165）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-165.md` | 本批范围、原型页选择与门禁 | `review` |
+| `apps/plus-ui/src/views/edu/student/stu_list/components/GuardianTable.vue`（改） | 5 列补 `data-layout-group` | `已实现` |
+| `prototypes/high-fidelity/v1/pages/student-list.html`、`stream-selection.html`（改） | 新增监护人表 / 选科变更记录表 | `已实现` |
+| `tools/check_fe_page_structure.py`（改） | 新增两条组件级条目 | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-117 进度 7 / 11 | `review` |
+| `evidence/stage6-frontend/2026-10-10_component-table-coverage-round7.log` | 门禁与影响面核对 | `review` |

@@ -1,29 +1,29 @@
 <template>
   <div>
     <el-table :data="rows" border>
-      <el-table-column label="监护人姓名" min-width="140">
+      <el-table-column label="监护人姓名" min-width="140" data-layout-group="监护人">
         <template #default="scope">
           <el-input v-model="scope.row.guardianName" placeholder="请输入姓名" />
         </template>
       </el-table-column>
-      <el-table-column label="与学生关系" width="150">
+      <el-table-column label="与学生关系" width="150" data-layout-group="监护人">
         <template #default="scope">
           <el-select v-model="scope.row.relation" placeholder="请选择">
             <el-option v-for="item in GUARDIAN_RELATION_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </template>
       </el-table-column>
-      <el-table-column label="监护人电话" width="160">
+      <el-table-column label="监护人电话" width="160" data-layout-group="监护人">
         <template #default="scope">
           <el-input v-model="scope.row.guardianPhone" placeholder="可留空" maxlength="11" />
         </template>
       </el-table-column>
-      <el-table-column label="主要联系人" width="110" align="center">
+      <el-table-column label="主要联系人" width="110" align="center" data-layout-group="监护人">
         <template #default="scope">
           <el-radio v-model="primaryIndex" :value="scope.$index" @change="handlePrimaryChange(scope.$index)">&nbsp;</el-radio>
         </template>
       </el-table-column>
-      <el-table-column label="备注" min-width="140">
+      <el-table-column label="备注" min-width="140" data-layout-group="监护人">
         <template #default="scope">
           <el-input v-model="scope.row.remark" placeholder="可留空" />
         </template>

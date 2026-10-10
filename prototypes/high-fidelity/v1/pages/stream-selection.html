@@ -115,6 +115,17 @@
     </div>
   </section>
 
+  <section class="card" data-block="stream-history" data-role="section">
+    <div class="card-header"><h2>选科变更记录</h2><span class="el-tag info">追加式，不可删除</span></div>
+    <div class="card-body">
+      <table class="el-table">
+        <thead><tr><th data-role="column" data-layout-group="变更信息" data-field="change_type" style="width:130px">变更类型</th><th data-role="column" data-layout-group="变更信息" data-field="before_combination" style="min-width:170px">变更前组合</th><th data-role="column" data-layout-group="变更信息" data-field="after_combination" style="min-width:170px">变更后组合</th><th data-role="column" data-layout-group="变更信息" data-field="effective_date" style="width:130px">生效日期</th><th data-role="column" data-layout-group="变更信息" data-field="operator" style="width:110px">操作人</th><th data-role="column" data-layout-group="变更信息" data-field="reason" style="min-width:160px">原因</th></tr></thead>
+        <tbody><tr><td>提交选科</td><td>物理 + 化学 + 生物</td><td>物理 + 化学 + 地理</td><td class="mono">2026-09-26</td><td>王梓萱</td><td>个人志愿调整（开放期内直接生效）</td></tr></tbody>
+      </table>
+      <div class="legend" style="margin-top:8px"><span>选科变更按学年学期追加保留，历史可查、不可删除（<span class="mono">REQ-STR-021</span>）。</span></div>
+    </div>
+  </section>
+
   </div>
 
   <div class="state-hidden" data-demo-state-panel="loading">

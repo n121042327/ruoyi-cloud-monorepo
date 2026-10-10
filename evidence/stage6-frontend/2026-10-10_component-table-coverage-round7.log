@@ -1,0 +1,51 @@
+2026-10-10 阶段 6：GAP-117 第六批（监护人表 + 选科变更记录表，CR-165）
+
+一、本批改动
+1. apps/plus-ui/src/views/edu/student/stu_list/components/GuardianTable.vue
+   - 监护人姓名 / 与学生关系 / 监护人电话 / 主要联系人 / 备注 5 列补 data-layout-group="监护人"
+     （此前只有操作列有分组，tools/check_fe_page_structure.py 的 parse_vue_columns 读不到这些列）
+2. prototypes/high-fidelity/v1/pages/student-list.html
+   - 学生详情抽屉「监护人（上限 3）」卡片内新增监护人表（第 3 张表）：
+     监护人姓名 / 与学生关系 / 监护人电话 / 主要联系人 / 备注 / 操作（<th data-role="column" data-layout-group="..."> + 1 行示例数据）
+3. prototypes/high-fidelity/v1/pages/stream-selection.html
+   - 「当前选科结果」卡片之后新增「选科变更记录」卡片与表（第 1 张表）：
+     变更类型 / 变更前组合 / 变更后组合 / 生效日期 / 操作人 / 原因
+4. tools/check_fe_page_structure.py
+   - 新增 PAGE-STU-DETAIL-GUARDIAN-TABLE（prototype=high-fidelity student-list，table_index=3，skip_filter）
+   - 新增 PAGE-STR-STUDENT-HISTORY-TABLE（prototype=high-fidelity stream-selection，table_index=1，skip_filter）
+
+二、列来源
+列定义取自生产组件，未新增生产页里不存在的列：
+  GuardianTable.vue（6 列）与 StreamHistoryDialog.vue（6 列）。
+
+三、原型页选择与影响面
+- PAGE-STU-DETAIL 等条目对照 functional/v2/pages/student-list.html；本批插入的是 high-fidelity/v1 的同名页，
+  新条目自带 prototype 路径 → 既有条目不受影响。
+- PAGE-STR-STUDENT 条目对照 functional/v1/pages/stream-selection.html；本批插入 high-fidelity/v1 的同名页，
+  该条目实测仍为「0 列」（该功能原型没有表格）→ 不受影响。
+
+四、门禁（本机执行）
+$ python tools/check_fe_page_structure.py
+=== PAGE-STU-DETAIL-GUARDIAN-TABLE 学生详情 · 监护人表（组件级对照） ===
+  表格列顺序与分组一致：6 列（监护人姓名(监护人) → 与学生关系(监护人) → 监护人电话(监护人) → 主要联系人(监护人) → 备注(监护人) → 操作(操作)）
+=== PAGE-STR-STUDENT-HISTORY-TABLE 学生选科 · 变更记录表（组件级对照） ===
+  表格列顺序与分组一致：6 列（变更类型(变更信息) → 变更前组合(变更信息) → 变更后组合(变更信息) → 生效日期(变更信息) → 操作人(变更信息) → 原因(变更信息)）
+=== PAGE-STU-DETAIL 学生详情抽屉 === 分组顺序一致：基础信息 → 教育信息 → 证件信息 → 联系方式 → 监护人 → 变更记录
+=== PAGE-STR-STUDENT 学生选科 === 0 列（既有条目保持不变）
+exit=0
+
+$ python tools/check_fe_text_nowrap.py / check_api_contract.py / check_docs.py / check_gap_register.py /
+  check_mermaid.py / check_stage6_route_coverage.py / check_perm_seed.py -> 全部 exit 0
+
+$ pnpm --filter @edu/plus-ui typecheck   -> 51 条 error TS（基线 51，未新增）
+$ pnpm --filter @edu/plus-ui lint:eslint -> 124 problems（基线 124，未新增）
+$ pnpm --filter @edu/plus-ui run build:prod -> exit=0（built in 23.74s）
+
+五、未执行项与原因
+- 无后端改动，未跑 Maven；未起第二个 edu 实例做启动验证（9211 由用户实例占用）。
+
+六、GAP-117 进度
+已纳入门禁 7 / 11（AssignmentTable / ArchiveSearchDialog / TeachingClassDetailDrawer /
+TeachingAssignmentTable / ClassChangeLogTable / GuardianTable / StreamHistoryDialog）。
+剩余 1 张：GradeLeaderDialog（`high-fidelity/v1/pages/teacher-list.html` 或 `grade-list.html` 的年级主任区域新增表），
+做完后关闭 GAP-117 并汇总各批提交号。

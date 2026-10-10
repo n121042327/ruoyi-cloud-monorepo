@@ -3992,8 +3992,14 @@ open_questions_for_user:
       用默认切片（花名册），不受影响。
       **进度：11 张中已纳入 5 张**（AssignmentTable / ArchiveSearchDialog / TeachingClassDetailDrawer /
       TeachingAssignmentTable / ClassChangeLogTable）。
-      下一批（第六批）：清单第 3、4 张 —— `GuardianTable`（学生详情或花名册页新增监护人表）与
-      `StreamHistoryDialog`（先定位承载选科变更的原型页）。
+      **第六批（CR-165，2026-10-10，按 D-238 实做）**：`GuardianTable.vue` 5 列补 `data-layout-group`；
+      在 `high-fidelity/v1/pages/student-list.html` 学生详情抽屉的监护人卡片内新增监护人表（6 列）、
+      在 `high-fidelity/v1/pages/stream-selection.html` 新增「选科变更记录」表（6 列）；
+      检查器新增 `PAGE-STU-DETAIL-GUARDIAN-TABLE`（table_index=3）与
+      `PAGE-STR-STUDENT-HISTORY-TABLE`（table_index=1）。列定义均取自生产组件。
+      **进度：11 张中已纳入 7 张**（AssignmentTable / ArchiveSearchDialog / TeachingClassDetailDrawer /
+      TeachingAssignmentTable / ClassChangeLogTable / GuardianTable / StreamHistoryDialog）。
+      下一批（第七批）：清单第 5 张 `GradeLeaderDialog`；完成后把本条 `status` 改为 `closed` 并汇总各批提交号。
     blocking: false
     blocks_stages:
       - stage8
