@@ -1914,3 +1914,10 @@
 | `docs/00-governance/change-requests/CR-157.md` | 清单更新范围与两项待拍板说明 | `review` |
 | `evidence/stage6-frontend/2026-10-10_manual-acceptance-checklist.md`（改） | 补第 8 ~ 12 项、前置动作与静态核对 | `review` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-101 / GAP-117 补四段式请示 | `review` |
+
+## 2026-10-10 阶段 7/8：关闭 GAP-112（写法口径收敛）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-158.md` | GAP-112 按推荐关闭与重新评估触发条件 | `review` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-112 补 answer / resolution 并置 closed | `review` |

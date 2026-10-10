@@ -3553,7 +3553,19 @@ open_questions_for_user:
     blocks_stages:
       - stage6
     owner: 用户
-    status: open
+    answer: |
+      用户 2026-10-10 授权「遇到需要拍板的按推荐方案走」；本条推荐方案 1 已在本批执行，
+      按推荐关闭（不再深挖 vite 原生崩溃）。
+    resolution: |
+      CR-135（2026-10-10）已按推荐方案 1 规避并验证：`cls_detail` 拆出的展示型组件
+      （`TeachingAssignmentTable.vue` / `ClassChangeLogTable.vue`）props 改用组件内结构类型，
+      不再从 `@/api/edu/teacher/types` 这类 api 层 `import type` 引用接口；
+      `pnpm --filter @edu/plus-ui run build:prod` 恢复 exit 0（此前 exit 0xC0000005）。
+      写法口径记在 D-215，CR-149 后续新增的 4 张组件表也沿用该写法（CR-157 的清单仍保持 `待验收` 之外无阻塞）。
+      重新评估的触发条件：出现可稳定复现的最小仓库（或升级 vue-tsc / @vitejs/plugin-vue / rollup 后复现），
+      再按方案 2 深挖；本条关闭不表示问题根因已定位。
+    resolved_at: "2026-10-10"
+    status: closed
   - id: GAP-105
     title: edu_teacher.employment_status「在职」码值上游两处不一致（on_duty / active）
     discovered_at: 2026-10-10
