@@ -1,0 +1,26 @@
+# 第二轮队列第 3 项：新增校区 / 变更编码 / 学校概要（CR-125）
+
+时间：2026-10-10
+分支：codex/stage7-backend
+触发：heartbeat（第二轮队列第 3 项）
+
+## 交付
+- api/edu/school 补 getSchool / updateSchoolCode / addCampus / getSchoolSummary
+- types 补 CampusForm / SchoolSummaryVO
+- 新增 3 个弹窗：CampusFormDialog / SchoolCodeDialog / SchoolSummaryDialog
+- sch_campus 工具栏加「新增校区」；sch_list 操作列加「更多▾」，width 260 -> 340
+
+## 口径
+- 新增校区：schoolId 由 getCurrentSchool 解析，弹窗不重复选学校；名称与编码必填
+- 变更编码：单独弹窗 + 原因（编码是导入导出对照表的键）
+- 学校概要：只读，数据来自 getSchoolSummary，不做本地聚合
+- 更多▾ 沿用 D-198（行内按钮不超过 4 个）
+
+## 修正
+- sch_campus 的 schoolId 由局部变量提为组件级 ref（弹窗需要）
+- sch_list 的 dropdown 由 template 外移入 template #default（原本 scope 不可用）
+
+## 门禁
+check_fe_page_structure.py / check_fe_text_nowrap.py / check_api_contract.py / check_docs.py /
+check_gap_register.py / check_mermaid.py / check_stage6_route_coverage.py -> 全部通过
+typecheck 51（基线）/ lint 124（基线）/ build:prod exit 0

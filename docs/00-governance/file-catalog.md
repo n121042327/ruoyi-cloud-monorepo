@@ -1536,3 +1536,17 @@
 | `apps/plus-ui/src/views/edu/term/term_terms/index.vue`（改） | 工具栏加新增学期；操作列加编辑 | `已实现` |
 | `apps/plus-ui/src/views/edu/term/term_terms/components/TermFormDialog.vue` | 学期表单弹窗 | `已实现` |
 | `evidence/stage6-frontend/2026-10-10_term-create.log` | 门禁与改动记录 | `review` |
+
+## 2026-10-10 阶段 6 第四十四批：新增校区 / 变更学校编码 / 学校概要
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-125.md` | 校区新增 / 编码变更 / 概要接线与口径 | `review` |
+| `apps/plus-ui/src/api/edu/school/index.ts`（改） | 补 getSchool / updateSchoolCode / addCampus / getSchoolSummary | `已实现` |
+| `apps/plus-ui/src/api/edu/school/types.ts`（改） | 补 CampusForm / SchoolSummaryVO | `已实现` |
+| `apps/plus-ui/src/views/edu/school/sch_campus/index.vue`（改） | 工具栏加新增校区；schoolId 提为组件级 | `已实现` |
+| `apps/plus-ui/src/views/edu/school/sch_campus/components/CampusFormDialog.vue` | 新增校区弹窗 | `已实现` |
+| `apps/plus-ui/src/views/edu/school/sch_list/index.vue`（改） | 操作列加更多▾（变更编码 / 学校概要） | `已实现` |
+| `apps/plus-ui/src/views/edu/school/sch_list/components/SchoolCodeDialog.vue` | 变更学校编码弹窗 | `已实现` |
+| `apps/plus-ui/src/views/edu/school/sch_list/components/SchoolSummaryDialog.vue` | 学校概要弹窗 | `已实现` |
+| `evidence/stage6-frontend/2026-10-10_school-campus-code-summary.log` | 门禁与改动记录 | `review` |

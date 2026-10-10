@@ -1,6 +1,6 @@
 import request from '@/utils/request';
 import { AxiosPromise } from 'axios';
-import { CampusVO, SchoolForm, SchoolStageVO, SchoolVO } from './types';
+import { CampusForm, CampusVO, SchoolForm, SchoolStageVO, SchoolSummaryVO, SchoolVO } from './types';
 
 /** 学校列表查询参数 */
 export interface SchoolQuery extends Partial<PageQuery> {
@@ -157,6 +157,56 @@ export const initSchoolBaseline = (
     url: `/edu/school/${schoolId}/init`,
     method: 'post',
     data
+  });
+};
+
+/**
+ * 查询学校详情
+ *
+ * 对应 operationId `getSchool`（GET /edu/school/{id}）。
+ */
+export const getSchool = (schoolId: string): AxiosPromise<SchoolVO> => {
+  return request({
+    url: `/edu/school/${schoolId}`,
+    method: 'get'
+  });
+};
+
+/**
+ * 变更学校编码（编码变更需单独申请并写审计，且是导入 / 导出对照表的键）
+ *
+ * 对应 operationId `updateSchoolCode`（PUT /edu/school/{id}/school-code）。
+ */
+export const updateSchoolCode = (schoolId: string, schoolCode: string, reason?: string) => {
+  return request({
+    url: `/edu/school/${schoolId}/school-code`,
+    method: 'put',
+    params: { schoolCode, reason }
+  });
+};
+
+/**
+ * 新增校区（组织与配置）
+ *
+ * 对应 operationId `addCampus`（POST /edu/school/{id}/campus）。
+ */
+export const addCampus = (schoolId: string, data: CampusForm) => {
+  return request({
+    url: `/edu/school/${schoolId}/campus`,
+    method: 'post',
+    data
+  });
+};
+
+/**
+ * 学校数据摘要（学段 / 校区 / 学年 / 学期 / 年级 / 班级 / 教师 / 学科计数）
+ *
+ * 对应 operationId `getSchoolSummary`（GET /edu/school/{id}/summary）。
+ */
+export const getSchoolSummary = (schoolId: string): AxiosPromise<SchoolSummaryVO> => {
+  return request({
+    url: `/edu/school/${schoolId}/summary`,
+    method: 'get'
   });
 };
 

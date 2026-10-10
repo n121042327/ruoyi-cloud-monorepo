@@ -14,6 +14,7 @@
       <template #header>
         <el-row :gutter="10">
           <el-col :span="1.5">
+            <el-button v-hasPermi="['org.school:update']" type="primary" plain icon="Plus" @click="campusFormRef?.open()">新增校区</el-button>
             <el-button v-hasPermi="['org.school:read']" type="primary" plain icon="Refresh" @click="getList">刷新</el-button>
           </el-col>
           <el-col :span="12">
@@ -61,6 +62,8 @@
         @pagination="getList"
       />
     </el-card>
+
+    <CampusFormDialog ref="campusFormRef" :school-id="schoolId" @success="getList" />
   </div>
 </template>
 
@@ -70,13 +73,16 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { getCurrentSchool, listCampus, removeCampus } from '@/api/edu/school';
 import type { CampusVO } from '@/api/edu/school/types';
 import { checkPermi } from '@/utils/permission';
+import CampusFormDialog from './components/CampusFormDialog.vue';
 
 defineOptions({ name: 'EduSchoolCampus' });
+const campusFormRef = ref<InstanceType<typeof CampusFormDialog>>();
 
 const loading = ref(false);
 const total = ref(0);
 const campusList = ref<CampusVO[]>([]);
 const schoolName = ref('');
+const schoolId = ref('');
 const queryParams = reactive({ pageNum: 1, pageSize: 20 });
 
 const canRead = computed(() => checkPermi(['org.school:read']));
@@ -86,13 +92,13 @@ const getList = async () => {
   try {
     const school = await getCurrentSchool();
     schoolName.value = school.data?.schoolName ?? '';
-    const schoolId = school.data?.schoolId;
-    if (!schoolId) {
+    schoolId.value = school.data?.schoolId ?? '';
+    if (!schoolId.value) {
       campusList.value = [];
       total.value = 0;
       return;
     }
-    const res = await listCampus(schoolId);
+    const res = await listCampus(schoolId.value);
     campusList.value = res.data ?? [];
     total.value = campusList.value.length;
   } catch {

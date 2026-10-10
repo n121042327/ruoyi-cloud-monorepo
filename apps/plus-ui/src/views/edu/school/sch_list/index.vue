@@ -83,7 +83,7 @@
             </template>
           </el-table-column>
           <el-table-column v-if="columns[7].visible" label="所属租户" prop="tenantId" width="140" data-layout-group="管理信息" />
-          <el-table-column fixed="right" label="操作" width="260" data-layout-group="操作">
+          <el-table-column fixed="right" label="操作" width="340" data-layout-group="操作">
             <template #default="scope">
               <el-button v-hasPermi="['org.school:update']" link type="primary" @click="handleUpdate(scope.row)">编辑</el-button>
               <el-button
@@ -98,6 +98,17 @@
               <el-button v-else v-hasPermi="['org.school:update']" link type="primary" @click="handleEnable(scope.row)">启用</el-button>
               <el-button v-hasPermi="['org.school:update']" link type="primary" @click="handleCampus">校区管理</el-button>
               <el-button v-hasPermi="['org.school:update']" link type="primary" @click="handleStage(scope.row)">学段配置</el-button>
+              <el-dropdown class="ml-2" @command="(cmd: string) => handleMore(cmd, scope.row)">
+                <el-button link type="primary"
+                  >更多<el-icon class="ml-1"><arrow-down /></el-icon
+                ></el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="code">变更编码</el-dropdown-item>
+                    <el-dropdown-item command="summary">学校概要</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </template>
           </el-table-column>
 
@@ -118,6 +129,9 @@
 
     <school-form-dialog ref="formDialogRef" @success="getList" />
     <stage-config-dialog ref="stageDialogRef" @success="getList" />
+
+    <SchoolCodeDialog ref="codeRef" @success="getList" />
+    <SchoolSummaryDialog ref="summaryRef" />
   </div>
 </template>
 
@@ -130,6 +144,8 @@ import StageConfigDialog from './components/StageConfigDialog.vue';
 import { disableSchool, enableSchool, listSchool } from '@/api/edu/school';
 import type { SchoolQuery } from '@/api/edu/school';
 import type { SchoolVO } from '@/api/edu/school/types';
+import SchoolCodeDialog from './components/SchoolCodeDialog.vue';
+import SchoolSummaryDialog from './components/SchoolSummaryDialog.vue';
 import { STAGE_CODE_LABEL, STAGE_CODE_OPTIONS } from '@/enums/edu/StudentEnum';
 import { checkPermi } from '@/utils/permission';
 
@@ -157,6 +173,8 @@ const columns = ref([
 ]);
 
 const formDialogRef = ref<InstanceType<typeof SchoolFormDialog>>();
+const codeRef = ref<InstanceType<typeof SchoolCodeDialog>>();
+const summaryRef = ref<InstanceType<typeof SchoolSummaryDialog>>();
 const stageDialogRef = ref<InstanceType<typeof StageConfigDialog>>();
 
 const canRead = computed(() => checkPermi(['org.school:read']));
@@ -243,4 +261,15 @@ const handleStage = (row: SchoolVO) => {
 };
 
 onMounted(getList);
+
+/** 操作列 more：change code / view school summary */
+const handleMore = (command: string, row: SchoolVO) => {
+  if (command === 'code') {
+    codeRef.value?.open(row);
+    return;
+  }
+  if (command === 'summary') {
+    summaryRef.value?.open(row);
+  }
+};
 </script>

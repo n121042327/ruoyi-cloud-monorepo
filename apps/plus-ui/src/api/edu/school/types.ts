@@ -65,3 +65,30 @@ export interface SchoolStageVO {
   /** 该学段下的年级数：> 0 时不允许移除该学段（REQ-SCH-034） */
   gradeCount?: number;
 }
+
+/** 校区新增 / 编辑表单（POST /edu/school/{id}/campus，字段与 EduCampusBo 对齐） */
+export interface CampusForm {
+  campusId?: string;
+  schoolId?: string;
+  campusCode: string;
+  campusName: string;
+  address?: string;
+  leaderName?: string;
+  leaderPhone?: string;
+  campusStatus?: string;
+}
+
+/** 学校数据摘要（GET /edu/school/{id}/summary） */
+export interface SchoolSummaryVO {
+  schoolId: string;
+  schoolName?: string;
+  stageCodes?: string[];
+  campusCount?: number;
+  academicYearCount?: number;
+  termCount?: number;
+  gradeCount?: number;
+  classCount?: number;
+  teacherCount?: number;
+  subjectCount?: number;
+  initialized?: boolean;
+}
