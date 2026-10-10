@@ -4,6 +4,8 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.DateUtils;
 import org.dromara.common.core.utils.StringUtils;
@@ -15,6 +17,7 @@ import org.dromara.edu.domain.EduFileRef;
 import org.dromara.edu.domain.EduImportBatch;
 import org.dromara.edu.domain.EduImportError;
 import org.dromara.edu.domain.EduImportTemplate;
+import org.dromara.edu.domain.bo.EduAuditLogBo;
 import org.dromara.edu.domain.bo.EduExportBo;
 import org.dromara.edu.domain.bo.EduImportErrorBo;
 import org.dromara.edu.domain.bo.EduImportExecuteBo;
@@ -31,7 +34,9 @@ import org.dromara.edu.mapper.EduFileRefMapper;
 import org.dromara.edu.mapper.EduImportBatchMapper;
 import org.dromara.edu.mapper.EduImportErrorMapper;
 import org.dromara.edu.mapper.EduImportTemplateMapper;
+import org.dromara.edu.service.IEduAuditService;
 import org.dromara.edu.service.IEduImportExportService;
+import org.dromara.resource.api.RemoteFileService;
 import org.dromara.system.api.model.LoginUser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,6 +62,7 @@ import java.util.concurrent.ThreadLocalRandom;
  *
  * @author Codex
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class EduImportExportServiceImpl implements IEduImportExportService {
@@ -126,6 +132,10 @@ public class EduImportExportServiceImpl implements IEduImportExportService {
     private final EduImportErrorMapper errorMapper;
     private final EduFileRefMapper fileRefMapper;
     private final EduAsyncTaskMapper asyncTaskMapper;
+    private final IEduAuditService auditService;
+
+    @DubboReference
+    private RemoteFileService remoteFileService;
 
     @Override
     public TableDataInfo<EduImportTemplateVo> queryTemplatePageList(EduImportTemplateBo query, PageQuery pageQuery) {
@@ -413,6 +423,27 @@ public class EduImportExportServiceImpl implements IEduImportExportService {
     }
 
     /**
+     * 写一条下载审计（`REQ-IMP-043`）。
+     *
+     * `edu_audit_log.school_id` 非空；文件引用上没有学校上下文时只记 warn、不阻断下载。
+     */
+    private void writeDownloadLog(EduFileRef fileRef) {
+        if (fileRef.getSchoolId() == null) {
+            log.warn("下载审计缺少学校上下文，已跳过：fileId={}", fileRef.getFileId());
+            return;
+        }
+        EduAuditLogBo logBo = new EduAuditLogBo();
+        logBo.setActionType("export");
+        logBo.setModuleCode("import_export");
+        logBo.setObjectType("file");
+        logBo.setObjectId(String.valueOf(fileRef.getFileId()));
+        logBo.setObjectName(fileRef.getFileName());
+        logBo.setSchoolId(fileRef.getSchoolId());
+        logBo.setDetail("下载文件：" + fileRef.getFileName());
+        auditService.recordLog(logBo);
+    }
+
+    /**
      * 组装下载视图。
      *
      * @param fileRef       文件引用
@@ -432,10 +463,13 @@ public class EduImportExportServiceImpl implements IEduImportExportService {
         fileRefMapper.updateById(update);
 
         EduFileRefVo vo = fileRefMapper.selectVoById(fileRef.getRefId());
-        vo.setSignedUrl("/edu/file/download/" + fileRef.getFileId() + "?key=" + fileRef.getStorageKey());
+        // 真实短时签名链接由统一文件服务签发（REQ-IMP-042 / 045）
+        vo.setSignedUrl(remoteFileService.signedDownloadUrl(
+            String.valueOf(fileRef.getFileId()), SIGNED_URL_TTL_MINUTES * 60L));
         vo.setSignedUrlExpireTime(new Date(now.getTime() + SIGNED_URL_TTL_MINUTES * 60_000L));
         vo.setExpired(expired);
         vo.setHint(hint);
+        writeDownloadLog(fileRef);
         return vo;
     }
 

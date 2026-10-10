@@ -2934,12 +2934,15 @@ gaps:
       有效期判断（结果文件默认 7 天，`BR-IMP-013`）、下载前重新解析数据范围（`DS-DENY-04` / `07`）、
       下载计数 +1；`buildSignedUrl` 暂时返回 `storage_key` 描述。
       待办：文件服务批次建成 `RemoteFileService` 后替换签发实现，并补 `REQ-IMP-043` 的下载审计。
-      CR-095 进展：学生照片已走通文件服务（`downloadByUrl` 新增、`upload` 复用既有实现），
-      `ruoyi-edu` 已引入 `ruoyi-api-resource`；`buildSignedUrl` 仍是占位描述。**仍待办**：
-      导入导出的结果文件下载（`downloadTaskResult` / `downloadImportResult`）尚未改成真实流式下载，
-      列为阶段 8 联调项。
+      CR-136 收口（2026-10-10）：`RemoteFileService` 新增 `signedDownloadUrl(ossId, ttlSeconds)`，
+      `RemoteFileServiceImpl` 用 `OssClient.createPresignedGetUrl` 签发真实预签名 GET 链接；
+      `EduAsyncTaskServiceImpl.buildSignedUrl` 与 `EduImportExportServiceImpl.buildDownload` 都改为远程签名，
+      模板 / 失败明细 / 结果 / 任务结果四类下载拿到真实可下载链接，并在下载时写一条审计（REQ-IMP-043）。
+      逐次登录态校验改用「签发前鉴权」实现：数据范围重解析、文件归属校验、过期判断、下载计数都在签发前执行。
+      `mvn -pl ruoyi-modules/ruoyi-edu -am compile` 与 `-pl ruoyi-modules/ruoyi-resource -am compile` 均 BUILD SUCCESS；
+      真实下载行为待人工验收（需本机 MinIO 与真实文件引用）。
     resolved_at: "2026-10-08"
-    status: answered
+    status: closed
 
   - id: GAP-094
     title: 导入的行级解析与导出的逐模块取数 / Excel·CSV 生成器未落地
@@ -3691,3 +3694,26 @@ open_questions_for_user:
       依赖顺序按 D-213：先补 GAP-093 的真实签名链接与流式下载，再补 GAP-094 的执行器。
     resolved_at: 2026-10-10
     status: closed
+  - id: GAP-113
+    title: 文件引用 / 异步任务缺学校上下文时，下载审计被跳过
+    discovered_at: 2026-10-10
+    discovered_by: 导入导出预签名链接批次（CR-136）
+    evidence: "docs/40-detailed-design/database/schema.yaml 里 edu_audit_log 的 school_id 非空（V4 迁移 DDL 同样为 NOT NULL）；而 edu_file_ref.school_id 与 edu_async_task.school_id 都可能为空（平台级模板 / 非学校上下文发起的任务）。CR-136 里两处下载审计因此写成「schoolId 为空则只记 warn 不写审计」"
+    expected: 每次下载模板 / 失败明细 / 结果文件都有一条审计，且审计里的学校归属正确
+    actual: 文件引用或任务没有学校上下文时跳过审计（下载仍成功）
+    impact: |
+      **不选会怎样**：`REQ-IMP-043` 要求下载全部留痕；平台级模板下载会没有审计记录，
+      审计模块的「敏感数据访问」与「操作日志」里少一类动作，追溯时说不清谁在什么时候下载了模板。
+    options:
+      - "文件引用与任务在落库时强制写入学校上下文（学校级资源必须有学校，平台级模板用运营方租户的学校占位），审计不再跳过（推荐）"
+      - "把 edu_audit_log.school_id 放宽为可空（要改阶段 5 的 schema 与分区键策略）"
+      - "维持现状，审计里允许缺这一类"
+    recommended: |
+      **推荐方案 1**：符合既有硬约束「学校级资源必须有学校上下文」（`DS-DENY-02`），
+      且不需要动冻结的 schema；影响面是文件引用落库处（导入模板 / 结果文件）补一个 schoolId 赋值。
+      本批先保证下载不被审计阻塞，缺口登记在此。
+    blocking: false
+    blocks_stages:
+      - stage8
+    owner: 用户
+    status: open

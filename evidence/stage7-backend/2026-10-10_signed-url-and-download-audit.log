@@ -1,0 +1,30 @@
+# GAP-093：导入导出文件改为真实短时预签名链接 + 下载审计（CR-136 / D-216）
+
+时间：2026-10-10　分支：codex/stage7-backend　触发：heartbeat（后端批次，证据按约定写 evidence/stage7-backend/）
+
+## 问题
+`EduAsyncTaskServiceImpl.buildSignedUrl` 与 `EduImportExportServiceImpl.buildDownload` 都返回
+`/edu/file/download/{fileId}?key=...` 这种**占位字符串**，不是可下载地址（GAP-093）。
+
+## 处置（四层）
+| 层 | 改动 |
+|---|---|
+| 远程契约 | `RemoteFileService` 新增 `signedDownloadUrl(ossId, ttlSeconds)`；`RemoteFileServiceMock` 降级返回 null（warn） |
+| 文件服务实现 | `RemoteFileServiceImpl.signedDownloadUrl`：`ISysOssService.getById` 取对象 → `OssClient.removeBaseUrl` 还原对象键 → `createPresignedGetUrl(objectKey, Duration)` 签发带有效期的 GET 链接 |
+| edu 异步任务 | `buildSignedUrl` 改调远程签名（TTL 沿用 `SIGNED_URL_TTL_MINUTES = 5`）；下载后写审计（`actionType=export`、`module=import_export`、`object_type=file`、`school_id` 取任务） |
+| edu 导入导出 | `buildDownload` 同样改为远程签名；下载后写审计（`school_id` 取文件引用） |
+
+四类下载因此都拿到真实链接：`downloadImportTemplate`（模板）/ `downloadImportFailedRows`（失败明细）/
+`downloadImportResult`（结果）/ `downloadTaskResult`（任务结果文件）。
+
+## 门禁
+```
+mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile      -> BUILD SUCCESS
+mvn -o -DskipTests -pl ruoyi-modules/ruoyi-resource -am compile -> BUILD SUCCESS
+python tools/check_docs.py / check_gap_register.py 等七项        -> 通过
+```
+本批只改后端，未重跑前端 typecheck / lint / build（无前端改动）。
+预签名链接的实际可下载性需要本机 MinIO + 真实文件引用才能验证，待人工验收。
+
+## 遗留
+`edu_audit_log.school_id` 非空：文件引用或任务上没有学校上下文时只记 warn、不写下载审计（登记 GAP-113）。

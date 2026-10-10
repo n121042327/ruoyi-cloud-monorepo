@@ -20,6 +20,7 @@ import org.dromara.resource.service.ISysOssService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.List;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -94,6 +95,27 @@ public class RemoteFileServiceImpl implements RemoteFileService {
     public List<RemoteFile> selectByIds(String ossIds){
         List<SysOssVo> sysOssVos = sysOssService.listByIds(StringUtils.splitTo(ossIds, Convert::toLong));
         return MapstructUtils.convert(sysOssVos, RemoteFile.class);
+    }
+
+    /**
+     * 按 ossId 签发短时预签名下载链接（REQ-IMP-042 / 045）。
+     *
+     * 先用 `ISysOssService.getById` 取对象地址，`OssClient.removeBaseUrl` 还原成对象键，
+     * 再用 `createPresignedGetUrl` 签发带有效期的 GET 链接（与下载用同一套 OssClient）。
+     */
+    @Override
+    public String signedDownloadUrl(String ossId, long ttlSeconds) throws ServiceException {
+        if (StringUtils.isBlank(ossId)) {
+            throw new ServiceException("文件 ID 不能为空");
+        }
+        SysOssVo oss = sysOssService.getById(Convert.toLong(ossId));
+        if (oss == null || StringUtils.isBlank(oss.getUrl())) {
+            throw new ServiceException("文件不存在或已清理：" + ossId);
+        }
+        OssClient storage = OssFactory.instance();
+        String objectKey = storage.removeBaseUrl(oss.getUrl());
+        long ttl = ttlSeconds <= 0 ? 300L : ttlSeconds;
+        return storage.createPresignedGetUrl(objectKey, Duration.ofSeconds(ttl));
     }
 
     /**

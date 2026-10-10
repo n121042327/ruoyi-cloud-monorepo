@@ -39,6 +39,15 @@ public class RemoteFileServiceMock implements RemoteFileService {
     }
 
     /**
+     * 按 ossId 签发短时预签名下载链接（服务不可用时降级返回空）
+     */
+    @Override
+    public String signedDownloadUrl(String ossId, long ttlSeconds) {
+        log.warn("服务调用异常 -> 降级处理");
+        return null;
+    }
+
+    /**
      * 通过ossId查询列表
      *
      * @param ossIds ossId串逗号分隔

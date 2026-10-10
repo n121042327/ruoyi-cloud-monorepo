@@ -3,6 +3,8 @@ package org.dromara.edu.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.DateUtils;
 import org.dromara.common.core.utils.StringUtils;
@@ -14,6 +16,7 @@ import org.dromara.edu.domain.EduAsyncTaskRetry;
 import org.dromara.edu.domain.EduDeadLetterTask;
 import org.dromara.edu.domain.EduFileRef;
 import org.dromara.edu.domain.bo.EduAsyncTaskBo;
+import org.dromara.edu.domain.bo.EduAuditLogBo;
 import org.dromara.edu.domain.bo.EduDeadLetterTaskBo;
 import org.dromara.edu.domain.vo.EduAsyncTaskRetryVo;
 import org.dromara.edu.domain.vo.EduAsyncTaskVo;
@@ -24,6 +27,8 @@ import org.dromara.edu.mapper.EduAsyncTaskRetryMapper;
 import org.dromara.edu.mapper.EduDeadLetterTaskMapper;
 import org.dromara.edu.mapper.EduFileRefMapper;
 import org.dromara.edu.service.IEduAsyncTaskService;
+import org.dromara.edu.service.IEduAuditService;
+import org.dromara.resource.api.RemoteFileService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +48,7 @@ import java.util.List;
  *
  * @author Codex
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class EduAsyncTaskServiceImpl implements IEduAsyncTaskService {
@@ -84,6 +90,10 @@ public class EduAsyncTaskServiceImpl implements IEduAsyncTaskService {
     private final EduAsyncTaskRetryMapper retryMapper;
     private final EduDeadLetterTaskMapper deadLetterMapper;
     private final EduFileRefMapper fileRefMapper;
+    private final IEduAuditService auditService;
+
+    @DubboReference
+    private RemoteFileService remoteFileService;
 
     @Override
     public TableDataInfo<EduAsyncTaskVo> queryPageList(EduAsyncTaskBo query, PageQuery pageQuery) {
@@ -157,7 +167,7 @@ public class EduAsyncTaskServiceImpl implements IEduAsyncTaskService {
 
     @Override
     public EduFileRefVo resolveDownloadFile(String taskNo, String fileId) {
-        requireTask(taskNo);
+        EduAsyncTask task = requireTask(taskNo);
         Long parsedFileId = parseFileId(fileId);
         EduFileRef fileRef = fileRefMapper.selectOne(new LambdaQueryWrapper<EduFileRef>()
             .eq(EduFileRef::getFileId, parsedFileId));
@@ -179,6 +189,7 @@ public class EduAsyncTaskServiceImpl implements IEduAsyncTaskService {
         EduFileRefVo vo = fileRefMapper.selectVoById(fileRef.getRefId());
         vo.setSignedUrl(buildSignedUrl(fileRef));
         vo.setSignedUrlExpireTime(new Date(now.getTime() + SIGNED_URL_TTL_MINUTES * 60_000L));
+        writeDownloadLog(task.getSchoolId(), fileRef, "任务 " + taskNo);
         return vo;
     }
 
@@ -369,11 +380,34 @@ public class EduAsyncTaskServiceImpl implements IEduAsyncTaskService {
 
     /**
      * 生成短时签名下载地址。
-     * 真实签发由统一文件服务负责（REQ-IMP-041 / 042）；ruoyi-edu 当前未引入 `ruoyi-common-oss`，
-     * 本批只返回签名链接描述（storage_key + 失效时间），接入对象存储的那一批替换为真实预签名 URL（GAP-093）。
+     *
+     * 由统一文件服务用对象存储预签名能力签发（REQ-IMP-042 / 045）：传 ossId 与有效期秒数，
+     * 返回带签名的 GET 链接；过期后链接失效。文件不存在 / 已清理时抛业务异常。
      */
+    /**
+     * 写一条下载审计（`REQ-IMP-043`）：谁在什么时候下载了哪个文件。
+     *
+     * `edu_audit_log.school_id` 非空，取不到学校上下文时只记 warn 不阻断下载（缺上下文的原因见 GAP-093 / GAP-113）。
+     */
+    private void writeDownloadLog(Long schoolId, EduFileRef fileRef, String source) {
+        if (schoolId == null) {
+            log.warn("下载审计缺少学校上下文，已跳过：fileId={}", fileRef.getFileId());
+            return;
+        }
+        EduAuditLogBo logBo = new EduAuditLogBo();
+        logBo.setActionType("export");
+        logBo.setModuleCode("import_export");
+        logBo.setObjectType("file");
+        logBo.setObjectId(String.valueOf(fileRef.getFileId()));
+        logBo.setObjectName(fileRef.getFileName());
+        logBo.setSchoolId(schoolId);
+        logBo.setDetail("下载文件：" + fileRef.getFileName() + "（" + source + "）");
+        auditService.recordLog(logBo);
+    }
+
     private String buildSignedUrl(EduFileRef fileRef) {
-        return "/edu/file/download/" + fileRef.getFileId() + "?key=" + fileRef.getStorageKey();
+        return remoteFileService.signedDownloadUrl(
+            String.valueOf(fileRef.getFileId()), SIGNED_URL_TTL_MINUTES * 60L);
     }
 
     private void fillDuration(EduAsyncTaskVo vo) {

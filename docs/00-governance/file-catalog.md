@@ -1679,3 +1679,16 @@
 | `tools/check_fe_page_structure.py`（改） | CHECKS 新增 PAGE-CLS-DETAIL | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-111 关闭；新增 GAP-112 | `review` |
 | `evidence/stage6-frontend/2026-10-10_cls-detail-structure-check.log` | 二分定位过程与门禁 | `review` |
+
+## 2026-10-10 阶段 7 第五十五批：导入导出文件改真实预签名链接 + 下载审计
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-136.md` | 远程契约、文件服务实现与口径说明 | `review` |
+| `services/.../ruoyi-api-resource/.../RemoteFileService.java`（改） | 新增 signedDownloadUrl | `已实现` |
+| `services/.../ruoyi-api-resource/.../RemoteFileServiceMock.java`（改） | 降级实现 | `已实现` |
+| `services/.../ruoyi-resource/.../RemoteFileServiceImpl.java`（改） | createPresignedGetUrl 签发链接 | `已实现` |
+| `services/.../ruoyi-edu/.../EduAsyncTaskServiceImpl.java`（改） | 真实签名 + 下载审计 | `已实现` |
+| `services/.../ruoyi-edu/.../EduImportExportServiceImpl.java`（改） | 真实签名 + 下载审计 | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-093 关闭；新增 GAP-113 | `review` |
+| `evidence/stage7-backend/2026-10-10_signed-url-and-download-audit.log` | 改动与门禁记录 | `review` |
