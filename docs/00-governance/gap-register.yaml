@@ -3372,6 +3372,21 @@ open_questions_for_user:
       `EduSchoolServiceImpl.queryPageList` 里批量补齐（学段取 status=1；校区、班级按 school_id 计数）；
       ② 「按学段筛选」仍未实现（后端 listSchool 的查询条件只有 schoolStatus / schoolCode / keyword），
       与「在读学生数」一起等口径确认后在同一批实现。
+    ask_2026_10_10: |
+      **这是什么**：学校台账列表的「在读学生数」按什么口径统计（学段筛选可以顺带一起做）。
+      PRD `docs/10-prd/modules/school/PRD.md` 第 174 行的 `REQ-SCH-010` 已经要求详情摘要含「在读学生数」，
+      但 `services/.../edu/service/impl/EduSchoolServiceImpl.java` 第 360—382 行的 `getSchoolSummary`
+      并没有这个字段，第 110—135 行的列表聚合也没算 —— 即「已设计未实现 + 口径未写清」。
+      **不选会怎样**：列表「在读学生」列恒为空；若由实现者自由发挥，会和详情摘要出现两套数字。
+      **可选项**：① 在读 = 该校在校记录里 `enrollment_status = 'enrolled'` 的**去重学生数**，不限学年；
+      ② 同 ① 但只算当前学年（再加学年 / 学期条件）；③ 该列不显示，同时删掉 `REQ-SCH-010` 里的这一项。
+      **推荐方案与理由**：推荐 ① —— `enrollment_status` 的 `enrolled = 在读` 在字段字典里有明确定义
+      （`docs/10-prd/06-field-dictionary.yaml` 的学籍状态枚举），去重学生数是「学校现有多少在读学生」的
+      直观口径；② 会让同一学校在不同学年显示不同人数，与「台账看总量」的用法不符。
+      影响面：`docs/10-prd/modules/school/PRD.md` 第 163—174 行补口径、
+      `EduSchoolServiceImpl.fillListAggregates` 与 `getSchoolSummary`、`EduSchoolMapper.selectPageSchoolList`
+      （学段筛选）、前端 `apps/plus-ui/src/views/edu/school/sch_list/index.vue` 第 23 行与第 77 行。
+      未获确认前保持 open。
     resolved_at: ""
     status: open
 
@@ -3895,6 +3910,19 @@ open_questions_for_user:
       **推荐方案 1**：原型是列序的事实源，缺标记就补标记；补完后本检查器可直接按 `table_index` 逐表登记，
       不需要新格式。影响面：`prototypes/**` 相关页面补 th 标记 + `tools/check_fe_page_structure.py` 加 11 条。
       在补齐前保持现状（不硬对），把清单留在本条里。
+    ask_2026_10_10: |
+      **这是什么**：11 张组件表（`ArchiveSearchDialog` / `GradeLeaderDialog` / `GradePromotionDialog` /
+      `TeacherRoleDialog` / `GuardianTable` / `AssignmentTable` / `StreamHistoryDialog` /
+      `TeachingClassDetailDrawer` / `UnselectedStudentDialog` / `cls_detail` 的 `TeachingAssignmentTable`
+      与 `ClassChangeLogTable`）的列序没有门禁可对。
+      **不选会怎样**：这些表的列序 / 列名变更不会被任何检查拦住；硬对到语义不同的原型表上则得到假覆盖。
+      **可选项**：① 给 `prototypes/functional/v1/pages/*.html` 与
+      `prototypes/high-fidelity/v1/pages/*.html` 的相关表补 `data-role="column"` 标记（阶段 3 产物出新版本），
+      再在 `tools/check_fe_page_structure.py` 逐表登记（推荐）；② 另建一份「组件级原型对照表」（新产物，
+      要定义格式与维护人）；③ 维持现状，只对照能明确对上的 4 张。
+      **推荐方案与理由**：推荐 ① —— 原型是列序的事实源，补标记后现有检查器直接支持（`table_index` 已实现），
+      不需要新格式与新维护人；代价是要动阶段 3 的原型产物，所以需要你确认是否出新版本。
+      未获确认前保持现状。
     blocking: false
     blocks_stages:
       - stage8

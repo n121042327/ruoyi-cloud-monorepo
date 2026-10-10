@@ -1906,3 +1906,11 @@
 | `apps/plus-ui/src/views/edu/teacher/tch_import/index.vue`（改） | 模板列说明改为真实列 + 初始密码提示 | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-116 关闭 | `review` |
 | `evidence/stage7-backend/2026-10-10_teacher-import-account.log` | 门禁、前置条件与运营注意 | `review` |
+
+## 2026-10-10 阶段 8 输入：验收清单更新与两项待拍板（CR-157）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-157.md` | 清单更新范围与两项待拍板说明 | `review` |
+| `evidence/stage6-frontend/2026-10-10_manual-acceptance-checklist.md`（改） | 补第 8 ~ 12 项、前置动作与静态核对 | `review` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-101 / GAP-117 补四段式请示 | `review` |
