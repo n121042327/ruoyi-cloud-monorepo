@@ -27,13 +27,14 @@
     </el-form>
 
     <el-table v-loading="loading" :data="rows" border size="small">
-      <el-table-column label="操作时间" prop="operateTime" width="170" />
-      <el-table-column label="操作人" prop="operator" width="110" />
-      <el-table-column label="操作类型" prop="actionType" width="100" align="center" />
-      <el-table-column label="对象类型" prop="objectType" width="110" />
-      <el-table-column label="对象标识" prop="objectId" width="150" show-overflow-tooltip />
-      <el-table-column label="结果" prop="result" width="90" align="center" />
-      <el-table-column label="来源 IP" prop="sourceIp" width="130" />
+      <el-table-column label="时间" prop="operateTime" width="170" data-layout-group="时间信息" />
+      <el-table-column label="操作人" prop="operator" width="110" data-layout-group="操作信息" />
+      <el-table-column label="角色" prop="operatorRole" width="100" data-layout-group="操作信息" />
+      <el-table-column label="操作类型" prop="actionType" width="100" align="center" data-layout-group="操作信息" />
+      <el-table-column label="对象类型" prop="objectType" width="110" data-layout-group="对象信息" />
+      <el-table-column label="对象标识" prop="objectId" width="150" show-overflow-tooltip data-layout-group="对象信息" />
+      <el-table-column label="结果" prop="result" width="90" align="center" data-layout-group="操作信息" />
+      <el-table-column label="来源 IP" prop="sourceIp" width="130" data-layout-group="操作信息" />
       <template #empty>
         <el-empty description="该条件下没有归档记录" />
       </template>

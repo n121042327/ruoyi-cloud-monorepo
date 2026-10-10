@@ -1943,3 +1943,14 @@
 | `tools/check_fe_page_structure.py`（改） | 新增 `PAGE-TCH-ASSIGN-TABLE`（table_index=3，7 列对照） | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-117 第一批进度与逐表差异清单 | `review` |
 | `evidence/stage6-frontend/2026-10-10_component-table-coverage-round2.log` | 门禁与后续分批建议 | `review` |
+
+## 2026-10-10 GAP-117 第二批：归档检索表与教学班成员表纳入对照（CR-161）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-161.md` | 第二批范围与两处对齐差异 | `review` |
+| `apps/plus-ui/src/views/edu/audit/audit_archive/components/ArchiveSearchDialog.vue`（改） | 补分组、补「角色」列、列名对齐原型 | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_teaching/components/TeachingClassDetailDrawer.vue`（改） | 列名改为「当前行政班」 | `已实现` |
+| `tools/check_fe_page_structure.py`（改） | 新增 `skip_filter` 与两条组件级条目 | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-117 第二批进度（3 / 11） | `review` |
+| `evidence/stage6-frontend/2026-10-10_component-table-coverage-round3.log` | 门禁与进度 | `review` |

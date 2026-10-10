@@ -1,0 +1,41 @@
+2026-10-10 阶段 6：GAP-117 第二批（归档检索表与教学班成员表纳入对照，CR-161）
+
+一、本批改动
+1. apps/plus-ui/src/views/edu/audit/audit_archive/components/ArchiveSearchDialog.vue
+   - 7 列补 data-layout-group（此前只有 label，检查器 parse_vue_columns 读不到任何列）；
+   - 新增「角色」列（prop=operatorRole，分组「操作信息」）；
+   - 「操作时间」改「时间」，与原型 prototypes/functional/v1/pages/audit-log-list.html 第 1 张表对齐；
+   - 原型第 9 列「操作」登记为 deferred_labels（归档检索只读，无操作入口）。
+2. apps/plus-ui/src/views/edu/class/cls_teaching/components/TeachingClassDetailDrawer.vue
+   - 列名「行政班」改「当前行政班」，与原型 prototypes/functional/v1/pages/class-move-students.html 第 1 张表对齐。
+3. tools/check_fe_page_structure.py
+   - 组件级条目支持 skip_filter（查询区在父页面，只比对表格列）；
+   - 新增 PAGE-AUD-ARCHIVE-SEARCH-TABLE（table_index=1，8 列）与
+     PAGE-CLS-TEACHING-DETAIL-ROWS（table_index=1，4 列）。
+
+二、门禁（本机执行）
+$ python tools/check_fe_page_structure.py
+=== PAGE-AUD-ARCHIVE-SEARCH-TABLE 归档检索结果表（组件级对照） ===
+  组件级条目：跳过查询区比对
+  原型列 操作 本批不做：归档检索弹窗只读，无操作列（CR-161）
+  表格列顺序与分组一致：8 列（时间(时间信息) → 操作人(操作信息) → 角色(操作信息) → 操作类型(操作信息) → 对象类型(对象信息) → 对象标识(对象信息) → 结果(操作信息) → 来源 IP(操作信息)）
+=== PAGE-CLS-TEACHING-DETAIL-ROWS 教学班成员表（抽屉，组件级对照） ===
+  组件级条目：跳过查询区比对（查询区在父页面 PAGE-CLS-TEACHING，只比对成员表列）
+  表格列顺序与分组一致：4 列（学号 → 姓名 → 学籍状态 → 当前行政班）
+exit=0
+
+$ python tools/check_fe_text_nowrap.py / check_api_contract.py / check_docs.py / check_gap_register.py /
+  check_mermaid.py / check_stage6_route_coverage.py / check_perm_seed.py  -> 全部 exit 0
+
+$ pnpm --filter @edu/plus-ui typecheck   -> 51 条 error TS（基线 51，未新增）
+$ pnpm --filter @edu/plus-ui lint:eslint -> 124 problems（基线 124，未新增）
+$ pnpm --filter @edu/plus-ui run build:prod -> exit=0（built in 23.66s）
+
+三、未执行项与原因
+- 无后端改动，未跑 Maven；未起第二个 edu 实例做启动验证（9211 由用户实例占用，@Scheduled 执行者会争抢 queued 任务）。
+
+四、GAP-117 进度
+已纳入门禁 3 / 11：AssignmentTable（CR-160）、ArchiveSearchDialog、TeachingClassDetailDrawer（本批）。
+剩余 8 张按 CR-160 第 3 节的分批计划推进：第三批 TeachingAssignmentTable / GuardianTable →
+第四批 StreamHistoryDialog / GradeLeaderDialog → 第五批 GradePromotionDialog / UnselectedStudentDialog /
+TeacherRoleDialog / ClassChangeLogTable（后四张需要阶段 3 产物新增表，不自行编造列定义）。

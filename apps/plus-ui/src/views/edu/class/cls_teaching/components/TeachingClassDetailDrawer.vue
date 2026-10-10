@@ -16,7 +16,7 @@
         <el-table-column label="学号" prop="studentNo" width="140" data-layout-group="学生信息" />
         <el-table-column label="姓名" prop="studentName" width="110" data-layout-group="学生信息" />
         <el-table-column label="学籍状态" prop="enrollmentStatus" width="120" align="center" data-layout-group="学生信息" />
-        <el-table-column label="行政班" prop="currentClassName" min-width="150" data-layout-group="班级信息" />
+        <el-table-column label="当前行政班" prop="currentClassName" min-width="150" data-layout-group="班级信息" />
         <template #empty>
           <el-empty description="该教学班暂无成员" />
         </template>

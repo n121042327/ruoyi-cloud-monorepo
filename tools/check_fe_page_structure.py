@@ -315,6 +315,31 @@ CHECKS = [
         "filter_note": "组件级条目：查询区在父页面 PAGE-TCH-ASSIGN，本条目只比对主表列",
     },
     {
+        "page_id": "PAGE-AUD-ARCHIVE-SEARCH-TABLE",
+        "name": "归档检索结果表（组件级对照）",
+        "prototype": "prototypes/functional/v1/pages/audit-log-list.html",
+        "vue": "apps/plus-ui/src/views/edu/audit/audit_archive/components/ArchiveSearchDialog.vue",
+        # 原型第 1 张表是审计日志主表（时间 / 操作人 / 角色 / 操作类型 / 对象类型 / 对象标识 / 结果 / 来源 IP / 操作）；
+        # 归档检索弹窗为只读，无操作列，登记为延后项（CR-161）
+        "table_index": 1,
+        "deferred_groups": {},
+        "deferred_labels": {"操作": "归档检索弹窗只读，无操作列（CR-161）"},
+        "skip_filter": True,
+        "filter_note": "组件级条目：检索区是弹窗内的时间范围 / 操作类型 / 关键字，与列表页查询区不同，只比对结果表列",
+    },
+    {
+        "page_id": "PAGE-CLS-TEACHING-DETAIL-ROWS",
+        "name": "教学班成员表（抽屉，组件级对照）",
+        "prototype": "prototypes/functional/v1/pages/class-move-students.html",
+        "vue": "apps/plus-ui/src/views/edu/class/cls_teaching/components/TeachingClassDetailDrawer.vue",
+        # 原型第 1 张表（调班选人）为 学号 / 姓名 / 学籍状态 / 当前行政班；
+        # 教学班详情抽屉展示同一组字段（成员与其当前行政班），CR-161
+        "table_index": 1,
+        "deferred_groups": {},
+        "skip_filter": True,
+        "filter_note": "组件级条目：查询区在父页面 PAGE-CLS-TEACHING，只比对成员表列",
+    },
+    {
         "page_id": "PAGE-TCH-IMPORT",
         "name": "教师导入向导",
         "prototype": "prototypes/functional/v1/pages/teacher-import.html",
@@ -678,7 +703,11 @@ def main() -> int:
         print("=== %s %s ===" % (check["page_id"], check["name"]))
         prototype_html = read(check["prototype"])
         vue = read(check["vue"])
-        check_filter(check, prototype_html, vue)
+        if check.get("skip_filter"):
+            # 组件级条目：查询区在父页面，本条目只比对表格列
+            print("  组件级条目：跳过查询区比对（%s）" % check.get("filter_note", "查询区在父页面"))
+        else:
+            check_filter(check, prototype_html, vue)
         check_columns(check, prototype_html, vue)
 
     for check in OVERLAY_CHECKS:

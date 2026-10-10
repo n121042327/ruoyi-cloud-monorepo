@@ -3954,7 +3954,14 @@ open_questions_for_user:
       `GradeLeaderDialog`（原型 `teacher-list.html` 第 4 张表列名与列序均不同）；
       ③ 原型缺表、需在阶段 3 产物新增表：`GradePromotionDialog`、`TeacherRoleDialog`、`GuardianTable`、
       `StreamHistoryDialog`、`UnselectedStudentDialog`、`ClassChangeLogTable`。
-      分批计划：第二批 ①中的两张 → 第三批 ② → 第四 / 五批 ③（每批 1~2 张，逐批验收）。
+      **第二批（CR-161，2026-10-10）**：`ArchiveSearchDialog` 补 `data-layout-group` 与「角色」列、
+      「操作时间」改「时间」，登记 `PAGE-AUD-ARCHIVE-SEARCH-TABLE`（8 列一致；原型的「操作」列登记为延后
+      ——归档检索只读）；`TeachingClassDetailDrawer` 列名改「当前行政班」，登记
+      `PAGE-CLS-TEACHING-DETAIL-ROWS`（4 列一致）。检查器新增组件级开关 `skip_filter`（查询区在父页面）。
+      **进度：11 张中已纳入 3 张**（AssignmentTable / ArchiveSearchDialog / TeachingClassDetailDrawer）。
+      后续：第三批 `TeachingAssignmentTable`、`GuardianTable` → 第四批 `StreamHistoryDialog`、`GradeLeaderDialog`
+      → 第五批 `GradePromotionDialog`、`UnselectedStudentDialog`、`TeacherRoleDialog`、`ClassChangeLogTable`
+      （每批 1~2 张，逐批验收）。
     blocking: false
     blocking: false
     blocks_stages:
