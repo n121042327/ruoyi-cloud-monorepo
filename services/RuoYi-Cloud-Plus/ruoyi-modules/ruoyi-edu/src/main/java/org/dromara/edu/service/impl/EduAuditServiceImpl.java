@@ -28,6 +28,8 @@ import org.dromara.edu.mapper.EduAuditLogArchiveMapper;
 import org.dromara.edu.mapper.EduAuditLogMapper;
 import org.dromara.edu.service.IEduAuditService;
 import org.dromara.edu.service.IEduImportExportService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -73,7 +75,15 @@ public class EduAuditServiceImpl implements IEduAuditService {
     private final EduAuditChangeMapper changeMapper;
     private final EduAuditLogArchiveMapper archiveMapper;
     private final EduAuditArchiveBatchMapper archiveBatchMapper;
-    private final IEduImportExportService importExportService;
+    /**
+     * 导入导出服务：审计导出复用通用导出引擎（而引擎在导出 / 下载时也要写审计），两者互相依赖。
+     *
+     * 用 `@Lazy` 延迟注入打破**构造期**循环：审计导出是低频入口，首次真正调用时才解析该依赖，
+     * 不影响其它审计写入（recordLog / recordChange 只用本模块的 mapper）。
+     */
+    @Lazy
+    @Autowired
+    private IEduImportExportService importExportService;
 
     @Override
     public TableDataInfo<EduAuditLogVo> queryLogPageList(EduAuditLogBo query, PageQuery pageQuery) {

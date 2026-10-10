@@ -1828,3 +1828,11 @@
 | `apps/plus-ui/src/views/edu/import-export/imp_task_list/components/TaskRowsDialog.vue`（改） | 补 data-layout-group | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | 新增 GAP-117 | `review` |
 | `evidence/stage6-frontend/2026-10-10_component-table-structure-coverage.log` | 门禁与覆盖清单 | `review` |
+
+## 2026-10-10 阶段 7 第六十九批：修复 edu 启动失败的循环依赖
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-150.md` | 现象、根因、修复与验证 | `review` |
+| `services/.../edu/service/impl/EduAuditServiceImpl.java`（改） | 审计侧 @Lazy 注入导入导出服务，打破构造期循环 | `已实现` |
+| `evidence/stage7-backend/2026-10-10_edu-startup-circular-dependency.log` | 启动验证与教训 | `review` |

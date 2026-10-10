@@ -1,0 +1,50 @@
+# ruoyi-edu 启动失败修复：审计 ↔ 导入导出 循环依赖（CR-150 / D-230）
+
+时间：2026-10-10 20:22　分支：codex/stage7-backend　触发：用户贴出 IDEA 启动日志（bean 创建失败）
+
+## 现象
+```
+Error creating bean with name 'eduAsyncTaskController' ... constructor parameter 0:
+  'eduAsyncTaskServiceImpl' ... constructor parameter 4:
+    'eduAuditServiceImpl' ... constructor parameter 4:
+      'eduImportExportServiceImpl' ... constructor parameter 5:
+        Error creating bean 'eduAuditServiceImpl': Requested bean is currently in creation:
+          Is there an unresolvable circular reference or an asynchronous initialization dependency?
+```
+编译是过的，`mvn compile` 不会暴露这种问题 —— 只有真正启动（bean 装配期）才会。
+
+## 根因
+CR-136 为了做「下载审计」，在 `EduImportExportServiceImpl` 与 `EduAsyncTaskServiceImpl` 里注入了
+`IEduAuditService`；而 `EduAuditServiceImpl` 本来就注入 `IEduImportExportService`（审计导出复用通用导出引擎）。
+两者构成构造期循环依赖。
+
+## 处置
+在**审计侧**给 `IEduImportExportService` 加 `@Lazy`（字段注入），打破构造期循环：
+
+```java
+    /**
+     * 审计导出复用通用导出引擎（而引擎在导出 / 下载时也要写审计），两者互相依赖。
+     * 用 @Lazy 延迟注入打破构造期循环：审计导出是低频入口，首次调用时才解析该依赖，
+     * 不影响其它审计写入（recordLog / recordChange 只用本模块的 mapper）。
+     */
+    @Lazy
+    @Autowired
+    private IEduImportExportService importExportService;
+```
+
+选审计侧而不是引擎侧的原因：审计导出是低频入口、依赖方向是「审计借用引擎」；
+引擎写审计是高频横切路径，让它持有真实（非代理）引用更直接。
+
+## 验证（真启动，不是编译）
+```
+mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu spring-boot:run "-Dspring-boot.run.jvmArguments=-Dfile.encoding=UTF-8"
+-> Started RuoYiEduApplication in 16.537 seconds (process running for 17.015)
+```
+> 注：不带 `-Dfile.encoding=UTF-8` 时，Nacos 配置里的中文会让 snakeyaml 抛
+> `MalformedInputException: Input length = 1`（IDEA 的运行配置自带该参数，所以 IDE 里不会遇到）。
+
+验证后已终止本次临时启动的进程，避免占用端口 / 在 Nacos 里留注册实例。
+
+## 教训（写进口径）
+**「编译通过」不等于「能启动」**：bean 循环依赖只在装配期暴露。后端批次除编译外，
+条件允许时应做一次最小启动验证（本批证明了成本很低：一条 maven 命令 + 17 秒）。
