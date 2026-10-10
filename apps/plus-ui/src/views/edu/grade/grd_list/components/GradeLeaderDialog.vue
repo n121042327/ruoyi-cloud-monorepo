@@ -1,20 +1,20 @@
 <template>
   <el-dialog v-model="visible" :title="title" width="640px" append-to-body>
     <el-table v-loading="loading" :data="leaders" border size="small" class="mb-3">
-      <el-table-column label="年级主任" width="140">
+      <el-table-column label="年级主任" width="140" data-layout-group="任职信息">
         <template #default="scope">{{ scope.row.teacherName || scope.row.userName || '—' }}</template>
       </el-table-column>
-      <el-table-column label="是否主管" width="100" align="center">
+      <el-table-column label="是否主管" width="100" align="center" data-layout-group="任职信息">
         <template #default="scope">
           <el-tag :type="scope.row.isPrimary === '1' ? 'success' : 'info'" size="small">
             {{ scope.row.isPrimary === '1' ? '主管' : '协助' }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="状态" width="90" align="center">
+      <el-table-column label="状态" width="90" align="center" data-layout-group="任职信息">
         <template #default="scope">{{ scope.row.status === '1' ? '在任' : '已离任' }}</template>
       </el-table-column>
-      <el-table-column label="学年学期" prop="termId" width="150" show-overflow-tooltip />
+      <el-table-column label="学年学期" prop="termId" width="150" show-overflow-tooltip data-layout-group="任职信息" />
       <el-table-column fixed="right" label="操作" width="110" data-layout-group="操作">
         <template #default="scope">
           <el-button v-if="scope.row.status === '1'" link type="danger" @click="handleRemove(scope.row)">离任</el-button>

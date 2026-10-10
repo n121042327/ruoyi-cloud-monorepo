@@ -1992,3 +1992,14 @@
 | `tools/check_fe_page_structure.py`（改） | 新增两条组件级条目 | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-117 进度 7 / 11 | `review` |
 | `evidence/stage6-frontend/2026-10-10_component-table-coverage-round7.log` | 门禁与影响面核对 | `review` |
+
+## 2026-10-10 GAP-117 第七批（收官）：年级主任任职清单纳入门禁，GAP-117 关闭（CR-166）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-166.md` | 收官范围与 11 / 11 汇总 | `review` |
+| `apps/plus-ui/src/views/edu/grade/grd_list/components/GradeLeaderDialog.vue`（改） | 4 列补 `data-layout-group` | `已实现` |
+| `prototypes/high-fidelity/v1/pages/grade-list.html`（改） | 指定年级主任弹窗新增当前任职清单表 | `已实现` |
+| `tools/check_fe_page_structure.py`（改） | 新增 `PAGE-GRD-LEADER-TABLE` | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-117 关闭 | `review` |
+| `evidence/stage6-frontend/2026-10-10_component-table-coverage-round8.log` | 门禁与收口汇总 | `review` |

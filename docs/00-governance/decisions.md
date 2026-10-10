@@ -3587,3 +3587,25 @@ GAP-117 收口（用户 2026-10-10 指令：GAP-117 按推荐）。
 执行顺序见 `CR-163` 第 3 节的待补表清单。
 
 证据见 `evidence/stage6-frontend/2026-10-10_component-table-coverage-round5.log`，变更记录 `CR-163`。
+
+## D-239 — GAP-117 收口：11 张组件表全部纳入结构对照（2026-10-10）
+
+GAP-117 收口（用户 2026-10-10 指令：GAP-117 按推荐）。
+
+**这是什么**：`tools/check_fe_page_structure.py` 只解析页面文件里的 `el-table-column`，页面里拆出去的组件表
+（弹窗 / 抽屉 / 独立子组件）此前没有任何列序门禁 —— 11 张组件表处于「改列不会被拦住」的状态。
+
+**不选会怎样**：这些表的列序 / 列名变更不会被任何检查拦住；为凑覆盖率硬对到语义不同的原型表上，
+则会得到「看起来有门禁、实际比错对象」的假覆盖。
+
+**可选项**：① 原型已有表就补 `data-role="column"` 标记；原型缺表就按 D-238 以生产页列定义新增表，
+再逐表登记（已执行）；② 为组件单独建一份对照表（新产物，需定义格式与维护人）；③ 维持现状只靠人工。
+
+**执行结果**：11 张全部纳入门禁 —— `AssignmentTable`（3dca5b2）、`ArchiveSearchDialog` +
+`TeachingClassDetailDrawer`（9c910be）、`TeachingAssignmentTable` + `ClassChangeLogTable`（fa574ac）、
+`GuardianTable` + `StreamHistoryDialog`（0bacdbe）、`GradeLeaderDialog`（CR-166）；
+其中 3 张按「补标记」纳入，其余 5 张按 D-238「以生产页列定义新增原型表」纳入。
+过程中还发现两处组件因缺 `data-layout-group` 而实际未被检查器读取（归档检索弹窗、监护人表、年级主任弹窗），
+一并补齐 —— 这类「看似有门禁、实际读不到」的隐患是本条关闭前最值得留下的经验。
+
+证据见 `evidence/stage6-frontend/2026-10-10_component-table-coverage-round8.log`，变更记录 `CR-166`。

@@ -3997,11 +3997,18 @@ open_questions_for_user:
       在 `high-fidelity/v1/pages/stream-selection.html` 新增「选科变更记录」表（6 列）；
       检查器新增 `PAGE-STU-DETAIL-GUARDIAN-TABLE`（table_index=3）与
       `PAGE-STR-STUDENT-HISTORY-TABLE`（table_index=1）。列定义均取自生产组件。
-      **进度：11 张中已纳入 7 张**（AssignmentTable / ArchiveSearchDialog / TeachingClassDetailDrawer /
-      TeachingAssignmentTable / ClassChangeLogTable / GuardianTable / StreamHistoryDialog）。
-      下一批（第七批）：清单第 5 张 `GradeLeaderDialog`；完成后把本条 `status` 改为 `closed` 并汇总各批提交号。
+      **第七批（CR-166，2026-10-10）**：`GradeLeaderDialog.vue` 4 列补 `data-layout-group`；
+      在 `high-fidelity/v1/pages/grade-list.html` 的「指定年级主任」弹窗「当前任职清单」下新增 5 列表
+      （年级主任 / 是否主管 / 状态 / 学年学期 / 操作）；检查器新增 `PAGE-GRD-LEADER-TABLE`（table_index=6）。
+      **收口汇总（2026-10-10）**：11 张组件表全部纳入门禁 —— AssignmentTable（3dca5b2）、
+      ArchiveSearchDialog + TeachingClassDetailDrawer（9c910be）、TeachingAssignmentTable +
+      ClassChangeLogTable（fa574ac）、GuardianTable + StreamHistoryDialog（0bacdbe）、
+      GradeLeaderDialog（CR-166）；过程批次 26ddfa6（第三批判定）与 3467eef（第四批判定 + D-238）。
+      其中 3 张按「补 `data-role` 标记」纳入，其余 5 张按 D-238「以生产页列定义在原型新增表」纳入；
+      另外修正了 3 处组件缺 `data-layout-group` 导致检查器实际读不到列的问题（见 D-239）。
+    resolved_at: "2026-10-10"
     blocking: false
     blocks_stages:
       - stage8
     owner: 用户
-    status: open
+    status: closed

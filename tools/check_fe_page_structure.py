@@ -392,6 +392,17 @@ CHECKS = [
         "filter_note": "组件级条目：查询区在父页面 PAGE-STR-STUDENT，只比对变更记录表列",
     },
     {
+        "page_id": "PAGE-GRD-LEADER-TABLE",
+        "name": "指定年级主任 · 当前任职清单（组件级对照）",
+        "prototype": "prototypes/high-fidelity/v1/pages/grade-list.html",
+        "vue": "apps/plus-ui/src/views/edu/grade/grd_list/components/GradeLeaderDialog.vue",
+        # D-238：年级主任任职清单原型缺表，按生产页列定义补进「指定年级主任」弹窗（第 6 张表）（CR-166）
+        "table_index": 6,
+        "deferred_groups": {},
+        "skip_filter": True,
+        "filter_note": "组件级条目：查询区在父页面 PAGE-GRD-LIST，只比对当前任职清单表列",
+    },
+    {
         "page_id": "PAGE-IMP-WIZARD",
         "name": "导入向导",
         "prototype": "prototypes/functional/v1/pages/import-wizard.html",

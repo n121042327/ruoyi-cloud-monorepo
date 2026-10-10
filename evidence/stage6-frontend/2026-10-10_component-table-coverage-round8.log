@@ -1,0 +1,44 @@
+2026-10-10 阶段 6：GAP-117 第七批（收官：年级主任任职清单，CR-166）
+
+一、本批改动
+1. apps/plus-ui/src/views/edu/grade/grd_list/components/GradeLeaderDialog.vue
+   - 年级主任 / 是否主管 / 状态 / 学年学期 4 列补 data-layout-group="任职信息"
+     （此前只有操作列有分组，检查器 parse_vue_columns 读不到这些列）
+2. prototypes/high-fidelity/v1/pages/grade-list.html
+   - 「指定年级主任」弹窗（PAGE-GRD-LEADER）内「当前任职清单」下新增 5 列表（第 6 张表）：
+     年级主任 / 是否主管 / 状态 / 学年学期 / 操作（<th data-role="column" data-layout-group="..."> + 1 行示例数据）
+3. tools/check_fe_page_structure.py
+   - 新增 PAGE-GRD-LEADER-TABLE（prototype=high-fidelity grade-list，table_index=6，skip_filter）
+
+二、列来源
+列定义取自生产组件 GradeLeaderDialog.vue（5 列），未新增生产页里不存在的列。
+
+三、影响面
+- PAGE-GRD-LIST 对照 functional/v2 的 grade-list.html；PAGE-GRD-DETAIL 是 OVERLAY 检查（只读生产页分组顺序）。
+  本批插入的是 high-fidelity/v1 的同名页并新增独立条目 → 既有条目不受影响（实测 PAGE-GRD-DETAIL 分组顺序仍一致）。
+
+四、门禁（本机执行）
+$ python tools/check_fe_page_structure.py
+=== PAGE-GRD-LEADER-TABLE 指定年级主任 · 当前任职清单（组件级对照） ===
+  表格列顺序与分组一致：5 列（年级主任(任职信息) → 是否主管(任职信息) → 状态(任职信息) → 学年学期(任职信息) → 操作(操作)）
+=== PAGE-GRD-DETAIL 年级详情抽屉 === 分组顺序一致：基础信息 → 下辖班级
+exit=0
+
+$ python tools/check_fe_text_nowrap.py / check_api_contract.py / check_docs.py / check_gap_register.py /
+  check_mermaid.py / check_stage6_route_coverage.py / check_perm_seed.py -> 全部 exit 0
+
+$ pnpm --filter @edu/plus-ui typecheck   -> 51 条 error TS（基线 51，未新增）
+$ pnpm --filter @edu/plus-ui lint:eslint -> 124 problems（基线 124，未新增）
+$ pnpm --filter @edu/plus-ui run build:prod -> exit=0（built in 23.48s）
+
+五、GAP-117 收口
+11 张组件表全部纳入门禁：
+  AssignmentTable（3dca5b2）、ArchiveSearchDialog + TeachingClassDetailDrawer（9c910be）、
+  TeachingAssignmentTable + ClassChangeLogTable（fa574ac）、GuardianTable + StreamHistoryDialog（0bacdbe）、
+  GradeLeaderDialog（本批）。
+过程批次：26ddfa6（第三批判定）、3467eef（第四批判定 + D-238）。
+gap-register 已置 status=closed、resolved_at=2026-10-10。
+
+六、遗留（不属于 GAP-117）
+- 阶段 8 运行时验收仍待用户提供测试账号 / 确认由我驱动浏览器；
+- 清单里的其它「待验收」项同理。
