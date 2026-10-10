@@ -1,0 +1,33 @@
+# 导入导出执行器（一）：异步执行者骨架 + 任教关系导出器（CR-137 / D-217）
+
+时间：2026-10-10　分支：codex/stage7-backend　触发：heartbeat　（后端批次，证据写 evidence/stage7-backend/）
+
+## 交付
+| 组件 | 说明 |
+|---|---|
+| `job/EduExportContext` | 导出上下文（任务号 / 学校 / 模块 / 格式 / 筛选条件），从 `edu_async_task.params_summary` 还原 |
+| `job/EduExportedFile` | 导出产物（字节 / 文件名 / MIME / 行数） |
+| `job/EduExportHandler` | 模块导出器接口：业务模块只声明模块编码与取数，文件生成与上传由引擎统一做（REQ-IMP-002） |
+| `job/TeachingAssignmentExportHandler` | 任教关系导出器（编码 `teaching_assignment`）：默认列 学年学期 / 学科 / 教师 / 工号 / 班级 / 班级类型 / 状态；支持 xlsx（fastexcel）与 csv；按 termId / classId / filters.teacherId 过滤；名称批量回填 |
+| `job/EduAsyncTaskExecutor` | `@Scheduled` 轮询 `edu_async_task` 的 `queued` **导出**任务：条件更新抢占（queued → running，多实例安全）→ 调用模块导出器 → 上传文件服务 → 登记 `edu_file_ref`（保留 7 天）→ 任务置 succeeded 并写 result_file_id / total / success / finish_time；异常置 failed 并写 errorMsg（截断 500 字） |
+| edu pom | 新增 `ruoyi-common-excel` 依赖（xlsx 生成用 fastexcel） |
+| `RuoYiEduApplication` | 新增 `@EnableScheduling`（执行者轮询；轮询间隔 `edu.async-task.poll-interval-ms`，默认 5s） |
+| `EduImportExportServiceImpl` | `params_summary` 补 `filters`（JSON 对象直接内嵌、否则转义），导出器才能拿到 teacherId 之类的附加条件 |
+
+## 口径
+- **导入任务暂不领取**：`claimableTasks()` 只取 `taskType = export`。导入的文件解析与逐行校验还没落地（GAP-094a），
+  若此刻领取会把导入任务误标为失败，反而更难排查。
+- 多实例安全：用「状态条件更新」抢占（`where task_status = 'queued'`），更新行数为 0 说明别的实例已领取。
+- 结果文件保留 7 天（`BR-IMP-013`），下载走 CR-136 的短时预签名链接。
+
+## 门禁
+```
+mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile -> BUILD SUCCESS
+七项 python 检查 -> 通过
+```
+本批只改后端，未重跑前端门禁（无前端改动）。导出任务端到端（发起 → 轮询 → 生成 → 下载）需要本机 MySQL / MinIO / Nacos 才能验证，待人工验收。
+
+## 未完成（仍在 GAP-094 内）
+- (a) 文件解析器与逐行校验（xlsx/csv → `edu_import_error` → 批次计数）；
+- (b) 另外三个模块导出器：student / teacher / class_roster；
+- 导入执行器（`executeImport` 之后的行级写入与结果统计）。

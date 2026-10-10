@@ -577,6 +577,16 @@ public class EduImportExportServiceImpl implements IEduImportExportService {
         if (bo.getColumns() != null && !bo.getColumns().isEmpty()) {
             sb.append(",\"columns\":").append(bo.getColumns().size());
         }
+        // 附加筛选条件由调用方以 JSON 文本透传（如 teaching_assignment 的 teacherId）；
+        // 看起来是 JSON 对象时直接内嵌，否则按字符串转义，保证 params_summary 始终是合法 JSON。
+        String filters = StringUtils.trimToEmpty(bo.getFilters());
+        if (StringUtils.isNotBlank(filters)) {
+            if (filters.startsWith("{") && filters.endsWith("}")) {
+                sb.append(",\"filters\":").append(filters);
+            } else {
+                sb.append(",\"filters\":\"").append(filters.replace("\\", "\\\\").replace("\"", "\\\"")).append('"');
+            }
+        }
         return sb.append('}').toString();
     }
 

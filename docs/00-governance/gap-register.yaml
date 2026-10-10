@@ -2984,6 +2984,11 @@ gaps:
       `IEduImportExportService` 的 7 个方法，含批次号幂等、24 小时校验有效期、10 MB 上限、
       失败原因分组、模板版本过期强提示、导出明文授权校验与数据范围重解析。
       待办：与 GAP-093 的文件服务同批交付「解析器 + 逐模块导出器 + xlsx/csv 生成器」执行器。
+      CR-137 进展（2026-10-10）：异步执行者骨架（`EduAsyncTaskExecutor`，@Scheduled 轮询 + 条件更新抢占 + 写
+      edu_file_ref + 状态机）与第一个模块导出器（`teaching_assignment`，xlsx/csv）已落地，
+      GAP-110 点名的任教关系导出已可用；`edu_async_task.params_summary` 补了 filters。
+      **仍未完成**：(a) 文件解析器与逐行校验（导入侧）；(b) student / teacher / class_roster 三个导出器；
+      导入执行器与结果统计。
       CR-133 复核（2026-10-10）：全模块扫描确认 ruoyi-edu 内无 `@Scheduled` / `@XxlJob` / MQ 监听，
       `edu_async_task` 无人消费 —— 校验、执行、导出三条链路都停在「写任务 / 写批次」这一步；
       本批同时并入 GAP-110（任教关系导出缺执行器，实为同一执行器的导出半边）。

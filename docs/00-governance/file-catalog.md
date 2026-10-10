@@ -1692,3 +1692,17 @@
 | `services/.../ruoyi-edu/.../EduImportExportServiceImpl.java`（改） | 真实签名 + 下载审计 | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-093 关闭；新增 GAP-113 | `review` |
 | `evidence/stage7-backend/2026-10-10_signed-url-and-download-audit.log` | 改动与门禁记录 | `review` |
+
+## 2026-10-10 阶段 7 第五十六批：异步任务执行者骨架 + 任教关系导出器
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-137.md` | 执行者与导出器接口的交付与口径 | `review` |
+| `services/.../edu/job/EduExportHandler.java` | 模块导出器接口 | `已实现` |
+| `services/.../edu/job/EduExportContext.java`、`EduExportedFile.java` | 导出上下文与产物 | `已实现` |
+| `services/.../edu/job/TeachingAssignmentExportHandler.java`、`TeachingAssignmentExportRow.java` | 任教关系导出器（xlsx/csv，7 列） | `已实现` |
+| `services/.../edu/job/EduAsyncTaskExecutor.java` | 异步任务执行者（轮询 + 抢占 + 写 edu_file_ref） | `已实现` |
+| `services/.../ruoyi-edu/pom.xml`（改） | 新增 ruoyi-common-excel | `已实现` |
+| `services/.../edu/RuoYiEduApplication.java`（改） | 新增 @EnableScheduling | `已实现` |
+| `services/.../edu/service/impl/EduImportExportServiceImpl.java`（改） | params_summary 补 filters | `已实现` |
+| `evidence/stage7-backend/2026-10-10_async-task-executor-and-teaching-assignment-export.log` | 门禁与未完成项 | `review` |
