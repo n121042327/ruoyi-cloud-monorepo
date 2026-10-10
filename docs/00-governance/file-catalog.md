@@ -1518,3 +1518,10 @@
 | `apps/plus-ui/src/views/edu/import-export/imp_task_list/index.vue`（改） | 操作列加「行明细」 | `已实现` |
 | `apps/plus-ui/src/views/edu/import-export/imp_task_list/components/TaskRowsDialog.vue` | 任务行明细弹窗 | `已实现` |
 | `evidence/stage6-frontend/2026-10-09_audit-archive-search.log` | 门禁与改动记录 | `review` |
+
+## 2026-10-10 阶段 6 第四十二批：导入导出引擎复用核对
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-123.md` | 三页导入入口与功能点核对结论（无代码改动） | `review` |
+| `evidence/stage6-frontend/2026-10-10_import-engine-consistency.log` | 核对证据与门禁记录 | `review` |

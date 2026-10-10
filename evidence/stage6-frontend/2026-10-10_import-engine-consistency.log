@@ -1,0 +1,36 @@
+# 第二轮队列第 1 项：导入导出引擎复用核对（CR-123）
+
+时间：2026-10-10
+分支：codex/stage7-backend
+触发：heartbeat（第二轮自动化队列第 1 项）
+
+## 核对结论
+三个导入页面走不同路径、同一个引擎：
+
+| 页面 | 入口 | 引擎 |
+|---|---|---|
+| 学生批量导入 | /edu/import/validate|execute（通用） | importExportService |
+| 教师批量导入 | /edu/teacher/import/validate|execute（模块） | importExportService |
+| 编班表导入 | /edu/class/roster/import/validate|execute（模块） | importExportService |
+
+模块入口在 Controller 里 setModuleCode 后转发，所以「没用统一入口」不是缺陷。
+
+## 功能点一致性（全部 Y）
+        模板下载  校验  失败行下载  执行  进度轮询  结果下载
+学生      Y        Y     Y          Y     Y         Y
+教师      Y        Y     Y          Y     Y         Y
+编班表    Y        Y     Y          Y     Y         Y
+
+## 参数口径
+- 学生：{ module: 'student', termId, duplicatePolicy }
+- 教师：{ termId, duplicatePolicy }（moduleCode 后端强制为 teacher）
+- 编班表：{ module: IMPORT_MODULE, termId, duplicatePolicy }
+moduleCode 一律后端设置，前端传值会被覆盖 —— 模块归属不由前端决定。
+
+## 门禁
+check_fe_page_structure.py / check_fe_text_nowrap.py / check_api_contract.py / check_docs.py /
+check_gap_register.py / check_mermaid.py / check_stage6_route_coverage.py -> 全部通过
+typecheck 51（基线）/ lint 124（基线）/ build:prod exit 0
+
+## 结论
+无代码改动，队列第 1 项关闭；下一项：学年学期（新建学年 / 新建学期）。
