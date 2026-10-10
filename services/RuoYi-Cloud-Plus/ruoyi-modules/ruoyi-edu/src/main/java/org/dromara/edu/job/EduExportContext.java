@@ -2,6 +2,7 @@ package org.dromara.edu.job;
 
 import lombok.Data;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,4 +40,14 @@ public class EduExportContext {
 
     /** 附加筛选条件（如 teaching_assignment 的 teacherId） */
     private Map<String, Object> filters;
+
+    /**
+     * 发起导出时解析出的数据范围（GAP-114）：年级主任看本年级、班主任看本班、任课教师看本人任教班级。
+     *
+     * 为空表示「本校全量」（与既有口径一致）；非空时导出器必须按它过滤 —— 后台执行没有登录态，
+     * 数据权限插件不生效（D-218 / D-224）。
+     */
+    private List<Long> gradeIds;
+
+    private List<Long> classIds;
 }

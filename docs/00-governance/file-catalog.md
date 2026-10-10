@@ -1836,3 +1836,15 @@
 | `docs/00-governance/change-requests/CR-150.md` | 现象、根因、修复与验证 | `review` |
 | `services/.../edu/service/impl/EduAuditServiceImpl.java`（改） | 审计侧 @Lazy 注入导入导出服务，打破构造期循环 | `已实现` |
 | `evidence/stage7-backend/2026-10-10_edu-startup-circular-dependency.log` | 启动验证与教训 | `review` |
+
+## 2026-10-10 阶段 7 第七十批：后台导出细粒度范围落库与过滤（GAP-114 其一）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-151.md` | 范围口径与已接入的导出器 | `review` |
+| `services/.../edu/service/impl/EduImportExportServiceImpl.java`（改） | 导出时把 gradeIds / classIds 写进任务参数 | `已实现` |
+| `services/.../edu/job/EduExportContext.java`、`EduAsyncTaskExecutor.java`（改） | 解析任务参数里的范围 | `已实现` |
+| `services/.../edu/job/EduExportScopeResolver.java` | 范围 → 班级 ID 列表（gradeIds 展开为行政班） | `已实现` |
+| `services/.../edu/job/ClassRosterExportHandler.java`、`TeachingAssignmentExportHandler.java`（改） | 按范围过滤 | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-114 进度更新 | `review` |
+| `evidence/stage7-backend/2026-10-10_export-scope-plumbing.log` | 门禁与未完成项 | `review` |

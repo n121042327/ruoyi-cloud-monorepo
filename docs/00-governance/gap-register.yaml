@@ -3763,7 +3763,11 @@ open_questions_for_user:
     recommended: |
       **推荐方案 1**：范围在请求线程里解析最准（那里有完整登录态与数据权限插件），落库后执行阶段只是复现；
       影响面：`exportData` 里调用一次 `DataScopeResolver` 把 gradeIds / classIds 写进 `params_summary`，
-      导出器在 wrapper 上加对应 in 条件。本批先保证学校级隔离（不会跨校泄漏），细粒度按本条补。
+      导出器在 wrapper 上加对应 in 条件。
+      CR-151 进展（2026-10-10）：已完成范围落库（`params_summary` 增 gradeIds / classIds）与
+      `EduExportScopeResolver`（classIds 优先，gradeIds 展开为该年级下的行政班）；
+      `class_roster` 与 `teaching_assignment` 两个导出器已按范围过滤。
+      **仍未完成**：`student` / `teacher` 两个导出器的范围过滤（要经在校记录 / 任教关系落到行上）。
     blocking: false
     blocks_stages:
       - stage8

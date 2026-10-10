@@ -1,0 +1,28 @@
+# GAP-114：后台导出的细粒度数据范围落库并按范围过滤（CR-151 / D-231）
+
+时间：2026-10-10　分支：codex/stage7-backend　触发：用户指令（automation 先做 GAP-114 / 115 / 113）
+
+## 问题
+`edu_async_task` 只落 `school_id` + `params_summary`（moduleCode / format / termId / gradeId / classId / keyword / filters），
+细粒度数据范围（年级主任看本年级、班主任看本班、任课教师看本人任教班级）没有随任务落库。
+后台执行没有登录态、数据权限插件不生效（D-218 / D-224），所以班主任发起的导出会拿到全校数据。
+
+## 处置
+| 层 | 改动 |
+|---|---|
+| `EduImportExportServiceImpl.exportData` | 在**请求线程**调用 `DataScopeResolver.resolve()`，把 `gradeIds` / `classIds` 写进 `params_summary`（空集合不写 = 本校全量，与既有口径一致） |
+| `EduExportContext` | 新增 `gradeIds` / `classIds`；`EduAsyncTaskExecutor` 从任务参数解析 |
+| `job/EduExportScopeResolver`（新） | 把范围换算成「班级 ID 列表」：`classIds` 优先；只有 `gradeIds` 时展开为该年级下的行政班（`edu_class`） |
+| `ClassRosterExportHandler` / `TeachingAssignmentExportHandler` | 按生效班级范围过滤（`in(...)`，范围为空时不过滤） |
+
+## 仍未完成
+`student` / `teacher` 两个导出器的范围过滤留下一批：它们要经关联表
+（学生经在校记录 / 班级关系、教师经任教关系）才能把范围落到行上，逻辑与班级维度的两张表不同。
+
+## 验证
+- `mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile` → BUILD SUCCESS
+- 启动验证：本地 9211 端口已被**用户的 IDEA 实例**占用（该实例是在 CR-150 修复后启动的），
+  说明修复后的服务已正常运行；本批不再重复占端口启动，改以「编译通过 + 用户实例在线」为证据。
+
+## 门禁
+七项 python 检查 + check_perm_seed.py → 通过；本批只改后端，未重跑前端门禁。

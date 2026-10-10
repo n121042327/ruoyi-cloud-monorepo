@@ -205,11 +205,27 @@ public class EduAsyncTaskExecutor {
         context.setClassId(toLong(params.get("classId")));
         context.setStudentId(toLong(params.get("studentId")));
         context.setKeyword((String) params.get("keyword"));
+        context.setGradeIds(toLongList(params.get("gradeIds")));
+        context.setClassIds(toLongList(params.get("classIds")));
         Object filters = params.get("filters");
         if (filters instanceof Map<?, ?> map) {
             context.setFilters((Map<String, Object>) map);
         }
         return context;
+    }
+
+    /** 解析任务参数里的 id 数组（缺省返回空列表） */
+    private java.util.List<Long> toLongList(Object value) {
+        java.util.List<Long> result = new java.util.ArrayList<>();
+        if (value instanceof java.util.Collection<?> collection) {
+            for (Object item : collection) {
+                Long id = toLong(item);
+                if (id != null) {
+                    result.add(id);
+                }
+            }
+        }
+        return result;
     }
 
     private Long toLong(Object value) {

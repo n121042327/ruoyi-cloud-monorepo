@@ -52,6 +52,7 @@ public class TeachingAssignmentExportHandler implements EduExportHandler {
     private final EduClassMapper classMapper;
     private final EduTeacherMapper teacherMapper;
     private final EduTermMapper termMapper;
+    private final EduExportScopeResolver exportScopeResolver;
 
     @Override
     public String moduleCode() {
@@ -69,8 +70,11 @@ public class TeachingAssignmentExportHandler implements EduExportHandler {
         if (filters != null && filters.get("teacherId") != null) {
             teacherId = Convert.toLong(filters.get("teacherId"));
         }
+        // 任务范围（GAP-114）：班主任 → 本班；年级主任 → 本年级下的行政班；为空 = 本校全量
+        List<Long> scopeClassIds = exportScopeResolver.effectiveClassIds(context);
         List<EduTeachingAssignment> list = assignmentMapper.selectList(new LambdaQueryWrapper<EduTeachingAssignment>()
             .eq(EduTeachingAssignment::getSchoolId, context.getSchoolId())
+            .in(!scopeClassIds.isEmpty(), EduTeachingAssignment::getClassId, scopeClassIds)
             .eq(context.getTermId() != null, EduTeachingAssignment::getTermId, context.getTermId())
             .eq(context.getClassId() != null, EduTeachingAssignment::getClassId, context.getClassId())
             .eq(teacherId != null, EduTeachingAssignment::getTeacherId, teacherId)

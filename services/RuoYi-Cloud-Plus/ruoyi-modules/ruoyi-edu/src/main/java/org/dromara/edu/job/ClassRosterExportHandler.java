@@ -71,6 +71,7 @@ public class ClassRosterExportHandler implements EduExportHandler {
     private final EduStudentEnrollmentMapper enrollmentMapper;
     private final EduStudentGuardianMapper studentGuardianMapper;
     private final EduGuardianMapper guardianMapper;
+    private final EduExportScopeResolver exportScopeResolver;
 
     @Override
     public String moduleCode() {
@@ -82,11 +83,14 @@ public class ClassRosterExportHandler implements EduExportHandler {
         if (context.getSchoolId() == null) {
             throw new ServiceException("导出缺少学校上下文，拒绝导出（DS-DENY-02）");
         }
+        // 任务范围（GAP-114）：班主任 → 本班；年级主任 → 本年级下的行政班；为空 = 本校全量
+        List<Long> scopeClassIds = exportScopeResolver.effectiveClassIds(context);
         List<EduClassMember> members = classMemberMapper.selectList(new LambdaQueryWrapper<EduClassMember>()
             .eq(EduClassMember::getSchoolId, context.getSchoolId())
             .eq(EduClassMember::getClassType, "administrative")
             .eq(EduClassMember::getStatus, MEMBER_IN)
             .eq(context.getClassId() != null, EduClassMember::getClassId, context.getClassId())
+            .in(!scopeClassIds.isEmpty(), EduClassMember::getClassId, scopeClassIds)
             .orderByAsc(EduClassMember::getClassId)
             .orderByAsc(EduClassMember::getStudentId));
         List<ClassRosterExportRow> rows = toRows(members, context.getKeyword(), context.getTermId());

@@ -427,7 +427,10 @@ public class EduImportExportServiceImpl implements IEduImportExportService {
         task.setProgressPercent(0);
         task.setOwnerId(LoginHelper.getUserId());
         task.setOwnerRole(currentRoleSnapshot());
-        task.setParamsSummary(buildExportParamsSummary(bo, format, plainText));
+        // 细粒度数据范围（年级主任看本年级 / 班主任看本班 / 任课教师看本人任教班级）必须在**请求线程**解析：
+        // 后台执行没有登录态，数据权限插件不会生效（D-218 / GAP-114）。范围随任务落库，执行阶段按它过滤。
+        DataScopeContext exportScope = dataScopeResolver.resolve();
+        task.setParamsSummary(buildExportParamsSummary(bo, format, plainText, exportScope));
         task.setTotalCount(0);
         task.setSuccessCount(0);
         task.setFailedCount(0);
@@ -656,7 +659,8 @@ public class EduImportExportServiceImpl implements IEduImportExportService {
         return sb.append('}').toString();
     }
 
-    private String buildExportParamsSummary(EduExportBo bo, String format, boolean plainText) {
+    private String buildExportParamsSummary(EduExportBo bo, String format, boolean plainText,
+                                            DataScopeContext scope) {
         StringBuilder sb = new StringBuilder("{");
         sb.append("\"moduleCode\":\"").append(bo.getModuleCode()).append('"');
         sb.append(",\"format\":\"").append(format).append('"');
@@ -689,7 +693,30 @@ public class EduImportExportServiceImpl implements IEduImportExportService {
                 sb.append(",\"filters\":\"").append(filters.replace("\\", "\\\\").replace("\"", "\\\"")).append('"');
             }
         }
+        appendScope(sb, "gradeIds", scope == null ? null : scope.getGradeIds());
+        appendScope(sb, "classIds", scope == null ? null : scope.getClassIds());
         return sb.append('}').toString();
+    }
+
+    /** 把数据范围里的 id 集合写进任务参数（空集合不写；不写 = 本校全量，与既有口径一致） */
+    private void appendScope(StringBuilder sb, String key, java.util.Set<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return;
+        }
+        StringBuilder list = new StringBuilder();
+        for (Long id : ids) {
+            if (id == null) {
+                continue;
+            }
+            if (list.length() > 0) {
+                list.append(',');
+            }
+            list.append(id);
+        }
+        if (list.length() == 0) {
+            return;
+        }
+        sb.append(",\"").append(key).append("\":[").append(list).append(']');
     }
 
     /** 生成业务编号：前缀-yyyyMMdd-####，与升班 / 选科 / 转学单的编号口径一致 */
