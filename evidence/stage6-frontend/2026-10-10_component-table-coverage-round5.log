@@ -1,0 +1,30 @@
+2026-10-10 阶段 6：GAP-117 第四批判定与补表口径（CR-163 / D-238）
+
+一、判定方式
+扫描 prototypes/functional/{v1,v2}/pages 与 prototypes/high-fidelity/{v1,v2}/pages 全部 .html 的每张 <table> 的 <th> 文本，
+按关键词检索：变更前组合 / 变更后组合 / 变更类型 / 年级主任 / 是否主管 / 主任。
+
+二、命中结果
+1) 变更前组合 = 0 处；变更后组合 = 0 处；变更类型 = 0 处
+   → StreamHistoryDialog（变更类型/变更前组合/变更后组合/生效日期/操作人/原因）在原型里没有对应表；
+     候选 promotion-history.html 第 1 张表是学籍异动历史（学号,姓名,异动类型,生效日期,原状态,新状态,操作人,原因,操作），语义不同。
+2) 年级主任 = 4 处（grade-list.html #1 年级列表、#5 任职历史；functional v1/v2 各两份）
+   是否主管 = 4 处（class-detail.html #4 班主任历史、teacher-list.html #4 年级主任表）
+   候选原型 teacher-list.html #4 = 学年学期 / 年级 / 是否主管 / 状态 / 操作（无 data-role 标记）
+   生产 GradeLeaderDialog.vue = 年级主任 / 是否主管 / 状态 / 学年学期 / 操作（且只有「操作」列有 data-layout-group）
+   → 列名（年级主任 vs 年级）与列序均不一致，且原型没有可直接对齐的操作列语义，属内容变更。
+
+三、结论与口径
+第三、四批共 5 张表都属「原型缺表 / 列集合不一致」，不是「缺 data-role 标记」。
+按 D-238（本批裁决）：以生产页现有列定义为准，在对应原型页**新增一张表**（只新增，不改既有内容），
+再在 tools/check_fe_page_structure.py 登记；每轮最多 1~2 张，逐批走门禁。
+待补表清单（目标页 + 列定义）见 CR-163 第 3 节。
+
+四、门禁
+$ python tools/check_fe_page_structure.py / check_fe_text_nowrap.py / check_api_contract.py /
+  check_docs.py / check_gap_register.py / check_mermaid.py / check_stage6_route_coverage.py /
+  check_perm_seed.py -> 全部 exit 0（本批无源码改动，未跑 Maven 与 pnpm 门禁）
+
+五、GAP-117 进度
+已纳入门禁 3 / 11；本批判定 2 张（StreamHistoryDialog / GradeLeaderDialog）归入「需按 D-238 补原型表」，
+与第三批的 3 张合计 5 张待补；下一批从清单第 1、2 张（class-detail.html 的两张表）开始执行。

@@ -1962,3 +1962,12 @@
 | `docs/00-governance/change-requests/CR-162.md` | 三张表的核对结论与三选一请示 | `review` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-117 第三批结论 + `ask_2026_10_10_batch3` | `review` |
 | `evidence/stage6-frontend/2026-10-10_component-table-coverage-round4.log` | 扫描方式、命中数与结论 | `review` |
+
+## 2026-10-10 GAP-117 第四批：两张表判定与补表口径（CR-163 / D-238）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-163.md` | 第四批判定与待补表清单 | `review` |
+| `docs/00-governance/decisions.md`（改） | 新增 D-238：原型缺表时以生产页列定义新增表 | `review` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-117 第四批判定与 D-238 口径 | `review` |
+| `evidence/stage6-frontend/2026-10-10_component-table-coverage-round5.log` | 命中结果、判定与进度 | `review` |

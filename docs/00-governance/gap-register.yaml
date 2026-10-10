@@ -3961,6 +3961,7 @@ open_questions_for_user:
       **进度：11 张中已纳入 3 张**（AssignmentTable / ArchiveSearchDialog / TeachingClassDetailDrawer）。
       后续：第三批 `TeachingAssignmentTable`、`GuardianTable` → 第四批 `StreamHistoryDialog`、`GradeLeaderDialog`
       → 第五批 `GradePromotionDialog`、`UnselectedStudentDialog`、`TeacherRoleDialog`、`ClassChangeLogTable`
+      （每批 1~2 张，逐批验收）。
       **第三批核对结论（CR-162，2026-10-10）**：`TeachingAssignmentTable`、`GuardianTable`、
       `ClassChangeLogTable` 三张在原型里**没有对应的表或列** —— 全库原型 <th> 中
       「与学生关系 / 主要联系人 / 变更明细 / 任教类型 / 跨校」命中 0 处；`class-detail.html` 的
@@ -3974,7 +3975,15 @@ open_questions_for_user:
       推荐与理由 —— 选 ①，三张表在生产端已按 PRD 与字段字典实现，补进原型可让原型重新成为列序事实源，
       需你确认「以生产页现有列定义为准」这一来源口径。影响面：`prototypes/functional/v1/pages/class-detail.html`
       （新增任课教师表与班级变更记录表）、学生详情 / 花名册原型页（新增监护人表）、
-      `tools/check_fe_page_structure.py` 逐表登记。未获确认前保持 open。
+      `tools/check_fe_page_structure.py` 逐表登记。
+      **第四批判定与口径（CR-163，2026-10-10）**：`StreamHistoryDialog`（全库原型 <th> 中「变更类型 / 变更前组合 /
+      变更后组合」命中 0 处，`promotion-history.html` 是学籍异动历史表）与 `GradeLeaderDialog`
+      （候选 `teacher-list.html` 第 4 张表为 学年学期 / 年级 / 是否主管 / 状态 / 操作，与生产的
+      年级主任 / 是否主管 / 状态 / 学年学期 / 操作 列名与列序均不一致）同样属「原型缺表 / 列集合不一致」。
+      **口径裁决 D-238**：原型缺表或列集合不一致时，以生产页现有列定义为准，在对应原型页新增一张表
+      （只新增、不改既有内容）后在检查器登记；每轮最多 1~2 张。待补表清单与目标页见 CR-163 第 3 节，
+      下一批从 `class-detail.html` 的两张表（任教关系明细 / 班级变更记录）开始。
+      用户 2026-10-10 授权「GAP-117 按推荐」，故按 D-238 直接执行，不再逐条等确认。
     blocking: false
     blocks_stages:
       - stage8
