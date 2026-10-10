@@ -1,0 +1,41 @@
+# 第三轮队列第 1 项：教师「设置任教」入口真正接线 + 占位文案清理（CR-130 / D-210 / GAP-108）
+
+时间：2026-10-10
+分支：codex/stage7-backend
+触发：heartbeat（第三轮队列第 1 项，附带第 4 项的用户可见占位文案清理）
+
+## 问题
+
+`/edu/teacher/list` 操作列「更多▾」的「设置任教」：
+
+1. 页面里留着一个从未被引用的 `handleAssign()`，内容是 `ElMessage.info('设置任教关系在阶段 6 的下一批交付')` ——
+   页面上会弹一句「下一批交付」，但任教关系页其实早已交付（`/edu/teacher/assignment`）。
+2. 真正生效的分支 `handleMore('assign')` 虽然 `router.push({ path: '/edu/teacher/assignment', query: { teacherId } })`，
+   但任教关系页从不读这个 query —— 跳过去只是打开页面，教师没有被预选，「设置任教」等于跳了个空白入口。
+
+## 处置
+
+| 位置 | 改动 |
+|---|---|
+| `apps/plus-ui/src/views/edu/teacher/tch_list/index.vue` | 删除失效的 `handleAssign()` 与其过期注释（占位文案一并消失） |
+| `apps/plus-ui/src/views/edu/teacher/tch_assign/index.vue` | 引入 `useRoute`；`onMounted` 里读 `route.query.teacherId`，命中则切到「按教师」视角、预选该教师并清空 classId |
+| `apps/plus-ui/src/views/edu/grade/grd_list/index.vue` | 删除过期注释「指定年级主任与归档在后续批次交付」 |
+
+## 占位文案清理（第三轮队列第 4 项）
+
+```
+rg -n "下一批交付|后续批次交付|暂未实现|尚未实现|敬请期待|待实现|TODO" apps/plus-ui/src --glob '*.vue' --glob '*.ts'
+-> 无匹配（exit 1）
+```
+
+## 门禁
+
+```
+check_fe_page_structure.py / check_fe_text_nowrap.py / check_api_contract.py / check_docs.py
+  / check_gap_register.py / check_mermaid.py / check_stage6_route_coverage.py   -> 全部通过
+pnpm --filter @edu/plus-ui typecheck      -> error TS 51 条（= 基线 51，本批新增 0）
+pnpm --filter @edu/plus-ui lint:eslint    -> 124 problems（= 基线 124，本批新增 0）
+pnpm --filter @edu/plus-ui run build:prod -> 成功（exit 0）
+```
+
+本批只动前端，无后端改动，未跑 Maven。跳转与预选的运行时效果待人工验收。

@@ -1607,3 +1607,14 @@
 | `services/.../edu/service/impl/EduGradeServiceImpl.java`（改） | removeGrade 补 reason | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | 新增 GAP-106 / GAP-107（均已关闭） | `review` |
 | `evidence/stage6-frontend/2026-10-10_delete-endpoints-wiring.log` | 门禁与改动记录 | `review` |
+
+## 2026-10-10 阶段 6 第四十九批：教师「设置任教」入口接线 + 占位文案清理
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-130.md` | 入口接线与占位文案清理口径 | `review` |
+| `apps/plus-ui/src/views/edu/teacher/tch_list/index.vue`（改） | 删除失效的 handleAssign 占位实现 | `已实现` |
+| `apps/plus-ui/src/views/edu/teacher/tch_assign/index.vue`（改） | 消费 route.query.teacherId：切「按教师」视角并预选 | `已实现` |
+| `apps/plus-ui/src/views/edu/grade/grd_list/index.vue`（改） | 删除过期注释 | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | 新增 GAP-108（已关闭） | `review` |
+| `evidence/stage6-frontend/2026-10-10_teacher-assign-entry.log` | 门禁与改动记录 | `review` |

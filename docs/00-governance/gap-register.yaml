@@ -3523,3 +3523,33 @@ open_questions_for_user:
       `typecheck 51 / lint 124 / build:prod exit 0`。
     resolved_at: 2026-10-10
     status: closed
+  - id: GAP-108
+    title: 教师列表「设置任教」入口只弹占位提示，跳转后也未消费 teacherId
+    discovered_at: 2026-10-10
+    discovered_by: 第三轮队列第 1 项（CR-130）
+    evidence: "apps/plus-ui/src/views/edu/teacher/tch_list/index.vue 存在未被引用的 handleAssign()，内容为 ElMessage.info('设置任教关系在阶段 6 的下一批交付')；同一文件 handleMore('assign') 已 router.push 到 /edu/teacher/assignment 并带 query.teacherId，而 apps/plus-ui/src/views/edu/teacher/tch_assign/index.vue 的 onMounted 从不读 route.query（无 useRoute import）"
+    expected: 点「设置任教」直接进入任教关系页、切到「按教师」视角并预选该教师
+    actual: 页面上会弹「下一批交付」；真正生效的跳转不带上下文，目标页停在「按班级」视角且未预选教师
+    impact: |
+      **不选会怎样**：用户从教师列表点「设置任教」，落地后还要在目标页重新找这位教师；
+      界面上的「下一批交付」文案还会让人以为任教关系功能没做（其实已交付，已于 2026-10-08 上线）。
+    options:
+      - "删掉死代码里的占位提示；目标页 onMounted 消费 route.query.teacherId（推荐，已执行）"
+      - "只删占位提示，跳转仍不带上下文"
+      - "去掉「设置任教」入口，任教关系只在任教关系页维护"
+    recommended: |
+      **推荐方案 1**：改动只有两个文件、零后端风险，且这正是该入口存在的意义。
+      影响面：`tch_list/index.vue` 删 6 行；`tch_assign/index.vue` 加 `useRoute` 与 6 行预选逻辑。
+    blocking: false
+    blocks_stages:
+      - stage6
+    owner: 用户
+    answer: |
+      用户 2026-10-10 授权「遇到需要拍板的按推荐方案走并在 decisions.md 与 gap-register.yaml 各记一条」，
+      本批按推荐方案 1 落地（CR-130 / D-210）。
+    resolution: |
+      已删除 `handleAssign()` 与过期注释；`tch_assign` 引入 `useRoute`，`onMounted` 命中 `teacherId` 时切「按教师」视角并预选；
+      顺带清理 `grd_list` 的过期注释。全库扫描「下一批交付 / 后续批次交付 / 暂未实现」已无匹配；
+      `typecheck 51 / lint 124 / build:prod exit 0`。跳转与预选的运行时效果待人工验收。
+    resolved_at: 2026-10-10
+    status: closed

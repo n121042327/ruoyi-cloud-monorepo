@@ -121,6 +121,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
+import { useRoute } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { listTeacher, listTeachingAssignment, removeTeachingAssignment } from '@/api/edu/teacher';
 import type { TeacherVO, TeachingAssignmentQuery, TeachingAssignmentVO } from '@/api/edu/teacher/types';
@@ -137,6 +138,8 @@ import AssignmentFormDialog from './components/AssignmentFormDialog.vue';
 import CopyAssignDialog from './components/CopyAssignDialog.vue';
 
 defineOptions({ name: 'EduTeacherAssign' });
+
+const route = useRoute();
 
 const loading = ref(false);
 const total = ref(0);
@@ -247,6 +250,13 @@ onMounted(async () => {
   classOptions.value = classRes.rows ?? [];
   const current = termOptions.value.find((item) => item.current);
   queryParams.termId = current?.termId ?? termOptions.value[0]?.termId ?? '';
+  // 教师列表「设置任教」带 teacherId 跳转过来：直接切到「按教师」视角并预选该教师
+  const queryTeacherId = route.query.teacherId;
+  if (typeof queryTeacherId === 'string' && queryTeacherId) {
+    queryParams.view = 'teacher';
+    queryParams.teacherId = queryTeacherId;
+    queryParams.classId = '';
+  }
   getList();
 });
 </script>

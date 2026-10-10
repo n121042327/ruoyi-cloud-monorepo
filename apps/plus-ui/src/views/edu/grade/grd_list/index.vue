@@ -181,8 +181,6 @@ const handleUpdate = (row: GradeVO) => {
   formDialogRef.value?.open(row);
 };
 
-/** 指定年级主任与归档在后续批次交付（本批已给出入口，先不做假流程） */
-
 /** 年级归档（归档后不允许新增班级，只读保留） */
 const handleArchive = async (row: GradeVO) => {
   const { value } = await ElMessageBox.prompt(`确认归档「${row.gradeName}」？归档后不允许新增班级。`, '年级归档', {

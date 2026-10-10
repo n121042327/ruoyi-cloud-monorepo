@@ -217,11 +217,6 @@ const handleUpdate = (row: TeacherVO) => {
   formDialogRef.value?.open(row);
 };
 
-/** 任教关系与撤销离职登记在阶段 6 的后续批次交付（DP-01：班主任唯一写入口在班级管理） */
-const handleAssign = () => {
-  ElMessage.info('设置任教关系在阶段 6 的下一批交付');
-};
-
 /** 撤销离职 / 调离登记（需填原因） */
 const handleRevokeLeave = async (row: TeacherVO) => {
   const { value } = await ElMessageBox.prompt('撤销后该教师可重新新增任教关系。', '撤销离职登记', {
