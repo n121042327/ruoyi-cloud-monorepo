@@ -1646,3 +1646,11 @@
 | `apps/plus-ui/src/views/edu/teacher/tch_assign/index.vue`（改） | 导出改 moduleCode=teaching_assignment | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-109 关闭（GAP-110 保持 open） | `review` |
 | `evidence/stage6-frontend/2026-10-10_import-export-shape-alignment.log` | 门禁与改动记录 | `review` |
+
+## 2026-10-10 阶段 6 第五十二批：执行器依赖链裁决 + 人工验收清单（第三轮第 2、4 项）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-133.md` | 执行器现状核对、依赖顺序裁决与清单交付 | `review` |
+| `evidence/stage6-frontend/2026-10-10_manual-acceptance-checklist.md` | 第二轮 + 第三轮新增能力的逐条人工验收清单 | `review` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-110 关闭并入 GAP-094；GAP-094 补本批证据 | `review` |

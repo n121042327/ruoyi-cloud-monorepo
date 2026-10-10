@@ -2981,6 +2981,10 @@ gaps:
       `IEduImportExportService` 的 7 个方法，含批次号幂等、24 小时校验有效期、10 MB 上限、
       失败原因分组、模板版本过期强提示、导出明文授权校验与数据范围重解析。
       待办：与 GAP-093 的文件服务同批交付「解析器 + 逐模块导出器 + xlsx/csv 生成器」执行器。
+      CR-133 复核（2026-10-10）：全模块扫描确认 ruoyi-edu 内无 `@Scheduled` / `@XxlJob` / MQ 监听，
+      `edu_async_task` 无人消费 —— 校验、执行、导出三条链路都停在「写任务 / 写批次」这一步；
+      本批同时并入 GAP-110（任教关系导出缺执行器，实为同一执行器的导出半边）。
+      依赖顺序（D-213）：先补 GAP-093 的真实签名链接与流式下载，再补本执行器。
     resolved_at: "2026-10-08"
     status: answered
 
@@ -3611,4 +3615,12 @@ open_questions_for_user:
     blocks_stages:
       - stage6
     owner: 用户
-    status: open
+    answer: |
+      用户 2026-10-10 授权「遇到需要拍板的按推荐方案走并在 decisions.md 与 gap-register.yaml 各记一条」。
+      核对（CR-133 / D-213）后判定本条不是孤立缺口：ruoyi-edu 内没有任何 @Scheduled / @XxlJob / MQ 消费者，
+      `edu_async_task` 无人推进，导出签名链接也是占位（GAP-093 待办）。
+    resolution: |
+      并入 GAP-094（「解析器 + 逐模块导出器 + xlsx/csv 生成器」执行器）统一交付，不再单独跟踪；
+      依赖顺序按 D-213：先补 GAP-093 的真实签名链接与流式下载，再补 GAP-094 的执行器。
+    resolved_at: 2026-10-10
+    status: closed
