@@ -340,6 +340,20 @@ CHECKS = [
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）
 OVERLAY_CHECKS = [
     {
+        "page_id": "PAGE-TCH-DETAIL",
+        "name": "教师详情抽屉",
+        "prototype": "prototypes/high-fidelity/v1/pages/teacher-list.html",
+        "vue": "apps/plus-ui/src/views/edu/teacher/tch_list/components/TeacherDetailDrawer.vue",
+        "groups": ["基础信息", "任职信息", "任教清单"],
+    },
+    {
+        "page_id": "PAGE-GRD-DETAIL",
+        "name": "年级详情抽屉",
+        "prototype": "prototypes/high-fidelity/v1/pages/grade-list.html",
+        "vue": "apps/plus-ui/src/views/edu/grade/grd_list/components/GradeDetailDrawer.vue",
+        "groups": ["基础信息", "下辖班级"],
+    },
+    {
         "page_id": "PAGE-STU-DETAIL",
         "name": "学生详情抽屉",
         "prototype": "prototypes/functional/v2/pages/student-list.html",

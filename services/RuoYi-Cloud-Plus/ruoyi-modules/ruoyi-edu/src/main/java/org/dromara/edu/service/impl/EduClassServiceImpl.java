@@ -11,7 +11,9 @@ import org.dromara.edu.domain.EduCampus;
 import org.dromara.edu.domain.EduClass;
 import org.dromara.edu.domain.EduClassMember;
 import org.dromara.edu.domain.EduGrade;
+import org.dromara.edu.domain.EduGuardian;
 import org.dromara.edu.domain.EduSchool;
+import org.dromara.edu.domain.EduStudentGuardian;
 import org.dromara.edu.domain.EduTeachingAssignment;
 import org.dromara.edu.domain.EduTerm;
 import org.dromara.edu.domain.bo.EduClassBo;
@@ -22,7 +24,9 @@ import org.dromara.edu.mapper.EduCampusMapper;
 import org.dromara.edu.mapper.EduClassMapper;
 import org.dromara.edu.mapper.EduClassMemberMapper;
 import org.dromara.edu.mapper.EduGradeMapper;
+import org.dromara.edu.mapper.EduGuardianMapper;
 import org.dromara.edu.mapper.EduSchoolMapper;
+import org.dromara.edu.mapper.EduStudentGuardianMapper;
 import org.dromara.edu.mapper.EduTermMapper;
 import org.dromara.edu.mapper.EduTeachingAssignmentMapper;
 import org.dromara.edu.service.IEduClassService;
@@ -30,6 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -74,6 +79,8 @@ public class EduClassServiceImpl implements IEduClassService {
     private final EduCampusMapper campusMapper;
     private final EduGradeMapper gradeMapper;
     private final EduTermMapper termMapper;
+    private final EduStudentGuardianMapper studentGuardianMapper;
+    private final EduGuardianMapper guardianMapper;
 
     @Override
     public TableDataInfo<EduClassVo> queryPageList(EduClassBo clazz, PageQuery pageQuery) {
@@ -255,6 +262,7 @@ public class EduClassServiceImpl implements IEduClassService {
             .eq(StringUtils.isNotBlank(member.getEnrollmentStatus()), EduClassMember::getStatus, member.getEnrollmentStatus())
             .orderByDesc(EduClassMember::getJoinDate);
         Page<EduClassMemberVo> result = memberMapper.selectPageRoster(pageQuery.build(), wrapper);
+        fillGuardians(result.getRecords());
         return TableDataInfo.build(result);
     }
 
@@ -377,6 +385,63 @@ public class EduClassServiceImpl implements IEduClassService {
     }
 
     /** 只拷贝可写列（主键、状态与审计列由框架维护） */
+    /**
+     * 填充花名册的监护人姓名与联系电话（GAP-104）。
+     *
+     * 原型 PAGE-CLS-DETAIL 的「监护人 / 联系电话」两列按角色控制可见性，值由后端提供：
+     * 一位学生取主监护人（`is_primary='1'`），没有主监护人时取第一条绑定关系；手机号默认掩码
+     * （保留前 3 后 4，REQ-AUD-009）。按学生 ID 批量查询，避免 N+1。
+     */
+    private void fillGuardians(List<EduClassMemberVo> rows) {
+        if (rows == null || rows.isEmpty()) {
+            return;
+        }
+        List<Long> studentIds = rows.stream()
+            .map(EduClassMemberVo::getStudentId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .collect(Collectors.toList());
+        if (studentIds.isEmpty()) {
+            return;
+        }
+        List<EduStudentGuardian> relations = studentGuardianMapper.selectList(
+            new LambdaQueryWrapper<EduStudentGuardian>().in(EduStudentGuardian::getStudentId, studentIds));
+        Map<Long, Long> chosen = new LinkedHashMap<>();
+        for (EduStudentGuardian relation : relations) {
+            if (relation.getStudentId() == null || relation.getGuardianId() == null) {
+                continue;
+            }
+            if (MEMBER_IN.equals(relation.getIsPrimary())) {
+                chosen.put(relation.getStudentId(), relation.getGuardianId());
+            } else {
+                chosen.putIfAbsent(relation.getStudentId(), relation.getGuardianId());
+            }
+        }
+        if (chosen.isEmpty()) {
+            return;
+        }
+        Map<Long, EduGuardian> guardians = guardianMapper
+            .selectByIds(chosen.values().stream().distinct().collect(Collectors.toList()))
+            .stream()
+            .collect(Collectors.toMap(EduGuardian::getGuardianId, g -> g, (a, b) -> a));
+        for (EduClassMemberVo row : rows) {
+            EduGuardian guardian = guardians.get(chosen.get(row.getStudentId()));
+            if (guardian == null) {
+                continue;
+            }
+            row.setGuardianName(guardian.getGuardianName());
+            row.setGuardianPhone(maskPhone(guardian.getGuardianPhone()));
+        }
+    }
+
+    /** 手机号掩码：保留前 3 后 4（与监护人查询同一口径，REQ-AUD-009） */
+    private String maskPhone(String phone) {
+        if (StringUtils.isBlank(phone) || phone.length() < 7) {
+            return phone;
+        }
+        return phone.substring(0, 3) + "****" + phone.substring(phone.length() - 4);
+    }
+
     private void copyWritableFields(EduClassBo bo, EduClass entity) {
         entity.setSchoolId(bo.getSchoolId());
         entity.setTermId(bo.getTermId());

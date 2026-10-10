@@ -1654,3 +1654,16 @@
 | `docs/00-governance/change-requests/CR-133.md` | 执行器现状核对、依赖顺序裁决与清单交付 | `review` |
 | `evidence/stage6-frontend/2026-10-10_manual-acceptance-checklist.md` | 第二轮 + 第三轮新增能力的逐条人工验收清单 | `review` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-110 关闭并入 GAP-094；GAP-094 补本批证据 | `review` |
+
+## 2026-10-10 阶段 6 第五十三批：花名册补监护人 / 联系电话 + 详情抽屉纳入结构对照
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-134.md` | 逐项对照、结构对照覆盖与未纳入项 | `review` |
+| `services/.../edu/domain/vo/EduClassMemberVo.java`（改） | 增 guardianName / guardianPhone | `已实现` |
+| `services/.../edu/service/impl/EduClassServiceImpl.java`（改） | queryRoster 批量填监护人 + maskPhone | `已实现` |
+| `apps/plus-ui/src/api/edu/class/types.ts`（改） | ClassRosterVO 补两字段 | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_detail/index.vue`（改） | 花名册补两列 + 角色可见性 | `已实现` |
+| `tools/check_fe_page_structure.py`（改） | OVERLAY_CHECKS 增教师 / 年级详情抽屉对照 | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-104 关闭；新增 GAP-111 | `review` |
+| `evidence/stage6-frontend/2026-10-10_class-roster-guardian-columns.log` | 门禁与改动记录 | `review` |

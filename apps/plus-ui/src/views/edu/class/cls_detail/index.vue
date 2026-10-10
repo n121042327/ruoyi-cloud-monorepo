@@ -80,6 +80,14 @@
               <el-table-column label="性别" prop="gender" width="70" align="center" />
               <el-table-column label="学籍状态" prop="enrollmentStatus" width="120" align="center" />
               <el-table-column label="加入日期" prop="joinDate" width="120" align="center" />
+              <el-table-column v-if="canSeeGuardian" label="监护人" prop="guardianName" width="110" show-overflow-tooltip>
+                <template #default="scope">{{ scope.row.guardianName || '—' }}</template>
+              </el-table-column>
+              <el-table-column v-if="canSeeGuardian" label="联系电话" prop="guardianPhone" width="130">
+                <template #default="scope"
+                  ><span class="mono">{{ scope.row.guardianPhone || '—' }}</span></template
+                >
+              </el-table-column>
               <el-table-column label="班级归属" width="130" show-overflow-tooltip>
                 <template #default="scope">{{ scope.row.currentClassName || '本班' }}</template>
               </el-table-column>
@@ -168,7 +176,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { exportClassRoster, getClass, listClassRoster, listClassTeachingAssignment, removeClassRoster } from '@/api/edu/class';
 import type { ClassRosterVO, ClassVO } from '@/api/edu/class/types';
 import { listObjectChangeLog } from '@/api/edu/audit';
-import { checkPermi } from '@/utils/permission';
+import { checkPermi, checkRole } from '@/utils/permission';
 import type { OperationLogVO } from '@/api/edu/audit/types';
 import { listTeacher } from '@/api/edu/teacher';
 import type { TeacherVO, TeachingAssignmentVO } from '@/api/edu/teacher/types';
@@ -190,6 +198,13 @@ const loading = ref(false);
 const changesLoading = ref(false);
 const activeTab = ref('roster');
 const canRead = computed(() => checkPermi(['org.class:read']));
+/**
+ * 监护人 / 联系电话两列的角色可见性。
+ *
+ * 原型 class-detail.html 第 181—182 行的 data-role-visible 限定为
+ * academic_director / grade_leader / homeroom / super_admin；联系电话由后端默认掩码返回。
+ */
+const canSeeGuardian = computed(() => checkRole(['academic_director', 'grade_leader', 'homeroom', 'super_admin']));
 
 const detail = ref<ClassVO>({} as ClassVO);
 const rosterList = ref<ClassRosterVO[]>([]);

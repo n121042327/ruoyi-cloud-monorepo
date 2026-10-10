@@ -91,6 +91,10 @@ export interface ClassRosterVO {
   currentClassName?: string;
   /** 加入日期（花名册默认按加入日期倒序） */
   joinDate?: string;
+  /** 监护人姓名（PAGE-CLS-DETAIL，按角色控制可见性，GAP-104） */
+  guardianName?: string;
+  /** 监护人联系电话（**默认掩码**，全量查看走学生详情） */
+  guardianPhone?: string;
   /** 离开日期（移出后保留历史） */
   leaveDate?: string;
   /** 关系状态：在读 / 已移出 */

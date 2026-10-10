@@ -1,0 +1,34 @@
+# 第三轮队列第 1 项（第一批）：班级详情花名册补「监护人 / 联系电话」+ 两个详情抽屉纳入结构对照（CR-134）
+
+时间：2026-10-10　分支：codex/stage7-backend　触发：heartbeat
+
+## 背景
+高保真 `prototypes/high-fidelity/v1/pages/class-detail.html` 第 181—182 行的花名册有两列
+「监护人」（`guardian_name`）与「联系电话」（`guardian_phone`），带 `data-role-visible="academic_director,grade_leader,homeroom,super_admin"`；
+生产页 `cls_detail` 没有这两列，原因是后端 `EduClassMemberVo` 没有对应字段（GAP-104）。
+
+## 本批改动
+
+| 层 | 改动 |
+|---|---|
+| 后端 VO | `EduClassMemberVo` 增 `guardianName` / `guardianPhone`（后者**默认掩码**，REQ-AUD-009） |
+| 后端服务 | `EduClassServiceImpl.queryRoster` 调新增的 `fillGuardians(rows)`：按学生 ID 批量查 `edu_student_guardian` + `edu_guardian`，主监护人优先、否则取第一条绑定；一次性批量查询避免 N+1；新增 `maskPhone`（前 3 后 4） |
+| 前端类型 | `ClassRosterVO` 增 `guardianName` / `guardianPhone` |
+| 前端页面 | `cls_detail` 花名册在「加入日期」之后补「监护人 / 联系电话」两列，`v-if="canSeeGuardian"` 按原型 `data-role-visible` 的角色限制显隐 |
+| 结构对照 | `tools/check_fe_page_structure.py` 的 `OVERLAY_CHECKS` 新增 `PAGE-TCH-DETAIL`（教师详情抽屉）与 `PAGE-GRD-DETAIL`（年级详情抽屉），分组顺序纳入门禁 |
+
+## 未纳入结构对照（登记 GAP-111）
+`cls_detail` 整页仍未进 `CHECKS`：本页内联 3 张表（花名册 / 任教关系 / 变更记录），
+且花名册列没有 `data-layout-group`，检查器的列解析取不到它们（实测「生产 1 列」）。
+需先把三张表拆成组件或补齐分组属性、再逐表对照，已登记 **GAP-111**。
+
+## 门禁
+```
+check_fe_page_structure.py / check_fe_text_nowrap.py / check_api_contract.py / check_docs.py
+  / check_gap_register.py / check_mermaid.py / check_stage6_route_coverage.py   -> 全部通过
+pnpm --filter @edu/plus-ui typecheck      -> error TS 51 条（= 基线 51，本批新增 0）
+pnpm --filter @edu/plus-ui lint:eslint    -> 124 problems（= 基线 124，本批新增 0）
+pnpm --filter @edu/plus-ui run build:prod -> 成功（exit 0）
+mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile -> BUILD SUCCESS（ruoyi-edu 16.9 s）
+```
+只声明「编译通过 + 门禁通过」；监护人取数与掩码的运行时效果待人工验收。

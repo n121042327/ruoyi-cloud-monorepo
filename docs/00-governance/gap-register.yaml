@@ -3439,6 +3439,40 @@ open_questions_for_user:
     blocks_stages:
       - stage6
     owner: 用户
+    answer: |
+      用户 2026-10-10 授权「遇到需要拍板的按推荐方案走并在 decisions.md 与 gap-register.yaml 各记一条」，
+      本批按推荐方案 1 落地（CR-134 / D-214）。
+    resolution: |
+      已补齐：`EduClassMemberVo` 增 `guardianName` / `guardianPhone`（后者默认掩码）；
+      `EduClassServiceImpl.queryRoster` 新增 `fillGuardians`，按学生 ID 批量查 `edu_student_guardian` + `edu_guardian`
+      （主监护人优先，否则第一条绑定），并新增 `maskPhone`；前端 `ClassRosterVO` 补两字段、
+      `cls_detail` 花名册在「加入日期」后补两列并按原型 `data-role-visible` 用 `checkRole` 控制显隐。
+      门禁：七项 python 检查通过、typecheck 51（基线）、lint 124（基线）、build:prod exit 0、mvn ruoyi-edu BUILD SUCCESS。
+      运行时取数与掩码效果待人工验收。
+    resolved_at: 2026-10-10
+    status: closed
+  - id: GAP-111
+    title: 班级详情页（cls_detail）未纳入页面结构对照
+    discovered_at: 2026-10-10
+    discovered_by: 第三轮队列第 1 项（CR-134）
+    evidence: "tools/check_fe_page_structure.py 的 CHECKS 里没有 PAGE-CLS-DETAIL；把 prototypes/high-fidelity/v1/pages/class-detail.html 与本页接入后实测报『表格列数与原型不一致：原型 9 列，生产 1 列』——本页 app 内联 3 张表（花名册 / 任教关系 / 变更记录），且花名册各列没有 data-layout-group，检查器的 parse_vue_columns 取不到它们（只有操作列带分组）"
+    expected: 班级详情页的花名册（以及任教关系 / 变更记录两张表）与原型逐列对照纳入门禁
+    actual: 本页未纳入结构对照；接入后会大面积误报，无法判断真实差异
+    impact: |
+      **不选会怎样**：班级详情是使用频率最高的页之一，列顺序与分组从此没有门禁保护；
+      下次改列不会被任何检查拦住，只能靠人工比对原型。
+    options:
+      - "按 TCH-ASSIGN 的先例拆分组件：把任教关系 / 变更记录两张表拆成独立组件，花名册各列补 data-layout-group，再逐表纳入 CHECKS（推荐）"
+      - "只给花名册列补 data-layout-group，另两张表用 extra_columns 排除（可接入，但两张表仍无对照）"
+      - "维持现状，靠人工比对"
+    recommended: |
+      **推荐方案 1**：与既有先例一致（`AssignmentTable.vue` 就是因为检查器只读页面文件而拆出去的），
+      拆组件后每张表都能单独对照，也不必在同一条检查里处理多表。影响面：`cls_detail` 拆 2 个组件 +
+      花名册补分组属性 + `tools/check_fe_page_structure.py` 加 1 条 CHECKS。
+    blocking: false
+    blocks_stages:
+      - stage6
+    owner: 用户
     status: open
   - id: GAP-105
     title: edu_teacher.employment_status「在职」码值上游两处不一致（on_duty / active）

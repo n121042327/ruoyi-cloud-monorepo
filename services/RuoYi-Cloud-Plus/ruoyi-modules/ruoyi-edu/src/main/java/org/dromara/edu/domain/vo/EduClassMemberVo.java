@@ -62,4 +62,14 @@ public class EduClassMemberVo implements Serializable {
     /** 迁移校验结果（PAGE-CLS-MOVE 的「校验结果」列） */
     private String moveCheck;
 
+    /**
+     * 监护人姓名（花名册「监护人」列，原型 PAGE-CLS-DETAIL）。
+     *
+     * 取值：主监护人优先，没有主监护人时取第一条绑定关系（GAP-104）。
+     */
+    private String guardianName;
+
+    /** 监护人联系电话（**默认掩码**，保留前 3 后 4；全量查看走学生详情的敏感数据访问日志，REQ-AUD-009） */
+    private String guardianPhone;
+
 }
