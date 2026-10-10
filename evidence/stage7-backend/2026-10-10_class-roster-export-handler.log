@@ -1,0 +1,27 @@
+# GAP-094 第二批（收尾）：编班表导出器（CR-140 / D-220）
+
+时间：2026-10-10　分支：codex/stage7-backend　触发：heartbeat（18:00 起每 5 分钟）
+
+## 交付
+| 项 | 说明 |
+|---|---|
+| `job/ClassRosterExportHandler` / `ClassRosterExportRow` | 编班表导出器（编码 `class_roster`），xlsx + csv |
+| 默认列 | 班级 / 学号 / 姓名 / 性别 / 学籍状态 / 加入日期 / 监护人 / 联系电话（掩码）—— 前 7 列来自班级详情花名册 `PAGE-CLS-DETAIL`，另加「班级」列 |
+| 为什么加「班级」列 | 编班表导出既可以导单个班（传 classId）也可以导全校（不传），没有班级列看不出归属；导入模板里的「目标班级」列与之对应 |
+| 范围 | `edu_class_member.school_id = 任务学校` + `class_type='administrative'` + `status='1'`（在班）；传了 `classId` 再收窄到该班；缺学校上下文直接拒绝（D-218） |
+| 敏感字段 | 监护人联系电话默认掩码（REQ-AUD-009）；监护人取主监护人优先，否则第一条绑定 |
+
+## 状态
+GAP-094 第二批（导出器）**完成**：`teaching_assignment`（285b4f0）、`student`（ba8df30）、
+`teacher`（4e6373a）、`class_roster`（本批）。四个导出器共用同一套引擎与范围口径。
+
+## 门禁
+```
+mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile -> BUILD SUCCESS
+七项 python 检查 -> 通过
+```
+本批只改后端，未重跑前端门禁。
+
+## 下一步
+GAP-094 第三批：导入解析器与逐行校验（取文件字节 → 逐行校验 → 写 edu_import_error → 回填批次计数），
+然后把执行者的领取条件从 export 放开到 import。

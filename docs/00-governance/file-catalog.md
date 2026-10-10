@@ -1726,3 +1726,12 @@
 | `services/.../edu/job/TeacherExportHandler.java`、`TeacherExportRow.java` | 教师导出器（xlsx/csv，9 列） | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-094 第二批进度更新 | `review` |
 | `evidence/stage7-backend/2026-10-10_teacher-export-handler.log` | 门禁与口径记录 | `review` |
+
+## 2026-10-10 阶段 7 第五十九批：编班表导出器（GAP-094 第二批收尾）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-140.md` | 编班表导出器与两个判断 | `review` |
+| `services/.../edu/job/ClassRosterExportHandler.java`、`ClassRosterExportRow.java` | 编班表导出器（xlsx/csv，8 列，只导行政班） | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-094 第二批完成标注 | `review` |
+| `evidence/stage7-backend/2026-10-10_class-roster-export-handler.log` | 门禁与状态记录 | `review` |
