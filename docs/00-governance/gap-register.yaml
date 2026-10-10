@@ -3941,7 +3941,21 @@ open_questions_for_user:
       要定义格式与维护人）；③ 维持现状，只对照能明确对上的 4 张。
       **推荐方案与理由**：推荐 ① —— 原型是列序的事实源，补标记后现有检查器直接支持（`table_index` 已实现），
       不需要新格式与新维护人；代价是要动阶段 3 的原型产物，所以需要你确认是否出新版本。
-      未获确认前保持现状。
+      用户 2026-10-10 确认按推荐执行。
+    resolution: |
+      **第一批（CR-160，2026-10-10）**：`teacher-assign.html`（functional/v1 与 high-fidelity/v1 各一份）主表
+      「周课时 / 状态」补 `data-role="column"` 元数据（不改文案 / 列序 / 结构）；
+      `tools/check_fe_page_structure.py` 新增 `PAGE-TCH-ASSIGN-TABLE`（`table_index=3`，
+      与 `components/AssignmentTable.vue` 逐列对照，7 列一致）—— 任教关系表（`AssignmentTable`）纳入门禁。
+      **剩余 10 张的差异摸底**（逐表结论见 CR-160 第 3 节）：
+      ① 改生产页对齐原型即可：`ArchiveSearchDialog`（原型 9 列 vs 生产 7 列，缺「角色」列且
+      「操作时间 / 来源 IP」写法不同）、`TeachingClassDetailDrawer`（原型「当前行政班」vs 生产「行政班」）；
+      ② 需先补原型标记 / 确认对照对象：`TeachingAssignmentTable`（原型 `class-detail.html` 的任课教师表无列标记）、
+      `GradeLeaderDialog`（原型 `teacher-list.html` 第 4 张表列名与列序均不同）；
+      ③ 原型缺表、需在阶段 3 产物新增表：`GradePromotionDialog`、`TeacherRoleDialog`、`GuardianTable`、
+      `StreamHistoryDialog`、`UnselectedStudentDialog`、`ClassChangeLogTable`。
+      分批计划：第二批 ①中的两张 → 第三批 ② → 第四 / 五批 ③（每批 1~2 张，逐批验收）。
+    blocking: false
     blocking: false
     blocks_stages:
       - stage8

@@ -1,0 +1,32 @@
+2026-10-10 阶段 6：GAP-117 第一批（任教关系表纳入门禁 + 11 张表差异摸底，CR-160）
+
+一、本批动作
+1. 原型补标记（仅元数据，不改文案 / 列序 / 结构）：
+   prototypes/functional/v1/pages/teacher-assign.html 与
+   prototypes/high-fidelity/v1/pages/teacher-assign.html 的主表（第 3 张 table）：
+   「周课时」补 data-role="column" data-field="weekly_hours"；
+   「状态」补 data-role="column" data-field="status"。
+2. 检查器登记 tools/check_fe_page_structure.py 新增条目：
+   page_id=PAGE-TCH-ASSIGN-TABLE，prototype=teacher-assign.html，table_index=3（1-based），
+   vue=apps/plus-ui/src/views/edu/teacher/tch_assign/components/AssignmentTable.vue。
+
+二、门禁
+$ python tools/check_fe_page_structure.py
+=== PAGE-TCH-ASSIGN-TABLE 任教关系表（组件级对照） ===
+  查询区字段顺序一致：0 项
+  表格列顺序与分组一致：7 列（学科(任教信息) → 任教教师(任教信息) → 班级(任教信息) → 班级类型(任教信息) → 周课时(任教信息) → 状态(任教信息) → 操作(操作)）
+exit=0
+
+$ python tools/check_fe_text_nowrap.py / check_api_contract.py / check_docs.py / check_gap_register.py /
+  check_mermaid.py / check_stage6_route_coverage.py / check_perm_seed.py  -> 全部 exit 0
+
+三、未执行项与原因
+- 本批只改原型 HTML 与检查器，无后端 / 前端源码改动，未跑 Maven 与 pnpm 门禁。
+- 其余 10 张组件表未登记：原型缺表或列名 / 语义不一致，需逐张决定「改生产页对齐原型」还是
+  「在原型新增表」，清单见 GAP-117 与 CR-160 第 3 节。
+
+四、后续分批建议
+- 第二批：ArchiveSearchDialog（补「角色」列并统一列名）、TeachingClassDetailDrawer（列名对齐）
+- 第三批：TeachingAssignmentTable、GuardianTable（补原型标记 / 新增原型表）
+- 第四批：StreamHistoryDialog、GradeLeaderDialog
+- 第五批：GradePromotionDialog、UnselectedStudentDialog、TeacherRoleDialog、ClassChangeLogTable（需原型新增表）

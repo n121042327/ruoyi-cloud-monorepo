@@ -1933,3 +1933,13 @@
 | `apps/plus-ui/src/api/edu/school/{index.ts,types.ts}`、`views/edu/school/sch_list/components/SchoolSummaryDialog.vue`（改） | 摘要展示在读学生数、注释对齐 | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-101 关闭 | `review` |
 | `evidence/stage7-backend/2026-10-10_school-list-student-count.log` | 门禁与运行时验收要点 | `review` |
+
+## 2026-10-10 GAP-117 第一批：任教关系表纳入门禁 + 11 张表差异摸底（CR-160）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-160.md` | 第一批范围与逐表差异清单 | `review` |
+| `prototypes/functional/v1/pages/teacher-assign.html`、`prototypes/high-fidelity/v1/pages/teacher-assign.html`（改） | 主表「周课时 / 状态」补 `data-role="column"` 标记 | `已实现` |
+| `tools/check_fe_page_structure.py`（改） | 新增 `PAGE-TCH-ASSIGN-TABLE`（table_index=3，7 列对照） | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-117 第一批进度与逐表差异清单 | `review` |
+| `evidence/stage6-frontend/2026-10-10_component-table-coverage-round2.log` | 门禁与后续分批建议 | `review` |

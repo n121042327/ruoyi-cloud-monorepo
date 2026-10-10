@@ -304,6 +304,17 @@ CHECKS = [
         "filter_note": "原型的第一个 data-role=\"table\" 落在左侧班级选择面板（div 包裹的内层 table），检查器切片只覆盖到该面板，主表列（学科 / 任教教师 / 班级 / 班级类型 / 周课时 / 状态 / 操作）无法被提取，因此 expected=0；生产页按原型的查询区（视角 / 学年学期 / 关键字）实现，主表列放在 components/AssignmentTable.vue 并在 CR-078 里逐列登记",
     },
     {
+        "page_id": "PAGE-TCH-ASSIGN-TABLE",
+        "name": "任教关系表（组件级对照）",
+        "prototype": "prototypes/functional/v1/pages/teacher-assign.html",
+        "vue": "apps/plus-ui/src/views/edu/teacher/tch_assign/components/AssignmentTable.vue",
+        # 原型第 3 张表是主表（学科 / 任教教师 / 班级 / 班级类型 / 周课时 / 状态 / 操作）；
+        # 第 1 张是左侧班级选择面板，默认切片取不到主表（GAP-117 / CR-160）
+        "table_index": 3,
+        "deferred_groups": {},
+        "filter_note": "组件级条目：查询区在父页面 PAGE-TCH-ASSIGN，本条目只比对主表列",
+    },
+    {
         "page_id": "PAGE-TCH-IMPORT",
         "name": "教师导入向导",
         "prototype": "prototypes/functional/v1/pages/teacher-import.html",
