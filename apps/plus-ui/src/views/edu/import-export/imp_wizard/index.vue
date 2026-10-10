@@ -40,14 +40,22 @@
       <el-form :model="form" label-width="120px">
         <h3 class="form-section-title" data-layout-group="模板信息">模板信息</h3>
         <el-row :gutter="16">
-          <el-col :span="12">
+          <el-col :span="8">
             <el-form-item label="导入模块">
               <el-select v-model="form.moduleCode" placeholder="请选择导入模块" class="w-full">
                 <el-option v-for="item in templateOptions" :key="item.moduleCode" :label="item.moduleCode" :value="item.moduleCode" />
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="12">
+          <el-col v-if="showSchoolSelect" :span="8">
+            <el-form-item label="目标学校">
+              <el-select v-model="form.schoolId" placeholder="请选择目标学校" class="w-full" @change="handleSchoolChange">
+                <el-option v-for="item in schoolOptions" :key="item.schoolId" :label="item.schoolName" :value="item.schoolId" />
+              </el-select>
+              <div class="hint">当前账号可管理多所学校，导入的数据都写到选中的学校。</div>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
             <el-form-item label="模板版本">
               <el-input :model-value="currentTemplate?.templateVersion || '—'" disabled />
               <div class="hint">模板字段变更必须升版本；旧版模板会先报「模板版本过期」强提示，仍可继续。</div>
@@ -212,6 +220,8 @@ import { downloadByFileRef } from '@/utils/eduFileRef';
 import type { AsyncTaskVO, ImportTemplateVO, ImportValidateVO } from '@/api/edu/importExport/types';
 import { listClass } from '@/api/edu/class';
 import type { ClassVO } from '@/api/edu/class/types';
+import { listSchool } from '@/api/edu/school';
+import type { SchoolVO } from '@/api/edu/school/types';
 import { listTerm } from '@/api/edu/term';
 import type { TermVO } from '@/api/edu/term/types';
 
@@ -231,8 +241,12 @@ const failMode = ref<'skip' | 'abort'>('skip');
 const templateOptions = ref<ImportTemplateVO[]>([]);
 const termOptions = ref<TermVO[]>([]);
 const classOptions = ref<ClassVO[]>([]);
+const schoolOptions = ref<SchoolVO[]>([]);
 
-const form = reactive({ moduleCode: '', termId: '', classId: '' });
+/** 目标学校下拉只在可管理多所学校时出现：学校租户固定本校，页面与原型保持一致（GAP-115） */
+const showSchoolSelect = computed(() => schoolOptions.value.length > 1);
+
+const form = reactive({ moduleCode: '', termId: '', classId: '', schoolId: '' });
 
 const currentTemplate = computed(() => templateOptions.value.find((item) => item.moduleCode === form.moduleCode));
 
@@ -268,6 +282,10 @@ const handleValidate = async () => {
     ElMessage.warning('请先选择 .xlsx 文件');
     return;
   }
+  if (showSchoolSelect.value && !form.schoolId) {
+    ElMessage.warning('当前账号可管理多个学校，请先选择目标学校');
+    return;
+  }
   validating.value = true;
   try {
     const fileId = await uploadAndGetFileId();
@@ -278,6 +296,7 @@ const handleValidate = async () => {
       fileName: uploadFile.value.name,
       termId: form.termId || undefined,
       targetClassId: form.classId || undefined,
+      schoolId: form.schoolId || undefined,
       strategy: failMode.value === 'abort' ? 'fail' : 'skip'
     });
     validateResult.value = res.data;
@@ -322,12 +341,38 @@ const handleDownloadResult = async () => {
 
 const goTaskCenter = () => router.push('/edu/async-task/list');
 
-onMounted(async () => {
-  const [templateRes, termRes, classRes] = await Promise.all([listImportTemplate(), listTerm({}), listClass({ pageNum: 1, pageSize: 500 })]);
-  templateOptions.value = templateRes.rows ?? templateRes.data ?? [];
-  termOptions.value = termRes.data ?? [];
-  classOptions.value = classRes.rows ?? [];
+/** 目标学校：学校租户只有一所（下拉隐藏）；多校账号必选 */
+const loadSchoolOptions = async () => {
+  try {
+    const res = await listSchool();
+    schoolOptions.value = res.data ?? [];
+  } catch {
+    schoolOptions.value = [];
+  }
+  if (schoolOptions.value.length === 1) {
+    form.schoolId = schoolOptions.value[0].schoolId ?? '';
+  }
+};
+
+/** 学年学期属于具体学校：选定学校后按该校重载 */
+const loadTermOptions = async () => {
+  const res = await listTerm(form.schoolId ? { schoolId: form.schoolId } : {});
+  termOptions.value = res.data ?? [];
   const current = termOptions.value.find((item) => item.current);
   form.termId = current?.termId ?? termOptions.value[0]?.termId ?? '';
+};
+
+const handleSchoolChange = async () => {
+  form.termId = '';
+  form.classId = '';
+  await loadTermOptions();
+};
+
+onMounted(async () => {
+  await loadSchoolOptions();
+  const [templateRes, classRes] = await Promise.all([listImportTemplate(), listClass({ pageNum: 1, pageSize: 500 })]);
+  templateOptions.value = templateRes.rows ?? templateRes.data ?? [];
+  classOptions.value = classRes.rows ?? [];
+  await loadTermOptions();
 });
 </script>

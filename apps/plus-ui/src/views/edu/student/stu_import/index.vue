@@ -54,6 +54,12 @@
             </template>
           </el-upload>
         </el-form-item>
+        <el-form-item v-if="showSchoolSelect" label="目标学校">
+          <el-select v-model="form.schoolId" placeholder="请选择目标学校" style="width: 260px" @change="handleSchoolChange">
+            <el-option v-for="item in schoolOptions" :key="item.schoolId" :label="item.schoolName" :value="item.schoolId" />
+          </el-select>
+          <div class="hint">当前账号可管理多所学校，导入的学生都写到选中的学校。</div>
+        </el-form-item>
         <el-form-item label="目标学年学期">
           <el-select v-model="form.termId" placeholder="请选择" clearable style="width: 260px">
             <el-option v-for="item in termOptions" :key="item.termId" :label="item.termName" :value="item.termId" />
@@ -147,6 +153,8 @@ import {
 import { downloadByFileRef } from '@/utils/eduFileRef';
 import type { AsyncTaskVO, ImportValidateVO } from '@/api/edu/importExport/types';
 import { listTerm } from '@/api/edu/term';
+import { listSchool } from '@/api/edu/school';
+import type { SchoolVO } from '@/api/edu/school/types';
 import type { TermVO } from '@/api/edu/term/types';
 
 defineOptions({ name: 'EduStudentImport' });
@@ -159,11 +167,15 @@ const submitting = ref(false);
 const templateVersion = ref('');
 const templateColumns = ref<Array<{ name: string; required: boolean; note?: string }>>([]);
 const termOptions = ref<TermVO[]>([]);
+const schoolOptions = ref<SchoolVO[]>([]);
 const selectedFile = ref<File>();
 const validateResult = ref<ImportValidateVO>();
 const task = ref<Partial<AsyncTaskVO>>({});
 
-const form = reactive({ termId: '', duplicatePolicy: 'skip' });
+const form = reactive({ termId: '', duplicatePolicy: 'skip', schoolId: '' });
+
+/** 目标学校下拉只在可管理多所学校时出现：学校租户固定本校，页面与原型保持一致（GAP-115） */
+const showSchoolSelect = computed(() => schoolOptions.value.length > 1);
 
 const taskProgress = computed(() => Math.min(100, Math.max(0, Number(task.value.progressPercent ?? 0))));
 const taskStatusText = computed(() => {
@@ -193,14 +205,33 @@ const loadTemplate = async () => {
   }
 };
 
+/** 目标学校：学校租户只有一所（下拉隐藏）；多校账号必选 */
+const loadSchoolOptions = async () => {
+  try {
+    const res = await listSchool();
+    schoolOptions.value = res.data ?? [];
+  } catch {
+    schoolOptions.value = [];
+  }
+  if (schoolOptions.value.length === 1) {
+    form.schoolId = schoolOptions.value[0].schoolId ?? '';
+  }
+};
+
+/** 学年学期属于具体学校：选定学校后按该校重载 */
 const loadTermOptions = async () => {
   try {
-    const res = await listTerm({});
+    const res = await listTerm(form.schoolId ? { schoolId: form.schoolId } : {});
     termOptions.value = res.data ?? [];
     form.termId = termOptions.value.find((item) => item.current)?.termId ?? '';
   } catch {
     termOptions.value = [];
   }
+};
+
+const handleSchoolChange = async () => {
+  form.termId = '';
+  await loadTermOptions();
 };
 
 /** 下载模板（通用接口，按模块取模板） */
@@ -218,6 +249,10 @@ const handleValidate = async () => {
     ElMessage.warning('请先选择要导入的文件');
     return;
   }
+  if (showSchoolSelect.value && !form.schoolId) {
+    ElMessage.warning('当前账号可管理多个学校，请先选择目标学校');
+    return;
+  }
   validating.value = true;
   try {
     const upload = await uploadImportFile(selectedFile.value);
@@ -231,6 +266,7 @@ const handleValidate = async () => {
       fileId,
       fileName: selectedFile.value.name,
       termId: form.termId || undefined,
+      schoolId: form.schoolId || undefined,
       strategy: form.duplicatePolicy === 'reject' ? 'fail' : 'skip'
     });
     validateResult.value = res.data;
@@ -285,6 +321,7 @@ const handleBackToList = () => {
 };
 
 onMounted(async () => {
+  await loadSchoolOptions();
   await Promise.all([loadTemplate(), loadTermOptions()]);
 });
 </script>

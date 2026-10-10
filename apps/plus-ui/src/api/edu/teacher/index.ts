@@ -127,6 +127,8 @@ export const importTeacherValidate = (data: {
   fileName?: string;
   termId?: string;
   strategy?: string;
+  /** 目标学校（GAP-115）：学校租户留空取本校；多校账号必选 */
+  schoolId?: string;
 }): AxiosPromise<ImportValidateVO> => {
   return request({
     url: '/edu/teacher/import/validate',

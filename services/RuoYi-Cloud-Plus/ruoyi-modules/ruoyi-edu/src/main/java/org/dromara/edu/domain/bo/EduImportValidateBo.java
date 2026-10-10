@@ -42,4 +42,11 @@ public class EduImportValidateBo extends BaseEntity {
     /** 已存在数据的处理策略：skip 跳过 / overwrite 覆盖 / fail 记失败 */
     private String strategy;
 
+    /**
+     * 目标学校（GAP-115）：学校租户只有一所学校，留空即取本校；
+     * 集团 / 运营方账号可管理多所学校，必须显式指定，且必须是本人数据范围内的学校 ——
+     * 不允许「取第一个」，也不允许「留空由数据库默认」。
+     */
+    private Long schoolId;
+
 }

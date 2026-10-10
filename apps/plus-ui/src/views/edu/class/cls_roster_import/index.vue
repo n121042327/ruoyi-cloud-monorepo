@@ -68,6 +68,14 @@
 
       <el-form :model="form" label-width="110px" class="mt-3">
         <el-row :gutter="16">
+          <el-col v-if="showSchoolSelect" :span="12">
+            <el-form-item label="目标学校">
+              <el-select v-model="form.schoolId" placeholder="请选择目标学校" class="w-full" @change="handleSchoolChange">
+                <el-option v-for="item in schoolOptions" :key="item.schoolId" :label="item.schoolName" :value="item.schoolId" />
+              </el-select>
+              <div class="hint">当前账号可管理多所学校，编班结果写到选中的学校。</div>
+            </el-form-item>
+          </el-col>
           <el-col :span="12">
             <el-form-item label="目标学年学期">
               <el-select v-model="form.termId" placeholder="请选择目标学年学期" class="w-full">
@@ -165,7 +173,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { UploadFilled } from '@element-plus/icons-vue';
@@ -181,6 +189,8 @@ import {
 import { downloadByFileRef } from '@/utils/eduFileRef';
 import type { AsyncTaskVO, ImportValidateVO } from '@/api/edu/importExport/types';
 import { listTerm } from '@/api/edu/term';
+import { listSchool } from '@/api/edu/school';
+import type { SchoolVO } from '@/api/edu/school/types';
 import type { TermVO } from '@/api/edu/term/types';
 
 defineOptions({ name: 'EduClassRosterImport' });
@@ -204,8 +214,12 @@ const validateResult = ref<ImportValidateVO>();
 const task = ref<AsyncTaskVO>();
 const taskNo = ref('');
 const termOptions = ref<TermVO[]>([]);
+const schoolOptions = ref<SchoolVO[]>([]);
 
-const form = reactive({ termId: '', duplicatePolicy: 'skip' });
+/** 目标学校下拉只在可管理多所学校时出现：学校租户固定本校，页面与原型保持一致（GAP-115） */
+const showSchoolSelect = computed(() => schoolOptions.value.length > 1);
+
+const form = reactive({ termId: '', duplicatePolicy: 'skip', schoolId: '' });
 
 const handleFileChange = (uploadFileItem: { raw?: File; name: string }) => {
   uploadFile.value = uploadFileItem.raw;
@@ -224,6 +238,10 @@ const handleValidate = async () => {
     ElMessage.warning('请先选择 .xlsx 文件');
     return;
   }
+  if (showSchoolSelect.value && !form.schoolId) {
+    ElMessage.warning('当前账号可管理多个学校，请先选择目标学校');
+    return;
+  }
   validating.value = true;
   try {
     const upload = await uploadImportFile(uploadFile.value);
@@ -237,6 +255,7 @@ const handleValidate = async () => {
       fileId,
       fileName: uploadFile.value.name,
       termId: form.termId || undefined,
+      schoolId: form.schoolId || undefined,
       strategy: form.duplicatePolicy === 'reject' ? 'fail' : 'skip'
     });
     validateResult.value = res.data;
@@ -283,10 +302,34 @@ const handleDownloadResult = async () => {
 const goTaskCenter = () => router.push('/edu/async-task/list');
 const goClassList = () => router.push('/edu/class/list');
 
-onMounted(async () => {
-  const res = await listTerm({});
+/** 目标学校：学校租户只有一所（下拉隐藏）；多校账号必选 */
+const loadSchoolOptions = async () => {
+  try {
+    const res = await listSchool();
+    schoolOptions.value = res.data ?? [];
+  } catch {
+    schoolOptions.value = [];
+  }
+  if (schoolOptions.value.length === 1) {
+    form.schoolId = schoolOptions.value[0].schoolId ?? '';
+  }
+};
+
+/** 学年学期属于具体学校：选定学校后按该校重载 */
+const loadTermOptions = async () => {
+  const res = await listTerm(form.schoolId ? { schoolId: form.schoolId } : {});
   termOptions.value = res.data ?? [];
   const current = termOptions.value.find((item) => item.current);
   form.termId = current?.termId ?? termOptions.value[0]?.termId ?? '';
+};
+
+const handleSchoolChange = async () => {
+  form.termId = '';
+  await loadTermOptions();
+};
+
+onMounted(async () => {
+  await loadSchoolOptions();
+  await loadTermOptions();
 });
 </script>

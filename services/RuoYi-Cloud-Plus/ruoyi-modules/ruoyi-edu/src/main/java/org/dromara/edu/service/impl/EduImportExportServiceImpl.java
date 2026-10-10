@@ -55,6 +55,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -204,8 +205,10 @@ public class EduImportExportServiceImpl implements IEduImportExportService {
         if (sourceFile.getFileSize() != null && sourceFile.getFileSize() > MAX_FILE_SIZE) {
             throw new ServiceException("单个文件不得超过 10 MB（REQ-IMP-004），当前：" + sourceFile.getFileSize());
         }
-        // 幂等：同一文件 + 同一模块在 24 小时内重复校验，直接复用原批次（REQ-IMP-014 / 017）
-        EduImportBatch existed = findReusableBatch(bo.getModuleCode(), sourceFileId);
+        // 学校归属在幂等判定之前定下来：同一份文件给不同学校导入时不能复用同一个批次（GAP-115）
+        Long schoolId = resolveImportSchoolId(bo.getSchoolId());
+        // 幂等：同一文件 + 同一模块 + 同一学校在 24 小时内重复校验，直接复用原批次（REQ-IMP-014 / 017）
+        EduImportBatch existed = findReusableBatch(bo.getModuleCode(), sourceFileId, schoolId);
         if (existed != null) {
             return toValidateResult(existed, "该文件已在 24 小时内校验过，复用原批次结果（校验结果有效期 "
                 + VALIDATE_VALID_HOURS + " 小时）");
@@ -222,7 +225,7 @@ public class EduImportExportServiceImpl implements IEduImportExportService {
         batch.setSkippedCount(0);
         batch.setImportStatus(BATCH_VALIDATED);
         batch.setOperatorId(LoginHelper.getUserId());
-        batch.setSchoolId(currentSchoolId());
+        batch.setSchoolId(schoolId);
         batchMapper.insert(batch);
         String guidance = runRowValidation(batch, bo, sourceFile);
         EduImportBatch reloaded = batchMapper.selectById(batch.getBatchId());
@@ -230,20 +233,28 @@ public class EduImportExportServiceImpl implements IEduImportExportService {
     }
 
     /**
-     * 当前用户的学校上下文。
+     * 导入的学校归属（GAP-115）。
      *
-     * 导入的学校归属来自登录态的数据范围（学校租户下唯一）；多校账号（集团 / 运营方）本批未支持显式选校，
-     * 直接拒绝而不是随便取一个（见 GAP-115）。
+     * 学校租户只有一所学校，留空即取本校；多校账号（集团 / 运营方）必须显式传入目标学校，
+     * 且必须落在本人数据范围内 —— 既不许「取第一个」，也不许「留空由数据库默认」。
+     * 学校归属一经确定就随批次落库，执行阶段只按批次的 school_id 取数（D-218 的同一口径）。
      */
-    private Long currentSchoolId() {
+    private Long resolveImportSchoolId(Long requested) {
         DataScopeContext context = dataScopeResolver.resolve();
-        if (context == null || context.getSchoolIds() == null || context.getSchoolIds().isEmpty()) {
+        if (context == null || context.getSchoolIds().isEmpty()) {
             throw new ServiceException("导入缺少学校上下文，拒绝校验（DS-DENY-02）");
         }
-        if (context.getSchoolIds().size() > 1) {
-            throw new ServiceException("当前账号可管理多个学校，导入需要显式指定学校（本批未支持，见 GAP-115）");
+        Set<Long> available = context.getSchoolIds();
+        if (requested != null) {
+            if (!available.contains(requested)) {
+                throw new ServiceException("无权导入到该学校，请选择本人可管理的学校（DS-DENY-02）");
+            }
+            return requested;
         }
-        return context.getSchoolIds().iterator().next();
+        if (available.size() > 1) {
+            throw new ServiceException("当前账号可管理多个学校，导入需要显式指定目标学校（GAP-115）");
+        }
+        return available.iterator().next();
     }
 
     /**
@@ -493,11 +504,13 @@ public class EduImportExportServiceImpl implements IEduImportExportService {
         return template;
     }
 
-    private EduImportBatch findReusableBatch(String moduleCode, Long sourceFileId) {
+    /** 复用批次必须限定在同一学校：多校账号把同一份文件导入不同学校时，不能复用彼此的结果（GAP-115） */
+    private EduImportBatch findReusableBatch(String moduleCode, Long sourceFileId, Long schoolId) {
         Date freshLine = new Date(System.currentTimeMillis() - VALIDATE_VALID_HOURS * 3600_000L);
         return batchMapper.selectOne(new LambdaQueryWrapper<EduImportBatch>()
             .eq(EduImportBatch::getModuleCode, moduleCode)
             .eq(EduImportBatch::getSourceFileId, sourceFileId)
+            .eq(EduImportBatch::getSchoolId, schoolId)
             .ge(EduImportBatch::getCreateTime, freshLine)
             .orderByDesc(EduImportBatch::getBatchId)
             .last("limit 1"));

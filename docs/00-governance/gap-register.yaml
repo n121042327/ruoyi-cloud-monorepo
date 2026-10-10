@@ -3806,7 +3806,17 @@ open_questions_for_user:
     blocks_stages:
       - stage8
     owner: 用户
-    status: open
+    answer: |
+      用户 2026-10-10 指令：automation 先做 GAP-114 / 115 / 113（不需要设计，纯实现），按推荐方案 1 落地。
+    resolution: |
+      CR-153 收口（2026-10-10）：`EduImportValidateBo` 增可选 `schoolId`；
+      `EduImportExportServiceImpl.resolveImportSchoolId` 按数据范围复核（非本范围拒绝、多校未指定拒绝、
+      唯一一所取该校），学校归属随批次落库；`findReusableBatch` 增 `school_id` 条件，
+      避免同一文件给不同学校导入时复用彼此的批次（D-233）。
+      前端四个导入页（`imp_wizard` / `stu_import` / `cls_roster_import` / `tch_import`）在
+      「导入模块 / 上传与校验」区加「目标学校」下拉，可管理多所学校时才出现，选定后学年学期按该校重载。
+    resolved_at: "2026-10-10"
+    status: closed
   - id: GAP-116
     title: 教师导入模板缺「登录名」列，导入后的教师账号如何开通未定义
     discovered_at: 2026-10-10

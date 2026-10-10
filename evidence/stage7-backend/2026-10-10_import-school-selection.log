@@ -1,0 +1,41 @@
+2026-10-10 阶段 7：多校账号导入显式选校（GAP-115 关闭，CR-153）
+
+一、本批改动
+后端
+- EduImportValidateBo 增可选 schoolId。
+- EduImportExportServiceImpl：currentSchoolId() 换成 resolveImportSchoolId(requested)（范围内校验 +
+  多校未指定则拒绝）；batch.setSchoolId(schoolId)；findReusableBatch 增 school_id 条件（幂等键含学校）。
+前端
+- apps/plus-ui/src/api/edu/importExport/types.ts：ImportValidateForm 增 schoolId。
+- apps/plus-ui/src/api/edu/teacher/index.ts：importTeacherValidate 入参类型增 schoolId。
+- 四个导入页（imp_wizard / stu_import / cls_roster_import / tch_import）：加「目标学校」下拉
+  （v-if showSchoolSelect，可管理多所学校时才出现），选定后学年学期按该校重载，提交时带 schoolId。
+
+二、门禁（本机执行）
+$ cd services/RuoYi-Cloud-Plus
+$ mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile
+[INFO] BUILD SUCCESS
+
+$ python tools/check_fe_page_structure.py            -> exit 0
+$ python tools/check_fe_text_nowrap.py               -> exit 0
+$ python tools/check_api_contract.py                 -> exit 0
+$ python tools/check_docs.py                         -> exit 0
+$ python tools/check_gap_register.py                 -> exit 0
+$ python tools/check_mermaid.py                      -> exit 0
+$ python tools/check_stage6_route_coverage.py        -> exit 0
+$ python tools/check_perm_seed.py                    -> exit 0
+
+$ pnpm --filter @edu/plus-ui typecheck
+51 条 error TS（与基线一致；改动文件内 0 条）
+$ pnpm --filter @edu/plus-ui lint:eslint
+124 problems（与基线一致）
+$ pnpm --filter @edu/plus-ui run build:prod
+exit=0（built in 36.87s）
+
+三、未执行项与原因
+- 启动验证未重复做：9211 端口由用户 IDEA 实例占用；本批新增的是可选入参与查询条件，
+  不涉及 bean / 配置变更。
+- 多校账号的端到端行为待人工验收（需要集团 / 运营方账号与两所学校的数据）。
+
+四、遗留
+- GAP-113（文件引用 / 异步任务缺学校上下文时下载审计被跳过）按用户指令继续。

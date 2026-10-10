@@ -72,6 +72,11 @@ export interface ImportValidateForm {
   targetClassId?: string;
   /** 已存在数据的处理策略：skip 跳过 / overwrite 覆盖 / fail 记失败 */
   strategy?: string;
+  /**
+   * 目标学校（GAP-115）：学校租户留空取本校；集团 / 运营方可管理多所学校，必须显式指定，
+   * 且必须是本人数据范围内的学校（后端 `resolveImportSchoolId` 校验）。
+   */
+  schoolId?: string;
 }
 
 /** 统一文件服务上传结果（POST /resource/oss/upload 返回 SysOssUploadVo） */

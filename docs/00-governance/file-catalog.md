@@ -1858,3 +1858,15 @@
 | `services/.../edu/job/TeacherExportHandler.java`（改） | 按生效班级范围经任教关系过滤教师 | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-114 关闭 | `review` |
 | `evidence/stage7-backend/2026-10-10_export-scope-student-teacher.log` | 门禁与未执行项说明 | `review` |
+
+## 2026-10-10 阶段 7 第七十二批：多校账号导入显式选校（GAP-115 关闭）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-153.md` | 学校归属判定与下拉口径 | `review` |
+| `services/.../edu/domain/bo/EduImportValidateBo.java`（改） | 增可选 `schoolId` | `已实现` |
+| `services/.../edu/service/impl/EduImportExportServiceImpl.java`（改） | 学校归属按数据范围复核；幂等键加入学校 | `已实现` |
+| `apps/plus-ui/src/api/edu/importExport/types.ts`、`apps/plus-ui/src/api/edu/teacher/index.ts`（改） | 入参类型补 `schoolId` | `已实现` |
+| `apps/plus-ui/src/views/edu/{import-export/imp_wizard,student/stu_import,class/cls_roster_import,teacher/tch_import}/index.vue`（改） | 目标学校下拉（多校时才出现） | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-115 关闭 | `review` |
+| `evidence/stage7-backend/2026-10-10_import-school-selection.log` | 门禁与未执行项说明 | `review` |
