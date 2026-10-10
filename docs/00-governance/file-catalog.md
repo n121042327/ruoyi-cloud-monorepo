@@ -2039,3 +2039,18 @@
 | `services/.../edu/service/impl/EduGradeServiceImpl.java`（改） | 年级列表实时统计班级数与在班学生数 | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | 新增 GAP-118 | `review` |
 | `evidence/stage6-frontend/2026-10-10_stage8-acceptance-run.log`（改） | 业务链路验收结果 | `review` |
+
+## 2026-10-10 阶段 8 验收缺陷修复（第四批，CR-170 / GAP-118 收口）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-170.md` | GAP-118 四项派生列 / 码值的现象、根因与修复 | `review` |
+| `services/.../edu/domain/vo/EduClassVo.java`（改） | 补 `studentCount`（原型 `data-field="student_count"`） | `已实现` |
+| `services/.../edu/service/impl/EduClassServiceImpl.java`（改） | `fillAggregates` 实时统计在读人数 + 班级类型枚举校验 | `已实现` |
+| `services/.../edu/service/impl/EduGradeServiceImpl.java`（改） | 回填 `schoolName`（列表 + 详情） | `已实现` |
+| `services/.../edu/domain/vo/EduStudentVo.java`（改） | 补 `studentPhone`（掩码展示） | `已实现` |
+| `services/.../edu/service/impl/EduStudentServiceImpl.java`（改） | 联系电话掩码回填 + `maskPhone` | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_list/index.vue`（改） | 「状态」列改读 `classStatus` | `已实现` |
+| `docs/00-governance/decisions.md`（改） | 新增 D-240（派生列口径） | `review` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-118 关闭（缺项清零） | `review` |
+| `evidence/stage7-backend/2026-10-10_gap118-derived-columns.log` | 修复前后接口输出与门禁结果 | `review` |

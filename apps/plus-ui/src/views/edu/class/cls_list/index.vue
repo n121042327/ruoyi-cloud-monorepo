@@ -112,10 +112,10 @@
               </span>
             </template>
           </el-table-column>
-          <el-table-column v-if="columns[8].visible" label="状态" prop="status" width="90" align="center" data-layout-group="管理信息">
+          <el-table-column v-if="columns[8].visible" label="状态" prop="classStatus" width="90" align="center" data-layout-group="管理信息">
             <template #default="scope">
-              <el-tag :type="scope.row.status === 'disabled' ? 'info' : 'success'" size="small">
-                {{ scope.row.status === 'disabled' ? '已停用' : '正常' }}
+              <el-tag :type="scope.row.classStatus === 'disabled' ? 'info' : 'success'" size="small">
+                {{ scope.row.classStatus === 'disabled' ? '已停用' : '正常' }}
               </el-tag>
             </template>
           </el-table-column>

@@ -146,6 +146,38 @@ public class EduClassServiceImpl implements IEduClassService {
             row.setTermName(row.getTermId() == null ? null : termNames.get(row.getTermId()));
             row.setCampusName(row.getCampusId() == null ? null : campusNames.get(row.getCampusId()));
         }
+        fillAggregates(rows);
+    }
+
+    /**
+     * 填充班级列表 / 详情的聚合列：在读人数与容量（阶段 8 验收缺陷 GAP-118）。
+     *
+     * 口径：在读人数 = 该班在班关系 `edu_class_member.status = '1'`（在班）的记录数，
+     * 与年级列表、班级详情同口径；`edu_class` 表本身不存这个统计值。
+     * 字段名：高保真原型 `class-list.html` 的「在读」列是 `data-field="student_count"`，
+     * 故列表统一取 `studentCount`；`enrolledCount` / `capacity` 是班级详情（`cls_detail`）
+     * 与调班弹窗（`StudentTransferDialog`）已在用的别名，同值输出，避免同一含义出现两个取数入口。
+     */
+    private void fillAggregates(List<EduClassVo> rows) {
+        List<Long> classIds = rows.stream().map(EduClassVo::getClassId)
+            .filter(Objects::nonNull).distinct().toList();
+        Map<Long, Integer> enrolled = new HashMap<>();
+        if (!classIds.isEmpty()) {
+            for (EduClassMember member : memberMapper.selectList(new LambdaQueryWrapper<EduClassMember>()
+                .in(EduClassMember::getClassId, classIds)
+                .eq(EduClassMember::getClassType, TYPE_ADMINISTRATIVE)
+                .eq(EduClassMember::getStatus, MEMBER_IN))) {
+                if (member.getClassId() != null) {
+                    enrolled.merge(member.getClassId(), 1, Integer::sum);
+                }
+            }
+        }
+        for (EduClassVo row : rows) {
+            int count = row.getClassId() == null ? 0 : enrolled.getOrDefault(row.getClassId(), 0);
+            row.setStudentCount(count);
+            row.setEnrolledCount(count);
+            row.setCapacity(row.getClassCapacity());
+        }
     }
 
     @Override
@@ -367,6 +399,12 @@ public class EduClassServiceImpl implements IEduClassService {
         }
         if (TYPE_TEACHING.equals(clazz.getClassType()) && StringUtils.isBlank(clazz.getSubjectCombination())) {
             throw new ServiceException("教学班必须指定组合 / 单学科标识");
+        }
+        // 班级类型是枚举列（schema 注释：administrative 行政班 / teaching 教学班）。
+        // 阶段 8 验收缺陷 GAP-118：此前不做枚举校验，脏值（如 administration）会直接落库 ——
+        // 列表里显示成英文码值，后续统计 / 数据权限也按非法值过滤不到。
+        if (!TYPE_ADMINISTRATIVE.equals(clazz.getClassType()) && !TYPE_TEACHING.equals(clazz.getClassType())) {
+            throw new ServiceException("班级类型取值非法，只允许 administrative 行政班 / teaching 教学班");
         }
     }
 

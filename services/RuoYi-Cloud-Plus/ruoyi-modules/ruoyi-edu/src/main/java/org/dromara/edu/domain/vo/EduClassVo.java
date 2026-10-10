@@ -71,6 +71,14 @@ public class EduClassVo implements Serializable {
     /** 容量（与 classCapacity 同值，前端列表按 capacity 展示） */
     private Integer capacity;
 
+    /**
+     * 在读人数：高保真原型 `class-list.html`「在读」列的 `data-field="student_count"`。
+     *
+     * 与 enrolledCount 同值（同一统计口径的两个消费名），由 `EduClassServiceImpl.fillAggregates`
+     * 用 `edu_class_member.status = '1'` 实时统计（阶段 8 验收缺陷 GAP-118）。
+     */
+    private Integer studentCount;
+
     private String remark;
 
     private Date updateTime;

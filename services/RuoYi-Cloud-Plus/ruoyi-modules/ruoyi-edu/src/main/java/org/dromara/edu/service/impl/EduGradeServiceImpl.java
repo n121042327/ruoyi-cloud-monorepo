@@ -11,6 +11,7 @@ import org.dromara.edu.domain.EduClass;
 import org.dromara.edu.domain.EduGrade;
 import org.dromara.edu.domain.EduClassMember;
 import org.dromara.edu.domain.EduGradeLeader;
+import org.dromara.edu.domain.EduSchool;
 import org.dromara.edu.domain.bo.EduGradeBo;
 import org.dromara.edu.domain.vo.EduGradeLeaderVo;
 import org.dromara.edu.domain.vo.EduGradeVo;
@@ -18,6 +19,7 @@ import org.dromara.edu.mapper.EduClassMapper;
 import org.dromara.edu.mapper.EduClassMemberMapper;
 import org.dromara.edu.mapper.EduGradeLeaderMapper;
 import org.dromara.edu.mapper.EduGradeMapper;
+import org.dromara.edu.mapper.EduSchoolMapper;
 import org.dromara.edu.service.IEduGradeService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,6 +58,7 @@ public class EduGradeServiceImpl implements IEduGradeService {
     private final EduGradeLeaderMapper leaderMapper;
     private final EduClassMapper classMapper;
     private final EduClassMemberMapper classMemberMapper;
+    private final EduSchoolMapper schoolMapper;
 
     @Override
     public TableDataInfo<EduGradeVo> queryPageList(EduGradeBo grade, PageQuery pageQuery) {
@@ -70,7 +73,8 @@ public class EduGradeServiceImpl implements IEduGradeService {
      *
      * `edu_grade.class_count / student_count` 是建年级时写死的 0，从未维护（编班后仍显示 0），
      * 因此列表改为实时统计：班级数按 `edu_class.grade_id` 计数，
-     * 在读学生数按这些班级下 `edu_class_member.status = '1'`（在班）的记录数统计。
+     * 在读学生数按这些班级下 `edu_class_member.status = '1'`（在班）的记录数统计；
+     * `school_name` 由 `edu_school` 回填（阶段 8 验收缺陷 GAP-118：年级详情抽屉的「所属学校」此前是「—」）。
      */
     private void fillListCounts(List<EduGradeVo> rows) {
         if (rows == null || rows.isEmpty()) {
@@ -101,9 +105,19 @@ public class EduGradeServiceImpl implements IEduGradeService {
                 }
             }
         }
+        List<Long> schoolIds = rows.stream().map(EduGradeVo::getSchoolId)
+            .filter(Objects::nonNull).distinct().toList();
+        Map<Long, String> schoolNames = new HashMap<>();
+        if (!schoolIds.isEmpty()) {
+            for (EduSchool school : schoolMapper.selectList(new LambdaQueryWrapper<EduSchool>()
+                .in(EduSchool::getSchoolId, schoolIds))) {
+                schoolNames.put(school.getSchoolId(), school.getSchoolName());
+            }
+        }
         for (EduGradeVo row : rows) {
             row.setClassCount(classCounts.getOrDefault(row.getGradeId(), 0));
             row.setStudentCount(studentCounts.getOrDefault(row.getGradeId(), 0));
+            row.setSchoolName(row.getSchoolId() == null ? null : schoolNames.get(row.getSchoolId()));
         }
     }
 
@@ -113,6 +127,7 @@ public class EduGradeServiceImpl implements IEduGradeService {
         if (vo == null) {
             throw new ServiceException("年级不存在或不在当前数据范围内");
         }
+        fillListCounts(List.of(vo));
         return vo;
     }
 

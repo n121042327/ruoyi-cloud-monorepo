@@ -4043,4 +4043,19 @@ open_questions_for_user:
     blocks_stages:
       - stage8
     owner: 用户
-    status: open
+    resolution: |
+      2026-10-10 用户授权「阶段 8 收口按推荐方案走」，本批（CR-170）按推荐方案一次修完四项：
+      ① 班级列表 / 详情「在读」改为实时统计（`edu_class_member.class_type='administrative' AND status='1'`），
+      字段名对齐高保真原型 `class-list.html` 的 `data-field="student_count"` → `EduClassVo.studentCount`，
+      并同值回填 `enrolledCount` / `capacity`（班级详情与调班弹窗已用的别名）；
+      ② 班级类型：根因是 `insertByBo` 未校验枚举 + 一条阶段 8 自建数据写成了 `administration`，
+      现补枚举校验（只允许 administrative 行政班 / teaching 教学班）并修正该条数据；列表页码值翻译本就存在；
+      ③ 年级 `schoolName` 由 `edu_school` 批量回填（列表与 `queryById` 详情同一口径）；
+      ④ 学生 `studentPhone`（在校记录 `edu_student_enrollment.student_phone`，按 FD `student_phone`
+      前 3 后 4 掩码展示；明文仍走既有 `viewStudentPhone`，写敏感数据访问日志）—— 未新增接口、未放宽权限。
+      顺带修正：班级列表「状态」列此前读不存在的 `status` 字段（停用班会显示「正常」），改读 `classStatus`。
+      门禁：`mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile` BUILD SUCCESS；八项 python 检查全部 exit 0；
+      `typecheck` 51 条 error TS（= 基线）、`lint:eslint` 124 problems（= 基线）、`build:prod` exit 0。
+      证据 `evidence/stage7-backend/2026-10-10_gap118-derived-columns.log`，变更记录 `CR-170`，裁决 `D-240`。
+    resolved_at: "2026-10-10"
+    status: closed

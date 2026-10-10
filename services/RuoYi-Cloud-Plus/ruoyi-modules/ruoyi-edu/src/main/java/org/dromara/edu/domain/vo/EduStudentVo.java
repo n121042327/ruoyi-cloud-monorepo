@@ -58,6 +58,9 @@ public class EduStudentVo implements Serializable {
 
     private Date birthDate;
 
+    /** 联系电话（默认掩码：前 3 后 4；明文经 viewStudentPhone 单独获取并写审计，FD student_phone） */
+    private String studentPhone;
+
     /** 学籍照片引用（文件服务地址） */
     private String photoUrl;
 

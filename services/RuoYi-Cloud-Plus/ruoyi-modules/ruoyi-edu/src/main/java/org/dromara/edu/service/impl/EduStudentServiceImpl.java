@@ -115,6 +115,8 @@ public class EduStudentServiceImpl implements IEduStudentService {
                 ? null : enrollmentMap.get(row.getStudentId());
             if (enrollment != null) {
                 row.setEnrollmentStatus(enrollment.getEnrollmentStatus());
+                // 联系电话按月 / 按校落在在校记录上（FD student_phone：默认掩码展示，明文另走 viewStudentPhone）
+                row.setStudentPhone(maskPhone(enrollment.getStudentPhone()));
             }
             Long classId = row.getStudentId() == null ? null : classByStudent.get(row.getStudentId());
             EduClass clazz = classId == null ? null : classes.get(classId);
@@ -129,6 +131,14 @@ public class EduStudentServiceImpl implements IEduStudentService {
                 }
             }
         }
+    }
+
+    /** 手机号掩码：保留前 3 后 4（与花名册、监护人查询同一口径，REQ-AUD-009） */
+    private String maskPhone(String phone) {
+        if (StringUtils.isBlank(phone) || phone.length() < 7) {
+            return phone;
+        }
+        return phone.substring(0, 3) + "****" + phone.substring(phone.length() - 4);
     }
 
     @Override

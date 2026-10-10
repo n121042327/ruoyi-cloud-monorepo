@@ -1,0 +1,73 @@
+# 2026-10-10 GAP-118 派生列与码值修复（CR-170，第四节阶段 8 验收）
+
+## 一、环境
+- 仓库 D:\work\person_work\ruoyi-cloud-monorepo，分支 codex/stage7-backend
+- edu 服务：9211（用户 IDEA 实例；本轮启动时间 22:48:09，晚于本批编译产物 → 运行验证需再重启一次）
+- 网关 8080 / 前端 dev server（Vite，`/dev-api` 代理）
+- 登录身份：租户「蜀国」546223，liubei（本日志内接口均带该身份的会话 token 调用）
+- 数据库：localhost:3306 ry-cloud（root）
+
+## 二、修复前的接口输出（复现现象）
+```
+GET /edu/grade/list?pageNum=1&pageSize=10
+{"total":1,"rows":[{"gradeId":"9000000000000000003","schoolName":null,"stageCode":"junior","enrollYear":2026,
+ "gradeLevel":1,"gradeName":"初一","classCount":0,"studentCount":0,"gradeStatus":"normal"}]}
+   -> 「所属学校」—，班级数 0 / 在读学生数 0（后两项属 CR-169，当前实例未加载）
+
+GET /edu/class/list?pageNum=1&pageSize=10
+{"total":1,"rows":[{"classId":"9000000000000000004","className":"初一 (1) 班","classType":"administration",
+ "classCapacity":45,"classStatus":"active","enrolledCount":null,"capacity":null,"studentCount":null}]}
+   -> 「在读」空、「类型」显示英文码值 administration
+
+GET /edu/student/list?pageNum=1&pageSize=10
+{"total":1,"rows":[{"studentId":"2108930198102618114","studentNo":"2026000001","studentName":"测试学生",...}]}
+   -> 无 studentPhone 字段（页面「联系电话」列恒空）
+```
+
+## 三、修复内容（CR-170）
+1. `EduClassVo` 补 `studentCount`；`EduClassServiceImpl.fillAggregates` 按
+   `edu_class_member.class_type='administrative' AND status='1'` 实时统计在读人数，
+   写入 `studentCount` 并对齐 `enrolledCount`；`capacity` 取 `classCapacity`。
+2. `EduClassServiceImpl.validateClassForInsert` 补班级类型枚举校验（只允许 administrative / teaching），
+   非法值返回中文提示；测试数据 `edu_class.id=9000000000000000004` 的 `class_type`
+   由 `administration` 修正为 `administrative`。
+3. `EduGradeServiceImpl.fillListCounts` 批量回填 `schoolName`（`edu_school`），`queryById` 复用同一填充。
+4. `EduStudentVo` 补 `studentPhone`；`EduStudentServiceImpl.fillListFields` 从
+   `edu_student_enrollment.student_phone` 取数并按前 3 后 4 掩码（明文仍走 `viewStudentPhone`，写审计）。
+5. 前端 `cls_list/index.vue`「状态」列由 `status` 改为 `classStatus`（此前停用班会显示「正常」）。
+
+## 四、测试数据修正（幂等）
+```
+mysql> update edu_class set class_type='administrative'
+       where id=9000000000000000004 and class_type<>'administrative';
+mysql> select id, class_type from edu_class where id=9000000000000000004;
+9000000000000000004	administrative
+```
+
+## 五、门禁结果
+```
+mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile  -> BUILD SUCCESS（25/25 模块）
+python tools/check_fe_page_structure.py      -> exit 0
+python tools/check_fe_text_nowrap.py         -> exit 0
+python tools/check_api_contract.py           -> exit 0
+python tools/check_docs.py                   -> exit 0
+python tools/check_gap_register.py           -> exit 0
+python tools/check_mermaid.py                -> exit 0
+python tools/check_stage6_route_coverage.py  -> exit 0
+python tools/check_perm_seed.py              -> exit 0
+pnpm --filter @edu/plus-ui typecheck         -> error TS 51（= 基线 51）
+pnpm --filter @edu/plus-ui lint:eslint       -> 124 problems (124 errors, 0 warnings)（= 基线 124）
+pnpm --filter @edu/plus-ui run build:prod    -> EXIT=0
+```
+
+## 六、待运行复验（重启 9211 后执行）
+```
+GET /edu/grade/list        -> 期望 classCount=1、studentCount=1、schoolName="蜀国学校"
+GET /edu/class/list        -> 期望 studentCount=1、enrolledCount=1、capacity=45、classType="administrative"
+GET /edu/student/list      -> 期望 studentPhone 掩码（测试学生未登记电话时为空，属正常）
+GET /edu/class/9000000000000000004/roster -> 期望 studentNo/studentName/gender/enrollmentStatus/className 非空（CR-169）
+```
+
+## 七、结论
+- 代码与治理变更已完成，门禁全绿；**运行验证未执行**（当前 edu 实例早于本批编译产物，
+  且不得起第二个实例争抢 queued 任务）→ 待用户重启后复验，复验通过即可把 GAP-118 对应的验收清单项标为「通过」。
