@@ -1717,3 +1717,12 @@
 | `services/.../edu/job/EduExportHandler.java`（改） | 写明后台导出的范围口径 | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-094 进度更新；新增 GAP-114 | `review` |
 | `evidence/stage7-backend/2026-10-10_student-export-handler-and-export-scope.log` | 门禁与口径记录 | `review` |
+
+## 2026-10-10 阶段 7 第五十八批：教师导出器
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-139.md` | 教师导出器与列 / 码值口径 | `review` |
+| `services/.../edu/job/TeacherExportHandler.java`、`TeacherExportRow.java` | 教师导出器（xlsx/csv，9 列） | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-094 第二批进度更新 | `review` |
+| `evidence/stage7-backend/2026-10-10_teacher-export-handler.log` | 门禁与口径记录 | `review` |

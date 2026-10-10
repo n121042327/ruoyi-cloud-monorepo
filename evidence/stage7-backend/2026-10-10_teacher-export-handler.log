@@ -1,0 +1,23 @@
+# GAP-094 第二批（续）：教师导出器（CR-139 / D-219）
+
+时间：2026-10-10　分支：codex/stage7-backend　触发：heartbeat（18:00 起每 5 分钟；本轮规则已生效）
+
+## 交付
+| 项 | 说明 |
+|---|---|
+| `job/TeacherExportHandler` / `TeacherExportRow` | 教师导出器（编码 `teacher`），xlsx + csv |
+| 默认列来源 | 教师管理列表页 `PAGE-TCH-LIST`：工号 / 姓名 / 性别 / 所属学校 / 教育角色 / 任教学科 / 任课班级数 / 在职状态 / 联系电话 |
+| 敏感字段 | 联系电话**默认掩码**（前 3 后 4，BR-TEACHER-005 / REQ-IMP-028）；明文导出留给「明文导出授权」批次 |
+| 学校隔离 | 按 `edu_teacher.school_id = 任务学校` 过滤，缺学校上下文直接拒绝（沿用 D-218 口径） |
+| 聚合字段 | 教育角色来自 `edu_user_role`（status='1'，码值转中文）；任教学科与任课班级数来自 `edu_teaching_assignment`（status='1'）；均按教师 ID 批量取，避免 N+1 |
+| 码值映射 | 教育角色 school_leader/academic_director/grade_leader/homeroom/subject_teacher → 校领导/教务主任/年级主任/班主任/任课教师；在职状态 active/resigned/transferred_out → 在职/离职/调离（与前端 `TeacherEnum.ts` 一致，历史中文值原样透传） |
+
+## 门禁
+```
+mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile -> BUILD SUCCESS
+七项 python 检查 -> 通过
+```
+本批只改后端，未重跑前端门禁。端到端导出需本机 MySQL / MinIO 才能验证。
+
+## 下一步
+GAP-094 第二批还剩 `class_roster`（编班表）导出器；随后进入导入解析器与逐行校验（第三批）。
