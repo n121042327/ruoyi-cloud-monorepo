@@ -1,0 +1,37 @@
+# 第三轮队列第 1 项（第二批）：班级详情纳入结构对照（CR-135 / D-215 / GAP-111 关闭 / GAP-112）
+
+时间：2026-10-10　分支：codex/stage7-backend　触发：heartbeat
+
+## 背景
+`cls_detail` 内联 3 张表（花名册 / 任课教师 / 变更记录），花名册各列没有 `data-layout-group`，
+因此 `tools/check_fe_page_structure.py` 只能解析到「操作」一列（实测：原型 9 列 vs 生产 1 列），整个页面无法纳入列对照（GAP-111）。
+
+## 本批改动
+| 项 | 改动 |
+|---|---|
+| 组件拆分 | 新增 `cls_detail/components/TeachingAssignmentTable.vue`（任课教师）与 `ClassChangeLogTable.vue`（变更记录），页面只保留花名册表；列顺序与原型一致 |
+| 花名册分组 | 花名册各列补 `data-layout-group`：学号 / 姓名 / 性别 / 学籍状态 = 学生信息，加入日期 = 班级信息，监护人 / 联系电话 = 联系方式，班级归属 = 班级信息 |
+| 结构对照 | `tools/check_fe_page_structure.py` 的 `CHECKS` 新增 `PAGE-CLS-DETAIL`（原型 class-detail.html 第一张表 = 花名册 9 列），检查通过 |
+
+## 构建工具链问题（登记 GAP-112）
+把两张表拆成组件后 `pnpm --filter @edu/plus-ui run build:prod` 连续两次以 **exit 0xC0000005（原生访问冲突）**
+在 `rendering chunks` 阶段崩溃。二分定位（每次重新构建）：
+
+| 组合 | 结果 |
+|---|---|
+| 页面保留内联表（仅补 data-layout-group 与新组件文件不引用） | 构建通过 |
+| 仅「任课教师」表用组件（props 用 `import type` 的 `TeachingAssignmentVO`） | 崩溃 0xC0000005 |
+| 两张表都用组件，props 改成组件内结构类型 | 构建通过 |
+
+规避做法：新拆出的展示型组件用**组件内声明的结构类型**写 props，不从 api 层 `import type` 引接口类型。
+已登记 GAP-112（工具链风险，未定位到具体触发条件）。
+
+## 门禁
+```
+check_fe_page_structure / check_fe_text_nowrap / check_api_contract / check_docs / check_gap_register
+  / check_mermaid / check_stage6_route_coverage  -> 全部通过（结构对照含新增的 PAGE-CLS-DETAIL）
+pnpm --filter @edu/plus-ui typecheck   -> error TS 51 条（= 基线）
+pnpm --filter @edu/plus-ui lint:eslint -> 124 problems（= 基线）
+pnpm --filter @edu/plus-ui run build:prod -> exit 0
+```
+本批只动前端与检查脚本，未跑 Maven。

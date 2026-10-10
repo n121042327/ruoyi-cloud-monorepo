@@ -335,6 +335,16 @@ CHECKS = [
         "deferred_groups": {},
         "filter_note": "原型是静态异常页（错误码 / 标题 / 说明 / 三个动作 / 请求编号与错误码元信息），整页没有查询区与表格；生产页按框架静态路由组件实现，组件路径按 GAP-087 裁决落在 views/error/500.vue",
     },
+    {
+        "page_id": "PAGE-CLS-DETAIL",
+        "name": "班级详情（花名册）",
+        "prototype": "prototypes/high-fidelity/v1/pages/class-detail.html",
+        "vue": "apps/plus-ui/src/views/edu/class/cls_detail/index.vue",
+        # 原型第 2 / 3 张表（任课教师 / 变更记录）没有 data-role="column" 标记，无法逐列对照；
+        # 这两张表已按先例拆成 components/TeachingAssignmentTable.vue 与 ClassChangeLogTable.vue，
+        # 待原型出新版本补标记后再各自加一条 CHECKS（见 CR-135 / GAP-112）。
+        "deferred_groups": {},
+    },
 ]
 
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）

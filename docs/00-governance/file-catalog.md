@@ -1667,3 +1667,15 @@
 | `tools/check_fe_page_structure.py`（改） | OVERLAY_CHECKS 增教师 / 年级详情抽屉对照 | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-104 关闭；新增 GAP-111 | `review` |
 | `evidence/stage6-frontend/2026-10-10_class-roster-guardian-columns.log` | 门禁与改动记录 | `review` |
+
+## 2026-10-10 阶段 6 第五十四批：班级详情纳入结构对照（第三轮第 1 项第二批）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-135.md` | 拆组件、补分组、纳入对照与工具链问题记录 | `review` |
+| `apps/plus-ui/src/views/edu/class/cls_detail/index.vue`（改） | 只保留花名册主表；花名册各列补 data-layout-group | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_detail/components/TeachingAssignmentTable.vue` | 任课教师表组件 | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_detail/components/ClassChangeLogTable.vue` | 变更记录表组件 | `已实现` |
+| `tools/check_fe_page_structure.py`（改） | CHECKS 新增 PAGE-CLS-DETAIL | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-111 关闭；新增 GAP-112 | `review` |
+| `evidence/stage6-frontend/2026-10-10_cls-detail-structure-check.log` | 二分定位过程与门禁 | `review` |

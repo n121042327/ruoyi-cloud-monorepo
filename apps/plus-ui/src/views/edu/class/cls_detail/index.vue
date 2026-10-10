@@ -75,20 +75,27 @@
 
             <el-table v-loading="loading" :data="rosterList" @selection-change="handleSelectionChange">
               <el-table-column type="selection" width="42" />
-              <el-table-column label="学号" prop="studentNo" width="130" show-overflow-tooltip />
-              <el-table-column label="姓名" prop="studentName" width="120" show-overflow-tooltip />
-              <el-table-column label="性别" prop="gender" width="70" align="center" />
-              <el-table-column label="学籍状态" prop="enrollmentStatus" width="120" align="center" />
-              <el-table-column label="加入日期" prop="joinDate" width="120" align="center" />
-              <el-table-column v-if="canSeeGuardian" label="监护人" prop="guardianName" width="110" show-overflow-tooltip>
+              <el-table-column label="学号" prop="studentNo" width="130" show-overflow-tooltip data-layout-group="学生信息" />
+              <el-table-column label="姓名" prop="studentName" width="120" show-overflow-tooltip data-layout-group="学生信息" />
+              <el-table-column label="性别" prop="gender" width="70" align="center" data-layout-group="学生信息" />
+              <el-table-column label="学籍状态" prop="enrollmentStatus" width="120" align="center" data-layout-group="学生信息" />
+              <el-table-column label="加入日期" prop="joinDate" width="120" align="center" data-layout-group="班级信息" />
+              <el-table-column
+                v-if="canSeeGuardian"
+                label="监护人"
+                prop="guardianName"
+                width="110"
+                show-overflow-tooltip
+                data-layout-group="联系方式"
+              >
                 <template #default="scope">{{ scope.row.guardianName || '—' }}</template>
               </el-table-column>
-              <el-table-column v-if="canSeeGuardian" label="联系电话" prop="guardianPhone" width="130">
+              <el-table-column v-if="canSeeGuardian" label="联系电话" prop="guardianPhone" width="130" data-layout-group="联系方式">
                 <template #default="scope"
                   ><span class="mono">{{ scope.row.guardianPhone || '—' }}</span></template
                 >
               </el-table-column>
-              <el-table-column label="班级归属" width="130" show-overflow-tooltip>
+              <el-table-column label="班级归属" width="130" show-overflow-tooltip data-layout-group="班级信息">
                 <template #default="scope">{{ scope.row.currentClassName || '本班' }}</template>
               </el-table-column>
               <el-table-column fixed="right" label="操作" width="100" data-layout-group="操作">
@@ -113,17 +120,7 @@
             <el-empty v-if="!assignments.length" description="尚未设置任课关系（写入入口在教师管理的任教关系）" />
             <div v-for="group in assignmentGroups" :key="group.subject" class="mb-3">
               <h4 class="mb-1 font-medium">{{ group.subject }}</h4>
-              <el-table :data="group.items">
-                <el-table-column label="教师" prop="teacherName" width="140" show-overflow-tooltip />
-                <el-table-column label="学年学期" prop="termName" width="180" show-overflow-tooltip />
-                <el-table-column label="任教类型" width="110" align="center">
-                  <template #default="scope">{{ scope.row.classType || '—' }}</template>
-                </el-table-column>
-                <el-table-column label="状态" prop="status" width="100" align="center" />
-                <el-table-column label="跨校任教" width="110" align="center">
-                  <template #default="scope">{{ scope.row.crossSchool ? '是' : '否' }}</template>
-                </el-table-column>
-              </el-table>
+              <ClassTeachingAssignmentTable :items="group.items" />
             </div>
           </el-tab-pane>
 
@@ -141,18 +138,7 @@
           </el-tab-pane>
 
           <el-tab-pane label="变更记录" name="changes">
-            <el-table v-loading="changesLoading" :data="changes">
-              <el-table-column label="操作时间" prop="operateTime" width="180" />
-              <el-table-column label="操作人" prop="operator" width="120" />
-              <el-table-column label="操作类型" prop="actionType" width="110" align="center" />
-              <el-table-column label="结果" prop="result" width="90" align="center" />
-              <el-table-column label="变更明细" min-width="260" show-overflow-tooltip>
-                <template #default="scope">{{ changeSummary(scope.row) }}</template>
-              </el-table-column>
-              <template #empty>
-                <el-empty description="该班级暂无变更记录" />
-              </template>
-            </el-table>
+            <ClassChangeLogTable :changes="changes" :loading="changesLoading" />
           </el-tab-pane>
         </el-tabs>
       </el-card>
@@ -186,6 +172,8 @@ import type { TermVO } from '@/api/edu/term/types';
 import { listTerm } from '@/api/edu/term';
 import ClassFormDialog from '../cls_list/components/ClassFormDialog.vue';
 import HeadTeacherDialog from './components/HeadTeacherDialog.vue';
+import ClassTeachingAssignmentTable from './components/TeachingAssignmentTable.vue';
+import ClassChangeLogTable from './components/ClassChangeLogTable.vue';
 
 defineOptions({ name: 'EduClassDetail' });
 
@@ -254,13 +242,6 @@ const assignmentGroups = computed(() => {
 
 const goList = () => {
   router.push({ path: '/edu/class/list' });
-};
-
-const changeSummary = (row: OperationLogVO) => {
-  if (row.changes?.length) {
-    return row.changes.map((c) => `${c.fieldLabel || c.fieldName}：${c.beforeValue ?? '—'} → ${c.afterValue ?? '—'}`).join('；');
-  }
-  return row.detail || row.actionType || '—';
 };
 
 const loadDetail = async () => {

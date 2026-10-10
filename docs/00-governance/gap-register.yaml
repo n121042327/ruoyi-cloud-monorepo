@@ -3473,6 +3473,39 @@ open_questions_for_user:
     blocks_stages:
       - stage6
     owner: 用户
+    answer: |
+      用户 2026-10-10 授权「遇到需要拍板的按推荐方案走并在 decisions.md 与 gap-register.yaml 各记一条」，
+      本批按推荐方案 1 落地（CR-135 / D-215）。
+    resolution: |
+      已拆分并纳入对照：任课教师表与变更记录表拆成 `cls_detail/components/TeachingAssignmentTable.vue`、
+      `ClassChangeLogTable.vue`，花名册各列补 `data-layout-group`，`tools/check_fe_page_structure.py` 的 CHECKS
+      新增 `PAGE-CLS-DETAIL`（原型第一张表 = 花名册 9 列）并跑通。
+      未做部分：原型第 2/3 张表没有 `data-role="column"` 标记，逐表对照需 stage 3 原型出新版本（见 CR-135）。
+      门禁：七项 python 检查通过、typecheck 51（基线）、lint 124（基线）、build:prod exit 0。
+    resolved_at: 2026-10-10
+    status: closed
+  - id: GAP-112
+    title: 展示型子组件用 defineProps 引用 api 层 import type 的接口会触发 vite 构建原生崩溃
+    discovered_at: 2026-10-10
+    discovered_by: 第三轮队列第 1 项第二批（CR-135）
+    evidence: "cls_detail 拆组件后 `pnpm --filter @edu/plus-ui run build:prod` 连续两次以 exit 0xC0000005（原生访问冲突）在 vite 的 rendering chunks 阶段崩溃。二分结果：① 页面保留内联表、新组件文件不被引用 -> 构建通过；② 只用 TeachingAssignmentTable（`defineProps<{ items: TeachingAssignmentVO[] }>()`，TeachingAssignmentVO 由 `@/api/edu/teacher/types` import type 引入）-> 崩溃 0xC0000005；③ 两张表都用组件、props 改成组件内结构类型 -> 构建通过。typecheck 与 lint 在三种组合下都正常，说明不是类型错误"
+    expected: 用 import type 的接口声明 defineProps 时构建正常（仓库内 CheckResultTable.vue / SubjectStatTable.vue 也这么写且能构建）
+    actual: 在 cls_detail 的两个新子组件上表现为 vites/rollup 原生崩溃，退出码 0xC0000005，无任何编译期报错
+    impact: |
+      **不选会怎样**：以后每次拆组件都可能撞上这个崩溃，而报错信息只有一行 exit code，
+      排查成本高（本次花 4 次完整构建才定位到可疑组合）；若有人误以为是内存问题，会浪费更多时间。
+    options:
+      - "按本批口径规避：新拆的展示型组件 props 用组件内结构类型，并在 GAP/decision 里记录（推荐，已执行）"
+      - "继续深挖：升级/降级 vue-tsc、@vitejs/plugin-vue 或 rollup，或提交 issue（需要能稳定复现的最小仓库）"
+      - "不使用拆组件方案，多表页面改用 extra_columns 排除"
+    recommended: |
+      **推荐方案 1**：规避写法零成本、不改变运行时行为，且本批已验证可用；
+      深挖需要构造最小复现（本仓库太大，二进制崩溃不可控），留给有稳定复现时再做。
+      影响面：无代码影响，仅作为拆组件时的写法约定（见 D-215）。
+    blocking: false
+    blocks_stages:
+      - stage6
+    owner: 用户
     status: open
   - id: GAP-105
     title: edu_teacher.employment_status「在职」码值上游两处不一致（on_duty / active）
