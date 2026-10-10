@@ -2029,3 +2029,13 @@
 | `services/.../edu/service/impl/EduTeacherServiceImpl.java`（改） | 任教关系名称回填 + 教师列表派生字段 | `已实现` |
 | `services/.../edu/service/impl/EduStudentServiceImpl.java`（改） | 学生列表两段式派生字段 | `已实现` |
 | `evidence/stage6-frontend/2026-10-10_stage8-acceptance-run.log`（改） | 最小数据、已确认项与新缺陷 | `review` |
+
+## 2026-10-10 阶段 8 验收缺陷修复（第三批，CR-169）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-169.md` | 花名册行字段与年级计数的修复，及 GAP-118 待办 | `review` |
+| `services/.../edu/service/impl/EduClassServiceImpl.java`（改） | `fillRosterFields` 回填花名册行学生 / 班级字段 | `已实现` |
+| `services/.../edu/service/impl/EduGradeServiceImpl.java`（改） | 年级列表实时统计班级数与在班学生数 | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | 新增 GAP-118 | `review` |
+| `evidence/stage6-frontend/2026-10-10_stage8-acceptance-run.log`（改） | 业务链路验收结果 | `review` |

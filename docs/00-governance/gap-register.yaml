@@ -4012,3 +4012,35 @@ open_questions_for_user:
       - stage8
     owner: 用户
     status: closed
+
+  - id: GAP-118
+    title: 教育域若干列表的派生列 / 码值展示未实现（班级在读人数、班级类型中文、年级所属学校、学生联系电话）
+    discovered_at: 2026-10-10
+    discovered_by: 阶段 8 运行时验收（业务链路：学校 → 校区 → 年级 → 班级 → 教师 → 学生）
+    evidence: |
+      **这是什么**：验收按业务链路走时发现，几个已交付列表页的列取不到值或显示英文码值：
+      1. 班级列表「在读」列 `enrolledCount` 为 null（实际有 1 名在班学生）；
+      2. 班级列表 / 年级详情「类型」列显示 `administration`（英文，且与后端常量 `administrative` 不一致）；
+      3. 年级列表与详情的「所属学校」为 null（显示「—」）；
+      4. 学生列表「联系电话」列在 `EduStudentVo` 里没有对应字段（数据在 `edu_student_enrollment.student_phone`）。
+      同批已修：花名册行字段（CR-169）、年级班级数/在读学生数（CR-169）、教师与学生列表的四列（CR-168）。
+    expected: 页面上的每一列都有值、码值显示中文、敏感字段按掩码与权限展示
+    actual: 上述四处的列为空或显示英文码值
+    impact: |
+      **不选会怎样**：班级「在读」人数与年级计数不一致时无法判断哪个对；
+      英文码值直接出现在页面上不符合高保真原型；学生联系电话缺失会让班主任看不到联系方式。
+    options:
+      - "列表统一走「实时统计 + 码值后端翻译」：班级在读人数与年级计数同口径实时统计，班级类型返回中文，
+        年级回填 schoolName；学生联系电话按敏感字段规范（掩码 + 查看留痕）补齐（推荐）"
+      - "改由前端做码值翻译与二次请求补齐（页面请求数增多，口径仍分散在两端）"
+      - "只修一部分（例如只修班级在读人数），其余登记为已知差异"
+    recommended: |
+      **推荐方案 1**：与 CR-168 / CR-169 已落地的写法一致（后端批量回填、统计实时算），避免两端各写一套；
+      学生联系电话涉及敏感字段规范（REQ-AUD-008 / 009），需要掩码展示 + 全量查看写敏感数据访问审计，单独一小批做。
+      影响面：`EduClassServiceImpl`（enrolledCount）、班级类型码值（列表翻译 + 迁移种子核对）、
+      `EduGradeServiceImpl`（schoolName）、`EduStudentServiceImpl` + `EduStudentVo`（联系电话掩码与留痕）。
+    blocking: false
+    blocks_stages:
+      - stage8
+    owner: 用户
+    status: open

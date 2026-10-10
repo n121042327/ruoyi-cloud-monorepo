@@ -9,11 +9,13 @@ import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.edu.domain.EduClass;
 import org.dromara.edu.domain.EduGrade;
+import org.dromara.edu.domain.EduClassMember;
 import org.dromara.edu.domain.EduGradeLeader;
 import org.dromara.edu.domain.bo.EduGradeBo;
 import org.dromara.edu.domain.vo.EduGradeLeaderVo;
 import org.dromara.edu.domain.vo.EduGradeVo;
 import org.dromara.edu.mapper.EduClassMapper;
+import org.dromara.edu.mapper.EduClassMemberMapper;
 import org.dromara.edu.mapper.EduGradeLeaderMapper;
 import org.dromara.edu.mapper.EduGradeMapper;
 import org.dromara.edu.service.IEduGradeService;
@@ -21,6 +23,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 年级服务层处理
@@ -49,12 +55,56 @@ public class EduGradeServiceImpl implements IEduGradeService {
     private final EduGradeMapper baseMapper;
     private final EduGradeLeaderMapper leaderMapper;
     private final EduClassMapper classMapper;
+    private final EduClassMemberMapper classMemberMapper;
 
     @Override
     public TableDataInfo<EduGradeVo> queryPageList(EduGradeBo grade, PageQuery pageQuery) {
         LambdaQueryWrapper<EduGrade> wrapper = buildQueryWrapper(grade);
         Page<EduGradeVo> result = baseMapper.selectPageGradeList(pageQuery.build(), wrapper);
+        fillListCounts(result.getRecords());
         return TableDataInfo.build(result);
+    }
+
+    /**
+     * 填充年级列表的班级数与在读学生数（阶段 8 验收缺陷 CR-169）。
+     *
+     * `edu_grade.class_count / student_count` 是建年级时写死的 0，从未维护（编班后仍显示 0），
+     * 因此列表改为实时统计：班级数按 `edu_class.grade_id` 计数，
+     * 在读学生数按这些班级下 `edu_class_member.status = '1'`（在班）的记录数统计。
+     */
+    private void fillListCounts(List<EduGradeVo> rows) {
+        if (rows == null || rows.isEmpty()) {
+            return;
+        }
+        List<Long> gradeIds = rows.stream().map(EduGradeVo::getGradeId)
+            .filter(Objects::nonNull).distinct().toList();
+        Map<Long, Integer> classCounts = new HashMap<>();
+        Map<Long, Integer> studentCounts = new HashMap<>();
+        if (!gradeIds.isEmpty()) {
+            Map<Long, Long> classToGrade = new HashMap<>();
+            for (EduClass clazz : classMapper.selectList(new LambdaQueryWrapper<EduClass>()
+                .in(EduClass::getGradeId, gradeIds))) {
+                if (clazz.getClassId() == null || clazz.getGradeId() == null) {
+                    continue;
+                }
+                classToGrade.put(clazz.getClassId(), clazz.getGradeId());
+                classCounts.merge(clazz.getGradeId(), 1, Integer::sum);
+            }
+            if (!classToGrade.isEmpty()) {
+                for (EduClassMember member : classMemberMapper.selectList(new LambdaQueryWrapper<EduClassMember>()
+                    .in(EduClassMember::getClassId, classToGrade.keySet())
+                    .eq(EduClassMember::getStatus, "1"))) {
+                    Long gradeId = member.getClassId() == null ? null : classToGrade.get(member.getClassId());
+                    if (gradeId != null) {
+                        studentCounts.merge(gradeId, 1, Integer::sum);
+                    }
+                }
+            }
+        }
+        for (EduGradeVo row : rows) {
+            row.setClassCount(classCounts.getOrDefault(row.getGradeId(), 0));
+            row.setStudentCount(studentCounts.getOrDefault(row.getGradeId(), 0));
+        }
     }
 
     @Override

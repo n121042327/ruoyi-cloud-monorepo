@@ -14,6 +14,8 @@ import org.dromara.edu.domain.EduClassMember;
 import org.dromara.edu.domain.EduGrade;
 import org.dromara.edu.domain.EduGuardian;
 import org.dromara.edu.domain.EduSchool;
+import org.dromara.edu.domain.EduStudent;
+import org.dromara.edu.domain.EduStudentEnrollment;
 import org.dromara.edu.domain.EduStudentGuardian;
 import org.dromara.edu.domain.EduTeachingAssignment;
 import org.dromara.edu.domain.EduTerm;
@@ -27,6 +29,8 @@ import org.dromara.edu.mapper.EduClassMemberMapper;
 import org.dromara.edu.mapper.EduGradeMapper;
 import org.dromara.edu.mapper.EduGuardianMapper;
 import org.dromara.edu.mapper.EduSchoolMapper;
+import org.dromara.edu.mapper.EduStudentMapper;
+import org.dromara.edu.mapper.EduStudentEnrollmentMapper;
 import org.dromara.edu.mapper.EduStudentGuardianMapper;
 import org.dromara.edu.mapper.EduTermMapper;
 import org.dromara.edu.mapper.EduTeachingAssignmentMapper;
@@ -39,6 +43,8 @@ import java.util.LinkedHashMap;
 import java.util.Date;
 import java.util.Collections;
 import java.util.List;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -81,6 +87,8 @@ public class EduClassServiceImpl implements IEduClassService {
     private final EduCampusMapper campusMapper;
     private final EduGradeMapper gradeMapper;
     private final EduTermMapper termMapper;
+    private final EduStudentMapper studentMapper;
+    private final EduStudentEnrollmentMapper enrollmentMapper;
     private final EduStudentGuardianMapper studentGuardianMapper;
     private final EduGuardianMapper guardianMapper;
 
@@ -266,6 +274,7 @@ public class EduClassServiceImpl implements IEduClassService {
             .eq(StringUtils.isNotBlank(member.getEnrollmentStatus()), EduClassMember::getStatus, member.getEnrollmentStatus())
             .orderByDesc(EduClassMember::getJoinDate);
         Page<EduClassMemberVo> result = memberMapper.selectPageRoster(pageQuery.build(), wrapper);
+        fillRosterFields(result.getRecords());
         fillGuardians(result.getRecords());
         return TableDataInfo.build(result);
     }
@@ -404,6 +413,65 @@ public class EduClassServiceImpl implements IEduClassService {
      * 一位学生取主监护人（`is_primary='1'`），没有主监护人时取第一条绑定关系；手机号默认掩码
      * （保留前 3 后 4，REQ-AUD-009）。按学生 ID 批量查询，避免 N+1。
      */
+    /**
+     * 填充花名册行的学生与班级展示字段（阶段 8 验收缺陷 CR-169）。
+     *
+     * 学生主体是平台级实体，这里按「学生主体 + 在校记录 + 班级关系」两段式取数：
+     * 学号 / 姓名 / 性别取自 `edu_student`，学籍状态取自 `edu_student_enrollment`，
+     * 「当前行政班」按 `edu_class_member(status='1')` 反查班级名，班级名统一批量查 `edu_class`。
+     * 此前这些字段全为空，花名册页面只显示学号列可点但内容为空。
+     */
+    private void fillRosterFields(List<EduClassMemberVo> rows) {
+        if (rows == null || rows.isEmpty()) {
+            return;
+        }
+        List<Long> studentIds = rows.stream().map(EduClassMemberVo::getStudentId)
+            .filter(Objects::nonNull).distinct().toList();
+        Map<Long, EduStudent> students = studentIds.isEmpty() ? Collections.emptyMap()
+            : studentMapper.selectByIds(studentIds).stream()
+                .collect(Collectors.toMap(EduStudent::getStudentId, s -> s, (a, b) -> a));
+        Map<Long, String> enrollmentStatus = new HashMap<>();
+        Map<Long, Long> currentClassByStudent = new HashMap<>();
+        if (!studentIds.isEmpty()) {
+            for (EduStudentEnrollment enrollment : enrollmentMapper.selectList(
+                new LambdaQueryWrapper<EduStudentEnrollment>()
+                    .in(EduStudentEnrollment::getStudentId, studentIds))) {
+                if (enrollment.getStudentId() != null) {
+                    enrollmentStatus.putIfAbsent(enrollment.getStudentId(), enrollment.getEnrollmentStatus());
+                }
+            }
+            for (EduClassMember member : memberMapper.selectList(new LambdaQueryWrapper<EduClassMember>()
+                .in(EduClassMember::getStudentId, studentIds)
+                .eq(EduClassMember::getStatus, MEMBER_IN))) {
+                if (member.getStudentId() != null && member.getClassId() != null) {
+                    currentClassByStudent.putIfAbsent(member.getStudentId(), member.getClassId());
+                }
+            }
+        }
+        LinkedHashSet<Long> classIdSet = new LinkedHashSet<>();
+        rows.stream().map(EduClassMemberVo::getClassId).filter(Objects::nonNull).forEach(classIdSet::add);
+        classIdSet.addAll(currentClassByStudent.values());
+        Map<Long, String> classNames = new HashMap<>();
+        if (!classIdSet.isEmpty()) {
+            for (EduClass item : classMapper.selectByIds(List.copyOf(classIdSet))) {
+                classNames.put(item.getClassId(), item.getClassName());
+            }
+        }
+        for (EduClassMemberVo row : rows) {
+            EduStudent student = row.getStudentId() == null ? null : students.get(row.getStudentId());
+            if (student != null) {
+                row.setStudentNo(student.getStudentNo());
+                row.setStudentName(student.getStudentName());
+                row.setGender(student.getGender());
+            }
+            row.setClassName(row.getClassId() == null ? null : classNames.get(row.getClassId()));
+            row.setEnrollmentStatus(row.getStudentId() == null ? null : enrollmentStatus.get(row.getStudentId()));
+            Long currentClassId = row.getStudentId() == null ? null : currentClassByStudent.get(row.getStudentId());
+            row.setCurrentClassId(currentClassId);
+            row.setCurrentClassName(currentClassId == null ? null : classNames.get(currentClassId));
+        }
+    }
+
     private void fillGuardians(List<EduClassMemberVo> rows) {
         if (rows == null || rows.isEmpty()) {
             return;
