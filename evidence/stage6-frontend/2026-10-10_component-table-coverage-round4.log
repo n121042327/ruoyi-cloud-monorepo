@@ -1,0 +1,37 @@
+2026-10-10 阶段 6：GAP-117 第三批核对结论（CR-162）
+
+一、核对方式
+扫描 prototypes/functional/{v1,v2}/pages 与 prototypes/high-fidelity/{v1,v2}/pages 下全部 .html 的
+每张 <table> 的 <th> 文本，按关键词检索：
+  监护人 / 与学生关系 / 主要联系人 / 变更明细 / 变更前 / 变更后 / 任教类型 / 跨校
+
+二、核对结果
+1) protos/functional/v1/pages/class-detail.html 共 5 张表：
+   #1 花名册：学号,姓名,性别,学籍状态,加入日期,监护人,联系电话,班级归属,操作（首列勾选）
+   #2/#3 班级教师：工号,教师,角色,学年学期,备注（两份重复）
+   #4 班主任历史：学年学期,班主任,是否主管,状态,任职期间,操作人
+   #5 异步任务行：任务编号,对象,总数,成功,失败,失败原因
+2) 关键词检索命中数：
+   监护人 = 2 处（class-detail.html 的花名册列）
+   与学生关系 = 0 处；主要联系人 = 0 处；变更明细 = 0 处；任教类型 = 0 处；跨校 = 0 处
+   变更前 / 变更后 = 2 处（audit-log-list.html 第 2 张表：字段,变更前,变更后 —— 已用于 LogDetailDrawer）
+3) 生产列（本批核对对象）
+   TeachingAssignmentTable.vue：教师 / 学年学期 / 任教类型 / 状态 / 跨校任教（5 列）
+   GuardianTable.vue：监护人姓名 / 与学生关系 / 监护人电话 / 主要联系人 / 备注 / 操作（6 列）
+   ClassChangeLogTable.vue：操作时间 / 操作人 / 操作类型 / 结果 / 变更明细（5 列）
+
+三、结论
+三张表在原型里都没有对应的表或列 —— 不是「缺 data-role 标记」，而是「原型缺表」。
+按 GAP-117 的推荐口径（只给已有表补标记）与「不编造列定义」的约束，本批不改代码，
+把差异与三选一请示写进 GAP-117 的 ask_2026_10_10_batch3 与 CR-162 第 3 节。
+
+四、门禁
+$ python tools/check_fe_page_structure.py / check_fe_text_nowrap.py / check_api_contract.py /
+  check_docs.py / check_gap_register.py / check_mermaid.py / check_stage6_route_coverage.py /
+  check_perm_seed.py  -> 全部 exit 0（本批无源码改动，未跑 Maven 与 pnpm 门禁）
+
+五、GAP-117 进度
+已纳入门禁 3 / 11（AssignmentTable / ArchiveSearchDialog / TeachingClassDetailDrawer）。
+本批核对的 3 张（TeachingAssignmentTable / GuardianTable / ClassChangeLogTable）归入「原型缺表」，
+待用户确认「以生产页列定义补进原型」后再逐张登记；其余 5 张（StreamHistoryDialog / GradeLeaderDialog /
+GradePromotionDialog / UnselectedStudentDialog / TeacherRoleDialog）按第四 / 五批继续核对。

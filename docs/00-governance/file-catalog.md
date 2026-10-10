@@ -1954,3 +1954,11 @@
 | `tools/check_fe_page_structure.py`（改） | 新增 `skip_filter` 与两条组件级条目 | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-117 第二批进度（3 / 11） | `review` |
 | `evidence/stage6-frontend/2026-10-10_component-table-coverage-round3.log` | 门禁与进度 | `review` |
+
+## 2026-10-10 GAP-117 第三批：三张组件表核对结论（原型缺表）（CR-162）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-162.md` | 三张表的核对结论与三选一请示 | `review` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-117 第三批结论 + `ask_2026_10_10_batch3` | `review` |
+| `evidence/stage6-frontend/2026-10-10_component-table-coverage-round4.log` | 扫描方式、命中数与结论 | `review` |
