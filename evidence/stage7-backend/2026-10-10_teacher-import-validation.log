@@ -1,0 +1,25 @@
+# GAP-094 第三批（续）：教师导入校验器（CR-142 / D-222）
+
+时间：2026-10-10　分支：codex/stage7-backend　触发：heartbeat（18:00 起每 5 分钟）
+
+## 交付
+`job/TeacherImportHandler implements EduImportHandler`（模块编码 `teacher`），复用上一批的框架
+（`EduImportFileReader` 解析 + 表头严格比对 + `runRowValidation` 写 `edu_import_error` 与回填计数）。
+
+| 项 | 说明 |
+|---|---|
+| 模板列 | 教师 PRD 第 4.8 节 9 列：工号 / 姓名 / 性别 / 所属学校 / 手机号 / 邮箱 / 入职日期 / 教育角色 / 备注（顺序固定） |
+| 必填 | 工号 / 姓名 / 性别 / 所属学校 |
+| 枚举与格式 | 性别 ∈ {男,女}；手机号 11 位；邮箱格式；入职日期 `YYYY-MM-DD`；教育角色取值（码值或中文都接受，多个用逗号分隔） |
+| 唯一性 | 工号在本校已存在 或 文件内重复 → 失败（BR-TEACHER-007） |
+| 跨校 | 所属学校必须已存在；**不等于本校时拒绝**（BR-TEACHER-001：跨校任教不复制教师记录，应在目标学校下建档） |
+
+## 门禁
+```
+mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile -> BUILD SUCCESS
+七项 python 检查 -> 通过
+```
+本批只改后端，未重跑前端门禁。
+
+## 下一步
+class_roster（编班表，4 列）导入校验器；随后进入导入执行阶段。

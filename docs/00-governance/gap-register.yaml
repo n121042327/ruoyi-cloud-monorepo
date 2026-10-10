@@ -2997,7 +2997,8 @@ gaps:
       CR-141 进展（2026-10-10）：导入侧框架与**学生模块**的解析 + 逐行校验已落地
       （EduImportFileReader / EduImportHandler / StudentImportHandler，同步校验写 edu_import_error 并回填计数），
       并补上 `edu_import_batch.school_id` 从未赋值的问题（多校账号拒绝，见 GAP-115）。
-      **仍未完成**：teacher / class_roster 两个模块的校验器；导入执行阶段（逐行写业务数据、结果文件）。
+      CR-142 进展（2026-10-10）：teacher 导入校验器已落地（9 列模板、工号本校唯一、拒绝跨校，D-222）。
+      **仍未完成**：class_roster 校验器；导入执行阶段（逐行写业务数据、结果文件）。
       CR-133 复核（2026-10-10）：全模块扫描确认 ruoyi-edu 内无 `@Scheduled` / `@XxlJob` / MQ 监听，
       `edu_async_task` 无人消费 —— 校验、执行、导出三条链路都停在「写任务 / 写批次」这一步；
       本批同时并入 GAP-110（任教关系导出缺执行器，实为同一执行器的导出半边）。

@@ -1747,3 +1747,12 @@
 | `services/.../edu/service/impl/EduImportExportServiceImpl.java`（改） | 同步解析校验 + 写 edu_import_error + 回填计数 + 补 schoolId | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-094 进度更新；新增 GAP-115 | `review` |
 | `evidence/stage7-backend/2026-10-10_import-parser-and-student-validation.log` | 门禁与规则来源 | `review` |
+
+## 2026-10-10 阶段 7 第六十一批：教师导入校验器
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-142.md` | 教师导入校验规则与两个判断 | `review` |
+| `services/.../edu/job/TeacherImportHandler.java` | 教师导入校验器（9 列模板，拒绝跨校） | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-094 第三批进度更新 | `review` |
+| `evidence/stage7-backend/2026-10-10_teacher-import-validation.log` | 门禁与规则来源 | `review` |
