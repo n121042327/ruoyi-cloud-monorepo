@@ -1,0 +1,36 @@
+# GAP-094 第四批（其四）：导入结果文件 —— 学号对照表与失败明细（CR-147 / D-227）
+
+时间：2026-10-10　分支：codex/stage7-backend　触发：heartbeat（18:00 起每 5 分钟）
+
+## 交付
+`EduImportTaskRunner` 在执行完成后生成两个 CSV 并登记 `edu_file_ref`、回写 `edu_import_batch`：
+
+| 文件 | 内容 | 依据 |
+|---|---|---|
+| 结果文件（`import_result`） | 原始行号 / 姓名 / 系统学号 | REQ-STU-058「导入完成后提供学号对照表」；模板不含学号列（BR-STU-019），因此对照关系必须由系统产出 |
+| 失败明细文件（`failed_rows`） | 原始行号 / 姓名 / 失败原因 | BR-IMP-006 / REQ-STU-060（修正后可重新上传） |
+
+- 上传走 `RemoteFileService.upload`，落 `edu_file_ref`（bizType=`import_batch`、bizId=批次号、保留 7 天，BR-IMP-013）；
+- 回写 `edu_import_batch.result_file_id` / `failed_file_id` 与 `edu_async_task.failed_file_id`；
+- 学生执行器把生成的学号放进 `EduImportRowResult.extras`，由引擎汇总成对照表（模块只回填自己要对照的字段）。
+
+## 两个细节
+- **空内容不落文件**：没有任何成功行就不生成结果文件，避免落下只有表头的空文件误导用户；
+- **CSV 带 UTF-8 BOM**：中文在 Excel 里直接打开不乱码（失败明细是要给人看的）。
+
+## 状态：GAP-094 全部完成
+| 批次 | 内容 | 提交 |
+|---|---|---|
+| 第一批 | 异步执行者骨架 + teaching_assignment 导出器 | 285b4f0 |
+| 第二批 | student / teacher / class_roster 三个导出器 | ba8df30 / 4e6373a / 54d51f0 |
+| 第三批 | 导入解析器 + 三个模块校验器 | fe527fc / 557df4c / 73b3084 |
+| 第四批 | 导入执行阶段 + 三个模块执行器 + 结果文件 | d070f23 / 37937db / 3a3058e / 本批 |
+导入导出的写入与读取两侧（模板 / 校验 / 执行 / 导出 / 结果文件 / 下载链接）现已闭环；
+上传与校验接口自带 `@Log` 审计（`EduImportController`），下载审计在 CR-136 落地。
+
+## 门禁
+```
+mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile -> BUILD SUCCESS
+七项 python 检查 -> 通过
+```
+本批只改后端，未重跑前端门禁。端到端（上传 → 校验 → 执行 → 下载对照表）需要本机 MySQL / MinIO / Nacos 才能验证。

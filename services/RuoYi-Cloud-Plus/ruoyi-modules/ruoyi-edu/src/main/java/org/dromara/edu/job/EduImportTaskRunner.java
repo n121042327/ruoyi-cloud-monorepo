@@ -16,8 +16,12 @@ import org.dromara.edu.mapper.EduFileRefMapper;
 import org.dromara.edu.mapper.EduImportBatchMapper;
 import org.dromara.edu.mapper.EduImportErrorMapper;
 import org.dromara.resource.api.RemoteFileService;
+import org.dromara.resource.api.domain.RemoteFile;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +53,13 @@ public class EduImportTaskRunner {
     private static final String RESULT_FAILED = "failed";
 
     private static final String BATCH_COMPLETED = "completed";
+
+    /** 文件类型（06-field-dictionary.yaml 的 file_kind） */
+    private static final String FILE_KIND_RESULT = "import_result";
+    private static final String FILE_KIND_FAILED_ROWS = "failed_rows";
+
+    /** 结果与失败明细文件保留天数（与导出结果一致，BR-IMP-013） */
+    private static final int RESULT_KEEP_DAYS = 7;
     private static final String BATCH_PARTIAL_FAILED = "partial_failed";
 
     private final EduAsyncTaskMapper taskMapper;
@@ -114,9 +125,12 @@ public class EduImportTaskRunner {
         int success = 0;
         int skipped = 0;
         int failed = 0;
+        List<String[]> resultRows = new ArrayList<>();
+        List<String[]> failedRows = new ArrayList<>();
         for (EduImportRow row : rows) {
             if (StringUtils.isNotBlank(row.getFailReason())) {
-                // 校验阶段已写过 invalid 行，这里不重复写
+                // 校验阶段已写过 invalid 行，这里只收进失败明细文件
+                failedRows.add(new String[]{String.valueOf(row.getRowNo()), name(row), row.getFailReason()});
                 continue;
             }
             EduImportRowResult result;
@@ -127,15 +141,25 @@ public class EduImportTaskRunner {
             }
             if (result == null || "success".equals(result.getResult())) {
                 success++;
+                String studentNo = result == null ? null : result.getExtras().get("学号");
+                if (StringUtils.isNotBlank(studentNo)) {
+                    resultRows.add(new String[]{String.valueOf(row.getRowNo()), name(row), studentNo});
+                }
             } else if ("skipped".equals(result.getResult())) {
                 skipped++;
             } else {
                 failed++;
                 writeFailedRow(batch, row, result.getFailReason());
+                failedRows.add(new String[]{String.valueOf(row.getRowNo()), name(row),
+                    StringUtils.defaultString(result.getFailReason())});
             }
         }
-        updateBatch(batch, success, skipped, failed);
-        updateTask(task, success, skipped, failed);
+        Long resultFileId = uploadCsv(batch, "import-result-" + batch.getBatchNo() + ".csv",
+            FILE_KIND_RESULT, "原始行号,姓名,系统学号", resultRows);
+        Long failedFileId = uploadCsv(batch, "import-failed-" + batch.getBatchNo() + ".csv",
+            FILE_KIND_FAILED_ROWS, "原始行号,姓名,失败原因", failedRows);
+        updateBatch(batch, success, skipped, failed, resultFileId, failedFileId);
+        updateTask(task, success, skipped, failed, failedFileId);
     }
 
     private EduImportContext context(EduAsyncTask task, EduImportBatch batch, EduFileRef fileRef) {
@@ -187,16 +211,77 @@ public class EduImportTaskRunner {
         errorMapper.insert(error);
     }
 
-    private void updateBatch(EduImportBatch batch, int success, int skipped, int failed) {
+    private void updateBatch(EduImportBatch batch, int success, int skipped, int failed,
+                             Long resultFileId, Long failedFileId) {
         EduImportBatch update = new EduImportBatch();
         update.setBatchId(batch.getBatchId());
         update.setSuccessCount(success);
         update.setSkippedCount(skipped);
         update.setImportStatus(failed > 0 ? BATCH_PARTIAL_FAILED : BATCH_COMPLETED);
+        if (resultFileId != null) {
+            update.setResultFileId(resultFileId);
+        }
+        if (failedFileId != null) {
+            update.setFailedFileId(failedFileId);
+        }
         batchMapper.updateById(update);
     }
 
-    private void updateTask(EduAsyncTask task, int success, int skipped, int failed) {
+    private String name(EduImportRow row) {
+        return StringUtils.defaultString(row.getCells().get("姓名"));
+    }
+
+    /**
+     * 生成 CSV 并上传到统一文件服务，登记 `edu_file_ref`（REQ-STU-058 学号对照表 / BR-IMP-006 失败明细）。
+     *
+     * 内容为空时不生成文件（避免落下只有表头的空文件）。CSV 带 UTF-8 BOM，便于 Excel 直接打开中文不乱码。
+     */
+    private Long uploadCsv(EduImportBatch batch, String fileName, String fileKind, String header,
+                           List<String[]> rows) {
+        if (rows.isEmpty()) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder("\ufeff").append(header).append('\n');
+        for (String[] row : rows) {
+            for (int i = 0; i < row.length; i++) {
+                if (i > 0) {
+                    sb.append(',');
+                }
+                sb.append(csv(row[i]));
+            }
+            sb.append('\n');
+        }
+        byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
+        RemoteFile uploaded = remoteFileService.upload(fileName, fileName, "text/csv;charset=UTF-8", bytes);
+        if (uploaded == null || uploaded.getOssId() == null) {
+            log.warn("导入结果文件上传失败：{}", fileName);
+            return null;
+        }
+        EduFileRef ref = new EduFileRef();
+        ref.setFileId(uploaded.getOssId());
+        ref.setFileKind(fileKind);
+        ref.setFileName(fileName);
+        ref.setStorageKey(uploaded.getUrl());
+        ref.setContentType("text/csv;charset=UTF-8");
+        ref.setFileSize((long) bytes.length);
+        ref.setBizType("import_batch");
+        ref.setBizId(batch.getBatchNo());
+        ref.setSchoolId(batch.getSchoolId());
+        ref.setExpireTime(new Date(DateUtils.getNowDate().getTime() + RESULT_KEEP_DAYS * 24L * 60 * 60 * 1000));
+        fileRefMapper.insert(ref);
+        return uploaded.getOssId();
+    }
+
+    private String csv(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.contains(",") || value.contains("\"") || value.contains("\n")
+            ? "\"" + value.replace("\"", "\"\"") + "\""
+            : value;
+    }
+
+    private void updateTask(EduAsyncTask task, int success, int skipped, int failed, Long failedFileId) {
         EduAsyncTask update = new EduAsyncTask();
         update.setTaskId(task.getTaskId());
         update.setTaskStatus(failed > 0 ? STATUS_PARTIAL_FAILED : STATUS_SUCCEEDED);
@@ -204,6 +289,9 @@ public class EduImportTaskRunner {
         update.setSuccessCount(success);
         update.setSkippedCount(skipped);
         update.setFailedCount(failed);
+        if (failedFileId != null) {
+            update.setFailedFileId(failedFileId);
+        }
         update.setFinishTime(DateUtils.getNowDate());
         taskMapper.updateById(update);
         log.info("导入任务完成：{}（成功 {} / 跳过 {} / 失败 {}）", task.getTaskNo(), success, skipped, failed);

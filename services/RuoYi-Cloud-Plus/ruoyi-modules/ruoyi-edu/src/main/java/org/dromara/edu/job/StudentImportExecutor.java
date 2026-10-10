@@ -102,7 +102,7 @@ public class StudentImportExecutor implements EduImportExecutor {
                 return EduImportRowResult.failed("学生已建档，但监护人写入失败：" + e.getMessage());
             }
         }
-        return EduImportRowResult.success();
+        return EduImportRowResult.success(java.util.Map.of("学号", studentService.queryById(studentId).getStudentNo()));
     }
 
     private boolean exists(String field, String value) {

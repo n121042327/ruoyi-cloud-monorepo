@@ -1797,3 +1797,14 @@
 | `services/.../edu/job/TeacherImportExecutor.java` | 教师导入执行器（幂等 + 建档 + 教育角色） | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-094 进度更新；新增 GAP-116 | `review` |
 | `evidence/stage7-backend/2026-10-10_teacher-import-executor.log` | 门禁与缺项说明 | `review` |
+
+## 2026-10-10 阶段 7 第六十六批：导入结果文件（GAP-094 收尾）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-147.md` | 结果文件形态与 GAP-094 收口 | `review` |
+| `services/.../edu/job/EduImportTaskRunner.java`（改） | 生成学号对照表与失败明细、上传、回写批次与任务 | `已实现` |
+| `services/.../edu/job/EduImportRowResult.java`（改） | 增 extras（模块回填对账字段） | `已实现` |
+| `services/.../edu/job/StudentImportExecutor.java`（改） | 回填生成的学号 | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-094 关闭 | `review` |
+| `evidence/stage7-backend/2026-10-10_import-result-files.log` | 门禁与收口记录 | `review` |

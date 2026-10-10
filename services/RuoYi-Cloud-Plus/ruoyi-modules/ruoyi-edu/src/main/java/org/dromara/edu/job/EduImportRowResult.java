@@ -2,6 +2,9 @@ package org.dromara.edu.job;
 
 import lombok.Data;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * 导入执行的行结果。
  *
@@ -15,6 +18,12 @@ public class EduImportRowResult {
 
     private String failReason;
 
+    /**
+     * 附加输出（如学生导入生成的学号），用于写「学号对照表」（REQ-STU-058）。
+     * 只有成功行才需要填。
+     */
+    private Map<String, String> extras = new HashMap<>();
+
     public static EduImportRowResult success() {
         return of("success", null);
     }
@@ -25,6 +34,15 @@ public class EduImportRowResult {
 
     public static EduImportRowResult failed(String reason) {
         return of("failed", reason);
+    }
+
+    /** 带附加输出的成功结果（如学生导入回填学号） */
+    public static EduImportRowResult success(Map<String, String> extras) {
+        EduImportRowResult row = success();
+        if (extras != null) {
+            row.setExtras(extras);
+        }
+        return row;
     }
 
     private static EduImportRowResult of(String result, String reason) {

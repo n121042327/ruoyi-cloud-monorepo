@@ -3009,13 +3009,16 @@ gaps:
       人工新增与导入共用；学号格式见 D-225）。
       CR-146 进展（2026-10-10）：teacher 导入执行器落地（幂等 + 建档 + 教育角色；账号不在导入路径创建，
       见 GAP-116 / D-226）—— **导入执行器三个模块（class_roster / student / teacher）全部落地**。
-      **仍未完成**：结果文件（学生导入的学号对照表 REQ-STU-058 / 失败明细 CSV BR-IMP-006）与导入完成后的审计。
+      CR-147 收尾（2026-10-10）：导入结果文件落地（学号对照表 import_result / 失败明细 failed_rows，
+      经 RemoteFileService.upload 落 edu_file_ref 并回写批次与任务；模块通过 EduImportRowResult.extras
+      回填对账字段，D-227）。**GAP-094 全部完成**：导出四个模块 + 导入解析/校验/执行三个模块 + 结果文件；
+      审计由接口层 @Log（上传/校验/执行）与 CR-136 的下载审计覆盖。
       CR-133 复核（2026-10-10）：全模块扫描确认 ruoyi-edu 内无 `@Scheduled` / `@XxlJob` / MQ 监听，
       `edu_async_task` 无人消费 —— 校验、执行、导出三条链路都停在「写任务 / 写批次」这一步；
       本批同时并入 GAP-110（任教关系导出缺执行器，实为同一执行器的导出半边）。
       依赖顺序（D-213）：先补 GAP-093 的真实签名链接与流式下载，再补本执行器。
     resolved_at: "2026-10-08"
-    status: answered
+    status: closed
 
   - id: GAP-095
     title: 审计视图 v_edu_audit_security_event 缺 tenant_id，不能用于租户隔离查询
