@@ -3772,7 +3772,18 @@ open_questions_for_user:
     blocks_stages:
       - stage8
     owner: 用户
-    status: open
+    answer: |
+      用户 2026-10-10 指令：automation 先做 GAP-114 / 115 / 113（不需要设计，纯实现），按推荐方案 1 落地。
+    resolution: |
+      CR-151 落地范围落库与换算：`params_summary` 增 gradeIds / classIds（空集合不写 = 本校全量），
+      `EduExportScopeResolver.effectiveClassIds` 统一把范围换算成班级 ID 列表，
+      `class_roster` / `teaching_assignment` 两个导出器按 `class_id in (...)` 过滤。
+      CR-152 收口（2026-10-10）：`StudentExportHandler` 经 `edu_class_member`（status='1'）把班级范围
+      落到学生 ID 后过滤；`TeacherExportHandler` 经 `edu_teaching_assignment`（status='1'）把班级范围
+      落到教师 ID 后过滤；范围内查不到行时返回空表，不退回本校全量（D-232）。
+      四个导出器（student / teacher / class_roster / teaching_assignment）均已按发起导出时落库的范围过滤。
+    resolved_at: "2026-10-10"
+    status: closed
   - id: GAP-115
     title: 多校账号（集团 / 运营方）做导入时缺少「显式选校」入口
     discovered_at: 2026-10-10

@@ -1,0 +1,31 @@
+2026-10-10 阶段 7：学生 / 教师导出器接入数据范围（GAP-114 收口，CR-152）
+
+一、本批改动
+- StudentExportHandler：新增 studentsInClasses(classIds)（edu_class_member.status = '1'），
+  在 export() 里按 EduExportScopeResolver.effectiveClassIds(context) 过滤 studentIds。
+- TeacherExportHandler：新增 teachersInClasses(schoolId, classIds)（edu_teaching_assignment.status = '1'），
+  范围内查不到教师时给空表，不退回本校全量。
+
+二、门禁（本机执行）
+$ cd services/RuoYi-Cloud-Plus
+$ mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile
+[INFO] BUILD SUCCESS
+
+$ python tools/check_fe_page_structure.py            -> exit 0
+$ python tools/check_fe_text_nowrap.py               -> exit 0
+$ python tools/check_api_contract.py                 -> exit 0
+$ python tools/check_docs.py                         -> exit 0
+$ python tools/check_gap_register.py                 -> exit 0
+$ python tools/check_mermaid.py                      -> exit 0
+$ python tools/check_stage6_route_coverage.py        -> exit 0
+$ python tools/check_perm_seed.py                    -> exit 0
+
+三、未执行项与原因
+- 前端三件套（typecheck / lint:eslint / build:prod）未重跑：本批只改 ruoyi-edu 的 java 源码，
+  未触碰 apps/**，按「无前端改动时可只跑七项 python 检查」执行。
+- 启动验证未重复做：9211 端口当前由用户 IDEA 实例占用（CR-150 已确认该实例可正常启动），
+  本批只新增查询条件，不涉及 bean / 配置变更。
+
+四、遗留
+- GAP-114 关闭（四个导出器全部接入范围过滤）。
+- GAP-115（多校账号显式选校）与 GAP-113（文件引用强制学校上下文）按用户 2026-10-10 指令继续。

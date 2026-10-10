@@ -22,9 +22,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -75,6 +77,7 @@ public class StudentExportHandler implements EduExportHandler {
     private final EduClassMemberMapper classMemberMapper;
     private final EduClassMapper classMapper;
     private final EduGradeMapper gradeMapper;
+    private final EduExportScopeResolver exportScopeResolver;
 
     @Override
     public String moduleCode() {
@@ -96,6 +99,13 @@ public class StudentExportHandler implements EduExportHandler {
             }
         }
         List<Long> studentIds = new ArrayList<>(enrollmentByStudent.keySet());
+        // 任务范围（GAP-114）：班主任 → 本班；年级主任 → 本年级下的行政班；为空 = 本校全量（D-231）。
+        // 学生的范围要经「班级关系」落到学生 ID —— 学生主体是平台级实体，不能按学校列直接过滤。
+        List<Long> scopeClassIds = exportScopeResolver.effectiveClassIds(context);
+        if (!scopeClassIds.isEmpty()) {
+            Set<Long> scoped = studentsInClasses(scopeClassIds);
+            studentIds.removeIf(id -> !scoped.contains(id));
+        }
         List<StudentExportRow> rows = new ArrayList<>();
         if (!studentIds.isEmpty()) {
             List<EduStudent> students = studentMapper.selectByIds(studentIds);
@@ -145,6 +155,19 @@ public class StudentExportHandler implements EduExportHandler {
         String key = keyword.trim();
         return (student.getStudentNo() != null && student.getStudentNo().contains(key))
             || (student.getStudentName() != null && student.getStudentName().contains(key));
+    }
+
+    /** 在给定班级列表里在班（status = '1'）的学生 ID */
+    private Set<Long> studentsInClasses(List<Long> classIds) {
+        Set<Long> result = new HashSet<>();
+        for (EduClassMember member : classMemberMapper.selectList(new LambdaQueryWrapper<EduClassMember>()
+            .in(EduClassMember::getClassId, classIds)
+            .eq(EduClassMember::getStatus, MEMBER_IN))) {
+            if (member.getStudentId() != null) {
+                result.add(member.getStudentId());
+            }
+        }
+        return result;
     }
 
     /** 学生在班（status = '1'）时所在班级 */

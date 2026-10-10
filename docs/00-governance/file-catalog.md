@@ -1848,3 +1848,13 @@
 | `services/.../edu/job/ClassRosterExportHandler.java`、`TeachingAssignmentExportHandler.java`（改） | 按范围过滤 | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-114 进度更新 | `review` |
 | `evidence/stage7-backend/2026-10-10_export-scope-plumbing.log` | 门禁与未完成项 | `review` |
+
+## 2026-10-10 阶段 7 第七十一批：学生 / 教师导出器接入数据范围（GAP-114 收口）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-152.md` | 范围落到学生 ID / 教师 ID 的写法与空范围口径 | `review` |
+| `services/.../edu/job/StudentExportHandler.java`（改） | 按生效班级范围经班级关系过滤学生 | `已实现` |
+| `services/.../edu/job/TeacherExportHandler.java`（改） | 按生效班级范围经任教关系过滤教师 | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-114 关闭 | `review` |
+| `evidence/stage7-backend/2026-10-10_export-scope-student-teacher.log` | 门禁与未执行项说明 | `review` |

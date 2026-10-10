@@ -71,6 +71,7 @@ public class TeacherExportHandler implements EduExportHandler {
     private final EduUserRoleMapper userRoleMapper;
     private final EduTeachingAssignmentMapper assignmentMapper;
     private final EduSubjectMapper subjectMapper;
+    private final EduExportScopeResolver exportScopeResolver;
 
     @Override
     public String moduleCode() {
@@ -93,7 +94,23 @@ public class TeacherExportHandler implements EduExportHandler {
         if (context.getFilters() != null && context.getFilters().get("employmentStatus") != null) {
             wrapper.eq(EduTeacher::getEmploymentStatus, String.valueOf(context.getFilters().get("employmentStatus")));
         }
-        List<EduTeacher> teachers = teacherMapper.selectList(wrapper).stream()
+        // 任务范围（GAP-114）：班主任 / 任课教师 → 本人（任教）班级里的教师；为空 = 本校全量（D-231）。
+        // 教师的范围要经「任教关系」落到教师 ID，与班级维度的两张表不是一套写法。
+        List<Long> scopeClassIds = exportScopeResolver.effectiveClassIds(context);
+        List<EduTeacher> teachers;
+        if (scopeClassIds.isEmpty()) {
+            teachers = teacherMapper.selectList(wrapper);
+        } else {
+            List<Long> scopeTeacherIds = teachersInClasses(context.getSchoolId(), scopeClassIds);
+            if (scopeTeacherIds.isEmpty()) {
+                // 范围内没有教师：给空表，不得退回本校全量
+                teachers = List.of();
+            } else {
+                wrapper.in(EduTeacher::getTeacherId, scopeTeacherIds);
+                teachers = teacherMapper.selectList(wrapper);
+            }
+        }
+        teachers = teachers.stream()
             .sorted(Comparator.comparing(EduTeacher::getTeacherNo, Comparator.nullsLast(String::compareTo)))
             .collect(Collectors.toList());
         List<TeacherExportRow> rows = toRows(context.getSchoolId(), teachers);
@@ -109,6 +126,19 @@ public class TeacherExportHandler implements EduExportHandler {
         } catch (Exception e) {
             throw new ServiceException("生成教师导出文件失败：" + e.getMessage());
         }
+    }
+
+    /** 在给定班级列表里有有效任教关系（status = '1'）的教师 ID */
+    private List<Long> teachersInClasses(Long schoolId, List<Long> classIds) {
+        return assignmentMapper.selectList(new LambdaQueryWrapper<EduTeachingAssignment>()
+                .eq(EduTeachingAssignment::getSchoolId, schoolId)
+                .in(EduTeachingAssignment::getClassId, classIds)
+                .eq(EduTeachingAssignment::getStatus, FLAG_ON))
+            .stream()
+            .map(EduTeachingAssignment::getTeacherId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .collect(Collectors.toList());
     }
 
     private List<TeacherExportRow> toRows(Long schoolId, List<EduTeacher> teachers) {
