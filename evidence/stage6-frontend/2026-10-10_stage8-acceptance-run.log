@@ -1,0 +1,36 @@
+2026-10-10 阶段 8 运行时验收实录（蜀国 / liubei）
+
+一、环境
+- 前端 dev server：http://localhost/（Vite，/dev-api → http://localhost:8080）
+- 网关 8080、edu 9211（用户 IDEA 实例，21:06 启动）、MySQL localhost:3306/ry-cloud（root/root）
+- 登录：租户 蜀国（tenant_id=546223），账号 liubei（role_id=2108206857393836035，key=admin）
+
+二、解封动作（本轮完成）
+1. 确认 `edu-menu.sql` 的教育菜单已在库中：`sys_menu` 共 288 行，其中 120 行落在 13000—13165；
+   之前看不到是因为 `sys_role_menu` 没授权，而非种子缺失（非超管的菜单查询只返回自己已授权的菜单）。
+2. 授权：`INSERT IGNORE INTO sys_role_menu(role_id, menu_id) SELECT 2108206857393836035, menu_id
+   FROM sys_menu WHERE menu_id BETWEEN 13000 AND 13999;` → 该角色菜单 155 → 275（教育菜单 120 条），
+   未删改任何原授权。执行后 `/system/menu/getRouters` 顶层出现 Edu13000 与 12 个子分组。
+3. 权限刷新：Sa-Token 的登录态缓存了登录时点的权限清单，需重新登录；重新登录后
+   `/system/user/getInfo` 权限 135 → 201，其中教育域权限 60 条，`/edu/teacher/list` 返回 code 200。
+
+三、租户数据现状（用于判断验收项可执行性）
+| 实体 | 数量 |
+|---|---|
+| 学校 | 1（蜀国学校，stageCodes=junior,primary,senior） |
+| 年级 | 1（初一 / junior / 2026 级） |
+| 学年学期 | 1（2026-2027 第一学期，当前） |
+| 教师 / 学生 / 学科 / 异步任务 | 0 |
+| 班级 | 接口 500（缺陷 CR-167） |
+
+四、首轮缺陷（已修，待重启生效）
+- `GET /edu/class/list` 全部筛选组合均 500；error.log 堆栈指向
+  `EduClassServiceImpl.fillNames` 第 135 行 `Map.of().get(null)` 抛 NPE。
+- 修复见 `CR-167`：兜底 Map 改 `Collections.emptyMap()`，取值前判空；同类模式在
+  `ClassRosterExportHandler` 一并加固。
+- 生效条件：重启 9211 上的 edu 实例。
+
+五、待办（验收继续）
+- 重启 edu 后复验 `/edu/class/list`；
+- 蜀国租户教师 / 学生 / 学科均为 0，第 1~5、11、12 项需要先有最小测试数据（或改用有数据的租户）；
+  第 6、8、10、13 项可先用空数据验证链路与零值口径。

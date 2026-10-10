@@ -2010,3 +2010,12 @@
 |---|---|---|
 | `evidence/stage6-frontend/2026-10-10_acceptance-blocked-by-missing-edu-menu.log` | 环境确认、权限/菜单/接口实测结果与解封步骤 | `review` |
 | `evidence/stage6-frontend/2026-10-10_manual-acceptance-checklist.md`（改） | 新增「阻塞记录」一节 | `review` |
+
+## 2026-10-10 阶段 8 验收首轮：班级列表 500 修复（CR-167）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-167.md` | 缺陷现象、根因（不可变 Map 用 null 键）与修复 | `review` |
+| `services/.../edu/service/impl/EduClassServiceImpl.java`（改） | `fillNames` 兜底 Map 与取值判空 | `已实现` |
+| `services/.../edu/job/ClassRosterExportHandler.java`（改） | 同类模式加固 | `已实现` |
+| `evidence/stage6-frontend/2026-10-10_stage8-acceptance-run.log` | 验收环境、解封动作、数据现状与首轮缺陷 | `review` |

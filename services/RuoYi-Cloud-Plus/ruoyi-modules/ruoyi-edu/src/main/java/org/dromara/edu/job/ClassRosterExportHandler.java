@@ -115,7 +115,7 @@ public class ClassRosterExportHandler implements EduExportHandler {
         }
         List<Long> studentIds = members.stream().map(EduClassMember::getStudentId)
             .filter(Objects::nonNull).distinct().collect(Collectors.toList());
-        Map<Long, EduStudent> students = studentIds.isEmpty() ? Map.of()
+        Map<Long, EduStudent> students = studentIds.isEmpty() ? java.util.Collections.emptyMap()
             : studentMapper.selectByIds(studentIds).stream()
                 .collect(Collectors.toMap(EduStudent::getStudentId, s -> s, (a, b) -> a, HashMap::new));
         Map<Long, EduStudentEnrollment> enrollments = new HashMap<>();
@@ -130,7 +130,7 @@ public class ClassRosterExportHandler implements EduExportHandler {
             .filter(Objects::nonNull).distinct().collect(Collectors.toList()));
         Map<Long, EduGuardian> guardians = loadGuardians(studentIds);
         for (EduClassMember member : members) {
-            EduStudent student = students.get(member.getStudentId());
+            EduStudent student = member.getStudentId() == null ? null : students.get(member.getStudentId());
             if (student == null) {
                 continue;
             }

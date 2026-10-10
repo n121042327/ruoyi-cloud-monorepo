@@ -36,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Date;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -115,24 +116,26 @@ public class EduClassServiceImpl implements IEduClassService {
         List<Long> termIds = rows.stream().map(EduClassVo::getTermId).filter(Objects::nonNull).distinct().toList();
         List<Long> campusIds = rows.stream().map(EduClassVo::getCampusId).filter(Objects::nonNull).distinct().toList();
 
-        Map<Long, String> schoolNames = schoolIds.isEmpty() ? Map.of()
+        Map<Long, String> schoolNames = schoolIds.isEmpty() ? Collections.emptyMap()
             : schoolMapper.selectList(new LambdaQueryWrapper<EduSchool>().in(EduSchool::getSchoolId, schoolIds))
                 .stream().collect(Collectors.toMap(EduSchool::getSchoolId, EduSchool::getSchoolName, (a, b) -> a));
-        Map<Long, String> gradeNames = gradeIds.isEmpty() ? Map.of()
+        Map<Long, String> gradeNames = gradeIds.isEmpty() ? Collections.emptyMap()
             : gradeMapper.selectList(new LambdaQueryWrapper<EduGrade>().in(EduGrade::getGradeId, gradeIds))
                 .stream().collect(Collectors.toMap(EduGrade::getGradeId, EduGrade::getGradeName, (a, b) -> a));
-        Map<Long, String> campusNames = campusIds.isEmpty() ? Map.of()
+        Map<Long, String> campusNames = campusIds.isEmpty() ? Collections.emptyMap()
             : campusMapper.selectList(new LambdaQueryWrapper<EduCampus>().in(EduCampus::getCampusId, campusIds))
                 .stream().collect(Collectors.toMap(EduCampus::getCampusId, EduCampus::getCampusName, (a, b) -> a));
-        Map<Long, String> termNames = termIds.isEmpty() ? Map.of()
+        Map<Long, String> termNames = termIds.isEmpty() ? Collections.emptyMap()
             : termMapper.selectList(new LambdaQueryWrapper<EduTerm>().in(EduTerm::getTermId, termIds))
                 .stream().collect(Collectors.toMap(EduTerm::getTermId, EduTerm::getTermName, (a, b) -> a));
 
+        // 外键为空时不要拿 null 当键去查 Map —— Map.of()/Map.copyOf() 这类不可变 Map 对 null 键会抛 NPE
+        // （阶段 8 验收实录：教学班 / 未指定校区的班级会让班级列表整体 500，见 CR-167）
         for (EduClassVo row : rows) {
-            row.setSchoolName(schoolNames.get(row.getSchoolId()));
-            row.setGradeName(gradeNames.get(row.getGradeId()));
-            row.setTermName(termNames.get(row.getTermId()));
-            row.setCampusName(campusNames.get(row.getCampusId()));
+            row.setSchoolName(row.getSchoolId() == null ? null : schoolNames.get(row.getSchoolId()));
+            row.setGradeName(row.getGradeId() == null ? null : gradeNames.get(row.getGradeId()));
+            row.setTermName(row.getTermId() == null ? null : termNames.get(row.getTermId()));
+            row.setCampusName(row.getCampusId() == null ? null : campusNames.get(row.getCampusId()));
         }
     }
 
