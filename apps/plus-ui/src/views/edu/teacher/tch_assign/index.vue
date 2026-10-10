@@ -234,7 +234,7 @@ const handleRemove = async (row: TeachingAssignmentVO) => {
  */
 const handleExport = async () => {
   await exportData({ module: 'teachingAssignment', termId: queryParams.termId, classId: queryParams.classId, teacherId: queryParams.teacherId });
-  ElMessage.success('已生成任教关系导出文件，开始下载');
+  ElMessage.success('已提交任教关系导出任务，请到异步任务中心下载');
 };
 
 onMounted(async () => {

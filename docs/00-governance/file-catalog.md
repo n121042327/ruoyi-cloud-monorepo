@@ -1618,3 +1618,13 @@
 | `apps/plus-ui/src/views/edu/grade/grd_list/index.vue`（改） | 删除过期注释 | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | 新增 GAP-108（已关闭） | `review` |
 | `evidence/stage6-frontend/2026-10-10_teacher-assign-entry.log` | 门禁与改动记录 | `review` |
+
+## 2026-10-10 阶段 6 第五十批：未接接口兜底盘点（第三轮第 2 项）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-131.md` | 端点 ↔ 前端调用盘点清单与两处真问题 | `review` |
+| `apps/plus-ui/src/views/edu/class/cls_roster_import/index.vue`（改） | 导入模块编码 classRoster → class_roster | `已实现` |
+| `apps/plus-ui/src/views/edu/teacher/tch_assign/index.vue`（改） | 导出提示改为异步任务口径 | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | 新增 GAP-109 / GAP-110（open） | `review` |
+| `evidence/stage6-frontend/2026-10-10_api-inventory-round3.log` | 盘点方法与门禁记录 | `review` |

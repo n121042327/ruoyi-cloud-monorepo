@@ -3553,3 +3553,51 @@ open_questions_for_user:
       `typecheck 51 / lint 124 / build:prod exit 0`。跳转与预选的运行时效果待人工验收。
     resolved_at: 2026-10-10
     status: closed
+  - id: GAP-109
+    title: 导入导出链路的前端请求 / 响应形状与 openapi 契约不一致
+    discovered_at: 2026-10-10
+    discovered_by: 第三轮队列第 2 项「未接接口兜底盘点」（CR-131）
+    evidence: "docs/40-detailed-design/api/openapi.yaml 的 /edu/import/validate 声明 requestBody: application/json；后端 EduImportController.validate 是 @Validated @RequestBody EduImportValidateBo（字段 moduleCode / fileId / strategy）；apps/plus-ui/src/api/edu/importExport/index.ts:33 的 validateImportFile 却组 FormData 发 multipart，字段名为 module / duplicatePolicy，且没有先上传文件拿 fileId 的步骤（EduImportValidateBo 注释写明『文件已先上传到统一文件服务，这里只传 file_id』）。另外 EduImportController.downloadTemplate / downloadFailedRows / downloadResult 都返回 R<EduFileRefVo>（含 signedUrl），而前端四个下载函数一律 responseType: 'blob'"
+    expected: 前端按 openapi 的 requestBody 形状调用：先上传文件到统一文件服务拿 fileId，再以 JSON 提交 moduleCode/fileId/strategy；下载端点按 JSON 解析 EduFileRefVo 并跳转 signedUrl
+    actual: 前端以 multipart 提交校验请求（Spring 侧 @RequestBody 会 415），字段名与后端 BO 不同；四个下载端点把 JSON 当二进制保存
+    impact: |
+      **不选会怎样**：导入向导、学生导入、编班表导入三条链路上传即失败；模板 / 失败明细 / 结果下载会把
+      一段 JSON 存成 .xlsx。三条链路目前都是「页面齐全、按钮可点、调用报错」，属于最难发现的一类缺口。
+    options:
+      - "按 openapi 修前端：补统一文件服务上传函数，validate 改 JSON（moduleCode/fileId/strategy），四个下载按 EduFileRefVo 解析后跳 signedUrl（推荐）"
+      - "把后端改成 multipart + 二进制响应（要改 openapi 与 5 个端点，且与文件服务引用式设计冲突）"
+      - "只修模块编码，形状差异长期保留"
+    recommended: |
+      **推荐方案 1**：openapi 是接口事实源，后端已按它实现；`EduImportValidateBo` 的注释也写明先上传再传引用，
+      与文件服务（`/resource/oss/upload` 返回 ossId）一致。
+      影响面：`api/edu/importExport/index.ts`（新增上传函数 + 改 5 个函数）、`api/edu/teacher/index.ts:120-160`、
+      `api/edu/class/index.ts`（新增编班表导入两函数）与三个页面（imp_wizard / stu_import / cls_roster_import）。
+      因为要一次改完三条链路才不留半截，本批只修了模块编码 `classRoster` → `class_roster`，形状对齐整包下一批处理。
+    blocking: false
+    blocks_stages:
+      - stage6
+    owner: 用户
+    status: open
+  - id: GAP-110
+    title: 任教关系导出（exportData module=teachingAssignment）没有模块导出器
+    discovered_at: 2026-10-10
+    discovered_by: 第三轮队列第 2 项「未接接口兜底盘点」（CR-131）
+    evidence: "apps/plus-ui/src/api/edu/importExport/index.ts 的 exportData 被 apps/plus-ui/src/views/edu/teacher/tch_assign/index.vue:236 以 module='teachingAssignment' 调用；后端 EduImportExportServiceImpl.exportData 只创建 edu_async_task 记录（task.setTaskType(TASK_TYPE_EXPORT)、guidance 里写明『实际取数与文件生成由模块导出器执行』），而 SENSITIVE_RESOURCES 与各模块导出端点里都没有 teachingAssignment 这个编码（后端编码为 student / teacher / class / class_roster / grade / school / promotion / stream / activation_code）"
+    expected: 任教关系导出能产出可下载的结果文件
+    actual: 只落一条异步任务，没有执行器按该编码生成文件；页面原提示「已生成任教关系导出文件，开始下载」与事实不符
+    impact: |
+      **不选会怎样**：用户点「导出任教关系」，看到任务在异步任务中心排队，但永远没有文件可下载，
+      也不知道该找谁。GAP-089 当时把入口统一到通用导出引擎，但没登记该模块的导出对象，缺口被留在了这里。
+    options:
+      - "在导入导出引擎登记 teaching_assignment 导出对象与默认列，由引擎按模块配置取数（推荐）"
+      - "新增独立端点 exportTeachingAssignment（POST /edu/teacher/assignment/export），与其它模块导出一致但要改契约"
+      - "下掉任教关系页的导出按钮"
+    recommended: |
+      **推荐方案 1**：与 GAP-086 / GAP-089 的既有裁决同口径（导出引擎、文件生成都在导入导出模块，
+      业务模块只声明导出对象与默认列）；编码统一用下划线风格 `teaching_assignment`，与其它模块编码一致。
+      本批先把页面提示改成「已提交导出任务，请到异步任务中心下载」，不再谎报已生成文件。
+    blocking: false
+    blocks_stages:
+      - stage6
+    owner: 用户
+    status: open

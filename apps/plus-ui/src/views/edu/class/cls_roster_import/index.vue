@@ -183,8 +183,13 @@ import type { TermVO } from '@/api/edu/term/types';
 
 defineOptions({ name: 'EduClassRosterImport' });
 
-/** 导入模块编码：编班表（模板与校验规则由班级模块声明，引擎在导入导出模块，REQ-IMP-002） */
-const IMPORT_MODULE = 'classRoster';
+/**
+ * 导入模块编码：编班表。
+ *
+ * 取值必须是 `class_roster`：`edu_import_template.module_code` 的列注释（schema/DDL）与后端
+ * `EduClassController.importRosterValidate` 用的都是这个编码；写成 classRoster 会查不到模板。
+ */
+const IMPORT_MODULE = 'class_roster';
 
 const router = useRouter();
 

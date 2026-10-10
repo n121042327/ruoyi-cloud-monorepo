@@ -1,0 +1,57 @@
+# 第三轮队列第 2 项：未接接口兜底盘点（CR-131 / D-211 / GAP-109 / GAP-110）
+
+时间：2026-10-10
+分支：codex/stage7-backend
+触发：heartbeat（第三轮队列第 2 项）
+
+## 盘点方法
+
+- 后端事实源：`ruoyi-edu/src/main/java/org/dromara/edu/controller/**` 的 `@RequestMapping` + `@Get/Post/Put/DeleteMapping`
+- 前端事实源：`apps/plus-ui/src/**` 里所有 `request({ url, method })`、`.download()`、`action:`
+- 归一化：路径参数统一成 `{x}`，去掉查询串与尾部斜杠（脚本 `_api_gap6.py`）
+
+## 结果
+
+```
+后端 edu 端点：185    前端 edu 调用：182
+前端调用、后端无：1（假阳性）
+后端有、前端未接：4
+```
+
+| 端点 | 判定 | 处置 |
+|---|---|---|
+| `GET /edu/student/{x}` | **假阳性** | 前端 `getStudent` 用 `'/edu/student/' + parseStrEmpty(id)` 拼 URL，脚本按字面量切片误判为 `/edu/student`，无问题 |
+| `POST /edu/teaching-class` | 设计上不接 | 教学班创建入口唯一在「按组合生成教学班」向导（CR-017 / D-206），不新增手工入口 |
+| `POST /edu/class/roster/import/validate`、`.../execute` | 曾用通用引擎等价调用，但**模块编码写错** | 本批把 `cls_roster_import` 的 `IMPORT_MODULE` 从 `classRoster` 改成 `class_roster`（DDL 列注释与后端 `importRosterValidate` 都是后者）；是否改走模块专属端点，随 GAP-109 一并处理 |
+
+## 盘点中发现的真问题（登记为缺项）
+
+1. **GAP-109 导入导出请求形状与契约不一致**（本批只修了模块编码，形状对齐留下一批）
+   - `validateImportFile`：openapi 的 `/edu/import/validate` 明确 `requestBody: application/json`，后端也是
+     `@RequestBody EduImportValidateBo`；前端却发 `multipart/form-data` 且带 `file`，字段名是 `module` / `duplicatePolicy`
+     （后端是 `moduleCode` / `fileId` / `strategy`）。
+   - 四个下载端点（模板 / 失败明细 / 结果）后端都返回 `R<EduFileRefVo>`（含 `signedUrl` 短时签名链接），
+     前端一律 `responseType: 'blob'`。
+   - 缺少「上传文件到统一文件服务」的 api 函数（后端 BO 写明「文件已先上传到统一文件服务，这里只传 file_id」）。
+2. **GAP-110 任教关系导出没有执行器**：`exportData({ module: 'teachingAssignment' })` 只创建异步任务，
+   引擎里没有任何模块导出器会为该编码产出文件；本批把提示改成「已提交导出任务，请到异步任务中心下载」，
+   不再谎称「开始下载」。
+
+## 本批代码改动
+
+| 文件 | 改动 |
+|---|---|
+| `apps/plus-ui/src/views/edu/class/cls_roster_import/index.vue` | `IMPORT_MODULE` `classRoster` → `class_roster`，注释写明取值依据 |
+| `apps/plus-ui/src/views/edu/teacher/tch_assign/index.vue` | 导出成功提示改为「已提交任教关系导出任务，请到异步任务中心下载」 |
+
+## 门禁
+
+```
+check_fe_page_structure.py / check_fe_text_nowrap.py / check_api_contract.py / check_docs.py
+  / check_gap_register.py / check_mermaid.py / check_stage6_route_coverage.py   -> 全部通过
+pnpm --filter @edu/plus-ui typecheck      -> error TS 51 条（= 基线 51，本批新增 0）
+pnpm --filter @edu/plus-ui lint:eslint    -> 124 problems（= 基线 124，本批新增 0）
+pnpm --filter @edu/plus-ui run build:prod -> 成功（exit 0）
+```
+
+本批只动前端，无后端改动，未跑 Maven。
