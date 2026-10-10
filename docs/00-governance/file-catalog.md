@@ -1971,3 +1971,13 @@
 | `docs/00-governance/decisions.md`（改） | 新增 D-238：原型缺表时以生产页列定义新增表 | `review` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-117 第四批判定与 D-238 口径 | `review` |
 | `evidence/stage6-frontend/2026-10-10_component-table-coverage-round5.log` | 命中结果、判定与进度 | `review` |
+
+## 2026-10-10 GAP-117 第五批：班级详情两张明细表补进原型并纳入门禁（CR-164）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-164.md` | 本批范围、列来源与位移核对 | `review` |
+| `prototypes/high-fidelity/v1/pages/class-detail.html`（改） | 新增「任教关系明细」「班级变更记录」两张带标记的表 | `已实现` |
+| `tools/check_fe_page_structure.py`（改） | 新增两条组件级条目（table_index=4 / 6） | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-117 进度 5 / 11 | `review` |
+| `evidence/stage6-frontend/2026-10-10_component-table-coverage-round6.log` | 门禁与位移核对 | `review` |

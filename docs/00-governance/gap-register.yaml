@@ -3984,6 +3984,16 @@ open_questions_for_user:
       （只新增、不改既有内容）后在检查器登记；每轮最多 1~2 张。待补表清单与目标页见 CR-163 第 3 节，
       下一批从 `class-detail.html` 的两张表（任教关系明细 / 班级变更记录）开始。
       用户 2026-10-10 授权「GAP-117 按推荐」，故按 D-238 直接执行，不再逐条等确认。
+      **第五批（CR-164，2026-10-10，按 D-238 实做）**：在 `prototypes/high-fidelity/v1/pages/class-detail.html`
+      新增两张带 `data-role="column"` 的表 —— 任课教师页签内「任教关系明细」（教师 / 学年学期 / 任教类型 /
+      状态 / 跨校任教）与变更记录页签内「班级变更记录」（操作时间 / 操作人 / 操作类型 / 结果 / 变更明细），
+      列定义取自生产组件；检查器新增 `PAGE-CLS-DETAIL-TEACHING-ASSIGNMENT`（table_index=4）与
+      `PAGE-CLS-DETAIL-CHANGE-LOG`（table_index=6）。已核对 table_index 位移：既有 `PAGE-CLS-DETAIL`
+      用默认切片（花名册），不受影响。
+      **进度：11 张中已纳入 5 张**（AssignmentTable / ArchiveSearchDialog / TeachingClassDetailDrawer /
+      TeachingAssignmentTable / ClassChangeLogTable）。
+      下一批（第六批）：清单第 3、4 张 —— `GuardianTable`（学生详情或花名册页新增监护人表）与
+      `StreamHistoryDialog`（先定位承载选科变更的原型页）。
     blocking: false
     blocks_stages:
       - stage8

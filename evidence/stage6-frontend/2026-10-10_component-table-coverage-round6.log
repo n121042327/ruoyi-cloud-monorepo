@@ -1,0 +1,45 @@
+2026-10-10 阶段 6：GAP-117 第五批（班级详情两张明细表补进原型，CR-164）
+
+一、本批改动
+1. prototypes/high-fidelity/v1/pages/class-detail.html
+   - 任课教师页签内新增「任教关系明细（只读）」表（第 4 张）：
+     教师 / 学年学期 / 任教类型 / 状态 / 跨校任教（<th data-role="column" data-field="..."> + 1 行示例数据）
+   - 变更记录页签内新增「班级变更记录」表（第 6 张）：
+     操作时间 / 操作人 / 操作类型 / 结果 / 变更明细
+   - 只新增表与示例数据，未改既有表、文案与列序。
+2. tools/check_fe_page_structure.py
+   - 新增 PAGE-CLS-DETAIL-TEACHING-ASSIGNMENT（table_index=4，skip_filter）
+   - 新增 PAGE-CLS-DETAIL-CHANGE-LOG（table_index=6，skip_filter）
+   - 更新 PAGE-CLS-DETAIL 的注释（原「待原型出新版本补标记」已由本批落地）
+
+二、列来源
+列定义取自生产组件，未新增生产页里不存在的列：
+  apps/plus-ui/src/views/edu/class/cls_detail/components/TeachingAssignmentTable.vue
+  apps/plus-ui/src/views/edu/class/cls_detail/components/ClassChangeLogTable.vue
+
+三、table_index 位移
+插入后 class-detail.html 的表格顺序：1 花名册 / 2 语文 / 3 外语 / 4 任教关系明细(新) /
+5 班主任任职历史 / 6 班级变更记录(新) / 7 形态样例。
+PAGE-CLS-DETAIL 使用默认切片（data-role="table" 第 1 张 = 花名册），不受影响；其余条目未引用该页的 table_index。
+
+四、门禁（本机执行）
+$ python tools/check_fe_page_structure.py
+=== PAGE-CLS-DETAIL-TEACHING-ASSIGNMENT 班级详情 · 任教关系明细（组件级对照） ===
+  表格列顺序与分组一致：5 列（教师(任教信息) → 学年学期(任教信息) → 任教类型(任教信息) → 状态(任教信息) → 跨校任教(任教信息)）
+=== PAGE-CLS-DETAIL-CHANGE-LOG 班级详情 · 变更记录（组件级对照） ===
+  表格列顺序与分组一致：5 列（操作时间(变更信息) → 操作人(变更信息) → 操作类型(变更信息) → 结果(变更信息) → 变更明细(变更信息)）
+=== PAGE-CLS-DETAIL 班级详情（花名册） ===
+  表格列顺序与分组一致：9 列（学号 → 姓名 → 性别 → 学籍状态 → 加入日期 → 监护人(联系方式) → 联系电话(联系方式) → 班级归属(班级信息) → 操作(操作)）
+exit=0
+
+$ python tools/check_fe_text_nowrap.py / check_api_contract.py / check_docs.py / check_gap_register.py /
+  check_mermaid.py / check_stage6_route_coverage.py / check_perm_seed.py -> 全部 exit 0
+
+五、未执行项与原因
+- 本批只改原型 HTML 与检查器，无前端源码 / 后端改动，未跑 pnpm 门禁与 Maven；未起第二个 edu 实例。
+
+六、GAP-117 进度
+已纳入门禁 5 / 11（AssignmentTable / ArchiveSearchDialog / TeachingClassDetailDrawer /
+TeachingAssignmentTable / ClassChangeLogTable）。
+下一批（第六批）：清单第 3、4 张 —— GuardianTable（学生详情或花名册页新增监护人表）与
+StreamHistoryDialog（选科相关原型页新增选科变更记录表），目标页需先定位。

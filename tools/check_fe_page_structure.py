@@ -348,6 +348,28 @@ CHECKS = [
         
     },
     {
+        "page_id": "PAGE-CLS-DETAIL-TEACHING-ASSIGNMENT",
+        "name": "班级详情 · 任教关系明细（组件级对照）",
+        "prototype": "prototypes/high-fidelity/v1/pages/class-detail.html",
+        "vue": "apps/plus-ui/src/views/edu/class/cls_detail/components/TeachingAssignmentTable.vue",
+        # D-238：原型缺表时以生产页列定义在原型新增表（CR-163 / CR-164），此处指向新增的第 4 张表
+        "table_index": 4,
+        "deferred_groups": {},
+        "skip_filter": True,
+        "filter_note": "组件级条目：查询区在父页面 PAGE-CLS-DETAIL，只比对任教关系明细表列",
+    },
+    {
+        "page_id": "PAGE-CLS-DETAIL-CHANGE-LOG",
+        "name": "班级详情 · 变更记录（组件级对照）",
+        "prototype": "prototypes/high-fidelity/v1/pages/class-detail.html",
+        "vue": "apps/plus-ui/src/views/edu/class/cls_detail/components/ClassChangeLogTable.vue",
+        # 新增的第 6 张表（第 4 张是任教关系明细、第 5 张是班主任任职历史）
+        "table_index": 6,
+        "deferred_groups": {},
+        "skip_filter": True,
+        "filter_note": "组件级条目：查询区在父页面 PAGE-CLS-DETAIL，只比对变更记录表列",
+    },
+    {
         "page_id": "PAGE-IMP-WIZARD",
         "name": "导入向导",
         "prototype": "prototypes/functional/v1/pages/import-wizard.html",
@@ -376,9 +398,9 @@ CHECKS = [
         "name": "班级详情（花名册）",
         "prototype": "prototypes/high-fidelity/v1/pages/class-detail.html",
         "vue": "apps/plus-ui/src/views/edu/class/cls_detail/index.vue",
-        # 原型第 2 / 3 张表（任课教师 / 变更记录）没有 data-role="column" 标记，无法逐列对照；
-        # 这两张表已按先例拆成 components/TeachingAssignmentTable.vue 与 ClassChangeLogTable.vue，
-        # 待原型出新版本补标记后再各自加一条 CHECKS（见 CR-135 / GAP-112）。
+        # 原型里按学科分组的「任课教师」小表（工号 / 教师 / 角色 / 学年学期 / 备注）没有列标记；
+        # 生产把这两张表拆成 components/TeachingAssignmentTable.vue 与 ClassChangeLogTable.vue，
+        # 并按 D-238（CR-163）在原型补了两张与生产列一致的明细表，各自登记在下方两条条目（CR-164）。
         "deferred_groups": {},
     },
     {

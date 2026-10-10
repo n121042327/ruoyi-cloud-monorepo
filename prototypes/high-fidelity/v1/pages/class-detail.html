@@ -276,6 +276,13 @@
             <div class="list-empty">这 7 个学科在本班还没有任教关系；到「教师管理 → 任教关系设置」按班级或教师视角补齐（批次 2-2b-2 已交付）。</div>
           </div>
         </div>
+        <div class="subject-group">
+          <div class="card-header"><h3>任教关系明细（只读）</h3><span class="el-tag info">逐条展示，CR-164</span></div>
+          <div class="card-body"><table class="el-table">
+            <thead><tr><th data-role="column" data-field="teacher_name" style="width:140px">教师</th><th data-role="column" data-field="term_id" style="width:180px">学年学期</th><th data-role="column" data-field="class_type" style="width:110px">任教类型</th><th data-role="column" data-field="status" style="width:100px">状态</th><th data-role="column" data-field="cross_school" style="width:110px">跨校任教</th></tr></thead>
+            <tbody><tr><td>邓丽娟</td><td>2026-2027 学年 第一学期</td><td>行政班</td><td><span class="el-tag success">生效中</span></td><td>否</td></tr></tbody>
+          </table></div>
+        </div>
       </div>
 
       <!-- 班主任任职历史 -->
@@ -319,6 +326,10 @@
           <button class="btn" data-role="action" data-action-id="ACT-CLS-027" data-component="el-button" data-permission="audit.log:read"
                   data-nav="PAGE-AUDIT-LOG-LIST">查看全部变更记录</button>
         </div>
+        <table class="el-table" style="margin-top:10px">
+          <thead><tr><th data-role="column" data-field="operate_time" style="width:150px">操作时间</th><th data-role="column" data-field="operator" style="width:120px">操作人</th><th data-role="column" data-field="action_type" style="width:110px">操作类型</th><th data-role="column" data-field="result" style="width:90px">结果</th><th data-role="column" data-field="change_detail">变更明细</th></tr></thead>
+          <tbody><tr><td class="mono">2026-09-12 14:20</td><td>郑雅琴（教务主任）</td><td>状态变更</td><td><span class="el-tag success">成功</span></td><td>陈思远 在校记录：在读 → 休学</td></tr></tbody>
+        </table>
       </div>
 
       <!-- 状态：加载中 / 查询失败 / 无权限 / 部分失败 / 排队中 -->
