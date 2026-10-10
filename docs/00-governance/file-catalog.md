@@ -1756,3 +1756,12 @@
 | `services/.../edu/job/TeacherImportHandler.java` | 教师导入校验器（9 列模板，拒绝跨校） | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-094 第三批进度更新 | `review` |
 | `evidence/stage7-backend/2026-10-10_teacher-import-validation.log` | 门禁与规则来源 | `review` |
+
+## 2026-10-10 阶段 7 第六十二批：编班表导入校验器（GAP-094 第三批收尾）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-143.md` | 编班表导入校验规则与模块边界 | `review` |
+| `services/.../edu/job/ClassRosterImportHandler.java` | 编班表导入校验器（4 列模板） | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-094 第三批完成标注 | `review` |
+| `evidence/stage7-backend/2026-10-10_class-roster-import-validation.log` | 门禁与状态记录 | `review` |
