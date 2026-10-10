@@ -1,0 +1,30 @@
+# GAP-094 第二批：学生导出器 + 后台导出的学校隔离口径（CR-138 / D-218 / GAP-114）
+
+时间：2026-10-10　分支：codex/stage7-backend　触发：用户要求 18:00 起继续推进（本轮为手动提前执行）
+
+## 实现中发现的真问题：后台导出没有登录态
+
+导出在 `@Scheduled` 线程里跑，`EduDataPermissionHandler`（MyBatis 数据权限插件）拿不到登录用户，
+数据范围**不会自动生效**。若不处理，后台导出会退化成「全平台导出」——这是安全问题，不是功能问题。
+
+本批口径：**导出器必须自己按任务落库时的学校上下文过滤，缺学校上下文直接拒绝导出**。
+
+## 交付
+| 项 | 说明 |
+|---|---|
+| `job/StudentExportHandler` + `StudentExportRow` | 学生导出器（编码 `student`）：默认列 学号 / 姓名 / 性别 / 入学年份 / 学段 / 年级 / 班级 / 学籍状态；**不含敏感列**（联系电话、证件号留到明文导出授权那一批，REQ-IMP-028） |
+| 学生取数 | 学生主体是平台级实体 → 经在校记录两段式取数：`edu_student_enrollment.school_id = 任务学校` → 学生 → 在班关系（`edu_class_member.status='1'`）→ 班级 → 年级（学段按 primary/junior/senior 转中文） |
+| `job/TeachingAssignmentExportHandler`（改） | 补 `schoolId` 过滤（原先只按 termId/classId/teacherId 过滤，缺学校隔离）；缺学校上下文同样拒绝 |
+| `job/EduExportHandler`（改） | 接口注释写明「后台执行没有登录态，实现类必须自己按 schoolId 过滤并拒绝缺上下文」 |
+
+## 门禁
+```
+mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile -> BUILD SUCCESS
+七项 python 检查 -> 通过
+```
+本批只改后端，未重跑前端门禁。端到端导出（发起 → 轮询 → 生成 → 下载）需要本机 MySQL / MinIO 才能验证。
+
+## 遗留（GAP-114）
+细粒度数据范围（年级主任看本年级、班主任看本班、任课教师看本人任教班级）目前没有随任务落库，
+后台导出只能做到**学校级隔离**；推荐在发起导出时把解析后的范围（gradeIds / classIds）写进任务参数，
+执行器按它过滤。

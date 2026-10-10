@@ -2987,8 +2987,10 @@ gaps:
       CR-137 进展（2026-10-10）：异步执行者骨架（`EduAsyncTaskExecutor`，@Scheduled 轮询 + 条件更新抢占 + 写
       edu_file_ref + 状态机）与第一个模块导出器（`teaching_assignment`，xlsx/csv）已落地，
       GAP-110 点名的任教关系导出已可用；`edu_async_task.params_summary` 补了 filters。
-      **仍未完成**：(a) 文件解析器与逐行校验（导入侧）；(b) student / teacher / class_roster 三个导出器；
+      **仍未完成**：(a) 文件解析器与逐行校验（导入侧）；(b) teacher / class_roster 两个导出器；
       导入执行器与结果统计。
+      CR-138 进展（2026-10-10）：student 导出器已落地，并确定「后台导出按任务落库的学校上下过滤、
+      缺学校上下文拒绝导出」的口径（D-218）；细粒度范围见 GAP-114。
       CR-133 复核（2026-10-10）：全模块扫描确认 ruoyi-edu 内无 `@Scheduled` / `@XxlJob` / MQ 监听，
       `edu_async_task` 无人消费 —— 校验、执行、导出三条链路都停在「写任务 / 写批次」这一步；
       本批同时并入 GAP-110（任教关系导出缺执行器，实为同一执行器的导出半边）。
@@ -3717,6 +3719,29 @@ open_questions_for_user:
       **推荐方案 1**：符合既有硬约束「学校级资源必须有学校上下文」（`DS-DENY-02`），
       且不需要动冻结的 schema；影响面是文件引用落库处（导入模板 / 结果文件）补一个 schoolId 赋值。
       本批先保证下载不被审计阻塞，缺口登记在此。
+    blocking: false
+    blocks_stages:
+      - stage8
+    owner: 用户
+    status: open
+  - id: GAP-114
+    title: 后台导出的细粒度数据范围（年级主任 / 班主任 / 任课教师）没有随任务落库
+    discovered_at: 2026-10-10
+    discovered_by: GAP-094 第二批（学生导出器，CR-138）
+    evidence: "edu_async_task 只落了 school_id 与 params_summary（moduleCode / format / termId / gradeId / classId / studentId / keyword / filters）；发起导出时 exportData 只做权限校验，不落解析后的数据范围。执行器（EduAsyncTaskExecutor）在无登录态线程里按 schoolId 取数（D-218），因此年级主任 / 班主任 / 任课教师发起导出时，拿到的仍是本校全量数据"
+    expected: 导出范围与发起人的数据范围一致（校领导全校 / 年级主任本年级 / 班主任本班 / 任课教师本人任教班级）
+    actual: 后台导出只做到学校级隔离，细粒度范围未落库、执行阶段无法复现
+    impact: |
+      **不选会怎样**：班主任点「导出学生」，拿到的是全校学生而不是本班 —— 与列表页看到的内容不一致，
+      用户会以为导出坏了；更麻烦的是这类「导出比页面多」的情况若被外部使用，等于扩大了数据可见范围。
+    options:
+      - "发起导出时把解析后的范围（schoolId + gradeIds / classIds）写进任务（params_summary 或新增列），执行器按它过滤（推荐）"
+      - "执行器按 ownerId + ownerRole 现场重算范围（需要在无登录态下重放权限判定，复杂且易漏）"
+      - "导出入口只对校领导及以上开放（缩小功能，班主任改走打印）"
+    recommended: |
+      **推荐方案 1**：范围在请求线程里解析最准（那里有完整登录态与数据权限插件），落库后执行阶段只是复现；
+      影响面：`exportData` 里调用一次 `DataScopeResolver` 把 gradeIds / classIds 写进 `params_summary`，
+      导出器在 wrapper 上加对应 in 条件。本批先保证学校级隔离（不会跨校泄漏），细粒度按本条补。
     blocking: false
     blocks_stages:
       - stage8

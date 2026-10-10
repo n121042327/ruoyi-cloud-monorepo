@@ -60,12 +60,17 @@ public class TeachingAssignmentExportHandler implements EduExportHandler {
 
     @Override
     public EduExportedFile export(EduExportContext context) {
+        // 后台执行没有登录态，学校隔离必须在这里显式做（见 EduExportHandler 的范围口径）
+        if (context.getSchoolId() == null) {
+            throw new ServiceException("导出缺少学校上下文，拒绝导出（DS-DENY-02）");
+        }
         Long teacherId = null;
         Map<String, Object> filters = context.getFilters();
         if (filters != null && filters.get("teacherId") != null) {
             teacherId = Convert.toLong(filters.get("teacherId"));
         }
         List<EduTeachingAssignment> list = assignmentMapper.selectList(new LambdaQueryWrapper<EduTeachingAssignment>()
+            .eq(EduTeachingAssignment::getSchoolId, context.getSchoolId())
             .eq(context.getTermId() != null, EduTeachingAssignment::getTermId, context.getTermId())
             .eq(context.getClassId() != null, EduTeachingAssignment::getClassId, context.getClassId())
             .eq(teacherId != null, EduTeachingAssignment::getTeacherId, teacherId)
