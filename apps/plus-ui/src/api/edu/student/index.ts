@@ -205,7 +205,20 @@ export const updateStudentNo = (studentId: string, studentNo: string, reason?: s
 };
 
 /**
- * 重置学生账号密码
+ * 逻辑删除学生（有在读关系或异动记录时后端拒绝，REQ-STU-075 / REQ-STU-078）
+ *
+ * 对应 operationId `removeStudent`（DELETE /edu/student/{id}）；原因随请求提交并写审计。
+ */
+export const removeStudent = (studentId: string, reason?: string) => {
+  return request({
+    url: `/edu/student/${studentId}`,
+    method: 'delete',
+    params: { reason }
+  });
+};
+
+/**
+ * 重置学生登录账号密码
  *
  * 对应 operationId `resetStudentPassword`（POST /edu/student/{id}/reset-password）。
  */
@@ -306,5 +319,6 @@ export default {
   uploadStudentPhoto,
   getStudentPhoto,
   listEnrollmentStatusOption,
-  changeEnrollmentStatus
+  changeEnrollmentStatus,
+  removeStudent
 };

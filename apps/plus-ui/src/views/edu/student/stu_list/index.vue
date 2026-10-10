@@ -169,6 +169,7 @@
                     <el-dropdown-item command="studentNo">变更学号</el-dropdown-item>
                     <el-dropdown-item command="resetPwd">重置密码</el-dropdown-item>
                     <el-dropdown-item command="export">导出学生</el-dropdown-item>
+                    <el-dropdown-item v-hasPermi="['person.student:remove']" command="delete" divided>删除学生</el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
@@ -219,7 +220,7 @@ import { useStudentList } from './composables/useStudentList';
 import { ENROLLMENT_STATUS_FILTER_OPTIONS, ENROLLMENT_STATUS_LABEL, GENDER_OPTIONS, STAGE_CODE_LABEL } from '@/enums/edu/StudentEnum';
 import type { StudentForm, StudentVO } from '@/api/edu/student/types';
 import { checkPermi } from '@/utils/permission';
-import { exportStudent, resetStudentPassword } from '@/api/edu/student';
+import { exportStudent, removeStudent, resetStudentPassword } from '@/api/edu/student';
 
 defineOptions({ name: 'EduStudentList' });
 
@@ -342,7 +343,7 @@ const handleUpdate = (row: StudentVO) => {
   formDialogRef.value?.open(form);
 };
 
-/** 操作列「更多」：变更学号、重置密码、导出学生 */
+/** 操作列「更多」：变更学号、重置密码、导出学生、删除学生 */
 const handleMore = async (command: string, row: StudentVO) => {
   if (command === 'studentNo') {
     studentNoRef.value?.open(row);
@@ -357,6 +358,27 @@ const handleMore = async (command: string, row: StudentVO) => {
   if (command === 'export') {
     await exportStudent({ studentIds: [row.studentId] });
     ElMessage.success('已提交导出任务，请到异步任务中心下载');
+    return;
   }
+  if (command === 'delete') {
+    await handleDelete(row);
+  }
+};
+
+/**
+ * 逻辑删除学生（REQ-STU-075 / REQ-STU-078）
+ *
+ * 前端只负责二次确认与必填原因；有无在读关系、有无异动记录一律由后端判断，
+ * 后端拒绝时原样展示后端错误信息（D-204：不做前端预判、不绕过校验）。
+ */
+const handleDelete = async (row: StudentVO) => {
+  const { value } = await ElMessageBox.prompt(`确认删除「${row.studentName}」？删除后学号作废，永不回收。`, '删除学生', {
+    inputPlaceholder: '删除原因（必填）',
+    inputValidator: (text: string) => (text && text.trim().length >= 5 ? true : '请填写删除原因（至少 5 个字）'),
+    type: 'warning'
+  });
+  await removeStudent(row.studentId, value);
+  ElMessage.success('学生已删除');
+  getList();
 };
 </script>

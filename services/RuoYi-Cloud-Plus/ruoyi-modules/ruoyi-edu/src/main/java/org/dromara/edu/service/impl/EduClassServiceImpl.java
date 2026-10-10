@@ -12,6 +12,7 @@ import org.dromara.edu.domain.EduClass;
 import org.dromara.edu.domain.EduClassMember;
 import org.dromara.edu.domain.EduGrade;
 import org.dromara.edu.domain.EduSchool;
+import org.dromara.edu.domain.EduTeachingAssignment;
 import org.dromara.edu.domain.EduTerm;
 import org.dromara.edu.domain.bo.EduClassBo;
 import org.dromara.edu.domain.bo.EduClassMemberBo;
@@ -179,6 +180,25 @@ public class EduClassServiceImpl implements IEduClassService {
         }
         update.setClassStatus(STATUS_DISABLED);
         return baseMapper.updateById(update) > 0;
+    }
+
+    @Override
+    public Boolean removeClass(Long classId, String reason) {
+        EduClass remove = requireClass(classId);
+        Long members = memberMapper.selectCount(new LambdaQueryWrapper<EduClassMember>()
+            .eq(EduClassMember::getClassId, classId)
+            .eq(EduClassMember::getStatus, MEMBER_IN));
+        if (members != null && members > 0) {
+            throw new ServiceException("该班级仍有在读学生，不允许删除，请改用停用（REQ-CLS-043）");
+        }
+        Long assignments = teachingAssignmentMapper.selectCount(new LambdaQueryWrapper<EduTeachingAssignment>()
+            .eq(EduTeachingAssignment::getClassId, classId)
+            .eq(EduTeachingAssignment::getClassType, TYPE_ADMINISTRATIVE)
+            .eq(EduTeachingAssignment::getStatus, MEMBER_IN));
+        if (assignments != null && assignments > 0) {
+            throw new ServiceException("该班级仍存在任教关系，不允许删除，请先结束任教关系");
+        }
+        return baseMapper.deleteById(remove.getClassId()) > 0;
     }
 
     @Override

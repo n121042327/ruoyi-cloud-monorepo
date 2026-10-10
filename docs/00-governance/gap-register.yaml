@@ -3463,3 +3463,63 @@ open_questions_for_user:
       - stage6
     owner: 用户
     status: open
+  - id: GAP-106
+    title: openapi 声明了 DELETE /edu/class/{id}（removeClass）但 ruoyi-edu 未实现，且年级删除不接收 reason
+    discovered_at: 2026-10-10
+    discovered_by: 主体删除接口接前端（CR-129）
+    evidence: "docs/40-detailed-design/api/openapi.yaml 的 /edu/class/{id} 声明 operationId removeClass；services/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-edu/src/main/java/org/dromara/edu/controller/EduClassController.java 只有 /{classId}/roster/{studentId} 一个 @DeleteMapping，没有 removeClass；EduGradeController.java:97 的 remove 只接 @PathVariable Long gradeId，不接 reason"
+    expected: 契约里声明的删除 operationId 在后端有实现；四个主体删除接口都能接收并记录删除原因
+    actual: removeClass 无实现（前端无法接）；年级删除无法传原因，原因进不了审计
+    impact: |
+      **不选会怎样**：前端接删除时班级这一路直接 404；年级删除的「原因」只能留在前端提示里、审计查不到，
+      历史与学籍类数据的删除无法追责。
+    options:
+      - "补 removeClass 实现 + 年级删除补 reason，与 student / subject / term 对齐（推荐）"
+      - "从 openapi 删掉 removeClass、年级删除不带原因（缩小契约）"
+      - "维持现状，前端对班级删除不做入口"
+    recommended: |
+      **推荐方案 1**：`openapi.yaml` 是接口事实源，声明了就该实现；班级删除的引用约束（有在读学生 / 有任教关系时拒绝）
+      在 PRD 里有明确依据（`REQ-CLS-043` / `REQ-CLS-046`），不存在需要用户拍板的业务规则。
+      影响面：`IEduClassService` / `EduClassServiceImpl` / `EduClassController` 各 1 处，`EduGradeController` + 服务各 1 处。
+    blocking: false
+    blocks_stages:
+      - stage6
+    owner: 用户
+    answer: |
+      用户 2026-10-10 授权「遇到需要拍板的按推荐方案走并在 decisions.md 与 gap-register.yaml 各记一条」，
+      本批按推荐方案 1 落地（CR-129 / D-209）。
+    resolution: |
+      已补齐：`EduClassController.remove` + `IEduClassService.removeClass` + `EduClassServiceImpl.removeClass`
+      （有在读学生或任教关系时拒绝，提示改用停用）；`EduGradeController.remove` 补 `reason`。
+      `mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile` BUILD SUCCESS；运行时行为待人工验收。
+    resolved_at: 2026-10-10
+    status: closed
+  - id: GAP-107
+    title: 停用 / 归档原因的前端校验长度（≥2）与后端要求（≥5）不一致
+    discovered_at: 2026-10-10
+    discovered_by: 主体删除接口接前端（CR-129）
+    evidence: "apps/plus-ui/src/views/edu/class/cls_list/index.vue 的 handleDisable 与 apps/plus-ui/src/views/edu/grade/grd_list/index.vue 的 handleArchive、apps/plus-ui/src/views/edu/subject/sub_list/index.vue 的 handleDisable 都写 inputValidator >= 2；后端 EduClassServiceImpl.disableClass 要求 reason.trim().length() >= 5 并抛「停用原因至少 5 个字」"
+    expected: 前端能提交的值后端一定能接受，长度口径一致
+    actual: 前端允许 2—4 个字的原因，提交后被后端拒绝，用户看到的是「明明填了原因还说原因不合规」
+    impact: |
+      **不选会怎样**：用户按前端提示填 2—4 个字，后端拒绝；这类表单校验不一致会让人怀疑整个表单是否可信，
+      每次都要多试一轮。
+    options:
+      - "前端统一提到 ≥5，与后端一致（推荐）"
+      - "后端放宽到 ≥2"
+      - "维持现状，靠后端错误信息纠正"
+    recommended: |
+      **推荐方案 1**：口径修改只动前端三处 `inputValidator`，零后端风险；后端的 ≥5 是既有裁决
+      （`disableClass` / `archiveGrade` / 教师离职登记 / 花名册移出都用 ≥5），不应为了前端提示放宽。
+    blocking: false
+    blocks_stages:
+      - stage6
+    owner: 用户
+    answer: |
+      用户 2026-10-10 授权「遇到需要拍板的按推荐方案走并在 decisions.md 与 gap-register.yaml 各记一条」，
+      本批按推荐方案 1 落地（CR-129 / D-209）。
+    resolution: |
+      已把班级停用、年级归档、学科停用的前端校验改为「至少 5 个字」，新增的四个删除入口同口径；
+      `typecheck 51 / lint 124 / build:prod exit 0`。
+    resolved_at: 2026-10-10
+    status: closed

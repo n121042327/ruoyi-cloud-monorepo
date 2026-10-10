@@ -78,7 +78,7 @@
             </template>
           </el-table-column>
 
-          <el-table-column fixed="right" label="操作" width="320" data-layout-group="操作">
+          <el-table-column fixed="right" label="操作" width="370" data-layout-group="操作">
             <template #default="scope">
               <el-button v-hasPermi="['org.grade:update']" link type="primary" icon="Edit" @click="handleUpdate(scope.row)">编辑</el-button>
               <el-button v-hasPermi="['org.grade:update']" link type="primary" @click="leaderRef?.open(scope.row)">指定年级主任</el-button>
@@ -91,6 +91,16 @@
                 @click="handleArchive(scope.row)"
                 >归档</el-button
               >
+              <el-dropdown v-hasPermi="['org.grade:remove']" class="ml-2" @command="(cmd: string) => handleMore(cmd, scope.row)">
+                <el-button link type="primary"
+                  >更多<el-icon class="ml-1"><arrow-down /></el-icon
+                ></el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="delete">删除年级</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </template>
           </el-table-column>
 
@@ -128,7 +138,7 @@ import { useGradeList } from './composables/useGradeList';
 import type { GradeVO } from '@/api/edu/grade/types';
 import { checkPermi } from '@/utils/permission';
 import { STAGE_CODE_LABEL } from '@/enums/edu/StudentEnum';
-import { archiveGrade } from '@/api/edu/grade';
+import { archiveGrade, removeGrade } from '@/api/edu/grade';
 import { listTeacher } from '@/api/edu/teacher';
 import type { TeacherVO } from '@/api/edu/teacher/types';
 
@@ -177,11 +187,35 @@ const handleUpdate = (row: GradeVO) => {
 const handleArchive = async (row: GradeVO) => {
   const { value } = await ElMessageBox.prompt(`确认归档「${row.gradeName}」？归档后不允许新增班级。`, '年级归档', {
     inputPlaceholder: '归档原因（必填）',
-    inputValidator: (text: string) => (text && text.trim().length >= 2 ? true : '请填写归档原因（至少 2 个字）'),
+    inputValidator: (text: string) => (text && text.trim().length >= 5 ? true : '请填写归档原因（至少 5 个字）'),
     type: 'warning'
   });
   await archiveGrade(row.gradeId, value);
   ElMessage.success('年级已归档');
+  getList();
+};
+
+/** 操作列「更多」 */
+const handleMore = async (command: string, row: GradeVO) => {
+  if (command === 'delete') {
+    await handleDelete(row);
+  }
+};
+
+/**
+ * 逻辑删除年级（REQ-GRD-030 / BR-GRADE-005）
+ *
+ * 前端只负责二次确认与必填原因；有无班级、有无学生关系一律由后端判断，
+ * 后端拒绝时原样展示后端错误信息（D-204：不做前端预判、不绕过校验）。
+ */
+const handleDelete = async (row: GradeVO) => {
+  const { value } = await ElMessageBox.prompt(`确认删除「${row.gradeName}」？有班级或学生关系时后端会拒绝，请改用归档。`, '删除年级', {
+    inputPlaceholder: '删除原因（必填）',
+    inputValidator: (text: string) => (text && text.trim().length >= 5 ? true : '请填写删除原因（至少 5 个字）'),
+    type: 'warning'
+  });
+  await removeGrade(row.gradeId, value);
+  ElMessage.success('年级已删除');
   getList();
 };
 

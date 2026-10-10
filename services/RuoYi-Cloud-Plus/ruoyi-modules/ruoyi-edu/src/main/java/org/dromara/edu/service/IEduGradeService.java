@@ -37,7 +37,7 @@ public interface IEduGradeService {
     Boolean batchAddGrade(EduGradeBo grade);
 
     /** 删除年级（有班级或学生关系时不允许删除，BR-GRADE-004） */
-    Boolean removeGrade(Long gradeId);
+    Boolean removeGrade(Long gradeId, String reason);
 
     /** 归档年级（有班级或学生关系时只允许归档） */
     Boolean archiveGrade(Long gradeId, String reason);

@@ -1587,3 +1587,23 @@
 | `apps/plus-ui/src/views/edu/teacher/tch_list/components/TeacherLeaveDialog.vue`（改） | 离职 / 调离登记改用码值 | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | 新增 GAP-105（在职状态码值分歧） | `review` |
 | `evidence/stage6-frontend/2026-10-10_detail-drawers.log` | 门禁与改动记录 | `review` |
+
+## 2026-10-10 阶段 6 第四十八批：四类主体删除接口接前端
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-129.md` | 四个删除入口的接法、后端补齐与校验口径 | `review` |
+| `apps/plus-ui/src/api/edu/student/index.ts`（改） | 补 removeStudent | `已实现` |
+| `apps/plus-ui/src/api/edu/class/index.ts`（改） | 补 removeClass | `已实现` |
+| `apps/plus-ui/src/views/edu/student/stu_list/index.vue`（改） | 更多▾加「删除学生」+ 原因必填确认 | `已实现` |
+| `apps/plus-ui/src/views/edu/class/cls_list/index.vue`（改） | 更多▾加「删除班级」；停用原因校验统一为 ≥5 | `已实现` |
+| `apps/plus-ui/src/views/edu/grade/grd_list/index.vue`（改） | 更多▾加「删除年级」；归档原因校验统一为 ≥5 | `已实现` |
+| `apps/plus-ui/src/views/edu/subject/sub_list/index.vue`（改） | 更多▾加「删除学科」；停用原因校验统一为 ≥5 | `已实现` |
+| `services/.../edu/controller/EduClassController.java`（改） | 补 DELETE /edu/class/{id}（removeClass） | `已实现` |
+| `services/.../edu/service/IEduClassService.java`（改） | 补 removeClass 声明 | `已实现` |
+| `services/.../edu/service/impl/EduClassServiceImpl.java`（改） | 补 removeClass 实现（有在读学生 / 任教关系时拒绝） | `已实现` |
+| `services/.../edu/controller/EduGradeController.java`（改） | 删除年级补 reason 入参 | `已实现` |
+| `services/.../edu/service/IEduGradeService.java`（改） | removeGrade 补 reason | `已实现` |
+| `services/.../edu/service/impl/EduGradeServiceImpl.java`（改） | removeGrade 补 reason | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | 新增 GAP-106 / GAP-107（均已关闭） | `review` |
+| `evidence/stage6-frontend/2026-10-10_delete-endpoints-wiring.log` | 门禁与改动记录 | `review` |

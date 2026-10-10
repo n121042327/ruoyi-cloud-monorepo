@@ -219,6 +219,19 @@ export const assignClassHeadTeacher = (classId: string, data: { headTeacherId: s
 };
 
 /**
+ * 逻辑删除班级（有在读学生或任教关系时后端拒绝，只允许停用，REQ-CLS-043 / REQ-CLS-046）
+ *
+ * 对应 operationId `removeClass`（DELETE /edu/class/{id}）；原因随请求提交并写审计。
+ */
+export const removeClass = (classId: string, reason?: string) => {
+  return request({
+    url: `/edu/class/${classId}`,
+    method: 'delete',
+    params: { reason }
+  });
+};
+
+/**
  * 停用班级（有在读学生不允许删除、只允许停用，BR-CLASS-006）
  *
  * 对应 operationId `disableClass`（POST /edu/class/{id}/disable）。
@@ -257,5 +270,6 @@ export default {
   listTeachingClassRoster,
   transferClass,
   addClass,
-  updateClass
+  updateClass,
+  removeClass
 };

@@ -120,7 +120,7 @@
             </template>
           </el-table-column>
 
-          <el-table-column fixed="right" label="操作" width="220" data-layout-group="操作">
+          <el-table-column fixed="right" label="操作" width="270" data-layout-group="操作">
             <template #default="scope">
               <el-button v-hasPermi="['org.class:update']" link type="primary" icon="Edit" @click="handleUpdate(scope.row)">编辑</el-button>
               <el-button v-hasPermi="['org.class:update']" link type="primary" @click="handleRoster(scope.row)">花名册</el-button>
@@ -133,6 +133,16 @@
               >
                 停用
               </el-button>
+              <el-dropdown v-hasPermi="['org.class:remove']" class="ml-2" @command="(cmd: string) => handleMore(cmd, scope.row)">
+                <el-button link type="primary"
+                  >更多<el-icon class="ml-1"><arrow-down /></el-icon
+                ></el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="delete">删除班级</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </template>
           </el-table-column>
 
@@ -171,7 +181,7 @@ import ClassFormDialog from './components/ClassFormDialog.vue';
 import ClassBatchDialog from './components/ClassBatchDialog.vue';
 import { CLASS_TYPE_OPTIONS, useClassList } from './composables/useClassList';
 import type { ClassVO } from '@/api/edu/class/types';
-import { disableClass } from '@/api/edu/class';
+import { disableClass, removeClass } from '@/api/edu/class';
 import { checkPermi } from '@/utils/permission';
 
 defineOptions({ name: 'EduClassList' });
@@ -230,11 +240,35 @@ const handleRoster = (row: ClassVO) => {
 const handleDisable = async (row: ClassVO) => {
   const { value } = await ElMessageBox.prompt(`确认停用「${row.className}」？`, '停用班级', {
     inputPlaceholder: '停用原因（必填）',
-    inputValidator: (text: string) => (text && text.trim().length >= 2 ? true : '请填写停用原因（至少 2 个字）'),
+    inputValidator: (text: string) => (text && text.trim().length >= 5 ? true : '请填写停用原因（至少 5 个字）'),
     type: 'warning'
   });
   await disableClass(row.classId, value);
   ElMessage.success('班级已停用');
+  getList();
+};
+
+/** 操作列「更多」 */
+const handleMore = async (command: string, row: ClassVO) => {
+  if (command === 'delete') {
+    await handleDelete(row);
+  }
+};
+
+/**
+ * 逻辑删除班级（REQ-CLS-043 / REQ-CLS-046）
+ *
+ * 前端只负责二次确认与必填原因；有无在读学生、有无任教关系一律由后端判断，
+ * 后端拒绝时原样展示后端错误信息（D-204：不做前端预判、不绕过校验）。
+ */
+const handleDelete = async (row: ClassVO) => {
+  const { value } = await ElMessageBox.prompt(`确认删除「${row.className}」？有在读学生时后端会拒绝，请改用停用。`, '删除班级', {
+    inputPlaceholder: '删除原因（必填）',
+    inputValidator: (text: string) => (text && text.trim().length >= 5 ? true : '请填写删除原因（至少 5 个字）'),
+    type: 'warning'
+  });
+  await removeClass(row.classId, value);
+  ElMessage.success('班级已删除');
   getList();
 };
 </script>

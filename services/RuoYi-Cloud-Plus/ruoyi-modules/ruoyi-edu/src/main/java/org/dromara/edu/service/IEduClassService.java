@@ -41,6 +41,9 @@ public interface IEduClassService {
     /** 停用班级（有在读学生不允许删除、只允许停用，BR-CLASS-006） */
     Boolean disableClass(Long classId, String reason);
 
+    /** 删除班级（有在读学生或任教关系时拒绝，只允许停用，REQ-CLS-043 / REQ-CLS-046） */
+    Boolean removeClass(Long classId, String reason);
+
     /** 班级合并（源班级并入目标班级，源班级置停用） */
     Boolean mergeClass(EduClassBo clazz);
 

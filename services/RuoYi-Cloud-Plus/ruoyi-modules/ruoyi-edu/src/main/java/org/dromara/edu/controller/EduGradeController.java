@@ -95,8 +95,8 @@ public class EduGradeController extends BaseController {
     @Log(title = "年级管理", businessType = BusinessType.DELETE)
     @RepeatSubmit()
     @DeleteMapping("/{gradeId}")
-    public R<Void> remove(@PathVariable Long gradeId) {
-        return toAjax(gradeService.removeGrade(gradeId));
+    public R<Void> remove(@PathVariable Long gradeId, @RequestParam(required = false) String reason) {
+        return toAjax(gradeService.removeGrade(gradeId, reason));
     }
 
     /** 归档年级（有班级或学生关系时只允许归档） */

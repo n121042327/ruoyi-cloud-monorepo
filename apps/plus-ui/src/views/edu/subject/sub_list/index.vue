@@ -86,7 +86,7 @@
             </template>
           </el-table-column>
 
-          <el-table-column fixed="right" label="操作" width="300" data-layout-group="操作">
+          <el-table-column fixed="right" label="操作" width="350" data-layout-group="操作">
             <template #default="scope">
               <el-button v-hasPermi="['org.subject:update']" link type="primary" @click="formRef?.open(scope.row)">编辑</el-button>
               <el-button v-hasPermi="['org.subject:update']" link type="primary" @click="streamRef?.open(scope.row)">选科角色</el-button>
@@ -102,6 +102,16 @@
               </el-button>
               <el-button v-else v-hasPermi="['org.subject:update']" link type="primary" @click="handleEnable(scope.row)">启用</el-button>
               <el-button v-hasPermi="['org.subject:read']" link type="primary" @click="handleReference(scope.row)">引用检查</el-button>
+              <el-dropdown v-hasPermi="['org.subject:remove']" class="ml-2" @command="(cmd: string) => handleMore(cmd, scope.row)">
+                <el-button link type="primary"
+                  >更多<el-icon class="ml-1"><arrow-down /></el-icon
+                ></el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="delete">删除学科</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </template>
           </el-table-column>
 
@@ -132,7 +142,7 @@ import { computed, getCurrentInstance, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { STREAM_ROLE_OPTIONS, stageLabel, useSubjectList } from './composables/useSubjectList';
 import { checkPermi } from '@/utils/permission';
-import { checkSubjectReference, disableSubject, enableSubject } from '@/api/edu/subject';
+import { checkSubjectReference, disableSubject, enableSubject, removeSubject } from '@/api/edu/subject';
 import type { SubjectVO } from '@/api/edu/subject/types';
 import SubjectFormDialog from './components/SubjectFormDialog.vue';
 import SubjectStageDialog from './components/SubjectStageDialog.vue';
@@ -165,7 +175,7 @@ const STREAM_ROLE_LABEL: Record<string, string> = STREAM_ROLE_OPTIONS.reduce(
 const handleDisable = async (row: SubjectVO) => {
   const { value } = await ElMessageBox.prompt(`确认停用「${row.subjectName}」？`, '停用学科', {
     inputPlaceholder: '停用原因（必填）',
-    inputValidator: (text: string) => (text && text.trim().length >= 2 ? true : '请填写停用原因（至少 2 个字）'),
+    inputValidator: (text: string) => (text && text.trim().length >= 5 ? true : '请填写停用原因（至少 5 个字）'),
     type: 'warning'
   });
   await disableSubject(row.subjectId, value);
@@ -176,6 +186,30 @@ const handleDisable = async (row: SubjectVO) => {
 const handleEnable = async (row: SubjectVO) => {
   await enableSubject(row.subjectId);
   ElMessage.success('已启用');
+  getList();
+};
+
+/** 操作列「更多」 */
+const handleMore = async (command: string, row: SubjectVO) => {
+  if (command === 'delete') {
+    await handleDelete(row);
+  }
+};
+
+/**
+ * 逻辑删除学科（REQ-SUB-030 / REQ-SUB-031 / REQ-SUB-033）
+ *
+ * 前端只负责二次确认与必填原因；任教关系 / 教学班 / 学生选科三类引用一律由后端判断，
+ * 后端拒绝时原样展示后端错误信息（D-204：不做前端预判、不绕过校验）。
+ */
+const handleDelete = async (row: SubjectVO) => {
+  const { value } = await ElMessageBox.prompt(`确认删除「${row.subjectName}」？有引用时后端会拒绝，请改用停用。`, '删除学科', {
+    inputPlaceholder: '删除原因（必填）',
+    inputValidator: (text: string) => (text && text.trim().length >= 5 ? true : '请填写删除原因（至少 5 个字）'),
+    type: 'warning'
+  });
+  await removeSubject(row.subjectId, value);
+  ElMessage.success('学科已删除');
   getList();
 };
 

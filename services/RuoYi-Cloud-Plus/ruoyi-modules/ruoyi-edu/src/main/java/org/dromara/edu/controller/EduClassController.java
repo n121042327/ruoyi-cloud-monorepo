@@ -106,6 +106,15 @@ public class EduClassController extends BaseController {
         return toAjax(classService.disableClass(classId, reason));
     }
 
+    /** 删除班级（有在读学生或任教关系时拒绝，只允许停用，REQ-CLS-043 / REQ-CLS-046） */
+    @SaCheckPermission("org.class:remove")
+    @Log(title = "班级管理", businessType = BusinessType.DELETE)
+    @RepeatSubmit()
+    @DeleteMapping("/{classId}")
+    public R<Void> remove(@PathVariable Long classId, @RequestParam(required = false) String reason) {
+        return toAjax(classService.removeClass(classId, reason));
+    }
+
     /** 班级合并（源班级并入目标班级，源班级置停用、保留历史花名册） */
     @SaCheckPermission("org.class:update")
     @Log(title = "班级管理", businessType = BusinessType.UPDATE)

@@ -107,7 +107,7 @@ public class EduGradeServiceImpl implements IEduGradeService {
     }
 
     @Override
-    public Boolean removeGrade(Long gradeId) {
+    public Boolean removeGrade(Long gradeId, String reason) {
         EduGrade grade = requireGrade(gradeId);
         Long classCount = classMapper.selectCount(new LambdaQueryWrapper<EduClass>()
             .eq(EduClass::getGradeId, gradeId));
