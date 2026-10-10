@@ -2054,3 +2054,13 @@
 | `docs/00-governance/decisions.md`（改） | 新增 D-240（派生列口径） | `review` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-118 关闭（缺项清零） | `review` |
 | `evidence/stage7-backend/2026-10-10_gap118-derived-columns.log` | 修复前后接口输出与门禁结果 | `review` |
+
+## 2026-10-10 阶段 8 验收缺陷修复（第五批，CR-171 / GAP-119 导入模板）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-171.md` | 导入模板缺失的现象、根因与现场生成方案 | `review` |
+| `services/.../edu/service/impl/EduImportExportServiceImpl.java`（改） | 列表合成未落库模块 + 按校验器表头现场生成模板 | `已实现` |
+| `docs/00-governance/decisions.md`（改） | 新增 D-241（模板列权威来源） | `review` |
+| `docs/00-governance/gap-register.yaml`（改） | 新增并关闭 GAP-119 | `review` |
+| `evidence/stage7-backend/2026-10-10_import-template-generation.log` | 修复前后接口输出与门禁结果 | `review` |

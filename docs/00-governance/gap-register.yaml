@@ -4059,3 +4059,44 @@ open_questions_for_user:
       证据 `evidence/stage7-backend/2026-10-10_gap118-derived-columns.log`，变更记录 `CR-170`，裁决 `D-240`。
     resolved_at: "2026-10-10"
     status: closed
+
+  - id: GAP-119
+    title: 导入模板表无种子数据，导入向导第一步「下载模板」必然失败
+    discovered_at: 2026-10-10
+    discovered_by: 阶段 8 运行时验收（第 6 项 导入导出链路）
+    evidence: |
+      **这是什么**：教育域「导入导出 → 导入向导」的第一步是「选模块 → 下载模板」，模块下拉直接取
+      `GET /edu/import/template`。但 `edu_import_template` 在迁移 `V4__edu_promotion_stream_support.sql` 里
+      只有建表、没有任何种子行（全仓库 SQL 搜 `edu_import_template` 只有 DDL），而模板文件必须先上传到
+      对象存储才有 `file_id` —— SQL 迁移无法自己产生文件，所以这张表在真实环境里必然是空的，
+      而且代码里也没有任何「生成模板 / 上传模板」的入口。
+      实测：`GET /edu/import/template` 返回 `total=0`；`GET /edu/import/template/student` 返回
+      `{"code":500,"msg":"导入模板不存在：student"}`。导入向导与学生导入页因此没有任何模块可选。
+    expected: 能下载到与校验器声明表头一致的模板（REQ-IMP-002；REQ-STU-052 表头严格比对）
+    actual: 模板表为空，下载模板直接报错，导入全链路（上传 → 校验 → 执行 → 结果下载 → 下载审计）无法开始
+    impact: |
+      **不选会怎样**：学生 / 教师 / 编班表三个模块的导入全部不可用；若改为「管理员手工上传模板」，
+      模板文件与校验器表头会各自演进，表头严格比对会变成随机失败。
+    options:
+      - "① 模板列以模块校验器 `templateHeaders()` 为权威来源，下载时现场生成并落库（推荐，已采用）"
+      - "② 新增管理员上传模板入口 + 迁移种子（需人工准备 3 个 xlsx，且模板与校验器可能漂移）"
+      - "③ 前端内置模板文件（打包进静态资源，模块加列要重新发版）"
+    recommended: |
+      **推荐选项 1**：校验阶段的表头严格比对用的就是校验器声明的 `templateHeaders()`，
+      让模板从同一份声明生成可以从根上消除「模板与校验器漂移」；列表接口同时合成
+      「已登记校验器但未落库」的模块行，保证模块下拉可用。DB 里已登记且 `file_id` 非空的模板行优先使用，
+      与将来人工维护的版本不冲突。
+    resolution: |
+      2026-10-10 本批（CR-171 / D-241）按推荐方案 1 实现：`EduImportExportServiceImpl` 新增
+      `appendUnregisteredModules`（列表合成未落库模块）与 `generateTemplate` / `writeTemplateWorkbook`
+      （用校验器表头现场生成只有表头行的 xlsx → 上传统一文件服务 → 落 `edu_file_ref` +
+      `edu_import_template`，按 module_code + template_version 幂等）；返回值仍是短时签名链接、照常写下载审计。
+      三个模块模板列数：student 14 / teacher 10 / class_roster 4。
+      门禁：edu 模块 compile BUILD SUCCESS；八项 python 检查 exit 0。
+      运行复验（下载模板 → 上传 → 校验 → 执行 → 结果下载 → 下载审计）待 9211 重启到本批产物后执行。
+    resolved_at: "2026-10-10"
+    blocking: false
+    blocks_stages:
+      - stage8
+    owner: 用户
+    status: closed

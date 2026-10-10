@@ -1,6 +1,7 @@
 package org.dromara.edu.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
+import cn.idev.excel.FastExcel;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
@@ -46,12 +47,16 @@ import org.dromara.edu.mapper.EduImportTemplateMapper;
 import org.dromara.edu.service.IEduAuditService;
 import org.dromara.edu.service.IEduImportExportService;
 import org.dromara.resource.api.RemoteFileService;
+import org.dromara.resource.api.domain.RemoteFile;
 import org.dromara.system.api.model.LoginUser;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -99,6 +104,12 @@ public class EduImportExportServiceImpl implements IEduImportExportService {
     private static final String FILE_KIND_FAILED_ROWS = "failed_rows";
     private static final String FILE_KIND_EXPORT_RESULT = "export_result";
     private static final String FILE_KIND_TEMPLATE = "import_template";
+
+    /**
+     * 模板兜底版本号：`edu_import_template` 未登记时按此版本现场生成（GAP-119 / D-241）。
+     * 模板列的权威来源是模块校验器声明的 `templateHeaders()`，与校验阶段的表头严格比对同源。
+     */
+    private static final String TEMPLATE_FALLBACK_VERSION = "v1";
 
     /** 批次文件下载类型 */
     private static final String KIND_FAILED_ROWS = "failed_rows";
@@ -170,7 +181,50 @@ public class EduImportExportServiceImpl implements IEduImportExportService {
             .orderByDesc(EduImportTemplate::getTemplateVersion);
         Page<EduImportTemplateVo> result = templateMapper.selectPageTemplate(pageQuery.build(), wrapper);
         result.getRecords().forEach(this::fillTemplateExpired);
+        appendUnregisteredModules(result, query);
         return TableDataInfo.build(result);
+    }
+
+    /**
+     * 补齐「已登记校验器、但 `edu_import_template` 里还没有记录」的模块（GAP-119 / D-241）。
+     *
+     * 导入向导的模块下拉直接取本接口；模板表为空时用户连模块都选不到，整条导入链路卡在第一步。
+     * 模板列的权威来源本来就是模块校验器（`EduImportHandler.templateHeaders()`，与表头严格比对同一份声明），
+     * 因此为未落库模块合成一行「当前版本、文件按需生成」的模板行，真正的文件在下载时生成并落库。
+     * 仅在未按模块过滤时合并，避免把用户明确筛选的结果污染成全集。
+     */
+    private void appendUnregisteredModules(Page<EduImportTemplateVo> result, EduImportTemplateBo query) {
+        if (importHandlers == null || importHandlers.isEmpty() || StringUtils.isNotBlank(query.getModuleCode())) {
+            return;
+        }
+        Set<String> registered = new HashSet<>();
+        for (EduImportTemplateVo row : result.getRecords()) {
+            registered.add(row.getModuleCode());
+        }
+        List<EduImportTemplateVo> synthesized = new ArrayList<>();
+        for (EduImportHandler handler : importHandlers) {
+            List<String> headers = handler.templateHeaders();
+            if (StringUtils.isBlank(handler.moduleCode()) || registered.contains(handler.moduleCode())
+                || headers == null || headers.isEmpty()) {
+                continue;
+            }
+            EduImportTemplateVo vo = new EduImportTemplateVo();
+            vo.setModuleCode(handler.moduleCode());
+            vo.setTemplateVersion(TEMPLATE_FALLBACK_VERSION);
+            vo.setColumnCount(headers.size());
+            vo.setStatus(TEMPLATE_CURRENT);
+            vo.setExpired(Boolean.FALSE);
+            synthesized.add(vo);
+        }
+        if (synthesized.isEmpty()) {
+            return;
+        }
+        List<EduImportTemplateVo> rows = new ArrayList<>(result.getRecords());
+        rows.addAll(synthesized);
+        rows.sort(Comparator.comparing(EduImportTemplateVo::getModuleCode,
+            Comparator.nullsLast(Comparator.naturalOrder())));
+        result.setRecords(rows);
+        result.setTotal(result.getTotal() + synthesized.size());
     }
 
     @Override
@@ -186,14 +240,94 @@ public class EduImportExportServiceImpl implements IEduImportExportService {
                 .eq(EduImportTemplate::getModuleCode, moduleCode)
                 .eq(EduImportTemplate::getTemplateVersion, version));
         if (template == null) {
-            throw new ServiceException("导入模板不存在：" + moduleCode + (StringUtils.isBlank(version) ? ""
-                : " / " + version));
+            // GAP-119 / D-241：模板列由模块校验器声明，DB 未登记时现场生成；
+            // 否则「下载模板」必然报「导入模板不存在」，导入向导第一步就走不通。
+            template = generateTemplate(moduleCode, version);
         }
         if (template.getFileId() == null) {
             throw new ServiceException("模板文件尚未上传，请联系管理员：" + template.getTemplateVersion());
         }
         // 旧版本模板仍可下载，只在提示里标注已过期（REQ-IMP-003 / IMP-Q-05 已裁决）
         return buildDownload(fileRefByFileId(template.getFileId()), false, templateExpiredHint(template));
+    }
+
+    /**
+     * 按模块校验器声明的表头现场生成导入模板并落库（GAP-119 / D-241）。
+     *
+     * 步骤：取校验器表头 → 生成只有表头行的 xlsx → 上传统一文件服务 →
+     * 登记 `edu_file_ref`（file_kind = import_template）→ 登记 `edu_import_template`（状态 = 当前版本）。
+     * 幂等：唯一键 `module_code + template_version`；并发首次下载时后到的一方复用先落库的行。
+     */
+    private EduImportTemplate generateTemplate(String moduleCode, String version) {
+        EduImportHandler handler = importHandler(moduleCode);
+        if (handler == null || StringUtils.isBlank(handler.moduleCode())
+            || (StringUtils.isNotBlank(version) && !TEMPLATE_FALLBACK_VERSION.equals(version))) {
+            throw new ServiceException("导入模板不存在：" + moduleCode
+                + (StringUtils.isBlank(version) ? "" : " / " + version));
+        }
+        List<String> headers = handler.templateHeaders();
+        if (headers == null || headers.isEmpty()) {
+            throw new ServiceException("模块未声明导入模板列，无法生成模板：" + moduleCode);
+        }
+        Long schoolId = currentSchoolIdOrNull();
+        if (schoolId == null) {
+            throw new ServiceException("下载模板缺少学校上下文，已拒绝（REQ-IMP-043）");
+        }
+        String fileName = "import-template-" + moduleCode + "-" + TEMPLATE_FALLBACK_VERSION + ".xlsx";
+        String contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        byte[] bytes = writeTemplateWorkbook(headers);
+        RemoteFile uploaded = remoteFileService.upload(fileName, fileName, contentType, bytes);
+        if (uploaded == null || uploaded.getOssId() == null) {
+            throw new ServiceException("模板文件生成失败，请稍后重试");
+        }
+        EduFileRef ref = new EduFileRef();
+        ref.setFileId(uploaded.getOssId());
+        ref.setFileKind(FILE_KIND_TEMPLATE);
+        ref.setFileName(fileName);
+        ref.setStorageKey(uploaded.getUrl());
+        ref.setContentType(contentType);
+        ref.setFileSize((long) bytes.length);
+        ref.setBizType("import_template");
+        ref.setBizId(moduleCode);
+        ref.setSchoolId(schoolId);
+        fileRefMapper.insert(ref);
+
+        EduImportTemplate add = new EduImportTemplate();
+        add.setModuleCode(moduleCode);
+        add.setTemplateVersion(TEMPLATE_FALLBACK_VERSION);
+        add.setColumnCount(headers.size());
+        add.setFileId(uploaded.getOssId());
+        add.setStatus(TEMPLATE_CURRENT);
+        try {
+            templateMapper.insert(add);
+        } catch (DuplicateKeyException e) {
+            // 并发首次下载：另一方已落库，直接复用（本次上传的文件引用成为未使用的孤儿，不影响功能）
+            EduImportTemplate existed = templateMapper.selectOne(new LambdaQueryWrapper<EduImportTemplate>()
+                .eq(EduImportTemplate::getModuleCode, moduleCode)
+                .eq(EduImportTemplate::getTemplateVersion, TEMPLATE_FALLBACK_VERSION));
+            if (existed != null) {
+                return existed;
+            }
+            throw e;
+        }
+        log.info("导入模板按校验器表头生成：{} / {}（{} 列）",
+            moduleCode, TEMPLATE_FALLBACK_VERSION, headers.size());
+        return add;
+    }
+
+    /**
+     * 写只有表头行的 xlsx（不写示例行：示例数据会被解析成真实导入行并校验失败）。
+     * 表头即模块校验器声明的 `templateHeaders()` 顺序，与 `EduImportFileReader` 的严格比对同源。
+     */
+    private byte[] writeTemplateWorkbook(List<String> headers) {
+        List<List<String>> rows = new ArrayList<>();
+        rows.add(new ArrayList<>(headers));
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            FastExcel.write(out).sheet("导入模板").doWrite(rows);
+            return out.toByteArray();
+        } catch (Exception e) {
+            throw new ServiceException("模板文件生成失败：" + e.getMessage());
+        }
     }
 
     @Override

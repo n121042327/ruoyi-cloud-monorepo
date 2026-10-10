@@ -1,0 +1,59 @@
+# 2026-10-10 导入模板现场生成（CR-171 / GAP-119，阶段 8 验收第 6 项）
+
+## 一、环境
+- 仓库 D:\work\person_work\ruoyi-cloud-monorepo，分支 codex/stage7-backend
+- edu 服务 9211（用户 IDEA 实例，本轮启动时间 22:48:09 → 早于本批编译产物，运行复验需再重启一次）
+- 网关 8080 / 前端 dev server；登录身份：租户「蜀国」546223，liubei
+
+## 二、修复前的接口输出（复现现象）
+```
+GET /edu/import/template
+HTTP 200 {"total":0,"rows":[],"code":200,"msg":"查询成功"}
+
+GET /edu/import/template/student
+HTTP 200 {"code":500,"msg":"导入模板不存在：student","data":null}
+```
+根因：`edu_import_template` 迁移里只有建表、无种子；模板文件必须存在于对象存储才有 file_id，
+代码里也没有生成 / 上传模板的入口 → 模块下拉为空，导入向导第一步即断。
+
+## 三、修复内容（CR-171 / D-241）
+- `EduImportExportServiceImpl.queryTemplatePageList` 新增 `appendUnregisteredModules`：
+  为「已登记校验器、但 `edu_import_template` 无记录」的模块合成模板行（当前版本 / 列数 = 表头数）；
+- `EduImportExportServiceImpl.resolveTemplateDownload` 新增 `generateTemplate` + `writeTemplateWorkbook`：
+  取校验器 `templateHeaders()` → FastExcel 写只有表头行的 xlsx → `RemoteFileService.upload` →
+  落 `edu_file_ref`（file_kind = import_template，school_id 取当前登录态，缺失即拒绝）→
+  落 `edu_import_template`（v1 / 当前版本 / 列数 = 表头数），唯一键幂等，并发时复用已有行；
+- 模板列（与原型 / PRD「导入模板列」小节一致）：
+  student 14 列（姓名 / 性别 / 入学年份 / 学段 / 年级 / 班级 / 全国学籍号 / 证件类型 / 证件号码 / 出生日期 /
+  监护人姓名 / 与监护人关系 / 监护人电话 / 联系地址）；
+  teacher 10 列（工号 / 姓名 / 性别 / 所属学校 / 手机号 / 邮箱 / 入职日期 / 教育角色 / 登录名 / 备注）；
+  class_roster 4 列（学号 / 姓名 / 目标班级 / 班级类型）。
+
+## 四、门禁结果
+```
+mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile  -> BUILD SUCCESS
+python tools/check_fe_page_structure.py      -> exit 0
+python tools/check_fe_text_nowrap.py         -> exit 0
+python tools/check_api_contract.py           -> exit 0
+python tools/check_docs.py                   -> exit 0
+python tools/check_gap_register.py           -> exit 0
+python tools/check_mermaid.py                -> exit 0
+python tools/check_stage6_route_coverage.py  -> exit 0
+python tools/check_perm_seed.py              -> exit 0
+```
+本批未改前端源码（`apps/plus-ui` 无改动），按 AGENTS 第 5 节口径不重跑 typecheck / lint / build。
+
+## 五、待运行复验（重启 9211 后执行）
+```
+GET  /edu/import/template                 -> 期望 total=3（student / teacher / class_roster 合成行）
+GET  /edu/import/template/student         -> 期望返回 shortSignedUrl（xlsx），并落 edu_file_ref + edu_import_template
+(下载 signedUrl 校验)                      -> 期望是真实 xlsx，首行表头 14 列与校验器一致
+POST /edu/import/validate {moduleCode,fileId,...} -> 期望 200 + 行级校验结果
+POST /edu/import/execute  {batchNo}       -> 期望 queued → succeeded / partial_failed
+GET  /edu/import/{batchNo}/result         -> 期望签名链接（学号对照表）
+GET  /edu/import/{batchNo}/failed-rows    -> 期望签名链接（失败明细 CSV）
+查询 edu_audit_log                         -> 期望每次下载各一条记录，school_id 正确
+```
+
+## 六、结论
+- 代码与治理变更完成、门禁全绿；运行复验未执行（当前 9211 实例早于本批产物，且不得起第二个实例争抢 queued 任务）。
