@@ -17,17 +17,17 @@
     </el-form>
 
     <el-table v-loading="loading" :data="rows" border size="small">
-      <el-table-column label="行号" prop="rowNo" width="80" align="center" />
-      <el-table-column label="对象" prop="objectName" width="160" show-overflow-tooltip />
-      <el-table-column label="结果" width="90" align="center">
+      <el-table-column label="行号" prop="rowNo" width="80" align="center" data-layout-group="行明细" />
+      <el-table-column label="对象" prop="objectName" width="160" show-overflow-tooltip data-layout-group="行明细" />
+      <el-table-column label="结果" width="90" align="center" data-layout-group="行明细">
         <template #default="scope">
           <el-tag :type="scope.row.result === 'success' ? 'success' : 'danger'" size="small">
             {{ scope.row.result === 'success' ? '成功' : '失败' }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="失败原因" prop="failReason" min-width="200" show-overflow-tooltip />
-      <el-table-column label="原始数据" prop="rawData" min-width="200" show-overflow-tooltip />
+      <el-table-column label="失败原因" prop="failReason" min-width="200" show-overflow-tooltip data-layout-group="行明细" />
+      <el-table-column label="原始数据" prop="rawData" min-width="200" show-overflow-tooltip data-layout-group="行明细" />
       <template #empty>
         <el-empty description="该批次暂无行明细" />
       </template>

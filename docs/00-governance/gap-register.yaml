@@ -3817,3 +3817,27 @@ open_questions_for_user:
       - stage8
     owner: 用户
     status: open
+  - id: GAP-117
+    title: 组件内的表格未全部纳入页面结构对照（11 张表缺可用原型）
+    discovered_at: 2026-10-10
+    discovered_by: 第三轮队列第 5 项（CR-149）
+    evidence: "全库扫描 apps/plus-ui/src/views/edu 下含 el-table-column label 的 .vue：共 15 张组件表此前不在 tools/check_fe_page_structure.py 的对照清单里。CR-149 已纳入 4 张（TaskRowsDialog / LogDetailDrawer / CheckResultTable / SubjectStatTable），其余 11 张找不到可对照的原型表：ArchiveSearchDialog、GradeLeaderDialog、GradePromotionDialog、TeacherRoleDialog、GuardianTable、AssignmentTable、StreamHistoryDialog、TeachingClassDetailDrawer、UnselectedStudentDialog、cls_detail 的 TeachingAssignmentTable 与 ClassChangeLogTable（后两者原型表没有 data-role 列标记）"
+    expected: 每张有列定义的组件表都与原型表逐列对照
+    actual: 4 张已对照；其余 11 张没有可用原型表（原型缺表 / 原型表无列标记 / 首列相同但语义不同）
+    impact: |
+      **不选会怎样**：这些表的列序与列名变更不会被任何门禁拦住；为了凑覆盖率硬对到语义不同的原型表上，
+      则会得到「看起来有门禁、实际比错对象」的假覆盖。已发现的具体例子：`cls_detail` 的任课教师表
+      在原型里是左侧选择面板（只有一个「教师」列），班级详情的变更记录表在原型里没有列标记。
+    options:
+      - '给原型补齐这些表的 data-role="column" 标记（阶段 3 产物新版本），再逐表登记对照（推荐）'
+      - "为组件单独建一份「组件级原型对照表」（新产物，需定义格式与维护人）"
+      - "维持现状：只对照能明确对上的表，其余靠人工"
+    recommended: |
+      **推荐方案 1**：原型是列序的事实源，缺标记就补标记；补完后本检查器可直接按 `table_index` 逐表登记，
+      不需要新格式。影响面：`prototypes/**` 相关页面补 th 标记 + `tools/check_fe_page_structure.py` 加 11 条。
+      在补齐前保持现状（不硬对），把清单留在本条里。
+    blocking: false
+    blocks_stages:
+      - stage8
+    owner: 用户
+    status: open

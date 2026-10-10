@@ -1,0 +1,34 @@
+# 高保真差异比对：组件内表格纳入结构对照（CR-149 / D-229 / GAP-117）
+
+时间：2026-10-10　分支：codex/stage7-backend　触发：heartbeat（18:00 起每 5 分钟）
+
+## 背景
+队列第 5 项要求比对「异步任务行明细 / 导入向导 / 编班导入 / 升班向导 / 选科与教学班」。
+后四者早已在 `check_fe_page_structure.py` 的 CHECKS 里且通过；真正没被门禁覆盖的是**组件里的表** ——
+全库扫描发现 15 张有列定义的组件表没有任何对照（含队列点名的 `TaskRowsDialog`）。
+
+## 本批交付
+1. **工具扩展**：`parse_prototype_columns(html, table_index)` 支持指定原型里的第 N 张表（弹窗 / 抽屉里的表通常不是第一张），
+   CHECKS 条目可写 `"table_index": n`；不写时行为与之前完全一致。
+2. **新纳入对照的 4 张组件表**：
+   | 组件 | 原型 | 表序号 | 结果 |
+   |---|---|---|---|
+   | `TaskRowsDialog.vue`（异步任务行明细） | functional/v1/pages/student-import.html「校验结果」表 | 1 | 通过（行号 / 对象 / 失败原因；额外两列见下） |
+   | `LogDetailDrawer.vue`（审计日志字段级变更） | functional/v1/pages/audit-log-list.html | 2 | 通过（字段 / 变更前 / 变更后） |
+   | `CheckResultTable.vue`（教学班生成核对） | functional/v1/pages/stream-generate-class.html | 2 | 通过（教学班 / 教学班人数 / 选科统计人数 / 差异 / 核对结果） |
+   | `SubjectStatTable.vue`（选科统计学科分布） | functional/v1/pages/stream-stat.html | 2 | 通过（学科 / 选科角色 / 选择人数 / 占比 / 占比分母） |
+3. **TaskRowsDialog 的两列扩展**登记为 `extra_columns`：`结果`（任务中心的行明细同时含成功行，原型只给失败行）、
+   `原始数据`（排障用）；并给该表补 `data-layout-group="行明细"`（检查器要求每列带分组属性）。
+
+## 仍未纳入的组件表（GAP-117）
+其余 11 张组件表暂无可用原型表：有的原型根本没有这张表（任务中心行明细之外的弹窗），
+有的原型里那张表没有列标记（如班级详情的任课教师 / 变更记录），有的首列相同但语义不同（选学生弹窗的多张候选）。
+已登记 GAP-117，推荐做法是给原型补齐列标记或为组件表单独建「组件级原型对照表」。
+
+## 门禁
+```
+check_fe_page_structure.py -> 通过（新增 4 条组件表对照）
+check_fe_text_nowrap / check_api_contract / check_docs / check_gap_register / check_mermaid / check_stage6_route_coverage -> 通过
+check_perm_seed.py -> 通过
+pnpm typecheck 51（= 基线）/ lint 124（= 基线）/ build:prod exit 0
+```

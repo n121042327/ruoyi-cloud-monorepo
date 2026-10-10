@@ -1818,3 +1818,13 @@
 | `tools/check_perm_seed.py` | 新增门禁：权限点 ↔ 菜单种子一致性 | `已实现` |
 | `evidence/stage6-frontend/2026-10-10_manual-acceptance-checklist.md`（改） | 追加静态回归记录 | `review` |
 | `evidence/stage6-frontend/2026-10-10_manual-acceptance-static-review.log` | 门禁与生效方式 | `review` |
+
+## 2026-10-10 阶段 6 第六十八批：组件内表格纳入结构对照
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-149.md` | 组件表对照与工具扩展 | `review` |
+| `tools/check_fe_page_structure.py`（改） | 支持 table_index；新增 4 条组件表对照 | `已实现` |
+| `apps/plus-ui/src/views/edu/import-export/imp_task_list/components/TaskRowsDialog.vue`（改） | 补 data-layout-group | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | 新增 GAP-117 | `review` |
+| `evidence/stage6-frontend/2026-10-10_component-table-structure-coverage.log` | 门禁与覆盖清单 | `review` |

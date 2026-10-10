@@ -345,6 +345,44 @@ CHECKS = [
         # 待原型出新版本补标记后再各自加一条 CHECKS（见 CR-135 / GAP-112）。
         "deferred_groups": {},
     },
+    {
+        "page_id": "PAGE-IMP-TASK-ROWS",
+        "name": "异步任务行明细（抽屉）",
+        "prototype": "prototypes/functional/v1/pages/student-import.html",
+        "vue": "apps/plus-ui/src/views/edu/import-export/imp_task_list/components/TaskRowsDialog.vue",
+        # 原型「校验结果」表只列失败行（行号 / 对象 / 失败原因）；任务中心的行明细同时含成功行，
+        # 因此多两列：结果（成功 / 跳过 / 失败）与原始数据（排障用），见 CR-149。
+        "table_index": 1,
+        "deferred_groups": {},
+        "extra_columns": {
+            "结果": "任务中心行明细同时含成功行，需要结果列区分（原型只给失败行）",
+            "原始数据": "排障用：保留导入行的原始单元格，便于定位错列 / 错值",
+        },
+    },
+    {
+        "page_id": "PAGE-AUDIT-LOG-DETAIL",
+        "name": "审计日志字段级变更（抽屉）",
+        "prototype": "prototypes/functional/v1/pages/audit-log-list.html",
+        "vue": "apps/plus-ui/src/views/edu/audit/audit_log_list/components/LogDetailDrawer.vue",
+        "table_index": 2,
+        "deferred_groups": {},
+    },
+    {
+        "page_id": "PAGE-STR-GEN-CLASS-RESULT",
+        "name": "教学班生成核对结果",
+        "prototype": "prototypes/functional/v1/pages/stream-generate-class.html",
+        "vue": "apps/plus-ui/src/views/edu/stream/str_gen_class/components/CheckResultTable.vue",
+        "table_index": 2,
+        "deferred_groups": {},
+    },
+    {
+        "page_id": "PAGE-STR-STAT-SUBJECT",
+        "name": "选科统计 · 学科分布",
+        "prototype": "prototypes/functional/v1/pages/stream-stat.html",
+        "vue": "apps/plus-ui/src/views/edu/stream/str_stat/components/SubjectStatTable.vue",
+        "table_index": 2,
+        "deferred_groups": {},
+    },
 ]
 
 # 已交付浮层的对照清单：分组顺序来自原型（`data-layout-group` 与卡片标题）
@@ -485,14 +523,21 @@ def parse_prototype_filter(html: str) -> list[str]:
     return labels
 
 
-def parse_prototype_columns(html: str) -> list[dict]:
+def parse_prototype_columns(html: str, table_index: int | None = None) -> list[dict]:
     columns = []
-    # 只解析主表：页面里可能还有展开行 / 嵌套的小表，限定到 data-role="table" 所在的这张表
-    marker = html.find('data-role="table"')
-    if marker >= 0:
-        end = html.find("</table>", marker)
-        if end > 0:
-            html = html[marker:end]
+    if table_index:
+        # 组件内的表用 table_index 指定原型里的第 N 张表（如弹窗 / 抽屉里的表）
+        tables = list(re.finditer(r"<table\b[^>]*>.*?</table>", html, re.S))
+        if len(tables) < table_index:
+            return columns
+        html = tables[table_index - 1].group(0)
+    else:
+        # 只解析主表：页面里可能还有展开行 / 嵌套的小表，限定到 data-role="table" 所在的这张表
+        marker = html.find('data-role="table"')
+        if marker >= 0:
+            end = html.find("</table>", marker)
+            if end > 0:
+                html = html[marker:end]
     for m in re.finditer(r"<th\b([^>]*)>(.*?)</th>", html, re.S):
         attrs, inner = m.group(1), m.group(2)
         label_text = re.sub(r"<[^>]+>", "", inner).strip()
@@ -561,7 +606,7 @@ def check_filter(check: dict, prototype_html: str, vue: str) -> None:
 
 
 def check_columns(check: dict, prototype_html: str, vue: str) -> None:
-    expected = parse_prototype_columns(prototype_html)
+    expected = parse_prototype_columns(prototype_html, check.get("table_index"))
     deferred = check.get("deferred_groups") or {}
     expected_kept = []
     deferred_labels = check.get("deferred_labels") or {}
