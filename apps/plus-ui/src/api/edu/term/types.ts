@@ -63,3 +63,17 @@ export interface AcademicYearReference {
   /** 是否已产生引用（有引用时只允许归档，不允许删除，REQ-TERM-028） */
   referenced?: boolean;
 }
+
+/** 新建 / 编辑学期表单（POST /edu/term，有 termId 为编辑） */
+export interface TermForm {
+  termId?: string;
+  schoolId?: string;
+  academicYearId: string;
+  /** 学期编码（校内唯一） */
+  termCode?: string;
+  termName: string;
+  startDate: string;
+  endDate: string;
+  /** '1' 设为当前学年学期 */
+  isCurrent?: string;
+}

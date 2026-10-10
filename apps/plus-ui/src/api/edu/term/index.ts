@@ -1,6 +1,6 @@
 import request from '@/utils/request';
 import { AxiosPromise } from 'axios';
-import { AcademicYearForm, AcademicYearQuery, AcademicYearReference, AcademicYearVO, TermVO } from './types';
+import { AcademicYearForm, AcademicYearQuery, AcademicYearReference, AcademicYearVO, TermForm, TermVO } from './types';
 
 /**
  * 查询学期列表
@@ -138,6 +138,19 @@ export const removeTerm = (termId: string, reason?: string) => {
     url: `/edu/term/${termId}`,
     method: 'delete',
     params: { reason }
+  });
+};
+
+/**
+ * 新建 / 编辑学期（有 termId 为编辑）
+ *
+ * 对应 operationId `saveTerm`（POST /edu/term）。
+ */
+export const saveTerm = (data: TermForm) => {
+  return request({
+    url: '/edu/term',
+    method: 'post',
+    data
   });
 };
 

@@ -1525,3 +1525,14 @@
 |---|---|---|
 | `docs/00-governance/change-requests/CR-123.md` | 三页导入入口与功能点核对结论（无代码改动） | `review` |
 | `evidence/stage6-frontend/2026-10-10_import-engine-consistency.log` | 核对证据与门禁记录 | `review` |
+
+## 2026-10-10 阶段 6 第四十三批：新建 / 编辑学期
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-124.md` | 学期新建 / 编辑接线与编码口径 | `review` |
+| `apps/plus-ui/src/api/edu/term/index.ts`（改） | 补 saveTerm | `已实现` |
+| `apps/plus-ui/src/api/edu/term/types.ts`（改） | 补 TermForm | `已实现` |
+| `apps/plus-ui/src/views/edu/term/term_terms/index.vue`（改） | 工具栏加新增学期；操作列加编辑 | `已实现` |
+| `apps/plus-ui/src/views/edu/term/term_terms/components/TermFormDialog.vue` | 学期表单弹窗 | `已实现` |
+| `evidence/stage6-frontend/2026-10-10_term-create.log` | 门禁与改动记录 | `review` |

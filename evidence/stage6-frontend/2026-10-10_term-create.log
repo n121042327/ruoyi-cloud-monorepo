@@ -1,0 +1,25 @@
+# 第二轮队列第 2 项：新建 / 编辑学期（CR-124 / D-205）
+
+时间：2026-10-10
+分支：codex/stage7-backend
+触发：用户「开始」（手动触发第二轮队列）
+
+## 交付
+- api/edu/term 补 saveTerm（POST /edu/term，有 termId 为编辑）
+- types 补 TermForm（对齐 EduTermBo）
+- 新增 TermFormDialog：学期名称 / 开始日期 / 结束日期 + 「设为当前」开关
+- term_terms 工具栏加「新增学期」；操作列加「编辑」（原只有删除），width 120 -> 160
+
+## 口径
+- academicYearId 从页面路由参数取（学期管理页即某学年的学期列表），弹窗不重复选学年
+- 三项必填；结束日期必须晚于开始日期
+- isCurrent 开关 -> '1'/'0'，唯一性由后端保证
+- termCode 不暴露给前端（校内唯一，后端按规则生成）
+
+## 门禁
+check_fe_page_structure.py / check_fe_text_nowrap.py / check_api_contract.py / check_docs.py /
+check_gap_register.py / check_mermaid.py / check_stage6_route_coverage.py -> 全部通过
+typecheck 51（基线）/ lint 124（基线）/ build:prod exit 0
+
+## 未纳入
+学期删除已对接；学年创建时按 termCount 自动生成学期的口径不变。

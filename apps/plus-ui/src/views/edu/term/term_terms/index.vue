@@ -13,6 +13,7 @@
       <template #header>
         <el-row :gutter="10">
           <el-col :span="1.5">
+            <el-button v-hasPermi="['org.term:create']" type="primary" plain icon="Plus" @click="formRef?.open()">新增学期</el-button>
             <el-button v-hasPermi="['org.term:read']" type="primary" plain icon="Refresh" @click="getList">刷新</el-button>
           </el-col>
           <el-col :span="16">
@@ -39,8 +40,9 @@
         </el-table-column>
         <el-table-column label="班级数" prop="classCount" width="90" align="center" data-layout-group="统计信息" />
         <el-table-column label="在读学生" prop="studentCount" width="110" align="center" data-layout-group="统计信息" />
-        <el-table-column fixed="right" label="操作" width="120" data-layout-group="操作">
+        <el-table-column fixed="right" label="操作" width="160" data-layout-group="操作">
           <template #default="scope">
+            <el-button v-hasPermi="['org.term:create']" link type="primary" @click="formRef?.open(scope.row)">编辑</el-button>
             <el-button v-hasPermi="['org.term:remove']" link type="primary" @click="handleRemove(scope.row)">删除</el-button>
           </template>
         </el-table-column>
@@ -50,6 +52,8 @@
         </template>
       </el-table>
     </el-card>
+
+    <TermFormDialog ref="formRef" :academic-year-id="academicYearId" @success="getList" />
   </div>
 </template>
 
@@ -59,9 +63,11 @@ import { useRoute } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { listTerm, removeTerm } from '@/api/edu/term';
 import type { TermVO } from '@/api/edu/term/types';
+import TermFormDialog from './components/TermFormDialog.vue';
 import { checkPermi } from '@/utils/permission';
 
 defineOptions({ name: 'EduTermTerms' });
+const formRef = ref<InstanceType<typeof TermFormDialog>>();
 
 const route = useRoute();
 
