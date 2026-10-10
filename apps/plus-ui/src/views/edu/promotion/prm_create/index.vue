@@ -99,12 +99,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import type { FormInstance, FormRules } from 'element-plus';
 import { ElMessage } from 'element-plus';
-import { addPromotionTask } from '@/api/edu/promotion';
-import type { PromotionTaskForm } from '@/api/edu/promotion/types';
+import { addPromotionTask, getPromotionReadiness } from '@/api/edu/promotion';
+import type { PromotionReadiness, PromotionTaskForm } from '@/api/edu/promotion/types';
 import { listTerm } from '@/api/edu/term';
 import type { TermVO } from '@/api/edu/term/types';
 import { useUserStore } from '@/store/modules/user';
@@ -131,13 +131,48 @@ const rules: FormRules = {
   targetTermId: [{ required: true, message: '请选择目标学年学期', trigger: 'change' }]
 };
 
-const readinessAlertType = computed(() => (form.sourceTermId && form.targetTermId ? 'success' : 'info'));
-const readinessTitle = computed(() => (form.sourceTermId && form.targetTermId ? '可以创建' : '请先选择源与目标学年学期'));
-const readinessMessage = computed(() =>
-  form.sourceTermId && form.targetTermId
-    ? '目标学年学期的年级与班级已齐备，同一源 → 目标学期没有未结束任务（REQ-PRM-009）。齐备性以后端 addPromotionTask 的二次校验为准（NFR-SEC-05）。'
-    : '选定源与目标学年学期后，这里会给出目标学期年级与班级的齐备性结论（REQ-PRM-009）。'
-);
+const readiness = ref<PromotionReadiness>({});
+const readinessLoading = ref(false);
+
+/** 就绪结论来自后端 readiness 接口（REQ-PRM-009），前端不自行判断 */
+const loadReadiness = async () => {
+  if (!form.sourceTermId || !form.targetTermId) {
+    readiness.value = {};
+    return;
+  }
+  readinessLoading.value = true;
+  try {
+    const res = await getPromotionReadiness({ sourceTermId: form.sourceTermId, targetTermId: form.targetTermId });
+    readiness.value = (res.data ?? {}) as PromotionReadiness;
+  } finally {
+    readinessLoading.value = false;
+  }
+};
+
+const readinessAlertType = computed(() => {
+  const level = readiness.value.level;
+  if (!form.sourceTermId || !form.targetTermId) return 'info';
+  if (level === 'ready') return 'success';
+  if (level === 'warning') return 'warning';
+  return 'error';
+});
+
+const readinessTitle = computed(() => {
+  if (!form.sourceTermId || !form.targetTermId) return '请先选择源与目标学年学期';
+  const map: Record<string, string> = { ready: '可以创建', warning: '可以创建，但请确认', blocked: '暂不能创建' };
+  return map[String(readiness.value.level ?? '')] ?? '就绪检查';
+});
+
+const readinessMessage = computed(() => {
+  if (!form.sourceTermId || !form.targetTermId) return '选择源与目标学年学期后自动检查目标学期年级与班级的齐备性';
+  const parts: string[] = [];
+  if (readiness.value.message) parts.push(readiness.value.message);
+  if (readiness.value.missingGrades?.length) parts.push(`缺失年级：${readiness.value.missingGrades.join('、')}`);
+  if (readiness.value.missingClassCount) parts.push(`缺失班级数：${readiness.value.missingClassCount}`);
+  if (readiness.value.hasUnfinishedTask) parts.push('该源 → 目标学期已有未结束的升班任务');
+  if (typeof readiness.value.enrolledCount === 'number') parts.push(`源学期在读人数：${readiness.value.enrolledCount}`);
+  return parts.join('；') || '—';
+});
 
 const loadTerms = async () => {
   const res = await listTerm({});

@@ -1,0 +1,26 @@
+# 第二轮队列第 5 项：升班就绪检查与明细（CR-127 / D-207）
+
+时间：2026-10-10
+分支：codex/stage7-backend
+触发：heartbeat（第二轮队列第 5 项）
+
+## 交付
+- api/edu/promotion 补 getPromotionReadiness（GET /edu/promotion/task/readiness）
+- 修正 listPromotionItem 的 url：/edu/promotion/task/{id} -> /edu/promotion/task/{id}/item
+- prm_create 的就绪提示改为调后端 readiness，按 level 渲染 success/warning/error/info
+- watch 源/目标学期变化即重新检查
+
+## 提示映射
+ready -> success 可以创建
+warning -> warning 可以创建，但请确认
+blocked -> error 暂不能创建
+未选学期 -> info 请先选择源与目标学年学期
+
+## 影响面
+listPromotionItem 的 url 变更影响 prm_preview/composables/usePromotionPreview.ts、prm_validate、prm_result
+三处调用；返回类型不变（PromotionItemVO[]），只是从详情接口顺带返回改为明细接口直接返回。
+
+## 门禁
+check_fe_page_structure.py / check_fe_text_nowrap.py / check_api_contract.py / check_docs.py /
+check_gap_register.py / check_mermaid.py / check_stage6_route_coverage.py -> 全部通过
+typecheck 51（基线）/ lint 124（基线）/ build:prod exit 0

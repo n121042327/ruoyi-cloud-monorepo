@@ -1557,3 +1557,12 @@
 |---|---|---|
 | `docs/00-governance/change-requests/CR-126.md` | 判定依据与处置（无代码改动） | `review` |
 | `evidence/stage6-frontend/2026-10-10_teaching-class-create-skip.log` | 核对证据与门禁记录 | `review` |
+
+## 2026-10-10 阶段 6 第四十六批：升班就绪检查接入 + 明细接口修正
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-127.md` | 就绪检查接线、明细 url 修正与提示口径 | `review` |
+| `apps/plus-ui/src/api/edu/promotion/index.ts`（改） | 补 getPromotionReadiness；修正 listPromotionItem 的 url | `已实现` |
+| `apps/plus-ui/src/views/edu/promotion/prm_create/index.vue`（改） | 就绪提示改由后端 readiness 驱动 | `已实现` |
+| `evidence/stage6-frontend/2026-10-10_promotion-readiness.log` | 门禁与改动记录 | `review` |

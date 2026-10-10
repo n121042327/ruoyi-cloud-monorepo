@@ -1,6 +1,7 @@
 import request from '@/utils/request';
 import { AxiosPromise } from 'axios';
 import {
+  PromotionReadiness,
   EnrollmentChangeQuery,
   EnrollmentChangeForm,
   EnrollmentChangeVO,
@@ -120,15 +121,15 @@ export const previewPromotionTask = (taskId: string): AxiosPromise<PromotionTask
 };
 
 /**
- * 查询升班明细（预览 / 校验 / 结果共用）
+ * 查询升班明细（预览 / 校验 / 结果页共用）
  *
- * 对应 operationId `getPromotionTask`（GET /edu/promotion/task/{id}，明细随详情返回）。
+ * 对应 operationId `listPromotionItem`（GET /edu/promotion/task/{id}/item）。
  */
 export const listPromotionItem = (taskId: string, query?: PromotionItemQuery): AxiosPromise<PromotionItemVO[]> => {
   return request({
-    url: `/edu/promotion/task/${taskId}`,
+    url: `/edu/promotion/task/${taskId}/item`,
     method: 'get',
-    params: { ...query, withItems: true }
+    params: { ...query }
   });
 };
 
@@ -296,6 +297,19 @@ export const approveEnrollmentChange = (changeId: string, data: { approved: bool
     url: `/edu/enrollment/change/${changeId}/approve`,
     method: 'post',
     data
+  });
+};
+
+/**
+ * 目标学期年级与班级齐备性检查（创建任务前的前置校验，REQ-PRM-009）
+ *
+ * 对应 operationId `getPromotionReadiness`（GET /edu/promotion/task/readiness）。
+ */
+export const getPromotionReadiness = (query: { sourceTermId?: string; targetTermId?: string }): AxiosPromise<PromotionReadiness> => {
+  return request({
+    url: '/edu/promotion/task/readiness',
+    method: 'get',
+    params: query
   });
 };
 
