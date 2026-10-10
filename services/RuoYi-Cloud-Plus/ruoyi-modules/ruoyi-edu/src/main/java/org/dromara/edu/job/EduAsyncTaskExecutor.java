@@ -47,6 +47,7 @@ public class EduAsyncTaskExecutor {
     private static final String STATUS_FAILED = "failed";
 
     private static final String TASK_TYPE_EXPORT = "export";
+    private static final String TASK_TYPE_IMPORT = "import";
 
     private static final String FILE_KIND_EXPORT_RESULT = "export_result";
     private static final String FILE_BIZ_TYPE = "async_task";
@@ -60,6 +61,7 @@ public class EduAsyncTaskExecutor {
     private final EduAsyncTaskMapper taskMapper;
     private final EduFileRefMapper fileRefMapper;
     private final List<EduExportHandler> exportHandlers;
+    private final EduImportTaskRunner importTaskRunner;
 
     @DubboReference
     private RemoteFileService remoteFileService;
@@ -78,6 +80,12 @@ public class EduAsyncTaskExecutor {
         }
         for (EduAsyncTask task : tasks) {
             try {
+                if (TASK_TYPE_IMPORT.equals(task.getTaskType())) {
+                    // 导入执行阶段（GAP-094 第四批）：只有登记了模块执行器的任务会被领取，
+                    // 其余保持 queued，避免把「还没实现」误标成失败
+                    importTaskRunner.tryRun(task);
+                    continue;
+                }
                 execute(task);
             } catch (Exception e) {
                 log.error("异步任务执行失败：{}", task.getTaskNo(), e);
@@ -86,11 +94,16 @@ public class EduAsyncTaskExecutor {
         }
     }
 
-    /** 待领取任务：只领取导出任务（导入执行器见 GAP-094a） */
+    /**
+     * 待领取任务：导出任务 + 导入任务。
+     *
+     * 导入任务由 {@link EduImportTaskRunner} 判断是否有对应模块执行器；没有执行器的模块不会被领取
+     * （任务留在 queued，等模块执行器落地后自动继续）。
+     */
     private List<EduAsyncTask> claimableTasks() {
         return taskMapper.selectList(new LambdaQueryWrapper<EduAsyncTask>()
             .eq(EduAsyncTask::getTaskStatus, STATUS_QUEUED)
-            .eq(EduAsyncTask::getTaskType, TASK_TYPE_EXPORT)
+            .in(EduAsyncTask::getTaskType, TASK_TYPE_EXPORT, TASK_TYPE_IMPORT)
             .orderByAsc(EduAsyncTask::getTaskId)
             .last("limit " + BATCH_SIZE));
     }

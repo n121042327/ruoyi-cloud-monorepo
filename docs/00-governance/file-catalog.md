@@ -1765,3 +1765,15 @@
 | `services/.../edu/job/ClassRosterImportHandler.java` | 编班表导入校验器（4 列模板） | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-094 第三批完成标注 | `review` |
 | `evidence/stage7-backend/2026-10-10_class-roster-import-validation.log` | 门禁与状态记录 | `review` |
+
+## 2026-10-10 阶段 7 第六十三批：导入执行阶段 + 编班表执行器
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-144.md` | 执行流程与三个实现细节 | `review` |
+| `services/.../edu/job/EduImportExecutor.java`、`EduImportRowResult.java` | 模块导入执行器接口与行结果 | `已实现` |
+| `services/.../edu/job/EduImportTaskRunner.java` | 导入任务异步执行（重跑校验 + 统计 + 回写） | `已实现` |
+| `services/.../edu/job/ClassRosterImportExecutor.java` | 编班表执行器（复用班级服务） | `已实现` |
+| `services/.../edu/job/EduAsyncTaskExecutor.java`（改） | 领取范围放开到导入任务 | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-094 第四批进度更新 | `review` |
+| `evidence/stage7-backend/2026-10-10_import-execution-and-class-roster.log` | 门禁与未完成项 | `review` |

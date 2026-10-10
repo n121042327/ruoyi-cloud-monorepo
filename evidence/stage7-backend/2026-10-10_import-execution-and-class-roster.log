@@ -1,0 +1,29 @@
+# GAP-094 第四批（其一）：导入执行阶段 + 编班表执行器（CR-144 / D-224）
+
+时间：2026-10-10　分支：codex/stage7-backend　触发：heartbeat（18:00 起每 5 分钟）
+
+## 交付
+| 组件 | 说明 |
+|---|---|
+| `job/EduImportExecutor` + `EduImportRowResult` | 模块导入执行器接口与行结果（success / skipped / failed） |
+| `job/EduImportTaskRunner` | 导入任务的异步执行：抢占 queued 导入任务 → 按批次重读文件并**重跑校验** → 逐行交给模块执行器 → 统计成功/跳过/失败 → 写 `edu_import_error`(failed) → 回写 `edu_import_batch` 与 `edu_async_task` |
+| `job/ClassRosterImportExecutor` | 编班表执行器：行 → `EduClassMemberBo` → 复用 `IEduClassService.addRoster` 落库（不自己写 SQL） |
+| `EduAsyncTaskExecutor`（改） | 领取范围从「只导出」放开到「导出 + 导入」；导入任务交给 runner，**没有登记执行器的模块不会被领取**（保持 queued，避免误标失败） |
+
+## 口径
+- **执行阶段重跑校验**：校验是只读的，重跑一遍只为了让「只执行通过的行」这件事不依赖上一次的结果；
+  校验阶段写过的 `invalid` 行不再重复写。
+- **幂等**：同一学生已在本班 → skipped；已在别的行政班 → failed 并提示去班级管理调班（BR-STU-003）。
+- **单写入口**：编班表执行器不自己 insert，而是走班级服务的 `addRoster`，冲突判定与落库规则与页面完全一致（DP-01）。
+
+## 门禁
+```
+mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile -> BUILD SUCCESS
+七项 python 检查 -> 通过
+```
+本批只改后端，未重跑前端门禁。
+
+## 仍未完成（GAP-094 第四批其余）
+- student 导入执行器（发号 + 在校记录 + 监护人 + 账号）；
+- teacher 导入执行器（建档 + 账号 + 教育角色）。
+这两个模块的导入任务在没有执行器前会**保持在 queued**，不会被误标为失败。
