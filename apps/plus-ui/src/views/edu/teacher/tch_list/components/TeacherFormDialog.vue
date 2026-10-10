@@ -34,8 +34,8 @@
       <h3 class="form-section-title" data-layout-group="联系方式">联系方式</h3>
       <el-row :gutter="16">
         <el-col :span="12">
-          <el-form-item label="手机号" prop="teacherPhone">
-            <el-input v-model="form.teacherPhone" placeholder="可留空" maxlength="11" clearable />
+          <el-form-item label="手机号" prop="phone">
+            <el-input v-model="form.phone" placeholder="可留空" maxlength="11" clearable />
           </el-form-item>
         </el-col>
         <el-col :span="12">
@@ -44,8 +44,8 @@
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="入职日期" prop="entryDate">
-            <el-date-picker v-model="form.entryDate" type="date" value-format="YYYY-MM-DD" class="w-full" />
+          <el-form-item label="入职日期" prop="hireDate">
+            <el-date-picker v-model="form.hireDate" type="date" value-format="YYYY-MM-DD" class="w-full" />
           </el-form-item>
         </el-col>
       </el-row>
@@ -84,9 +84,9 @@ const defaultForm = (): TeacherForm => ({
   teacherName: '',
   gender: '',
   schoolId: '',
-  teacherPhone: '',
+  phone: '',
   email: '',
-  entryDate: '',
+  hireDate: '',
   remark: ''
 });
 

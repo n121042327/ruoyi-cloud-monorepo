@@ -76,14 +76,11 @@
 
         <el-table v-loading="loading" border :data="teacherList">
           <el-table-column v-if="columns[0].visible" label="工号" prop="teacherNo" width="120" data-layout-group="基础信息" />
-          <el-table-column
-            v-if="columns[1].visible"
-            label="姓名"
-            prop="teacherName"
-            width="110"
-            :show-overflow-tooltip="true"
-            data-layout-group="基础信息"
-          />
+          <el-table-column v-if="columns[1].visible" label="姓名" prop="teacherName" width="120" data-layout-group="基础信息">
+            <template #default="scope">
+              <el-button link type="primary" @click="detailRef?.open(scope.row)">{{ scope.row.teacherName }}</el-button>
+            </template>
+          </el-table-column>
           <el-table-column v-if="columns[2].visible" label="性别" prop="gender" width="70" align="center" data-layout-group="基础信息" />
           <el-table-column v-if="columns[3].visible" label="所属学校" prop="schoolName" width="160" data-layout-group="教育信息" />
           <el-table-column v-if="columns[4].visible" label="教育角色" prop="eduRoles" width="150" data-layout-group="教育信息">
@@ -102,19 +99,19 @@
           />
           <el-table-column v-if="columns[7].visible" label="在职状态" prop="employmentStatus" width="100" align="center" data-layout-group="职业信息">
             <template #default="scope">
-              <el-tag :type="scope.row.employmentStatus === '在职' ? 'success' : 'info'" size="small">
-                {{ scope.row.employmentStatus || '在职' }}
+              <el-tag :type="scope.row.employmentStatus === EmploymentStatusEnum.ON_DUTY ? 'success' : 'info'" size="small">
+                {{ EMPLOYMENT_STATUS_LABEL[scope.row.employmentStatus ?? ''] ?? scope.row.employmentStatus ?? '在职' }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column v-if="columns[8].visible" label="联系电话" prop="teacherPhone" width="130" data-layout-group="联系方式" />
+          <el-table-column v-if="columns[8].visible" label="联系电话" prop="phone" width="130" data-layout-group="联系方式" />
 
           <el-table-column fixed="right" label="操作" width="300" data-layout-group="操作">
             <template #default="scope">
               <el-button v-hasPermi="['person.teacher:update']" link type="primary" icon="Edit" @click="handleUpdate(scope.row)">编辑</el-button>
               <el-button v-hasPermi="['person.teacher:update']" link type="primary" @click="roleRef?.open(scope.row)">教育角色</el-button>
               <el-button
-                v-if="scope.row.employmentStatus === '在职'"
+                v-if="scope.row.employmentStatus === EmploymentStatusEnum.ON_DUTY"
                 v-hasPermi="['person.teacher:update']"
                 link
                 type="danger"
@@ -158,6 +155,8 @@
 
       <teacher-form-dialog ref="formDialogRef" :school-options="schoolOptions" @success="getList" />
     </template>
+
+    <TeacherDetailDrawer ref="detailRef" />
   </div>
 </template>
 
@@ -166,10 +165,12 @@ import { computed, getCurrentInstance, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import TeacherRoleDialog from './components/TeacherRoleDialog.vue';
+import TeacherDetailDrawer from './components/TeacherDetailDrawer.vue';
 import TeacherLeaveDialog from './components/TeacherLeaveDialog.vue';
 import TeacherNoDialog from './components/TeacherNoDialog.vue';
 import TeacherFormDialog from './components/TeacherFormDialog.vue';
 import { EDU_ROLE_OPTIONS, EMPLOYMENT_STATUS_OPTIONS, useTeacherList } from './composables/useTeacherList';
+import { EMPLOYMENT_STATUS_LABEL, EmploymentStatusEnum } from '@/enums/edu/TeacherEnum';
 import type { TeacherVO } from '@/api/edu/teacher/types';
 import { disableTeacherAccount, enableTeacherAccount, resetTeacherPassword, revokeTeacherLeave } from '@/api/edu/teacher';
 import { checkPermi } from '@/utils/permission';
@@ -203,6 +204,7 @@ const formDialogRef = ref<InstanceType<typeof TeacherFormDialog>>();
 const roleRef = ref<InstanceType<typeof TeacherRoleDialog>>();
 const leaveRef = ref<InstanceType<typeof TeacherLeaveDialog>>();
 const teacherNoRef = ref<InstanceType<typeof TeacherNoDialog>>();
+const detailRef = ref<InstanceType<typeof TeacherDetailDrawer>>();
 const queryFormRef = ref();
 
 const canRead = computed(() => checkPermi(['person.teacher:read']));

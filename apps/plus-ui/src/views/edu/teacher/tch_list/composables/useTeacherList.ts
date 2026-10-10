@@ -19,12 +19,8 @@ export const EDU_ROLE_OPTIONS = [
   { value: 'subject_teacher', label: '任课教师' }
 ];
 
-/** 在职状态（与原型 teacher-list.html 的选项一致） */
-export const EMPLOYMENT_STATUS_OPTIONS = [
-  { value: '在职', label: '在职' },
-  { value: '离职', label: '离职' },
-  { value: '调离', label: '调离' }
-];
+/** 在职状态选项：码值口径见 `enums/edu/TeacherEnum.ts`（后端落库 active / resigned / transferred_out） */
+export { EMPLOYMENT_STATUS_OPTIONS } from '@/enums/edu/TeacherEnum';
 
 /** 教师列表页的查询、分页与下拉取数 */
 export function useTeacherList() {

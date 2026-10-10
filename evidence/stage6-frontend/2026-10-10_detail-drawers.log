@@ -1,0 +1,37 @@
+# 第二轮队列第 6 项：教师 / 年级详情抽屉 + 学生详情在校记录段（CR-128 / D-208）
+
+时间：2026-10-10
+分支：codex/stage7-backend
+触发：heartbeat（第二轮队列第 6 项）
+
+## 交付
+- 新增 `TeacherDetailDrawer.vue`（基础信息 / 任职信息 / 任教清单），教师列表姓名列改为链接打开
+- 新增 `GradeDetailDrawer.vue`（基础信息 / 下辖班级），年级列表年级名称列改为链接打开
+- `StudentDetailDrawer.vue` 在教育信息段之后并入在校记录段（`getStudentEnrollment`）
+
+## 顺带修正的契约错位（同一模块）
+- 教师字段名与后端 BO / VO 不一致：`teacherPhone` -> `phone`、`entryDate` -> `hireDate`；
+  此前新增 / 编辑教师时手机号与入职日期被后端静默丢弃（`EduTeacherBo` 只认 `phone` / `hireDate`）。
+- 教师在职状态：前端此前拿中文当码值（在职 / 离职 / 调离），后端落库 `active` / `resigned` / `transferred_out`，
+  列表「在职状态」列会把 `active` 原样显示、按「在职」筛选查不到数据。新增 `enums/edu/TeacherEnum.ts`，
+  查询下拉 / 行内标签 / 离职登记弹窗 / 详情抽屉统一走码值 + 中文标签映射。
+- 教师详情抽屉引用的 `email` / `hireDate` / `leaveDate` / `remark` / `updateTime`、年级抽屉引用的
+  `schoolName` / `updateTime` 未在 TS 类型里声明，按后端 `EduTeacherVo` / `EduGradeVo` 补齐类型。
+- 新增 `StudentEnrollmentVO` 类型（对齐 `EduStudentEnrollmentVo`），`getStudentEnrollment` 补 `AxiosPromise` 泛型。
+
+## 门禁
+```
+check_fe_page_structure.py / check_fe_text_nowrap.py / check_api_contract.py / check_docs.py
+  / check_gap_register.py / check_mermaid.py / check_stage6_route_coverage.py   -> 全部通过
+pnpm --filter @edu/plus-ui typecheck      -> error TS 51 条（= 基线 51，本批新增 0）
+pnpm --filter @edu/plus-ui lint:eslint    -> 124 problems（= 基线 124，本批新增 0）
+pnpm --filter @edu/plus-ui run build:prod -> 成功（exit 0）
+```
+本批只动前端，无后端改动，未跑 Maven。
+
+## 缺口
+GAP-105：`edu_teacher.employment_status` 的「在职」码值上游两处不一致
+（字段字典 `on_duty` / schema.yaml 默认值与后端落库 `active`）。
+
+## 待人工验收
+三个抽屉的真实数据渲染需登录后人工看一眼（本批只声明「编译通过 + 门禁通过」，不声明功能已验证）。

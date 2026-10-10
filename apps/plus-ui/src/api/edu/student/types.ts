@@ -128,6 +128,24 @@ export interface StudentChangeLogVO {
 }
 
 /** 当前状态可执行的异动选项（GET /edu/student/{id}/status-options） */
+/** 在校记录（`edu_student_enrollment`；GET /edu/student/{id}/enrollment） */
+export interface StudentEnrollmentVO {
+  enrollmentId?: string;
+  schoolId?: string;
+  studentId?: string;
+  /** 入学日期 */
+  enrollDate?: string;
+  /** 学籍状态（码值见 enrollment_status 枚举） */
+  enrollmentStatus?: string;
+  /** 状态生效日期 */
+  statusEffectiveDate?: string;
+  /** 离校日期 */
+  leaveDate?: string;
+  campusId?: string;
+  entryGradeId?: string;
+  remark?: string;
+}
+
 export interface EnrollmentStatusOptionVO {
   /** 异动动作码，如 suspend / abroad / missing / transfer_out / withdraw */
   value: string;

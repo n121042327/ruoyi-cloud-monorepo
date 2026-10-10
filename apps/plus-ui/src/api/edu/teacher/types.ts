@@ -12,10 +12,20 @@ export interface TeacherVO {
   subjectNames?: string;
   /** 任课班级数 */
   teachingClassCount?: number;
-  /** 联系电话（掩码） */
-  teacherPhone?: string;
-  /** 在职状态：在职 / 离职 / 调离 */
+  /** 联系电话（掩码；schema.yaml: edu_teacher.phone） */
+  phone?: string;
+  /** 邮箱（schema.yaml: edu_teacher.email） */
+  email?: string;
+  /** 入职日期（schema.yaml: edu_teacher.hire_date） */
+  hireDate?: string;
+  /** 在职状态码：active 在职 / resigned 离职 / transferred_out 调离（见 enums/edu/TeacherEnum.ts） */
   employmentStatus?: string;
+  /** 离职或调离生效日期（schema.yaml: edu_teacher.leave_date） */
+  leaveDate?: string;
+  /** 备注（schema.yaml: edu_teacher.remark） */
+  remark?: string;
+  /** 更新时间（BaseEntity.update_time） */
+  updateTime?: string;
 }
 
 /** 教师查询参数 */
@@ -36,9 +46,9 @@ export interface TeacherForm {
   teacherName: string;
   gender: string;
   schoolId: string;
-  teacherPhone?: string;
+  phone?: string;
   email?: string;
-  entryDate?: string;
+  hireDate?: string;
   remark?: string;
 }
 /**

@@ -1566,3 +1566,24 @@
 | `apps/plus-ui/src/api/edu/promotion/index.ts`（改） | 补 getPromotionReadiness；修正 listPromotionItem 的 url | `已实现` |
 | `apps/plus-ui/src/views/edu/promotion/prm_create/index.vue`（改） | 就绪提示改由后端 readiness 驱动 | `已实现` |
 | `evidence/stage6-frontend/2026-10-10_promotion-readiness.log` | 门禁与改动记录 | `review` |
+
+## 2026-10-10 阶段 6 第四十七批：教师 / 年级详情抽屉 + 学生详情在校记录段
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-128.md` | 三处详情抽屉、教师字段名与在职状态码值对齐 | `review` |
+| `apps/plus-ui/src/views/edu/teacher/tch_list/components/TeacherDetailDrawer.vue` | 教师详情抽屉（基础信息 / 任职信息 / 任教清单） | `已实现` |
+| `apps/plus-ui/src/views/edu/grade/grd_list/components/GradeDetailDrawer.vue` | 年级详情抽屉（基础信息 / 下辖班级） | `已实现` |
+| `apps/plus-ui/src/views/edu/teacher/tch_list/index.vue`（改） | 姓名列改链接开抽屉；在职状态列改用码值与标签映射 | `已实现` |
+| `apps/plus-ui/src/views/edu/grade/grd_list/index.vue`（改） | 年级名称列改链接开抽屉 | `已实现` |
+| `apps/plus-ui/src/views/edu/student/stu_list/components/StudentDetailDrawer.vue`（改） | 教育信息段后并入在校记录段 | `已实现` |
+| `apps/plus-ui/src/enums/edu/TeacherEnum.ts` | 教师在职状态码值与中文标签映射 | `已实现` |
+| `apps/plus-ui/src/api/edu/teacher/types.ts`（改） | 教师 VO / Form 字段名对齐后端（phone / hireDate 等） | `已实现` |
+| `apps/plus-ui/src/api/edu/grade/types.ts`（改） | 补 schoolName / updateTime | `已实现` |
+| `apps/plus-ui/src/api/edu/student/types.ts`（改） | 新增 StudentEnrollmentVO | `已实现` |
+| `apps/plus-ui/src/api/edu/student/index.ts`（改） | getStudentEnrollment 补返回类型 | `已实现` |
+| `apps/plus-ui/src/views/edu/teacher/tch_list/composables/useTeacherList.ts`（改） | 在职状态选项改引枚举 | `已实现` |
+| `apps/plus-ui/src/views/edu/teacher/tch_list/components/TeacherFormDialog.vue`（改） | 表单字段改 phone / hireDate | `已实现` |
+| `apps/plus-ui/src/views/edu/teacher/tch_list/components/TeacherLeaveDialog.vue`（改） | 离职 / 调离登记改用码值 | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | 新增 GAP-105（在职状态码值分歧） | `review` |
+| `evidence/stage6-frontend/2026-10-10_detail-drawers.log` | 门禁与改动记录 | `review` |

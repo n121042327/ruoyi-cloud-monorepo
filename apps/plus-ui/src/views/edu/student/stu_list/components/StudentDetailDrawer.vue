@@ -35,6 +35,14 @@
           </el-descriptions-item>
         </el-descriptions>
 
+        <el-descriptions v-loading="enrollmentLoading" :column="2" border class="mb-3">
+          <el-descriptions-item label="入学日期">{{ enrollment.enrollDate || '—' }}</el-descriptions-item>
+          <el-descriptions-item label="学籍状态">{{ enrollmentStatusText }}</el-descriptions-item>
+          <el-descriptions-item label="状态生效日期">{{ enrollment.statusEffectiveDate || '—' }}</el-descriptions-item>
+          <el-descriptions-item label="离校日期">{{ enrollment.leaveDate || '—' }}</el-descriptions-item>
+          <el-descriptions-item label="备注" :span="2">{{ enrollment.remark || '—' }}</el-descriptions-item>
+        </el-descriptions>
+
         <h4 class="form-section-title" data-layout-group="证件信息">证件信息</h4>
         <el-descriptions :column="1" border>
           <el-descriptions-item label="证件类型">{{ detail.idType || '未填写' }}</el-descriptions-item>
@@ -164,7 +172,8 @@ import {
   viewStudentIdCard,
   viewStudentPhone
 } from '@/api/edu/student';
-import type { GuardianVO, StudentChangeLogVO, StudentVO } from '@/api/edu/student/types';
+import { getStudentEnrollment } from '@/api/edu/student';
+import type { GuardianVO, StudentChangeLogVO, StudentEnrollmentVO, StudentVO } from '@/api/edu/student/types';
 import { ENROLLMENT_STATUS_LABEL, STAGE_CODE_LABEL } from '@/enums/edu/StudentEnum';
 import GuardianTable from './GuardianTable.vue';
 import { checkRole } from '@/utils/permission';
@@ -181,6 +190,8 @@ const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const visible = ref(false);
 const loading = ref(false);
 const detail = ref<Partial<StudentVO>>({});
+const enrollment = ref<StudentEnrollmentVO>({});
+const enrollmentLoading = ref(false);
 const guardians = ref<GuardianVO[]>([]);
 const changeLogs = ref<StudentChangeLogVO[]>([]);
 /** 一次会话内揭示的证件号全量值；不落库、不缓存 */
@@ -194,6 +205,10 @@ const guardianDialog = ref({ visible: false, saving: false });
 const canEditGuardian = computed(() => checkRole(['academic_director', 'homeroom']) || checkRole(['super_admin']));
 
 const enrollmentStatusLabel = computed(() => ENROLLMENT_STATUS_LABEL[detail.value.enrollmentStatus ?? ''] ?? '—');
+/** 在校记录段的学籍状态：优先显示在校记录的状态，无记录时回退到学生主体 */
+const enrollmentStatusText = computed(
+  () => ENROLLMENT_STATUS_LABEL[enrollment.value.enrollmentStatus ?? ''] ?? enrollment.value.enrollmentStatus ?? '—'
+);
 
 const open = async (studentId: string) => {
   visible.value = true;
@@ -201,7 +216,14 @@ const open = async (studentId: string) => {
   idCardFull.value = '';
   phoneFull.value = '';
   try {
-    const [student, guardianList, logs] = await Promise.all([getStudent(studentId), listStudentGuardian(studentId), listStudentChangeLog(studentId)]);
+    enrollmentLoading.value = true;
+    const [student, guardianList, logs, enrollmentRes] = await Promise.all([
+      getStudent(studentId),
+      listStudentGuardian(studentId),
+      listStudentChangeLog(studentId),
+      getStudentEnrollment(studentId).catch(() => null)
+    ]);
+    enrollment.value = enrollmentRes?.data ?? {};
     detail.value = student.data ?? {};
     guardians.value = guardianList.data ?? [];
     changeLogs.value = logs.data ?? [];
@@ -210,6 +232,7 @@ const open = async (studentId: string) => {
     guardians.value = [];
     changeLogs.value = [];
   } finally {
+    enrollmentLoading.value = false;
     loading.value = false;
   }
 };

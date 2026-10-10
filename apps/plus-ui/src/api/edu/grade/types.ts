@@ -14,6 +14,10 @@ export interface GradeVO {
   classCount?: number;
   studentCount?: number;
   gradeStatus?: string;
+  /** 展示字段，来自 EduGradeVo.schoolName */
+  schoolName?: string;
+  /** 更新时间（EduGradeVo.updateTime） */
+  updateTime?: string;
 }
 
 /** 年级查询参数 */

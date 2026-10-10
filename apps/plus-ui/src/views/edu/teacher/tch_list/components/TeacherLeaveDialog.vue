@@ -4,8 +4,8 @@
     <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
       <el-form-item label="登记类型" prop="employmentStatus">
         <el-radio-group v-model="form.employmentStatus">
-          <el-radio value="离职">离职</el-radio>
-          <el-radio value="调离">调离</el-radio>
+          <el-radio :value="EmploymentStatusEnum.RESIGNED">离职</el-radio>
+          <el-radio :value="EmploymentStatusEnum.TRANSFERRED_OUT">调离</el-radio>
         </el-radio-group>
       </el-form-item>
       <el-form-item label="生效日期" prop="leaveDate">
@@ -29,6 +29,7 @@ import { ElMessage } from 'element-plus';
 import type { FormInstance, FormRules } from 'element-plus';
 import { leaveTeacher } from '@/api/edu/teacher';
 import type { TeacherVO } from '@/api/edu/teacher/types';
+import { EmploymentStatusEnum } from '@/enums/edu/TeacherEnum';
 
 defineOptions({ name: 'EduTeacherLeaveDialog' });
 
@@ -39,7 +40,7 @@ const submitting = ref(false);
 const formRef = ref<FormInstance>();
 const teacher = ref<TeacherVO>({} as TeacherVO);
 
-const form = reactive({ employmentStatus: '离职', leaveDate: '', reason: '' });
+const form = reactive({ employmentStatus: EmploymentStatusEnum.RESIGNED as string, leaveDate: '', reason: '' });
 
 const title = computed(() => `离职 / 调离登记 · ${teacher.value.teacherName ?? '—'}`);
 
@@ -52,7 +53,7 @@ const rules: FormRules = {
 const open = (row: TeacherVO) => {
   visible.value = true;
   teacher.value = row;
-  form.employmentStatus = '离职';
+  form.employmentStatus = EmploymentStatusEnum.RESIGNED;
   form.leaveDate = '';
   form.reason = '';
   formRef.value?.clearValidate();

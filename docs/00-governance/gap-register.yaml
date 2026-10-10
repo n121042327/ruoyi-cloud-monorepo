@@ -3436,3 +3436,30 @@ open_questions_for_user:
       - stage6
     owner: 用户
     status: open
+  - id: GAP-105
+    title: edu_teacher.employment_status「在职」码值上游两处不一致（on_duty / active）
+    discovered_at: 2026-10-10
+    discovered_by: 教师详情抽屉开发（PAGE-TCH-DETAIL / CR-128）
+    evidence: "docs/10-prd/06-field-dictionary.yaml:242 定义 employment_status 枚举，第 245 行「在职」的码值是 on_duty；docs/40-detailed-design/database/schema.yaml:225 同一列默认值是 'active'；后端 services/RuoYi-Cloud-Plus/ruoyi-modules/ruoyi-edu/src/main/java/org/dromara/edu/service/impl/EduTeacherServiceImpl.java:51 的 STATUS_ACTIVE 也是 'active'"
+    expected: 三处对「在职」使用同一个码值，前端、后端、迁移脚本、字段字典互相一致
+    actual: "字段字典是 on_duty，schema.yaml 默认值与后端落库是 active；前端此前用中文「在职」当码值。即：同一位教师的「在职」状态，三处对码值的写法不一致"
+
+    impact: |
+      **不选会怎样**：按字典写代码的一方（前端筛选、报表、迁移脚本）与后端对不上，
+      表现为「按在职筛选查不到数据」「状态列显示英文码值」，而且不报错，属于静默错误；
+      存量数据里还可能同时存在中文、`active`、`on_duty` 三种值。
+    options:
+      - "以后端落库值 active 为准，前端只做码值到中文标签的映射；把字段字典的「在职」改成 active（推荐）"
+      - "以字段字典为准改成 on_duty：改 schema.yaml 默认值 + 后端常量 + 存量数据迁移"
+      - "暂不统一，各端各自映射（on_duty 与 active 都当在职）"
+    recommended: |
+      **推荐方案 1**：`schema.yaml` 是字段与默认值的唯一事实源，后端已经在用 `active`，前端跟着对齐是零迁移；
+      改后端要动已冻结的 stage 5 产物（schema 默认值）并迁移存量数据，成本与风险都更高。
+      本批已按推荐落地前端（`apps/plus-ui/src/enums/edu/TeacherEnum.ts`、CR-128 / D-208）；
+      字段字典那一行需要上游改版，未获确认前保持 open。
+      影响面：`docs/10-prd/06-field-dictionary.yaml` 第 245 行改 1 处码值（需用户确认后出新版本）。
+    blocking: false
+    blocks_stages:
+      - stage6
+    owner: 用户
+    status: open

@@ -6,6 +6,7 @@ import {
   GuardianForm,
   GuardianVO,
   StudentChangeLogVO,
+  StudentEnrollmentVO,
   StudentForm,
   StudentQuery,
   StudentVO
@@ -221,7 +222,7 @@ export const resetStudentPassword = (studentId: string, password?: string) => {
  *
  * 对应 operationId `getStudentEnrollment`（GET /edu/student/{id}/enrollment）。
  */
-export const getStudentEnrollment = (studentId: string) => {
+export const getStudentEnrollment = (studentId: string): AxiosPromise<StudentEnrollmentVO> => {
   return request({
     url: `/edu/student/${studentId}/enrollment`,
     method: 'get'
