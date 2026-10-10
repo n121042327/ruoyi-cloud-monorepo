@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.exception.ServiceException;
+import org.dromara.common.core.utils.DateUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
@@ -279,7 +280,7 @@ public class EduClassServiceImpl implements IEduClassService {
             throw new ServiceException("以下学生不可加入本班：" + String.join("；", conflicts));
         }
         for (Long studentId : member.getStudentIds()) {
-            insertMember(clazz.getClassId(), clazz.getTermId(), studentId, null, null, member.getEffectiveDate());
+            insertMember(clazz, studentId, null, null, member.getEffectiveDate());
         }
         return true;
     }
@@ -324,7 +325,7 @@ public class EduClassServiceImpl implements IEduClassService {
                 current.setLeaveDate(new Date());
                 memberMapper.updateById(current);
             }
-            insertMember(target.getClassId(), target.getTermId(), studentId, null, null, member.getEffectiveDate());
+            insertMember(target, studentId, null, null, member.getEffectiveDate());
         }
         return true;
     }
@@ -372,17 +373,25 @@ public class EduClassServiceImpl implements IEduClassService {
         return clazz;
     }
 
-    /** 追加一条在班关系（唯一键 uk_class_member_admin = term_id + student_id） */
-    private void insertMember(Long classId, Long termId, Long studentId, Long enrollmentId,
+    /**
+     * 追加一条在班关系（唯一键 uk_class_member_admin = term_id + student_id）。
+     *
+     * `edu_class_member.school_id` 是 NOT NULL 且无默认值，必须由班级带出来（阶段 8 验收缺陷 CR-168：
+     * 此前漏设 school_id，编班 / 调班插入直接报「Field 'school_id' doesn't have a default value」）。
+     * 生效日期留空时按当天入库（`effectiveDate` 对应字段字典的 effective_date）。
+     */
+    private void insertMember(EduClass clazz, Long studentId, Long enrollmentId,
                               String genderSnapshot, String effectiveDate) {
         EduClassMember add = new EduClassMember();
-        add.setClassId(classId);
-        add.setTermId(termId);
+        add.setSchoolId(clazz.getSchoolId());
+        add.setClassId(clazz.getClassId());
+        add.setTermId(clazz.getTermId());
         add.setClassType(TYPE_ADMINISTRATIVE);
         add.setStudentId(studentId);
         add.setStudentEnrollmentId(enrollmentId);
         add.setGenderSnapshot(genderSnapshot);
-        add.setJoinDate(new Date());
+        Date joinDate = StringUtils.isBlank(effectiveDate) ? null : DateUtils.parseDate(effectiveDate);
+        add.setJoinDate(joinDate == null ? new Date() : joinDate);
         add.setStatus(MEMBER_IN);
         memberMapper.insert(add);
     }

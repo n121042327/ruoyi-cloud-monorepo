@@ -10,11 +10,17 @@ import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.redis.utils.SequenceUtils;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.edu.domain.EduStudent;
+import org.dromara.edu.domain.EduClass;
+import org.dromara.edu.domain.EduClassMember;
+import org.dromara.edu.domain.EduGrade;
 import org.dromara.edu.domain.EduStudentEnrollment;
 import org.dromara.edu.domain.bo.EduStudentBo;
 import org.dromara.edu.domain.vo.EduStudentVo;
 import org.dromara.edu.mapper.EduStudentEnrollmentMapper;
 import org.dromara.edu.mapper.EduStudentMapper;
+import org.dromara.edu.mapper.EduClassMapper;
+import org.dromara.edu.mapper.EduClassMemberMapper;
+import org.dromara.edu.mapper.EduGradeMapper;
 import org.dromara.edu.service.IEduStudentService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +28,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 
 import java.util.List;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 学生服务层处理
@@ -37,14 +48,87 @@ public class EduStudentServiceImpl implements IEduStudentService {
     /** 学籍状态：在读 */
     private static final String STATUS_ENROLLED = "enrolled";
 
+    /** 在班关系标记 */
+    private static final String MEMBER_IN = "1";
+
     private final EduStudentMapper baseMapper;
     private final EduStudentEnrollmentMapper enrollmentMapper;
+    private final EduClassMemberMapper classMemberMapper;
+    private final EduClassMapper classMapper;
+    private final EduGradeMapper gradeMapper;
 
     @Override
     public TableDataInfo<EduStudentVo> queryPageList(EduStudentBo student, PageQuery pageQuery) {
         LambdaQueryWrapper<EduStudent> wrapper = buildQueryWrapper(student);
         Page<EduStudentVo> result = baseMapper.selectPageStudentList(pageQuery.build(), wrapper);
+        fillListFields(result.getRecords());
         return TableDataInfo.build(result);
+    }
+
+    /**
+     * 填充学生列表的派生列：学段 / 年级 / 班级 / 学籍状态。
+     *
+     * 学生主体是平台级实体，学校侧一律经「在校记录 + 班级关系」两段式取数（AGENTS 第 7 节）；
+     * 阶段 8 验收缺陷 CR-171：列表此前这四列为空（页面列存在但没有任何取数）。
+     */
+    private void fillListFields(List<EduStudentVo> rows) {
+        if (rows == null || rows.isEmpty()) {
+            return;
+        }
+        List<Long> studentIds = rows.stream().map(EduStudentVo::getStudentId)
+            .filter(Objects::nonNull).distinct().toList();
+        Map<Long, EduStudentEnrollment> enrollmentMap = new HashMap<>();
+        Map<Long, Long> classByStudent = new HashMap<>();
+        if (!studentIds.isEmpty()) {
+            for (EduStudentEnrollment item : enrollmentMapper.selectList(
+                new LambdaQueryWrapper<EduStudentEnrollment>()
+                    .in(EduStudentEnrollment::getStudentId, studentIds))) {
+                if (item.getStudentId() != null) {
+                    enrollmentMap.putIfAbsent(item.getStudentId(), item);
+                }
+            }
+            for (EduClassMember member : classMemberMapper.selectList(new LambdaQueryWrapper<EduClassMember>()
+                .in(EduClassMember::getStudentId, studentIds)
+                .eq(EduClassMember::getStatus, MEMBER_IN))) {
+                if (member.getStudentId() != null && member.getClassId() != null) {
+                    classByStudent.putIfAbsent(member.getStudentId(), member.getClassId());
+                }
+            }
+        }
+        List<Long> classIds = classByStudent.values().stream().filter(Objects::nonNull).distinct().toList();
+        Map<Long, EduClass> classes = new HashMap<>();
+        if (!classIds.isEmpty()) {
+            for (EduClass item : classMapper.selectByIds(classIds)) {
+                classes.put(item.getClassId(), item);
+            }
+        }
+        List<Long> gradeIds = classes.values().stream().map(EduClass::getGradeId)
+            .filter(Objects::nonNull).distinct().toList();
+        Map<Long, EduGrade> grades = new HashMap<>();
+        if (!gradeIds.isEmpty()) {
+            for (EduGrade item : gradeMapper.selectByIds(gradeIds)) {
+                grades.put(item.getGradeId(), item);
+            }
+        }
+        for (EduStudentVo row : rows) {
+            EduStudentEnrollment enrollment = row.getStudentId() == null
+                ? null : enrollmentMap.get(row.getStudentId());
+            if (enrollment != null) {
+                row.setEnrollmentStatus(enrollment.getEnrollmentStatus());
+            }
+            Long classId = row.getStudentId() == null ? null : classByStudent.get(row.getStudentId());
+            EduClass clazz = classId == null ? null : classes.get(classId);
+            if (clazz != null) {
+                row.setClassId(clazz.getClassId());
+                row.setClassName(clazz.getClassName());
+                EduGrade grade = clazz.getGradeId() == null ? null : grades.get(clazz.getGradeId());
+                if (grade != null) {
+                    row.setGradeId(grade.getGradeId());
+                    row.setGradeName(grade.getGradeName());
+                    row.setStageCode(grade.getStageCode());
+                }
+            }
+        }
     }
 
     @Override
@@ -53,6 +137,7 @@ public class EduStudentServiceImpl implements IEduStudentService {
         if (vo == null) {
             throw new ServiceException("学生不存在或不在当前数据范围内");
         }
+        fillListFields(List.of(vo));
         return vo;
     }
 

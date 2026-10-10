@@ -11,6 +11,10 @@ import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.edu.domain.EduTeacher;
+import org.dromara.edu.domain.EduClass;
+import org.dromara.edu.domain.EduSchool;
+import org.dromara.edu.domain.EduSubject;
+import org.dromara.edu.domain.EduTerm;
 import org.dromara.edu.domain.EduTeachingAssignment;
 import org.dromara.edu.domain.EduUserRole;
 import org.dromara.edu.domain.bo.EduTeacherBo;
@@ -20,6 +24,10 @@ import org.dromara.edu.domain.vo.EduTeacherVo;
 import org.dromara.edu.domain.vo.EduTeachingAssignmentVo;
 import org.dromara.edu.domain.vo.EduUserRoleVo;
 import org.dromara.edu.mapper.EduTeacherMapper;
+import org.dromara.edu.mapper.EduClassMapper;
+import org.dromara.edu.mapper.EduSchoolMapper;
+import org.dromara.edu.mapper.EduSubjectMapper;
+import org.dromara.edu.mapper.EduTermMapper;
 import org.dromara.edu.mapper.EduTeachingAssignmentMapper;
 import org.dromara.edu.mapper.EduUserRoleMapper;
 import org.dromara.edu.service.IEduTeacherService;
@@ -30,6 +38,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.Collections;
 
 /**
  * 教师服务层处理
@@ -59,6 +71,15 @@ public class EduTeacherServiceImpl implements IEduTeacherService {
     /** 班级类型：行政班 */
     private static final String CLASS_TYPE_ADMINISTRATIVE = "administrative";
 
+    /** 教育角色码值 → 中文（与前端 TeacherEnum / TeacherExportHandler 一致） */
+    private static final Map<String, String> ROLE_NAMES = Map.of(
+        "school_leader", "校领导",
+        "academic_director", "教务主任",
+        "grade_leader", "年级主任",
+        "homeroom", "班主任",
+        "subject_teacher", "任课教师"
+    );
+
     /** 账号状态：正常 / 停用（UserStatus 的码值） */
     private static final String ACCOUNT_NORMAL = "0";
     private static final String ACCOUNT_DISABLED = "1";
@@ -69,6 +90,10 @@ public class EduTeacherServiceImpl implements IEduTeacherService {
     private final EduTeacherMapper baseMapper;
     private final EduUserRoleMapper userRoleMapper;
     private final EduTeachingAssignmentMapper assignmentMapper;
+    private final EduSubjectMapper subjectMapper;
+    private final EduClassMapper classMapper;
+    private final EduTermMapper termMapper;
+    private final EduSchoolMapper schoolMapper;
 
     @DubboReference
     private RemoteUserService remoteUserService;
@@ -89,7 +114,68 @@ public class EduTeacherServiceImpl implements IEduTeacherService {
                 .or().like(EduTeacher::getPhone, teacher.getKeyword()));
         }
         Page<EduTeacherVo> result = baseMapper.selectPageTeacherList(pageQuery.build(), wrapper);
+        fillListFields(result.getRecords());
         return TableDataInfo.build(result);
+    }
+
+    /**
+     * 填充教师列表的展示列：所属学校 / 教育角色 / 任教学科 / 任课班级数。
+     *
+     * 阶段 8 验收缺陷 CR-170：列表此前只返回外键，页面这四列分别显示为空 / 「未分配」/「—」/ 空。
+     * 口径与 `TeacherExportHandler` 一致：教育角色取 `edu_user_role` 生效记录并转中文，
+     * 任教学科与班级数取 `edu_teaching_assignment` 生效记录；批量查询避免 N+1。
+     */
+    private void fillListFields(List<EduTeacherVo> rows) {
+        if (rows == null || rows.isEmpty()) {
+            return;
+        }
+        List<Long> teacherIds = rows.stream().map(EduTeacherVo::getTeacherId)
+            .filter(Objects::nonNull).distinct().toList();
+        List<Long> schoolIds = rows.stream().map(EduTeacherVo::getSchoolId)
+            .filter(Objects::nonNull).distinct().toList();
+        Map<Long, String> schoolNames = schoolIds.isEmpty() ? Collections.emptyMap()
+            : schoolMapper.selectByIds(schoolIds).stream()
+                .collect(Collectors.toMap(EduSchool::getSchoolId, EduSchool::getSchoolName, (a, b) -> a));
+        Map<Long, java.util.Set<String>> roleMap = new java.util.LinkedHashMap<>();
+        Map<Long, List<EduTeachingAssignment>> assignmentMap = new java.util.LinkedHashMap<>();
+        Map<Long, String> subjectNameMap = new java.util.LinkedHashMap<>();
+        if (!teacherIds.isEmpty()) {
+            for (EduUserRole role : userRoleMapper.selectList(new LambdaQueryWrapper<EduUserRole>()
+                .in(EduUserRole::getTeacherId, teacherIds)
+                .eq(EduUserRole::getStatus, FLAG_ON))) {
+                if (role.getTeacherId() == null) {
+                    continue;
+                }
+                roleMap.computeIfAbsent(role.getTeacherId(), k -> new java.util.LinkedHashSet<>())
+                    .add(ROLE_NAMES.getOrDefault(role.getEduRole(), role.getEduRole()));
+            }
+            List<EduTeachingAssignment> assignments = assignmentMapper.selectList(
+                new LambdaQueryWrapper<EduTeachingAssignment>()
+                    .in(EduTeachingAssignment::getTeacherId, teacherIds)
+                    .eq(EduTeachingAssignment::getStatus, FLAG_ON));
+            List<Long> subjectIds = assignments.stream().map(EduTeachingAssignment::getSubjectId)
+                .filter(Objects::nonNull).distinct().toList();
+            if (!subjectIds.isEmpty()) {
+                for (EduSubject subject : subjectMapper.selectByIds(subjectIds)) {
+                    subjectNameMap.put(subject.getSubjectId(), subject.getSubjectName());
+                }
+            }
+            for (EduTeachingAssignment item : assignments) {
+                assignmentMap.computeIfAbsent(item.getTeacherId(), k -> new java.util.ArrayList<>()).add(item);
+            }
+        }
+        for (EduTeacherVo row : rows) {
+            row.setSchoolName(row.getSchoolId() == null ? null : schoolNames.get(row.getSchoolId()));
+            java.util.Set<String> roles = row.getTeacherId() == null ? null : roleMap.get(row.getTeacherId());
+            row.setEduRoles(roles == null || roles.isEmpty() ? null : String.join("、", roles));
+            List<EduTeachingAssignment> own = row.getTeacherId() == null
+                ? List.of() : assignmentMap.getOrDefault(row.getTeacherId(), List.of());
+            row.setSubjectNames(own.stream()
+                .map(item -> subjectNameMap.get(item.getSubjectId()))
+                .filter(Objects::nonNull).distinct().collect(Collectors.joining("、")));
+            row.setTeachingClassCount((int) own.stream().map(EduTeachingAssignment::getClassId)
+                .filter(Objects::nonNull).distinct().count());
+        }
     }
 
     @Override
@@ -98,6 +184,7 @@ public class EduTeacherServiceImpl implements IEduTeacherService {
         if (vo == null) {
             throw new ServiceException("教师不存在或不在当前数据范围内");
         }
+        fillListFields(List.of(vo));
         return vo;
     }
 
@@ -265,7 +352,57 @@ public class EduTeacherServiceImpl implements IEduTeacherService {
             .eq(StringUtils.isNotBlank(assignment.getClassType()), EduTeachingAssignment::getClassType, assignment.getClassType())
             .eq(StringUtils.isNotBlank(assignment.getStatus()), EduTeachingAssignment::getStatus, assignment.getStatus());
         Page<EduTeachingAssignmentVo> result = assignmentMapper.selectPageAssignmentList(pageQuery.build(), wrapper);
+        fillAssignmentNames(result.getRecords());
         return TableDataInfo.build(result);
+    }
+
+    /**
+     * 填充任教关系的展示名称与跨校标记（阶段 8 验收缺陷 CR-169）。
+     *
+     * 列表此前只返回外键，页面「学科 / 任教教师 / 班级」三列全空；这里按 id 集合做 5 次批量查询，
+     * 与 `EduClassServiceImpl.fillNames` 同一写法（外键为空时不查 Map，避免不可变 Map 的 null 键 NPE）。
+     */
+    private void fillAssignmentNames(List<EduTeachingAssignmentVo> rows) {
+        if (rows == null || rows.isEmpty()) {
+            return;
+        }
+        List<Long> subjectIds = rows.stream().map(EduTeachingAssignmentVo::getSubjectId)
+            .filter(Objects::nonNull).distinct().toList();
+        List<Long> teacherIds = rows.stream().map(EduTeachingAssignmentVo::getTeacherId)
+            .filter(Objects::nonNull).distinct().toList();
+        List<Long> classIds = rows.stream().map(EduTeachingAssignmentVo::getClassId)
+            .filter(Objects::nonNull).distinct().toList();
+        List<Long> termIds = rows.stream().map(EduTeachingAssignmentVo::getTermId)
+            .filter(Objects::nonNull).distinct().toList();
+        List<Long> schoolIds = rows.stream().map(EduTeachingAssignmentVo::getSchoolId)
+            .filter(Objects::nonNull).distinct().toList();
+
+        Map<Long, String> subjectNames = subjectIds.isEmpty() ? Collections.emptyMap()
+            : subjectMapper.selectByIds(subjectIds).stream()
+                .collect(Collectors.toMap(EduSubject::getSubjectId, EduSubject::getSubjectName, (a, b) -> a));
+        Map<Long, EduTeacher> teachers = teacherIds.isEmpty() ? Collections.emptyMap()
+            : baseMapper.selectByIds(teacherIds).stream()
+                .collect(Collectors.toMap(EduTeacher::getTeacherId, t -> t, (a, b) -> a));
+        Map<Long, String> classNames = classIds.isEmpty() ? Collections.emptyMap()
+            : classMapper.selectByIds(classIds).stream()
+                .collect(Collectors.toMap(EduClass::getClassId, EduClass::getClassName, (a, b) -> a));
+        Map<Long, String> termNames = termIds.isEmpty() ? Collections.emptyMap()
+            : termMapper.selectByIds(termIds).stream()
+                .collect(Collectors.toMap(EduTerm::getTermId, EduTerm::getTermName, (a, b) -> a));
+        Map<Long, String> schoolNames = schoolIds.isEmpty() ? Collections.emptyMap()
+            : schoolMapper.selectByIds(schoolIds).stream()
+                .collect(Collectors.toMap(EduSchool::getSchoolId, EduSchool::getSchoolName, (a, b) -> a));
+
+        for (EduTeachingAssignmentVo row : rows) {
+            row.setSubjectName(row.getSubjectId() == null ? null : subjectNames.get(row.getSubjectId()));
+            row.setClassName(row.getClassId() == null ? null : classNames.get(row.getClassId()));
+            row.setTermName(row.getTermId() == null ? null : termNames.get(row.getTermId()));
+            row.setSchoolName(row.getSchoolId() == null ? null : schoolNames.get(row.getSchoolId()));
+            EduTeacher teacher = row.getTeacherId() == null ? null : teachers.get(row.getTeacherId());
+            row.setTeacherName(teacher == null ? null : teacher.getTeacherName());
+            row.setCrossSchool(teacher != null && teacher.getSchoolId() != null
+                && !teacher.getSchoolId().equals(row.getSchoolId()));
+        }
     }
 
     @Override

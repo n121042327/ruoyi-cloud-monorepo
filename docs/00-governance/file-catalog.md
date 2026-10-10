@@ -2019,3 +2019,13 @@
 | `services/.../edu/service/impl/EduClassServiceImpl.java`（改） | `fillNames` 兜底 Map 与取值判空 | `已实现` |
 | `services/.../edu/job/ClassRosterExportHandler.java`（改） | 同类模式加固 | `已实现` |
 | `evidence/stage6-frontend/2026-10-10_stage8-acceptance-run.log` | 验收环境、解封动作、数据现状与首轮缺陷 | `review` |
+
+## 2026-10-10 阶段 8 验收缺陷修复（第二批，CR-168）
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-168.md` | 四个缺陷的现象、根因与修复 | `review` |
+| `services/.../edu/service/impl/EduClassServiceImpl.java`（改） | insertMember 落 school_id + 生效日期 | `已实现` |
+| `services/.../edu/service/impl/EduTeacherServiceImpl.java`（改） | 任教关系名称回填 + 教师列表派生字段 | `已实现` |
+| `services/.../edu/service/impl/EduStudentServiceImpl.java`（改） | 学生列表两段式派生字段 | `已实现` |
+| `evidence/stage6-frontend/2026-10-10_stage8-acceptance-run.log`（改） | 最小数据、已确认项与新缺陷 | `review` |
