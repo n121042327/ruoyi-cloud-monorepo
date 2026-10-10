@@ -5,14 +5,21 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.StringUtils;
+import org.dromara.common.core.utils.DateUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
+import org.dromara.common.redis.utils.SequenceUtils;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.edu.domain.EduStudent;
+import org.dromara.edu.domain.EduStudentEnrollment;
 import org.dromara.edu.domain.bo.EduStudentBo;
 import org.dromara.edu.domain.vo.EduStudentVo;
+import org.dromara.edu.mapper.EduStudentEnrollmentMapper;
 import org.dromara.edu.mapper.EduStudentMapper;
 import org.dromara.edu.service.IEduStudentService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
 
 import java.util.List;
 
@@ -27,7 +34,11 @@ import java.util.List;
 @Service
 public class EduStudentServiceImpl implements IEduStudentService {
 
+    /** 学籍状态：在读 */
+    private static final String STATUS_ENROLLED = "enrolled";
+
     private final EduStudentMapper baseMapper;
+    private final EduStudentEnrollmentMapper enrollmentMapper;
 
     @Override
     public TableDataInfo<EduStudentVo> queryPageList(EduStudentBo student, PageQuery pageQuery) {
@@ -47,7 +58,24 @@ public class EduStudentServiceImpl implements IEduStudentService {
 
     @Override
     public Boolean insertByBo(EduStudentBo student) {
-        // 学号由系统统一发号，前端不提交；发号与在校记录写入在同一事务内（design.md 第 5 节）
+        return insertWithEnrollment(student) != null;
+    }
+
+    /**
+     * 新增学生：发号 + 建档 + 写在校记录（同一事务）。
+     *
+     * 口径（学生 PRD 第 1.3 节「学号发号器本身是平台级公共能力，在本模块调用，不在本模块实现」）：
+     * 学号由平台级发号器 `SequenceUtils` 按「入学年份 + 6 位全局流水」生成，平台唯一且永不回收（BR-STU-001 / 019）；
+     * 在校记录带学校上下（school_id / term 对应学年）—— 学校侧读学生一律经在校记录两段式取数。
+     *
+     * @return 新学生 ID
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Long insertWithEnrollment(EduStudentBo student) {
+        if (student.getSchoolId() == null) {
+            throw new ServiceException("新增学生必须带学校上下文（DS-DENY-02）");
+        }
         EduStudent add = new EduStudent();
         add.setStudentName(student.getStudentName());
         add.setGender(student.getGender());
@@ -58,7 +86,24 @@ public class EduStudentServiceImpl implements IEduStudentService {
         add.setEnrollYear(student.getEnrollYear());
         add.setGraduationDate(student.getGraduationDate());
         add.setRemark(student.getRemark());
-        return baseMapper.insert(add) > 0;
+        // 平台级发号器：按入学年份分段，6 位流水；学号永不回收（BR-STU-001）
+        String year = student.getEnrollYear() == null
+            ? String.valueOf(java.time.LocalDate.now().getYear()) : String.valueOf(student.getEnrollYear());
+        long next = SequenceUtils.getNextId("edu:student:no:" + year,
+            Duration.ofDays(365), 1L, 1L);
+        add.setStudentNo(year + String.format("%06d", next));
+        if (baseMapper.insert(add) <= 0) {
+            throw new ServiceException("学生建档失败");
+        }
+        EduStudentEnrollment enrollment = new EduStudentEnrollment();
+        enrollment.setSchoolId(student.getSchoolId());
+        enrollment.setStudentId(add.getStudentId());
+        enrollment.setEnrollDate(DateUtils.getNowDate());
+        enrollment.setEnrollmentStatus(StringUtils.isBlank(student.getEnrollmentStatus())
+            ? STATUS_ENROLLED : student.getEnrollmentStatus());
+        enrollment.setEntryGradeId(student.getGradeId());
+        enrollmentMapper.insert(enrollment);
+        return add.getStudentId();
     }
 
     @Override

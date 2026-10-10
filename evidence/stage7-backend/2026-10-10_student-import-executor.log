@@ -1,0 +1,34 @@
+# GAP-094 第四批（其二）：学生导入执行器 + 补齐学生建档发号与在校记录（CR-145 / D-225）
+
+时间：2026-10-10　分支：codex/stage7-backend　触发：heartbeat（18:00 起每 5 分钟）
+
+## 实现中发现的能力缺口
+`EduStudentServiceImpl.insertByBo` 的注释写着「学号由系统统一发号；发号与在校记录写入在同一事务内」，
+**但实现里既没发号、也没写在校记录** —— 也就是说「新增学生」和「学生导入」这条路径此前只能落一条没有学号的
+`edu_student`，且没有在校记录（学校侧一律经在校记录取数，等于新增出来的学生谁也看不见）。
+
+## 处置
+| 层 | 改动 |
+|---|---|
+| 学生服务 | 新增 `IEduStudentService.insertWithEnrollment(EduStudentBo)`：平台级发号器 `SequenceUtils` 生成学号（入学年份 + 6 位全局流水）→ 建档 → 写 `edu_student_enrollment`（学校 / 入学日期 / 学籍状态 / 入学年级）→ 返回新学生 ID，`@Transactional` |
+| 学生服务 | `insertByBo` 改为委托给上面的方法，人工新增也一并补上发号与在校记录 |
+| 导入执行器 | 新增 `StudentImportExecutor`：幂等（证件号 / 全国学籍号已存在 → skipped）→ `insertWithEnrollment` 建档 → 监护人 `saveGuardian`（模板给了姓名才写，来源 `import`，主监护人）；不写行政班（REQ-STU-062） |
+
+## 口径（D-225）
+- **学号格式**：`入学年份(4) + 6 位全局流水`（如 `2026000001`）。上游只声明「学号发号器是平台级公共能力，
+  本模块只调用不实现」（学生 PRD 1.3），格式未冻结，因此本批按可读、可排序、平台唯一的规则落地并记录；
+  外部学号与系统学号的对照走导入结果里的「学号对照表」（BR-STU-019）。
+- **幂等**：证件号或全国学籍号已存在 → skipped（不报错），与平台唯一约束一致。
+- **监护人失败不回滚学生**：学生已建档后写监护人失败，返回 failed 并把原因写进 `edu_import_error`，
+  行号与原因都能在导入结果里看到（避免整行白做，也避免静默丢数据）。
+
+## 门禁
+```
+mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile -> BUILD SUCCESS
+七项 python 检查 -> 通过
+```
+本批只改后端，未重跑前端门禁。
+
+## 仍未完成
+- teacher 导入执行器；
+- 导入结果文件（学号对照表 / 失败明细 CSV）。

@@ -40,6 +40,13 @@ public interface IEduStudentService {
     Boolean insertByBo(EduStudentBo student);
 
     /**
+     * 新增学生：发号 + 建档 + 写在校记录（同一事务），返回新学生 ID。
+     *
+     * 导入执行阶段需要新学生 ID（写监护人 / 编班），因此单独暴露一个带返回值的入口。
+     */
+    Long insertWithEnrollment(EduStudentBo student);
+
+    /**
      * 修改学生
      *
      * @param student 学生信息

@@ -1777,3 +1777,14 @@
 | `services/.../edu/job/EduAsyncTaskExecutor.java`（改） | 领取范围放开到导入任务 | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-094 第四批进度更新 | `review` |
 | `evidence/stage7-backend/2026-10-10_import-execution-and-class-roster.log` | 门禁与未完成项 | `review` |
+
+## 2026-10-10 阶段 7 第六十四批：学生导入执行器 + 学号发号与在校记录
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-145.md` | 执行器、发号规则与失败取舍 | `review` |
+| `services/.../edu/service/IEduStudentService.java`（改） | 新增 insertWithEnrollment | `已实现` |
+| `services/.../edu/service/impl/EduStudentServiceImpl.java`（改） | SequenceUtils 发号 + 在校记录；insertByBo 委托 | `已实现` |
+| `services/.../edu/job/StudentImportExecutor.java` | 学生导入执行器（幂等 + 建档 + 监护人） | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-094 第四批进度更新 | `review` |
+| `evidence/stage7-backend/2026-10-10_student-import-executor.log` | 门禁与口径记录 | `review` |
