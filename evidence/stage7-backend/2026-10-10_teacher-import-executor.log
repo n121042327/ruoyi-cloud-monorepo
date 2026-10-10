@@ -1,0 +1,28 @@
+# GAP-094 第四批（其三）：教师导入执行器（CR-146 / D-226 / GAP-116）
+
+时间：2026-10-10　分支：codex/stage7-backend　触发：heartbeat（18:00 起每 5 分钟）
+
+## 交付
+`job/TeacherImportExecutor implements EduImportExecutor`（模块编码 `teacher`）：
+幂等（工号在本校已存在 → skipped）→ 建档（复用 `IEduTeacherService.insertByBo`，与教师页新增同一条路径）
+→ 教育角色（`IEduTeacherService.saveRole`，模板里的中文角色码值化）。
+
+## 一个只能登记缺项的判断：账号不在导入路径创建
+- 教师导入模板 9 列（PRD 4.8）里**没有「登录名」列**；
+- `BR-ACCOUNT-001` 规定「教师登录名由学校统一分配，规则沿用现有基线」；
+- `REQ-TCH-018` 说「保存成功后自动创建教师登录账号，登录名规则沿用基线」——但基线是**学校分配**，
+  导入模板里没有这个输入；初始密码同样没有依据。
+
+因此本批**不自行编排登录名 / 初始密码规则**（这是安全相关、且缺乏上游依据），教师账号由管理员在教师页开通；
+登记 **GAP-116**（四段式：这是什么 / 不选会怎样 / 可选项 / 推荐方案）。
+
+## 门禁
+```
+mvn -o -DskipTests -pl ruoyi-modules/ruoyi-edu -am compile -> BUILD SUCCESS
+七项 python 检查 -> 通过
+```
+本批只改后端，未重跑前端门禁。
+
+## 状态
+导入执行器三个模块全部落地：class_roster（d070f23）、student（37937db）、teacher（本批）。
+GAP-094 只剩结果文件（学号对照表 / 失败明细 CSV）与导入完成后的审计。

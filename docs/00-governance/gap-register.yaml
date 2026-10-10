@@ -3007,7 +3007,9 @@ gaps:
       CR-145 进展（2026-10-10）：student 导入执行器落地，并补齐了 `EduStudentServiceImpl.insertByBo`
       此前既不发号也不写在读记录的缺口（新增 insertWithEnrollment：平台级 SequenceUtils 发号 + 建档 + 在校记录，
       人工新增与导入共用；学号格式见 D-225）。
-      **仍未完成**：teacher 导入执行器（建档 + 账号 + 教育角色）；结果文件（学号对照表 / 失败明细文件）与导入完成后的审计。
+      CR-146 进展（2026-10-10）：teacher 导入执行器落地（幂等 + 建档 + 教育角色；账号不在导入路径创建，
+      见 GAP-116 / D-226）—— **导入执行器三个模块（class_roster / student / teacher）全部落地**。
+      **仍未完成**：结果文件（学生导入的学号对照表 REQ-STU-058 / 失败明细 CSV BR-IMP-006）与导入完成后的审计。
       CR-133 复核（2026-10-10）：全模块扫描确认 ruoyi-edu 内无 `@Scheduled` / `@XxlJob` / MQ 监听，
       `edu_async_task` 无人消费 —— 校验、执行、导出三条链路都停在「写任务 / 写批次」这一步；
       本批同时并入 GAP-110（任教关系导出缺执行器，实为同一执行器的导出半边）。
@@ -3782,6 +3784,31 @@ open_questions_for_user:
       **推荐方案 1**：与「学校上下文必须显式」的硬约束一致，也和前端已有的学校下拉复用同一份数据；
       影响面：`EduImportValidateBo` 增 `schoolId`（可选）、校验器优先用它、前端三个导入页在
       「选择模块」旁加目标学校（学校租户隐藏）。
+    blocking: false
+    blocks_stages:
+      - stage8
+    owner: 用户
+    status: open
+  - id: GAP-116
+    title: 教师导入模板缺「登录名」列，导入后的教师账号如何开通未定义
+    discovered_at: 2026-10-10
+    discovered_by: GAP-094 第四批其三（教师导入执行器，CR-146）
+    evidence: "docs/10-prd/modules/teacher/PRD.md 第 4.8 节「导入模板列」9 列为 工号/姓名/性别/所属学校/手机号/邮箱/入职日期/教育角色/备注 —— 没有登录名；同文档 04-business-rules 的 BR-ACCOUNT-001 规定「教师与管理人员使用系统账号登录，登录名由学校统一分配，规则沿用现有基线」；REQ-TCH-018 则要求「保存成功后自动创建教师登录账号」。EduTeacherServiceImpl.insertByBo 只在入参带 loginName 时才调用 RemoteUserService.registerUserInfo 建账号，因此导入（以及教师页新增，表单也没有登录名输入）都不会建账号"
+    expected: 导入完成后的教师能有系统账号可用，且登录名与初始密码规则符合学校口径
+    actual: 导入只建教师档案与教育角色，不建账号；账号需要管理员后续开通
+    impact: |
+      **不选会怎样**：导入进来的教师无法登录；若由实现者自行编排登录名与初始密码，
+      等于凭空定下两条安全策略（谁能猜到登录名、初始口令多强），与「学校统一分配」冲突且难以收回。
+    options:
+      - "教师导入模板增加「登录名」「初始密码」两列（阶段 1 产物新版本，需确认），导入时按列建账号（推荐）"
+      - "导入后由管理员在教师页逐个开通账号（现状，功能可用但量大时费时）"
+      - "由学校统一规则自动生成登录名（如登录名 = 工号、初始密码 = 手机号后六位）——需要用户确认这条安全策略"
+    recommended: |
+      **推荐方案 1**：模板加列最贴近 BR-ACCOUNT-001 的「学校统一分配」，且与导入「一行一个教师」的形态一致；
+      同时把「初始密码」也交给学校填写（或下发一次性激活码，与学生的 BR-ACCOUNT-003 同思路）。
+      影响面：教师 PRD 4.8 表格、教师导入页模板说明、`TeacherImportHandler.templateHeaders()`、
+      `TeacherImportExecutor` 建账号分支。**在用户确认前保持现状**（导入只建档），并在导入结果与页面提示里
+      说明「账号需另行开通」。
     blocking: false
     blocks_stages:
       - stage8

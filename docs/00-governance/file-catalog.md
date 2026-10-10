@@ -1788,3 +1788,12 @@
 | `services/.../edu/job/StudentImportExecutor.java` | 学生导入执行器（幂等 + 建档 + 监护人） | `已实现` |
 | `docs/00-governance/gap-register.yaml`（改） | GAP-094 第四批进度更新 | `review` |
 | `evidence/stage7-backend/2026-10-10_student-import-executor.log` | 门禁与口径记录 | `review` |
+
+## 2026-10-10 阶段 7 第六十五批：教师导入执行器
+
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `docs/00-governance/change-requests/CR-146.md` | 执行器与账号口径 | `review` |
+| `services/.../edu/job/TeacherImportExecutor.java` | 教师导入执行器（幂等 + 建档 + 教育角色） | `已实现` |
+| `docs/00-governance/gap-register.yaml`（改） | GAP-094 进度更新；新增 GAP-116 | `review` |
+| `evidence/stage7-backend/2026-10-10_teacher-import-executor.log` | 门禁与缺项说明 | `review` |
